@@ -13,8 +13,10 @@ import type { Account, ExchangeRate } from "@pocketcare/types";
 
 // Entitlement tier comes from a local reactive store (see src/tier.ts).
 export { useTier } from "./tier";
-// Base currency (default INR) + amount masking come from a reactive store.
-export { useBaseCurrency } from "./prefs";
+// Base currency (default INR) comes from a reactive store. Import locally (so
+// hooks in this file can call it) AND re-export for consumers.
+import { useBaseCurrency } from "./prefs";
+export { useBaseCurrency };
 
 /** A rate lookup backed by the synced exchange_rates table (latest per pair). */
 export function useRates(): RateLookup {
