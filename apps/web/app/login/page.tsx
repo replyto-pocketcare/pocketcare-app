@@ -44,21 +44,31 @@ export default function LoginPage() {
     setBusy(true);
     try {
       const supabase = getSupabase();
-      // Attach the email to the current (guest) user and store the username.
-      const { data, error } = await supabase.auth.updateUser({ email: emailTrim, data: { username: username.trim() } });
-      if (error) throw error;
+      // One-shot: set email + password + username on the guest user. When email
+      // confirmation is OFF in Supabase, this converts the account immediately
+      // with no email. When it's ON, this may fail (password before verified
+      // email) and we fall back to the email-only + OTP flow below.
+      try {
+        const { error } = await supabase.auth.updateUser({ email: emailTrim, password, data: { username: username.trim() } });
+        if (error) throw error;
+      } catch {
+        const { error } = await supabase.auth.updateUser({ email: emailTrim, data: { username: username.trim() } });
+        if (error) throw error;
+      }
+
+      // Re-read the actual current user (updateUser's return can be stale).
+      const { data } = await supabase.auth.getUser();
       const user = data.user as (typeof data.user & { is_anonymous?: boolean }) | null;
-      // If email confirmation is OFF in Supabase, the email is applied immediately
-      // and the account is already permanent — set the password now and finish,
-      // no OTP email required.
+
       if (user?.email && !user.is_anonymous) {
-        const { error: pErr } = await supabase.auth.updateUser({ password });
-        if (pErr) throw pErr;
+        // Already permanent (confirmations off) — make sure the password is set.
+        await supabase.auth.updateUser({ password }).catch(() => {});
         setMsg("Account created — taking you home…");
         finishHome();
         return;
       }
-      // Otherwise Supabase sent a verification email; collect the code.
+
+      // Confirmation is on → Supabase sent a verification email; collect the code.
       setStep("otp");
       setMsg(`We sent a 6-digit code to ${emailTrim}. Enter it below to verify your email.`);
     } catch (e) {
