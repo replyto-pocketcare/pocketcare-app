@@ -314,8 +314,11 @@ export class PowerSyncBudgetRepository implements BudgetRepository {
       where.push("category_id = ?");
       params.push(budget.scope_ref);
     } else if (budget.scope === "label" && budget.scope_ref) {
-      where.push("label = ?");
-      params.push(budget.scope_ref);
+      // Transactions may carry multiple comma-joined labels ("Work, Trip"), so
+      // match the label as a whole token (exact / start / middle / end).
+      const n = budget.scope_ref;
+      where.push("(label = ? OR label LIKE ? OR label LIKE ? OR label LIKE ?)");
+      params.push(n, `${n}, %`, `%, ${n}`, `%, ${n}, %`);
     }
     const row = await this.db.get<{ total: number | null }>(
       `SELECT COALESCE(SUM(amount), 0) AS total FROM transactions WHERE ${where.join(" AND ")}`,

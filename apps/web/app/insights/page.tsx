@@ -33,11 +33,20 @@ export default function InsightsPage() {
   );
   const catData = byCat.map((r) => ({ name: r.name ?? "Uncategorised", value: major(r.total) }));
 
-  // By label.
-  const { data: byLabel = [] } = useQuery<{ label: string | null; total: number }>(
-    "SELECT label, SUM(amount) as total FROM transactions WHERE deleted_at IS NULL AND type='expense' AND label IS NOT NULL AND label != '' GROUP BY label ORDER BY total DESC LIMIT 8",
+  // By label — split comma-joined labels so each is counted individually.
+  const { data: labelRows = [] } = useQuery<{ label: string | null; total: number }>(
+    "SELECT label, amount as total FROM transactions WHERE deleted_at IS NULL AND type='expense' AND label IS NOT NULL AND label != ''",
   );
-  const labelData = byLabel.map((r) => ({ name: r.label ?? "—", value: major(r.total) }));
+  const labelTotals = new Map<string, number>();
+  for (const r of labelRows) {
+    for (const name of (r.label ?? "").split(",").map((s) => s.trim()).filter(Boolean)) {
+      labelTotals.set(name, (labelTotals.get(name) ?? 0) + r.total);
+    }
+  }
+  const labelData = [...labelTotals.entries()]
+    .map(([name, total]) => ({ name, value: major(total) }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
 
   // Period-to-period comparison (this vs last month).
   const now = new Date();
