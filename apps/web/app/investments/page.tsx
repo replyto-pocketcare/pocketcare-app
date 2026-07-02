@@ -22,7 +22,7 @@ export default function InvestmentsPage() {
   const base = useBaseCurrency();
   const { data: holdings = [] } = useQuery<Holding>("SELECT * FROM holdings WHERE deleted_at IS NULL ORDER BY created_at");
   const { data: invAccounts = [] } = useQuery<{ id: string; name: string; currency: string }>(
-    "SELECT id, name, currency FROM accounts WHERE deleted_at IS NULL AND type IN ('stocks','mutual_funds')",
+    "SELECT id, name, currency FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND type IN ('stocks','mutual_funds')",
   );
 
   const [symbol, setSymbol] = useState(""); const [qty, setQty] = useState(""); const [cost, setCost] = useState("");

@@ -45,10 +45,14 @@ export interface AccountWithBalance {
   balance: Money;
 }
 
-/** All accounts with their ledger-derived balances (reactive). */
-export function useAccountBalances(): AccountWithBalance[] {
+/** All accounts with their ledger-derived balances (reactive).
+ *  Archived accounts are excluded unless `includeArchived` is true. */
+export function useAccountBalances(includeArchived = false): AccountWithBalance[] {
+  const where = includeArchived
+    ? "deleted_at IS NULL"
+    : "deleted_at IS NULL AND IFNULL(is_archived, 0) = 0";
   const { data: accounts = [] } = useQuery<WebAccount>(
-    "SELECT * FROM accounts WHERE deleted_at IS NULL ORDER BY created_at",
+    `SELECT * FROM accounts WHERE ${where} ORDER BY created_at`,
   );
   const { data: entries = [] } = useQuery<LedgerEntry & { account_id: string }>(
     "SELECT type, account_id, amount, to_account_id, to_amount FROM transactions WHERE deleted_at IS NULL",

@@ -26,7 +26,7 @@ export default function GoalsPage() {
     "SELECT goal_id, amount_blocked FROM goal_allocations WHERE deleted_at IS NULL",
   );
   const { data: savings = [] } = useQuery<{ id: string; name: string; currency: string }>(
-    "SELECT id, name, currency FROM accounts WHERE deleted_at IS NULL AND type = 'savings'",
+    "SELECT id, name, currency FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND type = 'savings'",
   );
 
   const saved = (goalId: string) => allocs.filter((a) => a.goal_id === goalId).reduce((s, a) => s + a.amount_blocked, 0);
