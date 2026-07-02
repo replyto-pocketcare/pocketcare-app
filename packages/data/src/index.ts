@@ -12,7 +12,8 @@ export interface NewTransactionInput {
   type: Transaction["type"];
   amount: Money;
   category_id?: string | null;
-  label?: string | null;
+  /** Label names to attach; resolved to label rows (find-or-create) and written to transaction_labels. */
+  labels?: string[] | null;
   note?: string | null;
   description?: string | null;
   payment_method?: string | null;
@@ -60,7 +61,8 @@ export interface EditTransactionInput {
   account_id?: string;
   amount?: Money;
   category_id?: string | null;
-  label?: string | null;
+  /** When provided, replaces the transaction's labels (find-or-create + rewrite junction). */
+  labels?: string[] | null;
   note?: string | null;
   description?: string | null;
   payment_method?: string | null;
@@ -92,12 +94,6 @@ export interface BalanceRepository {
 export interface BudgetLike {
   id: string;
   name?: string | null;
-  scope: "overall" | "category" | "label";
-  scope_ref: string | null;
-  /** Comma-joined category ids this budget tracks (multi-select). */
-  category_ids?: string | null;
-  /** Comma-joined label names this budget tracks (multi-select). */
-  label_names?: string | null;
   period: import("@pocketcare/types").Period;
   /** Optional fixed timeframe; when set it overrides the recurring period. */
   start_date?: string | null;

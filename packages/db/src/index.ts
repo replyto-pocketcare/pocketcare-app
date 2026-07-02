@@ -28,7 +28,6 @@ const transactions = new Table(
     amount: column.integer,
     currency: column.text,
     category_id: column.text,
-    label: column.text,
     note: column.text,
     description: column.text,
     payment_method: column.text,
@@ -43,6 +42,29 @@ const transactions = new Table(
   },
   { indexes: { by_account: ["account_id", "occurred_at"] } },
 );
+
+// --- Lookup tables (global reference; id = code, plus a display label) ---
+const lookup = () => new Table({ label: column.text, sort: column.integer });
+const account_types = lookup();
+const transaction_types = lookup();
+const category_kinds = lookup();
+const periods = lookup();
+const commitment_kinds = lookup();
+const tiers = lookup();
+const rate_modes = lookup();
+const payment_methods = lookup();
+const account_type_payment_methods = new Table({
+  account_type_id: column.text,
+  payment_method_id: column.text,
+});
+
+// --- Junction tables (many-to-many) ---
+const transaction_labels = new Table(
+  { user_id: column.text, transaction_id: column.text, label_id: column.text, created_at: column.text },
+  { indexes: { by_txn: ["transaction_id"], by_label: ["label_id"] } },
+);
+const budget_categories = new Table({ user_id: column.text, budget_id: column.text, category_id: column.text });
+const budget_labels = new Table({ user_id: column.text, budget_id: column.text, label_id: column.text });
 
 const transaction_items = new Table(
   {
@@ -104,10 +126,6 @@ const credit_card_details = new Table({
 const budgets = new Table({
   user_id: column.text,
   name: column.text,
-  scope: column.text,
-  scope_ref: column.text,
-  category_ids: column.text,
-  label_names: column.text,
   period: column.text,
   start_date: column.text,
   end_date: column.text,
@@ -214,12 +232,15 @@ const exchange_rates = new Table(
 export const AppSchema = new Schema({
   accounts,
   transactions,
+  transaction_labels,
   transaction_items,
   transaction_audit,
   categories,
   labels,
   credit_card_details,
   budgets,
+  budget_categories,
+  budget_labels,
   goals,
   goal_allocations,
   recurring_commitments,
@@ -227,6 +248,16 @@ export const AppSchema = new Schema({
   loans,
   holdings,
   exchange_rates,
+  // Lookup / reference tables
+  account_types,
+  transaction_types,
+  category_kinds,
+  periods,
+  commitment_kinds,
+  tiers,
+  rate_modes,
+  payment_methods,
+  account_type_payment_methods,
 });
 
 export type Database = (typeof AppSchema)["types"];

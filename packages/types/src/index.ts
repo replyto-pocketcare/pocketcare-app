@@ -101,7 +101,6 @@ export interface Transaction extends BaseRow {
   amount: number;
   currency: CurrencyCode;
   category_id: string | null;
-  label: string | null;
   note: string | null;
   description: string | null;
   payment_method: string | null;

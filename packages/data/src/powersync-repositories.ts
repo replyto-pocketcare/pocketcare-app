@@ -115,6 +115,43 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     private readonly getUserId: () => string,
   ) {}
 
+  /**
+   * Resolve label names to label ids inside an open write tx (find-or-create),
+   * then rewrite this transaction's rows in the transaction_labels junction.
+   */
+  private async writeLabels(
+    tx: { execute: AbstractPowerSyncDatabase["execute"]; getOptional: AbstractPowerSyncDatabase["getOptional"] },
+    userId: string,
+    transactionId: string,
+    labelNames: string[],
+    ts: string,
+  ): Promise<void> {
+    // Clear existing links (used by both create — no-op — and update — replace).
+    await tx.execute("DELETE FROM transaction_labels WHERE transaction_id = ?", [transactionId]);
+    const seen = new Set<string>();
+    for (const raw of labelNames) {
+      const name = raw.trim();
+      if (!name || seen.has(name.toLowerCase())) continue;
+      seen.add(name.toLowerCase());
+      let label = await tx.getOptional<{ id: string }>(
+        "SELECT id FROM labels WHERE user_id = ? AND name = ? AND deleted_at IS NULL",
+        [userId, name],
+      );
+      if (!label) {
+        const labelId = uuid();
+        await tx.execute(
+          "INSERT INTO labels (id,user_id,name,color,created_at,updated_at) VALUES (?,?,?,?,?,?)",
+          [labelId, userId, name, null, ts, ts],
+        );
+        label = { id: labelId };
+      }
+      await tx.execute(
+        "INSERT INTO transaction_labels (id,user_id,transaction_id,label_id,created_at) VALUES (?,?,?,?,?)",
+        [uuid(), userId, transactionId, label.id, ts],
+      );
+    }
+  }
+
   /** Atomic write of a transaction + its breakdown items, with reconcile guard. */
   async create(input: NewTransactionInput): Promise<Transaction> {
     const items = input.items ?? [];
@@ -141,7 +178,6 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
       amount: input.amount.amount,
       currency: input.amount.currency,
       category_id: input.category_id ?? null,
-      label: input.label ?? null,
       note: input.note ?? null,
       description: input.description ?? null,
       payment_method: input.payment_method ?? null,
@@ -158,12 +194,12 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     await this.db.writeTransaction(async (tx) => {
       await tx.execute(
         `INSERT INTO transactions
-          (id,user_id,account_id,type,amount,currency,category_id,label,note,description,payment_method,occurred_at,
+          (id,user_id,account_id,type,amount,currency,category_id,note,description,payment_method,occurred_at,
            transfer_group_id,to_account_id,to_amount,fx_rate,created_at,updated_at)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [
           row.id, row.user_id, row.account_id, row.type, row.amount, row.currency,
-          row.category_id, row.label, row.note, row.description, row.payment_method, row.occurred_at, row.transfer_group_id,
+          row.category_id, row.note, row.description, row.payment_method, row.occurred_at, row.transfer_group_id,
           row.to_account_id, row.to_amount, row.fx_rate, ts, ts,
         ],
       );
@@ -174,6 +210,8 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
           [uuid(), userId, id, item.description, item.amount.amount, ts, ts],
         );
       }
+      const labels = input.labels ?? [];
+      if (labels.length) await this.writeLabels(tx, userId, id, labels, ts);
     });
 
     return row;
@@ -197,9 +235,15 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
   async search(query: string, limit = 50): Promise<Transaction[]> {
     const like = `%${query}%`;
     return this.db.getAll<Transaction>(
-      `SELECT * FROM transactions
-       WHERE deleted_at IS NULL AND (label LIKE ? OR note LIKE ? OR description LIKE ?)
-       ORDER BY occurred_at DESC LIMIT ?`,
+      `SELECT t.* FROM transactions t
+       WHERE t.deleted_at IS NULL AND (
+         t.note LIKE ? OR t.description LIKE ?
+         OR EXISTS (
+           SELECT 1 FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id
+           WHERE tl.transaction_id = t.id AND l.name LIKE ?
+         )
+       )
+       ORDER BY t.occurred_at DESC LIMIT ?`,
       [like, like, like, limit],
     );
   }
@@ -223,7 +267,6 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     track("account_id", before.account_id, patch.account_id);
     track("amount", before.amount, patch.amount?.amount);
     track("category_id", before.category_id, patch.category_id);
-    track("label", before.label, patch.label);
     track("note", before.note, patch.note);
     track("description", before.description, patch.description);
     track("payment_method", before.payment_method, patch.payment_method);
@@ -231,7 +274,8 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     track("to_account_id", before.to_account_id, patch.to_account_id);
     track("to_amount", before.to_amount, patch.to_amount?.amount ?? undefined);
 
-    if (sets.length === 0) return;
+    const relabel = patch.labels !== undefined && patch.labels !== null;
+    if (sets.length === 0 && !relabel) return;
 
     const ts = nowIso();
     await this.db.writeTransaction(async (tx) => {
@@ -239,9 +283,15 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
       if (changes.amount) {
         await tx.execute("UPDATE transaction_items SET deleted_at = ?, updated_at = ? WHERE transaction_id = ? AND deleted_at IS NULL", [ts, ts, id]);
       }
-      sets.push("updated_at = ?");
-      params.push(ts, id);
-      await tx.execute(`UPDATE transactions SET ${sets.join(", ")} WHERE id = ?`, params);
+      if (relabel) {
+        await this.writeLabels(tx, before.user_id, id, patch.labels ?? [], ts);
+        changes.labels = { from: "(prev)", to: (patch.labels ?? []).join(", ") };
+      }
+      if (sets.length > 0) {
+        sets.push("updated_at = ?");
+        params.push(ts, id);
+        await tx.execute(`UPDATE transactions SET ${sets.join(", ")} WHERE id = ?`, params);
+      }
       await tx.execute(
         `INSERT INTO transaction_audit (id, user_id, transaction_id, action, changes, created_at) VALUES (?,?,?,?,?,?)`,
         [uuid(), before.user_id, id, "update", JSON.stringify(changes), ts],
@@ -287,11 +337,11 @@ export class PowerSyncBudgetRepository implements BudgetRepository {
 
   async list(): Promise<BudgetLike[]> {
     return this.db.getAll<BudgetLike>(
-      "SELECT id, name, scope, scope_ref, category_ids, label_names, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL",
+      "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL",
     );
   }
 
-  /** Sum of expenses in the budget's window (custom range or current period), honoring scope. */
+  /** Sum of expenses in the budget's window (custom range or current period), honoring its category/label junctions. */
   async spentThisPeriod(budget: BudgetLike, asOf = new Date()): Promise<Money> {
     let start: Date;
     let endExclusive: Date;
@@ -303,40 +353,48 @@ export class PowerSyncBudgetRepository implements BudgetRepository {
       ({ start, endExclusive } = periodBounds(budget.period, asOf));
     }
     const where: string[] = [
-      "type = 'expense'",
-      "deleted_at IS NULL",
-      "occurred_at >= ?",
-      "occurred_at < ?",
-      "currency = ?",
+      "t.type = 'expense'",
+      "t.deleted_at IS NULL",
+      "t.occurred_at >= ?",
+      "t.occurred_at < ?",
+      "t.currency = ?",
     ];
     const params: (string | number)[] = [
       start.toISOString(),
       endExclusive.toISOString(),
       budget.currency,
     ];
-    // Multi-select categories/labels. Fall back to the legacy single scope_ref.
-    const split = (s?: string | null) => (s ?? "").split(",").map((x) => x.trim()).filter(Boolean);
-    const catIds = split(budget.category_ids);
-    const labelNames = split(budget.label_names);
-    if (catIds.length === 0 && labelNames.length === 0 && budget.scope_ref) {
-      if (budget.scope === "category") catIds.push(budget.scope_ref);
-      else if (budget.scope === "label") labelNames.push(budget.scope_ref);
-    }
+    // Scope from the junction tables (category ids and label ids this budget tracks).
+    const catIds = (
+      await this.db.getAll<{ category_id: string }>(
+        "SELECT category_id FROM budget_categories WHERE budget_id = ?",
+        [budget.id],
+      )
+    ).map((r) => r.category_id);
+    const labelIds = (
+      await this.db.getAll<{ label_id: string }>(
+        "SELECT label_id FROM budget_labels WHERE budget_id = ?",
+        [budget.id],
+      )
+    ).map((r) => r.label_id);
 
     const ors: string[] = [];
     if (catIds.length) {
-      ors.push(`category_id IN (${catIds.map(() => "?").join(",")})`);
+      ors.push(`t.category_id IN (${catIds.map(() => "?").join(",")})`);
       params.push(...catIds);
     }
-    for (const n of labelNames) {
-      // Transactions may carry multiple comma-joined labels — match a whole token.
-      ors.push("(label = ? OR label LIKE ? OR label LIKE ? OR label LIKE ?)");
-      params.push(n, `${n}, %`, `%, ${n}`, `%, ${n}, %`);
+    if (labelIds.length) {
+      ors.push(
+        `EXISTS (SELECT 1 FROM transaction_labels tl WHERE tl.transaction_id = t.id AND tl.label_id IN (${labelIds
+          .map(() => "?")
+          .join(",")}))`,
+      );
+      params.push(...labelIds);
     }
     if (ors.length) where.push(`(${ors.join(" OR ")})`);
     // No categories/labels selected → overall (all expenses).
     const row = await this.db.get<{ total: number | null }>(
-      `SELECT COALESCE(SUM(amount), 0) AS total FROM transactions WHERE ${where.join(" AND ")}`,
+      `SELECT COALESCE(SUM(t.amount), 0) AS total FROM transactions t WHERE ${where.join(" AND ")}`,
       params,
     );
     return money(row.total ?? 0, budget.currency);
@@ -389,7 +447,7 @@ export class PowerSyncCreditCardRepository implements CreditCardRepository {
       amount: input.amount,
       to_account_id: input.cardAccountId,
       to_amount: input.toAmount ?? null,
-      label: "Credit card settlement",
+      note: "Credit card settlement",
       occurred_at: input.occurredAt,
     });
   }

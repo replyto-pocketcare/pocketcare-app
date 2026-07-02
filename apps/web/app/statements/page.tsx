@@ -18,8 +18,10 @@ export default function StatementsPage() {
 
   const startIso = new Date(start).toISOString();
   const endIso = new Date(new Date(end).getTime() + 86_400_000).toISOString();
-  const { data: rows = [] } = useQuery<Transaction>(
-    "SELECT * FROM transactions WHERE deleted_at IS NULL AND type != 'opening_balance' AND occurred_at >= ? AND occurred_at < ? ORDER BY occurred_at",
+  const { data: rows = [] } = useQuery<Transaction & { labels: string | null }>(
+    `SELECT t.*,
+       (SELECT GROUP_CONCAT(l.name, ', ') FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS labels
+     FROM transactions t WHERE t.deleted_at IS NULL AND t.type != 'opening_balance' AND t.occurred_at >= ? AND t.occurred_at < ? ORDER BY t.occurred_at`,
     [startIso, endIso],
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories");
@@ -81,7 +83,7 @@ export default function StatementsPage() {
             {rows.map((r) => (
               <tr key={r.id} style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={{ padding: "8px 6px" }}>{new Date(r.occurred_at).toLocaleDateString()}</td>
-                <td>{r.label || r.type}</td>
+                <td>{r.labels || r.description || r.type}</td>
                 <td className="muted">{catName(r.category_id)}</td>
                 <td style={{ textAlign: "right", color: r.type === "income" ? "var(--positive)" : r.type === "expense" ? "var(--negative)" : "var(--text)" }}>
                   {r.type === "expense" ? "−" : r.type === "income" ? "+" : ""}{format(money(r.amount, r.currency), "en-US")}

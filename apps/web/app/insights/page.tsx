@@ -33,20 +33,16 @@ export default function InsightsPage() {
   );
   const catData = byCat.map((r) => ({ name: r.name ?? "Uncategorised", value: major(r.total) }));
 
-  // By label — split comma-joined labels so each is counted individually.
-  const { data: labelRows = [] } = useQuery<{ label: string | null; total: number }>(
-    "SELECT label, amount as total FROM transactions WHERE deleted_at IS NULL AND type='expense' AND label IS NOT NULL AND label != ''",
+  // By label — aggregate expense amounts across the transaction_labels junction.
+  const { data: labelRows = [] } = useQuery<{ name: string; total: number }>(
+    `SELECT l.name AS name, SUM(t.amount) AS total
+     FROM transaction_labels tl
+     JOIN labels l ON l.id = tl.label_id
+     JOIN transactions t ON t.id = tl.transaction_id
+     WHERE t.deleted_at IS NULL AND t.type='expense'
+     GROUP BY l.id ORDER BY total DESC LIMIT 8`,
   );
-  const labelTotals = new Map<string, number>();
-  for (const r of labelRows) {
-    for (const name of (r.label ?? "").split(",").map((s) => s.trim()).filter(Boolean)) {
-      labelTotals.set(name, (labelTotals.get(name) ?? 0) + r.total);
-    }
-  }
-  const labelData = [...labelTotals.entries()]
-    .map(([name, total]) => ({ name, value: major(total) }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 8);
+  const labelData = labelRows.map((r) => ({ name: r.name, value: major(r.total) }));
 
   // Period-to-period comparison (this vs last month).
   const now = new Date();

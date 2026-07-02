@@ -23,8 +23,10 @@ export default function Dashboard() {
 
   const fmt = (m: Money) => (hidden ? "••••••" : format(m, "en-US"));
 
-  const { data: recent = [] } = useQuery<Transaction>(
-    "SELECT * FROM transactions WHERE deleted_at IS NULL AND type != 'opening_balance' ORDER BY occurred_at DESC LIMIT 8",
+  const { data: recent = [] } = useQuery<Transaction & { labels: string | null }>(
+    `SELECT t.*,
+       (SELECT GROUP_CONCAT(l.name, ', ') FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS labels
+     FROM transactions t WHERE t.deleted_at IS NULL AND t.type != 'opening_balance' ORDER BY t.occurred_at DESC LIMIT 8`,
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL");
   const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? "Uncategorised";
@@ -115,7 +117,7 @@ export default function Dashboard() {
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <span style={{ width: 8, height: 8, borderRadius: 999, background: acctColor(t.account_id) }} />
                   <div>
-                    <div style={{ fontWeight: 550 }}>{t.label || catName(t.category_id)}</div>
+                    <div style={{ fontWeight: 550 }}>{t.labels || catName(t.category_id)}</div>
                     <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleDateString()} · {t.type}</div>
                   </div>
                 </div>

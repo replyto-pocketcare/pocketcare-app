@@ -14,16 +14,7 @@ type TxType = "expense" | "income" | "transfer";
 let counter = 0;
 const newItem = () => ({ id: `i${++counter}`, description: "", value: "" });
 
-/** Payment methods available for an account type. */
-function methodsFor(accountType?: string): string[] {
-  switch (accountType) {
-    case "credit_card": return ["Credit Card"];
-    case "cash": return ["Cash"];
-    case "savings":
-    case "current": return ["UPI", "Debit Card", "Net Banking"];
-    default: return []; // stocks / mutual funds — moved via transfers only
-  }
-}
+interface PayMethod { id: string; label: string }
 
 export default function NewTransactionPage() {
   const router = useRouter();
@@ -35,6 +26,11 @@ export default function NewTransactionPage() {
   );
   const { data: labelList = [] } = useQuery<{ id: string; name: string; color: string | null }>(
     "SELECT id, name, color FROM labels WHERE deleted_at IS NULL ORDER BY name",
+  );
+  const { data: payMethodMap = [] } = useQuery<PayMethod & { account_type_id: string }>(
+    `SELECT pm.id, pm.label, m.account_type_id
+     FROM account_type_payment_methods m JOIN payment_methods pm ON pm.id = m.payment_method_id
+     ORDER BY pm.sort`,
   );
 
   const [type, setType] = useState<TxType>("expense");
@@ -59,11 +55,14 @@ export default function NewTransactionPage() {
     if (isInvestment && type !== "transfer") setType("transfer");
   }, [isInvestment, type]);
 
-  // Payment methods depend on the account type.
-  const paymentMethods = methodsFor(account?.type);
+  // Payment methods depend on the account type (from the lookup mapping table).
+  const paymentMethods: PayMethod[] = useMemo(
+    () => payMethodMap.filter((m) => m.account_type_id === account?.type),
+    [payMethodMap, account?.type],
+  );
   useEffect(() => {
-    setPaymentMethod(paymentMethods[0] ?? "");
-  }, [account?.id, account?.type]);
+    setPaymentMethod(paymentMethods[0]?.id ?? "");
+  }, [account?.id, account?.type, paymentMethods.length]);
 
   const itemMoneys: Money[] = useMemo(
     () => items.map((it) => fromMajor(Number.parseFloat(it.value) || 0, currency)),
@@ -88,8 +87,6 @@ export default function NewTransactionPage() {
   const canSave =
     !!account && total.amount > 0 && !saving && (type !== "transfer" || (!!toAccount && toAccount.id !== account.id));
 
-  const labelValue = selectedLabels.join(", ") || null;
-
   async function save() {
     if (!account || !canSave) return;
     setSaving(true);
@@ -102,7 +99,7 @@ export default function NewTransactionPage() {
           amount: total,
           to_account_id: toAccount.id,
           to_amount: crossCurrency ? fromMajor(Number.parseFloat(toValue) || 0, toAccount.currency) : null,
-          label: labelValue,
+          labels: selectedLabels,
           description: description.trim() || null,
           occurred_at: new Date().toISOString(),
         });
@@ -118,7 +115,7 @@ export default function NewTransactionPage() {
           type,
           amount: total,
           category_id: categoryId,
-          label: labelValue,
+          labels: selectedLabels,
           description: description.trim() || null,
           payment_method: paymentMethod || null,
           occurred_at: new Date().toISOString(),
@@ -236,7 +233,7 @@ export default function NewTransactionPage() {
         <Field label="Payment method">
           <div style={chips}>
             {paymentMethods.map((m) => (
-              <button key={m} className="chip" data-active={m === paymentMethod} onClick={() => setPaymentMethod(m)}>{m}</button>
+              <button key={m.id} className="chip" data-active={m.id === paymentMethod} onClick={() => setPaymentMethod(m.id)}>{m.label}</button>
             ))}
           </div>
         </Field>

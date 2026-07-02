@@ -20,8 +20,11 @@ export default function SearchPage() {
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
 
-  const { data: rows = [] } = useQuery<Transaction>(
-    "SELECT * FROM transactions WHERE deleted_at IS NULL AND type != 'opening_balance' ORDER BY occurred_at DESC LIMIT 2000",
+  const { data: rows = [] } = useQuery<Transaction & { labels: string | null; method_label: string | null }>(
+    `SELECT t.*,
+       (SELECT GROUP_CONCAT(l.name, ', ') FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS labels,
+       (SELECT pm.label FROM payment_methods pm WHERE pm.id = t.payment_method) AS method_label
+     FROM transactions t WHERE t.deleted_at IS NULL AND t.type != 'opening_balance' ORDER BY t.occurred_at DESC LIMIT 2000`,
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL");
   const { data: accts = [] } = useQuery<{ id: string; name: string; type: string; color: string | null }>("SELECT id, name, type, color FROM accounts WHERE deleted_at IS NULL");
@@ -43,7 +46,7 @@ export default function SearchPage() {
       if (term) {
         const a = acct(t.account_id);
         const hay = [
-          t.label, t.note, t.description, t.type, t.payment_method, catName(t.category_id),
+          t.labels, t.note, t.description, t.type, t.method_label, catName(t.category_id),
           a?.name, a?.type, toMajor(money(t.amount, t.currency)).toFixed(2),
         ].filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(term)) return false;
@@ -82,7 +85,7 @@ export default function SearchPage() {
               <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                 <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />
                 <div>
-                  <div style={{ fontWeight: 550 }}>{t.label || catName(t.category_id) || t.type}</div>
+                  <div style={{ fontWeight: 550 }}>{t.labels || catName(t.category_id) || t.type}</div>
                   <div className="muted" style={{ fontSize: 12 }}>
                     {new Date(t.occurred_at).toLocaleDateString()} · {t.type}{t.description ? ` · ${t.description}` : ""}
                   </div>

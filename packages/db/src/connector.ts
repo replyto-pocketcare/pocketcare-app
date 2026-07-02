@@ -16,10 +16,15 @@ import type {
 import { UpdateType } from "@powersync/common";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+/** Postgres schema that holds all PocketCare tables (see 0001_init.sql). */
+export const DB_SCHEMA = "pocketcare";
+
 export class SupabaseConnector implements PowerSyncBackendConnector {
   constructor(
     private readonly client: SupabaseClient,
     private readonly powerSyncUrl: string,
+    /** Schema the tables live in; must be an Exposed schema in Supabase API settings. */
+    private readonly schema: string = DB_SCHEMA,
   ) {}
 
   async fetchCredentials(): Promise<PowerSyncCredentials | null> {
@@ -36,7 +41,7 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
     if (!batch) return;
 
     for (const op of batch.crud as CrudEntry[]) {
-      const table = this.client.from(op.table);
+      const table = this.client.schema(this.schema).from(op.table);
       let result;
       switch (op.op) {
         case UpdateType.PUT:

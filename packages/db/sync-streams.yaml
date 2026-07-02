@@ -4,6 +4,12 @@
 # auto_subscribe: true keeps offline-first "sync everything upfront" behavior.
 #
 # Streams here must match the client schema in packages/db/src/index.ts (AppSchema).
+#
+# SCHEMA: all tables live in the `pocketcare` Postgres schema (see 0001_init.sql),
+# so every source table is qualified `pocketcare.<table>`. The local SQLite table
+# name is the unqualified part, which matches the client AppSchema. The PowerSync
+# publication must include the pocketcare tables, e.g.:
+#   create publication powersync for tables in schema pocketcare;
 config:
   edition: 3
 
@@ -12,20 +18,38 @@ streams:
   user_data:
     auto_subscribe: true
     queries:
-      - SELECT * FROM accounts WHERE user_id = auth.user_id()
-      - SELECT * FROM transactions WHERE user_id = auth.user_id()
-      - SELECT * FROM transaction_items WHERE user_id = auth.user_id()
-      - SELECT * FROM transaction_audit WHERE user_id = auth.user_id()
-      - SELECT * FROM categories WHERE user_id = auth.user_id()
-      - SELECT * FROM labels WHERE user_id = auth.user_id()
-      - SELECT * FROM credit_card_details WHERE user_id = auth.user_id()
-      - SELECT * FROM budgets WHERE user_id = auth.user_id()
-      - SELECT * FROM goals WHERE user_id = auth.user_id()
-      - SELECT * FROM goal_allocations WHERE user_id = auth.user_id()
-      - SELECT * FROM recurring_commitments WHERE user_id = auth.user_id()
-      - SELECT * FROM subscriptions WHERE user_id = auth.user_id()
-      - SELECT * FROM loans WHERE user_id = auth.user_id()
-      - SELECT * FROM holdings WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.accounts WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.transactions WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.transaction_labels WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.transaction_items WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.transaction_audit WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.categories WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.labels WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.credit_card_details WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.budgets WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.budget_categories WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.budget_labels WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.goals WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.goal_allocations WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.recurring_commitments WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.subscriptions WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.loans WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.holdings WHERE user_id = auth.user_id()
+
+  # Global reference / lookup data — same for everyone, read-only.
+  # These back the enum→table normalization (id is the code string).
+  reference_data:
+    auto_subscribe: true
+    queries:
+      - SELECT * FROM pocketcare.account_types
+      - SELECT * FROM pocketcare.transaction_types
+      - SELECT * FROM pocketcare.category_kinds
+      - SELECT * FROM pocketcare.periods
+      - SELECT * FROM pocketcare.commitment_kinds
+      - SELECT * FROM pocketcare.tiers
+      - SELECT * FROM pocketcare.rate_modes
+      - SELECT * FROM pocketcare.payment_methods
+      - SELECT * FROM pocketcare.account_type_payment_methods
 
   # Global reference data — same rates for everyone, read-only.
   # exchange_rates has a composite key, so synthesize the required text `id`.
@@ -33,4 +57,4 @@ streams:
     auto_subscribe: true
     query: >
       SELECT *, base_currency || '-' || quote_currency || '-' || as_of AS id
-      FROM exchange_rates
+      FROM pocketcare.exchange_rates

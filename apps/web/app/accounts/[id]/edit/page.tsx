@@ -62,7 +62,7 @@ export default function EditAccountPage() {
         account_id: id,
         type: "adjustment",
         amount: money(delta, current.currency),
-        label: "Balance adjustment",
+        note: "Balance adjustment",
         occurred_at: new Date().toISOString(),
       });
     } else {
@@ -71,7 +71,7 @@ export default function EditAccountPage() {
         account_id: id,
         type: delta > 0 ? "income" : "expense",
         amount: money(Math.abs(delta), current.currency),
-        label: "Balance adjustment",
+        note: "Balance adjustment",
         occurred_at: new Date().toISOString(),
       });
     }

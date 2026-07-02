@@ -16,12 +16,17 @@ export default function TransactionsPage() {
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
 
   const like = `%${q}%`;
-  const { data: rows = [] } = useQuery<Transaction>(
-    `SELECT * FROM transactions
-     WHERE deleted_at IS NULL AND type != 'opening_balance'
-       AND (? = '' OR label LIKE ? OR note LIKE ?)
-       AND (? = 'all' OR type = ?)
-     ORDER BY occurred_at DESC LIMIT 200`,
+  const { data: rows = [] } = useQuery<Transaction & { labels: string | null; method_label: string | null }>(
+    `SELECT t.*,
+       (SELECT GROUP_CONCAT(l.name, ', ') FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS labels,
+       (SELECT pm.label FROM payment_methods pm WHERE pm.id = t.payment_method) AS method_label
+     FROM transactions t
+     WHERE t.deleted_at IS NULL AND t.type != 'opening_balance'
+       AND (? = '' OR t.note LIKE ? OR EXISTS (
+         SELECT 1 FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id
+         WHERE tl.transaction_id = t.id AND l.name LIKE ?))
+       AND (? = 'all' OR t.type = ?)
+     ORDER BY t.occurred_at DESC LIMIT 200`,
     [q, like, like, type, type],
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories");
@@ -52,8 +57,8 @@ export default function TransactionsPage() {
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               {(() => { const a = acct(t.account_id); return <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />; })()}
               <div>
-                <div style={{ fontWeight: 550 }}>{t.label || catName(t.category_id)}</div>
-                <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}{t.payment_method ? ` · ${t.payment_method}` : ""}</div>
+                <div style={{ fontWeight: 550 }}>{t.labels || catName(t.category_id)}</div>
+                <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}{t.method_label ? ` · ${t.method_label}` : ""}</div>
               </div>
             </div>
             <div style={{ fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>

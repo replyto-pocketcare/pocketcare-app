@@ -5,8 +5,8 @@ import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor, type Money } from "@pocketcare/money";
 import { budgetProgress } from "@pocketcare/budget";
 import type { Period } from "@pocketcare/types";
-import { getRepositories } from "../../src/powersync";
-import { insertRow, updateRow, softDelete } from "../../src/write";
+import { getRepositories, getDb, getUserId } from "../../src/powersync";
+import { insertRow, updateRow, softDelete, uuid, nowIso } from "../../src/write";
 import { useBaseCurrency } from "../../src/hooks";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
@@ -17,10 +17,61 @@ import type { BudgetLike } from "@pocketcare/data";
 const PERIODS: Period[] = ["daily", "weekly", "monthly", "yearly"];
 type TimeMode = "recurring" | "custom";
 
+/** Find-or-create label rows by name, returning their ids. */
+async function resolveLabelIds(names: string[]): Promise<string[]> {
+  const db = getDb();
+  if (!db) return [];
+  const userId = getUserId();
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of names) {
+    const name = raw.trim();
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    const found = await db.getOptional<{ id: string }>(
+      "SELECT id FROM labels WHERE user_id = ? AND name = ? AND deleted_at IS NULL",
+      [userId, name],
+    );
+    if (found) ids.push(found.id);
+    else {
+      const id = uuid();
+      const ts = nowIso();
+      await db.execute(
+        "INSERT INTO labels (id,user_id,name,color,created_at,updated_at) VALUES (?,?,?,?,?,?)",
+        [id, userId, name, null, ts, ts],
+      );
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+/** Rewrite a budget's category/label scope via the junction tables. */
+async function writeBudgetScope(budgetId: string, catIds: string[], labelNames: string[]): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+  const userId = getUserId();
+  await db.execute("DELETE FROM budget_categories WHERE budget_id = ?", [budgetId]);
+  await db.execute("DELETE FROM budget_labels WHERE budget_id = ?", [budgetId]);
+  for (const cid of [...new Set(catIds)]) {
+    await db.execute(
+      "INSERT INTO budget_categories (id,user_id,budget_id,category_id) VALUES (?,?,?,?)",
+      [uuid(), userId, budgetId, cid],
+    );
+  }
+  const labelIds = await resolveLabelIds(labelNames);
+  for (const lid of labelIds) {
+    await db.execute(
+      "INSERT INTO budget_labels (id,user_id,budget_id,label_id) VALUES (?,?,?,?)",
+      [uuid(), userId, budgetId, lid],
+    );
+  }
+}
+
 export default function BudgetsPage() {
   const base = useBaseCurrency();
   const { data: budgets = [] } = useQuery<BudgetLike>(
-    "SELECT id, name, scope, scope_ref, category_ids, label_names, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
+    "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL AND kind='expense' ORDER BY name");
   const { data: labels = [] } = useQuery<{ id: string; name: string; color: string | null }>("SELECT id, name, color FROM labels WHERE deleted_at IS NULL ORDER BY name");
@@ -37,12 +88,8 @@ export default function BudgetsPage() {
 
   async function addBudget() {
     if (!limit) return;
-    await insertRow("budgets", {
+    const budgetId = await insertRow("budgets", {
       name: name.trim() || null,
-      scope: "overall",
-      scope_ref: null,
-      category_ids: selCats.join(",") || null,
-      label_names: selLabels.join(",") || null,
       period,
       start_date: timeMode === "custom" ? start || null : null,
       end_date: timeMode === "custom" ? end || null : null,
@@ -51,6 +98,7 @@ export default function BudgetsPage() {
       threshold_pct: 80,
       rollover: 0,
     });
+    await writeBudgetScope(budgetId, selCats, selLabels);
     setName(""); setLimit(""); setSelCats([]); setSelLabels([]); setStart(""); setEnd("");
   }
 
@@ -58,7 +106,7 @@ export default function BudgetsPage() {
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <h1>Budgets</h1>
       <div style={{ display: "grid", gap: 12 }}>
-        {budgets.map((b) => <BudgetRow key={b.id} budget={b} catName={(id) => cats.find((c) => c.id === id)?.name} />)}
+        {budgets.map((b) => <BudgetRow key={b.id} budget={b} cats={cats} labels={labels} catOptions={catOptions} />)}
         {budgets.length === 0 && <p className="muted">No budgets yet — try a named budget for a trip below.</p>}
       </div>
 
@@ -95,27 +143,35 @@ export default function BudgetsPage() {
   );
 }
 
-function BudgetRow({ budget, catName }: { budget: BudgetLike; catName: (id: string) => string | undefined }) {
+function BudgetRow({ budget, cats, labels, catOptions }: {
+  budget: BudgetLike;
+  cats: { id: string; name: string }[];
+  labels: { id: string; name: string; color: string | null }[];
+  catOptions: { value: string; label: string }[];
+}) {
   const [spent, setSpent] = useState<Money>(money(0, budget.currency));
+  // This budget's scope, from the junction tables.
+  const { data: budgetCats = [] } = useQuery<{ category_id: string }>("SELECT category_id FROM budget_categories WHERE budget_id = ?", [budget.id]);
+  const { data: budgetLabels = [] } = useQuery<{ name: string }>(
+    "SELECT l.name FROM budget_labels bl JOIN labels l ON l.id = bl.label_id WHERE bl.budget_id = ?",
+    [budget.id],
+  );
+  const catIds = budgetCats.map((r) => r.category_id);
+  const labelNames = budgetLabels.map((r) => r.name);
+
   useEffect(() => {
     let active = true;
     void getRepositories().budgets.spentThisPeriod(budget).then((s) => active && setSpent(s));
     return () => { active = false; };
-  }, [budget]);
+    // Recompute when scope changes too.
+  }, [budget, catIds.join(","), labelNames.join(",")]);
 
   const limit = money(budget.limit_amount, budget.currency);
   const p = budgetProgress(limit, spent, budget.threshold_pct);
   const color = p.overLimit ? "var(--negative)" : p.atOrOverThreshold ? "var(--warning)" : "var(--positive)";
   const remaining = money(Math.max(0, limit.amount - spent.amount), budget.currency);
 
-  const split = (s?: string | null) => (s ?? "").split(",").map((x) => x.trim()).filter(Boolean);
-  const catNames = split(budget.category_ids).map((id) => catName(id)).filter(Boolean) as string[];
-  const labelNames = split(budget.label_names);
-  // Legacy single-scope fallback
-  if (catNames.length === 0 && labelNames.length === 0 && budget.scope_ref) {
-    if (budget.scope === "category") { const n = catName(budget.scope_ref); if (n) catNames.push(n); }
-    else if (budget.scope === "label") labelNames.push(budget.scope_ref);
-  }
+  const catNames = catIds.map((id) => cats.find((c) => c.id === id)?.name).filter(Boolean) as string[];
   const scopeLabel = [...catNames, ...labelNames].join(", ") || "All spending";
   const title = budget.name || scopeLabel;
   const timeframe = budget.start_date && budget.end_date
@@ -127,6 +183,18 @@ function BudgetRow({ budget, catName }: { budget: BudgetLike; catName: (id: stri
   const [eLimit, setELimit] = useState(String(toMajor(limit)));
   const [ePeriod, setEPeriod] = useState<Period>(budget.period);
   const [eThreshold, setEThreshold] = useState(String(budget.threshold_pct));
+  const [eCats, setECats] = useState<string[]>([]);
+  const [eLabels, setELabels] = useState<string[]>([]);
+
+  function openEdit() {
+    setEName(budget.name ?? "");
+    setELimit(String(toMajor(limit)));
+    setEPeriod(budget.period);
+    setEThreshold(String(budget.threshold_pct));
+    setECats(catIds);
+    setELabels(labelNames);
+    setEditing(true);
+  }
 
   async function saveEdit() {
     await updateRow("budgets", budget.id, {
@@ -135,6 +203,7 @@ function BudgetRow({ budget, catName }: { budget: BudgetLike; catName: (id: stri
       period: ePeriod,
       threshold_pct: Math.min(100, Math.max(1, Number(eThreshold) || 80)),
     });
+    await writeBudgetScope(budget.id, eCats, eLabels);
     setEditing(false);
   }
 
@@ -146,6 +215,10 @@ function BudgetRow({ budget, catName }: { budget: BudgetLike; catName: (id: stri
             <FloatingInput label="Name (optional)" value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
             <FloatingInput label="Limit" inputMode="decimal" value={eLimit} onChange={(v) => setELimit(v.replace(/[^0-9.]/g, ""))} style={{ width: 130 }} />
           </div>
+          <span className="muted" style={{ fontSize: 12 }}>Categories (empty = all spending)</span>
+          <MultiSelect options={catOptions} selected={eCats} onChange={setECats} placeholder="Add categories…" />
+          <span className="muted" style={{ fontSize: 12 }}>Labels</span>
+          <LabelPicker labels={labels} selected={eLabels} onChange={setELabels} />
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             {!budget.start_date && <div style={{ display: "flex", gap: 6 }}>{PERIODS.map((pp) => <button key={pp} className="chip" data-active={pp === ePeriod} onClick={() => setEPeriod(pp)}>{pp}</button>)}</div>}
             <label className="muted" style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>Alert at
@@ -163,7 +236,7 @@ function BudgetRow({ budget, catName }: { budget: BudgetLike; catName: (id: stri
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span className="muted">{Number.isFinite(p.pct) ? `${Math.round(p.pct)}%` : "—"}</span>
-            <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={() => { setEName(budget.name ?? ""); setELimit(String(toMajor(limit))); setEPeriod(budget.period); setEThreshold(String(budget.threshold_pct)); setEditing(true); }}>Edit</button>
+            <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={openEdit}>Edit</button>
             <button className="chip" style={{ padding: "2px 8px" }} onClick={() => softDelete("budgets", budget.id)}>×</button>
           </div>
         </div>

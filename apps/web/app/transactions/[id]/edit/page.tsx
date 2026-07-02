@@ -21,6 +21,15 @@ export default function EditTransactionPage() {
   const { data: accounts = [] } = useQuery<Account>("SELECT * FROM accounts WHERE deleted_at IS NULL");
   const { data: cats = [] } = useQuery<{ id: string; name: string; kind: string; parent_id: string | null }>("SELECT id, name, kind, parent_id FROM categories WHERE deleted_at IS NULL ORDER BY name");
   const { data: labels = [] } = useQuery<{ id: string; name: string; color: string | null }>("SELECT id, name, color FROM labels WHERE deleted_at IS NULL ORDER BY name");
+  const { data: txLabels = [], isLoading: txLabelsLoading } = useQuery<{ name: string }>(
+    "SELECT l.name FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = ? ORDER BY l.name",
+    [id],
+  );
+  const { data: payMethodMap = [] } = useQuery<{ id: string; label: string; account_type_id: string }>(
+    `SELECT pm.id, pm.label, m.account_type_id
+     FROM account_type_payment_methods m JOIN payment_methods pm ON pm.id = m.payment_method_id
+     ORDER BY pm.sort`,
+  );
   const { data: audit = [] } = useQuery<TransactionAudit>("SELECT id, transaction_id, action, changes, created_at FROM transaction_audit WHERE transaction_id = ? ORDER BY created_at DESC", [id]);
 
   const [type, setType] = useState<TxType>("expense");
@@ -33,6 +42,7 @@ export default function EditTransactionPage() {
   const [note, setNote] = useState("");
   const [date, setDate] = useState("");
   const [ready, setReady] = useState(false);
+  const [labelsReady, setLabelsReady] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -41,7 +51,6 @@ export default function EditTransactionPage() {
       setAccountId(tx.account_id);
       setAmount(String(toMajor(money(tx.amount, tx.currency))));
       setCategoryId(tx.category_id);
-      setSelectedLabels(tx.label ? tx.label.split(",").map((s) => s.trim()).filter(Boolean) : []);
       setDescription(tx.description ?? "");
       setPaymentMethod(tx.payment_method ?? "");
       setNote(tx.note ?? "");
@@ -49,6 +58,14 @@ export default function EditTransactionPage() {
       setReady(true);
     }
   }, [tx, ready]);
+
+  // Seed labels once the junction query resolves (independent of the scalar fields).
+  useEffect(() => {
+    if (tx && !labelsReady && !txLabelsLoading) {
+      setSelectedLabels(txLabels.map((r) => r.name));
+      setLabelsReady(true);
+    }
+  }, [tx, txLabels, txLabelsLoading, labelsReady]);
 
   if (!tx) return <p className="muted">Loading…</p>;
   const currency = tx.currency;
@@ -63,6 +80,8 @@ export default function EditTransactionPage() {
     }
     return opts;
   })();
+  const activeAccountType = accounts.find((a) => a.id === accountId)?.type;
+  const payMethods = payMethodMap.filter((m) => m.account_type_id === activeAccountType);
 
   async function save() {
     setSaving(true);
@@ -72,7 +91,7 @@ export default function EditTransactionPage() {
         account_id: accountId,
         amount: fromMajor(Number(amount) || 0, currency),
         category_id: type === "transfer" ? null : categoryId,
-        label: selectedLabels.join(", ") || null,
+        labels: selectedLabels,
         description: description.trim() || null,
         payment_method: paymentMethod || null,
         note: note.trim() || null,
@@ -112,11 +131,11 @@ export default function EditTransactionPage() {
         </Field>
       )}
 
-      {type !== "transfer" && methodsFor(accounts.find((a) => a.id === accountId)?.type).length > 0 && (
+      {type !== "transfer" && payMethods.length > 0 && (
         <Field label="Payment method">
           <div style={chips}>
-            {methodsFor(accounts.find((a) => a.id === accountId)?.type).map((m) => (
-              <button key={m} className="chip" data-active={m === paymentMethod} onClick={() => setPaymentMethod(m)}>{m}</button>
+            {payMethods.map((m) => (
+              <button key={m.id} className="chip" data-active={m.id === paymentMethod} onClick={() => setPaymentMethod(m.id)}>{m.label}</button>
             ))}
           </div>
         </Field>
@@ -172,13 +191,3 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <label style={{ display: "grid", gap: 8 }}><span className="muted" style={{ fontSize: 13 }}>{label}</span>{children}</label>;
 }
 const chips: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: 8 };
-
-function methodsFor(accountType?: string): string[] {
-  switch (accountType) {
-    case "credit_card": return ["Credit Card"];
-    case "cash": return ["Cash"];
-    case "savings":
-    case "current": return ["UPI", "Debit Card", "Net Banking"];
-    default: return [];
-  }
-}
