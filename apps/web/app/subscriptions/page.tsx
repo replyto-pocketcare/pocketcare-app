@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useQuery } from "@powersync/react";
-import { money, format, fromMajor } from "@pocketcare/money";
+import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { monthlyEquivalent, recurringMonthlyTotal, subscriptionImpact } from "@pocketcare/finance";
 import type { Period } from "@pocketcare/types";
 import Link from "next/link";
 import { useBaseCurrency, useTier } from "../../src/hooks";
-import { insertRow, softDelete } from "../../src/write";
+import { insertRow, updateRow, softDelete } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
 
 interface Sub {
@@ -82,16 +82,7 @@ export default function SubscriptionsPage() {
 
       <div style={{ display: "grid", gap: 10 }}>
         {subs.map((s) => (
-          <div key={s.id} className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <strong>{s.name}</strong>
-              <div className="muted" style={{ fontSize: 12 }}>
-                {format(money(s.amount, s.currency), "en-US")} / {s.billing_cycle} · {format(money(monthlyEquivalent(s.amount, s.billing_cycle), s.currency), "en-US")}/mo
-                {nextDue(s.purchased_on, s.billing_cycle) && <> · next due {nextDue(s.purchased_on, s.billing_cycle)!.toLocaleDateString()}</>}
-              </div>
-            </div>
-            <button className="chip" onClick={() => softDelete("subscriptions", s.id)}>Remove</button>
-          </div>
+          <SubRow key={s.id} sub={s} />
         ))}
         {subs.length === 0 && <p className="muted">No subscriptions yet.</p>}
       </div>
@@ -121,6 +112,58 @@ export default function SubscriptionsPage() {
             <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function SubRow({ sub }: { sub: Sub }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(sub.name);
+  const [amount, setAmount] = useState(String(toMajor(money(sub.amount, sub.currency))));
+  const [cycle, setCycle] = useState<Period>(sub.billing_cycle);
+  const [purchased, setPurchased] = useState(sub.purchased_on ?? "");
+
+  async function save() {
+    await updateRow("subscriptions", sub.id, {
+      name: name.trim() || sub.name,
+      amount: fromMajor(Number(amount) || 0, sub.currency).amount,
+      billing_cycle: cycle,
+      purchased_on: purchased || null,
+      next_renewal: nextDue(purchased || null, cycle)?.toISOString().slice(0, 10) ?? null,
+    });
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <input className="input" style={{ flex: 1, minWidth: 140 }} value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" />
+          <input className="input" style={{ width: 120 }} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="Amount" />
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 6 }}>{CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c}</button>)}</div>
+          <input className="input" type="date" style={{ width: 160 }} value={purchased} onChange={(e) => setPurchased(e.target.value)} />
+          <button className="btn" onClick={save}>Save</button>
+          <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div>
+        <strong>{sub.name}</strong>
+        <div className="muted" style={{ fontSize: 12 }}>
+          {format(money(sub.amount, sub.currency), "en-US")} / {sub.billing_cycle} · {format(money(monthlyEquivalent(sub.amount, sub.billing_cycle), sub.currency), "en-US")}/mo
+          {nextDue(sub.purchased_on, sub.billing_cycle) && <> · next due {nextDue(sub.purchased_on, sub.billing_cycle)!.toLocaleDateString()}</>}
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
+        <button className="chip" onClick={() => setEditing(true)}>Edit</button>
+        <button className="chip" onClick={() => softDelete("subscriptions", sub.id)}>Remove</button>
       </div>
     </div>
   );

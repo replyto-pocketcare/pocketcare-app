@@ -24,6 +24,17 @@ export async function insertRow(table: string, values: Record<string, unknown>):
   return id;
 }
 
+/** Update columns on a synced row by id (sets updated_at automatically). */
+export async function updateRow(table: string, id: string, values: Record<string, unknown>): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+  const entries = Object.entries(values);
+  if (entries.length === 0) return;
+  const sets = entries.map(([k]) => `${k} = ?`).concat("updated_at = ?");
+  const params = entries.map(([, v]) => v as never).concat(nowIso() as never, id as never);
+  await db.execute(`UPDATE ${table} SET ${sets.join(", ")} WHERE id = ?`, params);
+}
+
 /** Soft-delete a row (sets deleted_at) so the change syncs. */
 export async function softDelete(table: string, id: string): Promise<void> {
   const db = getDb();

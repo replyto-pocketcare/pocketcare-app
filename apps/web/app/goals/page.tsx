@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useQuery } from "@powersync/react";
-import { money, format, fromMajor } from "@pocketcare/money";
+import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { useBaseCurrency } from "../../src/hooks";
-import { insertRow } from "../../src/write";
+import { insertRow, updateRow, softDelete } from "../../src/write";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 
 interface Goal {
@@ -87,6 +87,14 @@ function GoalCard({ goal, saved, savings, locked, base }: {
   const pct = goal.target_amount ? Math.min(100, (saved / goal.target_amount) * 100) : 0;
   const [amount, setAmount] = useState("");
   const [srcId, setSrcId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [eName, setEName] = useState(goal.name);
+  const [eTarget, setETarget] = useState(String(toMajor(money(goal.target_amount, goal.currency))));
+
+  async function saveEdit() {
+    await updateRow("goals", goal.id, { name: eName.trim() || goal.name, target_amount: fromMajor(Number(eTarget) || 0, goal.currency).amount });
+    setEditing(false);
+  }
 
   // Simple ETA: assume monthly contribution equal to a typical block, 6% annual.
   async function allocate() {
@@ -102,13 +110,26 @@ function GoalCard({ goal, saved, savings, locked, base }: {
 
   return (
     <div className="card" style={{ padding: 20, display: "grid", gap: 10, opacity: locked ? 0.55 : 1 }}>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <div>
-          <strong>{goal.name}</strong>
-          {goal.is_emergency_fund ? <span className="muted" style={{ fontSize: 12 }}> · emergency fund (liquid)</span> : null}
+      {editing ? (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <input className="input" style={{ flex: 1, minWidth: 140 }} value={eName} onChange={(e) => setEName(e.target.value)} placeholder="Goal name" />
+          <input className="input" style={{ width: 140 }} inputMode="decimal" value={eTarget} onChange={(e) => setETarget(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="Target" />
+          <button className="btn" onClick={saveEdit}>Save</button>
+          <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
         </div>
-        <span className="muted">{format(money(saved, goal.currency), "en-US")} / {format(money(goal.target_amount, goal.currency), "en-US")}</span>
-      </div>
+      ) : (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <strong>{goal.name}</strong>
+            {goal.is_emergency_fund ? <span className="muted" style={{ fontSize: 12 }}> · emergency fund (liquid)</span> : null}
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span className="muted">{format(money(saved, goal.currency), "en-US")} / {format(money(goal.target_amount, goal.currency), "en-US")}</span>
+            <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={() => { setEName(goal.name); setETarget(String(toMajor(money(goal.target_amount, goal.currency)))); setEditing(true); }}>Edit</button>
+            <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={() => softDelete("goals", goal.id)}>Delete</button>
+          </div>
+        </div>
+      )}
       <ProgressBar pct={pct} color={goal.is_emergency_fund ? "var(--sage)" : "var(--accent)"} height={8} />
       {locked ? (
         <span className="muted" style={{ fontSize: 13 }}>Locked until the emergency fund is funded.</span>

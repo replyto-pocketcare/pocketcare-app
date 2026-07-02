@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@powersync/react";
-import { money, format, fromMajor, type Money } from "@pocketcare/money";
+import { money, format, fromMajor, toMajor, type Money } from "@pocketcare/money";
 import { budgetProgress } from "@pocketcare/budget";
 import type { Period } from "@pocketcare/types";
 import { getRepositories } from "../../src/powersync";
-import { insertRow, softDelete } from "../../src/write";
+import { insertRow, updateRow, softDelete } from "../../src/write";
 import { useBaseCurrency } from "../../src/hooks";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 import type { BudgetLike } from "@pocketcare/data";
@@ -121,18 +121,52 @@ function BudgetRow({ budget, catName }: { budget: BudgetLike; catName: (id: stri
     ? `${new Date(budget.start_date).toLocaleDateString()} – ${new Date(budget.end_date).toLocaleDateString()}`
     : budget.period;
 
+  const [editing, setEditing] = useState(false);
+  const [eName, setEName] = useState(budget.name ?? "");
+  const [eLimit, setELimit] = useState(String(toMajor(limit)));
+  const [ePeriod, setEPeriod] = useState<Period>(budget.period);
+  const [eThreshold, setEThreshold] = useState(String(budget.threshold_pct));
+
+  async function saveEdit() {
+    await updateRow("budgets", budget.id, {
+      name: eName.trim() || null,
+      limit_amount: fromMajor(Number(eLimit) || 0, budget.currency).amount,
+      period: ePeriod,
+      threshold_pct: Math.min(100, Math.max(1, Number(eThreshold) || 80)),
+    });
+    setEditing(false);
+  }
+
   return (
     <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div>
-          <span style={{ fontWeight: 600 }}>{title}</span>
-          <span className="muted" style={{ fontSize: 12 }}> · {timeframe}{budget.scope !== "overall" && budget.name ? ` · ${budget.scope}` : ""}</span>
+      {editing ? (
+        <div style={{ display: "grid", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input className="input" style={{ flex: 1, minWidth: 140 }} value={eName} onChange={(e) => setEName(e.target.value)} placeholder="Name (optional)" />
+            <input className="input" style={{ width: 130 }} inputMode="decimal" value={eLimit} onChange={(e) => setELimit(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="Limit" />
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            {!budget.start_date && <div style={{ display: "flex", gap: 6 }}>{PERIODS.map((pp) => <button key={pp} className="chip" data-active={pp === ePeriod} onClick={() => setEPeriod(pp)}>{pp}</button>)}</div>}
+            <label className="muted" style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>Alert at
+              <input className="input" style={{ width: 70 }} inputMode="numeric" value={eThreshold} onChange={(e) => setEThreshold(e.target.value.replace(/\D/g, ""))} />%
+            </label>
+            <button className="btn" onClick={saveEdit}>Save</button>
+            <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <span className="muted">{Number.isFinite(p.pct) ? `${Math.round(p.pct)}%` : "—"}</span>
-          <button className="chip" style={{ padding: "2px 8px" }} onClick={() => softDelete("budgets", budget.id)}>×</button>
+      ) : (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <div>
+            <span style={{ fontWeight: 600 }}>{title}</span>
+            <span className="muted" style={{ fontSize: 12 }}> · {timeframe}{budget.scope !== "overall" && budget.name ? ` · ${budget.scope}` : ""}</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span className="muted">{Number.isFinite(p.pct) ? `${Math.round(p.pct)}%` : "—"}</span>
+            <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={() => { setEName(budget.name ?? ""); setELimit(String(toMajor(limit))); setEPeriod(budget.period); setEThreshold(String(budget.threshold_pct)); setEditing(true); }}>Edit</button>
+            <button className="chip" style={{ padding: "2px 8px" }} onClick={() => softDelete("budgets", budget.id)}>×</button>
+          </div>
         </div>
-      </div>
+      )}
       <ProgressBar pct={p.pct} color={color} />
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }} className="muted">
         <span>{format(spent, "en-US")} spent</span>
