@@ -106,6 +106,8 @@ const budgets = new Table({
   name: column.text,
   scope: column.text,
   scope_ref: column.text,
+  category_ids: column.text,
+  label_names: column.text,
   period: column.text,
   start_date: column.text,
   end_date: column.text,

@@ -94,6 +94,10 @@ export interface BudgetLike {
   name?: string | null;
   scope: "overall" | "category" | "label";
   scope_ref: string | null;
+  /** Comma-joined category ids this budget tracks (multi-select). */
+  category_ids?: string | null;
+  /** Comma-joined label names this budget tracks (multi-select). */
+  label_names?: string | null;
   period: import("@pocketcare/types").Period;
   /** Optional fixed timeframe; when set it overrides the recurring period. */
   start_date?: string | null;

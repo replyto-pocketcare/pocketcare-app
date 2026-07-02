@@ -287,7 +287,7 @@ export class PowerSyncBudgetRepository implements BudgetRepository {
 
   async list(): Promise<BudgetLike[]> {
     return this.db.getAll<BudgetLike>(
-      "SELECT id, scope, scope_ref, period, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL",
+      "SELECT id, name, scope, scope_ref, category_ids, label_names, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL",
     );
   }
 
@@ -314,16 +314,27 @@ export class PowerSyncBudgetRepository implements BudgetRepository {
       endExclusive.toISOString(),
       budget.currency,
     ];
-    if (budget.scope === "category" && budget.scope_ref) {
-      where.push("category_id = ?");
-      params.push(budget.scope_ref);
-    } else if (budget.scope === "label" && budget.scope_ref) {
-      // Transactions may carry multiple comma-joined labels ("Work, Trip"), so
-      // match the label as a whole token (exact / start / middle / end).
-      const n = budget.scope_ref;
-      where.push("(label = ? OR label LIKE ? OR label LIKE ? OR label LIKE ?)");
+    // Multi-select categories/labels. Fall back to the legacy single scope_ref.
+    const split = (s?: string | null) => (s ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+    const catIds = split(budget.category_ids);
+    const labelNames = split(budget.label_names);
+    if (catIds.length === 0 && labelNames.length === 0 && budget.scope_ref) {
+      if (budget.scope === "category") catIds.push(budget.scope_ref);
+      else if (budget.scope === "label") labelNames.push(budget.scope_ref);
+    }
+
+    const ors: string[] = [];
+    if (catIds.length) {
+      ors.push(`category_id IN (${catIds.map(() => "?").join(",")})`);
+      params.push(...catIds);
+    }
+    for (const n of labelNames) {
+      // Transactions may carry multiple comma-joined labels — match a whole token.
+      ors.push("(label = ? OR label LIKE ? OR label LIKE ? OR label LIKE ?)");
       params.push(n, `${n}, %`, `%, ${n}`, `%, ${n}, %`);
     }
+    if (ors.length) where.push(`(${ors.join(" OR ")})`);
+    // No categories/labels selected → overall (all expenses).
     const row = await this.db.get<{ total: number | null }>(
       `SELECT COALESCE(SUM(amount), 0) AS total FROM transactions WHERE ${where.join(" AND ")}`,
       params,

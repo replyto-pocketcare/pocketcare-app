@@ -10,24 +10,26 @@ import { insertRow, updateRow, softDelete } from "../../src/write";
 import { useBaseCurrency } from "../../src/hooks";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
+import { MultiSelect } from "../../src/ui/MultiSelect";
+import { LabelPicker } from "../../src/ui/LabelPicker";
 import type { BudgetLike } from "@pocketcare/data";
 
 const PERIODS: Period[] = ["daily", "weekly", "monthly", "yearly"];
-type Scope = "overall" | "category" | "label";
 type TimeMode = "recurring" | "custom";
 
 export default function BudgetsPage() {
   const base = useBaseCurrency();
   const { data: budgets = [] } = useQuery<BudgetLike>(
-    "SELECT id, name, scope, scope_ref, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
+    "SELECT id, name, scope, scope_ref, category_ids, label_names, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL AND kind='expense' ORDER BY name");
-  const { data: labels = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM labels WHERE deleted_at IS NULL ORDER BY name");
+  const { data: labels = [] } = useQuery<{ id: string; name: string; color: string | null }>("SELECT id, name, color FROM labels WHERE deleted_at IS NULL ORDER BY name");
+  const catOptions = cats.map((c) => ({ value: c.id, label: c.name }));
 
   const [name, setName] = useState("");
   const [limit, setLimit] = useState("");
-  const [scope, setScope] = useState<Scope>("overall");
-  const [scopeRef, setScopeRef] = useState<string>("");
+  const [selCats, setSelCats] = useState<string[]>([]);
+  const [selLabels, setSelLabels] = useState<string[]>([]);
   const [timeMode, setTimeMode] = useState<TimeMode>("recurring");
   const [period, setPeriod] = useState<Period>("monthly");
   const [start, setStart] = useState("");
@@ -37,8 +39,10 @@ export default function BudgetsPage() {
     if (!limit) return;
     await insertRow("budgets", {
       name: name.trim() || null,
-      scope,
-      scope_ref: scope === "overall" ? null : scopeRef || null,
+      scope: "overall",
+      scope_ref: null,
+      category_ids: selCats.join(",") || null,
+      label_names: selLabels.join(",") || null,
       period,
       start_date: timeMode === "custom" ? start || null : null,
       end_date: timeMode === "custom" ? end || null : null,
@@ -47,7 +51,7 @@ export default function BudgetsPage() {
       threshold_pct: 80,
       rollover: 0,
     });
-    setName(""); setLimit(""); setScopeRef(""); setStart(""); setEnd("");
+    setName(""); setLimit(""); setSelCats([]); setSelLabels([]); setStart(""); setEnd("");
   }
 
   return (
@@ -63,24 +67,11 @@ export default function BudgetsPage() {
         <FloatingInput label="Name (e.g. Japan Trip)" value={name} onChange={setName} />
         <FloatingInput label={`Limit (${base})`} inputMode="decimal" value={limit} onChange={(v) => setLimit(v.replace(/[^0-9.]/g, ""))} />
 
-        <span className="muted" style={{ fontSize: 13 }}>Track spending on</span>
-        <div style={{ display: "flex", gap: 6 }}>
-          {(["overall", "category", "label"] as Scope[]).map((s) => (
-            <button key={s} className="chip" data-active={s === scope} style={{ textTransform: "capitalize" }} onClick={() => { setScope(s); setScopeRef(""); }}>{s}</button>
-          ))}
-        </div>
-        {scope === "category" && (
-          <select className="input" value={scopeRef} onChange={(e) => setScopeRef(e.target.value)}>
-            <option value="">Choose category…</option>
-            {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        )}
-        {scope === "label" && (
-          <select className="input" value={scopeRef} onChange={(e) => setScopeRef(e.target.value)}>
-            <option value="">Choose label…</option>
-            {labels.map((l) => <option key={l.id} value={l.name}>{l.name}</option>)}
-          </select>
-        )}
+        <span className="muted" style={{ fontSize: 13 }}>Categories (optional — leave empty for all spending)</span>
+        <MultiSelect options={catOptions} selected={selCats} onChange={setSelCats} placeholder="Add categories…" />
+
+        <span className="muted" style={{ fontSize: 13 }}>Labels (optional)</span>
+        <LabelPicker labels={labels} selected={selLabels} onChange={setSelLabels} />
 
         <span className="muted" style={{ fontSize: 13 }}>Timeframe</span>
         <div style={{ display: "flex", gap: 6 }}>
@@ -98,7 +89,7 @@ export default function BudgetsPage() {
           </div>
         )}
 
-        <button className="btn" onClick={addBudget} disabled={!limit || (scope !== "overall" && !scopeRef) || (timeMode === "custom" && (!start || !end))}>Add budget</button>
+        <button className="btn" onClick={addBudget} disabled={!limit || (timeMode === "custom" && (!start || !end))}>Add budget</button>
       </div>
     </div>
   );
@@ -117,7 +108,16 @@ function BudgetRow({ budget, catName }: { budget: BudgetLike; catName: (id: stri
   const color = p.overLimit ? "var(--negative)" : p.atOrOverThreshold ? "var(--warning)" : "var(--positive)";
   const remaining = money(Math.max(0, limit.amount - spent.amount), budget.currency);
 
-  const title = budget.name || (budget.scope === "category" ? catName(budget.scope_ref ?? "") : budget.scope === "label" ? budget.scope_ref : "Overall");
+  const split = (s?: string | null) => (s ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  const catNames = split(budget.category_ids).map((id) => catName(id)).filter(Boolean) as string[];
+  const labelNames = split(budget.label_names);
+  // Legacy single-scope fallback
+  if (catNames.length === 0 && labelNames.length === 0 && budget.scope_ref) {
+    if (budget.scope === "category") { const n = catName(budget.scope_ref); if (n) catNames.push(n); }
+    else if (budget.scope === "label") labelNames.push(budget.scope_ref);
+  }
+  const scopeLabel = [...catNames, ...labelNames].join(", ") || "All spending";
+  const title = budget.name || scopeLabel;
   const timeframe = budget.start_date && budget.end_date
     ? `${new Date(budget.start_date).toLocaleDateString()} – ${new Date(budget.end_date).toLocaleDateString()}`
     : budget.period;
@@ -159,7 +159,7 @@ function BudgetRow({ budget, catName }: { budget: BudgetLike; catName: (id: stri
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <div>
             <span style={{ fontWeight: 600 }}>{title}</span>
-            <span className="muted" style={{ fontSize: 12 }}> · {timeframe}{budget.scope !== "overall" && budget.name ? ` · ${budget.scope}` : ""}</span>
+            <span className="muted" style={{ fontSize: 12 }}> · {timeframe}{budget.name && scopeLabel !== "All spending" ? ` · ${scopeLabel}` : ""}</span>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span className="muted">{Number.isFinite(p.pct) ? `${Math.round(p.pct)}%` : "—"}</span>
