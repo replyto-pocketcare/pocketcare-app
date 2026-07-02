@@ -145,9 +145,35 @@ export default function NewTransactionPage() {
         <p className="muted" style={{ fontSize: 12, marginTop: -8 }}>Investment accounts only support transfers to and from other accounts.</p>
       )}
 
-      <div className="card" style={{ padding: 22 }}>
-        <div className="muted" style={{ fontSize: 13 }}>Amount</div>
-        <div style={{ fontSize: 38, fontWeight: 750, color: accentFor[type] }}>{format(total, "en-US")}</div>
+      <div className="card" style={{ padding: 22, display: "grid", gap: 14 }}>
+        <div>
+          <div className="muted" style={{ fontSize: 13 }}>Amount{items.length > 1 ? " · sum of items" : ""}</div>
+          <div style={{ fontSize: 40, fontWeight: 750, color: accentFor[type], letterSpacing: "-0.02em" }}>{format(total, "en-US")}</div>
+        </div>
+
+        {type === "transfer" ? (
+          <input className="input" inputMode="decimal" placeholder="0.00" autoFocus
+            value={items[0]?.value ?? ""}
+            onChange={(e) => setItems([{ ...(items[0] ?? newItem()), value: e.target.value.replace(/[^0-9.]/g, "") }])}
+            style={{ fontSize: 20, textAlign: "right" }} />
+        ) : (
+          <div style={{ display: "grid", gap: 8 }}>
+            {items.map((it, idx) => (
+              <div key={it.id} style={{ display: "flex", gap: 8 }}>
+                <input className="input" placeholder={items.length > 1 ? `Item ${idx + 1}` : "What for? (optional)"} value={it.description}
+                  onChange={(e) => update(it.id, { description: e.target.value })} />
+                <input className="input" style={{ width: 140, textAlign: "right", fontWeight: 600 }} inputMode="decimal" placeholder="0.00"
+                  autoFocus={idx === 0} value={it.value}
+                  onChange={(e) => update(it.id, { value: e.target.value.replace(/[^0-9.]/g, "") })} />
+                {items.length > 1 && (
+                  <button className="chip" onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))} aria-label="Remove">×</button>
+                )}
+              </div>
+            ))}
+            <button className="chip" style={{ borderStyle: "dashed", color: "var(--accent)", justifySelf: "start" }}
+              onClick={() => setItems((p) => [...p, newItem()])}>＋ Add item / split</button>
+          </div>
+        )}
       </div>
 
       <Field label={type === "transfer" ? "From account" : "Account"}>
@@ -194,29 +220,6 @@ export default function NewTransactionPage() {
       <Field label="Description (optional)">
         <textarea className="input" rows={2} placeholder="What was this for?" value={description} onChange={(e) => setDescription(e.target.value)} style={{ resize: "vertical" }} />
       </Field>
-
-      {type !== "transfer" && (
-        <Field label="Breakdown (＋ sub-items always sum to the total)">
-          <div style={{ display: "grid", gap: 8 }}>
-            {items.map((it, idx) => (
-              <div key={it.id} style={{ display: "flex", gap: 8 }}>
-                <input className="input" placeholder={`Item ${idx + 1}`} value={it.description} onChange={(e) => update(it.id, { description: e.target.value })} />
-                <input className="input" style={{ width: 130, textAlign: "right" }} inputMode="decimal" placeholder="0.00" value={it.value}
-                  onChange={(e) => update(it.id, { value: e.target.value.replace(/[^0-9.]/g, "") })} />
-                <button className="chip" onClick={() => setItems((p) => (p.length > 1 ? p.filter((x) => x.id !== it.id) : p))} aria-label="Remove">×</button>
-              </div>
-            ))}
-            <button className="chip" style={{ borderStyle: "dashed", color: "var(--accent)" }} onClick={() => setItems((p) => [...p, newItem()])}>＋ Add item</button>
-          </div>
-        </Field>
-      )}
-
-      {type === "transfer" && (
-        <Field label="Amount">
-          <input className="input" inputMode="decimal" placeholder="0.00" value={items[0]?.value ?? ""}
-            onChange={(e) => setItems([{ ...(items[0] ?? newItem()), value: e.target.value.replace(/[^0-9.]/g, "") }])} />
-        </Field>
-      )}
 
       <button className="btn" disabled={!canSave} onClick={save} style={{ justifyContent: "center", padding: 14 }}>
         {saving ? "Saving…" : `Save · ${format(total, "en-US")}`}
