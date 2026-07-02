@@ -5,17 +5,20 @@ import { useRouter } from "next/navigation";
 import { AccountType } from "@pocketcare/types";
 import { fromMajor } from "@pocketcare/money";
 import { getRepositories, getDb } from "../../../src/powersync";
+import { useBaseCurrency } from "../../../src/hooks";
+import { ACCOUNT_COLORS } from "../../../src/colors";
 
 const TYPES = Object.values(AccountType);
-const CURRENCIES = ["USD", "EUR", "GBP", "INR", "JPY", "AUD", "CAD"];
-const COLORS = ["#3e4a38", "#5f6647", "#9cae8e", "#b06a4f", "#c98a72", "#7c4a3a", "#5f4636", "#c9b79c", "#2b2723"];
+const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
+const COLORS = ACCOUNT_COLORS;
 
 export default function NewAccountPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>(AccountType.Savings);
-  const [currency, setCurrency] = useState("USD");
-  const [color, setColor] = useState(COLORS[0]);
+  const base = useBaseCurrency();
+  const [currency, setCurrency] = useState(base);
+  const [color, setColor] = useState<string>(COLORS[0]);
   const [includeNw, setIncludeNw] = useState(true);
   const [opening, setOpening] = useState("");
   const [saving, setSaving] = useState(false);

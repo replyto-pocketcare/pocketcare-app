@@ -1,25 +1,27 @@
--- PocketCare — initial schema
+-- PocketCare — consolidated schema (single-file init for a fresh Supabase project).
+-- Combines all prior migrations (0001–0007) into final definitions.
+--
 -- Financial integrity: money is INTEGER minor units; balances derive from an
 -- append-only ledger; breakdown items must reconcile to their transaction total.
--- Every user-owned row is isolated by RLS and cascades on user deletion, so
--- purging a guest (or a user's "delete my account") is a single auth.users delete.
+-- Every user-owned row is isolated by RLS and cascades on user deletion.
 --
--- NOTE: enable Anonymous sign-ins in Supabase Auth settings so each user gets a
--- real auth.users UID from first launch (guest identity — ARCHITECTURE.md §9).
+-- NOTE: enable Anonymous sign-ins in Supabase Auth so each user gets a real
+-- auth.users UID from first launch (guest identity). For email OTP sign-up,
+-- disable "Secure email change" and add {{ .Token }} to the Change-Email template.
 
 create extension if not exists "pgcrypto";
 
--- ---------- Enums ----------
-create type account_type   as enum ('savings','current','credit_card','cash','mutual_funds','stocks');
+-- ============================ Enums ============================
+create type account_type     as enum ('savings','current','credit_card','cash','mutual_funds','stocks');
 create type transaction_type as enum ('income','expense','transfer','opening_balance','adjustment');
-create type category_kind   as enum ('income','expense');
-create type budget_period   as enum ('daily','weekly','monthly','yearly');
-create type budget_scope    as enum ('overall','category','label');
-create type commitment_kind as enum ('emi','subscription','recurring_expense');
-create type tier            as enum ('free','premium');
-create type rate_mode       as enum ('historical','current');
+create type category_kind    as enum ('income','expense');
+create type budget_period    as enum ('daily','weekly','monthly','yearly');
+create type budget_scope     as enum ('overall','category','label');
+create type commitment_kind  as enum ('emi','subscription','recurring_expense');
+create type tier             as enum ('free','premium');
+create type rate_mode        as enum ('historical','current');
 
--- ---------- Shared trigger: keep updated_at fresh ----------
+-- ==================== Shared updated_at trigger ====================
 create or replace function set_updated_at() returns trigger
 language plpgsql as $$
 begin
@@ -28,7 +30,7 @@ begin
 end;
 $$;
 
--- ---------- profiles ----------
+-- ============================ profiles ============================
 create table profiles (
   id            uuid primary key references auth.users(id) on delete cascade,
   base_currency text not null default 'USD',
@@ -39,23 +41,24 @@ create table profiles (
   updated_at    timestamptz not null default now()
 );
 
--- ---------- accounts ----------
+-- ============================ accounts ============================
 create table accounts (
-  id          uuid primary key default gen_random_uuid(),
-  user_id     uuid not null references auth.users(id) on delete cascade,
-  name        text not null,
-  type        account_type not null,
-  currency    text not null,
-  icon        text,
-  color       text,
-  is_archived boolean not null default false,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now(),
-  deleted_at  timestamptz
+  id                   uuid primary key default gen_random_uuid(),
+  user_id              uuid not null references auth.users(id) on delete cascade,
+  name                 text not null,
+  type                 account_type not null,
+  currency             text not null,
+  icon                 text,
+  color                text,
+  is_archived          boolean not null default false,
+  include_in_net_worth boolean not null default true,
+  created_at           timestamptz not null default now(),
+  updated_at           timestamptz not null default now(),
+  deleted_at           timestamptz
 );
 create index accounts_user_idx on accounts(user_id) where deleted_at is null;
 
--- ---------- categories ----------
+-- ============================ categories ============================
 create table categories (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references auth.users(id) on delete cascade,
@@ -64,13 +67,27 @@ create table categories (
   icon       text,
   color      text,
   is_system  boolean not null default false,
+  parent_id  uuid references categories(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   deleted_at timestamptz
 );
 create index categories_user_idx on categories(user_id);
 
--- ---------- transactions (the ledger) ----------
+-- ============================ labels ============================
+create table labels (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  name       text not null,
+  color      text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz,
+  unique (user_id, name)
+);
+create index labels_user_idx on labels(user_id);
+
+-- ============================ transactions (ledger) ============================
 create table transactions (
   id                uuid primary key default gen_random_uuid(),
   user_id           uuid not null references auth.users(id) on delete cascade,
@@ -82,21 +99,20 @@ create table transactions (
   label             text,
   note              text,
   occurred_at       timestamptz not null default now(),
-  transfer_group_id uuid,                          -- links the two sides of a transfer
+  transfer_group_id uuid,
   to_account_id     uuid references accounts(id) on delete cascade,
-  to_amount         bigint,                        -- destination minor units (cross-currency)
+  to_amount         bigint,
   fx_rate           double precision,
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now(),
   deleted_at        timestamptz,
-  constraint transfer_needs_target
-    check (type <> 'transfer' or to_account_id is not null)
+  constraint transfer_needs_target check (type <> 'transfer' or to_account_id is not null)
 );
 create index transactions_account_idx on transactions(account_id, occurred_at desc) where deleted_at is null;
 create index transactions_user_idx    on transactions(user_id, occurred_at desc)   where deleted_at is null;
 create index transactions_search_idx  on transactions using gin (to_tsvector('simple', coalesce(label,'') || ' ' || coalesce(note,'')));
 
--- ---------- transaction_items (breakdown) ----------
+-- ============================ transaction_items (breakdown) ============================
 create table transaction_items (
   id             uuid primary key default gen_random_uuid(),
   user_id        uuid not null references auth.users(id) on delete cascade,
@@ -109,8 +125,7 @@ create table transaction_items (
 );
 create index transaction_items_txn_idx on transaction_items(transaction_id);
 
--- Breakdown must reconcile to the transaction total WHEN items exist.
--- Deferred so a transaction + its items can be inserted in one client tx.
+-- Breakdown must reconcile to the transaction total WHEN items exist (deferred to commit).
 create or replace function check_items_reconcile() returns trigger
 language plpgsql as $$
 declare
@@ -120,9 +135,7 @@ declare
 begin
   txn_id := coalesce(new.transaction_id, old.transaction_id);
   select amount into txn_amount from transactions where id = txn_id;
-  if txn_amount is null then
-    return null; -- transaction gone (cascade delete); nothing to check
-  end if;
+  if txn_amount is null then return null; end if;
   select coalesce(sum(amount),0) into items_sum
     from transaction_items where transaction_id = txn_id and deleted_at is null;
   if items_sum <> 0 and items_sum <> txn_amount then
@@ -131,19 +144,32 @@ begin
   return null;
 end;
 $$;
-
 create constraint trigger trg_items_reconcile
   after insert or update or delete on transaction_items
   deferrable initially deferred
   for each row execute function check_items_reconcile();
 
--- ---------- budgets ----------
+-- ============================ transaction_audit ============================
+create table transaction_audit (
+  id             uuid primary key default gen_random_uuid(),
+  user_id        uuid not null references auth.users(id) on delete cascade,
+  transaction_id uuid not null,
+  action         text not null default 'update',
+  changes        text,
+  created_at     timestamptz not null default now()
+);
+create index transaction_audit_txn_idx on transaction_audit(transaction_id, created_at desc);
+
+-- ============================ budgets ============================
 create table budgets (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users(id) on delete cascade,
+  name          text,
   scope         budget_scope not null default 'overall',
   scope_ref     text,
   period        budget_period not null,
+  start_date    date,
+  end_date      date,
   limit_amount  bigint not null,
   currency      text not null,
   threshold_pct int not null default 80 check (threshold_pct between 1 and 100),
@@ -154,18 +180,20 @@ create table budgets (
 );
 create index budgets_user_idx on budgets(user_id);
 
--- ---------- credit_card_details ----------
+-- ============================ credit_card_details ============================
 create table credit_card_details (
-  account_id   uuid primary key references accounts(id) on delete cascade,
-  user_id      uuid not null references auth.users(id) on delete cascade,
+  id            uuid primary key default gen_random_uuid(),
+  account_id    uuid not null unique references accounts(id) on delete cascade,
+  user_id       uuid not null references auth.users(id) on delete cascade,
   statement_day int not null check (statement_day between 1 and 31),
   due_day       int not null check (due_day between 1 and 31),
   credit_limit  bigint,
-  created_at   timestamptz not null default now(),
-  updated_at   timestamptz not null default now()
+  card_last4    text,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
 );
 
--- ---------- goals ----------
+-- ============================ goals ============================
 create table goals (
   id                uuid primary key default gen_random_uuid(),
   user_id           uuid not null references auth.users(id) on delete cascade,
@@ -180,10 +208,9 @@ create table goals (
   deleted_at        timestamptz
 );
 create index goals_user_idx on goals(user_id);
--- At most one emergency-fund goal per user.
 create unique index one_emergency_fund_per_user on goals(user_id) where is_emergency_fund and deleted_at is null;
 
--- ---------- goal_allocations (blocked amounts) ----------
+-- ============================ goal_allocations ============================
 create table goal_allocations (
   id                uuid primary key default gen_random_uuid(),
   user_id           uuid not null references auth.users(id) on delete cascade,
@@ -196,7 +223,7 @@ create table goal_allocations (
 );
 create index goal_allocations_user_idx on goal_allocations(user_id);
 
--- ---------- loans ----------
+-- ============================ loans ============================
 create table loans (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users(id) on delete cascade,
@@ -213,7 +240,7 @@ create table loans (
 );
 create index loans_user_idx on loans(user_id);
 
--- ---------- subscriptions ----------
+-- ============================ subscriptions ============================
 create table subscriptions (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users(id) on delete cascade,
@@ -221,6 +248,7 @@ create table subscriptions (
   amount        bigint not null,
   currency      text not null,
   billing_cycle budget_period not null default 'monthly',
+  purchased_on  date,
   next_renewal  date,
   category_id   uuid references categories(id) on delete set null,
   is_active     boolean not null default true,
@@ -230,7 +258,7 @@ create table subscriptions (
 );
 create index subscriptions_user_idx on subscriptions(user_id);
 
--- ---------- recurring_commitments ----------
+-- ============================ recurring_commitments ============================
 create table recurring_commitments (
   id              uuid primary key default gen_random_uuid(),
   user_id         uuid not null references auth.users(id) on delete cascade,
@@ -249,7 +277,7 @@ create table recurring_commitments (
 );
 create index recurring_user_idx on recurring_commitments(user_id);
 
--- ---------- holdings ----------
+-- ============================ holdings ============================
 create table holdings (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references auth.users(id) on delete cascade,
@@ -265,16 +293,15 @@ create table holdings (
 );
 create index holdings_user_idx on holdings(user_id);
 
--- ---------- price_snapshots (global reference) ----------
+-- ==================== Global reference data ====================
 create table price_snapshots (
-  symbol text not null,
-  price  bigint not null,
+  symbol   text not null,
+  price    bigint not null,
   currency text not null,
-  as_of  date not null,
+  as_of    date not null,
   primary key (symbol, as_of)
 );
 
--- ---------- exchange_rates (global reference) ----------
 create table exchange_rates (
   base_currency  text not null,
   quote_currency text not null,
@@ -283,7 +310,7 @@ create table exchange_rates (
   primary key (base_currency, quote_currency, as_of)
 );
 
--- ---------- entitlements (freemium) ----------
+-- ============================ entitlements ============================
 create table entitlements (
   user_id    uuid primary key references auth.users(id) on delete cascade,
   tier       tier not null default 'free',
@@ -292,7 +319,7 @@ create table entitlements (
   updated_at timestamptz not null default now()
 );
 
--- ---------- guest_sessions ----------
+-- ============================ guest_sessions ============================
 create table guest_sessions (
   user_id    uuid primary key references auth.users(id) on delete cascade,
   device_id  text,
@@ -300,23 +327,23 @@ create table guest_sessions (
   expires_at timestamptz not null default (now() + interval '3 days')
 );
 
--- ---------- statements ----------
+-- ============================ statements ============================
 create table statements (
-  id          uuid primary key default gen_random_uuid(),
-  user_id     uuid not null references auth.users(id) on delete cascade,
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid not null references auth.users(id) on delete cascade,
   period_start date not null,
   period_end   date not null,
   storage_path text,
-  created_at  timestamptz not null default now()
+  created_at   timestamptz not null default now()
 );
 create index statements_user_idx on statements(user_id);
 
--- ---------- updated_at triggers ----------
+-- ==================== updated_at triggers ====================
 do $$
 declare t text;
 begin
   foreach t in array array[
-    'profiles','accounts','categories','transactions','transaction_items','budgets',
+    'profiles','accounts','categories','labels','transactions','transaction_items','budgets',
     'credit_card_details','goals','goal_allocations','loans','subscriptions',
     'recurring_commitments','holdings','entitlements'
   ] loop
@@ -326,37 +353,101 @@ begin
   end loop;
 end $$;
 
--- ---------- Row Level Security ----------
--- User-owned tables: owner can do everything with their own rows.
+-- ==================== Row Level Security ====================
 do $$
 declare t text;
 begin
   foreach t in array array[
-    'profiles','accounts','categories','transactions','transaction_items','budgets',
-    'credit_card_details','goals','goal_allocations','loans','subscriptions',
+    'profiles','accounts','categories','labels','transactions','transaction_items','transaction_audit',
+    'budgets','credit_card_details','goals','goal_allocations','loans','subscriptions',
     'recurring_commitments','holdings','entitlements','guest_sessions','statements'
   ] loop
     execute format('alter table %I enable row level security;', t);
-    -- profiles/entitlements/guest_sessions key on id/user_id = auth.uid()
-    if t in ('profiles') then
-      execute format($f$
-        create policy %1$s_owner on %1$s
-          using (id = auth.uid()) with check (id = auth.uid());$f$, t);
+    if t = 'profiles' then
+      execute format($f$create policy %1$s_owner on %1$s using (id = auth.uid()) with check (id = auth.uid());$f$, t);
     else
-      execute format($f$
-        create policy %1$s_owner on %1$s
-          using (user_id = auth.uid()) with check (user_id = auth.uid());$f$, t);
+      execute format($f$create policy %1$s_owner on %1$s using (user_id = auth.uid()) with check (user_id = auth.uid());$f$, t);
     end if;
   end loop;
 end $$;
 
--- Global reference data: readable by any authenticated user, writes via service role only.
 alter table exchange_rates enable row level security;
 alter table price_snapshots enable row level security;
 create policy exchange_rates_read on exchange_rates for select using (auth.role() = 'authenticated');
 create policy price_snapshots_read on price_snapshots for select using (auth.role() = 'authenticated');
 
--- ---------- Guest purge (schedule daily via pg_cron or an Edge Function) ----------
+-- ==================== Default seeding ====================
+create or replace function seed_default_categories(uid uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into categories (user_id, name, kind, is_system)
+  select uid, v.name, v.kind::category_kind, true
+  from (values
+    ('Food & Dining','expense'),('Groceries','expense'),('Transport','expense'),
+    ('Housing','expense'),('Utilities','expense'),('Health','expense'),
+    ('Shopping','expense'),('Entertainment','expense'),('Education','expense'),
+    ('Travel','expense'),('Personal Care','expense'),('Gifts & Donations','expense'),
+    ('Fees & Charges','expense'),('Insurance','expense'),('Kids','expense'),
+    ('Pets','expense'),('Subscriptions','expense'),('Taxes','expense'),
+    ('Miscellaneous','expense'),
+    ('Salary','income'),('Business','income'),('Freelance','income'),
+    ('Bonus','income'),('Interest','income'),('Dividends','income'),
+    ('Rental Income','income'),('Refunds','income'),('Gifts Received','income'),
+    ('Other Income','income')
+  ) as v(name, kind)
+  where not exists (select 1 from categories c where c.user_id = uid and c.name = v.name and c.parent_id is null);
+
+  insert into categories (user_id, name, kind, is_system, parent_id)
+  select uid, ch.name, ch.kind::category_kind, true, p.id
+  from (values
+    ('Restaurants','Food & Dining','expense'),('Coffee & Snacks','Food & Dining','expense'),
+    ('Takeout & Delivery','Food & Dining','expense'),
+    ('Fuel','Transport','expense'),('Public Transit','Transport','expense'),
+    ('Taxi & Rideshare','Transport','expense'),('Parking','Transport','expense'),
+    ('Rent','Housing','expense'),('Mortgage','Housing','expense'),('Maintenance','Housing','expense'),
+    ('Electricity','Utilities','expense'),('Water','Utilities','expense'),
+    ('Gas','Utilities','expense'),('Internet','Utilities','expense'),('Mobile','Utilities','expense'),
+    ('Doctor','Health','expense'),('Pharmacy','Health','expense'),('Fitness','Health','expense'),
+    ('Clothing','Shopping','expense'),('Electronics','Shopping','expense'),('Home','Shopping','expense'),
+    ('Streaming','Entertainment','expense'),('Movies','Entertainment','expense'),
+    ('Games','Entertainment','expense'),('Events','Entertainment','expense'),
+    ('Courses','Education','expense'),('Books','Education','expense'),('Tuition','Education','expense'),
+    ('Flights','Travel','expense'),('Hotels','Travel','expense'),('Activities','Travel','expense'),
+    ('Bank Fees','Fees & Charges','expense'),('Interest Charges','Fees & Charges','expense')
+  ) as ch(name, parent, kind)
+  join categories p on p.user_id = uid and p.name = ch.parent and p.parent_id is null
+  where not exists (select 1 from categories c where c.user_id = uid and c.name = ch.name and c.parent_id = p.id);
+
+  insert into labels (user_id, name, color)
+  select uid, v.name, v.color
+  from (values
+    ('Essential','#5f7a52'),('Wants','#c08a3e'),('Work','#3e4a38'),
+    ('Family','#b06a4f'),('Trip','#9cae8e'),('Emergency','#a8503a'),
+    ('Recurring','#5f6647'),('One-off','#c98a72')
+  ) as v(name, color)
+  on conflict (user_id, name) do nothing;
+end;
+$$;
+
+create or replace function handle_new_user() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into profiles (id) values (new.id) on conflict (id) do nothing;
+  insert into entitlements (user_id, tier) values (new.id, 'free') on conflict (user_id) do nothing;
+  if coalesce(new.is_anonymous, false) then
+    insert into guest_sessions (user_id) values (new.id) on conflict (user_id) do nothing;
+  end if;
+  perform seed_default_categories(new.id);
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function handle_new_user();
+
+-- ==================== Guest purge (schedule daily) ====================
 create or replace function purge_expired_guests() returns int
 language plpgsql security definer as $$
 declare deleted int;

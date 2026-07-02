@@ -8,8 +8,10 @@ import { money, format, fromMajor } from "@pocketcare/money";
 import { getRepositories } from "../../../../src/powersync";
 import { useAccountBalances } from "../../../../src/hooks";
 
+import { ACCOUNT_COLORS } from "../../../../src/colors";
+
 const TYPES = Object.values(AccountType);
-const COLORS = ["#3e4a38", "#5f6647", "#9cae8e", "#b06a4f", "#c98a72", "#7c4a3a", "#5f4636", "#c9b79c", "#2b2723"];
+const COLORS = ACCOUNT_COLORS;
 
 interface Row { id: string; name: string; type: string; color: string | null; include_in_net_worth: number; is_archived: number; }
 

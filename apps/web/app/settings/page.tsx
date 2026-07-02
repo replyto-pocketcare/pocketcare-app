@@ -9,13 +9,15 @@ import { insertRow, softDelete } from "../../src/write";
 import { useTier } from "../../src/hooks";
 import { setTier } from "../../src/tier";
 import { useTheme, setTheme } from "../../src/theme";
+import { useBaseCurrency } from "../../src/hooks";
+import { setBaseCurrency } from "../../src/prefs";
 import { useSession, updateUsername, signOut } from "../../src/account";
 import { Modal } from "../../src/ui/Modal";
 
-const CURRENCIES = ["USD", "EUR", "GBP", "INR", "JPY", "AUD", "CAD"];
+const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 
 export default function SettingsPage() {
-  const [base, setBase] = useState(typeof window !== "undefined" ? localStorage.getItem("baseCurrency") || "USD" : "USD");
+  const base = useBaseCurrency();
   const [lang, setLang] = useState(typeof window !== "undefined" ? localStorage.getItem("lang") || "en" : "en");
 
   const { data: categories = [] } = useQuery<{ id: string; name: string; kind: string; parent_id: string | null }>(
@@ -45,7 +47,7 @@ export default function SettingsPage() {
   const topCats = categories.filter((c) => !c.parent_id && c.kind === newKind);
   const childrenOf = (id: string) => categories.filter((c) => c.parent_id === id);
 
-  function saveBase(c: string) { setBase(c); localStorage.setItem("baseCurrency", c); }
+  function saveBase(c: string) { setBaseCurrency(c); }
   function saveLang(l: string) { setLang(l); localStorage.setItem("lang", l); void i18n.changeLanguage(l); }
   async function addCat() {
     if (!newCat.trim()) return;

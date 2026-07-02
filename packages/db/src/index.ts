@@ -161,6 +161,7 @@ const subscriptions = new Table({
   amount: column.integer,
   currency: column.text,
   billing_cycle: column.text,
+  purchased_on: column.text,
   next_renewal: column.text,
   category_id: column.text,
   is_active: column.integer,

@@ -27,6 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [installEvt, setInstallEvt] = useState<Event | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const theme = useTheme();
   const session = useSession();
 
@@ -69,14 +70,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "248px 1fr", minHeight: "100vh" }}>
-      <aside style={aside}>
+    <div className="shell">
+      {/* Mobile top bar */}
+      <div className="topbar">
+        <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}>☰</button>
+        <Logo size={26} />
+        <Link href="/transactions/new" className="hamburger" aria-label="Add transaction">＋</Link>
+      </div>
+
+      {menuOpen && <div className="scrim" onClick={() => setMenuOpen(false)} />}
+
+      <aside className={`sidebar${menuOpen ? " open" : ""}`}>
         <div style={{ padding: "4px 12px 20px" }}>
           <Logo size={30} />
         </div>
         <nav style={{ display: "grid", gap: 2 }}>
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} style={navItem(isActive(n.href))}>
+            <Link key={n.href} href={n.href} style={navItem(isActive(n.href))} onClick={() => setMenuOpen(false)}>
               <span style={{ width: 20, textAlign: "center", opacity: 0.75 }}>{n.icon}</span>
               {n.label}
             </Link>
@@ -109,32 +119,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main style={{ padding: "32px 40px", maxWidth: 1180, width: "100%" }}>{children}</main>
+      <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, width: "100%" }}>{children}</main>
     </div>
   );
 }
-
-const aside: React.CSSProperties = {
-  position: "sticky",
-  top: 0,
-  height: "100vh",
-  display: "flex",
-  flexDirection: "column",
-  padding: 16,
-  borderRight: "1px solid var(--border)",
-  background: "var(--surface)",
-};
-
-const logo: React.CSSProperties = {
-  width: 32,
-  height: 32,
-  borderRadius: 9,
-  background: "var(--accent)",
-  color: "#fff",
-  display: "grid",
-  placeItems: "center",
-  fontWeight: 800,
-};
 
 const navItem = (active: boolean): React.CSSProperties => ({
   display: "flex",

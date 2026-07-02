@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../src/powersync";
 import { Logo } from "../../src/ui/Logo";
+import { PasswordInput } from "../../src/ui/PasswordInput";
 
 type Mode = "register" | "signin";
 type Step = "form" | "otp";
@@ -125,9 +126,9 @@ export default function LoginPage() {
             <input className="input" placeholder="Display name" value={username} onChange={(e) => setUsername(e.target.value)} />
           )}
           <input className="input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input className="input" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput value={password} onChange={setPassword} placeholder="Password" />
           {mode === "register" && (
-            <input className="input" type="password" placeholder="Confirm password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            <PasswordInput value={confirm} onChange={setConfirm} placeholder="Confirm password" />
           )}
 
           {err && <ErrorBox msg={err} />}

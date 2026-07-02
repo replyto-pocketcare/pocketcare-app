@@ -13,14 +13,8 @@ import type { Account, ExchangeRate } from "@pocketcare/types";
 
 // Entitlement tier comes from a local reactive store (see src/tier.ts).
 export { useTier } from "./tier";
-
-export function useBaseCurrency(): string {
-  // Simple client preference; Settings writes it. Defaults to USD.
-  if (typeof window !== "undefined") {
-    return window.localStorage.getItem("baseCurrency") || "USD";
-  }
-  return "USD";
-}
+// Base currency (default INR) + amount masking come from a reactive store.
+export { useBaseCurrency } from "./prefs";
 
 /** A rate lookup backed by the synced exchange_rates table (latest per pair). */
 export function useRates(): RateLookup {
