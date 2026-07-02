@@ -31,6 +31,7 @@ const transactions = new Table(
     label: column.text,
     note: column.text,
     description: column.text,
+    payment_method: column.text,
     occurred_at: column.text,
     transfer_group_id: column.text,
     to_account_id: column.text,

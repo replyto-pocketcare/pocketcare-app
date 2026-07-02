@@ -144,6 +144,7 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
       label: input.label ?? null,
       note: input.note ?? null,
       description: input.description ?? null,
+      payment_method: input.payment_method ?? null,
       occurred_at: input.occurred_at,
       transfer_group_id: transferGroup,
       to_account_id: input.to_account_id ?? null,
@@ -157,12 +158,12 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     await this.db.writeTransaction(async (tx) => {
       await tx.execute(
         `INSERT INTO transactions
-          (id,user_id,account_id,type,amount,currency,category_id,label,note,description,occurred_at,
+          (id,user_id,account_id,type,amount,currency,category_id,label,note,description,payment_method,occurred_at,
            transfer_group_id,to_account_id,to_amount,fx_rate,created_at,updated_at)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [
           row.id, row.user_id, row.account_id, row.type, row.amount, row.currency,
-          row.category_id, row.label, row.note, row.description, row.occurred_at, row.transfer_group_id,
+          row.category_id, row.label, row.note, row.description, row.payment_method, row.occurred_at, row.transfer_group_id,
           row.to_account_id, row.to_amount, row.fx_rate, ts, ts,
         ],
       );
@@ -225,6 +226,7 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     track("label", before.label, patch.label);
     track("note", before.note, patch.note);
     track("description", before.description, patch.description);
+    track("payment_method", before.payment_method, patch.payment_method);
     track("occurred_at", before.occurred_at, patch.occurred_at);
     track("to_account_id", before.to_account_id, patch.to_account_id);
     track("to_amount", before.to_amount, patch.to_amount?.amount ?? undefined);

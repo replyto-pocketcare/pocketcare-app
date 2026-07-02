@@ -53,7 +53,7 @@ export default function TransactionsPage() {
               {(() => { const a = acct(t.account_id); return <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />; })()}
               <div>
                 <div style={{ fontWeight: 550 }}>{t.label || catName(t.category_id)}</div>
-                <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}</div>
+                <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}{t.payment_method ? ` · ${t.payment_method}` : ""}</div>
               </div>
             </div>
             <div style={{ fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>

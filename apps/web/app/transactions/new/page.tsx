@@ -14,6 +14,17 @@ type TxType = "expense" | "income" | "transfer";
 let counter = 0;
 const newItem = () => ({ id: `i${++counter}`, description: "", value: "" });
 
+/** Payment methods available for an account type. */
+function methodsFor(accountType?: string): string[] {
+  switch (accountType) {
+    case "credit_card": return ["Credit Card"];
+    case "cash": return ["Cash"];
+    case "savings":
+    case "current": return ["UPI", "Debit Card", "Net Banking"];
+    default: return []; // stocks / mutual funds — moved via transfers only
+  }
+}
+
 export default function NewTransactionPage() {
   const router = useRouter();
   const { data: accounts = [] } = useQuery<Account>(
@@ -32,6 +43,7 @@ export default function NewTransactionPage() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [description, setDescription] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [items, setItems] = useState([newItem()]);
   const [toValue, setToValue] = useState(""); // cross-currency destination amount
   const [saving, setSaving] = useState(false);
@@ -46,6 +58,12 @@ export default function NewTransactionPage() {
   useEffect(() => {
     if (isInvestment && type !== "transfer") setType("transfer");
   }, [isInvestment, type]);
+
+  // Payment methods depend on the account type.
+  const paymentMethods = methodsFor(account?.type);
+  useEffect(() => {
+    setPaymentMethod(paymentMethods[0] ?? "");
+  }, [account?.id, account?.type]);
 
   const itemMoneys: Money[] = useMemo(
     () => items.map((it) => fromMajor(Number.parseFloat(it.value) || 0, currency)),
@@ -102,6 +120,7 @@ export default function NewTransactionPage() {
           category_id: categoryId,
           label: labelValue,
           description: description.trim() || null,
+          payment_method: paymentMethod || null,
           occurred_at: new Date().toISOString(),
           items: payload.length > 1 ? payload : undefined,
         });
@@ -210,6 +229,16 @@ export default function NewTransactionPage() {
       {type !== "transfer" && (
         <Field label="Category">
           <SearchSelect value={categoryId} onChange={setCategoryId} options={categoryOptions} placeholder="Search a category…" />
+        </Field>
+      )}
+
+      {type !== "transfer" && paymentMethods.length > 0 && (
+        <Field label="Payment method">
+          <div style={chips}>
+            {paymentMethods.map((m) => (
+              <button key={m} className="chip" data-active={m === paymentMethod} onClick={() => setPaymentMethod(m)}>{m}</button>
+            ))}
+          </div>
         </Field>
       )}
 

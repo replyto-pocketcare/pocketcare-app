@@ -104,6 +104,7 @@ export interface Transaction extends BaseRow {
   label: string | null;
   note: string | null;
   description: string | null;
+  payment_method: string | null;
   occurred_at: string;
   transfer_group_id: string | null;
   to_account_id: string | null;

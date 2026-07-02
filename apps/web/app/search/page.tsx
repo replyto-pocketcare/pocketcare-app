@@ -43,7 +43,7 @@ export default function SearchPage() {
       if (term) {
         const a = acct(t.account_id);
         const hay = [
-          t.label, t.note, t.description, t.type, catName(t.category_id),
+          t.label, t.note, t.description, t.type, t.payment_method, catName(t.category_id),
           a?.name, a?.type, toMajor(money(t.amount, t.currency)).toFixed(2),
         ].filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(term)) return false;

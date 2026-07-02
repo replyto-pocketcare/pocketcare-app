@@ -29,6 +29,7 @@ export default function EditTransactionPage() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [description, setDescription] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState("");
   const [ready, setReady] = useState(false);
@@ -42,6 +43,7 @@ export default function EditTransactionPage() {
       setCategoryId(tx.category_id);
       setSelectedLabels(tx.label ? tx.label.split(",").map((s) => s.trim()).filter(Boolean) : []);
       setDescription(tx.description ?? "");
+      setPaymentMethod(tx.payment_method ?? "");
       setNote(tx.note ?? "");
       setDate(tx.occurred_at.slice(0, 10));
       setReady(true);
@@ -72,6 +74,7 @@ export default function EditTransactionPage() {
         category_id: type === "transfer" ? null : categoryId,
         label: selectedLabels.join(", ") || null,
         description: description.trim() || null,
+        payment_method: paymentMethod || null,
         note: note.trim() || null,
         occurred_at: new Date(date).toISOString(),
       });
@@ -106,6 +109,16 @@ export default function EditTransactionPage() {
       {type !== "transfer" && (
         <Field label="Category">
           <SearchSelect value={categoryId} onChange={setCategoryId} options={categoryOptions} placeholder="Search a category…" />
+        </Field>
+      )}
+
+      {type !== "transfer" && methodsFor(accounts.find((a) => a.id === accountId)?.type).length > 0 && (
+        <Field label="Payment method">
+          <div style={chips}>
+            {methodsFor(accounts.find((a) => a.id === accountId)?.type).map((m) => (
+              <button key={m} className="chip" data-active={m === paymentMethod} onClick={() => setPaymentMethod(m)}>{m}</button>
+            ))}
+          </div>
         </Field>
       )}
 
@@ -159,3 +172,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <label style={{ display: "grid", gap: 8 }}><span className="muted" style={{ fontSize: 13 }}>{label}</span>{children}</label>;
 }
 const chips: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: 8 };
+
+function methodsFor(accountType?: string): string[] {
+  switch (accountType) {
+    case "credit_card": return ["Credit Card"];
+    case "cash": return ["Cash"];
+    case "savings":
+    case "current": return ["UPI", "Debit Card", "Net Banking"];
+    default: return [];
+  }
+}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useQuery } from "@powersync/react";
-import { money, format, fromMajor } from "@pocketcare/money";
+import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { billingCycle } from "@pocketcare/budget";
 import { useAccountBalances } from "../../src/hooks";
 import { useSession } from "../../src/account";
@@ -96,6 +96,7 @@ function CardPanel({ account, owed, detail, sources }: {
   const cycle = detail ? billingCycle(detail.statement_day, detail.due_day, new Date()) : null;
   const [stmt, setStmt] = useState(String(detail?.statement_day ?? 1));
   const [due, setDue] = useState(String(detail?.due_day ?? 20));
+  const [creditLimit, setCreditLimit] = useState(detail?.credit_limit ? String(toMajor(money(detail.credit_limit, account.currency))) : "");
   const [last4, setLast4] = useState(detail?.card_last4 ?? "");
   const [editing, setEditing] = useState(false);
   const [fromId, setFromId] = useState<string | null>(null);
@@ -105,7 +106,8 @@ function CardPanel({ account, owed, detail, sources }: {
   async function saveCycle() {
     await getRepositories().creditCards.upsertDetails({
       account_id: account.id, statement_day: Number(stmt) || 1, due_day: Number(due) || 20,
-      credit_limit: detail?.credit_limit ?? null, card_last4: last4 ? last4.slice(-4) : null,
+      credit_limit: creditLimit ? fromMajor(Number(creditLimit), account.currency).amount : (detail?.credit_limit ?? null),
+      card_last4: last4 ? last4.slice(-4) : null,
     });
     setEditing(false);
   }
@@ -120,8 +122,14 @@ function CardPanel({ account, owed, detail, sources }: {
     <div className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <div className="muted" style={{ fontSize: 12 }}>Balance owed</div>
+          <div className="muted" style={{ fontSize: 12 }}>Spent this cycle</div>
           <div style={{ fontSize: 28, fontWeight: 750, color: "var(--negative)" }}>{format(owedMoney, "en-US")}</div>
+          {detail?.credit_limit ? (
+            <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
+              of {format(money(detail.credit_limit, account.currency), "en-US")} limit ·{" "}
+              <span style={{ color: "var(--positive)" }}>{format(money(Math.max(0, detail.credit_limit - Math.abs(owed)), account.currency), "en-US")} available</span>
+            </div>
+          ) : null}
         </div>
         {cycle && !editing && (
           <div style={{ textAlign: "right" }}>
@@ -141,6 +149,9 @@ function CardPanel({ account, owed, detail, sources }: {
             </label>
             <label className="muted" style={{ fontSize: 12 }}>Due day
               <input className="input" style={{ width: 80 }} value={due} onChange={(e) => setDue(e.target.value.replace(/\D/g, ""))} />
+            </label>
+            <label className="muted" style={{ fontSize: 12 }}>Credit limit
+              <input className="input" style={{ width: 120 }} inputMode="decimal" value={creditLimit} onChange={(e) => setCreditLimit(e.target.value.replace(/[^0-9.]/g, ""))} />
             </label>
           </div>
           <label className="muted" style={{ fontSize: 12 }}>Card number (optional — last 4 shown)
