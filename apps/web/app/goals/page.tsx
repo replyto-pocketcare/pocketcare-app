@@ -6,6 +6,7 @@ import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { useBaseCurrency } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { ProgressBar } from "../../src/ui/ProgressBar";
+import { FloatingInput } from "../../src/ui/FloatingInput";
 
 interface Goal {
   id: string;
@@ -68,8 +69,8 @@ export default function GoalsPage() {
 
       <div className="card" style={{ padding: 20, display: "grid", gap: 10, maxWidth: 460 }}>
         <h2>New goal</h2>
-        <input className="input" placeholder="Goal name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input className="input" inputMode="decimal" placeholder={`Target (${base})`} value={target} onChange={(e) => setTarget(e.target.value.replace(/[^0-9.]/g, ""))} />
+        <FloatingInput label="Goal name" value={name} onChange={setName} />
+        <FloatingInput label={`Target (${base})`} inputMode="decimal" value={target} onChange={(v) => setTarget(v.replace(/[^0-9.]/g, ""))} />
         {!hasEf && (
           <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
             <input type="checkbox" checked={isEf} onChange={(e) => setIsEf(e.target.checked)} /> This is my emergency fund (kept liquid, filled first)
@@ -112,8 +113,8 @@ function GoalCard({ goal, saved, savings, locked, base }: {
     <div className="card" style={{ padding: 20, display: "grid", gap: 10, opacity: locked ? 0.55 : 1 }}>
       {editing ? (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          <input className="input" style={{ flex: 1, minWidth: 140 }} value={eName} onChange={(e) => setEName(e.target.value)} placeholder="Goal name" />
-          <input className="input" style={{ width: 140 }} inputMode="decimal" value={eTarget} onChange={(e) => setETarget(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="Target" />
+          <FloatingInput label="Goal name" value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
+          <FloatingInput label="Target" inputMode="decimal" value={eTarget} onChange={(v) => setETarget(v.replace(/[^0-9.]/g, ""))} style={{ width: 140 }} />
           <button className="btn" onClick={saveEdit}>Save</button>
           <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
         </div>

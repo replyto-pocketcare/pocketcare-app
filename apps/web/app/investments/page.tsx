@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useQuery } from "@powersync/react";
-import { money, format, fromMajor } from "@pocketcare/money";
+import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { useBaseCurrency } from "../../src/hooks";
-import { insertRow, softDelete } from "../../src/write";
+import { insertRow, updateRow, softDelete } from "../../src/write";
 import { getDb } from "../../src/powersync";
+import { FloatingInput } from "../../src/ui/FloatingInput";
 
 interface Holding {
   id: string;
@@ -56,17 +57,7 @@ export default function InvestmentsPage() {
       </section>
 
       <div style={{ display: "grid", gap: 10 }}>
-        {holdings.map((h) => (
-          <div key={h.id} className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div><strong>{h.symbol}</strong><div className="muted" style={{ fontSize: 12 }}>{h.quantity} @ {h.avg_cost ? format(money(h.avg_cost, h.currency), "en-US") : "—"}</div></div>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <label style={{ fontSize: 13, display: "flex", gap: 6, alignItems: "center" }} className="muted">
-                <input type="checkbox" checked={!!h.auto_fetch} onChange={() => toggleFetch(h)} /> daily fetch
-              </label>
-              <button className="chip" onClick={() => softDelete("holdings", h.id)}>×</button>
-            </div>
-          </div>
-        ))}
+        {holdings.map((h) => <HoldingRow key={h.id} h={h} onToggle={() => toggleFetch(h)} />)}
         {holdings.length === 0 && <p className="muted">No holdings yet.</p>}
       </div>
 
@@ -79,13 +70,54 @@ export default function InvestmentsPage() {
             {invAccounts.map((a) => <button key={a.id} className="chip" data-active={(acc ?? invAccounts[0]?.id) === a.id} onClick={() => setAcc(a.id)}>{a.name}</button>)}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <input className="input" placeholder="Symbol" value={symbol} onChange={(e) => setSymbol(e.target.value)} />
-            <input className="input" inputMode="decimal" placeholder="Qty" value={qty} onChange={(e) => setQty(e.target.value.replace(/[^0-9.]/g, ""))} />
-            <input className="input" inputMode="decimal" placeholder="Avg cost" value={cost} onChange={(e) => setCost(e.target.value.replace(/[^0-9.]/g, ""))} />
+            <FloatingInput label="Symbol" value={symbol} onChange={setSymbol} style={{ flex: 1 }} />
+            <FloatingInput label="Qty" inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+            <FloatingInput label="Avg cost" inputMode="decimal" value={cost} onChange={(v) => setCost(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
           </div>
           <button className="btn" onClick={addHolding} disabled={!symbol.trim() || !qty}>Add</button>
         </div>
       )}
+    </div>
+  );
+}
+
+function HoldingRow({ h, onToggle }: { h: Holding; onToggle: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [symbol, setSymbol] = useState(h.symbol);
+  const [qty, setQty] = useState(String(h.quantity));
+  const [cost, setCost] = useState(h.avg_cost ? String(toMajor(money(h.avg_cost, h.currency))) : "");
+
+  async function save() {
+    await updateRow("holdings", h.id, {
+      symbol: symbol.trim().toUpperCase() || h.symbol,
+      quantity: Number(qty) || 0,
+      avg_cost: cost ? fromMajor(Number(cost), h.currency).amount : null,
+    });
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <FloatingInput label="Symbol" value={symbol} onChange={setSymbol} style={{ flex: 1 }} />
+          <FloatingInput label="Qty" inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+          <FloatingInput label="Avg cost" inputMode="decimal" value={cost} onChange={(v) => setCost(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+        </div>
+        <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={save}>Save</button><button className="chip" onClick={() => setEditing(false)}>Cancel</button></div>
+      </div>
+    );
+  }
+  return (
+    <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div><strong>{h.symbol}</strong><div className="muted" style={{ fontSize: 12 }}>{h.quantity} @ {h.avg_cost ? format(money(h.avg_cost, h.currency), "en-US") : "—"}</div></div>
+      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <label style={{ fontSize: 13, display: "flex", gap: 6, alignItems: "center" }} className="muted">
+          <input type="checkbox" checked={!!h.auto_fetch} onChange={onToggle} /> daily fetch
+        </label>
+        <button className="chip" onClick={() => setEditing(true)}>Edit</button>
+        <button className="chip" onClick={() => softDelete("holdings", h.id)}>×</button>
+      </div>
     </div>
   );
 }

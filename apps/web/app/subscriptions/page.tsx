@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useBaseCurrency, useTier } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
+import { FloatingInput } from "../../src/ui/FloatingInput";
 
 interface Sub {
   id: string;
@@ -90,8 +91,8 @@ export default function SubscriptionsPage() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
           <h2>Add subscription</h2>
-          <input className="input" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <input className="input" inputMode="decimal" placeholder={`Amount (${base})`} value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} />
+          <FloatingInput label="Name" value={name} onChange={setName} />
+          <FloatingInput label={`Amount (${base})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} />
           <div style={{ display: "flex", gap: 6 }}>
             {CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c}</button>)}
           </div>
@@ -139,8 +140,8 @@ function SubRow({ sub }: { sub: Sub }) {
     return (
       <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <input className="input" style={{ flex: 1, minWidth: 140 }} value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" />
-          <input className="input" style={{ width: 120 }} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="Amount" />
+          <FloatingInput label="Name" value={name} onChange={setName} style={{ flex: 1, minWidth: 140 }} />
+          <FloatingInput label="Amount" inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} style={{ width: 120 }} />
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ display: "flex", gap: 6 }}>{CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c}</button>)}</div>
@@ -187,15 +188,15 @@ function Simulator({ base }: { base: string }) {
     <div className="card" style={{ padding: 20, display: "grid", gap: 10, background: "var(--surface-2)" }}>
       <h2>Before you subscribe…</h2>
       <p className="muted" style={{ fontSize: 13, marginTop: -4 }}>See the true long-term cost of a new subscription.</p>
-      <div style={{ display: "flex", gap: 8 }}>
-        <input className="input" inputMode="decimal" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} />
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <FloatingInput label={`Amount (${base})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
         <div style={{ display: "flex", gap: 6 }}>
           {CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c[0].toUpperCase()}</button>)}
         </div>
       </div>
       <div style={{ display: "flex", gap: 8 }}>
-        <label style={{ flex: 1, fontSize: 13 }} className="muted">Years<input className="input" inputMode="numeric" value={years} onChange={(e) => setYears(e.target.value.replace(/\D/g, ""))} /></label>
-        <label style={{ flex: 1, fontSize: 13 }} className="muted">Return %<input className="input" inputMode="decimal" value={ret} onChange={(e) => setRet(e.target.value.replace(/[^0-9.]/g, ""))} /></label>
+        <FloatingInput label="Years" inputMode="numeric" value={years} onChange={(v) => setYears(v.replace(/\D/g, ""))} style={{ flex: 1 }} />
+        <FloatingInput label="Return %" inputMode="decimal" value={ret} onChange={(v) => setRet(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: "1px solid var(--border)" }}>
         <div><div className="muted" style={{ fontSize: 12 }}>You’d pay</div><strong>{format(money(impact.totalPaid, base), "en-US")}</strong></div>

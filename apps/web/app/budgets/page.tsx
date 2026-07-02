@@ -9,6 +9,7 @@ import { getRepositories } from "../../src/powersync";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { useBaseCurrency } from "../../src/hooks";
 import { ProgressBar } from "../../src/ui/ProgressBar";
+import { FloatingInput } from "../../src/ui/FloatingInput";
 import type { BudgetLike } from "@pocketcare/data";
 
 const PERIODS: Period[] = ["daily", "weekly", "monthly", "yearly"];
@@ -59,8 +60,8 @@ export default function BudgetsPage() {
 
       <div className="card" style={{ padding: 20, display: "grid", gap: 12, maxWidth: 560 }}>
         <h2>New budget</h2>
-        <input className="input" placeholder="Name (e.g. Japan Trip)" value={name} onChange={(e) => setName(e.target.value)} />
-        <input className="input" inputMode="decimal" placeholder={`Limit (${base})`} value={limit} onChange={(e) => setLimit(e.target.value.replace(/[^0-9.]/g, ""))} />
+        <FloatingInput label="Name (e.g. Japan Trip)" value={name} onChange={setName} />
+        <FloatingInput label={`Limit (${base})`} inputMode="decimal" value={limit} onChange={(v) => setLimit(v.replace(/[^0-9.]/g, ""))} />
 
         <span className="muted" style={{ fontSize: 13 }}>Track spending on</span>
         <div style={{ display: "flex", gap: 6 }}>
@@ -142,8 +143,8 @@ function BudgetRow({ budget, catName }: { budget: BudgetLike; catName: (id: stri
       {editing ? (
         <div style={{ display: "grid", gap: 8 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input className="input" style={{ flex: 1, minWidth: 140 }} value={eName} onChange={(e) => setEName(e.target.value)} placeholder="Name (optional)" />
-            <input className="input" style={{ width: 130 }} inputMode="decimal" value={eLimit} onChange={(e) => setELimit(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="Limit" />
+            <FloatingInput label="Name (optional)" value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
+            <FloatingInput label="Limit" inputMode="decimal" value={eLimit} onChange={(v) => setELimit(v.replace(/[^0-9.]/g, ""))} style={{ width: 130 }} />
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             {!budget.start_date && <div style={{ display: "flex", gap: 6 }}>{PERIODS.map((pp) => <button key={pp} className="chip" data-active={pp === ePeriod} onClick={() => setEPeriod(pp)}>{pp}</button>)}</div>}

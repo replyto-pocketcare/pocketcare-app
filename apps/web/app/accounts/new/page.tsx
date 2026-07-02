@@ -7,6 +7,7 @@ import { fromMajor } from "@pocketcare/money";
 import { getRepositories, getDb } from "../../../src/powersync";
 import { useBaseCurrency } from "../../../src/hooks";
 import { ACCOUNT_COLORS } from "../../../src/colors";
+import { FloatingInput } from "../../../src/ui/FloatingInput";
 
 const TYPES = Object.values(AccountType);
 const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
@@ -41,7 +42,7 @@ export default function NewAccountPage() {
   return (
     <div style={{ maxWidth: 520, display: "grid", gap: 14 }} className="fade-up">
       <h1>New account</h1>
-      <input className="input" placeholder="Account name" value={name} onChange={(e) => setName(e.target.value)} />
+      <FloatingInput label="Account name" value={name} onChange={setName} />
 
       <span className="muted" style={{ fontSize: 13 }}>Type</span>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>

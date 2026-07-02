@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import i18n, { SUPPORTED_LANGUAGES } from "@pocketcare/i18n";
 import { Feature, canUse } from "@pocketcare/entitlements";
-import { insertRow, softDelete } from "../../src/write";
+import { insertRow, updateRow, softDelete } from "../../src/write";
+import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useTier } from "../../src/hooks";
 import { setTier } from "../../src/tier";
 import { useTheme, setTheme } from "../../src/theme";
@@ -84,7 +85,7 @@ export default function SettingsPage() {
 
         <span className="muted" style={{ fontSize: 13 }}>Display name</span>
         <div style={{ display: "flex", gap: 8 }}>
-          <input className="input" placeholder="Your name" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <FloatingInput label="Your name" value={username} onChange={setUsername} style={{ flex: 1 }} />
           <button className="btn ghost" onClick={saveUsername}>{savedName ? "Saved" : "Save"}</button>
         </div>
 
@@ -140,21 +141,13 @@ export default function SettingsPage() {
         <div style={{ display: "grid", gap: 4 }}>
           {categories.filter((c) => !c.parent_id).map((c) => (
             <div key={c.id} style={{ display: "grid", gap: 2 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", border: "1px solid var(--border)", borderRadius: 8 }}>
-                <span>{c.name} <span className="muted" style={{ fontSize: 11 }}>{c.kind}</span></span>
-                <button className="chip" style={{ padding: "2px 8px" }} onClick={() => softDelete("categories", c.id)}>×</button>
-              </div>
-              {childrenOf(c.id).map((sub) => (
-                <div key={sub.id} style={{ display: "flex", justifyContent: "space-between", padding: "5px 10px 5px 26px", fontSize: 13 }} className="muted">
-                  <span>↳ {sub.name}</span>
-                  <button className="chip" style={{ padding: "2px 8px" }} onClick={() => softDelete("categories", sub.id)}>×</button>
-                </div>
-              ))}
+              <CatItem cat={c} />
+              {childrenOf(c.id).map((sub) => <CatItem key={sub.id} cat={sub} indent />)}
             </div>
           ))}
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-          <input className="input" placeholder="New category" value={newCat} onChange={(e) => setNewCat(e.target.value)} style={{ maxWidth: 180 }} />
+          <FloatingInput label="New category" value={newCat} onChange={setNewCat} style={{ maxWidth: 180, flex: 1 }} />
           <button className="chip" data-active={newKind === "expense"} onClick={() => setNewKind("expense")}>Expense</button>
           <button className="chip" data-active={newKind === "income"} onClick={() => setNewKind("income")}>Income</button>
           <select className="input" style={{ maxWidth: 200 }} value={parentId} onChange={(e) => setParentId(e.target.value)}>
@@ -168,17 +161,11 @@ export default function SettingsPage() {
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>Labels</h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {labels.map((l) => (
-            <span key={l.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 999, background: (l.color || "#b06a4f") + "22", border: `1px solid ${l.color || "#b06a4f"}` }}>
-              <span style={{ width: 8, height: 8, borderRadius: 999, background: l.color || "#b06a4f" }} />
-              {l.name}
-              <button className="chip" style={{ padding: "0 6px" }} onClick={() => softDelete("labels", l.id)}>×</button>
-            </span>
-          ))}
+          {labels.map((l) => <LabelItem key={l.id} label={l} />)}
           {labels.length === 0 && <span className="muted" style={{ fontSize: 13 }}>No labels yet.</span>}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <input className="input" placeholder="Label name" value={labelName} onChange={(e) => setLabelName(e.target.value)} style={{ maxWidth: 200 }} />
+          <FloatingInput label="Label name" value={labelName} onChange={setLabelName} style={{ maxWidth: 200, flex: 1 }} />
           <input type="color" value={labelColor} onChange={(e) => setLabelColor(e.target.value)} style={{ width: 44, height: 40, border: "1px solid var(--border)", borderRadius: 8, background: "var(--surface)" }} />
           <button className="btn" onClick={addLabel} disabled={!labelName.trim()}>Add label</button>
         </div>
@@ -210,5 +197,57 @@ export default function SettingsPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function CatItem({ cat, indent }: { cat: { id: string; name: string; kind: string }; indent?: boolean }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(cat.name);
+  async function save() { await updateRow("categories", cat.id, { name: name.trim() || cat.name }); setEditing(false); }
+
+  if (editing) {
+    return (
+      <div style={{ display: "flex", gap: 8, padding: indent ? "4px 10px 4px 26px" : "4px 10px", alignItems: "center" }}>
+        <FloatingInput label="Name" value={name} onChange={setName} style={{ flex: 1 }} />
+        <button className="chip" onClick={save}>Save</button>
+        <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
+      </div>
+    );
+  }
+  return (
+    <div className={indent ? "muted" : ""} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: indent ? "5px 10px 5px 26px" : "6px 10px", border: indent ? "none" : "1px solid var(--border)", borderRadius: 8, fontSize: indent ? 13 : 14 }}>
+      <span>{indent ? "↳ " : ""}{cat.name}{!indent && <span className="muted" style={{ fontSize: 11 }}> {cat.kind}</span>}</span>
+      <span style={{ display: "flex", gap: 6 }}>
+        <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={() => { setName(cat.name); setEditing(true); }}>Edit</button>
+        <button className="chip" style={{ padding: "2px 8px" }} onClick={() => softDelete("categories", cat.id)}>×</button>
+      </span>
+    </div>
+  );
+}
+
+function LabelItem({ label }: { label: { id: string; name: string; color: string | null } }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(label.name);
+  const [color, setColor] = useState(label.color || "#b06a4f");
+  async function save() { await updateRow("labels", label.id, { name: name.trim() || label.name, color }); setEditing(false); }
+  const c = label.color || "#b06a4f";
+
+  if (editing) {
+    return (
+      <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+        <input className="input" value={name} onChange={(e) => setName(e.target.value)} style={{ maxWidth: 130 }} />
+        <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ width: 36, height: 34, border: "1px solid var(--border)", borderRadius: 8, background: "var(--surface)" }} />
+        <button className="chip" onClick={save}>Save</button>
+        <button className="chip" onClick={() => setEditing(false)}>×</button>
+      </span>
+    );
+  }
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 999, background: c + "22", border: `1px solid ${c}` }}>
+      <span style={{ width: 8, height: 8, borderRadius: 999, background: c }} />
+      {label.name}
+      <button className="chip" style={{ padding: "0 8px", fontSize: 11 }} onClick={() => { setName(label.name); setColor(label.color || "#b06a4f"); setEditing(true); }}>Edit</button>
+      <button className="chip" style={{ padding: "0 6px" }} onClick={() => softDelete("labels", label.id)}>×</button>
+    </span>
   );
 }

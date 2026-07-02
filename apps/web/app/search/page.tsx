@@ -6,6 +6,7 @@ import { useQuery } from "@powersync/react";
 import { money, format, toMajor } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
 import { AccountBadge } from "../../src/ui/AccountBadge";
+import { FloatingInput } from "../../src/ui/FloatingInput";
 import { colorForId } from "../../src/colors";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
@@ -67,8 +68,8 @@ export default function SearchPage() {
         </select>
         <input className="input" type="date" style={{ maxWidth: 160 }} value={from} onChange={(e) => { setFrom(e.target.value); if (to && e.target.value > to) setTo(e.target.value); }} />
         <input className="input" type="date" style={{ maxWidth: 160 }} min={from || undefined} value={to} onChange={(e) => setTo(e.target.value)} />
-        <input className="input" inputMode="decimal" placeholder="Min" style={{ maxWidth: 100 }} value={min} onChange={(e) => setMin(e.target.value.replace(/[^0-9.]/g, ""))} />
-        <input className="input" inputMode="decimal" placeholder="Max" style={{ maxWidth: 100 }} value={max} onChange={(e) => setMax(e.target.value.replace(/[^0-9.]/g, ""))} />
+        <FloatingInput label="Min" inputMode="decimal" style={{ width: 100 }} value={min} onChange={(v) => setMin(v.replace(/[^0-9.]/g, ""))} />
+        <FloatingInput label="Max" inputMode="decimal" style={{ width: 100 }} value={max} onChange={(v) => setMax(v.replace(/[^0-9.]/g, ""))} />
       </div>
 
       <div className="muted" style={{ fontSize: 13 }}>{results.length} result{results.length === 1 ? "" : "s"}</div>

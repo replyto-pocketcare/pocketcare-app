@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSupabase } from "../../src/powersync";
 import { Logo } from "../../src/ui/Logo";
 import { PasswordInput } from "../../src/ui/PasswordInput";
+import { FloatingInput } from "../../src/ui/FloatingInput";
 
 type Mode = "register" | "signin";
 type Step = "form" | "otp";
@@ -123,9 +124,9 @@ export default function LoginPage() {
           </p>
 
           {mode === "register" && (
-            <input className="input" placeholder="Display name" value={username} onChange={(e) => setUsername(e.target.value)} />
+            <FloatingInput label="Display name" value={username} onChange={setUsername} />
           )}
-          <input className="input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <FloatingInput label="Email" type="email" inputMode="email" value={email} onChange={setEmail} />
           <PasswordInput value={password} onChange={setPassword} placeholder="Password" />
           {mode === "register" && (
             <PasswordInput value={confirm} onChange={setConfirm} placeholder="Confirm password" />

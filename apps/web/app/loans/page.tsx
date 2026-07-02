@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useQuery } from "@powersync/react";
-import { money, format, fromMajor } from "@pocketcare/money";
+import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { monthlyEquivalent, recurringMonthlyTotal, percentOfIncome } from "@pocketcare/finance";
 import type { Period } from "@pocketcare/types";
 import { useBaseCurrency } from "../../src/hooks";
-import { insertRow, softDelete } from "../../src/write";
+import { insertRow, updateRow, softDelete } from "../../src/write";
+import { FloatingInput } from "../../src/ui/FloatingInput";
 
 interface Loan { id: string; lender: string; principal: number; currency: string; emi_amount: number | null; }
 interface Commitment { id: string; kind: string; amount: number; currency: string; frequency: Period; }
@@ -20,7 +21,6 @@ export default function LoansPage() {
   const { data: commitments = [] } = useQuery<Commitment>("SELECT id, kind, amount, currency, frequency FROM recurring_commitments WHERE deleted_at IS NULL");
   const { data: subs = [] } = useQuery<{ amount: number; billing_cycle: Period }>("SELECT amount, billing_cycle FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1");
 
-  // Monthly income estimate = income transactions this month.
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const { data: incomeRows = [] } = useQuery<{ total: number }>(
     "SELECT COALESCE(SUM(amount),0) as total FROM transactions WHERE deleted_at IS NULL AND type='income' AND occurred_at >= ?",
@@ -65,23 +65,15 @@ export default function LoansPage() {
         </div>
       </section>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="dash-cols">
         <div style={{ display: "grid", gap: 12 }}>
           <h2>Loans</h2>
-          {loans.map((l) => (
-            <div key={l.id} className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between" }}>
-              <div><strong>{l.lender || "Loan"}</strong><div className="muted" style={{ fontSize: 12 }}>EMI {l.emi_amount ? format(money(l.emi_amount, l.currency), "en-US") : "—"}</div></div>
-              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                <span>{format(money(l.principal, l.currency), "en-US")}</span>
-                <button className="chip" onClick={() => softDelete("loans", l.id)}>×</button>
-              </div>
-            </div>
-          ))}
+          {loans.map((l) => <LoanRow key={l.id} loan={l} />)}
           <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
-            <input className="input" placeholder="Lender" value={lender} onChange={(e) => setLender(e.target.value)} />
+            <FloatingInput label="Lender" value={lender} onChange={setLender} />
             <div style={{ display: "flex", gap: 8 }}>
-              <input className="input" inputMode="decimal" placeholder="Principal" value={principal} onChange={(e) => setPrincipal(e.target.value.replace(/[^0-9.]/g, ""))} />
-              <input className="input" inputMode="decimal" placeholder="EMI" value={emi} onChange={(e) => setEmi(e.target.value.replace(/[^0-9.]/g, ""))} />
+              <FloatingInput label="Principal" inputMode="decimal" value={principal} onChange={(v) => setPrincipal(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+              <FloatingInput label="EMI" inputMode="decimal" value={emi} onChange={(v) => setEmi(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
             </div>
             <button className="btn" onClick={addLoan} disabled={!lender.trim() || !principal}>Add loan</button>
           </div>
@@ -89,26 +81,96 @@ export default function LoansPage() {
 
         <div style={{ display: "grid", gap: 12 }}>
           <h2>Recurring commitments</h2>
-          {commitments.map((c) => (
-            <div key={c.id} className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between" }}>
-              <div><strong style={{ textTransform: "capitalize" }}>{c.kind.replace("_", " ")}</strong><div className="muted" style={{ fontSize: 12 }}>{format(money(c.amount, c.currency), "en-US")} / {c.frequency}</div></div>
-              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                <span className="muted">{format(money(monthlyEquivalent(c.amount, c.frequency), c.currency), "en-US")}/mo</span>
-                <button className="chip" onClick={() => softDelete("recurring_commitments", c.id)}>×</button>
-              </div>
-            </div>
-          ))}
+          {commitments.map((c) => <CommitmentRow key={c.id} c={c} />)}
           <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {KINDS.map((k) => <button key={k} className="chip" data-active={k === ckind} style={{ textTransform: "capitalize" }} onClick={() => setCkind(k)}>{k.replace("_", " ")}</button>)}
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input className="input" inputMode="decimal" placeholder="Amount" value={camount} onChange={(e) => setCamount(e.target.value.replace(/[^0-9.]/g, ""))} />
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <FloatingInput label="Amount" inputMode="decimal" value={camount} onChange={(v) => setCamount(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
               <div style={{ display: "flex", gap: 6 }}>{CYCLES.map((c) => <button key={c} className="chip" data-active={c === cfreq} onClick={() => setCfreq(c)}>{c[0].toUpperCase()}</button>)}</div>
             </div>
             <button className="btn" onClick={addCommitment} disabled={!camount}>Add commitment</button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function LoanRow({ loan }: { loan: Loan }) {
+  const [editing, setEditing] = useState(false);
+  const [lender, setLender] = useState(loan.lender ?? "");
+  const [principal, setPrincipal] = useState(String(toMajor(money(loan.principal, loan.currency))));
+  const [emi, setEmi] = useState(loan.emi_amount ? String(toMajor(money(loan.emi_amount, loan.currency))) : "");
+
+  async function save() {
+    await updateRow("loans", loan.id, {
+      lender: lender.trim() || null,
+      principal: fromMajor(Number(principal) || 0, loan.currency).amount,
+      emi_amount: emi ? fromMajor(Number(emi), loan.currency).amount : null,
+    });
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
+        <FloatingInput label="Lender" value={lender} onChange={setLender} />
+        <div style={{ display: "flex", gap: 8 }}>
+          <FloatingInput label="Principal" inputMode="decimal" value={principal} onChange={(v) => setPrincipal(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+          <FloatingInput label="EMI" inputMode="decimal" value={emi} onChange={(v) => setEmi(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+        </div>
+        <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={save}>Save</button><button className="chip" onClick={() => setEditing(false)}>Cancel</button></div>
+      </div>
+    );
+  }
+  return (
+    <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between" }}>
+      <div><strong>{loan.lender || "Loan"}</strong><div className="muted" style={{ fontSize: 12 }}>EMI {loan.emi_amount ? format(money(loan.emi_amount, loan.currency), "en-US") : "—"}</div></div>
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <span>{format(money(loan.principal, loan.currency), "en-US")}</span>
+        <button className="chip" onClick={() => setEditing(true)}>Edit</button>
+        <button className="chip" onClick={() => softDelete("loans", loan.id)}>×</button>
+      </div>
+    </div>
+  );
+}
+
+function CommitmentRow({ c }: { c: Commitment }) {
+  const [editing, setEditing] = useState(false);
+  const [kind, setKind] = useState<(typeof KINDS)[number]>(c.kind as (typeof KINDS)[number]);
+  const [amount, setAmount] = useState(String(toMajor(money(c.amount, c.currency))));
+  const [freq, setFreq] = useState<Period>(c.frequency);
+
+  async function save() {
+    await updateRow("recurring_commitments", c.id, {
+      kind, amount: fromMajor(Number(amount) || 0, c.currency).amount, frequency: freq,
+    });
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {KINDS.map((k) => <button key={k} className="chip" data-active={k === kind} style={{ textTransform: "capitalize" }} onClick={() => setKind(k)}>{k.replace("_", " ")}</button>)}
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <FloatingInput label="Amount" inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+          <div style={{ display: "flex", gap: 6 }}>{CYCLES.map((cy) => <button key={cy} className="chip" data-active={cy === freq} onClick={() => setFreq(cy)}>{cy[0].toUpperCase()}</button>)}</div>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={save}>Save</button><button className="chip" onClick={() => setEditing(false)}>Cancel</button></div>
+      </div>
+    );
+  }
+  return (
+    <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between" }}>
+      <div><strong style={{ textTransform: "capitalize" }}>{c.kind.replace("_", " ")}</strong><div className="muted" style={{ fontSize: 12 }}>{format(money(c.amount, c.currency), "en-US")} / {c.frequency}</div></div>
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <span className="muted">{format(money(monthlyEquivalent(c.amount, c.frequency), c.currency), "en-US")}/mo</span>
+        <button className="chip" onClick={() => setEditing(true)}>Edit</button>
+        <button className="chip" onClick={() => softDelete("recurring_commitments", c.id)}>×</button>
       </div>
     </div>
   );

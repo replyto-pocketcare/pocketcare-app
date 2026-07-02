@@ -108,6 +108,41 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 }
 .input:focus { border-color: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-ghost); }
 
+/* Floating-label field: the hint stays visible (shrinks to the top) after typing. */
+.floating { position: relative; }
+.floating > input,
+.floating > textarea {
+  width: 100%;
+  padding: 20px 14px 7px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.floating > input:focus,
+.floating > textarea:focus { border-color: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-ghost); }
+.floating > label {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  color: var(--text-2);
+  font-size: 15px;
+  pointer-events: none;
+  transition: top 0.15s ease, font-size 0.15s ease, color 0.15s ease;
+}
+.floating > input:focus + label,
+.floating > input:not(:placeholder-shown) + label,
+.floating > textarea:focus + label,
+.floating > textarea:not(:placeholder-shown) + label {
+  top: 6px;
+  font-size: 11px;
+  color: var(--accent-soft);
+}
+
 .chip {
   padding: 8px 14px;
   border-radius: 999px;
