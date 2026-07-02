@@ -77,7 +77,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="topbar">
         <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}><MenuIcon /></button>
         <Logo size={26} />
-        <Link href="/transactions/new" className="hamburger" aria-label="Add transaction"><PlusIcon /></Link>
+        <span style={{ width: 40 }} />
       </div>
 
       {menuOpen && <div className="scrim" onClick={() => setMenuOpen(false)} />}
@@ -117,13 +117,20 @@ export function AppShell({ children }: { children: ReactNode }) {
               <DownloadIcon size={16} /> Install app
             </button>
           )}
-          <Link href="/transactions/new" className="btn" style={{ justifyContent: "center", gap: 6 }}>
-            <PlusIcon size={16} /> Add transaction
-          </Link>
         </div>
       </aside>
 
       <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, width: "100%" }}>{children}</main>
+
+      {/* Floating action button — quick add transaction (kept out of the nav) */}
+      <Link href="/transactions/new" aria-label="Add transaction" title="Add transaction"
+        style={{ position: "fixed", right: 24, bottom: 24, zIndex: 40, width: 56, height: 56, borderRadius: "50%",
+          background: "var(--accent)", color: "#fff", display: "grid", placeItems: "center",
+          boxShadow: "var(--shadow-lg)", transition: "transform 0.15s" }}
+        onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.94)")}
+        onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}>
+        <PlusIcon size={24} />
+      </Link>
     </div>
   );
 }

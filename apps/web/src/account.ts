@@ -18,9 +18,9 @@ export function useSession(): SessionInfo | null {
 
   useEffect(() => {
     let active = true;
-    void getSupabase()
-      .auth.getUser()
-      .then(({ data }) => {
+    const load = async () => {
+      try {
+        const { data } = await getSupabase().auth.getUser();
         if (!active) return;
         const u = data.user;
         const isGuest = Boolean((u as { is_anonymous?: boolean } | null)?.is_anonymous);
@@ -31,10 +31,16 @@ export function useSession(): SessionInfo | null {
           (u?.user_metadata?.username as string | undefined) ??
           (typeof window !== "undefined" ? localStorage.getItem("username") ?? "" : "");
         setInfo({ email: u?.email ?? null, isGuest, username, daysLeft });
-      })
-      .catch(() => active && setInfo({ email: null, isGuest: true, username: "", daysLeft: GUEST_DAYS }));
+      } catch {
+        if (active) setInfo({ email: null, isGuest: true, username: "", daysLeft: GUEST_DAYS });
+      }
+    };
+    void load();
+    // Refresh when auth state changes (sign in, sign up conversion, sign out).
+    const { data: sub } = getSupabase().auth.onAuthStateChange(() => { void load(); });
     return () => {
       active = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
 

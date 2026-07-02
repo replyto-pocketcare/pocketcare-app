@@ -46,6 +46,10 @@ export default function SettingsPage() {
   const [newCat, setNewCat] = useState(""); const [newKind, setNewKind] = useState<"expense" | "income">("expense");
   const [parentId, setParentId] = useState<string>("");
   const [labelName, setLabelName] = useState(""); const [labelColor, setLabelColor] = useState("#b06a4f");
+  const [catSearch, setCatSearch] = useState("");
+  const [openCats, setOpenCats] = useState<Set<string>>(new Set());
+  const toggleCat = (id: string) => setOpenCats((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const matchesQ = (name: string) => !catSearch || name.toLowerCase().includes(catSearch.toLowerCase());
   const topCats = categories.filter((c) => !c.parent_id && c.kind === newKind);
   const childrenOf = (id: string) => categories.filter((c) => c.parent_id === id);
 
@@ -87,10 +91,6 @@ export default function SettingsPage() {
         <div style={{ display: "flex", gap: 8 }}>
           <FloatingInput label="Your name" value={username} onChange={setUsername} style={{ flex: 1 }} />
           <button className="btn ghost" onClick={saveUsername}>{savedName ? "Saved" : "Save"}</button>
-        </div>
-
-        <div>
-          <button className="chip" style={{ color: "var(--negative)" }} onClick={() => setConfirmSignout(true)}>Sign out</button>
         </div>
       </section>
 
@@ -138,13 +138,28 @@ export default function SettingsPage() {
 
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>Categories & sub-categories</h2>
+        <FloatingInput label="Search categories…" value={catSearch} onChange={setCatSearch} />
         <div style={{ display: "grid", gap: 4 }}>
-          {categories.filter((c) => !c.parent_id).map((c) => (
-            <div key={c.id} style={{ display: "grid", gap: 2 }}>
-              <CatItem cat={c} />
-              {childrenOf(c.id).map((sub) => <CatItem key={sub.id} cat={sub} indent />)}
-            </div>
-          ))}
+          {categories.filter((c) => !c.parent_id).map((parent) => {
+            const kids = childrenOf(parent.id);
+            const parentMatch = matchesQ(parent.name);
+            const matchingKids = kids.filter((k) => matchesQ(k.name));
+            if (catSearch && !parentMatch && matchingKids.length === 0) return null;
+            const open = catSearch ? true : openCats.has(parent.id);
+            const shownKids = catSearch && !parentMatch ? matchingKids : kids;
+            return (
+              <div key={parent.id} style={{ display: "grid", gap: 2 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <button onClick={() => toggleCat(parent.id)} aria-label={open ? "Collapse" : "Expand"}
+                    style={{ width: 24, height: 24, border: "1px solid var(--border)", borderRadius: 7, background: "var(--surface)", cursor: "pointer", color: "var(--text-2)", flexShrink: 0 }}>
+                    {open ? "−" : "+"}
+                  </button>
+                  <div style={{ flex: 1 }}><CatItem cat={parent} childCount={kids.length} /></div>
+                </div>
+                {open && shownKids.map((sub) => <CatItem key={sub.id} cat={sub} indent />)}
+              </div>
+            );
+          })}
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
           <FloatingInput label="New category" value={newCat} onChange={setNewCat} style={{ maxWidth: 180, flex: 1 }} />
@@ -196,11 +211,16 @@ export default function SettingsPage() {
           <span className="muted" style={{ fontSize: 12 }}>PocketCare · your data is stored on your device and synced securely. Guest data is removed after 3 days if you don’t register.</span>
         </div>
       </section>
+
+      {/* Sign out (kept at the very end) */}
+      <section style={{ display: "flex", justifyContent: "center", paddingTop: 4, paddingBottom: 24 }}>
+        <button className="btn ghost" style={{ color: "var(--negative)", borderColor: "var(--negative)" }} onClick={() => setConfirmSignout(true)}>Sign out</button>
+      </section>
     </div>
   );
 }
 
-function CatItem({ cat, indent }: { cat: { id: string; name: string; kind: string }; indent?: boolean }) {
+function CatItem({ cat, indent, childCount }: { cat: { id: string; name: string; kind: string }; indent?: boolean; childCount?: number }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(cat.name);
   async function save() { await updateRow("categories", cat.id, { name: name.trim() || cat.name }); setEditing(false); }
@@ -216,7 +236,7 @@ function CatItem({ cat, indent }: { cat: { id: string; name: string; kind: strin
   }
   return (
     <div className={indent ? "muted" : ""} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: indent ? "5px 10px 5px 26px" : "6px 10px", border: indent ? "none" : "1px solid var(--border)", borderRadius: 8, fontSize: indent ? 13 : 14 }}>
-      <span>{indent ? "↳ " : ""}{cat.name}{!indent && <span className="muted" style={{ fontSize: 11 }}> {cat.kind}</span>}</span>
+      <span>{indent ? "↳ " : ""}{cat.name}{!indent && <span className="muted" style={{ fontSize: 11 }}> {cat.kind}{childCount ? ` · ${childCount}` : ""}</span>}</span>
       <span style={{ display: "flex", gap: 6 }}>
         <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={() => { setName(cat.name); setEditing(true); }}>Edit</button>
         <button className="chip" style={{ padding: "2px 8px" }} onClick={() => softDelete("categories", cat.id)}>×</button>
