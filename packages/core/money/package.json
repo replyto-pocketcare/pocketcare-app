@@ -13,7 +13,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "echo \"consumed as source; no build\"",
     "test": "node --test --experimental-strip-types src/*.test.ts"
   }
 }

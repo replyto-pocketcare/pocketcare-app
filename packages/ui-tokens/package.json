@@ -10,7 +10,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "echo \"consumed as source; no build\"",
     "test": "echo \"no tests\""
   }
 }
