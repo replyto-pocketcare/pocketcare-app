@@ -28,8 +28,14 @@ export default function TransactionsPage() {
   const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? "Uncategorised";
   const acct = (id: string) => accts.find((a) => a.id === id);
   const acctColor = (id: string) => acct(id)?.color || colorForId(id);
-  const acctTitle = (id: string) => { const a = acct(id); return a ? `${a.name} · ${a.type.replace("_", " ")}` : ""; };
   const hidden = useAmountsHidden();
+
+  const TYPE_CODE: Record<string, string> = {
+    savings: "SV", current: "CU", credit_card: "CC", cash: "$", mutual_funds: "MF", stocks: "ST",
+  };
+  const typeLabel: Record<string, string> = {
+    savings: "Savings", current: "Current", credit_card: "Credit Card", cash: "Cash", mutual_funds: "Mutual Funds", stocks: "Stocks",
+  };
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
@@ -51,7 +57,17 @@ export default function TransactionsPage() {
         {rows.map((t) => (
           <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <span title={acctTitle(t.account_id)} style={{ width: 9, height: 9, borderRadius: 999, background: acctColor(t.account_id), flexShrink: 0, cursor: "help" }} />
+              {(() => {
+                const a = acct(t.account_id);
+                const color = acctColor(t.account_id);
+                const code = a ? TYPE_CODE[a.type] ?? "•" : "•";
+                return (
+                  <span title={a ? `${a.name} · ${typeLabel[a.type] ?? a.type}` : ""}
+                    style={{ minWidth: 26, height: 22, padding: "0 5px", borderRadius: 7, background: `${color}1f`, border: `1px solid ${color}`, color, fontSize: 10.5, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "help", letterSpacing: "0.02em" }}>
+                    {code}
+                  </span>
+                );
+              })()}
               <div>
                 <div style={{ fontWeight: 550 }}>{t.label || catName(t.category_id)}</div>
                 <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}</div>
