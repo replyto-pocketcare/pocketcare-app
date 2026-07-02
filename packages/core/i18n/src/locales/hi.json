@@ -1,0 +1,43 @@
+{
+  "app": { "name": "पॉकेटकेयर" },
+  "common": {
+    "add": "जोड़ें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "settings": "सेटिंग्स"
+  },
+  "nav": {
+    "home": "होम",
+    "accounts": "खाते",
+    "add": "जोड़ें",
+    "analytics": "विश्लेषण",
+    "settings": "सेटिंग्स"
+  },
+  "accountType": {
+    "savings": "बचत",
+    "current": "चालू",
+    "credit_card": "क्रेडिट कार्ड",
+    "cash": "नकद",
+    "mutual_funds": "म्यूचुअल फंड",
+    "stocks": "शेयर"
+  },
+  "transaction": {
+    "income": "आय",
+    "expense": "व्यय",
+    "transfer": "स्थानांतरण",
+    "amount": "राशि",
+    "category": "श्रेणी",
+    "label": "लेबल",
+    "addItem": "आइटम जोड़ें"
+  },
+  "netWorth": {
+    "title": "कुल संपत्ति",
+    "withBlocked": "अवरुद्ध सहित",
+    "available": "उपलब्ध"
+  },
+  "onboarding": {
+    "guestBanner": "आप अतिथि के रूप में देख रहे हैं। अपना डेटा रखने के लिए {{days}} दिनों में पंजीकरण करें।",
+    "getStarted": "शुरू करें"
+  }
+}

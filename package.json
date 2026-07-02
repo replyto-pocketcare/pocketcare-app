@@ -1,0 +1,22 @@
+{
+  "name": "pocketcare",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Offline-first, cross-device, multi-currency expense & wealth manager",
+  "packageManager": "pnpm@9.7.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:core": "node --test --experimental-strip-types packages/core/money/src/*.test.ts packages/core/finance/src/*.test.ts packages/core/entitlements/src/*.test.ts packages/core/ledger/src/*.test.ts packages/core/budget/src/*.test.ts"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnp.*
+
+# Builds
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# Expo / native
+apps/mobile/.expo/
+apps/mobile/ios/
+apps/mobile/android/
+*.orig.*
+
+# Env & secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test / coverage
+coverage/

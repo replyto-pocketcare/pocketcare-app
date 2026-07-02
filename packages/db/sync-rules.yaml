@@ -1,0 +1,21 @@
+# PowerSync Sync Rules — scope every row to its owner.
+# Uses the authenticated user id (token "sub") so a guest's anonymous UID and a
+# registered user's UID behave identically. Applied in the PowerSync dashboard.
+bucket_definitions:
+  user_data:
+    # One bucket per authenticated user (anonymous guests included).
+    parameters: select request.user_id() as user_id
+    data:
+      - select * from accounts where user_id = bucket.user_id
+      - select * from transactions where user_id = bucket.user_id
+      - select * from transaction_items where user_id = bucket.user_id
+      - select * from categories where user_id = bucket.user_id
+      - select * from budgets where user_id = bucket.user_id
+      - select * from goals where user_id = bucket.user_id
+      - select * from goal_allocations where user_id = bucket.user_id
+      - select * from recurring_commitments where user_id = bucket.user_id
+
+  # Exchange rates are global reference data, synced to everyone read-only.
+  global_rates:
+    data:
+      - select * from exchange_rates

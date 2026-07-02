@@ -1,0 +1,45 @@
+{
+  "app": {
+    "name": "PocketCare"
+  },
+  "common": {
+    "add": "Add",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "settings": "Settings"
+  },
+  "nav": {
+    "home": "Home",
+    "accounts": "Accounts",
+    "add": "Add",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "accountType": {
+    "savings": "Savings",
+    "current": "Current",
+    "credit_card": "Credit Card",
+    "cash": "Cash",
+    "mutual_funds": "Mutual Funds",
+    "stocks": "Stocks"
+  },
+  "transaction": {
+    "income": "Income",
+    "expense": "Expense",
+    "transfer": "Transfer",
+    "amount": "Amount",
+    "category": "Category",
+    "label": "Label",
+    "addItem": "Add item"
+  },
+  "netWorth": {
+    "title": "Net Worth",
+    "withBlocked": "With blocked",
+    "available": "Available"
+  },
+  "onboarding": {
+    "guestBanner": "You're exploring as a guest. Register within {{days}} days to keep your data.",
+    "getStarted": "Get started"
+  }
+}
