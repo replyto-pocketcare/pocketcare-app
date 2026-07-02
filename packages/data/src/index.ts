@@ -14,6 +14,7 @@ export interface NewTransactionInput {
   category_id?: string | null;
   label?: string | null;
   note?: string | null;
+  description?: string | null;
   occurred_at: string;
   /** Breakdown items; must reconcile to `amount` (enforced before commit). */
   items?: { description: string; amount: Money }[];
@@ -60,6 +61,7 @@ export interface EditTransactionInput {
   category_id?: string | null;
   label?: string | null;
   note?: string | null;
+  description?: string | null;
   occurred_at?: string;
   to_account_id?: string | null;
   to_amount?: Money | null;

@@ -8,6 +8,8 @@ import type { Account, Transaction } from "@pocketcare/types";
 import type { TransactionAudit } from "@pocketcare/data";
 import { getRepositories } from "../../../../src/powersync";
 import { LabelPicker } from "../../../../src/ui/LabelPicker";
+import { SearchSelect } from "../../../../src/ui/SearchSelect";
+import { AccountBadge } from "../../../../src/ui/AccountBadge";
 
 type TxType = "expense" | "income" | "transfer" | "adjustment";
 
@@ -26,6 +28,7 @@ export default function EditTransactionPage() {
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const [description, setDescription] = useState("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState("");
   const [ready, setReady] = useState(false);
@@ -38,6 +41,7 @@ export default function EditTransactionPage() {
       setAmount(String(toMajor(money(tx.amount, tx.currency))));
       setCategoryId(tx.category_id);
       setSelectedLabels(tx.label ? tx.label.split(",").map((s) => s.trim()).filter(Boolean) : []);
+      setDescription(tx.description ?? "");
       setNote(tx.note ?? "");
       setDate(tx.occurred_at.slice(0, 10));
       setReady(true);
@@ -47,6 +51,16 @@ export default function EditTransactionPage() {
   if (!tx) return <p className="muted">Loading…</p>;
   const currency = tx.currency;
   const relevantCats = cats.filter((c) => (type === "income" ? c.kind === "income" : c.kind === "expense"));
+  const categoryOptions = (() => {
+    const opts: { value: string; label: string; search: string }[] = [];
+    for (const p of relevantCats.filter((c) => !c.parent_id)) {
+      opts.push({ value: p.id, label: p.name, search: p.name });
+      for (const ch of relevantCats.filter((c) => c.parent_id === p.id)) {
+        opts.push({ value: ch.id, label: `${p.name} › ${ch.name}`, search: `${p.name} ${ch.name}` });
+      }
+    }
+    return opts;
+  })();
 
   async function save() {
     setSaving(true);
@@ -57,6 +71,7 @@ export default function EditTransactionPage() {
         amount: fromMajor(Number(amount) || 0, currency),
         category_id: type === "transfer" ? null : categoryId,
         label: selectedLabels.join(", ") || null,
+        description: description.trim() || null,
         note: note.trim() || null,
         occurred_at: new Date(date).toISOString(),
       });
@@ -76,7 +91,11 @@ export default function EditTransactionPage() {
 
       <Field label="Account">
         <div style={chips}>
-          {accounts.map((a) => <button key={a.id} className="chip" data-active={a.id === accountId} onClick={() => setAccountId(a.id)}>{a.name}</button>)}
+          {accounts.map((a) => (
+            <button key={a.id} className="chip" data-active={a.id === accountId} onClick={() => setAccountId(a.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <AccountBadge type={a.type} color={a.color} id={a.id} name={a.name} /> {a.name}
+            </button>
+          ))}
         </div>
       </Field>
 
@@ -86,17 +105,7 @@ export default function EditTransactionPage() {
 
       {type !== "transfer" && (
         <Field label="Category">
-          <select className="input" value={categoryId ?? ""} onChange={(e) => setCategoryId(e.target.value || null)}>
-            <option value="">No category</option>
-            {relevantCats.filter((c) => !c.parent_id).map((parent) => (
-              <optgroup key={parent.id} label={parent.name}>
-                <option value={parent.id}>{parent.name}</option>
-                {relevantCats.filter((c) => c.parent_id === parent.id).map((child) => (
-                  <option key={child.id} value={child.id}>&nbsp;&nbsp;{child.name}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+          <SearchSelect value={categoryId} onChange={setCategoryId} options={categoryOptions} placeholder="Search a category…" />
         </Field>
       )}
 
@@ -104,6 +113,7 @@ export default function EditTransactionPage() {
         <LabelPicker labels={labels} selected={selectedLabels} onChange={setSelectedLabels} />
       </Field>
 
+      <Field label="Description"><textarea className="input" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What was this for?" style={{ resize: "vertical" }} /></Field>
       <Field label="Note"><input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" /></Field>
       <Field label="Date"><input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
 

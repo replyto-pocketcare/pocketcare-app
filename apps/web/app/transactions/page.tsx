@@ -7,6 +7,7 @@ import { money, format } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
 import { useAmountsHidden } from "../../src/prefs";
 import { colorForId } from "../../src/colors";
+import { AccountBadge } from "../../src/ui/AccountBadge";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
@@ -27,15 +28,7 @@ export default function TransactionsPage() {
   const { data: accts = [] } = useQuery<{ id: string; name: string; type: string; color: string | null }>("SELECT id, name, type, color FROM accounts WHERE deleted_at IS NULL");
   const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? "Uncategorised";
   const acct = (id: string) => accts.find((a) => a.id === id);
-  const acctColor = (id: string) => acct(id)?.color || colorForId(id);
   const hidden = useAmountsHidden();
-
-  const TYPE_CODE: Record<string, string> = {
-    savings: "SV", current: "CU", credit_card: "CC", cash: "$", mutual_funds: "MF", stocks: "ST",
-  };
-  const typeLabel: Record<string, string> = {
-    savings: "Savings", current: "Current", credit_card: "Credit Card", cash: "Cash", mutual_funds: "Mutual Funds", stocks: "Stocks",
-  };
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
@@ -57,17 +50,7 @@ export default function TransactionsPage() {
         {rows.map((t) => (
           <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              {(() => {
-                const a = acct(t.account_id);
-                const color = acctColor(t.account_id);
-                const code = a ? TYPE_CODE[a.type] ?? "•" : "•";
-                return (
-                  <span title={a ? `${a.name} · ${typeLabel[a.type] ?? a.type}` : ""}
-                    style={{ minWidth: 26, height: 22, padding: "0 5px", borderRadius: 7, background: `${color}1f`, border: `1px solid ${color}`, color, fontSize: 10.5, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "help", letterSpacing: "0.02em" }}>
-                    {code}
-                  </span>
-                );
-              })()}
+              {(() => { const a = acct(t.account_id); return <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />; })()}
               <div>
                 <div style={{ fontWeight: 550 }}>{t.label || catName(t.category_id)}</div>
                 <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}</div>

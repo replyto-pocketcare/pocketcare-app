@@ -103,6 +103,7 @@ export interface Transaction extends BaseRow {
   category_id: string | null;
   label: string | null;
   note: string | null;
+  description: string | null;
   occurred_at: string;
   transfer_group_id: string | null;
   to_account_id: string | null;

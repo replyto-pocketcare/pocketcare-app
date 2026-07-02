@@ -7,6 +7,8 @@ import { fromMajor, sum, format, type Money } from "@pocketcare/money";
 import type { Account } from "@pocketcare/types";
 import { getRepositories } from "../../../src/powersync";
 import { LabelPicker } from "../../../src/ui/LabelPicker";
+import { SearchSelect } from "../../../src/ui/SearchSelect";
+import { AccountBadge } from "../../../src/ui/AccountBadge";
 
 type TxType = "expense" | "income" | "transfer";
 let counter = 0;
@@ -29,6 +31,7 @@ export default function NewTransactionPage() {
   const [toAccountId, setToAccountId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const [description, setDescription] = useState("");
   const [items, setItems] = useState([newItem()]);
   const [toValue, setToValue] = useState(""); // cross-currency destination amount
   const [saving, setSaving] = useState(false);
@@ -50,6 +53,16 @@ export default function NewTransactionPage() {
   );
   const total = useMemo(() => sum(itemMoneys, currency), [itemMoneys, currency]);
   const relevantCats = categories.filter((c) => (type === "income" ? c.kind === "income" : c.kind === "expense"));
+  const categoryOptions = useMemo(() => {
+    const opts: { value: string; label: string; search: string }[] = [];
+    for (const p of relevantCats.filter((c) => !c.parent_id)) {
+      opts.push({ value: p.id, label: p.name, search: p.name });
+      for (const ch of relevantCats.filter((c) => c.parent_id === p.id)) {
+        opts.push({ value: ch.id, label: `${p.name} › ${ch.name}`, search: `${p.name} ${ch.name}` });
+      }
+    }
+    return opts;
+  }, [relevantCats]);
 
   const update = (id: string, patch: Partial<(typeof items)[number]>) =>
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
@@ -72,6 +85,7 @@ export default function NewTransactionPage() {
           to_account_id: toAccount.id,
           to_amount: crossCurrency ? fromMajor(Number.parseFloat(toValue) || 0, toAccount.currency) : null,
           label: labelValue,
+          description: description.trim() || null,
           occurred_at: new Date().toISOString(),
         });
       } else {
@@ -87,6 +101,7 @@ export default function NewTransactionPage() {
           amount: total,
           category_id: categoryId,
           label: labelValue,
+          description: description.trim() || null,
           occurred_at: new Date().toISOString(),
           items: payload.length > 1 ? payload : undefined,
         });
@@ -138,7 +153,8 @@ export default function NewTransactionPage() {
       <Field label={type === "transfer" ? "From account" : "Account"}>
         <div style={chips}>
           {accounts.map((a) => (
-            <button key={a.id} className="chip" data-active={a.id === account.id} onClick={() => setAccountId(a.id)}>
+            <button key={a.id} className="chip" data-active={a.id === account.id} onClick={() => setAccountId(a.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <AccountBadge type={a.type} color={a.color} id={a.id} name={a.name} />
               {a.name} <span className="muted">· {a.currency}</span>
             </button>
           ))}
@@ -149,7 +165,8 @@ export default function NewTransactionPage() {
         <Field label="To account">
           <div style={chips}>
             {accounts.filter((a) => a.id !== account.id).map((a) => (
-              <button key={a.id} className="chip" data-active={a.id === toAccount?.id} onClick={() => setToAccountId(a.id)}>
+              <button key={a.id} className="chip" data-active={a.id === toAccount?.id} onClick={() => setToAccountId(a.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <AccountBadge type={a.type} color={a.color} id={a.id} name={a.name} />
                 {a.name} <span className="muted">· {a.currency}</span>
               </button>
             ))}
@@ -166,22 +183,16 @@ export default function NewTransactionPage() {
 
       {type !== "transfer" && (
         <Field label="Category">
-          <select className="input" value={categoryId ?? ""} onChange={(e) => setCategoryId(e.target.value || null)}>
-            <option value="">No category</option>
-            {relevantCats.filter((c) => !c.parent_id).map((parent) => (
-              <optgroup key={parent.id} label={parent.name}>
-                <option value={parent.id}>{parent.name}</option>
-                {relevantCats.filter((c) => c.parent_id === parent.id).map((child) => (
-                  <option key={child.id} value={child.id}>&nbsp;&nbsp;{child.name}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+          <SearchSelect value={categoryId} onChange={setCategoryId} options={categoryOptions} placeholder="Search a category…" />
         </Field>
       )}
 
       <Field label="Labels (optional)">
         <LabelPicker labels={labelList} selected={selectedLabels} onChange={setSelectedLabels} />
+      </Field>
+
+      <Field label="Description (optional)">
+        <textarea className="input" rows={2} placeholder="What was this for?" value={description} onChange={(e) => setDescription(e.target.value)} style={{ resize: "vertical" }} />
       </Field>
 
       {type !== "transfer" && (

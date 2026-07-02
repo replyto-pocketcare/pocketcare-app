@@ -1,24 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 export interface LabelOption { id: string; name: string; color: string | null }
 
-/** Multi-select labels: removable colored pills + a dropdown to add + custom entry. */
+/** Multi-select labels with type-to-search + custom add; selected shown as pills. */
 export function LabelPicker({ labels, selected, onChange }: {
   labels: LabelOption[];
   selected: string[];
   onChange: (next: string[]) => void;
 }) {
-  const [custom, setCustom] = useState("");
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
   const colorOf = (name: string) => labels.find((l) => l.name === name)?.color || "#b06a4f";
-  const available = labels.filter((l) => !selected.includes(l.name));
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return labels
+      .filter((l) => !selected.includes(l.name) && (!q || l.name.toLowerCase().includes(q)))
+      .slice(0, 30);
+  }, [query, labels, selected]);
 
   const add = (name: string) => {
     const n = name.trim();
     if (n && !selected.includes(n)) onChange([...selected, n]);
+    setQuery("");
   };
   const remove = (name: string) => onChange(selected.filter((s) => s !== name));
+  const exact = labels.some((l) => l.name.toLowerCase() === query.trim().toLowerCase());
 
   return (
     <div style={{ display: "grid", gap: 8 }}>
@@ -37,15 +47,30 @@ export function LabelPicker({ labels, selected, onChange }: {
           })}
         </div>
       )}
-      <div style={{ display: "flex", gap: 8 }}>
-        <select className="input" value="" onChange={(e) => { add(e.target.value); e.currentTarget.value = ""; }} disabled={available.length === 0}>
-          <option value="">{available.length ? "Add a label…" : "All labels added"}</option>
-          {available.map((l) => <option key={l.id} value={l.name}>{l.name}</option>)}
-        </select>
-        <input className="input" style={{ maxWidth: 160 }} placeholder="Custom…" value={custom}
-          onChange={(e) => setCustom(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(custom); setCustom(""); } }} />
-        <button type="button" className="chip" onClick={() => { add(custom); setCustom(""); }} disabled={!custom.trim()}>Add</button>
+      <div ref={boxRef} style={{ position: "relative" }} onBlur={(e) => { if (!boxRef.current?.contains(e.relatedTarget as Node)) setOpen(false); }}>
+        <input className="input" value={query} placeholder="Search or add a label…"
+          onFocus={() => setOpen(true)}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(matches[0]?.name ?? query); } }} />
+        {open && (query || matches.length > 0) && (
+          <div style={{ position: "absolute", zIndex: 20, top: "calc(100% + 4px)", left: 0, right: 0, maxHeight: 220, overflowY: "auto", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, boxShadow: "var(--shadow)" }}>
+            {matches.map((l) => {
+              const c = l.color || "#b06a4f";
+              return (
+                <button key={l.id} type="button" onMouseDown={(e) => { e.preventDefault(); add(l.name); }}
+                  style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", padding: "8px 12px", border: "none", background: "transparent", cursor: "pointer", fontSize: 14 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 999, background: c }} /> {l.name}
+                </button>
+              );
+            })}
+            {query.trim() && !exact && (
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); add(query); }}
+                style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 12px", border: "none", borderTop: matches.length ? "1px solid var(--border)" : "none", background: "transparent", cursor: "pointer", fontSize: 14, color: "var(--accent)" }}>
+                + Add “{query.trim()}”
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

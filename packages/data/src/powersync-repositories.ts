@@ -143,6 +143,7 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
       category_id: input.category_id ?? null,
       label: input.label ?? null,
       note: input.note ?? null,
+      description: input.description ?? null,
       occurred_at: input.occurred_at,
       transfer_group_id: transferGroup,
       to_account_id: input.to_account_id ?? null,
@@ -156,12 +157,12 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     await this.db.writeTransaction(async (tx) => {
       await tx.execute(
         `INSERT INTO transactions
-          (id,user_id,account_id,type,amount,currency,category_id,label,note,occurred_at,
+          (id,user_id,account_id,type,amount,currency,category_id,label,note,description,occurred_at,
            transfer_group_id,to_account_id,to_amount,fx_rate,created_at,updated_at)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [
           row.id, row.user_id, row.account_id, row.type, row.amount, row.currency,
-          row.category_id, row.label, row.note, row.occurred_at, row.transfer_group_id,
+          row.category_id, row.label, row.note, row.description, row.occurred_at, row.transfer_group_id,
           row.to_account_id, row.to_amount, row.fx_rate, ts, ts,
         ],
       );
@@ -196,9 +197,9 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     const like = `%${query}%`;
     return this.db.getAll<Transaction>(
       `SELECT * FROM transactions
-       WHERE deleted_at IS NULL AND (label LIKE ? OR note LIKE ?)
+       WHERE deleted_at IS NULL AND (label LIKE ? OR note LIKE ? OR description LIKE ?)
        ORDER BY occurred_at DESC LIMIT ?`,
-      [like, like, limit],
+      [like, like, like, limit],
     );
   }
 
@@ -223,6 +224,7 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     track("category_id", before.category_id, patch.category_id);
     track("label", before.label, patch.label);
     track("note", before.note, patch.note);
+    track("description", before.description, patch.description);
     track("occurred_at", before.occurred_at, patch.occurred_at);
     track("to_account_id", before.to_account_id, patch.to_account_id);
     track("to_amount", before.to_amount, patch.to_amount?.amount ?? undefined);
