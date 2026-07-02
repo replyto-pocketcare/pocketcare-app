@@ -6,9 +6,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Logo } from "../../src/ui/Logo";
 
 const SLIDES = [
-  { emoji: "🌿", title: "Every account, one calm view", body: "Savings, cash, cards, stocks and funds — see your true net worth in your own currency, with or without money you’ve set aside." },
-  { emoji: "📊", title: "Understand where it goes", body: "Log income, expenses and transfers with itemised breakdowns, budgets that alert you early, and beautiful insights." },
-  { emoji: "🎯", title: "Build toward what matters", body: "Fund an emergency buffer first, then block savings toward goals and see exactly when you’ll get there." },
+  { title: "Every account, one calm view", body: "Savings, cash, cards, stocks and funds — see your true net worth in your own currency, with or without money you’ve set aside." },
+  { title: "Understand where it goes", body: "Log income, expenses and transfers with itemised breakdowns, budgets that alert you early, and beautiful insights." },
+  { title: "Build toward what matters", body: "Fund an emergency buffer first, then block savings toward goals and see exactly when you’ll get there." },
 ];
 
 export default function OnboardingPage() {
@@ -32,7 +32,6 @@ export default function OnboardingPage() {
             transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
             style={{ display: "grid", gap: 16, justifyItems: "center" }}
           >
-            <div style={{ fontSize: 64 }}>{SLIDES[i].emoji}</div>
             <h1 style={{ fontSize: 30 }}>{SLIDES[i].title}</h1>
             <p className="muted" style={{ fontSize: 17, lineHeight: 1.6, maxWidth: 440 }}>{SLIDES[i].body}</p>
           </motion.div>

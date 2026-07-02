@@ -6,6 +6,7 @@ import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, Cell,
 } from "recharts";
 import { useBaseCurrency, useTier } from "../../src/hooks";
+import { LockIcon } from "../../src/ui/icons";
 
 const major = (m: number) => m / 100;
 const PIE = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#7c7264", "#5f6647"];
@@ -54,7 +55,7 @@ export default function InsightsPage() {
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
         <h1>Insights</h1>
         <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
-          <div style={{ fontSize: 40 }}>📈</div>
+          <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
           <h2>Detailed insights are a Premium feature</h2>
           <p className="muted">Cashflow, category & label breakdowns, period comparisons and spending structure.</p>
           <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>

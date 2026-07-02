@@ -6,6 +6,7 @@ import { useQuery } from "@powersync/react";
 import { money, format } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
 import { useBaseCurrency, useTier } from "../../src/hooks";
+import { LockIcon } from "../../src/ui/icons";
 
 export default function StatementsPage() {
   const tier = useTier();
@@ -32,7 +33,7 @@ export default function StatementsPage() {
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
         <h1>Statements</h1>
         <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
-          <div style={{ fontSize: 40 }}>🧾</div>
+          <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
           <h2>Statements are a Premium feature</h2>
           <p className="muted">Generate a clean statement for any period and save it as a PDF.</p>
           <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>
@@ -45,8 +46,8 @@ export default function StatementsPage() {
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div className="no-print" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
         <h1>Statements</h1>
-        <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} style={{ maxWidth: 170 }} />
-        <input className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} style={{ maxWidth: 170 }} />
+        <input className="input" type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} style={{ maxWidth: 170 }} />
+        <input className="input" type="date" value={end} min={start || undefined} onChange={(e) => setEnd(e.target.value)} style={{ maxWidth: 170 }} />
         <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
       </div>
 

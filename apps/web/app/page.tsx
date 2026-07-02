@@ -10,6 +10,7 @@ import { useNetWorth, useAccountBalances } from "../src/hooks";
 import { useAmountsHidden, setAmountsHidden } from "../src/prefs";
 import { colorForId } from "../src/colors";
 import { getDb } from "../src/powersync";
+import { EyeIcon, EyeOffIcon, PlusIcon } from "../src/ui/icons";
 
 const PIE = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#4f46e5", "#7c7264"];
 
@@ -45,10 +46,9 @@ export default function Dashboard() {
     return (
       <div className="fade-up" style={{ minHeight: "70vh", display: "grid", placeItems: "center" }}>
         <div className="card" style={{ maxWidth: 460, padding: 36, textAlign: "center", display: "grid", gap: 14, background: "radial-gradient(120% 120% at 50% 0%, var(--accent-ghost), var(--surface) 70%)" }}>
-          <div style={{ fontSize: 48 }}>🌱</div>
           <h1 style={{ fontSize: 26 }}>Welcome to PocketCare</h1>
-          <p className="muted" style={{ lineHeight: 1.6 }}>Let’s start by adding your first account — a bank, cash, a card, or investments.</p>
-          <Link href="/accounts/new" className="btn" style={{ justifySelf: "center", padding: "12px 20px" }}>＋ Add your first account</Link>
+          <p className="muted" style={{ lineHeight: 1.6 }}>Start by adding your first account — a bank, cash, a card, or investments.</p>
+          <Link href="/accounts/new" className="btn" style={{ justifySelf: "center", padding: "12px 20px", gap: 6 }}><PlusIcon size={16} /> Add your first account</Link>
         </div>
       </div>
     );
@@ -59,10 +59,10 @@ export default function Dashboard() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12 }}>
         <h1>Dashboard</h1>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="chip" onClick={() => setAmountsHidden(!hidden)} title={hidden ? "Show amounts" : "Hide amounts"}>
-            {hidden ? "👁 Show" : "🙈 Hide"}
+          <button className="chip" onClick={() => setAmountsHidden(!hidden)} title={hidden ? "Show amounts" : "Hide amounts"} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            {hidden ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />} {hidden ? "Show" : "Hide"}
           </button>
-          <Link href="/accounts/new" className="btn ghost">＋ Account</Link>
+          <Link href="/accounts/new" className="btn ghost" style={{ gap: 6 }}><PlusIcon size={16} /> Account</Link>
         </div>
       </div>
 
@@ -92,8 +92,8 @@ export default function Dashboard() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span className="muted" style={{ fontSize: 12, textTransform: "capitalize" }}>{account.type.replace("_", " ")}</span>
                     <button onClick={() => toggleNw(account.id, included)} title={included ? "In net worth — click to exclude" : "Excluded — click to include"}
-                      style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 14, opacity: included ? 1 : 0.4 }}>
-                      {included ? "👁" : "🙈"}
+                      style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-2)", opacity: included ? 1 : 0.45, display: "inline-flex", padding: 0 }}>
+                      {included ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />}
                     </button>
                   </div>
                   <span style={{ fontWeight: 600 }}>{account.name}</span>

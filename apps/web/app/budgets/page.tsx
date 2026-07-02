@@ -92,8 +92,8 @@ export default function BudgetsPage() {
           </div>
         ) : (
           <div style={{ display: "flex", gap: 8 }}>
-            <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
-            <input className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+            <input className="input" type="date" value={start} onChange={(e) => { setStart(e.target.value); if (end && e.target.value > end) setEnd(e.target.value); }} />
+            <input className="input" type="date" value={end} min={start || undefined} onChange={(e) => setEnd(e.target.value)} />
           </div>
         )}
 

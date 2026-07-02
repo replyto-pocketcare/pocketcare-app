@@ -13,6 +13,7 @@ import { useBaseCurrency } from "../../src/hooks";
 import { setBaseCurrency } from "../../src/prefs";
 import { useSession, updateUsername, signOut } from "../../src/account";
 import { Modal } from "../../src/ui/Modal";
+import { SunIcon, MoonIcon } from "../../src/ui/icons";
 
 const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 
@@ -84,7 +85,7 @@ export default function SettingsPage() {
         <span className="muted" style={{ fontSize: 13 }}>Display name</span>
         <div style={{ display: "flex", gap: 8 }}>
           <input className="input" placeholder="Your name" value={username} onChange={(e) => setUsername(e.target.value)} />
-          <button className="btn ghost" onClick={saveUsername}>{savedName ? "Saved ✓" : "Save"}</button>
+          <button className="btn ghost" onClick={saveUsername}>{savedName ? "Saved" : "Save"}</button>
         </div>
 
         <div>
@@ -114,8 +115,8 @@ export default function SettingsPage() {
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>Appearance</h2>
         <div style={{ display: "flex", gap: 6 }}>
-          <button className="chip" data-active={theme === "light"} onClick={() => setTheme("light")}>☀ Light</button>
-          <button className="chip" data-active={theme === "dark"} onClick={() => setTheme("dark")}>☾ Dark</button>
+          <button className="chip" data-active={theme === "light"} onClick={() => setTheme("light")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><SunIcon size={15} /> Light</button>
+          <button className="chip" data-active={theme === "dark"} onClick={() => setTheme("dark")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><MoonIcon size={15} /> Dark</button>
         </div>
       </section>
 
@@ -193,9 +194,9 @@ export default function SettingsPage() {
           </div>
         </div>
         <p className="muted" style={{ fontSize: 13 }}>
-          Toggle to preview both tiers. Advanced insights {canUse(Feature.AdvancedAnalytics, tier) ? "✓" : "🔒"} ·
-          Statements {canUse(Feature.Statements, tier) ? "✓" : "🔒"} ·
-          Subscription simulator {canUse(Feature.SubscriptionSimulator, tier) ? "✓" : "🔒"}
+          Toggle to preview both tiers. Advanced insights {canUse(Feature.AdvancedAnalytics, tier) ? "included" : "Premium"} ·
+          Statements {canUse(Feature.Statements, tier) ? "included" : "Premium"} ·
+          Subscription simulator {canUse(Feature.SubscriptionSimulator, tier) ? "included" : "Premium"}
         </p>
       </section>
 
@@ -203,8 +204,8 @@ export default function SettingsPage() {
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>Help & Support</h2>
         <div style={{ display: "grid", gap: 6 }}>
-          <a href="mailto:support@pocketcare.app" className="chip" style={{ justifySelf: "start" }}>✉ Contact support</a>
-          <Link href="/onboarding" className="chip" style={{ justifySelf: "start" }}>↻ Replay the intro</Link>
+          <a href="mailto:support@pocketcare.app" className="chip" style={{ justifySelf: "start" }}>Contact support</a>
+          <Link href="/onboarding" className="chip" style={{ justifySelf: "start" }}>Replay the intro</Link>
           <span className="muted" style={{ fontSize: 12 }}>PocketCare · your data is stored on your device and synced securely. Guest data is removed after 3 days if you don’t register.</span>
         </div>
       </section>

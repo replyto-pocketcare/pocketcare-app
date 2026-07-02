@@ -8,6 +8,7 @@ import type { Period } from "@pocketcare/types";
 import Link from "next/link";
 import { useBaseCurrency, useTier } from "../../src/hooks";
 import { insertRow, softDelete } from "../../src/write";
+import { LockIcon } from "../../src/ui/icons";
 
 interface Sub {
   id: string;
@@ -114,7 +115,7 @@ export default function SubscriptionsPage() {
           <Simulator base={base} />
         ) : (
           <div className="card" style={{ padding: 20, display: "grid", gap: 10, textAlign: "center", background: "var(--surface-2)" }}>
-            <div style={{ fontSize: 32 }}>🔒</div>
+            <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={28} /></div>
             <h2>Impact simulator</h2>
             <p className="muted" style={{ fontSize: 13 }}>See a subscription’s true long-term cost before you commit. Premium.</p>
             <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>

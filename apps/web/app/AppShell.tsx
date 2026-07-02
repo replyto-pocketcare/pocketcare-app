@@ -7,6 +7,7 @@ import { useTheme, setTheme, applySavedTheme } from "../src/theme";
 import { useSession } from "../src/account";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
+import { MenuIcon, PlusIcon, SunIcon, MoonIcon, DownloadIcon } from "../src/ui/icons";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: "◧" },
@@ -14,13 +15,13 @@ const NAV = [
   { href: "/transactions", label: "Transactions", icon: "⇅" },
   { href: "/cards", label: "Cards", icon: "▭" },
   { href: "/budgets", label: "Budgets", icon: "◔" },
-  { href: "/insights", label: "Insights", icon: "📈" },
+  { href: "/insights", label: "Insights", icon: "◱" },
   { href: "/statements", label: "Statements", icon: "▦" },
   { href: "/goals", label: "Goals", icon: "◎" },
   { href: "/subscriptions", label: "Subscriptions", icon: "↻" },
   { href: "/loans", label: "Loans & Recurring", icon: "≈" },
   { href: "/investments", label: "Investments", icon: "▲" },
-  { href: "/settings", label: "Settings", icon: "⚙" },
+  { href: "/settings", label: "Settings", icon: "◇" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -73,9 +74,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="shell">
       {/* Mobile top bar */}
       <div className="topbar">
-        <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}>☰</button>
+        <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}><MenuIcon /></button>
         <Logo size={26} />
-        <Link href="/transactions/new" className="hamburger" aria-label="Add transaction">＋</Link>
+        <Link href="/transactions/new" className="hamburger" aria-label="Add transaction"><PlusIcon /></Link>
       </div>
 
       {menuOpen && <div className="scrim" onClick={() => setMenuOpen(false)} />}
@@ -99,22 +100,24 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div style={{ color: "var(--accent)", marginTop: 2 }}>Create account →</div>
             </Link>
           )}
-          <button className="btn ghost" onClick={toggleTheme} style={{ justifyContent: "center" }}>
-            {theme === "light" ? "☾ Dark mode" : "☀ Light mode"}
+          <button className="btn ghost" onClick={toggleTheme} style={{ justifyContent: "center", gap: 8 }}>
+            {theme === "light" ? <MoonIcon size={16} /> : <SunIcon size={16} />}
+            {theme === "light" ? "Dark mode" : "Light mode"}
           </button>
           {installEvt && (
             <button
               className="btn"
+              style={{ justifyContent: "center", gap: 8 }}
               onClick={async () => {
                 await (installEvt as unknown as { prompt: () => Promise<void> }).prompt();
                 setInstallEvt(null);
               }}
             >
-              ⤓ Install app
+              <DownloadIcon size={16} /> Install app
             </button>
           )}
-          <Link href="/transactions/new" className="btn" style={{ justifyContent: "center" }}>
-            ＋ Add transaction
+          <Link href="/transactions/new" className="btn" style={{ justifyContent: "center", gap: 6 }}>
+            <PlusIcon size={16} /> Add transaction
           </Link>
         </div>
       </aside>

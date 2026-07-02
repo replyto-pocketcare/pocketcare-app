@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@powersync/react";
 import { fromMajor, sum, format, type Money } from "@pocketcare/money";
 import type { Account } from "@pocketcare/types";
 import { getRepositories } from "../../../src/powersync";
+import { LabelPicker } from "../../../src/ui/LabelPicker";
 
 type TxType = "expense" | "income" | "transfer";
 let counter = 0;
@@ -27,7 +28,7 @@ export default function NewTransactionPage() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [toAccountId, setToAccountId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [label, setLabel] = useState("");
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [items, setItems] = useState([newItem()]);
   const [toValue, setToValue] = useState(""); // cross-currency destination amount
   const [saving, setSaving] = useState(false);
@@ -36,6 +37,12 @@ export default function NewTransactionPage() {
   const currency = account?.currency ?? "USD";
   const toAccount = accounts.find((a) => a.id === toAccountId) ?? accounts.find((a) => a.id !== account?.id);
   const crossCurrency = type === "transfer" && toAccount && toAccount.currency !== currency;
+
+  // Investment accounts (stocks / mutual funds) can only move money via transfers.
+  const isInvestment = account?.type === "stocks" || account?.type === "mutual_funds";
+  useEffect(() => {
+    if (isInvestment && type !== "transfer") setType("transfer");
+  }, [isInvestment, type]);
 
   const itemMoneys: Money[] = useMemo(
     () => items.map((it) => fromMajor(Number.parseFloat(it.value) || 0, currency)),
@@ -50,6 +57,8 @@ export default function NewTransactionPage() {
   const canSave =
     !!account && total.amount > 0 && !saving && (type !== "transfer" || (!!toAccount && toAccount.id !== account.id));
 
+  const labelValue = selectedLabels.join(", ") || null;
+
   async function save() {
     if (!account || !canSave) return;
     setSaving(true);
@@ -62,7 +71,7 @@ export default function NewTransactionPage() {
           amount: total,
           to_account_id: toAccount.id,
           to_amount: crossCurrency ? fromMajor(Number.parseFloat(toValue) || 0, toAccount.currency) : null,
-          label: label.trim() || null,
+          label: labelValue,
           occurred_at: new Date().toISOString(),
         });
       } else {
@@ -77,7 +86,7 @@ export default function NewTransactionPage() {
           type,
           amount: total,
           category_id: categoryId,
-          label: label.trim() || null,
+          label: labelValue,
           occurred_at: new Date().toISOString(),
           items: payload.length > 1 ? payload : undefined,
         });
@@ -105,12 +114,21 @@ export default function NewTransactionPage() {
       <h1>Add transaction</h1>
 
       <div style={{ display: "flex", gap: 8 }}>
-        {(["expense", "income", "transfer"] as TxType[]).map((tp) => (
-          <button key={tp} className="chip" data-active={tp === type} style={{ flex: 1, textTransform: "capitalize" }} onClick={() => setType(tp)}>
-            {tp}
-          </button>
-        ))}
+        {(["expense", "income", "transfer"] as TxType[]).map((tp) => {
+          const blocked = isInvestment && tp !== "transfer";
+          return (
+            <button key={tp} className="chip" data-active={tp === type} disabled={blocked}
+              title={blocked ? "Investment accounts can only transfer to/from other accounts" : undefined}
+              style={{ flex: 1, textTransform: "capitalize", opacity: blocked ? 0.4 : 1 }}
+              onClick={() => !blocked && setType(tp)}>
+              {tp}
+            </button>
+          );
+        })}
       </div>
+      {isInvestment && (
+        <p className="muted" style={{ fontSize: 12, marginTop: -8 }}>Investment accounts only support transfers to and from other accounts.</p>
+      )}
 
       <div className="card" style={{ padding: 22 }}>
         <div className="muted" style={{ fontSize: 13 }}>Amount</div>
@@ -148,32 +166,22 @@ export default function NewTransactionPage() {
 
       {type !== "transfer" && (
         <Field label="Category">
-          <div style={chips}>
-            {relevantCats.map((c) => (
-              <button key={c.id} className="chip" data-active={c.id === categoryId} onClick={() => setCategoryId(c.id)}>{c.name}</button>
+          <select className="input" value={categoryId ?? ""} onChange={(e) => setCategoryId(e.target.value || null)}>
+            <option value="">No category</option>
+            {relevantCats.filter((c) => !c.parent_id).map((parent) => (
+              <optgroup key={parent.id} label={parent.name}>
+                <option value={parent.id}>{parent.name}</option>
+                {relevantCats.filter((c) => c.parent_id === parent.id).map((child) => (
+                  <option key={child.id} value={child.id}>&nbsp;&nbsp;{child.name}</option>
+                ))}
+              </optgroup>
             ))}
-          </div>
+          </select>
         </Field>
       )}
 
-      <Field label="Label (optional)">
-        {labelList.length > 0 && (
-          <div style={{ ...chips, marginBottom: 8 }}>
-            {labelList.map((l) => {
-              const active = label === l.name;
-              const c = l.color || "#b06a4f";
-              return (
-                <button key={l.id} type="button" onClick={() => setLabel(active ? "" : l.name)}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 999, cursor: "pointer",
-                    border: `1px solid ${c}`, background: active ? c : `${c}22`, color: active ? "#fff" : "var(--text)" }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 999, background: active ? "#fff" : c }} />
-                  {l.name}
-                </button>
-              );
-            })}
-          </div>
-        )}
-        <input className="input" placeholder="Pick a label above or type a custom one" value={label} onChange={(e) => setLabel(e.target.value)} />
+      <Field label="Labels (optional)">
+        <LabelPicker labels={labelList} selected={selectedLabels} onChange={setSelectedLabels} />
       </Field>
 
       {type !== "transfer" && (

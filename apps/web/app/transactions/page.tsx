@@ -24,9 +24,11 @@ export default function TransactionsPage() {
     [q, like, like, type, type],
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories");
-  const { data: accts = [] } = useQuery<{ id: string; color: string | null }>("SELECT id, color FROM accounts WHERE deleted_at IS NULL");
+  const { data: accts = [] } = useQuery<{ id: string; name: string; type: string; color: string | null }>("SELECT id, name, type, color FROM accounts WHERE deleted_at IS NULL");
   const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? "Uncategorised";
-  const acctColor = (id: string) => accts.find((a) => a.id === id)?.color || colorForId(id);
+  const acct = (id: string) => accts.find((a) => a.id === id);
+  const acctColor = (id: string) => acct(id)?.color || colorForId(id);
+  const acctTitle = (id: string) => { const a = acct(id); return a ? `${a.name} · ${a.type.replace("_", " ")}` : ""; };
   const hidden = useAmountsHidden();
 
   return (
@@ -49,7 +51,7 @@ export default function TransactionsPage() {
         {rows.map((t) => (
           <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <span style={{ width: 9, height: 9, borderRadius: 999, background: acctColor(t.account_id), flexShrink: 0 }} />
+              <span title={acctTitle(t.account_id)} style={{ width: 9, height: 9, borderRadius: 999, background: acctColor(t.account_id), flexShrink: 0, cursor: "help" }} />
               <div>
                 <div style={{ fontWeight: 550 }}>{t.label || catName(t.category_id)}</div>
                 <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}</div>

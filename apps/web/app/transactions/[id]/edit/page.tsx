@@ -7,6 +7,7 @@ import { fromMajor, toMajor, money, format } from "@pocketcare/money";
 import type { Account, Transaction } from "@pocketcare/types";
 import type { TransactionAudit } from "@pocketcare/data";
 import { getRepositories } from "../../../../src/powersync";
+import { LabelPicker } from "../../../../src/ui/LabelPicker";
 
 type TxType = "expense" | "income" | "transfer" | "adjustment";
 
@@ -16,7 +17,7 @@ export default function EditTransactionPage() {
   const { data: rows = [] } = useQuery<Transaction>("SELECT * FROM transactions WHERE id = ?", [id]);
   const tx = rows[0];
   const { data: accounts = [] } = useQuery<Account>("SELECT * FROM accounts WHERE deleted_at IS NULL");
-  const { data: cats = [] } = useQuery<{ id: string; name: string; kind: string }>("SELECT id, name, kind FROM categories WHERE deleted_at IS NULL ORDER BY name");
+  const { data: cats = [] } = useQuery<{ id: string; name: string; kind: string; parent_id: string | null }>("SELECT id, name, kind, parent_id FROM categories WHERE deleted_at IS NULL ORDER BY name");
   const { data: labels = [] } = useQuery<{ id: string; name: string; color: string | null }>("SELECT id, name, color FROM labels WHERE deleted_at IS NULL ORDER BY name");
   const { data: audit = [] } = useQuery<TransactionAudit>("SELECT id, transaction_id, action, changes, created_at FROM transaction_audit WHERE transaction_id = ? ORDER BY created_at DESC", [id]);
 
@@ -24,7 +25,7 @@ export default function EditTransactionPage() {
   const [accountId, setAccountId] = useState("");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [label, setLabel] = useState("");
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [date, setDate] = useState("");
   const [ready, setReady] = useState(false);
@@ -36,7 +37,7 @@ export default function EditTransactionPage() {
       setAccountId(tx.account_id);
       setAmount(String(toMajor(money(tx.amount, tx.currency))));
       setCategoryId(tx.category_id);
-      setLabel(tx.label ?? "");
+      setSelectedLabels(tx.label ? tx.label.split(",").map((s) => s.trim()).filter(Boolean) : []);
       setNote(tx.note ?? "");
       setDate(tx.occurred_at.slice(0, 10));
       setReady(true);
@@ -55,7 +56,7 @@ export default function EditTransactionPage() {
         account_id: accountId,
         amount: fromMajor(Number(amount) || 0, currency),
         category_id: type === "transfer" ? null : categoryId,
-        label: label.trim() || null,
+        label: selectedLabels.join(", ") || null,
         note: note.trim() || null,
         occurred_at: new Date(date).toISOString(),
       });
@@ -85,22 +86,22 @@ export default function EditTransactionPage() {
 
       {type !== "transfer" && (
         <Field label="Category">
-          <div style={chips}>
-            {relevantCats.map((c) => <button key={c.id} className="chip" data-active={c.id === categoryId} onClick={() => setCategoryId(c.id)}>{c.name}</button>)}
-          </div>
+          <select className="input" value={categoryId ?? ""} onChange={(e) => setCategoryId(e.target.value || null)}>
+            <option value="">No category</option>
+            {relevantCats.filter((c) => !c.parent_id).map((parent) => (
+              <optgroup key={parent.id} label={parent.name}>
+                <option value={parent.id}>{parent.name}</option>
+                {relevantCats.filter((c) => c.parent_id === parent.id).map((child) => (
+                  <option key={child.id} value={child.id}>&nbsp;&nbsp;{child.name}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
         </Field>
       )}
 
-      <Field label="Label">
-        {labels.length > 0 && (
-          <div style={{ ...chips, marginBottom: 8 }}>
-            {labels.map((l) => {
-              const active = label === l.name; const c = l.color || "#b06a4f";
-              return <button key={l.id} onClick={() => setLabel(active ? "" : l.name)} style={{ padding: "6px 12px", borderRadius: 999, cursor: "pointer", border: `1px solid ${c}`, background: active ? c : `${c}22`, color: active ? "#fff" : "var(--text)" }}>{l.name}</button>;
-            })}
-          </div>
-        )}
-        <input className="input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Label" />
+      <Field label="Labels">
+        <LabelPicker labels={labels} selected={selectedLabels} onChange={setSelectedLabels} />
       </Field>
 
       <Field label="Note"><input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" /></Field>
