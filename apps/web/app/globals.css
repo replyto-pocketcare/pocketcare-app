@@ -173,6 +173,9 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 .topbar { display: none; }
 .scrim { display: none; }
 
+/* Customizable dashboard tile grid (full tiles span both columns via inline style). */
+.dash-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+
 @media (max-width: 860px) {
   .shell { grid-template-columns: 1fr; }
   .sidebar {
@@ -188,6 +191,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
   .shell-main { padding: 16px !important; }
   .scrim { display: block; position: fixed; inset: 0; background: rgba(43, 39, 35, 0.42); z-index: 55; }
   .dash-cols { grid-template-columns: 1fr !important; }
+  .dash-grid { grid-template-columns: 1fr !important; }
   h1 { font-size: 22px; }
 }
 

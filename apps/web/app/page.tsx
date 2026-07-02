@@ -2,43 +2,30 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@powersync/react";
-import { money, format, toMajor, type Money } from "@pocketcare/money";
-import type { Transaction } from "@pocketcare/types";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { useNetWorth, useAccountBalances } from "../src/hooks";
+import { format, type Money } from "@pocketcare/money";
+import { useNetWorth, useAccountBalances, useTier } from "../src/hooks";
 import { useAmountsHidden, setAmountsHidden } from "../src/prefs";
 import { colorForId } from "../src/colors";
 import { getDb } from "../src/powersync";
-import { EyeIcon, EyeOffIcon, PlusIcon } from "../src/ui/icons";
-
-const PIE = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#4f46e5", "#7c7264"];
+import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon } from "../src/ui/icons";
+import { Modal } from "../src/ui/Modal";
+import { useDashboardTiles, setTileEnabled, type TileId } from "../src/dashboard";
+import { TILE_CATALOG, TileView, tileMeta } from "../src/dashboard/tiles";
 
 export default function Dashboard() {
   const { total, available, base } = useNetWorth();
   const balances = useAccountBalances();
   const hidden = useAmountsHidden();
+  const tier = useTier();
+  const enabled = useDashboardTiles();
   const [showAvailable, setShowAvailable] = useState(false);
+  const [customizing, setCustomizing] = useState(false);
   const net = showAvailable ? available : total;
 
   const fmt = (m: Money) => (hidden ? "••••••" : format(m, "en-US"));
 
-  const { data: recent = [] } = useQuery<Transaction & { labels: string | null }>(
-    `SELECT t.*,
-       (SELECT GROUP_CONCAT(l.name, ', ') FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS labels
-     FROM transactions t WHERE t.deleted_at IS NULL AND t.type != 'opening_balance' ORDER BY t.occurred_at DESC LIMIT 8`,
-  );
-  const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL");
-  const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? "Uncategorised";
-  const acctColor = (id: string) => balances.find((b) => b.account.id === id)?.account.color || colorForId(id);
-
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-  const { data: spend = [] } = useQuery<{ category_id: string | null; total: number }>(
-    `SELECT category_id, SUM(amount) as total FROM transactions
-     WHERE deleted_at IS NULL AND type='expense' AND occurred_at >= ? GROUP BY category_id ORDER BY total DESC`,
-    [monthStart],
-  );
-  const pieData = spend.slice(0, 7).map((s) => ({ name: catName(s.category_id), value: s.total }));
+  // Only show tiles the user enabled; premium tiles need the premium tier.
+  const visibleTiles = enabled.filter((id) => tier === "premium" || !tileMeta(id).premium);
 
   async function toggleNw(id: string, included: boolean) {
     await getDb()?.execute("UPDATE accounts SET include_in_net_worth = ?, updated_at = ? WHERE id = ?", [included ? 0 : 1, new Date().toISOString(), id]);
@@ -61,6 +48,9 @@ export default function Dashboard() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12 }}>
         <h1>Dashboard</h1>
         <div style={{ display: "flex", gap: 8 }}>
+          <button className="chip" onClick={() => setCustomizing(true)} title="Customize tiles" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <SlidersIcon size={16} /> Customize
+          </button>
           <button className="chip" onClick={() => setAmountsHidden(!hidden)} title={hidden ? "Show amounts" : "Hide amounts"} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             {hidden ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />} {hidden ? "Show" : "Hide"}
           </button>
@@ -107,54 +97,60 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 20 }} className="dash-cols">
-        {/* Recent */}
-        <section className="card" style={{ padding: 20 }}>
-          <h2 style={{ marginBottom: 12 }}>Recent activity</h2>
-          <div style={{ display: "grid", gap: 8 }}>
-            {recent.map((t) => (
-              <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 999, background: acctColor(t.account_id) }} />
-                  <div>
-                    <div style={{ fontWeight: 550 }}>{t.labels || catName(t.category_id)}</div>
-                    <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleDateString()} · {t.type}</div>
-                  </div>
-                </div>
-                <div style={{ fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
-                  {t.type === "expense" ? "−" : t.type === "income" ? "+" : ""}{fmt(money(t.amount, t.currency))}
-                </div>
-              </Link>
-            ))}
-            {recent.length === 0 && <p className="muted">No transactions yet.</p>}
-          </div>
+      {/* Customizable tiles */}
+      {visibleTiles.length > 0 ? (
+        <div className="dash-grid">
+          {visibleTiles.map((id) => (
+            <div key={id} style={{ gridColumn: tileMeta(id).span === "full" ? "1 / -1" : "auto" }}>
+              <TileView id={id} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <section className="card" style={{ padding: 24, textAlign: "center", display: "grid", gap: 8 }}>
+          <p className="muted">No tiles shown. Add some to your dashboard.</p>
+          <button className="btn" style={{ justifySelf: "center", gap: 6 }} onClick={() => setCustomizing(true)}><SlidersIcon size={16} /> Customize</button>
         </section>
+      )}
 
-        {/* Spending by category */}
-        <section className="card" style={{ padding: 20 }}>
-          <h2 style={{ marginBottom: 12 }}>Spending this month</h2>
-          {pieData.length ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2}>
-                  {pieData.map((_, i) => <Cell key={i} fill={PIE[i % PIE.length]} />)}
-                </Pie>
-                {!hidden && <Tooltip formatter={(v: number) => (v / 100).toFixed(2)} />}
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="muted">No spending recorded this month.</p>
-          )}
-          <div style={{ display: "grid", gap: 4, marginTop: 8 }}>
-            {pieData.map((d, i) => (
-              <div key={d.name} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                <span><span style={{ color: PIE[i % PIE.length] }}>●</span> {d.name}</span>
-                <span className="muted">{hidden ? "••••" : toMajor(money(d.value, base)).toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
+      <CustomizeModal open={customizing} onClose={() => setCustomizing(false)} enabled={enabled} tier={tier} />
     </div>
+  );
+}
+
+function CustomizeModal({ open, onClose, enabled, tier }: {
+  open: boolean; onClose: () => void; enabled: TileId[]; tier: string;
+}) {
+  return (
+    <Modal open={open} onClose={onClose}>
+      <div style={{ display: "grid", gap: 4, marginBottom: 12 }}>
+        <h2 style={{ margin: 0 }}>Customize dashboard</h2>
+        <p className="muted" style={{ fontSize: 13 }}>Choose which tiles appear, and in what order they’re listed.</p>
+      </div>
+      <div style={{ display: "grid", gap: 6, maxHeight: "56vh", overflowY: "auto" }}>
+        {TILE_CATALOG.map((t) => {
+          const on = enabled.includes(t.id);
+          const locked = !!t.premium && tier !== "premium";
+          return (
+            <label key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface-2)", cursor: locked ? "not-allowed" : "pointer", opacity: locked ? 0.6 : 1 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+                {t.title}
+                {locked && <span className="muted" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12 }}><LockIcon size={13} /> Premium</span>}
+                {t.premium && !locked && <span className="muted" style={{ fontSize: 12 }}>· Premium</span>}
+              </span>
+              <input type="checkbox" checked={on} disabled={locked} onChange={(e) => setTileEnabled(t.id, e.target.checked)} />
+            </label>
+          );
+        })}
+      </div>
+      {tier !== "premium" && (
+        <p className="muted" style={{ fontSize: 12, marginTop: 10 }}>
+          Premium tiles unlock with a <Link href="/settings">Premium plan</Link>.
+        </p>
+      )}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
+        <button className="btn" onClick={onClose}>Done</button>
+      </div>
+    </Modal>
   );
 }

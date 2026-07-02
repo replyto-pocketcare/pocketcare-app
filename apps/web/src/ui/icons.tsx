@@ -23,6 +23,15 @@ export function EyeOffIcon({ size = 18, strokeWidth = 1.8 }: P) {
   );
 }
 
+export function SlidersIcon({ size = 18, strokeWidth = 1.8 }: P) {
+  return (
+    <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
+      <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3" />
+      <path d="M2 14h4M10 8h4M18 16h4" />
+    </svg>
+  );
+}
+
 export function SunIcon({ size = 18, strokeWidth = 1.8 }: P) {
   return (
     <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
