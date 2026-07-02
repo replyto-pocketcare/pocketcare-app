@@ -45,8 +45,20 @@ export default function LoginPage() {
     try {
       const supabase = getSupabase();
       // Attach the email to the current (guest) user and store the username.
-      const { error } = await supabase.auth.updateUser({ email: emailTrim, data: { username: username.trim() } });
+      const { data, error } = await supabase.auth.updateUser({ email: emailTrim, data: { username: username.trim() } });
       if (error) throw error;
+      const user = data.user as (typeof data.user & { is_anonymous?: boolean }) | null;
+      // If email confirmation is OFF in Supabase, the email is applied immediately
+      // and the account is already permanent — set the password now and finish,
+      // no OTP email required.
+      if (user?.email && !user.is_anonymous) {
+        const { error: pErr } = await supabase.auth.updateUser({ password });
+        if (pErr) throw pErr;
+        setMsg("Account created — taking you home…");
+        finishHome();
+        return;
+      }
+      // Otherwise Supabase sent a verification email; collect the code.
       setStep("otp");
       setMsg(`We sent a 6-digit code to ${emailTrim}. Enter it below to verify your email.`);
     } catch (e) {
