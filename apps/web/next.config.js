@@ -27,6 +27,8 @@ const nextConfig = {
     "@pocketcare/types",
     "@pocketcare/money",
     "@pocketcare/finance",
+    "@pocketcare/ledger",
+    "@pocketcare/budget",
     "@pocketcare/entitlements",
     "@pocketcare/i18n",
     "@pocketcare/ui-tokens",

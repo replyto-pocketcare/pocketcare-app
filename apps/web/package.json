@@ -16,6 +16,8 @@
     "@pocketcare/types": "workspace:*",
     "@pocketcare/money": "workspace:*",
     "@pocketcare/finance": "workspace:*",
+    "@pocketcare/ledger": "workspace:*",
+    "@pocketcare/budget": "workspace:*",
     "@pocketcare/entitlements": "workspace:*",
     "@pocketcare/i18n": "workspace:*",
     "@pocketcare/ui-tokens": "workspace:*",
