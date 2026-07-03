@@ -82,38 +82,42 @@ export default function SubscriptionsPage() {
         <div className="muted" style={{ fontSize: 13 }}>{subs.length} active · {format(money(monthlyTotal * 12, base), "en-US")}/yr</div>
       </section>
 
-      <div style={{ display: "grid", gap: 10 }}>
-        {subs.map((s) => (
-          <SubRow key={s.id} sub={s} />
-        ))}
-        {subs.length === 0 && <p className="muted">No subscriptions yet.</p>}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="dash-cols">
-        <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-          <h2>Add subscription</h2>
-          <FloatingInput label="Name" value={name} onChange={setName} />
-          <FloatingInput label={`Amount (${base})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} />
-          <div style={{ display: "flex", gap: 6 }}>
-            {CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c}</button>)}
-          </div>
-          <label className="muted" style={{ fontSize: 12 }}>Purchased / started on
-            <input className="input" type="date" value={purchased} onChange={(e) => setPurchased(e.target.value)} />
-          </label>
-          {purchased && <span className="muted" style={{ fontSize: 12 }}>Next due: {nextDue(purchased, cycle)?.toLocaleDateString()}</span>}
-          <button className="btn" onClick={addSub} disabled={!name.trim() || !amount}>Add</button>
+      <div className="subs-cols">
+        {/* List (left / full width on mobile) */}
+        <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
+          {subs.map((s) => (
+            <SubRow key={s.id} sub={s} />
+          ))}
+          {subs.length === 0 && <p className="muted">No subscriptions yet.</p>}
         </div>
 
-        {tier === "premium" ? (
-          <Simulator base={base} />
-        ) : (
-          <div className="card" style={{ padding: 20, display: "grid", gap: 10, textAlign: "center", background: "var(--surface-2)" }}>
-            <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={28} /></div>
-            <h2>Impact simulator</h2>
-            <p className="muted" style={{ fontSize: 13 }}>See a subscription’s true long-term cost before you commit. Premium.</p>
-            <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>
+        {/* Add + simulator (right side column, sticky on desktop) */}
+        <aside className="subs-aside" style={{ display: "grid", gap: 20, minWidth: 0 }}>
+          <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
+            <h2>Add subscription</h2>
+            <FloatingInput label="Name" value={name} onChange={setName} />
+            <FloatingInput label={`Amount (${base})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} />
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c}</button>)}
+            </div>
+            <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>Purchased / started on
+              <input className="input" type="date" value={purchased} onChange={(e) => setPurchased(e.target.value)} />
+            </label>
+            {purchased && <span className="muted" style={{ fontSize: 12 }}>Next due: {nextDue(purchased, cycle)?.toLocaleDateString()}</span>}
+            <button className="btn" onClick={addSub} disabled={!name.trim() || !amount}>Add</button>
           </div>
-        )}
+
+          {tier === "premium" ? (
+            <Simulator base={base} />
+          ) : (
+            <div className="card" style={{ padding: 20, display: "grid", gap: 10, textAlign: "center", background: "var(--surface-2)" }}>
+              <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={28} /></div>
+              <h2>Impact simulator</h2>
+              <p className="muted" style={{ fontSize: 13 }}>See a subscription’s true long-term cost before you commit. Premium.</p>
+              <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>
+            </div>
+          )}
+        </aside>
       </div>
     </div>
   );

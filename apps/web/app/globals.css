@@ -107,6 +107,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 .input {
   width: 100%;
   max-width: 100%;
+  min-width: 0; /* allow shrinking inside flex/grid (esp. date inputs) so they don't force the page wider */
   padding: 11px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
@@ -190,6 +191,13 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 
 /* Customizable dashboard tile grid (full tiles span both columns via inline style). */
 .dash-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+
+/* Subscriptions: list + add/simulator side column. Single column on narrow. */
+.subs-cols { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 900px) {
+  .subs-cols { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+  .subs-aside { position: sticky; top: 24px; }
+}
 
 @media (max-width: 860px) {
   /* Topbar = content height, main fills the rest. Without explicit rows the
