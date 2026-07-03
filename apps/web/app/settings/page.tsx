@@ -162,6 +162,14 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      <section className="card" style={{ padding: 20, display: "grid", gap: 8 }}>
+        <h2>Import & export</h2>
+        <p className="muted" style={{ fontSize: 13, marginTop: -2 }}>Back up your transactions to CSV, or bring data in from a CSV (incl. Wallet by BudgetBakers — beta).</p>
+        <div style={{ marginTop: 4 }}>
+          <Link href="/data" className="btn ghost">Import / export data</Link>
+        </div>
+      </section>
+
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>{t("settings.plan", "Plan")}</h2>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
