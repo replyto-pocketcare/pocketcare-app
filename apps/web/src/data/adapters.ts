@@ -51,17 +51,23 @@ const toType = (t: string, amount: number): CanonRow["type"] => {
   return amount < 0 ? "expense" : "income";
 };
 
+// adjustment / opening_balance carry a SIGNED amount (the ledger adds it as-is);
+// income / expense / transfer are always positive (the type gives the sign).
+const isSignedType = (t: string) => t === "adjustment" || t === "opening_balance";
+
 // ---- PocketCare's own round-trippable format ----
 const pocketcare: ImportAdapter = {
   id: "pocketcare",
   label: "PocketCare (CSV export)",
   parse(records) {
     return records.map((r) => {
-      const amount = Math.abs(num(r["amount"]));
-      const type = (r["type"] || "").toLowerCase() as CanonRow["type"];
+      const raw = num(r["amount"]);
+      const t0 = (r["type"] || "").toLowerCase();
+      const type = (["income", "expense", "transfer", "opening_balance", "adjustment"].includes(t0) ? t0 : toType(r["type"] || "", raw)) as CanonRow["type"];
+      const amount = isSignedType(type) ? raw : Math.abs(raw);
       return {
         date: r["date"] || new Date().toISOString(),
-        type: (["income", "expense", "transfer", "opening_balance", "adjustment"].includes(type) ? type : toType(r["type"] || "", num(r["amount"]))) as CanonRow["type"],
+        type,
         amount,
         currency: (r["currency"] || "").toUpperCase(),
         account: r["account"] || "",
@@ -73,7 +79,7 @@ const pocketcare: ImportAdapter = {
         note: r["note"] || undefined,
         description: r["description"] || undefined,
       };
-    }).filter((r) => r.account && r.amount > 0) as CanonRow[];
+    }).filter((r) => r.account && r.amount !== 0) as CanonRow[];
   },
 };
 
@@ -97,20 +103,24 @@ const wallet: ImportAdapter = {
   parse(records) {
     return records.map((r) => {
       const rawAmount = num(r["amount"]);
-      const type = r["transfer"] === "true" ? "transfer" : toType(r["type"] || "", rawAmount);
+      // Wallet splits a transfer into two one-sided rows (− on source, + on dest)
+      // with no link between them. Import each as a signed `adjustment` so both
+      // account balances come out right without polluting income/expense stats.
+      const isTransfer = r["transfer"] === "true";
+      const type: CanonRow["type"] = isTransfer ? "adjustment" : toType(r["type"] || "", rawAmount);
       const payLocal = (r["payment_type_local"] || "").toLowerCase();
       return {
         date: r["date"] || new Date().toISOString(),
         type,
-        amount: Math.abs(rawAmount),
+        amount: isTransfer ? rawAmount : Math.abs(rawAmount),
         currency: (r["currency"] || "").toUpperCase(),
         account: r["account"] || "",
-        category: r["category"] || undefined,
+        category: isTransfer ? undefined : (r["category"] || undefined),
         labels: splitLabels(r["labels"]),
-        paymentMethod: WALLET_PAYMENT[payLocal] || r["payment_type_local"] || undefined,
-        note: r["note"] || r["payee"] || undefined,
+        paymentMethod: isTransfer ? undefined : (WALLET_PAYMENT[payLocal] || r["payment_type_local"] || undefined),
+        note: isTransfer ? (r["note"] || "Transfer") : (r["note"] || r["payee"] || undefined),
       };
-    }).filter((r) => r.account && r.amount > 0) as CanonRow[];
+    }).filter((r) => r.account && r.amount !== 0) as CanonRow[];
   },
 };
 

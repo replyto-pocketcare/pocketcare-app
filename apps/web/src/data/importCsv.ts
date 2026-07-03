@@ -25,6 +25,17 @@ function toIso(s: string): string {
 
 const kindForType = (t: string): "income" | "expense" => (t === "income" ? "income" : "expense");
 
+/** Best-effort account type from its name (users can change it afterward). */
+function guessAccountType(name: string): string {
+  const n = name.toLowerCase();
+  if (/stock|equit|\bshares?\b/.test(n)) return "stocks";
+  if (/mutual|\bmf\b|\bsip\b/.test(n)) return "mutual_funds";
+  if (/credit|\bcard\b/.test(n)) return "credit_card";
+  if (/cash|wallet/.test(n)) return "cash";
+  if (/current|checking/.test(n)) return "current";
+  return "savings";
+}
+
 /**
  * Import canonical rows: find-or-create accounts, categories and labels, then
  * create transactions through the repository (ledger + labels junction).
@@ -53,7 +64,7 @@ export async function importTransactions(
       [key],
     );
     const id = found?.id ?? await insertRow("accounts", {
-      name: name.trim(), type: "savings", currency: currency || base,
+      name: name.trim(), type: guessAccountType(name), currency: currency || base,
       icon: null, color: null, is_archived: 0, include_in_net_worth: 1,
     });
     accountCache.set(key, id);
