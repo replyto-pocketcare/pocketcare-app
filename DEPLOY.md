@@ -51,8 +51,30 @@ Also make sure (one-time, on the Supabase project):
   Supabase, the row is there).
 - The app is a PWA: Chrome shows an install icon in the address bar.
 
+## 6. PowerSync auth (JWT verification) — required for sync
+PowerSync verifies the Supabase login JWT before syncing. If this is misconfigured
+you'll see, in the app's sync status: **`PSYNC_S2101 … no key matched the token KID`**
+— PowerSync got the token but has no matching key, so nothing syncs (up or down).
+
+Configure it in the **PowerSync Dashboard → your instance → Edit → Client Auth**:
+
+- **Supabase now uses asymmetric JWT signing keys** (tokens carry a `kid`). Point
+  PowerSync at Supabase's JWKS so it fetches the right public key:
+  - **JWKS URI:** `https://YOUR-PROJECT.supabase.co/auth/v1/.well-known/jwks.json`
+  - **Audience:** `authenticated`
+  - (PowerSync caches and auto-refreshes keys, so rotations keep working.)
+- **Legacy (HS256 shared secret) projects only:** instead enable "Use Supabase
+  Auth" and paste the **JWT Secret** from Supabase → Settings → API → JWT Settings.
+
+Check which one you're on in Supabase → **Settings → API → JWT Keys**. If asymmetric
+"Signing Keys" are active (the current default), use the **JWKS URI** path above.
+
+After changing PowerSync auth, reload the app — the Settings sync line should read
+"Synced …" with no warning banner.
+
 ## Notes
 - CI-style build safety: `next.config.js` sets `eslint.ignoreDuringBuilds` and
   `typescript.ignoreBuildErrors` so a stray lint/type warning won't block a deploy.
   Tighten these once you add a CI lint/type gate.
 - `.env` is git-ignored; production config lives in Vercel env vars.
+- This JWT step is auth config, not code — nothing in `apps/web` changes it.
