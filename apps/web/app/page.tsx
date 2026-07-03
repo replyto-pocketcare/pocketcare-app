@@ -45,9 +45,9 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: "grid", gap: 24 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <h1>Dashboard</h1>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button className="chip" onClick={() => setCustomizing(true)} title="Customize tiles" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <SlidersIcon size={16} /> Customize
           </button>

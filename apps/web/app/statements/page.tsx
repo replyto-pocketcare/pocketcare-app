@@ -53,8 +53,8 @@ export default function StatementsPage() {
         <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
       </div>
 
-      <div className="card" style={{ padding: 32 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+      <div className="card statement-card" style={{ padding: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
           <div>
             <h2 style={{ fontSize: 22 }}>PocketCare Statement</h2>
             <div className="muted">{new Date(start).toLocaleDateString()} – {new Date(end).toLocaleDateString()}</div>
@@ -67,7 +67,7 @@ export default function StatementsPage() {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 24, marginBottom: 20 }}>
+        <div style={{ display: "flex", gap: 24, marginBottom: 20, flexWrap: "wrap" }}>
           <Summary label="Income" value={format(money(income, base), "en-US")} color="var(--positive)" />
           <Summary label="Expenses" value={format(money(expense, base), "en-US")} color="var(--negative)" />
           <Summary label="Transactions" value={String(rows.length)} />

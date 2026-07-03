@@ -42,9 +42,9 @@ export default function TransactionsPage() {
         <Link href="/transactions/new" className="btn">＋ Add</Link>
       </div>
 
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <input className="input" placeholder="Search label or note…" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 340 }} />
-        <div style={{ display: "flex", gap: 6 }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <input className="input" placeholder="Search label or note…" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: "1 1 220px" }} />
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {TYPES.map((t) => (
             <button key={t} className="chip" data-active={t === type} style={{ textTransform: "capitalize" }} onClick={() => setType(t)}>{t}</button>
           ))}

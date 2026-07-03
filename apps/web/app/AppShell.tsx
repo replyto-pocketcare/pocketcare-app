@@ -128,15 +128,19 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      {/* Floating action button — quick add transaction (kept out of the nav) */}
-      <Link href="/transactions/new" aria-label="Add transaction" title="Add transaction"
-        style={{ position: "fixed", right: 24, bottom: 24, zIndex: 40, width: 56, height: 56, borderRadius: "50%",
-          background: "var(--accent)", color: "#fff", display: "grid", placeItems: "center",
-          boxShadow: "var(--shadow-lg)", transition: "transform 0.15s" }}
-        onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.94)")}
-        onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}>
-        <PlusIcon size={24} />
-      </Link>
+      {/* Quick add-transaction — only on the dashboard (other pages have their
+          own contextual add buttons). Pill-shaped with a label for clarity. */}
+      {pathname === "/" && (
+        <Link href="/transactions/new" aria-label="Add transaction"
+          style={{ position: "fixed", right: 20, bottom: 20, zIndex: 40, borderRadius: 999,
+            padding: "14px 20px", gap: 8, background: "var(--accent)", color: "#fff", fontWeight: 600,
+            display: "inline-flex", alignItems: "center",
+            boxShadow: "var(--shadow-lg)", transition: "transform 0.15s" }}
+          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.96)")}
+          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}>
+          <PlusIcon size={20} /> Add transaction
+        </Link>
+      )}
     </div>
   );
 }

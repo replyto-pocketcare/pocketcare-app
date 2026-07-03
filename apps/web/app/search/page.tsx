@@ -7,6 +7,7 @@ import { money, format, toMajor } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
 import { AccountBadge } from "../../src/ui/AccountBadge";
 import { FloatingInput } from "../../src/ui/FloatingInput";
+import { SlidersIcon } from "../../src/ui/icons";
 import { colorForId } from "../../src/colors";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
@@ -19,6 +20,9 @@ export default function SearchPage() {
   const [to, setTo] = useState("");
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const activeFilters = [type !== "all", !!accountId, !!from, !!to, !!min, !!max].filter(Boolean).length;
+  const clearFilters = () => { setType("all"); setAccountId(""); setFrom(""); setTo(""); setMin(""); setMax(""); };
 
   const { data: rows = [] } = useQuery<Transaction & { labels: string | null; method_label: string | null }>(
     `SELECT t.*,
@@ -61,19 +65,32 @@ export default function SearchPage() {
 
       <input className="input" placeholder="Search everything — label, note, description, category, account, amount…" value={q} onChange={(e) => setQ(e.target.value)} />
 
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", gap: 6 }}>
-          {TYPES.map((t) => <button key={t} className="chip" data-active={t === type} style={{ textTransform: "capitalize" }} onClick={() => setType(t)}>{t}</button>)}
-        </div>
-        <select className="input" style={{ maxWidth: 190 }} value={accountId} onChange={(e) => setAccountId(e.target.value)}>
-          <option value="">All accounts</option>
-          {accts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </select>
-        <input className="input" type="date" style={{ maxWidth: 160 }} value={from} onChange={(e) => { setFrom(e.target.value); if (to && e.target.value > to) setTo(e.target.value); }} />
-        <input className="input" type="date" style={{ maxWidth: 160 }} min={from || undefined} value={to} onChange={(e) => setTo(e.target.value)} />
-        <FloatingInput label="Min" inputMode="decimal" style={{ width: 100 }} value={min} onChange={(v) => setMin(v.replace(/[^0-9.]/g, ""))} />
-        <FloatingInput label="Max" inputMode="decimal" style={{ width: 100 }} value={max} onChange={(v) => setMax(v.replace(/[^0-9.]/g, ""))} />
+      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+        <button className="chip" onClick={() => setShowFilters((v) => !v)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <SlidersIcon size={15} /> Filters{activeFilters > 0 ? ` · ${activeFilters}` : ""} <span style={{ opacity: 0.6 }}>{showFilters ? "▴" : "▾"}</span>
+        </button>
+        {activeFilters > 0 && <button className="chip" onClick={clearFilters}>Clear</button>}
       </div>
+
+      {showFilters && (
+        <div className="card" style={{ padding: 14, display: "grid", gap: 12 }}>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {TYPES.map((t) => <button key={t} className="chip" data-active={t === type} style={{ textTransform: "capitalize" }} onClick={() => setType(t)}>{t}</button>)}
+          </div>
+          <select className="input" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
+            <option value="">All accounts</option>
+            {accts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input className="input" type="date" style={{ flex: "1 1 140px" }} value={from} onChange={(e) => { setFrom(e.target.value); if (to && e.target.value > to) setTo(e.target.value); }} />
+            <input className="input" type="date" style={{ flex: "1 1 140px" }} min={from || undefined} value={to} onChange={(e) => setTo(e.target.value)} />
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <FloatingInput label="Min amount" inputMode="decimal" style={{ flex: "1 1 120px" }} value={min} onChange={(v) => setMin(v.replace(/[^0-9.]/g, ""))} />
+            <FloatingInput label="Max amount" inputMode="decimal" style={{ flex: "1 1 120px" }} value={max} onChange={(v) => setMax(v.replace(/[^0-9.]/g, ""))} />
+          </div>
+        </div>
+      )}
 
       <div className="muted" style={{ fontSize: 13 }}>{results.length} result{results.length === 1 ? "" : "s"}</div>
 
