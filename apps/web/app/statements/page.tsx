@@ -46,11 +46,21 @@ export default function StatementsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <div className="no-print" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-        <h1>Statements</h1>
-        <input className="input" type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} style={{ maxWidth: 170 }} />
-        <input className="input" type="date" value={end} min={start || undefined} onChange={(e) => setEnd(e.target.value)} style={{ maxWidth: 170 }} />
-        <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
+      <div className="no-print" style={{ display: "grid", gap: 14 }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
+          <h1>Statements</h1>
+          <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
+        </div>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <label style={{ display: "grid", gap: 4, flex: "1 1 150px" }}>
+            <span className="muted" style={{ fontSize: 12 }}>From date</span>
+            <input className="input" type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} />
+          </label>
+          <label style={{ display: "grid", gap: 4, flex: "1 1 150px" }}>
+            <span className="muted" style={{ fontSize: 12 }}>To date</span>
+            <input className="input" type="date" value={end} min={start || undefined} onChange={(e) => setEnd(e.target.value)} />
+          </label>
+        </div>
       </div>
 
       <div className="card statement-card" style={{ padding: 24 }}>
