@@ -61,8 +61,14 @@ Configure it in the **PowerSync Dashboard → your instance → Edit → Client 
 - **Supabase now uses asymmetric JWT signing keys** (tokens carry a `kid`). Point
   PowerSync at Supabase's JWKS so it fetches the right public key:
   - **JWKS URI:** `https://YOUR-PROJECT.supabase.co/auth/v1/.well-known/jwks.json`
-  - **Audience:** `authenticated`
+  - **Audience (aud):** set to exactly `authenticated` — Supabase stamps every
+    login token with `aud: "authenticated"`. If this field is empty or set to
+    something else (e.g. the PowerSync URL), you'll get
+    **`PSYNC_S2105 Unexpected "aud" claim value: "authenticated"`** and sync fails.
   - (PowerSync caches and auto-refreshes keys, so rotations keep working.)
+
+Error → cause quick map: `S2101` = key/`kid` not matched (fix JWKS URI);
+`S2105` = audience mismatch (set aud to `authenticated`).
 - **Legacy (HS256 shared secret) projects only:** instead enable "Use Supabase
   Auth" and paste the **JWT Secret** from Supabase → Settings → API → JWT Settings.
 
