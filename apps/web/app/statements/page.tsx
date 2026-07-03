@@ -54,11 +54,11 @@ export default function StatementsPage() {
           <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
         </div>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <label style={{ display: "grid", gap: 4, flex: "1 1 140px", minWidth: 0 }}>
+          <label style={{ display: "grid", gap: 4, flex: "1 1 220px", minWidth: 0 }}>
             <span className="muted" style={{ fontSize: 12 }}>From date</span>
             <input className="input" type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} />
           </label>
-          <label style={{ display: "grid", gap: 4, flex: "1 1 140px", minWidth: 0 }}>
+          <label style={{ display: "grid", gap: 4, flex: "1 1 220px", minWidth: 0 }}>
             <span className="muted" style={{ fontSize: 12 }}>To date</span>
             <input className="input" type="date" value={end} min={start || undefined} onChange={(e) => setEnd(e.target.value)} />
           </label>

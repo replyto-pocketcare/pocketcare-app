@@ -231,7 +231,7 @@ export default function AssistantPage() {
           {threads.length === 0 && <span className="muted" style={{ fontSize: 13 }}>No saved chats yet.</span>}
           {threads.map((th) => (
             <div key={th.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-              <button className="chip" style={{ flex: 1, textAlign: "left", justifyContent: "flex-start" }} onClick={() => openThread(th.id)}>
+              <button className="chip" style={{ flex: 1, minWidth: 0, textAlign: "left", justifyContent: "flex-start", whiteSpace: "normal", overflowWrap: "anywhere" }} onClick={() => openThread(th.id)}>
                 {th.title || "Untitled chat"}
               </button>
               <button className="chip" aria-label="Delete chat" style={{ padding: "4px 8px" }} onClick={() => { void softDelete("assistant_threads", th.id); if (threadRef.current === th.id) newChat(); }}>×</button>
@@ -248,7 +248,7 @@ export default function AssistantPage() {
             "Can I afford a ₹40,000 trip in 3 months?",
             "Set up a monthly budget for eating out.",
           ].map((ex) => (
-            <button key={ex} className="chip" style={{ textAlign: "left", justifySelf: "start" }} onClick={() => setInput(ex)}>{ex}</button>
+            <button key={ex} className="chip" style={{ textAlign: "left", whiteSpace: "normal", borderRadius: 12, width: "100%" }} onClick={() => setInput(ex)}>{ex}</button>
           ))}
         </div>
       )}
@@ -284,16 +284,17 @@ export default function AssistantPage() {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8, position: "sticky", bottom: 0, background: "var(--bg)", paddingTop: 8 }}>
+      <div style={{ display: "flex", gap: 8, position: "sticky", bottom: 0, background: "var(--bg)", paddingTop: 8, paddingBottom: 8 }}>
         <input
           className="input"
+          style={{ flex: 1, minWidth: 0 }}
           placeholder="Ask about a purchase, goal, or budget…"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") send(); }}
           disabled={busy}
         />
-        <button className="btn" onClick={send} disabled={busy || !input.trim() || !!pending}>Send</button>
+        <button className="btn" style={{ flexShrink: 0 }} onClick={send} disabled={busy || !input.trim() || !!pending}>Send</button>
       </div>
     </div>
   );
