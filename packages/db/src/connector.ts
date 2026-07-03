@@ -54,7 +54,16 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
           result = await table.delete().eq("id", op.id);
           break;
       }
-      if (result?.error) throw result.error;
+      if (result?.error) {
+        // Surface the real cause (e.g. a PostgREST "schema must be exposed"
+        // error, or an RLS violation) instead of failing silently. PowerSync
+        // will retry, so we rethrow after logging.
+        console.error(
+          `[PocketCare sync] upload failed for ${this.schema}.${op.table} (${op.op}):`,
+          result.error,
+        );
+        throw result.error;
+      }
     }
 
     await batch.complete();

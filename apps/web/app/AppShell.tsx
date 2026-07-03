@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme, setTheme, applySavedTheme } from "../src/theme";
 import { useSession, useAuthStatus } from "../src/account";
+import { useSyncStatus } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
 import { MenuIcon, PlusIcon, SunIcon, MoonIcon, DownloadIcon } from "../src/ui/icons";
@@ -33,6 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const theme = useTheme();
   const session = useSession();
   const authStatus = useAuthStatus();
+  const sync = useSyncStatus();
 
   // Full-screen routes with no app chrome.
   const bare = pathname === "/onboarding" || pathname === "/login";
@@ -113,7 +115,18 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, width: "100%" }}>{children}</main>
+      <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, width: "100%" }}>
+        {sync.error && (
+          <div className="card" style={{ padding: "10px 14px", marginBottom: 16, borderColor: "var(--warning)", background: "var(--accent-ghost)", fontSize: 13, display: "flex", gap: 8, alignItems: "flex-start" }}>
+            <span aria-hidden>⚠️</span>
+            <span>
+              <strong>Not syncing to the cloud.</strong> Your data is safe on this device but isn’t reaching the server, so it won’t appear on other devices.
+              <span className="muted"> ({sync.error})</span>
+            </span>
+          </div>
+        )}
+        {children}
+      </main>
 
       {/* Floating action button — quick add transaction (kept out of the nav) */}
       <Link href="/transactions/new" aria-label="Add transaction" title="Add transaction"

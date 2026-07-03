@@ -11,6 +11,7 @@ import { useTheme, setTheme } from "../../src/theme";
 import { useBaseCurrency } from "../../src/hooks";
 import { setBaseCurrency } from "../../src/prefs";
 import { useSession, updateUsername, signOut } from "../../src/account";
+import { useSyncStatus } from "../../src/sync";
 import { Modal } from "../../src/ui/Modal";
 import { SunIcon, MoonIcon } from "../../src/ui/icons";
 
@@ -22,6 +23,7 @@ export default function SettingsPage() {
   const tier = useTier();
   const theme = useTheme();
   const session = useSession();
+  const sync = useSyncStatus();
 
   const [username, setUsername] = useState("");
   const [savedName, setSavedName] = useState(false);
@@ -57,6 +59,15 @@ export default function SettingsPage() {
         ) : (
           <div className="muted" style={{ fontSize: 14 }}>Signed in as <strong style={{ color: "var(--text)" }}>{session?.email}</strong></div>
         )}
+
+        <div className="muted" style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: sync.error ? "var(--negative)" : sync.connected ? "var(--positive)" : "var(--warning)" }} />
+          {sync.error
+            ? `Sync error — not reaching the server (${sync.error})`
+            : sync.connected
+              ? (sync.uploading || sync.downloading ? "Syncing…" : sync.lastSyncedAt ? `Synced · ${sync.lastSyncedAt.toLocaleTimeString()}` : "Connected")
+              : "Offline — changes are saved on this device"}
+        </div>
 
         <span className="muted" style={{ fontSize: 13 }}>Display name</span>
         <div style={{ display: "flex", gap: 8 }}>
@@ -118,7 +129,7 @@ export default function SettingsPage() {
 
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>Plan</h2>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <span>You are on the <strong style={{ textTransform: "capitalize" }}>{tier}</strong> plan.</span>
           <div style={{ display: "flex", gap: 6 }}>
             <button className="chip" data-active={tier === "free"} onClick={() => setTier("free")}>Free</button>

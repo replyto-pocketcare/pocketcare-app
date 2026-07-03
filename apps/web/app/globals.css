@@ -54,8 +54,9 @@ html, body {
   overflow-x: clip;
 }
 
-/* Long words/URLs shouldn't force the layout wider than the screen. */
-body { overflow-wrap: anywhere; }
+/* Only break genuinely unbreakable long tokens (URLs/hashes) — never normal
+   words. `anywhere` was breaking labels mid-word (e.g. "Premi um"). */
+p, span, h1, h2, h3, div { overflow-wrap: break-word; }
 img, svg, canvas, video { max-width: 100%; }
 
 a { color: inherit; text-decoration: none; }
@@ -95,6 +96,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
   color: #fff;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1), filter 0.15s;
 }
 .btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
@@ -159,6 +161,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
   color: var(--text);
   font-size: 14px;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s;
 }
 .chip[data-active="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -189,7 +192,9 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 .dash-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
 
 @media (max-width: 860px) {
-  .shell { grid-template-columns: 1fr; }
+  /* Topbar = content height, main fills the rest. Without explicit rows the
+     grid stretches the topbar row on short pages, leaving a huge gap. */
+  .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: start; }
   .sidebar {
     position: fixed; top: 0; left: 0; bottom: 0;
     height: 100vh; height: 100dvh;          /* full height incl. dynamic browser UI */
