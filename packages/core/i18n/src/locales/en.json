@@ -1,5 +1,7 @@
 {
-  "app": { "name": "PocketCare" },
+  "app": {
+    "name": "PocketCare"
+  },
   "common": {
     "add": "Add",
     "save": "Save",
@@ -24,7 +26,8 @@
     "subscriptions": "Subscriptions",
     "loans": "Loans & Recurring",
     "investments": "Investments",
-    "settings": "Settings"
+    "settings": "Settings",
+    "assistant": "Ask PocketCare"
   },
   "pages": {
     "dashboard": "Dashboard",

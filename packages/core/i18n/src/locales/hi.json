@@ -1,5 +1,7 @@
 {
-  "app": { "name": "पॉकेटकेयर" },
+  "app": {
+    "name": "पॉकेटकेयर"
+  },
   "common": {
     "add": "जोड़ें",
     "save": "सहेजें",
@@ -24,7 +26,8 @@
     "subscriptions": "सदस्यताएँ",
     "loans": "ऋण और आवर्ती",
     "investments": "निवेश",
-    "settings": "सेटिंग्स"
+    "settings": "सेटिंग्स",
+    "assistant": "पॉकेटकेयर से पूछें"
   },
   "pages": {
     "dashboard": "डैशबोर्ड",

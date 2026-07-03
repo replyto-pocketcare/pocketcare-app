@@ -78,6 +78,23 @@ Check which one you're on in Supabase → **Settings → API → JWT Keys**. If 
 After changing PowerSync auth, reload the app — the Settings sync line should read
 "Synced …" with no warning banner.
 
+## 7. AI assistant ("Ask PocketCare") — optional
+The in-app assistant is a Supabase **Edge Function** that proxies Anthropic's
+API (the key stays server-side; only an aggregated summary — never raw
+transactions — leaves the device). To enable it:
+
+```bash
+supabase secrets set ANTHROPIC_API_KEY=sk-ant-...      # required
+supabase secrets set ASSISTANT_MODEL=claude-3-5-haiku-latest   # optional override
+supabase functions deploy assistant                    # from supabase/functions/assistant
+```
+
+`verify_jwt` is on by default, so only signed-in PocketCare users can call it.
+If the key isn't set, the assistant page shows a friendly "not set up yet"
+message and the rest of the app is unaffected. The client invokes the function
+via `supabase.functions.invoke("assistant", …)`, so no extra env vars are needed
+in the web app. Tune cost/quality by changing `ASSISTANT_MODEL`.
+
 ## Notes
 - CI-style build safety: `next.config.js` sets `eslint.ignoreDuringBuilds` and
   `typescript.ignoreBuildErrors` so a stray lint/type warning won't block a deploy.

@@ -1,5 +1,7 @@
 {
-  "app": { "name": "PocketCare" },
+  "app": {
+    "name": "PocketCare"
+  },
   "common": {
     "add": "Toevoegen",
     "save": "Opslaan",
@@ -24,7 +26,8 @@
     "subscriptions": "Abonnementen",
     "loans": "Leningen & Terugkerend",
     "investments": "Beleggingen",
-    "settings": "Instellingen"
+    "settings": "Instellingen",
+    "assistant": "Vraag PocketCare"
   },
   "pages": {
     "dashboard": "Dashboard",

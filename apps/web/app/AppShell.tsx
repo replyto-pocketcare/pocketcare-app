@@ -13,6 +13,7 @@ import { MenuIcon, PlusIcon, SunIcon, MoonIcon, DownloadIcon } from "../src/ui/i
 
 const NAV = [
   { href: "/", tkey: "nav.home", label: "Dashboard", icon: "◧" },
+  { href: "/assistant", tkey: "nav.assistant", label: "Ask PocketCare", icon: "✦" },
   { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "▤" },
   { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "⇅" },
   { href: "/search", tkey: "nav.search", label: "Search", icon: "⌕" },
