@@ -103,6 +103,33 @@ export function initSystem(): Promise<AbstractPowerSyncDatabase> {
     );
     await db.init();
     await db.connect(connector);
+
+    // Re-key the local DB whenever the signed-in identity changes.
+    // Critical for multi-device: the app boots as an anonymous guest, so after
+    // signing in (a client-side nav, not a reload) we must switch PowerSync to
+    // the real user, clear the guest's local data, and reconnect so the account
+    // downloads under the new JWT. Same-UID guest→register (updateUser) keeps the
+    // id, so we do NOT clear then (preserving not-yet-synced local writes).
+    let rekeying: Promise<void> = Promise.resolve();
+    supabase.auth.onAuthStateChange((event, session) => {
+      const newId = session?.user?.id ?? "";
+      if (event === "SIGNED_OUT") {
+        rekeying = rekeying.then(async () => {
+          currentUserId = "";
+          await db.disconnectAndClear().catch(() => {});
+        });
+        return;
+      }
+      if (newId && newId !== currentUserId) {
+        rekeying = rekeying.then(async () => {
+          currentUserId = newId;
+          await db.disconnectAndClear().catch(() => {});
+          await db.connect(connector);
+          void seedDefaultsIfEmpty(db, newId).catch(() => {});
+        });
+      }
+    });
+
     // Fallback: ensure default categories/labels exist (non-blocking).
     void seedDefaultsIfEmpty(db, currentUserId).catch(() => {});
     return db;

@@ -88,7 +88,7 @@ export default function SubscriptionsPage() {
         {subs.length === 0 && <p className="muted">No subscriptions yet.</p>}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="dash-cols">
         <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
           <h2>Add subscription</h2>
           <FloatingInput label="Name" value={name} onChange={setName} />

@@ -73,7 +73,7 @@ export default function Dashboard() {
       {/* Accounts */}
       <section style={{ display: "grid", gap: 12 }}>
         <h2>Accounts</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(230px, 100%), 1fr))", gap: 12 }}>
           {balances.map(({ account, balance }) => {
             const included = account.include_in_net_worth !== 0;
             const color = account.color || colorForId(account.id);

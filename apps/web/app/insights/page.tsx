@@ -94,7 +94,7 @@ export default function InsightsPage() {
         </ResponsiveContainer>
       </Panel>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="dash-cols">
         <Panel title="By category">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart layout="vertical" data={catData}>

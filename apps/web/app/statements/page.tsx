@@ -73,7 +73,8 @@ export default function StatementsPage() {
           <Summary label="Transactions" value={String(rows.length)} />
         </div>
 
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+        <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 380 }}>
           <thead>
             <tr style={{ textAlign: "left", borderBottom: "2px solid var(--border)" }}>
               <th style={{ padding: "8px 6px" }}>Date</th><th>Description</th><th>Category</th><th style={{ textAlign: "right" }}>Amount</th>
@@ -92,6 +93,7 @@ export default function StatementsPage() {
             ))}
           </tbody>
         </table>
+        </div>
         {rows.length === 0 && <p className="muted" style={{ marginTop: 16 }}>No transactions in this period.</p>}
       </div>
     </div>

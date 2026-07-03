@@ -31,7 +31,7 @@ export default function AccountsPage() {
           <Link href="/accounts/new" className="btn">＋ New account</Link>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 12 }}>
         {balances.map(({ account, balance }) => {
           const included = account.include_in_net_worth !== 0;
           const archived = !!account.is_archived;
