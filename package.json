@@ -1,7 +1,7 @@
 {
   "name": "pocketcare",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Offline-first, cross-device, multi-currency expense & wealth manager",
   "packageManager": "pnpm@9.7.0",
   "engines": {

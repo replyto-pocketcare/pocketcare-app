@@ -4,28 +4,40 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { useTheme, setTheme, applySavedTheme } from "../src/theme";
+import { applySavedTheme } from "../src/theme";
 import { useSession, useAuthStatus } from "../src/account";
 import { useSyncStatus, syncMessage } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
-import { MenuIcon, PlusIcon, SunIcon, MoonIcon, DownloadIcon } from "../src/ui/icons";
+import { MenuIcon, PlusIcon, DownloadIcon } from "../src/ui/icons";
 
-const NAV = [
-  { href: "/", tkey: "nav.home", label: "Dashboard", icon: "◧" },
-  { href: "/assistant", tkey: "nav.assistant", label: "Ask PocketCare", icon: "✦" },
-  { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "▤" },
-  { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "⇅" },
-  { href: "/search", tkey: "nav.search", label: "Search", icon: "⌕" },
-  { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "▭" },
-  { href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "◔" },
-  { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "◱" },
-  { href: "/statements", tkey: "nav.statements", label: "Statements", icon: "▦" },
-  { href: "/goals", tkey: "nav.goals", label: "Goals", icon: "◎" },
-  { href: "/subscriptions", tkey: "nav.subscriptions", label: "Subscriptions", icon: "↻" },
-  { href: "/loans", tkey: "nav.loans", label: "Loans & Recurring", icon: "≈" },
-  { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "▲" },
-  { href: "/settings", tkey: "nav.settings", label: "Settings", icon: "◇" },
+const APP_VERSION = "0.1.0";
+
+const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: string; icon: string }[] }[] = [
+  { title: "", items: [
+    { href: "/", tkey: "nav.home", label: "Dashboard", icon: "◧" },
+    { href: "/assistant", tkey: "nav.assistant", label: "Ask PocketCare", icon: "✦" },
+  ] },
+  { title: "Money", items: [
+    { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "▤" },
+    { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "⇅" },
+    { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "▭" },
+    { href: "/search", tkey: "nav.search", label: "Search", icon: "⌕" },
+  ] },
+  { title: "Planning", items: [
+    { href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "◔" },
+    { href: "/goals", tkey: "nav.goals", label: "Goals", icon: "◎" },
+    { href: "/subscriptions", tkey: "nav.subscriptions", label: "Subscriptions", icon: "↻" },
+    { href: "/loans", tkey: "nav.loans", label: "Loans & Recurring", icon: "≈" },
+  ] },
+  { title: "Growth", items: [
+    { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "▲" },
+    { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "◱" },
+    { href: "/statements", tkey: "nav.statements", label: "Statements", icon: "▦" },
+  ] },
+  { title: "", items: [
+    { href: "/settings", tkey: "nav.settings", label: "Settings", icon: "◇" },
+  ] },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -33,7 +45,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [installEvt, setInstallEvt] = useState<Event | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const theme = useTheme();
   const session = useSession();
   const authStatus = useAuthStatus();
   const sync = useSyncStatus();
@@ -59,7 +70,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [authStatus, bare, router]);
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light");
 
   // Onboarding / login render full-screen without the sidebar.
   if (bare) return <div style={{ minHeight: "100vh" }}>{children}</div>;
@@ -84,25 +94,28 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div style={{ padding: "4px 12px 20px" }}>
           <Logo size={30} />
         </div>
-        <nav style={{ display: "grid", gap: 2 }}>
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} style={navItem(isActive(n.href))} onClick={() => setMenuOpen(false)}>
-              <span style={{ width: 20, textAlign: "center", opacity: 0.75 }}>{n.icon}</span>
-              {t(n.tkey, n.label)}
-            </Link>
+        <nav style={{ display: "grid", gap: 4 }}>
+          {NAV_GROUPS.map((g, gi) => (
+            <div key={gi} style={{ display: "grid", gap: 2, marginTop: gi ? 10 : 0 }}>
+              {g.title && (
+                <div style={{ padding: "2px 12px", fontSize: 10.5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text-2)", opacity: 0.65 }}>{g.title}</div>
+              )}
+              {g.items.map((n) => (
+                <Link key={n.href} href={n.href} style={navItem(isActive(n.href))} onClick={() => setMenuOpen(false)}>
+                  <span style={{ width: 20, textAlign: "center", opacity: 0.75 }}>{n.icon}</span>
+                  {t(n.tkey, n.label)}
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
-        <div style={{ marginTop: "auto", display: "grid", gap: 8 }}>
+        <div style={{ marginTop: "auto", display: "grid", gap: 8, paddingTop: 12 }}>
           {session?.isGuest && (
             <Link href="/login" style={{ padding: "10px 12px", borderRadius: 10, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", fontSize: 12.5 }}>
               <strong>Guest</strong>{session.daysLeft !== null ? ` · ${session.daysLeft}d until data is deleted` : ""}
               <div style={{ color: "var(--accent)", marginTop: 2 }}>Create account →</div>
             </Link>
           )}
-          <button className="btn ghost" onClick={toggleTheme} style={{ justifyContent: "center", gap: 8 }}>
-            {theme === "light" ? <MoonIcon size={16} /> : <SunIcon size={16} />}
-            {theme === "light" ? "Dark mode" : "Light mode"}
-          </button>
           {installEvt && (
             <button
               className="btn"
@@ -115,6 +128,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <DownloadIcon size={16} /> Install app
             </button>
           )}
+          <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-2)", opacity: 0.7, paddingTop: 2 }}>
+            PocketCare v{APP_VERSION}
+          </div>
         </div>
       </aside>
 
