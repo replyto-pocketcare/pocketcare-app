@@ -111,8 +111,12 @@ export function initSystem(): Promise<AbstractPowerSyncDatabase> {
     // create account, sign in, or explicitly "try as guest".
     const { data: { session } } = await supabase.auth.getSession();
     currentUserId = session?.user?.id ?? "";
+    // Connect in the BACKGROUND — never block first paint on it. If the network
+    // or PowerSync is slow/unreachable (or, in an installed PWA, the DB worker is
+    // still warming up), the UI must still load from local SQLite instead of
+    // hanging on the loading spinner forever.
     if (currentUserId) {
-      await db.connect(connector);
+      void db.connect(connector).catch((err) => console.error("[PocketCare] connect failed:", err));
     }
 
     // Re-key the local DB whenever the signed-in identity changes.
