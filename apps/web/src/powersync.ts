@@ -17,7 +17,6 @@ import {
   PowerSyncBudgetRepository,
   PowerSyncCreditCardRepository,
 } from "@pocketcare/data";
-import { seedDefaultsIfEmpty } from "./defaults";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -48,9 +47,13 @@ export function getSupabase(): SupabaseClient {
 export function getDb(): AbstractPowerSyncDatabase | null {
   if (!isBrowser) return null;
   if (!_db) {
+    // NOTE: filename bumped to -v2 to discard local databases poisoned by the
+    // old client-side seeding (duplicate default labels that blocked the upload
+    // queue with a labels_user_id_name_key violation). A fresh local DB re-syncs
+    // cleanly from the server, which is now the sole seeder.
     _db = new PowerSyncDatabase({
       schema: AppSchema,
-      database: { dbFilename: "pocketcare.db" },
+      database: { dbFilename: "pocketcare-v2.db" },
     });
   }
   return _db;
@@ -110,7 +113,6 @@ export function initSystem(): Promise<AbstractPowerSyncDatabase> {
     currentUserId = session?.user?.id ?? "";
     if (currentUserId) {
       await db.connect(connector);
-      void seedDefaultsIfEmpty(db, currentUserId).catch(() => {});
     }
 
     // Re-key the local DB whenever the signed-in identity changes.
@@ -134,7 +136,6 @@ export function initSystem(): Promise<AbstractPowerSyncDatabase> {
           currentUserId = newId;
           await db.disconnectAndClear().catch(() => {});
           await db.connect(connector);
-          void seedDefaultsIfEmpty(db, newId).catch(() => {});
         });
       }
     });
