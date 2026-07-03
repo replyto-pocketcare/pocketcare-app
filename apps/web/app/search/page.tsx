@@ -102,17 +102,17 @@ export default function SearchPage() {
         {results.map((t) => {
           const a = acct(t.account_id);
           return (
-            <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
-              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
                 <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />
-                <div>
-                  <div style={{ fontWeight: 550 }}>{t.labels || catName(t.category_id) || t.type}</div>
-                  <div className="muted" style={{ fontSize: 12 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 550, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.labels || catName(t.category_id) || t.type}</div>
+                  <div className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {new Date(t.occurred_at).toLocaleDateString()} · {t.type}{t.description ? ` · ${t.description}` : ""}
                   </div>
                 </div>
               </div>
-              <div style={{ fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
+              <div style={{ flexShrink: 0, whiteSpace: "nowrap", fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
                 {t.type === "expense" ? "−" : t.type === "income" ? "+" : "⇄ "}{fmt(money(t.amount, t.currency))}
               </div>
             </Link>

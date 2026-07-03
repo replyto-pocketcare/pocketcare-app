@@ -82,16 +82,16 @@ export default function Dashboard() {
             return (
               <div key={account.id} className="card" style={{ padding: 0, overflow: "hidden", display: "flex" }}>
                 <div style={{ width: 5, background: color }} />
-                <div style={{ padding: 16, display: "grid", gap: 3, flex: 1 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span className="muted" style={{ fontSize: 12, textTransform: "capitalize" }}>{account.type.replace("_", " ")}</span>
+                <div style={{ padding: 16, display: "grid", gap: 3, flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <span className="muted" style={{ fontSize: 12, textTransform: "capitalize", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.type.replace("_", " ")}</span>
                     <button onClick={() => toggleNw(account.id, included)} title={included ? "In net worth — click to exclude" : "Excluded — click to include"}
-                      style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-2)", opacity: included ? 1 : 0.45, display: "inline-flex", padding: 0 }}>
+                      style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-2)", opacity: included ? 1 : 0.45, display: "inline-flex", padding: 0, flexShrink: 0 }}>
                       {included ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />}
                     </button>
                   </div>
-                  <span style={{ fontWeight: 600 }}>{account.name}</span>
-                  <span style={{ fontSize: 20, fontWeight: 700 }}>{fmt(balance)}</span>
+                  <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.name}</span>
+                  <span style={{ fontSize: 20, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(balance)}</span>
                 </div>
               </div>
             );

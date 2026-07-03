@@ -42,7 +42,13 @@ export default function NewTransactionPage() {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [items, setItems] = useState([newItem()]);
   const [toValue, setToValue] = useState(""); // cross-currency destination amount
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10)); // occurred-on (back-dating allowed)
   const [saving, setSaving] = useState(false);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  // Keep the live time-of-day for today; for a back-dated day, land at local noon
+  // so it doesn't shift across time zones.
+  const occurredAtIso = () => (date === todayStr ? new Date().toISOString() : new Date(`${date}T12:00:00`).toISOString());
 
   const account = accounts.find((a) => a.id === accountId) ?? accounts[0];
   const currency = account?.currency ?? "USD";
@@ -101,7 +107,7 @@ export default function NewTransactionPage() {
           to_amount: crossCurrency ? fromMajor(Number.parseFloat(toValue) || 0, toAccount.currency) : null,
           labels: selectedLabels,
           description: description.trim() || null,
-          occurred_at: new Date().toISOString(),
+          occurred_at: occurredAtIso(),
         });
       } else {
         const payload = items
@@ -118,7 +124,7 @@ export default function NewTransactionPage() {
           labels: selectedLabels,
           description: description.trim() || null,
           payment_method: paymentMethod || null,
-          occurred_at: new Date().toISOString(),
+          occurred_at: occurredAtIso(),
           items: payload.length > 1 ? payload : undefined,
         });
       }
@@ -245,6 +251,10 @@ export default function NewTransactionPage() {
 
       <Field label="Description (optional)">
         <textarea className="input" rows={2} placeholder="What was this for?" value={description} onChange={(e) => setDescription(e.target.value)} style={{ resize: "vertical" }} />
+      </Field>
+
+      <Field label="Date">
+        <input className="input" type="date" value={date} max={todayStr} onChange={(e) => setDate(e.target.value)} />
       </Field>
 
       <button className="btn" disabled={!canSave} onClick={save} style={{ justifyContent: "center", padding: 14 }}>

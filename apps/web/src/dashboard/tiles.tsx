@@ -92,15 +92,15 @@ function RecentTile() {
     <TileCard title="Recent activity" action={<Link className="muted" style={{ fontSize: 13 }} href="/transactions">View all</Link>}>
       <div style={{ display: "grid", gap: 8 }}>
         {recent.map((t) => (
-          <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <span style={{ width: 8, height: 8, borderRadius: 999, background: acctColor(t.account_id) }} />
-              <div>
-                <div style={{ fontWeight: 550 }}>{t.labels || catName(t.category_id)}</div>
+          <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 999, background: acctColor(t.account_id), flexShrink: 0 }} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 550, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.labels || catName(t.category_id)}</div>
                 <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleDateString()} · {t.type}</div>
               </div>
             </div>
-            <div style={{ fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
+            <div style={{ flexShrink: 0, whiteSpace: "nowrap", fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
               {t.type === "expense" ? "−" : t.type === "income" ? "+" : ""}{fmt(money(t.amount, t.currency))}
             </div>
           </Link>
