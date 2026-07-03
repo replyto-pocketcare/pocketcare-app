@@ -32,6 +32,16 @@ export function SlidersIcon({ size = 18, strokeWidth = 1.8 }: P) {
   );
 }
 
+export function MoreIcon({ size = 18 }: P) {
+  return (
+    <svg {...base(size)} aria-hidden>
+      <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function SunIcon({ size = 18, strokeWidth = 1.8 }: P) {
   return (
     <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>

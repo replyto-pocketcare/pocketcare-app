@@ -10,6 +10,7 @@ import { useBaseCurrency, useTier } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
 import { FloatingInput } from "../../src/ui/FloatingInput";
+import { KebabMenu } from "../../src/ui/KebabMenu";
 
 interface Sub {
   id: string;
@@ -73,12 +74,12 @@ export default function SubscriptionsPage() {
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <h1>Subscriptions</h1>
 
-      <section className="card" style={{ padding: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <section className="card" style={{ padding: 20, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <div>
           <div className="muted" style={{ fontSize: 13 }}>Total monthly cost</div>
           <div style={{ fontSize: 30, fontWeight: 750 }}>{format(money(monthlyTotal, base), "en-US")}</div>
         </div>
-        <div className="muted" style={{ fontSize: 13, textAlign: "right" }}>{subs.length} active · {format(money(monthlyTotal * 12, base), "en-US")}/yr</div>
+        <div className="muted" style={{ fontSize: 13 }}>{subs.length} active · {format(money(monthlyTotal * 12, base), "en-US")}/yr</div>
       </section>
 
       <div style={{ display: "grid", gap: 10 }}>
@@ -153,19 +154,33 @@ function SubRow({ sub }: { sub: Sub }) {
     );
   }
 
+  const due = nextDue(sub.purchased_on, sub.billing_cycle);
   return (
-    <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div>
-        <strong>{sub.name}</strong>
-        <div className="muted" style={{ fontSize: 12 }}>
-          {format(money(sub.amount, sub.currency), "en-US")} / {sub.billing_cycle} · {format(money(monthlyEquivalent(sub.amount, sub.billing_cycle), sub.currency), "en-US")}/mo
-          {nextDue(sub.purchased_on, sub.billing_cycle) && <> · next due {nextDue(sub.purchased_on, sub.billing_cycle)!.toLocaleDateString()}</>}
-        </div>
+    <div className="card" style={{ padding: 16, display: "grid", gap: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+        <strong style={{ fontSize: 15 }}>{sub.name}</strong>
+        <KebabMenu
+          label={`${sub.name} actions`}
+          items={[
+            { label: "Edit", onClick: () => setEditing(true) },
+            { label: "Remove", danger: true, onClick: () => softDelete("subscriptions", sub.id) },
+          ]}
+        />
       </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button className="chip" onClick={() => setEditing(true)}>Edit</button>
-        <button className="chip" onClick={() => softDelete("subscriptions", sub.id)}>Remove</button>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 22px" }}>
+        <Stat value={`${format(money(sub.amount, sub.currency), "en-US")}`} label={`per ${sub.billing_cycle.replace(/ly$/, "").replace("dai", "day")}`} />
+        <Stat value={`${format(money(monthlyEquivalent(sub.amount, sub.billing_cycle), sub.currency), "en-US")}`} label="per month" />
+        {due && <Stat value={due.toLocaleDateString()} label="next due" />}
       </div>
+    </div>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div style={{ display: "grid", gap: 2 }}>
+      <span style={{ fontWeight: 600, fontSize: 14 }}>{value}</span>
+      <span className="muted" style={{ fontSize: 11, textTransform: "capitalize" }}>{label}</span>
     </div>
   );
 }
