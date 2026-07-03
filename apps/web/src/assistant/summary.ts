@@ -25,6 +25,22 @@ export interface FinancialSummary {
 
 const major = (minor: number) => Math.round(minor) / 100;
 
+/** Compact, token-light JSON string of the summary (drops empty sections, caps lists). */
+export function summaryForPrompt(s: FinancialSummary): string {
+  const out: Record<string, unknown> = {
+    baseCurrency: s.baseCurrency,
+    liquidSavings: s.liquidSavings,
+    avgMonthlyIncome: s.avgMonthlyIncome,
+    avgMonthlyExpense: s.avgMonthlyExpense,
+    monthlySurplus: s.monthlySurplus,
+    fixedMonthlyObligations: s.fixedMonthlyObligations,
+    accounts: s.accounts.slice(0, 12).map((a) => ({ n: a.name, t: a.type, c: a.currency, bal: a.balance })),
+  };
+  if (s.goals.length) out.goals = s.goals.slice(0, 12).map((g) => ({ n: g.name, target: g.target, saved: g.saved, c: g.currency }));
+  if (s.upcoming.length) out.upcoming = s.upcoming.slice(0, 8).map((u) => ({ n: u.name, date: u.date, amt: u.amount }));
+  return JSON.stringify(out);
+}
+
 export async function buildFinancialSummary(): Promise<FinancialSummary> {
   const db = getDb();
   if (!db) throw new Error("Database not ready");

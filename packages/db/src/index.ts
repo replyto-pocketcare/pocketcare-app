@@ -229,6 +229,32 @@ const exchange_rates = new Table(
   { indexes: { by_pair: ["base_currency", "quote_currency", "as_of"] } },
 );
 
+// AI assistant persistence (chat history + per-user memory).
+const assistant_threads = new Table({
+  user_id: column.text,
+  title: column.text,
+  created_at: column.text,
+  updated_at: column.text,
+  deleted_at: column.text,
+});
+const assistant_messages = new Table(
+  {
+    user_id: column.text,
+    thread_id: column.text,
+    role: column.text,
+    content: column.text,
+    created_at: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { by_thread: ["thread_id", "created_at"] } },
+);
+const assistant_memory = new Table({
+  user_id: column.text,
+  notes: column.text,
+  created_at: column.text,
+  updated_at: column.text,
+});
+
 export const AppSchema = new Schema({
   accounts,
   transactions,
@@ -248,6 +274,9 @@ export const AppSchema = new Schema({
   loans,
   holdings,
   exchange_rates,
+  assistant_threads,
+  assistant_messages,
+  assistant_memory,
   // Lookup / reference tables
   account_types,
   transaction_types,

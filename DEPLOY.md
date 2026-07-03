@@ -93,7 +93,18 @@ supabase functions deploy assistant                    # from supabase/functions
 If the key isn't set, the assistant page shows a friendly "not set up yet"
 message and the rest of the app is unaffected. The client invokes the function
 via `supabase.functions.invoke("assistant", …)`, so no extra env vars are needed
-in the web app. Tune cost/quality by changing `ASSISTANT_MODEL`.
+in the web app. Tune cost/quality by changing `ASSISTANT_MODEL` (default
+`claude-3-5-haiku-20241022`; the `-latest` aliases don't always resolve).
+
+**Chat history + memory** need migration `0002_assistant.sql` applied and the sync
+streams redeployed (adds `assistant_threads`, `assistant_messages`,
+`assistant_memory`). **Cost controls** are built in: a strict, cacheable persona
+system prompt (prompt caching via `cache_control`), an aggregated + compacted
+snapshot (never raw transactions), history capped to the last 16 messages per
+turn (older context is carried by the `remember` memory, not resent), and
+`max_tokens` 700. **Guardrails:** the assistant only helps with the app and the
+user's own finances, refuses code generation and off-topic requests, never
+invents numbers, and shows a "can make mistakes — verify" disclaimer.
 
 ## Notes
 - CI-style build safety: `next.config.js` sets `eslint.ignoreDuringBuilds` and

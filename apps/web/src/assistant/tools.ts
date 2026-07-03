@@ -2,7 +2,7 @@
 
 import { fromMajor } from "@pocketcare/money";
 import { getDb } from "../powersync";
-import { insertRow } from "../write";
+import { insertRow, nowIso } from "../write";
 import { getBaseCurrency } from "../prefs";
 
 /** Anthropic tool definitions the model may call. All are WRITE actions and
@@ -49,10 +49,22 @@ export const ASSISTANT_TOOLS = [
       required: ["name", "limit_amount", "period"],
     },
   },
+  {
+    name: "remember",
+    description:
+      "Save ONE short, durable fact about the user for future chats (a lasting goal, preference, income cadence, or constraint). Use sparingly — not one-off details. Runs silently, no confirmation.",
+    input_schema: {
+      type: "object",
+      properties: { fact: { type: "string", description: "One concise fact, under ~120 characters." } },
+      required: ["fact"],
+    },
+  },
 ] as const;
 
 export type ToolName = (typeof ASSISTANT_TOOLS)[number]["name"];
-export const isWriteTool = (name: string): boolean => ASSISTANT_TOOLS.some((t) => t.name === name);
+/** Financial writes that must be confirmed by the user before running. */
+const CONFIRM_TOOLS = new Set(["create_goal", "reserve_to_goal", "create_budget"]);
+export const needsConfirm = (name: string): boolean => CONFIRM_TOOLS.has(name);
 
 /** One-line, human-readable summary of a proposed action for the confirm card. */
 export function describeToolCall(name: string, input: Record<string, unknown>): string {
@@ -64,6 +76,8 @@ export function describeToolCall(name: string, input: Record<string, unknown>): 
       return `Reserve ${cur} ${input.amount} toward “${input.goal_name}”`;
     case "create_budget":
       return `Create ${input.period} budget “${input.name}” — limit ${cur} ${input.limit_amount}`;
+    case "remember":
+      return `Remembered: ${input.fact}`;
     default:
       return `Run ${name}`;
   }
@@ -119,5 +133,26 @@ export async function executeTool(name: string, input: Record<string, unknown>):
     return `Reserved ${goal.currency} ${input.amount} toward "${input.goal_name}".`;
   }
 
+  if (name === "remember") {
+    const fact = String(input.fact || "").trim().slice(0, 200);
+    if (!fact) return "Nothing to remember.";
+    const existing = await db.getOptional<{ id: string; notes: string }>("SELECT id, notes FROM assistant_memory LIMIT 1");
+    if (existing) {
+      const notes = (existing.notes ? existing.notes + "\n" : "") + `- ${fact}`;
+      await db.execute("UPDATE assistant_memory SET notes = ?, updated_at = ? WHERE id = ?", [notes.slice(-4000), nowIso(), existing.id]);
+    } else {
+      await insertRow("assistant_memory", { notes: `- ${fact}` });
+    }
+    return "Saved to memory.";
+  }
+
   return `Unknown tool: ${name}`;
+}
+
+/** Load durable per-user memory (for the system prompt). */
+export async function loadMemory(): Promise<string> {
+  const db = getDb();
+  if (!db) return "";
+  const row = await db.getOptional<{ notes: string }>("SELECT notes FROM assistant_memory LIMIT 1");
+  return (row?.notes ?? "").trim();
 }
