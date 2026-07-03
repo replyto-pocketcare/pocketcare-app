@@ -12,8 +12,11 @@ type Step = "form" | "otp";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("register");
+  const [mode, setMode] = useState<Mode>(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "signin" ? "signin" : "register",
+  );
   const [step, setStep] = useState<Step>("form");
+  const [otpType, setOtpType] = useState<"email_change" | "signup">("signup");
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -44,31 +47,46 @@ export default function LoginPage() {
     setBusy(true);
     try {
       const supabase = getSupabase();
-      // One-shot: set email + password + username on the guest user. When email
-      // confirmation is OFF in Supabase, this converts the account immediately
-      // with no email. When it's ON, this may fail (password before verified
-      // email) and we fall back to the email-only + OTP flow below.
-      try {
-        const { error } = await supabase.auth.updateUser({ email: emailTrim, password, data: { username: username.trim() } });
-        if (error) throw error;
-      } catch {
-        const { error } = await supabase.auth.updateUser({ email: emailTrim, data: { username: username.trim() } });
-        if (error) throw error;
+      const { data: sess } = await supabase.auth.getSession();
+      const isGuest = Boolean((sess.session?.user as { is_anonymous?: boolean } | undefined)?.is_anonymous);
+
+      if (isGuest) {
+        // A guest chose to keep their data → upgrade the SAME user in place.
+        // Confirmations OFF converts immediately; ON falls back to the OTP step.
+        try {
+          const { error } = await supabase.auth.updateUser({ email: emailTrim, password, data: { username: username.trim() } });
+          if (error) throw error;
+        } catch {
+          const { error } = await supabase.auth.updateUser({ email: emailTrim, data: { username: username.trim() } });
+          if (error) throw error;
+        }
+        const { data } = await supabase.auth.getUser();
+        const user = data.user as (typeof data.user & { is_anonymous?: boolean }) | null;
+        if (user?.email && !user.is_anonymous) {
+          await supabase.auth.updateUser({ password }).catch(() => {});
+          setMsg("Account created — taking you home…");
+          finishHome();
+          return;
+        }
+        setOtpType("email_change");
+        setStep("otp");
+        setMsg(`We sent a 6-digit code to ${emailTrim}. Enter it below to verify your email.`);
+        return;
       }
 
-      // Re-read the actual current user (updateUser's return can be stale).
-      const { data } = await supabase.auth.getUser();
-      const user = data.user as (typeof data.user & { is_anonymous?: boolean }) | null;
-
-      if (user?.email && !user.is_anonymous) {
-        // Already permanent (confirmations off) — make sure the password is set.
-        await supabase.auth.updateUser({ password }).catch(() => {});
+      // No guest session → register a fresh account directly (no anonymous user).
+      const { data, error } = await supabase.auth.signUp({
+        email: emailTrim, password, options: { data: { username: username.trim() } },
+      });
+      if (error) throw error;
+      if (data.session) {
+        // Confirmations OFF → signed in immediately.
         setMsg("Account created — taking you home…");
         finishHome();
         return;
       }
-
-      // Confirmation is on → Supabase sent a verification email; collect the code.
+      // Confirmations ON → verify the emailed code.
+      setOtpType("signup");
       setStep("otp");
       setMsg(`We sent a 6-digit code to ${emailTrim}. Enter it below to verify your email.`);
     } catch (e) {
@@ -83,11 +101,14 @@ export default function LoginPage() {
     setBusy(true);
     try {
       const supabase = getSupabase();
-      const { error: vErr } = await supabase.auth.verifyOtp({ email: emailTrim, token: otp.trim(), type: "email_change" });
+      const { error: vErr } = await supabase.auth.verifyOtp({ email: emailTrim, token: otp.trim(), type: otpType });
       if (vErr) throw vErr;
-      // Email is verified now — a password can be set.
-      const { error: pErr } = await supabase.auth.updateUser({ password });
-      if (pErr) throw pErr;
+      // Guest-upgrade path sets the password after the email is verified.
+      // (A fresh signUp already set it, so only do this for email_change.)
+      if (otpType === "email_change") {
+        const { error: pErr } = await supabase.auth.updateUser({ password });
+        if (pErr) throw pErr;
+      }
       setMsg("Account created — taking you home…");
       finishHome();
     } catch (e) {
@@ -98,7 +119,8 @@ export default function LoginPage() {
   async function resend() {
     setErr(null); setBusy(true);
     try {
-      await getSupabase().auth.updateUser({ email: emailTrim });
+      if (otpType === "signup") await getSupabase().auth.resend({ type: "signup", email: emailTrim });
+      else await getSupabase().auth.updateUser({ email: emailTrim });
       setMsg("New code sent.");
     } catch (e) { setErr(friendly((e as Error).message)); } finally { setBusy(false); }
   }
@@ -141,7 +163,7 @@ export default function LoginPage() {
           <h1>{mode === "register" ? "Create your account" : "Welcome back"}</h1>
           <p className="muted" style={{ marginTop: -6 }}>
             {mode === "register"
-              ? "Keep the data you’ve been exploring as a guest — your account keeps the same data."
+              ? "Create your account to securely sync across all your devices. If you’ve been exploring as a guest, your data comes with you."
               : "Sign in to sync your data to this device. You’ll stay signed in."}
           </p>
 

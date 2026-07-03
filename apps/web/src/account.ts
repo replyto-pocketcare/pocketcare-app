@@ -47,6 +47,31 @@ export function useSession(): SessionInfo | null {
   return info;
 }
 
+/** Auth gate state: still loading, no session, guest (anonymous), or a real user. */
+export type AuthStatus = "loading" | "none" | "guest" | "user";
+
+export function useAuthStatus(): AuthStatus {
+  const [status, setStatus] = useState<AuthStatus>("loading");
+
+  useEffect(() => {
+    let active = true;
+    const resolve = (user: { is_anonymous?: boolean } | null | undefined): AuthStatus =>
+      !user ? "none" : user.is_anonymous ? "guest" : "user";
+    void getSupabase().auth.getSession().then(({ data }) => {
+      if (active) setStatus(resolve(data.session?.user));
+    });
+    const { data: sub } = getSupabase().auth.onAuthStateChange((_e, session) => {
+      if (active) setStatus(resolve(session?.user));
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  return status;
+}
+
 export async function updateUsername(name: string): Promise<void> {
   localStorage.setItem("username", name);
   try {

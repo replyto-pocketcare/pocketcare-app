@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Logo } from "../../src/ui/Logo";
+import { getSupabase } from "../../src/powersync";
 
 const SLIDES = [
   { title: "Every account, one calm view", body: "Savings, cash, cards, stocks and funds — see your true net worth in your own currency, with or without money you’ve set aside." },
@@ -14,12 +15,27 @@ const SLIDES = [
 export default function OnboardingPage() {
   const router = useRouter();
   const [i, setI] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const last = i === SLIDES.length - 1;
 
   const done = (dest: string) => {
     localStorage.setItem("onboardingSeen", "1");
     router.replace(dest);
   };
+
+  // Explicit guest route: create an anonymous session, then enter the app.
+  async function tryGuest() {
+    setErr(null); setBusy(true);
+    try {
+      const { error } = await getSupabase().auth.signInAnonymously();
+      if (error) throw error;
+      done("/");
+    } catch (e) {
+      setErr((e as Error).message || "Couldn’t start a guest session.");
+      setBusy(false);
+    }
+  }
 
   return (
     <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "radial-gradient(120% 90% at 50% 0%, var(--accent-ghost), var(--bg) 60%)" }}>
@@ -44,20 +60,22 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           {!last ? (
             <>
               <button className="btn" onClick={() => setI(i + 1)}>Next</button>
-              <button className="btn ghost" onClick={() => done("/")}>Skip</button>
+              <button className="btn ghost" onClick={() => setI(SLIDES.length - 1)}>Skip</button>
             </>
           ) : (
             <>
-              <button className="btn" onClick={() => done("/")}>Explore as guest</button>
-              <button className="btn ghost" onClick={() => done("/login")}>Create account</button>
+              <button className="btn" onClick={() => done("/login")} disabled={busy}>Create account</button>
+              <button className="btn ghost" onClick={() => done("/login?mode=signin")} disabled={busy}>Sign in</button>
+              <button className="btn ghost" onClick={tryGuest} disabled={busy}>{busy ? "Starting…" : "Try as guest"}</button>
             </>
           )}
         </div>
-        <p className="muted" style={{ fontSize: 12 }}>Guest data is kept for 3 days. Create an account any time to keep it forever.</p>
+        {err && <div className="card" style={{ padding: 12, fontSize: 13, borderColor: "var(--negative)", color: "var(--negative)" }}>{err}</div>}
+        <p className="muted" style={{ fontSize: 12 }}>Create an account to sync across devices. Guest data stays on this device and is kept for 3 days.</p>
       </div>
     </div>
   );

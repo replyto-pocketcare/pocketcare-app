@@ -9,7 +9,7 @@
 import type { AbstractPowerSyncDatabase } from "@powersync/common";
 import { PowerSyncDatabase } from "@powersync/web";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { AppSchema, SupabaseConnector, createSupabaseClient, ensureUser } from "@pocketcare/db";
+import { AppSchema, SupabaseConnector, createSupabaseClient } from "@pocketcare/db";
 import {
   PowerSyncAccountRepository,
   PowerSyncTransactionRepository,
@@ -96,13 +96,22 @@ export function initSystem(): Promise<AbstractPowerSyncDatabase> {
       anonKey: requireEnv("NEXT_PUBLIC_SUPABASE_(PUBLISHABLE|ANON)_KEY", SUPABASE_KEY),
     });
     _supabase = supabase;
-    currentUserId = await ensureUser(supabase);
     const connector = new SupabaseConnector(
       supabase,
       requireEnv("NEXT_PUBLIC_POWERSYNC_URL", POWERSYNC_URL),
     );
     await db.init();
-    await db.connect(connector);
+
+    // Do NOT auto-create a guest. Only connect if the user already has a
+    // session (registered OR an explicit guest they chose earlier). A brand-new
+    // visitor stays unauthenticated and is routed to onboarding to pick a path:
+    // create account, sign in, or explicitly "try as guest".
+    const { data: { session } } = await supabase.auth.getSession();
+    currentUserId = session?.user?.id ?? "";
+    if (currentUserId) {
+      await db.connect(connector);
+      void seedDefaultsIfEmpty(db, currentUserId).catch(() => {});
+    }
 
     // Re-key the local DB whenever the signed-in identity changes.
     // Critical for multi-device: the app boots as an anonymous guest, so after
@@ -111,8 +120,8 @@ export function initSystem(): Promise<AbstractPowerSyncDatabase> {
     // downloads under the new JWT. Same-UID guest→register (updateUser) keeps the
     // id, so we do NOT clear then (preserving not-yet-synced local writes).
     let rekeying: Promise<void> = Promise.resolve();
-    supabase.auth.onAuthStateChange((event, session) => {
-      const newId = session?.user?.id ?? "";
+    supabase.auth.onAuthStateChange((event, sess) => {
+      const newId = sess?.user?.id ?? "";
       if (event === "SIGNED_OUT") {
         rekeying = rekeying.then(async () => {
           currentUserId = "";
@@ -130,8 +139,6 @@ export function initSystem(): Promise<AbstractPowerSyncDatabase> {
       }
     });
 
-    // Fallback: ensure default categories/labels exist (non-blocking).
-    void seedDefaultsIfEmpty(db, currentUserId).catch(() => {});
     return db;
   })();
   return started;

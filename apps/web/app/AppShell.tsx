@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme, setTheme, applySavedTheme } from "../src/theme";
-import { useSession } from "../src/account";
+import { useSession, useAuthStatus } from "../src/account";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
 import { MenuIcon, PlusIcon, SunIcon, MoonIcon, DownloadIcon } from "../src/ui/icons";
@@ -32,11 +32,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const theme = useTheme();
   const session = useSession();
+  const authStatus = useAuthStatus();
 
   // Full-screen routes with no app chrome.
   const bare = pathname === "/onboarding" || pathname === "/login";
-  const [gateChecked, setGateChecked] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     applySavedTheme();
@@ -48,17 +47,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("beforeinstallprompt", onPrompt);
   }, []);
 
-  // First-run: show onboarding before anything inside the app.
+  // Gate on the session, not a "seen" flag: an unauthenticated visitor must
+  // pick a path on onboarding (create account / sign in / try as guest).
   useEffect(() => {
-    const seen = localStorage.getItem("onboardingSeen");
-    if (!seen && !bare) {
-      setRedirecting(true);
-      router.replace("/onboarding");
-    } else {
-      setRedirecting(false);
-    }
-    setGateChecked(true);
-  }, [pathname, bare, router]);
+    if (authStatus === "none" && !bare) router.replace("/onboarding");
+  }, [authStatus, bare, router]);
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light");
@@ -66,8 +59,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Onboarding / login render full-screen without the sidebar.
   if (bare) return <div style={{ minHeight: "100vh" }}>{children}</div>;
 
-  // While deciding / redirecting to onboarding, show a spinner (no flash of app).
-  if (!gateChecked || redirecting) {
+  // While resolving auth / redirecting to onboarding, show a spinner (no app flash).
+  if (authStatus === "loading" || authStatus === "none") {
     return <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}><Spinner size={34} /></div>;
   }
 
