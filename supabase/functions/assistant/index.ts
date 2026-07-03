@@ -12,7 +12,9 @@
 // verify_jwt is ON by default, so only signed-in PocketCare users can call it.
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const DEFAULT_MODEL = "claude-3-5-haiku-latest";
+// Pinned id (the `-latest` aliases don't always resolve). Override with the
+// ASSISTANT_MODEL secret to match whatever your Anthropic account supports.
+const DEFAULT_MODEL = "claude-3-5-haiku-20241022";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",

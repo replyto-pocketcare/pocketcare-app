@@ -192,6 +192,7 @@ export default function AssistantPage() {
 function friendly(err?: string): string {
   if (!err) return "Sorry — I couldn't get a response. Please try again.";
   if (/not configured|ANTHROPIC/i.test(err)) return "The assistant isn't set up yet on this deployment (the AI key is missing).";
+  if (/^model:|not_found|model .* (not|isn)/i.test(err)) return "The configured AI model isn't available on your account. Set the ASSISTANT_MODEL secret to a valid Anthropic model id (e.g. claude-3-5-haiku-20241022).";
   if (/network|fetch|Failed to send/i.test(err)) return "I couldn't reach the assistant — check your connection and try again.";
   return `Sorry — something went wrong. (${err})`;
 }
