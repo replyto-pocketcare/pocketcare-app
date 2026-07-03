@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useTheme, setTheme, applySavedTheme } from "../src/theme";
 import { useSession, useAuthStatus } from "../src/account";
 import { useSyncStatus, syncMessage } from "../src/sync";
@@ -11,19 +12,19 @@ import { Logo } from "../src/ui/Logo";
 import { MenuIcon, PlusIcon, SunIcon, MoonIcon, DownloadIcon } from "../src/ui/icons";
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: "◧" },
-  { href: "/accounts", label: "Accounts", icon: "▤" },
-  { href: "/transactions", label: "Transactions", icon: "⇅" },
-  { href: "/search", label: "Search", icon: "⌕" },
-  { href: "/cards", label: "Cards", icon: "▭" },
-  { href: "/budgets", label: "Budgets", icon: "◔" },
-  { href: "/insights", label: "Insights", icon: "◱" },
-  { href: "/statements", label: "Statements", icon: "▦" },
-  { href: "/goals", label: "Goals", icon: "◎" },
-  { href: "/subscriptions", label: "Subscriptions", icon: "↻" },
-  { href: "/loans", label: "Loans & Recurring", icon: "≈" },
-  { href: "/investments", label: "Investments", icon: "▲" },
-  { href: "/settings", label: "Settings", icon: "◇" },
+  { href: "/", tkey: "nav.home", label: "Dashboard", icon: "◧" },
+  { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "▤" },
+  { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "⇅" },
+  { href: "/search", tkey: "nav.search", label: "Search", icon: "⌕" },
+  { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "▭" },
+  { href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "◔" },
+  { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "◱" },
+  { href: "/statements", tkey: "nav.statements", label: "Statements", icon: "▦" },
+  { href: "/goals", tkey: "nav.goals", label: "Goals", icon: "◎" },
+  { href: "/subscriptions", tkey: "nav.subscriptions", label: "Subscriptions", icon: "↻" },
+  { href: "/loans", tkey: "nav.loans", label: "Loans & Recurring", icon: "≈" },
+  { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "▲" },
+  { href: "/settings", tkey: "nav.settings", label: "Settings", icon: "◇" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -35,6 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const session = useSession();
   const authStatus = useAuthStatus();
   const sync = useSyncStatus();
+  const { t } = useTranslation();
 
   // Full-screen routes with no app chrome.
   const bare = pathname === "/onboarding" || pathname === "/login";
@@ -85,7 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} style={navItem(isActive(n.href))} onClick={() => setMenuOpen(false)}>
               <span style={{ width: 20, textAlign: "center", opacity: 0.75 }}>{n.icon}</span>
-              {n.label}
+              {t(n.tkey, n.label)}
             </Link>
           ))}
         </nav>

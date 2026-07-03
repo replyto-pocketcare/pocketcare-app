@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor, type Money } from "@pocketcare/money";
@@ -10,6 +11,7 @@ import { insertRow, updateRow, softDelete, uuid, nowIso } from "../../src/write"
 import { useBaseCurrency } from "../../src/hooks";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
+import { useMoneyFmt } from "../../src/ui/Money";
 import { MultiSelect } from "../../src/ui/MultiSelect";
 import { LabelPicker } from "../../src/ui/LabelPicker";
 import type { BudgetLike } from "@pocketcare/data";
@@ -69,6 +71,7 @@ async function writeBudgetScope(budgetId: string, catIds: string[], labelNames: 
 }
 
 export default function BudgetsPage() {
+  const { t } = useTranslation();
   const base = useBaseCurrency();
   const { data: budgets = [] } = useQuery<BudgetLike>(
     "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
@@ -104,7 +107,7 @@ export default function BudgetsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>Budgets</h1>
+      <h1>{t("pages.budgets", "Budgets")}</h1>
       <div style={{ display: "grid", gap: 12 }}>
         {budgets.map((b) => <BudgetRow key={b.id} budget={b} cats={cats} labels={labels} catOptions={catOptions} />)}
         {budgets.length === 0 && <p className="muted">No budgets yet — try a named budget for a trip below.</p>}
@@ -150,6 +153,7 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
   catOptions: { value: string; label: string }[];
 }) {
   const [spent, setSpent] = useState<Money>(money(0, budget.currency));
+  const fmt = useMoneyFmt();
   // This budget's scope, from the junction tables.
   const { data: budgetCats = [] } = useQuery<{ category_id: string }>("SELECT category_id FROM budget_categories WHERE budget_id = ?", [budget.id]);
   const { data: budgetLabels = [] } = useQuery<{ name: string }>(
@@ -243,8 +247,8 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
       )}
       <ProgressBar pct={p.pct} color={color} />
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }} className="muted">
-        <span>{format(spent, "en-US")} spent</span>
-        <span>{p.overLimit ? `${format(money(spent.amount - limit.amount, budget.currency), "en-US")} over` : `${format(remaining, "en-US")} left`}</span>
+        <span>{fmt(spent)} spent</span>
+        <span>{p.overLimit ? `${fmt(money(spent.amount - limit.amount, budget.currency))} over` : `${fmt(remaining)} left`}</span>
       </div>
     </div>
   );

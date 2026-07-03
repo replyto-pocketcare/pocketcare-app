@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import {
@@ -12,6 +13,7 @@ const major = (m: number) => m / 100;
 const PIE = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#7c7264", "#5f6647"];
 
 export default function InsightsPage() {
+  const { t } = useTranslation();
   const tier = useTier();
   const base = useBaseCurrency();
 
@@ -58,7 +60,7 @@ export default function InsightsPage() {
   if (tier !== "premium") {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
-        <h1>Insights</h1>
+        <h1>{t("pages.insights", "Insights")}</h1>
         <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
           <h2>Detailed insights are a Premium feature</h2>
@@ -71,7 +73,7 @@ export default function InsightsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>Insights <span className="muted" style={{ fontSize: 13 }}>· {base}</span></h1>
+      <h1>{t("pages.insights", "Insights")} <span className="muted" style={{ fontSize: 13 }}>· {base}</span></h1>
 
       <Panel title="Cashflow">
         <ResponsiveContainer width="100%" height={280}>

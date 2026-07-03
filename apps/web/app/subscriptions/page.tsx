@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor } from "@pocketcare/money";
@@ -11,6 +12,7 @@ import { insertRow, updateRow, softDelete } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { KebabMenu } from "../../src/ui/KebabMenu";
+import { useMoneyFmt } from "../../src/ui/Money";
 
 interface Sub {
   id: string;
@@ -43,8 +45,10 @@ function nextDue(purchasedOn: string | null, cycle: Period, asOf = new Date()): 
 }
 
 export default function SubscriptionsPage() {
+  const { t } = useTranslation();
   const base = useBaseCurrency();
   const tier = useTier();
+  const fmt = useMoneyFmt();
   const { data: subs = [] } = useQuery<Sub>(
     "SELECT id, name, amount, currency, billing_cycle, purchased_on FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY created_at",
   );
@@ -72,14 +76,14 @@ export default function SubscriptionsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>Subscriptions</h1>
+      <h1>{t("pages.subscriptions", "Subscriptions")}</h1>
 
       <section className="card" style={{ padding: 20, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <div>
           <div className="muted" style={{ fontSize: 13 }}>Total monthly cost</div>
-          <div style={{ fontSize: 30, fontWeight: 750 }}>{format(money(monthlyTotal, base), "en-US")}</div>
+          <div style={{ fontSize: 30, fontWeight: 750 }}>{fmt(money(monthlyTotal, base))}</div>
         </div>
-        <div className="muted" style={{ fontSize: 13 }}>{subs.length} active · {format(money(monthlyTotal * 12, base), "en-US")}/yr</div>
+        <div className="muted" style={{ fontSize: 13 }}>{subs.length} active · {fmt(money(monthlyTotal * 12, base))}/yr</div>
       </section>
 
       <div className="subs-cols">
@@ -124,6 +128,7 @@ export default function SubscriptionsPage() {
 }
 
 function SubRow({ sub }: { sub: Sub }) {
+  const fmt = useMoneyFmt();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(sub.name);
   const [amount, setAmount] = useState(String(toMajor(money(sub.amount, sub.currency))));
@@ -172,8 +177,8 @@ function SubRow({ sub }: { sub: Sub }) {
         />
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 22px" }}>
-        <Stat value={`${format(money(sub.amount, sub.currency), "en-US")}`} label={`per ${sub.billing_cycle.replace(/ly$/, "").replace("dai", "day")}`} />
-        <Stat value={`${format(money(monthlyEquivalent(sub.amount, sub.billing_cycle), sub.currency), "en-US")}`} label="per month" />
+        <Stat value={fmt(money(sub.amount, sub.currency))} label={`per ${sub.billing_cycle.replace(/ly$/, "").replace("dai", "day")}`} />
+        <Stat value={fmt(money(monthlyEquivalent(sub.amount, sub.billing_cycle), sub.currency))} label="per month" />
         {due && <Stat value={due.toLocaleDateString()} label="next due" />}
       </div>
     </div>

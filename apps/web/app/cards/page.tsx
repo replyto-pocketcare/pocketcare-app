@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -10,12 +11,14 @@ import { useAccountBalances } from "../../src/hooks";
 import { useSession } from "../../src/account";
 import { getRepositories } from "../../src/powersync";
 import { CreditCard } from "../../src/cards/CreditCard";
+import { useMoneyFmt } from "../../src/ui/Money";
 
 const PALETTE = ["#3e4a38", "#b06a4f", "#5f6647", "#7c4a3a", "#2b2723"];
 
 interface CardDetail { account_id: string; statement_day: number; due_day: number; credit_limit: number | null; card_last4: string | null; }
 
 export default function CardsPage() {
+  const { t } = useTranslation();
   const balances = useAccountBalances();
   const session = useSession();
   const holder = (session?.username || "").trim() || "Card Holder";
@@ -26,7 +29,7 @@ export default function CardsPage() {
   if (cards.length === 0) {
     return (
       <div className="fade-up">
-        <h1>Cards</h1>
+        <h1>{t("pages.cards", "Cards")}</h1>
         <p className="muted">Add a Credit Card account to see your wallet come to life.</p>
         <a href="/accounts/new" className="btn" style={{ marginTop: 12 }}>＋ New account</a>
       </div>
@@ -36,7 +39,7 @@ export default function CardsPage() {
   return (
     <div className="fade-up" style={{ display: "grid", gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Cards</h1>
+        <h1>{t("pages.cards", "Cards")}</h1>
         <Link href="/accounts/new" className="btn">＋ Add card</Link>
       </div>
       <p className="muted" style={{ marginBottom: 8 }}>Your cards, straight from the wallet.</p>
@@ -93,6 +96,7 @@ function CardPanel({ account, owed, detail, sources }: {
   detail: CardDetail | undefined;
   sources: { id: string; name: string }[];
 }) {
+  const fmt = useMoneyFmt();
   const cycle = detail ? billingCycle(detail.statement_day, detail.due_day, new Date()) : null;
   const [stmt, setStmt] = useState(String(detail?.statement_day ?? 1));
   const [due, setDue] = useState(String(detail?.due_day ?? 20));
@@ -123,11 +127,11 @@ function CardPanel({ account, owed, detail, sources }: {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div className="muted" style={{ fontSize: 12 }}>Spent this cycle</div>
-          <div style={{ fontSize: 28, fontWeight: 750, color: "var(--negative)" }}>{format(owedMoney, "en-US")}</div>
+          <div style={{ fontSize: 28, fontWeight: 750, color: "var(--negative)" }}>{fmt(owedMoney)}</div>
           {detail?.credit_limit ? (
             <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
-              of {format(money(detail.credit_limit, account.currency), "en-US")} limit ·{" "}
-              <span style={{ color: "var(--positive)" }}>{format(money(Math.max(0, detail.credit_limit - Math.abs(owed)), account.currency), "en-US")} available</span>
+              of {fmt(money(detail.credit_limit, account.currency))} limit ·{" "}
+              <span style={{ color: "var(--positive)" }}>{fmt(money(Math.max(0, detail.credit_limit - Math.abs(owed)), account.currency))} available</span>
             </div>
           ) : null}
         </div>

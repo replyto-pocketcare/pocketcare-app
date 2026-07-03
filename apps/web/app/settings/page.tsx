@@ -3,17 +3,18 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import i18n, { SUPPORTED_LANGUAGES } from "@pocketcare/i18n";
+import { useTranslation } from "react-i18next";
 import { Feature, canUse } from "@pocketcare/entitlements";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useTier } from "../../src/hooks";
 import { setTier } from "../../src/tier";
 import { useTheme, setTheme } from "../../src/theme";
 import { useBaseCurrency } from "../../src/hooks";
-import { setBaseCurrency } from "../../src/prefs";
+import { setBaseCurrency, useAmountsHidden, setAmountsHidden } from "../../src/prefs";
 import { useSession, updateUsername, signOut } from "../../src/account";
 import { useSyncStatus, syncMessage } from "../../src/sync";
 import { Modal } from "../../src/ui/Modal";
-import { SunIcon, MoonIcon } from "../../src/ui/icons";
+import { SunIcon, MoonIcon, EyeIcon, EyeOffIcon } from "../../src/ui/icons";
 
 const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 
@@ -24,6 +25,8 @@ export default function SettingsPage() {
   const theme = useTheme();
   const session = useSession();
   const sync = useSyncStatus();
+  const amountsHidden = useAmountsHidden();
+  const { t } = useTranslation();
 
   const [username, setUsername] = useState("");
   const [savedName, setSavedName] = useState(false);
@@ -37,15 +40,20 @@ export default function SettingsPage() {
   }
 
   function saveBase(c: string) { setBaseCurrency(c); }
-  function saveLang(l: string) { setLang(l); localStorage.setItem("lang", l); void i18n.changeLanguage(l); }
+  function saveLang(l: string) {
+    setLang(l);
+    localStorage.setItem("lang", l);
+    void i18n.changeLanguage(l);
+    if (typeof document !== "undefined") document.documentElement.lang = l;
+  }
 
   return (
     <div style={{ display: "grid", gap: 24, maxWidth: 700 }} className="fade-up">
-      <h1>Settings</h1>
+      <h1>{t("pages.settings", "Settings")}</h1>
 
       {/* Account */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
-        <h2>Account</h2>
+        <h2>{t("settings.account", "Account")}</h2>
         {session?.isGuest ? (
           <div style={{ padding: 12, borderRadius: 10, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", fontSize: 14 }}>
             You’re exploring as a <strong>guest</strong>.{" "}
@@ -109,15 +117,29 @@ export default function SettingsPage() {
 
       {/* Theme */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-        <h2>Appearance</h2>
+        <h2>{t("settings.appearance", "Appearance")}</h2>
         <div style={{ display: "flex", gap: 6 }}>
           <button className="chip" data-active={theme === "light"} onClick={() => setTheme("light")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><SunIcon size={15} /> Light</button>
           <button className="chip" data-active={theme === "dark"} onClick={() => setTheme("dark")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><MoonIcon size={15} /> Dark</button>
         </div>
       </section>
 
+      {/* Privacy */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-        <h2>Base currency</h2>
+        <h2>{t("settings.privacy", "Privacy")}</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 14 }}>
+            {t("settings.hideAmounts", "Hide amounts everywhere")}
+            <div className="muted" style={{ fontSize: 12 }}>Masks balances and amounts across the app. You can flip it anytime.</div>
+          </span>
+          <button className="chip" data-active={amountsHidden} onClick={() => setAmountsHidden(!amountsHidden)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            {amountsHidden ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />} {amountsHidden ? "Hidden" : "Visible"}
+          </button>
+        </div>
+      </section>
+
+      <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
+        <h2>{t("settings.baseCurrency", "Base currency")}</h2>
         <p className="muted" style={{ fontSize: 13, marginTop: -4 }}>Net worth and roll-ups convert to this currency.</p>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {CURRENCIES.map((c) => <button key={c} className="chip" data-active={c === base} onClick={() => saveBase(c)}>{c}</button>)}
@@ -125,7 +147,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-        <h2>Language</h2>
+        <h2>{t("settings.language", "Language")}</h2>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {SUPPORTED_LANGUAGES.map((l) => <button key={l.code} className="chip" data-active={l.code === lang} onClick={() => saveLang(l.code)}>{l.label}</button>)}
         </div>
@@ -141,7 +163,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-        <h2>Plan</h2>
+        <h2>{t("settings.plan", "Plan")}</h2>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <span>You are on the <strong style={{ textTransform: "capitalize" }}>{tier}</strong> plan.</span>
           <div style={{ display: "flex", gap: 6 }}>
@@ -158,7 +180,7 @@ export default function SettingsPage() {
 
       {/* Help & Support */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-        <h2>Help & Support</h2>
+        <h2>{t("settings.help", "Help & Support")}</h2>
         <div style={{ display: "grid", gap: 6 }}>
           <a href="mailto:support@pocketcare.app" className="chip" style={{ justifySelf: "start" }}>Contact support</a>
           <Link href="/onboarding" className="chip" style={{ justifySelf: "start" }}>Replay the intro</Link>

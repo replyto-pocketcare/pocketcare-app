@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { format, type Money } from "@pocketcare/money";
 import { useNetWorth, useAccountBalances, useTier } from "../src/hooks";
 import { useAmountsHidden, setAmountsHidden } from "../src/prefs";
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const enabled = useDashboardTiles();
   const [showAvailable, setShowAvailable] = useState(false);
   const [customizing, setCustomizing] = useState(false);
+  const { t } = useTranslation();
   const net = showAvailable ? available : total;
 
   const fmt = (m: Money) => (hidden ? "••••••" : format(m, "en-US"));
@@ -46,7 +48,7 @@ export default function Dashboard() {
   return (
     <div style={{ display: "grid", gap: 24 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1>Dashboard</h1>
+        <h1>{t("pages.dashboard", "Dashboard")}</h1>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button className="chip" onClick={() => setCustomizing(true)} title="Customize tiles" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <SlidersIcon size={16} /> Customize
@@ -61,7 +63,7 @@ export default function Dashboard() {
       {/* Net worth hero */}
       <section className="card" style={{ padding: 28, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <div className="muted" style={{ fontSize: 13 }}>{showAvailable ? "Available net worth" : "Net worth"}</div>
+          <div className="muted" style={{ fontSize: 13 }}>{showAvailable ? t("netWorth.available", "Available net worth") : t("netWorth.title", "Net worth")}</div>
           <div style={{ fontSize: 44, fontWeight: 750, letterSpacing: "-0.02em", color: "var(--forest)" }}>{fmt(net)}</div>
           <div className="muted" style={{ fontSize: 13 }}>Base currency {base}</div>
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
@@ -9,6 +10,7 @@ import { useBaseCurrency, useTier } from "../../src/hooks";
 import { LockIcon } from "../../src/ui/icons";
 
 export default function StatementsPage() {
+  const { t } = useTranslation();
   const tier = useTier();
   const base = useBaseCurrency();
   const today = new Date();
@@ -33,7 +35,7 @@ export default function StatementsPage() {
   if (tier !== "premium") {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
-        <h1>Statements</h1>
+        <h1>{t("pages.statements", "Statements")}</h1>
         <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
           <h2>Statements are a Premium feature</h2>
@@ -48,7 +50,7 @@ export default function StatementsPage() {
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div className="no-print" style={{ display: "grid", gap: 14 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
-          <h1>Statements</h1>
+          <h1>{t("pages.statements", "Statements")}</h1>
           <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
         </div>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>

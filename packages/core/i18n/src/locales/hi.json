@@ -5,14 +5,53 @@
     "save": "सहेजें",
     "cancel": "रद्द करें",
     "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "remove": "हटाएं",
+    "done": "पूर्ण",
+    "clear": "साफ़ करें",
     "settings": "सेटिंग्स"
   },
   "nav": {
-    "home": "होम",
+    "home": "डैशबोर्ड",
     "accounts": "खाते",
-    "add": "जोड़ें",
-    "analytics": "विश्लेषण",
+    "transactions": "लेन-देन",
+    "search": "खोज",
+    "cards": "कार्ड",
+    "budgets": "बजट",
+    "insights": "अंतर्दृष्टि",
+    "statements": "विवरण",
+    "goals": "लक्ष्य",
+    "subscriptions": "सदस्यताएँ",
+    "loans": "ऋण और आवर्ती",
+    "investments": "निवेश",
     "settings": "सेटिंग्स"
+  },
+  "pages": {
+    "dashboard": "डैशबोर्ड",
+    "accounts": "खाते",
+    "transactions": "लेन-देन",
+    "search": "खोज",
+    "cards": "कार्ड",
+    "budgets": "बजट",
+    "insights": "अंतर्दृष्टि",
+    "statements": "विवरण",
+    "goals": "लक्ष्य",
+    "subscriptions": "सदस्यताएँ",
+    "loans": "ऋण और आवर्ती",
+    "investments": "निवेश",
+    "settings": "सेटिंग्स"
+  },
+  "settings": {
+    "account": "खाता",
+    "appearance": "रूप-रंग",
+    "privacy": "गोपनीयता",
+    "hideAmounts": "हर जगह राशि छिपाएँ",
+    "baseCurrency": "आधार मुद्रा",
+    "language": "भाषा",
+    "plan": "योजना",
+    "help": "सहायता और समर्थन",
+    "light": "उजला",
+    "dark": "गहरा"
   },
   "accountType": {
     "savings": "बचत",
@@ -34,7 +73,7 @@
   "netWorth": {
     "title": "कुल संपत्ति",
     "withBlocked": "अवरुद्ध सहित",
-    "available": "उपलब्ध"
+    "available": "उपलब्ध कुल संपत्ति"
   },
   "onboarding": {
     "guestBanner": "आप अतिथि के रूप में देख रहे हैं। अपना डेटा रखने के लिए {{days}} दिनों में पंजीकरण करें।",

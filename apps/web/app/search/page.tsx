@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
@@ -8,11 +9,14 @@ import type { Transaction } from "@pocketcare/types";
 import { AccountBadge } from "../../src/ui/AccountBadge";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { SlidersIcon } from "../../src/ui/icons";
+import { useMoneyFmt } from "../../src/ui/Money";
 import { colorForId } from "../../src/colors";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
 export default function SearchPage() {
+  const { t } = useTranslation();
+  const fmt = useMoneyFmt();
   const [q, setQ] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
   const [accountId, setAccountId] = useState("");
@@ -61,7 +65,7 @@ export default function SearchPage() {
 
   return (
     <div style={{ display: "grid", gap: 18 }} className="fade-up">
-      <h1>Search</h1>
+      <h1>{t("pages.search", "Search")}</h1>
 
       <input className="input" placeholder="Search everything — label, note, description, category, account, amount…" value={q} onChange={(e) => setQ(e.target.value)} />
 
@@ -109,7 +113,7 @@ export default function SearchPage() {
                 </div>
               </div>
               <div style={{ fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
-                {t.type === "expense" ? "−" : t.type === "income" ? "+" : "⇄ "}{format(money(t.amount, t.currency), "en-US")}
+                {t.type === "expense" ? "−" : t.type === "income" ? "+" : "⇄ "}{fmt(money(t.amount, t.currency))}
               </div>
             </Link>
           );

@@ -8,8 +8,11 @@ import { lightTheme } from "@pocketcare/ui-tokens";
 import { initSystem } from "../src/powersync";
 import { Spinner } from "../src/ui/Spinner";
 
-// Boot i18n once (browser language). Guarded for SSR.
-initI18n(typeof navigator !== "undefined" ? navigator.language.split("-")[0] : "en");
+// Boot i18n once. Prefer the user's saved choice, else the browser language.
+const savedLang = typeof window !== "undefined" ? localStorage.getItem("lang") : null;
+const bootLang = savedLang || (typeof navigator !== "undefined" ? navigator.language.split("-")[0] : "en") || "en";
+initI18n(bootLang);
+if (typeof document !== "undefined") document.documentElement.lang = bootLang;
 
 /**
  * Client-only provider. PowerSync web (WASM SQLite) cannot run during SSR, so we

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor } from "@pocketcare/money";
@@ -7,6 +8,7 @@ import { useBaseCurrency } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
+import { useMoneyFmt } from "../../src/ui/Money";
 
 interface Goal {
   id: string;
@@ -18,6 +20,7 @@ interface Goal {
 }
 
 export default function GoalsPage() {
+  const { t } = useTranslation();
   const base = useBaseCurrency();
   const { data: goals = [] } = useQuery<Goal>(
     "SELECT id, name, target_amount, currency, is_emergency_fund, priority FROM goals WHERE deleted_at IS NULL ORDER BY is_emergency_fund DESC, priority",
@@ -52,7 +55,7 @@ export default function GoalsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>Goals</h1>
+      <h1>{t("pages.goals", "Goals")}</h1>
       {ef && !efFunded && (
         <div className="card" style={{ padding: 14, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)" }}>
           Build your emergency fund first — other goals unlock once it’s fully funded.
@@ -86,6 +89,7 @@ function GoalCard({ goal, saved, savings, locked, base }: {
   goal: Goal; saved: number; savings: { id: string; name: string; currency: string }[]; locked: boolean; base: string;
 }) {
   const pct = goal.target_amount ? Math.min(100, (saved / goal.target_amount) * 100) : 0;
+  const fmt = useMoneyFmt();
   const [amount, setAmount] = useState("");
   const [srcId, setSrcId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -125,7 +129,7 @@ function GoalCard({ goal, saved, savings, locked, base }: {
             {goal.is_emergency_fund ? <span className="muted" style={{ fontSize: 12 }}> · emergency fund (liquid)</span> : null}
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <span className="muted">{format(money(saved, goal.currency), "en-US")} / {format(money(goal.target_amount, goal.currency), "en-US")}</span>
+            <span className="muted">{fmt(money(saved, goal.currency))} / {fmt(money(goal.target_amount, goal.currency))}</span>
             <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={() => { setEName(goal.name); setETarget(String(toMajor(money(goal.target_amount, goal.currency)))); setEditing(true); }}>Edit</button>
             <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={() => softDelete("goals", goal.id)}>Delete</button>
           </div>

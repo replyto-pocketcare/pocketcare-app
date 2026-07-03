@@ -8,7 +8,7 @@ import { initReactI18next } from "react-i18next";
 
 import en from "./locales/en.json";
 import hi from "./locales/hi.json";
-import ar from "./locales/ar.json";
+import nl from "./locales/nl.json";
 
 export interface Language {
   code: string;
@@ -20,13 +20,13 @@ export interface Language {
 export const SUPPORTED_LANGUAGES: readonly Language[] = [
   { code: "en", label: "English", dir: "ltr" },
   { code: "hi", label: "हिन्दी", dir: "ltr" },
-  { code: "ar", label: "العربية", dir: "rtl" },
+  { code: "nl", label: "Nederlands", dir: "ltr" },
 ];
 
 export const resources = {
   en: { translation: en },
   hi: { translation: hi },
-  ar: { translation: ar },
+  nl: { translation: nl },
 } as const;
 
 export function isRtl(languageCode: string): boolean {

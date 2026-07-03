@@ -1,20 +1,57 @@
 {
-  "app": {
-    "name": "PocketCare"
-  },
+  "app": { "name": "PocketCare" },
   "common": {
     "add": "Add",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
+    "edit": "Edit",
+    "remove": "Remove",
+    "done": "Done",
+    "clear": "Clear",
     "settings": "Settings"
   },
   "nav": {
-    "home": "Home",
+    "home": "Dashboard",
     "accounts": "Accounts",
-    "add": "Add",
-    "analytics": "Analytics",
+    "transactions": "Transactions",
+    "search": "Search",
+    "cards": "Cards",
+    "budgets": "Budgets",
+    "insights": "Insights",
+    "statements": "Statements",
+    "goals": "Goals",
+    "subscriptions": "Subscriptions",
+    "loans": "Loans & Recurring",
+    "investments": "Investments",
     "settings": "Settings"
+  },
+  "pages": {
+    "dashboard": "Dashboard",
+    "accounts": "Accounts",
+    "transactions": "Transactions",
+    "search": "Search",
+    "cards": "Cards",
+    "budgets": "Budgets",
+    "insights": "Insights",
+    "statements": "Statements",
+    "goals": "Goals",
+    "subscriptions": "Subscriptions",
+    "loans": "Loans & Recurring",
+    "investments": "Investments",
+    "settings": "Settings"
+  },
+  "settings": {
+    "account": "Account",
+    "appearance": "Appearance",
+    "privacy": "Privacy",
+    "hideAmounts": "Hide amounts everywhere",
+    "baseCurrency": "Base currency",
+    "language": "Language",
+    "plan": "Plan",
+    "help": "Help & Support",
+    "light": "Light",
+    "dark": "Dark"
   },
   "accountType": {
     "savings": "Savings",
@@ -34,9 +71,9 @@
     "addItem": "Add item"
   },
   "netWorth": {
-    "title": "Net Worth",
-    "withBlocked": "With blocked",
-    "available": "Available"
+    "title": "Net worth",
+    "withBlocked": "Including blocked",
+    "available": "Available net worth"
   },
   "onboarding": {
     "guestBanner": "You're exploring as a guest. Register within {{days}} days to keep your data.",

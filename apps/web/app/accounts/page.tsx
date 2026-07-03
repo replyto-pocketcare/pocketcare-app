@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { format } from "@pocketcare/money";
+import { useTranslation } from "react-i18next";
 import { useAccountBalances } from "../../src/hooks";
 import { getDb } from "../../src/powersync";
+import { useMoneyFmt } from "../../src/ui/Money";
 
 export default function AccountsPage() {
   const [showArchived, setShowArchived] = useState(false);
+  const { t } = useTranslation();
+  const fmt = useMoneyFmt();
   const balances = useAccountBalances(showArchived);
   const archivedCount = useAccountBalances(true).filter((b) => b.account.is_archived).length;
 
@@ -21,7 +24,7 @@ export default function AccountsPage() {
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1>Accounts</h1>
+        <h1>{t("pages.accounts", "Accounts")}</h1>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {archivedCount > 0 && (
             <button className="chip" data-active={showArchived} onClick={() => setShowArchived((v) => !v)}>
@@ -43,7 +46,7 @@ export default function AccountsPage() {
                   {account.type.replace("_", " ")} · {account.currency}{archived ? " · archived" : ""}
                 </span>
                 <span style={{ fontWeight: 600 }}>{account.name}</span>
-                <span style={{ fontSize: 22, fontWeight: 700 }}>{format(balance, "en-US")}</span>
+                <span style={{ fontSize: 22, fontWeight: 700 }}>{fmt(balance)}</span>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
                   {archived ? (
                     <button className="chip" style={{ padding: "2px 10px", fontSize: 12 }} onClick={() => setArchived(account.id, false)}>Unarchive</button>

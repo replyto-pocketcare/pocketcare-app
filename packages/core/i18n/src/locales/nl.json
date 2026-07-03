@@ -1,0 +1,82 @@
+{
+  "app": { "name": "PocketCare" },
+  "common": {
+    "add": "Toevoegen",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "remove": "Verwijderen",
+    "done": "Klaar",
+    "clear": "Wissen",
+    "settings": "Instellingen"
+  },
+  "nav": {
+    "home": "Dashboard",
+    "accounts": "Rekeningen",
+    "transactions": "Transacties",
+    "search": "Zoeken",
+    "cards": "Kaarten",
+    "budgets": "Budgetten",
+    "insights": "Inzichten",
+    "statements": "Overzichten",
+    "goals": "Doelen",
+    "subscriptions": "Abonnementen",
+    "loans": "Leningen & Terugkerend",
+    "investments": "Beleggingen",
+    "settings": "Instellingen"
+  },
+  "pages": {
+    "dashboard": "Dashboard",
+    "accounts": "Rekeningen",
+    "transactions": "Transacties",
+    "search": "Zoeken",
+    "cards": "Kaarten",
+    "budgets": "Budgetten",
+    "insights": "Inzichten",
+    "statements": "Overzichten",
+    "goals": "Doelen",
+    "subscriptions": "Abonnementen",
+    "loans": "Leningen & Terugkerend",
+    "investments": "Beleggingen",
+    "settings": "Instellingen"
+  },
+  "settings": {
+    "account": "Account",
+    "appearance": "Weergave",
+    "privacy": "Privacy",
+    "hideAmounts": "Bedragen overal verbergen",
+    "baseCurrency": "Basisvaluta",
+    "language": "Taal",
+    "plan": "Abonnement",
+    "help": "Hulp & ondersteuning",
+    "light": "Licht",
+    "dark": "Donker"
+  },
+  "accountType": {
+    "savings": "Spaarrekening",
+    "current": "Betaalrekening",
+    "credit_card": "Creditcard",
+    "cash": "Contant",
+    "mutual_funds": "Beleggingsfondsen",
+    "stocks": "Aandelen"
+  },
+  "transaction": {
+    "income": "Inkomsten",
+    "expense": "Uitgave",
+    "transfer": "Overboeking",
+    "amount": "Bedrag",
+    "category": "Categorie",
+    "label": "Label",
+    "addItem": "Item toevoegen"
+  },
+  "netWorth": {
+    "title": "Nettovermogen",
+    "withBlocked": "Inclusief geblokkeerd",
+    "available": "Beschikbaar nettovermogen"
+  },
+  "onboarding": {
+    "guestBanner": "Je verkent als gast. Registreer binnen {{days}} dagen om je gegevens te behouden.",
+    "getStarted": "Aan de slag"
+  }
+}

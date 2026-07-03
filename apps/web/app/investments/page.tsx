@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor } from "@pocketcare/money";
@@ -7,6 +8,7 @@ import { useBaseCurrency } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { getDb } from "../../src/powersync";
 import { FloatingInput } from "../../src/ui/FloatingInput";
+import { useMoneyFmt } from "../../src/ui/Money";
 
 interface Holding {
   id: string;
@@ -19,6 +21,8 @@ interface Holding {
 }
 
 export default function InvestmentsPage() {
+  const { t } = useTranslation();
+  const fmt = useMoneyFmt();
   const base = useBaseCurrency();
   const { data: holdings = [] } = useQuery<Holding>("SELECT * FROM holdings WHERE deleted_at IS NULL ORDER BY created_at");
   const { data: invAccounts = [] } = useQuery<{ id: string; name: string; currency: string }>(
@@ -48,11 +52,11 @@ export default function InvestmentsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>Investments</h1>
+      <h1>{t("pages.investments", "Investments")}</h1>
 
       <section className="card" style={{ padding: 20 }}>
         <div className="muted" style={{ fontSize: 13 }}>Invested value (at cost)</div>
-        <div style={{ fontSize: 30, fontWeight: 750 }}>{format(money(Math.round(investedValue), base), "en-US")}</div>
+        <div style={{ fontSize: 30, fontWeight: 750 }}>{fmt(money(Math.round(investedValue), base), "en-US")}</div>
         <div className="muted" style={{ fontSize: 12 }}>Enable daily price fetch per holding to track live gains/losses.</div>
       </section>
 
@@ -82,6 +86,7 @@ export default function InvestmentsPage() {
 }
 
 function HoldingRow({ h, onToggle }: { h: Holding; onToggle: () => void }) {
+  const fmt = useMoneyFmt();
   const [editing, setEditing] = useState(false);
   const [symbol, setSymbol] = useState(h.symbol);
   const [qty, setQty] = useState(String(h.quantity));
@@ -110,7 +115,7 @@ function HoldingRow({ h, onToggle }: { h: Holding; onToggle: () => void }) {
   }
   return (
     <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div><strong>{h.symbol}</strong><div className="muted" style={{ fontSize: 12 }}>{h.quantity} @ {h.avg_cost ? format(money(h.avg_cost, h.currency), "en-US") : "—"}</div></div>
+      <div><strong>{h.symbol}</strong><div className="muted" style={{ fontSize: 12 }}>{h.quantity} @ {h.avg_cost ? fmt(money(h.avg_cost, h.currency), "en-US") : "—"}</div></div>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <label style={{ fontSize: 13, display: "flex", gap: 6, alignItems: "center" }} className="muted">
           <input type="checkbox" checked={!!h.auto_fetch} onChange={onToggle} /> daily fetch

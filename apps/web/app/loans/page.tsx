@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor } from "@pocketcare/money";
@@ -8,6 +9,7 @@ import type { Period } from "@pocketcare/types";
 import { useBaseCurrency } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { FloatingInput } from "../../src/ui/FloatingInput";
+import { useMoneyFmt } from "../../src/ui/Money";
 
 interface Loan { id: string; lender: string; principal: number; currency: string; emi_amount: number | null; }
 interface Commitment { id: string; kind: string; amount: number; currency: string; frequency: Period; }
@@ -16,7 +18,9 @@ const KINDS = ["emi", "subscription", "recurring_expense"] as const;
 const CYCLES: Period[] = ["daily", "weekly", "monthly", "yearly"];
 
 export default function LoansPage() {
+  const { t } = useTranslation();
   const base = useBaseCurrency();
+  const fmt = useMoneyFmt();
   const { data: loans = [] } = useQuery<Loan>("SELECT id, lender, principal, currency, emi_amount FROM loans WHERE deleted_at IS NULL");
   const { data: commitments = [] } = useQuery<Commitment>("SELECT id, kind, amount, currency, frequency FROM recurring_commitments WHERE deleted_at IS NULL");
   const { data: subs = [] } = useQuery<{ amount: number; billing_cycle: Period }>("SELECT amount, billing_cycle FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1");
@@ -49,19 +53,19 @@ export default function LoansPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>Loans & Recurring</h1>
+      <h1>{t("pages.loans", "Loans & Recurring")}</h1>
 
       <section className="card" style={{ padding: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <div className="muted" style={{ fontSize: 13 }}>Recurring commitments / month</div>
-          <div style={{ fontSize: 30, fontWeight: 750 }}>{format(money(recurringMonthly, base), "en-US")}</div>
+          <div style={{ fontSize: 30, fontWeight: 750 }}>{fmt(money(recurringMonthly, base), "en-US")}</div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div className="muted" style={{ fontSize: 13 }}>Of monthly income</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: Number.isFinite(pct) && pct > 50 ? "var(--negative)" : "var(--forest)" }}>
             {Number.isFinite(pct) ? `${pct.toFixed(0)}%` : "—"}
           </div>
-          <div className="muted" style={{ fontSize: 12 }}>Income {format(money(monthlyIncome, base), "en-US")}</div>
+          <div className="muted" style={{ fontSize: 12 }}>Income {fmt(money(monthlyIncome, base), "en-US")}</div>
         </div>
       </section>
 
@@ -99,6 +103,7 @@ export default function LoansPage() {
 }
 
 function LoanRow({ loan }: { loan: Loan }) {
+  const fmt = useMoneyFmt();
   const [editing, setEditing] = useState(false);
   const [lender, setLender] = useState(loan.lender ?? "");
   const [principal, setPrincipal] = useState(String(toMajor(money(loan.principal, loan.currency))));
@@ -127,9 +132,9 @@ function LoanRow({ loan }: { loan: Loan }) {
   }
   return (
     <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between" }}>
-      <div><strong>{loan.lender || "Loan"}</strong><div className="muted" style={{ fontSize: 12 }}>EMI {loan.emi_amount ? format(money(loan.emi_amount, loan.currency), "en-US") : "—"}</div></div>
+      <div><strong>{loan.lender || "Loan"}</strong><div className="muted" style={{ fontSize: 12 }}>EMI {loan.emi_amount ? fmt(money(loan.emi_amount, loan.currency), "en-US") : "—"}</div></div>
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <span>{format(money(loan.principal, loan.currency), "en-US")}</span>
+        <span>{fmt(money(loan.principal, loan.currency), "en-US")}</span>
         <button className="chip" onClick={() => setEditing(true)}>Edit</button>
         <button className="chip" onClick={() => softDelete("loans", loan.id)}>×</button>
       </div>
@@ -138,6 +143,7 @@ function LoanRow({ loan }: { loan: Loan }) {
 }
 
 function CommitmentRow({ c }: { c: Commitment }) {
+  const fmt = useMoneyFmt();
   const [editing, setEditing] = useState(false);
   const [kind, setKind] = useState<(typeof KINDS)[number]>(c.kind as (typeof KINDS)[number]);
   const [amount, setAmount] = useState(String(toMajor(money(c.amount, c.currency))));
@@ -166,9 +172,9 @@ function CommitmentRow({ c }: { c: Commitment }) {
   }
   return (
     <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between" }}>
-      <div><strong style={{ textTransform: "capitalize" }}>{c.kind.replace("_", " ")}</strong><div className="muted" style={{ fontSize: 12 }}>{format(money(c.amount, c.currency), "en-US")} / {c.frequency}</div></div>
+      <div><strong style={{ textTransform: "capitalize" }}>{c.kind.replace("_", " ")}</strong><div className="muted" style={{ fontSize: 12 }}>{fmt(money(c.amount, c.currency), "en-US")} / {c.frequency}</div></div>
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <span className="muted">{format(money(monthlyEquivalent(c.amount, c.frequency), c.currency), "en-US")}/mo</span>
+        <span className="muted">{fmt(money(monthlyEquivalent(c.amount, c.frequency), c.currency), "en-US")}/mo</span>
         <button className="chip" onClick={() => setEditing(true)}>Edit</button>
         <button className="chip" onClick={() => softDelete("recurring_commitments", c.id)}>×</button>
       </div>

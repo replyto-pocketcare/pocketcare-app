@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
@@ -12,6 +13,7 @@ import { AccountBadge } from "../../src/ui/AccountBadge";
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
 export default function TransactionsPage() {
+  const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
 
@@ -38,7 +40,7 @@ export default function TransactionsPage() {
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Transactions</h1>
+        <h1>{t("pages.transactions", "Transactions")}</h1>
         <Link href="/transactions/new" className="btn">＋ Add</Link>
       </div>
 
