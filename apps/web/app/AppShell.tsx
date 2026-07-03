@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme, setTheme, applySavedTheme } from "../src/theme";
 import { useSession, useAuthStatus } from "../src/account";
-import { useSyncStatus } from "../src/sync";
+import { useSyncStatus, syncMessage } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
 import { MenuIcon, PlusIcon, SunIcon, MoonIcon, DownloadIcon } from "../src/ui/icons";
@@ -116,15 +116,20 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, width: "100%" }}>
-        {sync.error && (
-          <div className="card" style={{ padding: "10px 14px", marginBottom: 16, borderColor: "var(--warning)", background: "var(--accent-ghost)", fontSize: 13, display: "flex", gap: 8, alignItems: "flex-start" }}>
-            <span aria-hidden>⚠️</span>
-            <span>
-              <strong>Not syncing to the cloud.</strong> Your data is safe on this device but isn’t reaching the server, so it won’t appear on other devices.
-              <span className="muted"> ({sync.error})</span>
-            </span>
-          </div>
-        )}
+        {(() => {
+          const m = syncMessage(sync);
+          if (!m) return null;
+          const warn = m.tone === "warn";
+          return (
+            <div style={{ padding: "9px 14px", marginBottom: 16, borderRadius: 10, fontSize: 13, display: "flex", gap: 8, alignItems: "center",
+              border: `1px solid ${warn ? "var(--warning)" : "var(--border)"}`,
+              background: warn ? "var(--accent-ghost)" : "var(--surface-2)",
+              color: warn ? "var(--text)" : "var(--text-2)" }}>
+              <span style={{ width: 8, height: 8, borderRadius: 999, flexShrink: 0, background: warn ? "var(--warning)" : "var(--text-2)" }} />
+              <span>{m.text}</span>
+            </div>
+          );
+        })()}
         {children}
       </main>
 

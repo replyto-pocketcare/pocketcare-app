@@ -11,7 +11,7 @@ import { useTheme, setTheme } from "../../src/theme";
 import { useBaseCurrency } from "../../src/hooks";
 import { setBaseCurrency } from "../../src/prefs";
 import { useSession, updateUsername, signOut } from "../../src/account";
-import { useSyncStatus } from "../../src/sync";
+import { useSyncStatus, syncMessage } from "../../src/sync";
 import { Modal } from "../../src/ui/Modal";
 import { SunIcon, MoonIcon } from "../../src/ui/icons";
 
@@ -61,12 +61,16 @@ export default function SettingsPage() {
         )}
 
         <div className="muted" style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 8, height: 8, borderRadius: 999, background: sync.error ? "var(--negative)" : sync.connected ? "var(--positive)" : "var(--warning)" }} />
-          {sync.error
-            ? `Sync error — not reaching the server (${sync.error})`
-            : sync.connected
-              ? (sync.uploading || sync.downloading ? "Syncing…" : sync.lastSyncedAt ? `Synced · ${sync.lastSyncedAt.toLocaleTimeString()}` : "Connected")
-              : "Offline — changes are saved on this device"}
+          {(() => {
+            const m = syncMessage(sync);
+            const dot = m ? (m.tone === "warn" ? "var(--warning)" : "var(--text-2)") : sync.connected ? "var(--positive)" : "var(--warning)";
+            const text = m
+              ? m.text
+              : sync.connected
+                ? (sync.uploading || sync.downloading ? "Syncing…" : sync.lastSyncedAt ? `Synced · ${sync.lastSyncedAt.toLocaleTimeString()}` : "Connected")
+                : "Offline — changes are saved on this device";
+            return (<><span style={{ width: 8, height: 8, borderRadius: 999, background: dot }} />{text}</>);
+          })()}
         </div>
 
         <span className="muted" style={{ fontSize: 13 }}>Display name</span>
