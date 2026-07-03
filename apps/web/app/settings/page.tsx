@@ -182,7 +182,8 @@ export default function SettingsPage() {
         <p className="muted" style={{ fontSize: 13 }}>
           Toggle to preview both tiers. Advanced insights {canUse(Feature.AdvancedAnalytics, tier) ? "included" : "Premium"} ·
           Statements {canUse(Feature.Statements, tier) ? "included" : "Premium"} ·
-          Subscription simulator {canUse(Feature.SubscriptionSimulator, tier) ? "included" : "Premium"}
+          Subscription simulator {canUse(Feature.SubscriptionSimulator, tier) ? "included" : "Premium"} ·
+          AI assistant {tier === "premium" ? "included" : "Premium"}
         </p>
       </section>
 

@@ -1,9 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { getSupabase, getDb } from "../../src/powersync";
 import { insertRow, softDelete, nowIso } from "../../src/write";
+import { useTier } from "../../src/hooks";
+import { LockIcon } from "../../src/ui/icons";
 import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/summary";
 import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, loadMemory } from "../../src/assistant/tools";
 
@@ -38,6 +41,7 @@ const PERSONA = [
 ].join("\n");
 
 export default function AssistantPage() {
+  const tier = useTier();
   const [ui, setUi] = useState<UiItem[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -210,6 +214,20 @@ export default function AssistantPage() {
   }
 
   const currentTool = pending?.queue[0];
+
+  if (tier !== "premium") {
+    return (
+      <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
+        <h1>Ask PocketCare</h1>
+        <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
+          <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
+          <h2>The AI assistant is a Premium feature</h2>
+          <p className="muted">Plan purchases and savings in plain language, get concrete numeric plans from your own data, and let it set up goals and budgets for you.</p>
+          <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "grid", gap: 14, maxWidth: 760 }} className="fade-up">
