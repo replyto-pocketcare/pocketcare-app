@@ -63,12 +63,21 @@ export default function SettingsPage() {
         <div className="muted" style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
           {(() => {
             const m = syncMessage(sync);
-            const dot = m ? (m.tone === "warn" ? "var(--warning)" : "var(--text-2)") : sync.connected ? "var(--positive)" : "var(--warning)";
-            const text = m
-              ? m.text
-              : sync.connected
-                ? (sync.uploading || sync.downloading ? "Syncing…" : sync.lastSyncedAt ? `Synced · ${sync.lastSyncedAt.toLocaleTimeString()}` : "Connected")
-                : "Offline — changes are saved on this device";
+            let dot = "var(--positive)";
+            let text: string;
+            if (m) {
+              dot = m.tone === "warn" ? "var(--warning)" : "var(--text-2)";
+              text = m.text;
+            } else if (sync.uploading || sync.downloading) {
+              text = "Syncing…";
+            } else if (sync.lastSyncedAt) {
+              text = `Synced · ${sync.lastSyncedAt.toLocaleTimeString()}`;
+            } else if (sync.hasSynced) {
+              text = "All changes synced";
+            } else {
+              dot = "var(--warning)";
+              text = "Connecting…";
+            }
             return (<><span style={{ width: 8, height: 8, borderRadius: 999, background: dot }} />{text}</>);
           })()}
         </div>

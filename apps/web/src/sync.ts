@@ -10,13 +10,17 @@ export interface SyncInfo {
   lastSyncedAt: Date | null;
   uploading: boolean;
   downloading: boolean;
+  /** True network state (navigator.onLine) — the source of truth for "offline". */
+  online: boolean;
   /** Human-readable upload/download error, if any (e.g. a PostgREST schema error). */
   error: string | null;
 }
 
+const isOnline = () => (typeof navigator === "undefined" ? true : navigator.onLine !== false);
+
 const EMPTY: SyncInfo = {
   connected: false, hasSynced: false, lastSyncedAt: null,
-  uploading: false, downloading: false, error: null,
+  uploading: false, downloading: false, online: true, error: null,
 };
 
 // PowerSync's SyncStatus is loosely typed across versions; read defensively.
@@ -36,6 +40,7 @@ function read(s: LooseStatus | undefined | null): SyncInfo {
     lastSyncedAt: s?.lastSyncedAt ?? null,
     uploading: Boolean(flow?.uploading),
     downloading: Boolean(flow?.downloading),
+    online: isOnline(),
     error: errObj ? (errObj.message ?? String(errObj)) : null,
   };
 }
@@ -44,18 +49,24 @@ export function useSyncStatus(): SyncInfo {
   const [info, setInfo] = useState<SyncInfo>(EMPTY);
   useEffect(() => {
     const db = getDb();
-    if (!db) return;
-    setInfo(read(db.currentStatus as LooseStatus));
-    const dispose = db.registerListener({
-      statusChanged: (s: unknown) => {
-        const next = read(s as LooseStatus);
-        // Keep the raw error in the console for debugging; the UI shows a
-        // friendly message (see syncMessage) instead of the technical text.
-        if (next.error) console.warn("[PocketCare sync]", next.error);
-        setInfo(next);
-      },
-    });
-    return () => { try { dispose?.(); } catch { /* noop */ } };
+    const refresh = (s?: LooseStatus) => {
+      const next = read(s ?? (db?.currentStatus as LooseStatus));
+      // Keep the raw error in the console for debugging; the UI shows a friendly
+      // message (see syncMessage) instead of the technical text.
+      if (next.error) console.warn("[PocketCare sync]", next.error);
+      setInfo(next);
+    };
+    refresh();
+    // Track the real network state so the UI never claims "offline" while online.
+    const onNet = () => refresh();
+    window.addEventListener("online", onNet);
+    window.addEventListener("offline", onNet);
+    const dispose = db?.registerListener({ statusChanged: (s: unknown) => refresh(s as LooseStatus) });
+    return () => {
+      window.removeEventListener("online", onNet);
+      window.removeEventListener("offline", onNet);
+      try { dispose?.(); } catch { /* noop */ }
+    };
   }, []);
   return info;
 }
@@ -64,15 +75,17 @@ export interface SyncMessage { text: string; tone: "info" | "warn" }
 
 /**
  * User-facing sync state: a short, non-technical message (or null when fine).
- * Network/offline problems are expected and shown calmly; anything else is a
- * "we're on it" note. Raw errors never reach the UI.
+ * - Truly offline → calm "you're offline" note.
+ * - Online but a transient network/websocket blip → nothing (it auto-reconnects).
+ * - Online with a real (non-network) error → a "we're on it" warning.
+ * Raw errors never reach the UI.
  */
 export function syncMessage(info: SyncInfo): SyncMessage | null {
-  if (!info.error) return null;
-  const offline = typeof navigator !== "undefined" && navigator.onLine === false;
-  const networky = offline || /websocket|network|failed to fetch|load failed|connection|timeout|offline|ECONN|ETIMEDOUT/i.test(info.error);
-  if (networky) {
+  if (!info.online) {
     return { text: "You’re offline. Your changes are saved on this device and will sync automatically when you’re back online.", tone: "info" };
   }
+  if (!info.error) return null;
+  const networky = /websocket|network|failed to fetch|load failed|connection|timeout|offline|ECONN|ETIMEDOUT/i.test(info.error);
+  if (networky) return null; // online + transient connection issue → PowerSync retries; don't alarm
   return { text: "We’re having trouble syncing right now — we’re on it. Your data is safe on this device.", tone: "warn" };
 }
