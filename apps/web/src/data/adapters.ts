@@ -77,25 +77,38 @@ const pocketcare: ImportAdapter = {
   },
 };
 
-// ---- Wallet by BudgetBakers (best-effort; verify against a real export) ----
+// Wallet's human payment labels → PocketCare payment-method labels.
+const WALLET_PAYMENT: Record<string, string> = {
+  "mobile payment": "UPI",
+  "bank transfer": "Net Banking",
+  "web payment": "Net Banking",
+  "cash": "Cash",
+  "credit card": "Credit Card",
+  "debit card": "Debit Card",
+};
+
+// ---- Wallet by BudgetBakers (semicolon CSV; matches a real export) ----
+// Columns: account;category;currency;amount;ref_currency_amount;type;payment_type;
+//          payment_type_local;note;date;gps_*;warranty_in_month;transfer;payee;labels;...
 const wallet: ImportAdapter = {
   id: "wallet",
   label: "Wallet by BudgetBakers (beta)",
+  delimiter: ";",
   parse(records) {
     return records.map((r) => {
       const rawAmount = num(r["amount"]);
-      const amount = Math.abs(rawAmount);
-      const type = toType(r["type"] || "", rawAmount);
+      const type = r["transfer"] === "true" ? "transfer" : toType(r["type"] || "", rawAmount);
+      const payLocal = (r["payment_type_local"] || "").toLowerCase();
       return {
         date: r["date"] || new Date().toISOString(),
         type,
-        amount,
+        amount: Math.abs(rawAmount),
         currency: (r["currency"] || "").toUpperCase(),
         account: r["account"] || "",
         category: r["category"] || undefined,
-        labels: splitLabels(r["labels"] || r["label"]),
-        paymentMethod: r["payment type"] || r["payment_type"] || undefined,
-        note: r["note"] || r["description"] || r["payee"] || undefined,
+        labels: splitLabels(r["labels"]),
+        paymentMethod: WALLET_PAYMENT[payLocal] || r["payment_type_local"] || undefined,
+        note: r["note"] || r["payee"] || undefined,
       };
     }).filter((r) => r.account && r.amount > 0) as CanonRow[];
   },
