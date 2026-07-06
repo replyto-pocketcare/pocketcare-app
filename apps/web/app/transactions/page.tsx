@@ -38,14 +38,15 @@ export default function TransactionsPage() {
   const hidden = useAmountsHidden();
 
   return (
-    <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>{t("pages.transactions", "Transactions")}</h1>
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0 }} className="fade-up">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+        <h1 style={{ margin: 0 }}>{t("pages.transactions", "Transactions")}</h1>
         <Link href="/transactions/new" className="btn">＋ Add</Link>
       </div>
 
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-        <input className="input" placeholder="Search label or note…" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: "1 1 220px" }} />
+        <input className="input" placeholder="Search label or note…" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: "1 1 200px", minWidth: 0 }} />
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {TYPES.map((t) => (
             <button key={t} className="chip" data-active={t === type} style={{ textTransform: "capitalize" }} onClick={() => setType(t)}>{t}</button>
@@ -53,7 +54,7 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 8 }}>
+      <div className="card" style={{ padding: 8, overflow: "hidden", minWidth: 0 }}>
         {rows.map((t) => (
           <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)", width: "100%", boxSizing: "border-box" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
