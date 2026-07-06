@@ -42,7 +42,6 @@ export default function EditTransactionPage() {
   const [items, setItems] = useState<{ id: string; description: string; value: string }[]>([]);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-  const [description, setDescription] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState("");
@@ -57,7 +56,6 @@ export default function EditTransactionPage() {
       setAccountId(tx.account_id);
       setAmount(String(toMajor(money(tx.amount, tx.currency))));
       setCategoryId(tx.category_id);
-      setDescription(tx.description ?? "");
       setPaymentMethod(tx.payment_method ?? "");
       setNote(tx.note ?? "");
       setDate(new Date(tx.occurred_at).toLocaleString("sv-SE", { timeZoneName: "short" }).substring(0, 16));
@@ -77,7 +75,7 @@ export default function EditTransactionPage() {
       if (txItems.length > 0) {
         setItems(txItems.map(it => ({ id: it.id, description: it.description, value: String(toMajor(money(it.amount, tx.currency))) })));
       } else {
-        setItems([{ id: `new_${Date.now()}`, description: "", value: String(toMajor(money(tx.amount, tx.currency))) }]);
+        setItems([{ id: `new_${Date.now()}`, description: tx.description ?? "", value: String(toMajor(money(tx.amount, tx.currency))) }]);
       }
       setItemsReady(true);
     }
@@ -111,7 +109,10 @@ export default function EditTransactionPage() {
     try {
       let finalAmount = fromMajor(Number(amount) || 0, currency);
       let payloadItems: { id?: string; description: string; amount: Money }[] | undefined;
-      
+      const combinedDescription = type === "transfer" 
+        ? null 
+        : items.map(it => it.description.trim()).filter(Boolean).join(", ");
+        
       if (type !== "transfer") {
         finalAmount = total;
         payloadItems = items
@@ -132,7 +133,7 @@ export default function EditTransactionPage() {
         amount: finalAmount,
         category_id: type === "transfer" ? null : categoryId,
         labels: selectedLabels,
-        description: description.trim() || null,
+        description: combinedDescription || null,
         payment_method: paymentMethod || null,
         note: note.trim() || null,
         occurred_at: new Date(date).toISOString(),
@@ -213,7 +214,6 @@ export default function EditTransactionPage() {
         <LabelPicker labels={labels} selected={selectedLabels} onChange={setSelectedLabels} />
       </Field>
 
-      <Field label="Description"><textarea className="input" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What was this for?" style={{ resize: "vertical" }} /></Field>
       <Field label="Note"><input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" /></Field>
       <Field label="Date"><input className="input" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
 

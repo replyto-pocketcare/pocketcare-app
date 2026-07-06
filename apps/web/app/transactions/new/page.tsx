@@ -38,7 +38,7 @@ export default function NewTransactionPage() {
   const [toAccountId, setToAccountId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-  const [description, setDescription] = useState("");
+  const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [items, setItems] = useState([newItem()]);
   const [toValue, setToValue] = useState(""); // cross-currency destination amount
@@ -95,6 +95,10 @@ export default function NewTransactionPage() {
     setSaving(true);
     try {
       const repos = getRepositories();
+      const combinedDescription = type === "transfer" 
+        ? null 
+        : items.map(it => it.description.trim()).filter(Boolean).join(", ");
+        
       if (type === "transfer" && toAccount) {
         await repos.transactions.create({
           account_id: account.id,
@@ -103,7 +107,7 @@ export default function NewTransactionPage() {
           to_account_id: toAccount.id,
           to_amount: crossCurrency ? fromMajor(Number.parseFloat(toValue) || 0, toAccount.currency) : null,
           labels: selectedLabels,
-          description: description.trim() || null,
+          note: note.trim() || null,
           occurred_at: occurredAtIso(),
         });
       } else {
@@ -119,7 +123,8 @@ export default function NewTransactionPage() {
           amount: total,
           category_id: categoryId,
           labels: selectedLabels,
-          description: description.trim() || null,
+          note: note.trim() || null,
+          description: combinedDescription || null,
           payment_method: paymentMethod || null,
           occurred_at: occurredAtIso(),
           items: payload.length > 1 ? payload : undefined,
@@ -246,8 +251,8 @@ export default function NewTransactionPage() {
         <LabelPicker labels={labelList} selected={selectedLabels} onChange={setSelectedLabels} />
       </Field>
 
-      <Field label="Description (optional)">
-        <textarea className="input" rows={2} placeholder="What was this for?" value={description} onChange={(e) => setDescription(e.target.value)} style={{ resize: "vertical" }} />
+      <Field label="Note (optional)">
+        <textarea className="input" rows={2} placeholder="Any extra notes?" value={note} onChange={(e) => setNote(e.target.value)} style={{ resize: "vertical" }} />
       </Field>
 
       <Field label="Date">

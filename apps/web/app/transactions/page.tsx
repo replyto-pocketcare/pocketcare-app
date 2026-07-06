@@ -55,11 +55,11 @@ export default function TransactionsPage() {
 
       <div className="card" style={{ padding: 8 }}>
         {rows.map((t) => (
-          <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
+          <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)", width: "100%", boxSizing: "border-box" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
               {(() => { const a = acct(t.account_id); return <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />; })()}
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontWeight: 550, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.description || t.labels || catName(t.category_id)}</div>
+              <div style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
+                <div className="trx-title">{t.description || t.labels || catName(t.category_id)}</div>
                 <div className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}{t.method_label ? ` · ${t.method_label}` : ""}</div>
               </div>
             </div>
