@@ -38,14 +38,13 @@ export default function TransactionsPage() {
   const hidden = useAmountsHidden();
 
   return (
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0 }} className="fade-up">
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
         <h1 style={{ margin: 0 }}>{t("pages.transactions", "Transactions")}</h1>
         <Link href="/transactions/new" className="btn">＋ Add</Link>
       </div>
 
-      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", maxWidth: "100%" }}>
         <input className="input" placeholder="Search label or note…" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: "1 1 200px", minWidth: 0 }} />
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {TYPES.map((t) => (
@@ -54,11 +53,13 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 8, overflow: "hidden", minWidth: 0 }}>
+      <div className="card" style={{ padding: 8, overflowX: "hidden", minWidth: 0, maxWidth: "100%" }}>
         {rows.map((t) => (
-          <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)", width: "100%", boxSizing: "border-box" }}>
-            <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
-              {(() => { const a = acct(t.account_id); return <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />; })()}
+          <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)", width: "100%", boxSizing: "border-box", overflowX: "hidden" }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1, overflow: "hidden" }}>
+              <div style={{ flexShrink: 0 }}>
+                {(() => { const a = acct(t.account_id); return <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />; })()}
+              </div>
               <div style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
                 <div className="trx-title">{t.description || t.labels || catName(t.category_id)}</div>
                 <div className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}{t.method_label ? ` · ${t.method_label}` : ""}</div>

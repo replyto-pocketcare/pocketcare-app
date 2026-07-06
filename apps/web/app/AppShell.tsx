@@ -134,7 +134,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, width: "100%" }}>
+      <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, overflowX: "hidden" }}>
         {(() => {
           const m = syncMessage(sync);
           if (!m) return null;
