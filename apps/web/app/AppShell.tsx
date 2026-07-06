@@ -140,12 +140,27 @@ export function AppShell({ children }: { children: ReactNode }) {
           if (!m) return null;
           const warn = m.tone === "warn";
           return (
-            <div style={{ padding: "9px 14px", marginBottom: 16, borderRadius: 10, fontSize: 13, display: "flex", gap: 8, alignItems: "center",
+            <div style={{ padding: "9px 14px", marginBottom: 16, borderRadius: 10, fontSize: 13, display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center",
               border: `1px solid ${warn ? "var(--warning)" : "var(--border)"}`,
               background: warn ? "var(--accent-ghost)" : "var(--surface-2)",
               color: warn ? "var(--text)" : "var(--text-2)" }}>
-              <span style={{ width: 8, height: 8, borderRadius: 999, flexShrink: 0, background: warn ? "var(--warning)" : "var(--text-2)" }} />
-              <span>{m.text}</span>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flex: "1 1 auto" }}>
+                <span style={{ width: 8, height: 8, borderRadius: 999, flexShrink: 0, background: warn ? "var(--warning)" : "var(--text-2)" }} />
+                <span>{m.text}</span>
+              </div>
+              {m.action === "force-sync" && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button className="btn" style={{ padding: "4px 10px", fontSize: 12, minHeight: 0, height: 28 }} onClick={async () => {
+                    const { forceSync } = await import("../src/powersync");
+                    await forceSync();
+                  }}>
+                    Force Sync
+                  </button>
+                  <a href="mailto:support@pocketcare.app?subject=Sync%20Issue" className="btn ghost" style={{ padding: "4px 10px", fontSize: 12, minHeight: 0, height: 28 }}>
+                    Report Issue
+                  </a>
+                </div>
+              )}
             </div>
           );
         })()}

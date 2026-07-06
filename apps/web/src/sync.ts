@@ -71,7 +71,11 @@ export function useSyncStatus(): SyncInfo {
   return info;
 }
 
-export interface SyncMessage { text: string; tone: "info" | "warn" }
+export interface SyncMessage { 
+  text: string; 
+  tone: "info" | "warn";
+  action?: "force-sync";
+}
 
 /**
  * User-facing sync state: a short, non-technical message (or null when fine).
@@ -87,5 +91,10 @@ export function syncMessage(info: SyncInfo): SyncMessage | null {
   if (!info.error) return null;
   const networky = /websocket|network|failed to fetch|load failed|connection|timeout|offline|ECONN|ETIMEDOUT/i.test(info.error);
   if (networky) return null; // online + transient connection issue → PowerSync retries; don't alarm
-  return { text: "We’re having trouble syncing right now — we’re on it. Your data is safe on this device.", tone: "warn" };
+  
+  return { 
+    text: "We’re having trouble syncing right now. Your data is safe on this device.", 
+    tone: "warn",
+    action: "force-sync"
+  };
 }

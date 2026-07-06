@@ -148,3 +148,17 @@ export function initSystem(): Promise<AbstractPowerSyncDatabase> {
   })();
   return started;
 }
+
+/** Forces a sync by disconnecting and reconnecting with a fresh connector. */
+export async function forceSync(): Promise<void> {
+  const db = getDb();
+  if (!db || !currentUserId || !_supabase) return;
+  const connector = new SupabaseConnector(
+    _supabase,
+    process.env.NEXT_PUBLIC_POWERSYNC_URL || POWERSYNC_URL!
+  );
+  try { await db.disconnect(); } catch {}
+  try { await db.connect(connector); } catch (err) {
+    console.error("[PocketCare] Force connect failed:", err);
+  }
+}

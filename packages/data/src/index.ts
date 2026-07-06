@@ -69,6 +69,8 @@ export interface EditTransactionInput {
   occurred_at?: string;
   to_account_id?: string | null;
   to_amount?: Money | null;
+  /** If provided, completely replaces the transaction's items. If empty/null, removes them. */
+  items?: { id?: string; description: string; amount: Money }[] | null;
 }
 
 export interface TransactionAudit {

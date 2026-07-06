@@ -279,10 +279,31 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
 
     const ts = nowIso();
     await this.db.writeTransaction(async (tx) => {
-      // If the amount changed, any existing breakdown no longer reconciles — clear it.
-      if (changes.amount) {
+      // If the amount changed and items weren't explicitly provided, clear them because they won't reconcile.
+      if (changes.amount && patch.items === undefined) {
         await tx.execute("UPDATE transaction_items SET deleted_at = ?, updated_at = ? WHERE transaction_id = ? AND deleted_at IS NULL", [ts, ts, id]);
       }
+      
+      // If items are explicitly provided, rewrite the whole junction for items.
+      if (patch.items !== undefined) {
+        // Soft delete existing
+        await tx.execute("UPDATE transaction_items SET deleted_at = ?, updated_at = ? WHERE transaction_id = ? AND deleted_at IS NULL", [ts, ts, id]);
+        
+        if (patch.items && patch.items.length > 0) {
+          const itemParams: (string | number)[] = [];
+          const placeholders: string[] = [];
+          for (const it of patch.items) {
+            placeholders.push("(?, ?, ?, ?, ?, ?, ?)");
+            itemParams.push(it.id || uuid(), before.user_id, id, it.description, it.amount.amount, ts, ts);
+          }
+          await tx.execute(
+            `INSERT INTO transaction_items (id, user_id, transaction_id, description, amount, created_at, updated_at) VALUES ${placeholders.join(", ")}`,
+            itemParams,
+          );
+        }
+        changes.items = { from: "(prev)", to: patch.items ? `${patch.items.length} items` : "none" };
+      }
+
       if (relabel) {
         await this.writeLabels(tx, before.user_id, id, patch.labels ?? [], ts);
         changes.labels = { from: "(prev)", to: (patch.labels ?? []).join(", ") };
