@@ -34,18 +34,25 @@ Deno.serve(async (req: Request) => {
   const secret = Deno.env.get("RAZORPAY_WEBHOOK_SECRET");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!secret || !supabaseUrl || !serviceKey) return new Response("not configured", { status: 500 });
+  if (!secret || !supabaseUrl || !serviceKey) {
+    console.error("[razorpay-webhook] not configured:", { secret: !!secret, url: !!supabaseUrl, service: !!serviceKey });
+    return new Response("not configured", { status: 500 });
+  }
 
   const raw = await req.text();
   const signature = req.headers.get("x-razorpay-signature") || "";
   const expected = await hmacHex(secret, raw);
-  if (signature !== expected) return new Response("bad signature", { status: 401 });
+  if (signature !== expected) {
+    console.error("[razorpay-webhook] SIGNATURE MISMATCH — RAZORPAY_WEBHOOK_SECRET does not match the dashboard webhook secret.", { hasHeader: !!signature });
+    return new Response("bad signature", { status: 401 });
+  }
 
   const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "pocketcare" } });
   let evt: any;
   try { evt = JSON.parse(raw); } catch { return new Response("bad json", { status: 400 }); }
   const event: string = evt.event;
   const planMap = planToTier();
+  console.log("[razorpay-webhook] received event:", event);
 
   try {
     if (event === "subscription.activated" || event === "subscription.charged" || event === "subscription.updated") {
@@ -97,20 +104,24 @@ Deno.serve(async (req: Request) => {
       if (orderId) {
         // Flip pending → captured atomically. Only the event that wins the
         // status guard gets rows back, so credits are applied exactly once.
-        const { data: captured } = await supabase.from("payments")
+        const { data: captured, error: capErr } = await supabase.from("payments")
           .update({ status: "captured", razorpay_payment_id: paymentId })
           .eq("razorpay_order_id", orderId).eq("kind", "credits").eq("status", "created")
           .select("user_id, credits_added");
+        console.log("[razorpay-webhook] credits:", { orderId, matched: captured?.length ?? 0, capErr: capErr?.message ?? null });
         for (const row of captured ?? []) {
           const credits = row.credits_added ?? 0;
           if (credits > 0) {
             const { data: ent } = await supabase.from("entitlements")
               .select("purchased_quota_remaining").eq("user_id", row.user_id).single();
             const current = ent?.purchased_quota_remaining ?? 0;
-            await supabase.from("entitlements")
+            const { error: updErr } = await supabase.from("entitlements")
               .update({ purchased_quota_remaining: current + credits }).eq("user_id", row.user_id);
+            console.log("[razorpay-webhook] credits applied:", { user: row.user_id, added: credits, newTotal: current + credits, updErr: updErr?.message ?? null });
           }
         }
+      } else {
+        console.log("[razorpay-webhook] order/payment event with no order id:", event);
       }
     }
   } catch (e) {
