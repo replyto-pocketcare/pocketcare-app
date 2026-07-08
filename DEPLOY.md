@@ -106,6 +106,47 @@ turn (older context is carried by the `remember` memory, not resent), and
 user's own finances, refuses code generation and off-topic requests, never
 invents numbers, and shows a "can make mistakes — verify" disclaimer.
 
+## 8. Payments — Razorpay (subscriptions + AI credits)
+Three tiers: **Free**, **Lite** (₹49/mo, ₹499/yr), **Pro** (₹99/mo, ₹999/yr).
+Paid tiers unlock Insights, Statements, Ask PocketCare, import, etc. Lite gives
+50 AI prompts/mo, Pro 200; users can also buy one-time credit packs (₹29→50,
+₹49→100, ₹99→250) that never expire. Entitlements are **server-authoritative** —
+the webhook is the only thing that changes a plan or adds credits.
+
+**1. In the Razorpay dashboard:** create 4 recurring **Plans** (Lite Monthly ₹49,
+Lite Yearly ₹499, Pro Monthly ₹99, Pro Yearly ₹999) and note their `plan_...` IDs.
+
+**2. Set secrets:**
+```bash
+supabase secrets set RAZORPAY_KEY_ID=rzp_live_... RAZORPAY_KEY_SECRET=...
+supabase secrets set RAZORPAY_WEBHOOK_SECRET=...   # you choose this; also set it in the dashboard webhook
+supabase secrets set RZP_PLAN_LITE_MONTHLY=plan_... RZP_PLAN_LITE_YEARLY=plan_... \
+                     RZP_PLAN_PRO_MONTHLY=plan_...  RZP_PLAN_PRO_YEARLY=plan_...
+```
+
+**3. Deploy the functions** (webhook must skip JWT — Razorpay isn't logged in):
+```bash
+supabase functions deploy razorpay-subscription
+supabase functions deploy razorpay-credits
+supabase functions deploy razorpay-webhook --no-verify-jwt
+```
+
+**4. Configure the webhook** in Razorpay → Settings → Webhooks: URL =
+`https://<PROJECT>.supabase.co/functions/v1/razorpay-webhook`, secret =
+`RAZORPAY_WEBHOOK_SECRET`, events: `subscription.activated`, `subscription.charged`,
+`subscription.halted`, `subscription.cancelled`, `subscription.completed`,
+`order.paid`, `payment.captured`.
+
+**5. Apply migration `0007_billing.sql`** and redeploy sync streams (adds the
+`payments` table + billing columns; adds `lite`/`pro` tiers). The webhook writes
+entitlements with the service role; the client reads them via sync and gates
+features with `useEntitlement()`.
+
+Client checkout uses Razorpay Checkout (`src/billing.ts`); Settings → Plan &
+billing (`src/ui/Billing.tsx`) drives upgrades + credit purchases. A "Preview
+tier (dev)" toggle remains for local testing. NOT tested against live Razorpay
+from the repo — smoke-test one subscription + one credit purchase after setup.
+
 ## Notes
 - CI-style build safety: `next.config.js` sets `eslint.ignoreDuringBuilds` and
   `typescript.ignoreBuildErrors` so a stray lint/type warning won't block a deploy.

@@ -6,7 +6,8 @@ import { useQuery } from "@powersync/react";
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, Cell,
 } from "recharts";
-import { useBaseCurrency, useTier } from "../../src/hooks";
+import { useBaseCurrency } from "../../src/hooks";
+import { useEntitlement } from "../../src/entitlement";
 import { LockIcon } from "../../src/ui/icons";
 
 const major = (m: number) => m / 100;
@@ -14,7 +15,7 @@ const PIE = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "
 
 export default function InsightsPage() {
   const { t } = useTranslation();
-  const tier = useTier();
+  const { isPaid } = useEntitlement();
   const base = useBaseCurrency();
 
   // Cashflow by month (income vs expense).
@@ -57,7 +58,7 @@ export default function InsightsPage() {
     { period: "This month", income: monthTotals(thisM, "income"), expense: monthTotals(thisM, "expense") },
   ];
 
-  if (tier !== "premium") {
+  if (!isPaid) {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
         <h1>{t("pages.insights", "Insights")}</h1>

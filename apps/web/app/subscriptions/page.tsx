@@ -7,7 +7,8 @@ import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { monthlyEquivalent, recurringMonthlyTotal, subscriptionImpact } from "@pocketcare/finance";
 import type { Period } from "@pocketcare/types";
 import Link from "next/link";
-import { useBaseCurrency, useTier } from "../../src/hooks";
+import { useBaseCurrency } from "../../src/hooks";
+import { useEntitlement } from "../../src/entitlement";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
 import { FloatingInput } from "../../src/ui/FloatingInput";
@@ -47,7 +48,7 @@ function nextDue(purchasedOn: string | null, cycle: Period, asOf = new Date()): 
 export default function SubscriptionsPage() {
   const { t } = useTranslation();
   const base = useBaseCurrency();
-  const tier = useTier();
+  const { isPaid } = useEntitlement();
   const fmt = useMoneyFmt();
   const { data: subs = [] } = useQuery<Sub>(
     "SELECT id, name, amount, currency, billing_cycle, purchased_on FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY created_at",
@@ -113,7 +114,7 @@ export default function SubscriptionsPage() {
             </div>
           </details>
 
-          {tier === "premium" ? (
+          {isPaid ? (
             <Simulator base={base} />
           ) : (
             <details className="card" style={{ padding: 20, background: "var(--surface-2)" }}>

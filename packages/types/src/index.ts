@@ -64,6 +64,9 @@ export type CommitmentKind = (typeof CommitmentKind)[keyof typeof CommitmentKind
 // ----- Freemium -----
 export const Tier = {
   Free: "free",
+  Lite: "lite",
+  Pro: "pro",
+  /** Legacy alias kept for back-compat; treated as a paid tier. */
   Premium: "premium",
 } as const;
 export type Tier = (typeof Tier)[keyof typeof Tier];

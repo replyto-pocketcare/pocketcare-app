@@ -6,12 +6,13 @@ import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { money, format } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
-import { useBaseCurrency, useTier } from "../../src/hooks";
+import { useBaseCurrency } from "../../src/hooks";
+import { useEntitlement } from "../../src/entitlement";
 import { LockIcon } from "../../src/ui/icons";
 
 export default function StatementsPage() {
   const { t } = useTranslation();
-  const tier = useTier();
+  const { isPaid } = useEntitlement();
   const base = useBaseCurrency();
   const today = new Date();
   const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
@@ -32,7 +33,7 @@ export default function StatementsPage() {
   const income = rows.filter((r) => r.type === "income").reduce((s, r) => s + r.amount, 0);
   const expense = rows.filter((r) => r.type === "expense").reduce((s, r) => s + r.amount, 0);
 
-  if (tier !== "premium") {
+  if (!isPaid) {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
         <h1>{t("pages.statements", "Statements")}</h1>

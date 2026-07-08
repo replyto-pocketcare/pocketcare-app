@@ -27,8 +27,31 @@ const entitlements = new Table({
   quota_reset_date: column.text,
   additional_purchased_quota: column.integer,
   premium_trial_start_date: column.text,
+  plan_id: column.text,
+  billing_cycle: column.text,
+  subscription_status: column.text,
+  razorpay_subscription_id: column.text,
+  razorpay_customer_id: column.text,
+  current_period_end: column.text,
   updated_at: column.text,
 });
+
+const payments = new Table(
+  {
+    user_id: column.text,
+    kind: column.text,
+    razorpay_order_id: column.text,
+    razorpay_payment_id: column.text,
+    razorpay_subscription_id: column.text,
+    amount: column.integer,
+    currency: column.text,
+    status: column.text,
+    credits_added: column.integer,
+    created_at: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { by_user: ["user_id", "created_at"] } },
+);
 
 const accounts = new Table({
   user_id: column.text,
@@ -282,6 +305,7 @@ const assistant_memory = new Table({
 export const AppSchema = new Schema({
   profiles,
   entitlements,
+  payments,
   accounts,
   transactions,
   transaction_labels,

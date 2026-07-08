@@ -1,0 +1,108 @@
+// Razorpay webhook — the AUTHORITATIVE source for plan/credit changes.
+// Verifies the signature, then updates entitlements/payments with the service role.
+//
+// Secrets: RAZORPAY_WEBHOOK_SECRET, and the RZP_PLAN_* ids (to map plan → tier).
+// Deploy WITHOUT jwt: supabase functions deploy razorpay-webhook --no-verify-jwt
+// Configure the same URL + secret in the Razorpay dashboard (subscription.* and
+// order.paid / payment.captured events).
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const QUOTA: Record<string, number> = { lite: 50, pro: 200 };
+
+function planToTier(): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const tier of ["lite", "pro"]) {
+    for (const cycle of ["MONTHLY", "YEARLY"]) {
+      const id = Deno.env.get(`RZP_PLAN_${tier.toUpperCase()}_${cycle}`);
+      if (id) map[id] = tier;
+    }
+  }
+  return map;
+}
+
+async function hmacHex(secret: string, body: string): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+const iso = (unixSec?: number) => (unixSec ? new Date(unixSec * 1000).toISOString() : null);
+
+Deno.serve(async (req: Request) => {
+  if (req.method !== "POST") return new Response("method", { status: 405 });
+
+  const secret = Deno.env.get("RAZORPAY_WEBHOOK_SECRET");
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!secret || !supabaseUrl || !serviceKey) return new Response("not configured", { status: 500 });
+
+  const raw = await req.text();
+  const signature = req.headers.get("x-razorpay-signature") || "";
+  const expected = await hmacHex(secret, raw);
+  if (signature !== expected) return new Response("bad signature", { status: 401 });
+
+  const supabase = createClient(supabaseUrl, serviceKey);
+  let evt: any;
+  try { evt = JSON.parse(raw); } catch { return new Response("bad json", { status: 400 }); }
+  const event: string = evt.event;
+  const planMap = planToTier();
+
+  try {
+    if (event === "subscription.activated" || event === "subscription.charged" || event === "subscription.updated") {
+      const sub = evt.payload?.subscription?.entity;
+      const userId = sub?.notes?.user_id;
+      const tier = planMap[sub?.plan_id] || sub?.notes?.tier || "lite";
+      if (userId) {
+        await supabase.from("entitlements").update({
+          tier,
+          subscription_status: "active",
+          razorpay_subscription_id: sub.id,
+          plan_id: sub.plan_id,
+          billing_cycle: sub?.notes?.cycle ?? null,
+          current_period_end: iso(sub.current_end),
+          monthly_quota_total: QUOTA[tier] ?? 50,
+          monthly_quota_used: 0,
+          quota_reset_date: iso(sub.current_end),
+        }).eq("user_id", userId);
+      }
+    } else if (["subscription.halted", "subscription.cancelled", "subscription.completed", "subscription.paused"].includes(event)) {
+      const sub = evt.payload?.subscription?.entity;
+      const userId = sub?.notes?.user_id;
+      const status = event.split(".")[1];
+      const downgrade = status !== "paused";
+      if (userId) {
+        await supabase.from("entitlements").update({
+          subscription_status: status,
+          ...(downgrade ? { tier: "free", monthly_quota_total: 0 } : {}),
+        }).eq("user_id", userId);
+      }
+    } else if (event === "order.paid" || event === "payment.captured") {
+      const order = evt.payload?.order?.entity;
+      const payment = evt.payload?.payment?.entity;
+      const notes = order?.notes || payment?.notes || {};
+      if (notes.kind === "credits" && notes.user_id) {
+        const credits = Number(notes.credits) || 0;
+        const paymentId = payment?.id || order?.id;
+        // Idempotency: unique payment id. If it already exists, do nothing.
+        const { error: insErr } = await supabase.from("payments").insert({
+          user_id: notes.user_id, kind: "credits",
+          razorpay_order_id: order?.id ?? null, razorpay_payment_id: paymentId,
+          amount: order?.amount ?? payment?.amount ?? null, currency: "INR",
+          status: "captured", credits_added: credits,
+        });
+        if (!insErr && credits > 0) {
+          const { data: ent } = await supabase.from("entitlements")
+            .select("purchased_quota_remaining").eq("user_id", notes.user_id).single();
+          const current = ent?.purchased_quota_remaining ?? 0;
+          await supabase.from("entitlements")
+            .update({ purchased_quota_remaining: current + credits }).eq("user_id", notes.user_id);
+        }
+      }
+    }
+  } catch (e) {
+    // Log but still 200 so Razorpay doesn't hammer retries on a transient issue.
+    console.error("[razorpay-webhook]", event, (e as Error).message);
+  }
+
+  return new Response("ok", { status: 200 });
+});

@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import i18n, { SUPPORTED_LANGUAGES } from "@pocketcare/i18n";
 import { useTranslation } from "react-i18next";
-import { Feature, canUse } from "@pocketcare/entitlements";
 import { FloatingInput } from "../../src/ui/FloatingInput";
-import { useTier } from "../../src/hooks";
-import { setTier } from "../../src/tier";
+import { Billing } from "../../src/ui/Billing";
 import { useTheme, setTheme } from "../../src/theme";
 import { useBaseCurrency } from "../../src/hooks";
 import { setBaseCurrency, useAmountsHidden, setAmountsHidden } from "../../src/prefs";
@@ -21,7 +19,6 @@ const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED
 export default function SettingsPage() {
   const base = useBaseCurrency();
   const [lang, setLang] = useState(typeof window !== "undefined" ? localStorage.getItem("lang") || "en" : "en");
-  const tier = useTier();
   const theme = useTheme();
   const session = useSession();
   const sync = useSyncStatus();
@@ -182,22 +179,7 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-        <h2>{t("settings.plan", "Plan")}</h2>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <span>You are on the <strong style={{ textTransform: "capitalize" }}>{tier}</strong> plan.</span>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button className="chip" data-active={tier === "free"} onClick={() => setTier("free")}>Free</button>
-            <button className="chip" data-active={tier === "premium"} onClick={() => setTier("premium")}>Premium</button>
-          </div>
-        </div>
-        <p className="muted" style={{ fontSize: 13 }}>
-          Toggle to preview both tiers. Advanced insights {canUse(Feature.AdvancedAnalytics, tier) ? "included" : "Premium"} ·
-          Statements {canUse(Feature.Statements, tier) ? "included" : "Premium"} ·
-          Subscription simulator {canUse(Feature.SubscriptionSimulator, tier) ? "included" : "Premium"} ·
-          AI assistant {tier === "premium" ? "included" : "Premium"}
-        </p>
-      </section>
+      <Billing />
 
       {/* Help & Support */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>

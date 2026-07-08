@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { format, type Money } from "@pocketcare/money";
-import { useNetWorth, useAccountBalances, useTier } from "../src/hooks";
+import { useNetWorth, useAccountBalances } from "../src/hooks";
+import { useEntitlement } from "../src/entitlement";
 import { useAmountsHidden, setAmountsHidden } from "../src/prefs";
 import { colorForId } from "../src/colors";
 import { getDb } from "../src/powersync";
@@ -17,7 +18,7 @@ export default function Dashboard() {
   const { total, available, base } = useNetWorth();
   const balances = useAccountBalances();
   const hidden = useAmountsHidden();
-  const tier = useTier();
+  const { isPaid } = useEntitlement();
   const enabled = useDashboardTiles();
   const [showAvailable, setShowAvailable] = useState(false);
   const [customizing, setCustomizing] = useState(false);
@@ -26,8 +27,8 @@ export default function Dashboard() {
 
   const fmt = (m: Money) => (hidden ? "••••••" : format(m, "en-US"));
 
-  // Only show tiles the user enabled; premium tiles need the premium tier.
-  const visibleTiles = enabled.filter((id) => tier === "premium" || !tileMeta(id).premium);
+  // Only show tiles the user enabled; premium tiles need a paid plan.
+  const visibleTiles = enabled.filter((id) => isPaid || !tileMeta(id).premium);
 
   async function toggleNw(id: string, included: boolean) {
     await getDb()?.execute("UPDATE accounts SET include_in_net_worth = ?, updated_at = ? WHERE id = ?", [included ? 0 : 1, new Date().toISOString(), id]);
@@ -115,13 +116,13 @@ export default function Dashboard() {
         </section>
       )}
 
-      <CustomizeModal open={customizing} onClose={() => setCustomizing(false)} enabled={enabled} tier={tier} />
+      <CustomizeModal open={customizing} onClose={() => setCustomizing(false)} enabled={enabled} isPaid={isPaid} />
     </div>
   );
 }
 
-function CustomizeModal({ open, onClose, enabled, tier }: {
-  open: boolean; onClose: () => void; enabled: TileId[]; tier: string;
+function CustomizeModal({ open, onClose, enabled, isPaid }: {
+  open: boolean; onClose: () => void; enabled: TileId[]; isPaid: boolean;
 }) {
   return (
     <Modal open={open} onClose={onClose}>
@@ -132,7 +133,7 @@ function CustomizeModal({ open, onClose, enabled, tier }: {
       <div style={{ display: "grid", gap: 6, maxHeight: "56vh", overflowY: "auto" }}>
         {TILE_CATALOG.map((t) => {
           const on = enabled.includes(t.id);
-          const locked = !!t.premium && tier !== "premium";
+          const locked = !!t.premium && !isPaid;
           return (
             <label key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface-2)", cursor: locked ? "not-allowed" : "pointer", opacity: locked ? 0.6 : 1 }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14 }}>
@@ -145,9 +146,9 @@ function CustomizeModal({ open, onClose, enabled, tier }: {
           );
         })}
       </div>
-      {tier !== "premium" && (
+      {!isPaid && (
         <p className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-          Premium tiles unlock with a <Link href="/settings">Premium plan</Link>.
+          These tiles unlock with a <Link href="/settings">Lite or Pro plan</Link>.
         </p>
       )}
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>

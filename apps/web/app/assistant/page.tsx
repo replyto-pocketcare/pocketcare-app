@@ -9,6 +9,8 @@ import { useTier } from "../../src/hooks";
 import { LockIcon } from "../../src/ui/icons";
 import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/summary";
 import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, loadMemory } from "../../src/assistant/tools";
+import { buyCredits } from "../../src/billing";
+import { CREDIT_PACKS } from "../../src/billing/plans";
 
 // ---- Anthropic message shapes (minimal) ----
 interface TextBlock { type: "text"; text: string }
@@ -51,6 +53,7 @@ export default function AssistantPage() {
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [buyingCredits, setBuyingCredits] = useState<string | null>(null);
   const systemRef = useRef<{ type: "text"; text: string; cache_control: { type: "ephemeral" } }[]>([]);
   const apiRef = useRef<ApiMessage[]>([]);
   const threadRef = useRef<string | null>(null);
@@ -323,12 +326,17 @@ export default function AssistantPage() {
       )}
 
       {isOutOfQuota && quota && (
-        <div className="card" style={{ padding: 16, display: "grid", gap: 12, borderColor: "var(--warning)", background: "var(--warning-ghost)" }}>
-          <div style={{ fontSize: 14 }}><strong>You have run out of AI queries for this month.</strong></div>
-          <button className="btn" style={{ justifySelf: "start" }} onClick={async () => {
-            const db = getDb();
-            if (db) await db.execute("UPDATE entitlements SET additional_purchased_quota = additional_purchased_quota + 50");
-          }}>Buy More Quota (+50)</button>
+        <div className="card" style={{ padding: 16, display: "grid", gap: 12, borderColor: "var(--warning)", background: "var(--accent-ghost)" }}>
+          <div style={{ fontSize: 14 }}><strong>You’ve used all your AI prompts for this cycle.</strong> Buy a credit top-up to keep going — credits never expire.</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {CREDIT_PACKS.map((c) => (
+              <button key={c.id} className="chip" disabled={!!buyingCredits} onClick={async () => {
+                setBuyingCredits(c.id);
+                try { await buyCredits(c.id); } catch (e) { pushUi("assistant", `Payment couldn't start: ${(e as Error).message}`); }
+                finally { setBuyingCredits(null); }
+              }}>{buyingCredits === c.id ? "Opening…" : `₹${c.price} · +${c.credits}`}</button>
+            ))}
+          </div>
         </div>
       )}
 
