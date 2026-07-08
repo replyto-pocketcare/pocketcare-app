@@ -10,7 +10,7 @@ export const TYPE_LABEL: Record<string, string> = {
 };
 
 /** Compact account-type badge: account color + 2-char type code, with tooltip. */
-export function AccountBadge({ type, color, id, name }: { type: string; color?: string | null; id?: string; name?: string }) {
+export function AccountBadge({ type, color, id, name }: { type: string; color?: string | null; id?: string; name?: string | undefined }) {
   const c = color || colorForId(id);
   const code = TYPE_CODE[type] ?? "•";
   const title = `${name ? name + " · " : ""}${TYPE_LABEL[type] ?? type}`;

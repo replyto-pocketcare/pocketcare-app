@@ -4,11 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
-import { money, format } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
-import { useAmountsHidden } from "../../src/prefs";
-import { colorForId } from "../../src/colors";
-import { AccountBadge } from "../../src/ui/AccountBadge";
+import { TransactionRow } from "../../src/ui/TransactionRow";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
@@ -35,7 +32,6 @@ export default function TransactionsPage() {
   const { data: accts = [] } = useQuery<{ id: string; name: string; type: string; color: string | null }>("SELECT id, name, type, color FROM accounts WHERE deleted_at IS NULL");
   const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? "Uncategorised";
   const acct = (id: string) => accts.find((a) => a.id === id);
-  const hidden = useAmountsHidden();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
@@ -55,25 +51,7 @@ export default function TransactionsPage() {
 
       <div className="card" style={{ padding: 8, overflowX: "hidden", minWidth: 0, maxWidth: "100%" }}>
         {rows.map((t) => (
-          <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)", width: "100%", boxSizing: "border-box", overflowX: "hidden" }}>
-            <div style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0, flex: 1, overflow: "hidden" }}>
-              <div style={{ flexShrink: 0 }}>
-                {(() => { const a = acct(t.account_id); return <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />; })()}
-              </div>
-              <div style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
-                <div style={{ fontSize: 15, fontWeight: 500, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {t.description || t.labels || catName(t.category_id)}
-                </div>
-                <div className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 2 }}>
-                  {new Date(t.occurred_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                  {t.method_label ? ` · ${t.method_label}` : ""}
-                </div>
-              </div>
-            </div>
-            <div style={{ flexShrink: 0, whiteSpace: "nowrap", fontWeight: 600, fontSize: 15, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--text)" : "var(--text)" }}>
-              {t.type === "expense" ? "−" : t.type === "income" ? "+" : "⇄ "}{hidden ? "••••" : format(money(t.amount, t.currency))}
-            </div>
-          </Link>
+          <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} />
         ))}
         {rows.length === 0 && <p className="muted" style={{ padding: 16 }}>No matching transactions.</p>}
       </div>
