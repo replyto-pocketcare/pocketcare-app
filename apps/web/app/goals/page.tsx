@@ -9,6 +9,7 @@ import { insertRow, updateRow, softDelete } from "../../src/write";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useMoneyFmt } from "../../src/ui/Money";
+import { Modal } from "../../src/ui/Modal";
 
 interface Goal {
   id: string;
@@ -93,6 +94,7 @@ function GoalCard({ goal, saved, savings, locked, base }: {
   const [amount, setAmount] = useState("");
   const [srcId, setSrcId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [showAlloc, setShowAlloc] = useState(false);
   const [eName, setEName] = useState(goal.name);
   const [eTarget, setETarget] = useState(String(toMajor(money(goal.target_amount, goal.currency))));
 
@@ -111,7 +113,10 @@ function GoalCard({ goal, saved, savings, locked, base }: {
       amount_blocked: fromMajor(Number(amount), goal.currency).amount,
     });
     setAmount("");
+    setShowAlloc(false);
   }
+
+  const allocLabel = goal.is_emergency_fund ? "Add funds" : "Block funds";
 
   return (
     <div className="card" style={{ padding: 20, display: "grid", gap: 10, opacity: locked ? 0.55 : 1 }}>
@@ -139,16 +144,32 @@ function GoalCard({ goal, saved, savings, locked, base }: {
       {locked ? (
         <span className="muted" style={{ fontSize: 13 }}>Locked until the emergency fund is funded.</span>
       ) : (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          {savings.map((s) => (
-            <button key={s.id} className="chip" data-active={(srcId ?? savings[0]?.id) === s.id} onClick={() => setSrcId(s.id)}>{s.name}</button>
-          ))}
-          <input className="input" style={{ width: 130 }} inputMode="decimal" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} />
-          <button className="btn ghost" onClick={allocate} disabled={!amount || savings.length === 0}>
-            {goal.is_emergency_fund ? "Add" : "Block"}
-          </button>
-        </div>
+        <button className="btn ghost" style={{ justifySelf: "start" }} onClick={() => setShowAlloc(true)} disabled={savings.length === 0}>
+          + {allocLabel}
+        </button>
       )}
+
+      <Modal open={showAlloc} onClose={() => setShowAlloc(false)}>
+        <div style={{ display: "grid", gap: 12 }}>
+          <h2 style={{ margin: 0 }}>{allocLabel} · {goal.name}</h2>
+          {savings.length === 0 ? (
+            <p className="muted" style={{ margin: 0 }}>Add a savings account first to allocate funds.</p>
+          ) : (
+            <>
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>From account
+                <select className="input" value={srcId ?? savings[0]?.id ?? ""} onChange={(e) => setSrcId(e.target.value)}>
+                  {savings.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </label>
+              <FloatingInput label={`Amount (${goal.currency})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} />
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
+                <button className="btn ghost" onClick={() => setShowAlloc(false)}>Cancel</button>
+                <button className="btn" onClick={allocate} disabled={!amount}>{goal.is_emergency_fund ? "Add" : "Block"}</button>
+              </div>
+            </>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }
