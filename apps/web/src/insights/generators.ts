@@ -55,7 +55,7 @@ export function genWeeklySummary(ctx: GenContext): InsightCard[] {
       `Money out: ${fmt(exp, ctx)}`,
       prev7.length ? `${net >= prevNet ? "Up" : "Down"} ${fmt(Math.abs(net - prevNet), ctx)} vs the week before` : "Your first week of tracking",
     ],
-    metric: { display: fmt(net, ctx), raw: major(net), deltaPct: prev7.length ? pct(net, prevNet) : undefined, direction: net >= prevNet ? "up" : "down" },
+    metric: { display: fmt(net, ctx), raw: major(net), deltaPct: prev7.length && prevNet !== 0 ? pct(net, prevNet) : undefined, direction: net >= prevNet ? "up" : "down" },
     visual: { kind: "ribbon3d", series },
     cadence: { key: "weekly_summary", frequency: "weekly" },
   }];
