@@ -9,9 +9,9 @@ import { downloadText } from "../data/csv";
  */
 export const INVOICE_ISSUER = {
   brand: "PocketCare",
-  legalName: "PocketCare (replace with your legal entity)",
-  address: "Registered address, City, State, PIN",
-  email: "support@pocketcare.app",
+  legalName: "PocketCare",
+  address: "Eastonia, Palm Groves Society, Ghorpadi, Pune ",
+  email: "replyto.pocketcare@gmail.com",
   gstin: "", // e.g. "27ABCDE1234F1Z5" — leave blank if not GST-registered
   note: "This is a computer-generated invoice and does not require a signature.",
 };

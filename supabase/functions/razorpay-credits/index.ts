@@ -28,7 +28,10 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!auth) return json({ error: "Missing Authorization header" });
-  if (!keyId || !keySecret) return json({ error: "Razorpay is not configured (missing keys)." });
+  {
+    const missing = [!keyId && "RAZORPAY_KEY_ID", !keySecret && "RAZORPAY_KEY_SECRET"].filter(Boolean);
+    if (missing.length) return json({ error: `Razorpay not configured — this function can't see: ${missing.join(", ")}. Set via 'supabase secrets set', then redeploy this function.` });
+  }
   if (!supabaseUrl || !serviceKey) return json({ error: "Supabase environment not configured." });
 
   const supabase = createClient(supabaseUrl, serviceKey);
