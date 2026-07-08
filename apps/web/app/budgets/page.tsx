@@ -14,6 +14,7 @@ import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { MultiSelect } from "../../src/ui/MultiSelect";
 import { LabelPicker } from "../../src/ui/LabelPicker";
+import { Modal } from "../../src/ui/Modal";
 import type { BudgetLike } from "@pocketcare/data";
 
 const PERIODS: Period[] = ["daily", "weekly", "monthly", "yearly"];
@@ -88,6 +89,7 @@ export default function BudgetsPage() {
   const [period, setPeriod] = useState<Period>("monthly");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [showNew, setShowNew] = useState(false);
 
   async function addBudget() {
     if (!limit) return;
@@ -103,45 +105,63 @@ export default function BudgetsPage() {
     });
     await writeBudgetScope(budgetId, selCats, selLabels);
     setName(""); setLimit(""); setSelCats([]); setSelLabels([]); setStart(""); setEnd("");
+    setShowNew(false);
   }
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>{t("pages.budgets", "Budgets")}</h1>
-      <div style={{ display: "grid", gap: 12 }}>
-        {budgets.map((b) => <BudgetRow key={b.id} budget={b} cats={cats} labels={labels} catOptions={catOptions} />)}
-        {budgets.length === 0 && <p className="muted">No budgets yet — try a named budget for a trip below.</p>}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>{t("pages.budgets", "Budgets")}</h1>
+        <button className="btn" onClick={() => setShowNew(true)}>+ New budget</button>
       </div>
 
-      <div className="card" style={{ padding: 20, display: "grid", gap: 12, maxWidth: 560 }}>
-        <h2>New budget</h2>
-        <FloatingInput label="Name (e.g. Japan Trip)" value={name} onChange={setName} />
-        <FloatingInput label={`Limit (${base})`} inputMode="decimal" value={limit} onChange={(v) => setLimit(v.replace(/[^0-9.]/g, ""))} />
-
-        <span className="muted" style={{ fontSize: 13 }}>Categories (optional — leave empty for all spending)</span>
-        <MultiSelect options={catOptions} selected={selCats} onChange={setSelCats} placeholder="Add categories…" />
-
-        <span className="muted" style={{ fontSize: 13 }}>Labels (optional)</span>
-        <LabelPicker labels={labels} selected={selLabels} onChange={setSelLabels} />
-
-        <span className="muted" style={{ fontSize: 13 }}>Timeframe</span>
-        <div style={{ display: "flex", gap: 6 }}>
-          <button className="chip" data-active={timeMode === "recurring"} onClick={() => setTimeMode("recurring")}>Recurring</button>
-          <button className="chip" data-active={timeMode === "custom"} onClick={() => setTimeMode("custom")}>Custom dates</button>
+      {budgets.length > 0 ? (
+        <div style={{ display: "grid", gap: 12 }}>
+          {budgets.map((b) => <BudgetRow key={b.id} budget={b} cats={cats} labels={labels} catOptions={catOptions} />)}
         </div>
-        {timeMode === "recurring" ? (
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {PERIODS.map((p) => <button key={p} className="chip" data-active={p === period} onClick={() => setPeriod(p)}>{p}</button>)}
-          </div>
-        ) : (
-          <div style={{ display: "flex", gap: 8 }}>
-            <input className="input" type="date" value={start} onChange={(e) => { setStart(e.target.value); if (end && e.target.value > end) setEnd(e.target.value); }} />
-            <input className="input" type="date" value={end} min={start || undefined} onChange={(e) => setEnd(e.target.value)} />
-          </div>
-        )}
+      ) : (
+        <div className="card" style={{ padding: 32, textAlign: "center", display: "grid", gap: 10, justifyItems: "center" }}>
+          <div style={{ fontSize: 26 }}>◔</div>
+          <h2 style={{ margin: 0 }}>No budgets yet</h2>
+          <p className="muted" style={{ margin: 0, maxWidth: 380 }}>Set a spending cap for a category, a label, or a whole trip — recurring or for custom dates.</p>
+          <button className="btn" onClick={() => setShowNew(true)}>+ Create your first budget</button>
+        </div>
+      )}
 
-        <button className="btn" onClick={addBudget} disabled={!limit || (timeMode === "custom" && (!start || !end))}>Add budget</button>
-      </div>
+      <Modal open={showNew} onClose={() => setShowNew(false)}>
+        <div style={{ display: "grid", gap: 12 }}>
+          <h2 style={{ margin: 0 }}>New budget</h2>
+          <FloatingInput label="Name (e.g. Japan Trip)" value={name} onChange={setName} />
+          <FloatingInput label={`Limit (${base})`} inputMode="decimal" value={limit} onChange={(v) => setLimit(v.replace(/[^0-9.]/g, ""))} />
+
+          <span className="muted" style={{ fontSize: 13 }}>Categories (optional — leave empty for all spending)</span>
+          <MultiSelect options={catOptions} selected={selCats} onChange={setSelCats} placeholder="Add categories…" />
+
+          <span className="muted" style={{ fontSize: 13 }}>Labels (optional)</span>
+          <LabelPicker labels={labels} selected={selLabels} onChange={setSelLabels} />
+
+          <span className="muted" style={{ fontSize: 13 }}>Timeframe</span>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button className="chip" data-active={timeMode === "recurring"} onClick={() => setTimeMode("recurring")}>Recurring</button>
+            <button className="chip" data-active={timeMode === "custom"} onClick={() => setTimeMode("custom")}>Custom dates</button>
+          </div>
+          {timeMode === "recurring" ? (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {PERIODS.map((p) => <button key={p} className="chip" data-active={p === period} onClick={() => setPeriod(p)}>{p}</button>)}
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 8 }}>
+              <input className="input" type="date" value={start} onChange={(e) => { setStart(e.target.value); if (end && e.target.value > end) setEnd(e.target.value); }} />
+              <input className="input" type="date" value={end} min={start || undefined} onChange={(e) => setEnd(e.target.value)} />
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
+            <button className="btn ghost" onClick={() => setShowNew(false)}>Cancel</button>
+            <button className="btn" onClick={addBudget} disabled={!limit || (timeMode === "custom" && (!start || !end))}>Add budget</button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
