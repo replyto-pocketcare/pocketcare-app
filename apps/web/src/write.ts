@@ -1,6 +1,7 @@
 "use client";
 
 import { getDb, getUserId } from "./powersync";
+import { withLoading } from "./ui/GlobalLoader";
 
 export const uuid = () => globalThis.crypto.randomUUID();
 export const nowIso = () => new Date().toISOString();
@@ -17,10 +18,10 @@ export async function insertRow(table: string, values: Record<string, unknown>):
   const row: Record<string, unknown> = { id, user_id: getUserId(), created_at: ts, updated_at: ts, ...values };
   const keys = Object.keys(row);
   const placeholders = keys.map(() => "?").join(",");
-  await db.execute(
+  await withLoading(db.execute(
     `INSERT INTO ${table} (${keys.join(",")}) VALUES (${placeholders})`,
     keys.map((k) => row[k] as never),
-  );
+  ));
   return id;
 }
 
@@ -32,12 +33,12 @@ export async function updateRow(table: string, id: string, values: Record<string
   if (entries.length === 0) return;
   const sets = entries.map(([k]) => `${k} = ?`).concat("updated_at = ?");
   const params = entries.map(([, v]) => v as never).concat(nowIso() as never, id as never);
-  await db.execute(`UPDATE ${table} SET ${sets.join(", ")} WHERE id = ?`, params);
+  await withLoading(db.execute(`UPDATE ${table} SET ${sets.join(", ")} WHERE id = ?`, params));
 }
 
 /** Soft-delete a row (sets deleted_at) so the change syncs. */
 export async function softDelete(table: string, id: string): Promise<void> {
   const db = getDb();
   if (!db) return;
-  await db.execute(`UPDATE ${table} SET deleted_at = ?, updated_at = ? WHERE id = ?`, [nowIso(), nowIso(), id]);
+  await withLoading(db.execute(`UPDATE ${table} SET deleted_at = ?, updated_at = ? WHERE id = ?`, [nowIso(), nowIso(), id]));
 }

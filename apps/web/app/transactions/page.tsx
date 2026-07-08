@@ -56,17 +56,22 @@ export default function TransactionsPage() {
       <div className="card" style={{ padding: 8, overflowX: "hidden", minWidth: 0, maxWidth: "100%" }}>
         {rows.map((t) => (
           <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)", width: "100%", boxSizing: "border-box", overflowX: "hidden" }}>
-            <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1, overflow: "hidden" }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0, flex: 1, overflow: "hidden" }}>
               <div style={{ flexShrink: 0 }}>
                 {(() => { const a = acct(t.account_id); return <AccountBadge type={a?.type ?? ""} color={a?.color ?? colorForId(t.account_id)} id={t.account_id} name={a?.name} />; })()}
               </div>
               <div style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
-                <div className="trx-title">{t.description || t.labels || catName(t.category_id)}</div>
-                <div className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{new Date(t.occurred_at).toLocaleString()} · {t.type}{t.method_label ? ` · ${t.method_label}` : ""}</div>
+                <div style={{ fontSize: 15, fontWeight: 500, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {t.description || t.labels || catName(t.category_id)}
+                </div>
+                <div className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 2 }}>
+                  {new Date(t.occurred_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  {t.method_label ? ` · ${t.method_label}` : ""}
+                </div>
               </div>
             </div>
-            <div style={{ flexShrink: 0, whiteSpace: "nowrap", fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
-              {t.type === "expense" ? "−" : t.type === "income" ? "+" : "⇄ "}{hidden ? "••••" : format(money(t.amount, t.currency), "en-US")}
+            <div style={{ flexShrink: 0, whiteSpace: "nowrap", fontWeight: 600, fontSize: 15, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--text)" : "var(--text)" }}>
+              {t.type === "expense" ? "−" : t.type === "income" ? "+" : "⇄ "}{hidden ? "••••" : format(money(t.amount, t.currency))}
             </div>
           </Link>
         ))}

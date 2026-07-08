@@ -11,6 +11,8 @@
 //   supabase functions deploy assistant
 // verify_jwt is ON by default, so only signed-in PocketCare users can call it.
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 // Pinned id (the `-latest` aliases don't always resolve). Override with the
 // ASSISTANT_MODEL secret to match whatever your Anthropic account supports.
@@ -35,8 +37,37 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "Method not allowed" });
 
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return json({ error: "Missing Authorization header" });
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const key = Deno.env.get("ANTHROPIC_API_KEY");
+  
+  if (!supabaseUrl || !supabaseServiceKey) return json({ error: "Supabase environment not configured." });
   if (!key) return json({ error: "Assistant is not configured (missing ANTHROPIC_API_KEY)." });
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+  if (authErr || !user) return json({ error: "Unauthorized" });
+
+  // Fetch entitlements to enforce quota
+  const { data: entitlement, error: entErr } = await supabase
+    .from("entitlements")
+    .select("monthly_quota_total, monthly_quota_used, purchased_quota_remaining")
+    .eq("user_id", user.id)
+    .single();
+
+  if (entErr || !entitlement) {
+    return json({ error: "Entitlements not found." });
+  }
+
+  const { monthly_quota_total, monthly_quota_used, purchased_quota_remaining } = entitlement;
+  const quota = (monthly_quota_total || 0) - (monthly_quota_used || 0) + (purchased_quota_remaining || 0);
+
+  if (quota <= 0) {
+    return json({ error: "Quota exceeded. Please upgrade to Premium or purchase a top-up to continue using the AI assistant." });
+  }
 
   let payload: {
     system?: string;
@@ -74,6 +105,12 @@ Deno.serve(async (req: Request) => {
     if (!res.ok || data?.type === "error") {
       return json({ error: data?.error?.message || `Anthropic error (${res.status}).` });
     }
+    
+    await supabase
+      .from("entitlements")
+      .update({ monthly_quota_used: (monthly_quota_used || 0) + 1 })
+      .eq("user_id", user.id);
+
     return json(data);
   } catch (e) {
     return json({ error: `Upstream error: ${(e as Error).message}` });

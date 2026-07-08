@@ -123,15 +123,14 @@ function CardPanel({ account, owed, detail, sources }: {
   }
 
   return (
-    <div className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+    <details className="card" style={{ padding: 20 }}>
+      <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", cursor: "pointer", userSelect: "none", outline: "none" }}>
         <div>
           <div className="muted" style={{ fontSize: 12 }}>Spent this cycle</div>
           <div style={{ fontSize: 28, fontWeight: 750, color: "var(--negative)" }}>{fmt(owedMoney)}</div>
           {detail?.credit_limit ? (
             <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
-              of {fmt(money(detail.credit_limit, account.currency))} limit ·{" "}
-              <span style={{ color: "var(--positive)" }}>{fmt(money(Math.max(0, detail.credit_limit - Math.abs(owed)), account.currency))} available</span>
+              of {fmt(money(detail.credit_limit, account.currency))} limit
             </div>
           ) : null}
         </div>
@@ -139,46 +138,59 @@ function CardPanel({ account, owed, detail, sources }: {
           <div style={{ textAlign: "right" }}>
             <div className="muted" style={{ fontSize: 12 }}>Payment due</div>
             <div style={{ fontWeight: 650 }}>{cycle.dueDate.toLocaleDateString()}</div>
-            <div className="muted" style={{ fontSize: 11 }}>Statement {cycle.statementDate.toLocaleDateString()}</div>
-            <button className="chip" style={{ padding: "2px 8px", fontSize: 11, marginTop: 4 }} onClick={() => setEditing(true)}>Edit card</button>
+            <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>Click to manage ▾</div>
           </div>
         )}
-      </div>
+      </summary>
 
-      {(!cycle || editing) && (
-        <div style={{ display: "grid", gap: 8 }}>
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
-            <label className="muted" style={{ fontSize: 12 }}>Statement day
-              <input className="input" style={{ width: 90 }} value={stmt} onChange={(e) => setStmt(e.target.value.replace(/\D/g, ""))} />
-            </label>
-            <label className="muted" style={{ fontSize: 12 }}>Due day
-              <input className="input" style={{ width: 80 }} value={due} onChange={(e) => setDue(e.target.value.replace(/\D/g, ""))} />
-            </label>
-            <label className="muted" style={{ fontSize: 12 }}>Credit limit
-              <input className="input" style={{ width: 120 }} inputMode="decimal" value={creditLimit} onChange={(e) => setCreditLimit(e.target.value.replace(/[^0-9.]/g, ""))} />
-            </label>
+      <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
+        {detail?.credit_limit ? (
+          <div className="muted" style={{ fontSize: 12 }}>
+            <span style={{ color: "var(--positive)" }}>{fmt(money(Math.max(0, detail.credit_limit - Math.abs(owed)), account.currency))} available credit</span>
           </div>
-          <label className="muted" style={{ fontSize: 12 }}>Card number (optional — last 4 shown)
-            <input className="input" inputMode="numeric" placeholder="•••• (optional)" value={last4}
-              onChange={(e) => setLast4(e.target.value.replace(/\D/g, "").slice(0, 4))} />
-          </label>
+        ) : null}
+        {cycle && !editing && (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="muted" style={{ fontSize: 11 }}>Statement {cycle.statementDate.toLocaleDateString()}</div>
+            <button className="chip" style={{ padding: "2px 8px", fontSize: 11 }} onClick={() => setEditing(true)}>Edit details</button>
+          </div>
+        )}
+
+        {(!cycle || editing) && (
+          <div style={{ display: "grid", gap: 8, marginTop: cycle ? 8 : 0 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+              <label className="muted" style={{ fontSize: 12 }}>Statement day
+                <input className="input" style={{ width: 90 }} value={stmt} onChange={(e) => setStmt(e.target.value.replace(/\D/g, ""))} />
+              </label>
+              <label className="muted" style={{ fontSize: 12 }}>Due day
+                <input className="input" style={{ width: 80 }} value={due} onChange={(e) => setDue(e.target.value.replace(/\D/g, ""))} />
+              </label>
+              <label className="muted" style={{ fontSize: 12 }}>Credit limit
+                <input className="input" style={{ width: 120 }} inputMode="decimal" value={creditLimit} onChange={(e) => setCreditLimit(e.target.value.replace(/[^0-9.]/g, ""))} />
+              </label>
+            </div>
+            <label className="muted" style={{ fontSize: 12 }}>Card number (optional — last 4 shown)
+              <input className="input" inputMode="numeric" placeholder="•••• (optional)" value={last4}
+                onChange={(e) => setLast4(e.target.value.replace(/\D/g, "").slice(0, 4))} />
+            </label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn ghost" onClick={saveCycle}>Save</button>
+              {editing && <button className="chip" onClick={() => setEditing(false)}>Cancel</button>}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+          <span className="muted" style={{ fontSize: 12 }}>Settle bill from</span>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {sources.map((s) => <button key={s.id} className="chip" data-active={(fromId ?? sources[0]?.id) === s.id} onClick={() => setFromId(s.id)}>{s.name}</button>)}
+          </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn ghost" onClick={saveCycle}>Save</button>
-            {editing && <button className="chip" onClick={() => setEditing(false)}>Cancel</button>}
+            <input className="input" inputMode="decimal" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} />
+            <button className="btn" onClick={settle} disabled={!amount || sources.length === 0}>Settle</button>
           </div>
         </div>
-      )}
-
-      <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-        <span className="muted" style={{ fontSize: 12 }}>Settle bill from</span>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {sources.map((s) => <button key={s.id} className="chip" data-active={(fromId ?? sources[0]?.id) === s.id} onClick={() => setFromId(s.id)}>{s.name}</button>)}
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input className="input" inputMode="decimal" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} />
-          <button className="btn" onClick={settle} disabled={!amount || sources.length === 0}>Settle</button>
-        </div>
       </div>
-    </div>
+    </details>
   );
 }

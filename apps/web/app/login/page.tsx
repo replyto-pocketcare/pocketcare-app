@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabase } from "../../src/powersync";
 import { Logo } from "../../src/ui/Logo";
 import { PasswordInput } from "../../src/ui/PasswordInput";
@@ -10,10 +10,11 @@ import { FloatingInput } from "../../src/ui/FloatingInput";
 type Mode = "register" | "signin";
 type Step = "form" | "otp";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>(() =>
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "signin" ? "signin" : "register",
+  const searchParams = useSearchParams();
+  const [mode, setMode] = useState<Mode>(
+    searchParams?.get("mode") === "signin" ? "signin" : "register"
   );
   const [step, setStep] = useState<Step>("form");
   const [otpType, setOtpType] = useState<"email_change" | "signup">("signup");
@@ -205,4 +206,12 @@ function friendly(m: string): string {
   if (s.includes("token has expired") || s.includes("invalid")) return "That code is invalid or expired. Try resending.";
   if (s.includes("email not confirmed")) return "Please verify your email first (check for the code).";
   return m;
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
+  );
 }

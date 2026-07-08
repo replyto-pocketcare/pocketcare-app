@@ -6,8 +6,10 @@ import { downloadText } from "../../src/data/csv";
 import { exportTransactionsCsv } from "../../src/data/exportCsv";
 import { IMPORT_ADAPTERS, parseWithAdapter, type CanonRow } from "../../src/data/adapters";
 import { importTransactions, type ImportResult } from "../../src/data/importCsv";
+import { usePremiumStatus } from "../../src/premium";
 
 export default function DataPage() {
+  const { isPremiumUser, hasActiveTrial } = usePremiumStatus();
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState<string | null>(null);
 
@@ -79,63 +81,71 @@ export default function DataPage() {
         </div>
       </section>
 
-      {/* Import */}
+        {/* Import */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
         <h2>Import</h2>
-        <label style={{ display: "grid", gap: 4 }}>
-          <span className="muted" style={{ fontSize: 13 }}>File format</span>
-          <select className="input" value={adapterId} onChange={(e) => { setAdapterId(e.target.value); setRows(null); setResult(null); }}>
-            {IMPORT_ADAPTERS.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
-          </select>
-        </label>
-
-        <label style={{ display: "grid", gap: 4 }}>
-          <span className="muted" style={{ fontSize: 13 }}>CSV file</span>
-          <input className="input" type="file" accept=".csv,text/csv,text/plain" onChange={onFile} />
-        </label>
-
-        <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
-          <input type="checkbox" checked={skipDup} onChange={(e) => setSkipDup(e.target.checked)} />
-          Skip rows that already exist (same account, amount, type &amp; date)
-        </label>
-
-        {parseErr && <div className="card" style={{ padding: 12, fontSize: 13, borderColor: "var(--negative)", color: "var(--negative)" }}>{parseErr}</div>}
-
-        {rows && (
-          <div style={{ display: "grid", gap: 10 }}>
-            <div style={{ fontSize: 14 }}><strong>{rows.length}</strong> transaction{rows.length === 1 ? "" : "s"} found in {fileName}. Preview:</div>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 420 }}>
-                <thead><tr style={{ textAlign: "left", borderBottom: "2px solid var(--border)" }}>
-                  <th style={{ padding: "6px 8px" }}>Date</th><th>Type</th><th>Amount</th><th>Account</th><th>Category</th>
-                </tr></thead>
-                <tbody>
-                  {rows.slice(0, 6).map((r, i) => (
-                    <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
-                      <td style={{ padding: "6px 8px" }}>{new Date(r.date).toLocaleDateString()}</td>
-                      <td>{r.type}</td>
-                      <td>{r.currency} {r.amount}</td>
-                      <td>{r.account}</td>
-                      <td className="muted">{r.category ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <button className="btn" onClick={runImport} disabled={importing}>{importing ? "Importing…" : `Import ${rows.length} transaction${rows.length === 1 ? "" : "s"}`}</button>
+        {hasActiveTrial && !isPremiumUser ? (
+          <div className="card" style={{ padding: 12, fontSize: 14, background: "var(--accent-ghost)", borderColor: "var(--accent-soft)" }}>
+            Importing data is not available during the free trial. Please upgrade to Premium to import your historical data.
           </div>
-        )}
+        ) : (
+          <>
+            <label style={{ display: "grid", gap: 4 }}>
+              <span className="muted" style={{ fontSize: 13 }}>File format</span>
+              <select className="input" value={adapterId} onChange={(e) => { setAdapterId(e.target.value); setRows(null); setResult(null); }}>
+                {IMPORT_ADAPTERS.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
+              </select>
+            </label>
 
-        {result && (
-          <div className="card" style={{ padding: 12, fontSize: 14, display: "grid", gap: 4, background: "var(--surface-2)" }}>
-            <div><strong>{result.created}</strong> imported · {result.skipped} skipped · {result.failed} failed</div>
-            {result.errors.length > 0 && <div className="muted" style={{ fontSize: 12 }}>First issues: {result.errors.slice(0, 3).join("; ")}</div>}
-          </div>
-        )}
+            <label style={{ display: "grid", gap: 4 }}>
+              <span className="muted" style={{ fontSize: 13 }}>CSV file</span>
+              <input className="input" type="file" accept=".csv,text/csv,text/plain" onChange={onFile} />
+            </label>
 
-        <p className="muted" style={{ fontSize: 12 }}>
-          New accounts and categories are created automatically (accounts default to “savings” — you can change the type afterward). Importing recomputes balances from your ledger. The Wallet by BudgetBakers importer is in beta — transfers may need a quick review.
-        </p>
+            <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
+              <input type="checkbox" checked={skipDup} onChange={(e) => setSkipDup(e.target.checked)} />
+              Skip rows that already exist (same account, amount, type &amp; date)
+            </label>
+
+            {parseErr && <div className="card" style={{ padding: 12, fontSize: 13, borderColor: "var(--negative)", color: "var(--negative)" }}>{parseErr}</div>}
+
+            {rows && (
+              <div style={{ display: "grid", gap: 10 }}>
+                <div style={{ fontSize: 14 }}><strong>{rows.length}</strong> transaction{rows.length === 1 ? "" : "s"} found in {fileName}. Preview:</div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 420 }}>
+                    <thead><tr style={{ textAlign: "left", borderBottom: "2px solid var(--border)" }}>
+                      <th style={{ padding: "6px 8px" }}>Date</th><th>Type</th><th>Amount</th><th>Account</th><th>Category</th>
+                    </tr></thead>
+                    <tbody>
+                      {rows.slice(0, 6).map((r, i) => (
+                        <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
+                          <td style={{ padding: "6px 8px" }}>{new Date(r.date).toLocaleDateString()}</td>
+                          <td>{r.type}</td>
+                          <td>{r.currency} {r.amount}</td>
+                          <td>{r.account}</td>
+                          <td className="muted">{r.category ?? "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <button className="btn" onClick={runImport} disabled={importing}>{importing ? "Importing…" : `Import ${rows.length} transaction${rows.length === 1 ? "" : "s"}`}</button>
+              </div>
+            )}
+
+            {result && (
+              <div className="card" style={{ padding: 12, fontSize: 14, display: "grid", gap: 4, background: "var(--surface-2)" }}>
+                <div><strong>{result.created}</strong> imported · {result.skipped} skipped · {result.failed} failed</div>
+                {result.errors.length > 0 && <div className="muted" style={{ fontSize: 12 }}>First issues: {result.errors.slice(0, 3).join("; ")}</div>}
+              </div>
+            )}
+
+            <p className="muted" style={{ fontSize: 12 }}>
+              New accounts and categories are created automatically (accounts default to “savings” — you can change the type afterward). Importing recomputes balances from your ledger. The Wallet by BudgetBakers importer is in beta — transfers may need a quick review.
+            </p>
+          </>
+        )}
       </section>
     </div>
   );

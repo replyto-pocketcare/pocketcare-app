@@ -194,6 +194,9 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 
 /* Subscriptions: list + add/simulator side column. Single column on narrow. */
 .subs-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+@media (max-width: 899px) {
+  .subs-aside { order: -1; }
+}
 @media (min-width: 900px) {
   .subs-cols { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
   .subs-aside { position: sticky; top: 24px; }

@@ -6,6 +6,8 @@ bucket_definitions:
     # One bucket per authenticated user (anonymous guests included).
     parameters: select request.user_id() as user_id
     data:
+      - select * from profiles where id = bucket.user_id
+      - select * from entitlements where user_id = bucket.user_id
       - select * from accounts where user_id = bucket.user_id
       - select * from transactions where user_id = bucket.user_id
       - select * from transaction_items where user_id = bucket.user_id

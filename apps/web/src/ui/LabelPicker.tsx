@@ -17,14 +17,43 @@ export function LabelPicker({ labels, selected, onChange }: {
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return labels
-      .filter((l) => !selected.includes(l.name) && (!q || l.name.toLowerCase().includes(q)))
-      .slice(0, 30);
+    
+    // Sort recently used labels first
+    let recentLabels: string[] = [];
+    try {
+      const stored = localStorage.getItem("pocketcare:recent-labels");
+      if (stored) recentLabels = JSON.parse(stored);
+    } catch (e) {}
+
+    const filtered = labels
+      .filter((l) => !selected.includes(l.name) && (!q || l.name.toLowerCase().includes(q)));
+      
+    // Sort: recent first, then alphabetical
+    filtered.sort((a, b) => {
+      const idxA = recentLabels.indexOf(a.name);
+      const idxB = recentLabels.indexOf(b.name);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    return filtered.slice(0, 30);
   }, [query, labels, selected]);
 
   const add = (name: string) => {
     const n = name.trim();
-    if (n && !selected.includes(n)) onChange([...selected, n]);
+    if (n && !selected.includes(n)) {
+      onChange([...selected, n]);
+      
+      // Update recently used in localStorage
+      try {
+        const stored = localStorage.getItem("pocketcare:recent-labels");
+        let recent: string[] = stored ? JSON.parse(stored) : [];
+        recent = [n, ...recent.filter(l => l !== n)].slice(0, 10); // keep last 10
+        localStorage.setItem("pocketcare:recent-labels", JSON.stringify(recent));
+      } catch (e) {}
+    }
     setQuery("");
   };
   const remove = (name: string) => onChange(selected.filter((s) => s !== name));

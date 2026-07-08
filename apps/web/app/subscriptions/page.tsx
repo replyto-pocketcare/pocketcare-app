@@ -97,29 +97,33 @@ export default function SubscriptionsPage() {
 
         {/* Add + simulator (right side column, sticky on desktop) */}
         <aside className="subs-aside" style={{ display: "grid", gap: 20, minWidth: 0 }}>
-          <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-            <h2>Add subscription</h2>
-            <FloatingInput label="Name" value={name} onChange={setName} />
-            <FloatingInput label={`Amount (${base})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} />
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c}</button>)}
+          <details className="card" style={{ padding: 20, background: "var(--surface-1)" }}>
+            <summary style={{ cursor: "pointer", fontWeight: "bold", fontSize: 18, userSelect: "none" }}>Add subscription</summary>
+            <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
+              <FloatingInput label="Name" value={name} onChange={setName} />
+              <FloatingInput label={`Amount (${base})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} />
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c}</button>)}
+              </div>
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>Purchased / started on
+                <input className="input" type="date" value={purchased} onChange={(e) => setPurchased(e.target.value)} />
+              </label>
+              {purchased && <span className="muted" style={{ fontSize: 12 }}>Next due: {nextDue(purchased, cycle)?.toLocaleDateString()}</span>}
+              <button className="btn" onClick={addSub} disabled={!name.trim() || !amount}>Add</button>
             </div>
-            <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>Purchased / started on
-              <input className="input" type="date" value={purchased} onChange={(e) => setPurchased(e.target.value)} />
-            </label>
-            {purchased && <span className="muted" style={{ fontSize: 12 }}>Next due: {nextDue(purchased, cycle)?.toLocaleDateString()}</span>}
-            <button className="btn" onClick={addSub} disabled={!name.trim() || !amount}>Add</button>
-          </div>
+          </details>
 
           {tier === "premium" ? (
             <Simulator base={base} />
           ) : (
-            <div className="card" style={{ padding: 20, display: "grid", gap: 10, textAlign: "center", background: "var(--surface-2)" }}>
-              <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={28} /></div>
-              <h2>Impact simulator</h2>
-              <p className="muted" style={{ fontSize: 13 }}>See a subscription’s true long-term cost before you commit. Premium.</p>
-              <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>
-            </div>
+            <details className="card" style={{ padding: 20, background: "var(--surface-2)" }}>
+              <summary style={{ cursor: "pointer", fontWeight: "bold", fontSize: 18, userSelect: "none" }}>Impact simulator</summary>
+              <div style={{ display: "grid", gap: 10, textAlign: "center", marginTop: 16 }}>
+                <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={28} /></div>
+                <p className="muted" style={{ fontSize: 13 }}>See a subscription’s true long-term cost before you commit. Premium.</p>
+                <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>
+              </div>
+            </details>
           )}
         </aside>
       </div>
@@ -209,23 +213,25 @@ function Simulator({ base }: { base: string }) {
   );
 
   return (
-    <div className="card" style={{ padding: 20, display: "grid", gap: 10, background: "var(--surface-2)" }}>
-      <h2>Before you subscribe…</h2>
-      <p className="muted" style={{ fontSize: 13, marginTop: -4 }}>See the true long-term cost of a new subscription.</p>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <FloatingInput label={`Amount (${base})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-        <div style={{ display: "flex", gap: 6 }}>
-          {CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c[0].toUpperCase()}</button>)}
+    <details className="card" style={{ padding: 20, background: "var(--surface-2)" }}>
+      <summary style={{ cursor: "pointer", fontWeight: "bold", fontSize: 18, userSelect: "none" }}>Before you subscribe…</summary>
+      <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
+        <p className="muted" style={{ fontSize: 13, marginTop: -4 }}>See the true long-term cost of a new subscription.</p>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <FloatingInput label={`Amount (${base})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+          <div style={{ display: "flex", gap: 6 }}>
+            {CYCLES.map((c) => <button key={c} className="chip" data-active={c === cycle} onClick={() => setCycle(c)}>{c[0].toUpperCase()}</button>)}
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <FloatingInput label="Years" inputMode="numeric" value={years} onChange={(v) => setYears(v.replace(/\D/g, ""))} style={{ flex: 1 }} />
+          <FloatingInput label="Return %" inputMode="decimal" value={ret} onChange={(v) => setRet(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: "1px solid var(--border)" }}>
+          <div><div className="muted" style={{ fontSize: 12 }}>You’d pay</div><strong>{format(money(impact.totalPaid, base), "en-US")}</strong></div>
+          <div style={{ textAlign: "right" }}><div className="muted" style={{ fontSize: 12 }}>If invested instead</div><strong style={{ color: "var(--positive)" }}>{format(money(impact.opportunityCost, base), "en-US")}</strong></div>
         </div>
       </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <FloatingInput label="Years" inputMode="numeric" value={years} onChange={(v) => setYears(v.replace(/\D/g, ""))} style={{ flex: 1 }} />
-        <FloatingInput label="Return %" inputMode="decimal" value={ret} onChange={(v) => setRet(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: "1px solid var(--border)" }}>
-        <div><div className="muted" style={{ fontSize: 12 }}>You’d pay</div><strong>{format(money(impact.totalPaid, base), "en-US")}</strong></div>
-        <div style={{ textAlign: "right" }}><div className="muted" style={{ fontSize: 12 }}>If invested instead</div><strong style={{ color: "var(--positive)" }}>{format(money(impact.opportunityCost, base), "en-US")}</strong></div>
-      </div>
-    </div>
+    </details>
   );
 }

@@ -18,6 +18,8 @@ streams:
   user_data:
     auto_subscribe: true
     queries:
+      - SELECT * FROM pocketcare.profiles WHERE id = auth.user_id()
+      - SELECT * FROM pocketcare.entitlements WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.accounts WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.transactions WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.transaction_labels WHERE user_id = auth.user_id()

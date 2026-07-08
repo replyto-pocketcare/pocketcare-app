@@ -31,7 +31,19 @@ export default function SettingsPage() {
   const [username, setUsername] = useState("");
   const [savedName, setSavedName] = useState(false);
   const [confirmSignout, setConfirmSignout] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  
   useEffect(() => { if (session) setUsername(session.username); }, [session]);
+
+  async function deleteAccount(orphan: boolean) {
+    setDeleting(true);
+    const { getSupabase } = await import("../../src/powersync");
+    const supabase = getSupabase();
+    await supabase.rpc('delete_user_account', { orphan_records: orphan });
+    await signOut();
+    setDeleting(false);
+  }
 
   async function saveUsername() {
     await updateUsername(username.trim());
@@ -197,10 +209,29 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Sign out (kept at the very end) */}
-      <section style={{ display: "flex", justifyContent: "center", paddingTop: 4, paddingBottom: 24 }}>
-        <button className="btn ghost" style={{ color: "var(--negative)", borderColor: "var(--negative)" }} onClick={() => setConfirmSignout(true)}>Sign out</button>
+      {/* Sign out and Delete */}
+      <section style={{ display: "flex", justifyContent: "center", gap: 16, paddingTop: 4, paddingBottom: 24, flexWrap: "wrap" }}>
+        <button className="btn ghost" onClick={() => setConfirmSignout(true)}>Sign out</button>
+        <button className="btn ghost" style={{ color: "var(--negative)", borderColor: "var(--negative)" }} onClick={() => setConfirmDelete(true)}>Delete account</button>
       </section>
+
+      <Modal open={confirmDelete} onClose={() => !deleting && setConfirmDelete(false)}>
+        <h2 style={{ marginBottom: 8, color: "var(--negative)" }}>Delete account?</h2>
+        <p className="muted" style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 12 }}>
+          This action is permanent and cannot be undone. You can choose to cascade delete all your transactions and data, or keep them as orphaned anonymous records.
+        </p>
+        <div style={{ display: "grid", gap: 8 }}>
+          <button className="btn" disabled={deleting} onClick={() => deleteAccount(false)}>
+            Option A: Cascade delete everything
+          </button>
+          <button className="btn ghost" disabled={deleting} onClick={() => deleteAccount(true)}>
+            Option B: Keep as orphaned records
+          </button>
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+          <button className="chip" disabled={deleting} onClick={() => setConfirmDelete(false)}>Cancel</button>
+        </div>
+      </Modal>
     </div>
   );
 }

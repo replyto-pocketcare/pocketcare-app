@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { getSupabase, getDb } from "../../src/powersync";
@@ -40,8 +40,12 @@ const PERSONA = [
   "Honesty & care: this is general guidance to help the user think — NOT professional financial, tax, or investment advice. Encourage wise, unhurried decisions, remind them to double-check important numbers, and say so when you're unsure.",
 ].join("\n");
 
+import { usePremiumStatus } from "../../src/premium";
+
+import { Modal } from "../../src/ui/Modal";
+
 export default function AssistantPage() {
-  const tier = useTier();
+  const { isPremiumUser, hasActiveTrial } = usePremiumStatus();
   const [ui, setUi] = useState<UiItem[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -51,9 +55,29 @@ export default function AssistantPage() {
   const apiRef = useRef<ApiMessage[]>([]);
   const threadRef = useRef<string | null>(null);
 
+  const [disclaimerAcked, setDisclaimerAcked] = useState(true);
+  useEffect(() => {
+    setDisclaimerAcked(localStorage.getItem("pocketcare:ai-disclaimer") === "true");
+  }, []);
+
+  const ackDisclaimer = () => {
+    localStorage.setItem("pocketcare:ai-disclaimer", "true");
+    setDisclaimerAcked(true);
+  };
+
   const { data: threads = [] } = useQuery<{ id: string; title: string | null; updated_at: string }>(
     "SELECT id, title, updated_at FROM assistant_threads WHERE deleted_at IS NULL ORDER BY updated_at DESC LIMIT 50",
   );
+
+  const { data: entitlements = [] } = useQuery<{ monthly_quota_total: number; monthly_quota_used: number; purchased_quota_remaining: number; quota_reset_date: string; additional_purchased_quota: number }>(
+    "SELECT monthly_quota_total, monthly_quota_used, purchased_quota_remaining, quota_reset_date, additional_purchased_quota FROM entitlements LIMIT 1"
+  );
+  const quota = entitlements[0];
+  const quotaLeft = quota ? (quota.monthly_quota_total - quota.monthly_quota_used) + quota.purchased_quota_remaining : 0;
+  const isOutOfQuota = quota && quotaLeft <= 0;
+
+  const [showPayload, setShowPayload] = useState(false);
+  const [payloadData, setPayloadData] = useState("");
 
   const pushUi = (role: UiItem["role"], text: string) => setUi((u) => [...u, { id: uid(), role, text }]);
 
@@ -185,7 +209,7 @@ export default function AssistantPage() {
 
   async function send() {
     const text = input.trim();
-    if (!text || busy || pending) return;
+    if (!text || busy || pending || isOutOfQuota) return;
     setInput("");
     pushUi("user", text);
     try {
@@ -199,6 +223,7 @@ export default function AssistantPage() {
         "What you remember about this user:",
         memory || "Nothing yet.",
       ].join("\n");
+      setPayloadData(context); // Save payload for transparency view
       systemRef.current = [
         { type: "text", text: PERSONA, cache_control: { type: "ephemeral" } },
         { type: "text", text: context, cache_control: { type: "ephemeral" } },
@@ -215,7 +240,7 @@ export default function AssistantPage() {
 
   const currentTool = pending?.queue[0];
 
-  if (tier !== "premium") {
+  if (!isPremiumUser && !hasActiveTrial) {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
         <h1>Ask PocketCare</h1>
@@ -231,8 +256,28 @@ export default function AssistantPage() {
 
   return (
     <div style={{ display: "grid", gap: 14, maxWidth: 760 }} className="fade-up">
+      {!disclaimerAcked && (
+        <Modal onClose={ackDisclaimer}>
+          <div style={{ padding: 24, display: "grid", gap: 16 }}>
+            <h2>Privacy & AI</h2>
+            <p className="muted">
+              We never share PII or email. Anthropic is contractually bound to NOT use your data for model training. 
+              However, please avoid typing personally identifiable information (PII) like account numbers or exact names in the chat.
+            </p>
+            <button className="btn" style={{ justifySelf: "end" }} onClick={ackDisclaimer}>I understand</button>
+          </div>
+        </Modal>
+      )}
+
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1>Ask PocketCare</h1>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <h1>Ask PocketCare</h1>
+          {quota && (
+            <div className="chip" style={{ fontSize: 11, cursor: "default", background: isOutOfQuota ? "var(--negative-ghost)" : "var(--surface-2)" }}>
+              {quotaLeft} / {quota.monthly_quota_total} queries
+            </div>
+          )}
+        </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="chip" onClick={() => setShowHistory((v) => !v)}>History</button>
           <button className="chip" onClick={newChat}>New chat</button>
@@ -242,6 +287,12 @@ export default function AssistantPage() {
         Plan a purchase or savings goal in plain language. Only an aggregated summary of your finances is shared — never individual transactions.
         The assistant can make mistakes: it’s here to help you think, so double-check important numbers and use your own judgment.
       </p>
+
+      {quota && quota.quota_reset_date && (
+        <div className="muted" style={{ fontSize: 12, marginTop: -4 }}>
+          Quota resets on {new Date(quota.quota_reset_date).toLocaleDateString()}
+        </div>
+      )}
 
       {showHistory && (
         <div className="card" style={{ padding: 12, display: "grid", gap: 6, maxHeight: "40vh", overflowY: "auto" }}>
@@ -269,6 +320,23 @@ export default function AssistantPage() {
             <button key={ex} className="chip" style={{ textAlign: "left", whiteSpace: "normal", borderRadius: 12, width: "100%" }} onClick={() => setInput(ex)}>{ex}</button>
           ))}
         </div>
+      )}
+
+      {isOutOfQuota && quota && (
+        <div className="card" style={{ padding: 16, display: "grid", gap: 12, borderColor: "var(--warning)", background: "var(--warning-ghost)" }}>
+          <div style={{ fontSize: 14 }}><strong>You have run out of AI queries for this month.</strong></div>
+          <button className="btn" style={{ justifySelf: "start" }} onClick={async () => {
+            const db = getDb();
+            if (db) await db.execute("UPDATE entitlements SET additional_purchased_quota = additional_purchased_quota + 50");
+          }}>Buy More Quota (+50)</button>
+        </div>
+      )}
+
+      {payloadData && (
+        <details className="card" style={{ padding: "8px 14px", background: "var(--surface-1)" }}>
+          <summary className="muted" style={{ fontSize: 12, cursor: "pointer", userSelect: "none" }}>View data sent to AI</summary>
+          <pre style={{ marginTop: 8, fontSize: 11, whiteSpace: "pre-wrap", overflowX: "auto", color: "var(--text-2)" }}>{payloadData}</pre>
+        </details>
       )}
 
       <div style={{ display: "grid", gap: 10 }}>

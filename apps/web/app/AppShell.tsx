@@ -10,6 +10,7 @@ import { useSyncStatus, syncMessage } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
 import { MenuIcon, PlusIcon, DownloadIcon } from "../src/ui/icons";
+import { GlobalLoader } from "../src/ui/GlobalLoader";
 
 const APP_VERSION = "0.1.0";
 
@@ -81,6 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="shell">
+      <GlobalLoader />
       {/* Mobile top bar */}
       <div className="topbar">
         <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}><MenuIcon /></button>

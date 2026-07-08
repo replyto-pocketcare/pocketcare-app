@@ -5,8 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@powersync/react";
 import { AccountType } from "@pocketcare/types";
 import { money, format, fromMajor } from "@pocketcare/money";
-import { getRepositories } from "../../../../src/powersync";
+import { getRepositories, getDb } from "../../../../src/powersync";
 import { useAccountBalances } from "../../../../src/hooks";
+import { Modal } from "../../../../src/ui/Modal";
+import { softDelete, nowIso } from "../../../../src/write";
 
 import { ACCOUNT_COLORS } from "../../../../src/colors";
 
@@ -34,6 +36,9 @@ export default function EditAccountPage() {
   const [balMode, setBalMode] = useState<"direct" | "transaction">("direct");
   const [balMsg, setBalMsg] = useState<string | null>(null);
 
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     if (acc && !ready) {
       setName(acc.name); setType(acc.type); setColor(acc.color || COLORS[0]);
@@ -45,9 +50,26 @@ export default function EditAccountPage() {
     await getRepositories().accounts.update(id, { name: name.trim(), type: type as never, color, include_in_net_worth: include });
     router.push("/accounts");
   }
+  
   async function archive() {
     await getRepositories().accounts.update(id, { is_archived: true });
     router.push("/accounts");
+  }
+
+  async function deleteAccount(cascade: boolean) {
+    setDeleting(true);
+    try {
+      const db = getDb();
+      if (db && cascade) {
+        // Cascade delete transactions first
+        await db.execute(`UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE account_id = ? AND deleted_at IS NULL`, [nowIso(), nowIso(), id]);
+      }
+      // Soft-delete the account itself
+      await softDelete("accounts", id);
+      router.push("/accounts");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   async function applyBalance() {
@@ -106,8 +128,26 @@ export default function EditAccountPage() {
       <div style={{ display: "flex", gap: 10 }}>
         <button className="btn" onClick={save} disabled={!name.trim()}>Save changes</button>
         <button className="btn ghost" onClick={() => router.push("/accounts")}>Cancel</button>
-        <button className="chip" style={{ marginLeft: "auto", color: "var(--negative)" }} onClick={archive}>Archive</button>
+        <button className="chip" style={{ marginLeft: "auto", color: "var(--negative)", borderColor: "var(--negative)" }} onClick={() => setConfirmDelete(true)}>Delete</button>
       </div>
+
+      <Modal open={confirmDelete} onClose={() => !deleting && setConfirmDelete(false)}>
+        <h2 style={{ marginBottom: 8, color: "var(--negative)" }}>Delete account?</h2>
+        <p className="muted" style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 12 }}>
+          You can delete this account and all its transactions, or keep the transactions (they will remain in your history but the account will be hidden).
+        </p>
+        <div style={{ display: "grid", gap: 8 }}>
+          <button className="btn" disabled={deleting} onClick={() => deleteAccount(true)}>
+            Delete account & all transactions
+          </button>
+          <button className="btn ghost" disabled={deleting} onClick={() => deleteAccount(false)}>
+            Delete account but keep transactions
+          </button>
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+          <button className="chip" disabled={deleting} onClick={() => setConfirmDelete(false)}>Cancel</button>
+        </div>
+      </Modal>
 
       <section className="card" style={{ padding: 20, display: "grid", gap: 12, marginTop: 8 }}>
         <h2>Balance</h2>

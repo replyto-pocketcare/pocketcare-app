@@ -6,6 +6,30 @@
  */
 import { column, Schema, Table } from "@powersync/common";
 
+const profiles = new Table({
+  id: column.text,
+  base_currency: column.text,
+  locale: column.text,
+  rate_mode: column.text,
+  theme: column.text,
+  created_at: column.text,
+  updated_at: column.text,
+});
+
+const entitlements = new Table({
+  user_id: column.text,
+  tier: column.text,
+  source: column.text,
+  expires_at: column.text,
+  monthly_quota_total: column.integer,
+  monthly_quota_used: column.integer,
+  purchased_quota_remaining: column.integer,
+  quota_reset_date: column.text,
+  additional_purchased_quota: column.integer,
+  premium_trial_start_date: column.text,
+  updated_at: column.text,
+});
+
 const accounts = new Table({
   user_id: column.text,
   name: column.text,
@@ -256,6 +280,8 @@ const assistant_memory = new Table({
 });
 
 export const AppSchema = new Schema({
+  profiles,
+  entitlements,
   accounts,
   transactions,
   transaction_labels,
