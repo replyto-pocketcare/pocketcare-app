@@ -11,6 +11,7 @@ import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
 import { MenuIcon, PlusIcon, DownloadIcon } from "../src/ui/icons";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
+import { TrialNotice } from "../src/ui/TrialNotice";
 
 const APP_VERSION = "0.1.0";
 
@@ -166,6 +167,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           );
         })()}
+        <TrialNotice />
         {children}
       </main>
 
