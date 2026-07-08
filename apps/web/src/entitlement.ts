@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@powersync/react";
-import { useTier } from "./tier";
 
 interface EntRow {
   tier?: string;
@@ -39,17 +38,15 @@ export function useEntitlement(): Entitlement {
   const { data = [] } = useQuery<EntRow>(
     "SELECT tier, premium_trial_start_date, monthly_quota_total, monthly_quota_used, purchased_quota_remaining, additional_purchased_quota, quota_reset_date, subscription_status, billing_cycle FROM entitlements LIMIT 1",
   );
-  const override = useTier(); // dev preview toggle
   const ent = data[0];
 
-  const serverTier = normalize(ent?.tier);
-  const overrideTier = normalize(override);
-  const effective = overrideTier !== "free" ? overrideTier : serverTier;
+  // Server-authoritative: the plan comes only from the synced entitlements row.
+  const effective = normalize(ent?.tier);
 
   // 14-day trial (from the new-user trigger) grants paid access while active.
   let isTrial = false;
   let trialDaysLeft = 0;
-  if (ent?.premium_trial_start_date && serverTier === "free") {
+  if (ent?.premium_trial_start_date && effective === "free") {
     const days = Math.ceil((Date.now() - new Date(ent.premium_trial_start_date).getTime()) / 86_400_000);
     if (days <= 14) { isTrial = true; trialDaysLeft = Math.max(0, 14 - days); }
   }

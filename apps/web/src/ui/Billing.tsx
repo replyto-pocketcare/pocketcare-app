@@ -7,20 +7,26 @@ import { useSession } from "../account";
 import { PLANS, CREDIT_PACKS, price, type PaidTier, type Cycle } from "../billing/plans";
 import { startSubscription, buyCredits, cancelSubscription } from "../billing";
 import { openInvoice, type InvoicePayment } from "../billing/invoice";
-import { useTier, setTier } from "../tier";
 
 const FREE_FEATURES = ["All account types (bank, cash, cards, stocks…)", "Categories, labels, budgets, goals", "Transactions, transfers, search"];
 const PAID_EXTRA = ["Detailed Insights & Statements", "Ask PocketCare AI assistant", "Auto-categorisation, upcoming, stock sync", "CSV import"];
 
+type PlanKey = "free" | "lite" | "pro";
+const PLAN_DETAILS: Record<PlanKey, { includes: string[]; excludes: string[]; ai: string }> = {
+  free: { includes: FREE_FEATURES, excludes: PAID_EXTRA, ai: "No Ask PocketCare — upgrade to Lite or Pro to unlock" },
+  lite: { includes: [...FREE_FEATURES, ...PAID_EXTRA], excludes: [], ai: "50 Ask PocketCare prompts / month" },
+  pro: { includes: [...FREE_FEATURES, ...PAID_EXTRA], excludes: [], ai: "200 Ask PocketCare prompts / month" },
+};
+
 export function Billing() {
   const e = useEntitlement();
-  const devTier = useTier();
   const session = useSession();
   const email = session?.email ?? "";
   const { data: payments = [] } = useQuery<InvoicePayment>(
     "SELECT id, created_at, kind, amount, currency, credits_added, razorpay_payment_id, razorpay_order_id, status FROM payments WHERE status = 'captured' ORDER BY created_at DESC LIMIT 50",
   );
-  const [cycle, setCycle] = useState<Cycle>("monthly");
+  const [cycle, setCycle] = useState<Cycle>(e.cycle === "yearly" ? "yearly" : "monthly");
+  const [selected, setSelected] = useState<PlanKey>(e.tier);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -34,17 +40,21 @@ export function Billing() {
   const planCard = (tier: PaidTier) => {
     const p = PLANS[tier];
     const isCurrent = e.tier === tier;
+    const isSelected = selected === tier;
     return (
-      <div key={tier} className="card" style={{ padding: 16, display: "grid", gap: 8, borderColor: isCurrent ? "var(--accent)" : "var(--border)", background: "var(--surface-2)" }}>
+      <div key={tier} className="card" role="button" tabIndex={0} onClick={() => setSelected(tier)}
+        style={{ padding: 16, display: "grid", gap: 8, cursor: "pointer", background: "var(--surface-2)",
+          borderColor: isSelected ? "var(--accent)" : isCurrent ? "var(--accent-soft)" : "var(--border)",
+          boxShadow: isSelected ? "0 0 0 2px var(--accent-soft)" : "none" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <strong style={{ fontSize: 16 }}>{p.label}</strong>
+          <strong style={{ fontSize: 16 }}>{p.label}{isCurrent && <span className="muted" style={{ fontSize: 11, fontWeight: 400 }}> · current</span>}</strong>
           <span><strong style={{ fontSize: 18 }}>₹{price(tier, cycle)}</strong><span className="muted" style={{ fontSize: 12 }}>/{cycle === "yearly" ? "yr" : "mo"}</span></span>
         </div>
         <div className="muted" style={{ fontSize: 12.5 }}>{p.blurb} <strong>{p.quota} AI prompts/mo.</strong></div>
         {isCurrent ? (
           <button className="chip" disabled style={{ justifySelf: "start", opacity: 0.7 }}>Current plan</button>
         ) : (
-          <button className="btn" disabled={!!busy} onClick={() => run(tier, () => startSubscription(tier, cycle), "Payment received — your plan will activate in a moment.")}>
+          <button className="btn" disabled={!!busy} onClick={(ev) => { ev.stopPropagation(); run(tier, () => startSubscription(tier, cycle), "Payment received — your plan will activate in a moment."); }}>
             {busy === tier ? "Opening…" : `Upgrade to ${p.label}`}
           </button>
         )}
@@ -65,8 +75,9 @@ export function Billing() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <div className="muted" style={{ fontSize: 13 }}>
           You’re on the <strong style={{ color: "var(--text)", textTransform: "capitalize" }}>{e.tier}</strong> plan
-          {e.isTrial ? ` · trial (${e.trialDaysLeft}d left)` : e.subscriptionStatus && e.subscriptionStatus !== "active" ? ` · ${e.subscriptionStatus}` : ""}.
-          {e.tier !== "free" && <> AI: {e.quotaLeft} prompts left this cycle.</>}
+          {e.isTrial ? ` · trial (${e.trialDaysLeft}d left)` : e.subscriptionStatus && e.subscriptionStatus !== "active" ? ` · ${e.subscriptionStatus}` : ""}
+          {e.tier !== "free" && !e.isTrial && e.cycle ? ` · billed ${e.cycle}` : ""}
+          {e.tier !== "free" && e.subscriptionStatus === "active" && e.quotaResetDate ? ` · renews ${new Date(e.quotaResetDate).toLocaleDateString()}` : ""}.
         </div>
         {e.subscriptionStatus === "active" && (
           <button className="chip" disabled={!!busy} style={{ fontSize: 12, color: "var(--negative)", borderColor: "var(--negative)" }}
@@ -97,9 +108,12 @@ export function Billing() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: 12 }}>
-        <div className="card" style={{ padding: 16, display: "grid", gap: 8, borderColor: e.tier === "free" ? "var(--accent)" : "var(--border)", background: "var(--surface-2)" }}>
+        <div className="card" role="button" tabIndex={0} onClick={() => setSelected("free")}
+          style={{ padding: 16, display: "grid", gap: 8, cursor: "pointer", background: "var(--surface-2)",
+            borderColor: selected === "free" ? "var(--accent)" : e.tier === "free" ? "var(--accent-soft)" : "var(--border)",
+            boxShadow: selected === "free" ? "0 0 0 2px var(--accent-soft)" : "none" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <strong style={{ fontSize: 16 }}>Free</strong><strong style={{ fontSize: 18 }}>₹0</strong>
+            <strong style={{ fontSize: 16 }}>Free{e.tier === "free" && <span className="muted" style={{ fontSize: 11, fontWeight: 400 }}> · current</span>}</strong><strong style={{ fontSize: 18 }}>₹0</strong>
           </div>
           <div className="muted" style={{ fontSize: 12.5 }}>Everything to track your money — no AI, insights or statements.</div>
           {e.tier === "free" && <button className="chip" disabled style={{ justifySelf: "start", opacity: 0.7 }}>Current plan</button>}
@@ -108,10 +122,21 @@ export function Billing() {
         {planCard("pro")}
       </div>
 
-      <ul className="muted" style={{ fontSize: 12.5, margin: 0, paddingLeft: 18, display: "grid", gap: 2 }}>
-        {FREE_FEATURES.map((f) => <li key={f}>{f} <span style={{ color: "var(--positive)" }}>· all plans</span></li>)}
-        {PAID_EXTRA.map((f) => <li key={f}>{f} <span style={{ color: "var(--accent)" }}>· Lite &amp; Pro</span></li>)}
-      </ul>
+      {/* What's included in the tapped plan */}
+      <div className="card" style={{ padding: 14, background: "var(--surface-2)", display: "grid", gap: 8 }}>
+        <div style={{ fontSize: 13 }}>
+          <strong style={{ textTransform: "capitalize" }}>{selected}</strong> plan includes:
+        </div>
+        <ul style={{ fontSize: 12.5, margin: 0, paddingLeft: 4, display: "grid", gap: 3, listStyle: "none" }}>
+          {PLAN_DETAILS[selected].includes.map((f) => (
+            <li key={f} style={{ display: "flex", gap: 8 }}><span style={{ color: "var(--positive)" }}>✓</span>{f}</li>
+          ))}
+          <li style={{ display: "flex", gap: 8 }}><span style={{ color: "var(--accent)" }}>✦</span>{PLAN_DETAILS[selected].ai}</li>
+          {PLAN_DETAILS[selected].excludes.map((f) => (
+            <li key={f} className="muted" style={{ display: "flex", gap: 8, textDecoration: "line-through" }}><span>✕</span>{f}</li>
+          ))}
+        </ul>
+      </div>
 
       {/* AI credit top-ups */}
       <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
@@ -143,13 +168,6 @@ export function Billing() {
           </div>
         </div>
       )}
-
-      <div className="muted" style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 6, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
-        Preview tier (dev):
-        {(["free", "lite", "pro"] as const).map((tr) => (
-          <button key={tr} className="chip" data-active={devTier === tr} style={{ padding: "2px 8px", fontSize: 11 }} onClick={() => setTier(tr)}>{tr}</button>
-        ))}
-      </div>
     </section>
   );
 }

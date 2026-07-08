@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { getSupabase, getDb } from "../../src/powersync";
 import { insertRow, softDelete, nowIso } from "../../src/write";
-import { useTier } from "../../src/hooks";
 import { LockIcon } from "../../src/ui/icons";
 import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/summary";
 import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, loadMemory } from "../../src/assistant/tools";
@@ -76,7 +75,11 @@ export default function AssistantPage() {
     "SELECT monthly_quota_total, monthly_quota_used, purchased_quota_remaining, quota_reset_date, additional_purchased_quota FROM entitlements LIMIT 1"
   );
   const quota = entitlements[0];
-  const quotaLeft = quota ? (quota.monthly_quota_total - quota.monthly_quota_used) + quota.purchased_quota_remaining : 0;
+  // Keep this identical to useEntitlement() so Settings and here never disagree:
+  // plan portion (clamped ≥0) + all purchased credits.
+  const planLeft = quota ? Math.max(0, quota.monthly_quota_total - quota.monthly_quota_used) : 0;
+  const purchasedCredits = quota ? (quota.purchased_quota_remaining ?? 0) + (quota.additional_purchased_quota ?? 0) : 0;
+  const quotaLeft = planLeft + purchasedCredits;
   const isOutOfQuota = quota && quotaLeft <= 0;
 
   const [showPayload, setShowPayload] = useState(false);
@@ -277,7 +280,7 @@ export default function AssistantPage() {
           <h1>Ask PocketCare</h1>
           {quota && (
             <div className="chip" style={{ fontSize: 11, cursor: "default", background: isOutOfQuota ? "var(--negative-ghost)" : "var(--surface-2)" }}>
-              {quotaLeft} / {quota.monthly_quota_total} queries
+              {planLeft} / {quota.monthly_quota_total}{purchasedCredits > 0 ? ` +${purchasedCredits} credits` : ""} queries
             </div>
           )}
         </div>
