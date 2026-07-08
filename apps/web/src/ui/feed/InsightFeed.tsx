@@ -70,7 +70,7 @@ function SnapFeed({ cards, activeIndex, setActiveIndex }: { cards: Card[]; activ
           ref={(el) => { items.current[i] = el; }}
           style={{ height: "100%", scrollSnapAlign: "start", scrollSnapStop: "always" }}
         >
-          <InsightCard card={c} active={i === activeIndex} near={Math.abs(i - activeIndex) <= 1} layout="mobile" />
+          <InsightCard card={c} layout="mobile" />
         </section>
       ))}
     </div>
@@ -154,7 +154,7 @@ function Coverflow({ cards, activeIndex, setActiveIndex }: { cards: Card[]; acti
               pointerEvents: Math.abs(offset) > 1 ? "none" : "auto",
             }}
           >
-            <InsightCard card={c} active={isActive} near={Math.abs(offset) <= 1} layout="desktop" />
+            <InsightCard card={c} layout="desktop" />
           </motion.div>
         );
       })}

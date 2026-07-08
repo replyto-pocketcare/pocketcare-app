@@ -11,7 +11,16 @@ export type InsightType =
   | "spending_trend"
   | "category_breakdown"
   | "net_worth_update"
-  | "streak";
+  | "streak"
+  | "biggest_expense"
+  | "weekday_pattern"
+  | "label_breakdown"
+  | "subscriptions_load"
+  | "month_pace"
+  | "no_spend_days"
+  | "goal_progress"
+  | "category_spike"
+  | "avg_daily_spend";
 
 /** A single labelled datum shared by the chart visuals. */
 export interface SeriesPoint {
@@ -27,11 +36,11 @@ export interface SeriesPoint {
  * visual independently of the copy.
  */
 export type VisualSpec =
-  | { kind: "bars3d"; series: SeriesPoint[]; unit?: string }
-  | { kind: "donut3d"; series: SeriesPoint[] }
-  | { kind: "gauge3d"; value: number; max: number; warnAt?: number; dangerAt?: number; unit?: string }
-  | { kind: "ribbon3d"; series: SeriesPoint[] }
-  | { kind: "orb3d"; value: number; target?: number };
+  | { kind: "bars"; series: SeriesPoint[]; unit?: string; horizontal?: boolean }
+  | { kind: "area"; series: SeriesPoint[] }
+  | { kind: "donut"; series: SeriesPoint[]; centerLabel?: string; centerSub?: string }
+  | { kind: "gauge"; value: number; max: number; warnAt?: number; dangerAt?: number; unit?: string; centerLabel?: string }
+  | { kind: "progress"; value: number; target?: number; centerLabel?: string };
 
 export type VisualKind = VisualSpec["kind"];
 

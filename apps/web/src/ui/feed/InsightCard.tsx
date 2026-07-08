@@ -1,15 +1,9 @@
 "use client";
 
-import { Suspense, lazy } from "react";
 import Link from "next/link";
 import type { InsightCard as Card, InsightType } from "../../insights/types";
 import { THEME_TOKEN } from "../../insights/types";
-import { usePrefer3D, THEME_HEX } from "../../insights/perf";
 import { Visual2D } from "./Charts2D";
-
-// three.js is heavy — defer it so it never lands in the bundle for users who
-// don't open the feed, and fall back to the 2D chart while it loads.
-const Visual3D = lazy(() => import("./Charts3D"));
 
 const TYPE_LABEL: Record<InsightType, string> = {
   weekly_summary: "Weekly recap",
@@ -19,21 +13,22 @@ const TYPE_LABEL: Record<InsightType, string> = {
   category_breakdown: "Breakdown",
   net_worth_update: "Net worth",
   streak: "Streak",
+  biggest_expense: "Biggest expense",
+  weekday_pattern: "Spending pattern",
+  label_breakdown: "By label",
+  subscriptions_load: "Subscriptions",
+  month_pace: "Month pace",
+  no_spend_days: "No-spend days",
+  goal_progress: "Goal progress",
+  category_spike: "Category spike",
+  avg_daily_spend: "Daily average",
 };
 
-function VisualHost({ card, active, near }: { card: Card; active: boolean; near: boolean }) {
-  const prefer3D = usePrefer3D();
-  const accentHex = THEME_HEX[card.theme] ?? "#b06a4f";
+function VisualHost({ card }: { card: Card }) {
   const cssAccent = THEME_TOKEN[card.theme].accent;
   return (
-    <div style={{ position: "absolute", inset: 0 }}>
-      {prefer3D && near ? (
-        <Suspense fallback={<Visual2D visual={card.visual} accent={cssAccent} />}>
-          <Visual3D visual={card.visual} accent={accentHex} active={active} />
-        </Suspense>
-      ) : (
-        <Visual2D visual={card.visual} accent={cssAccent} />
-      )}
+    <div style={{ position: "absolute", inset: 0, padding: "8px 6px" }}>
+      <Visual2D visual={card.visual} accent={cssAccent} />
     </div>
   );
 }
@@ -84,14 +79,14 @@ function TextBlock({ card }: { card: Card }) {
  * card); `layout="desktop"` is a landscape tile with the visual on the left and
  * the copy on the right.
  */
-export function InsightCard({ card, active, near = true, layout }: { card: Card; active: boolean; near?: boolean; layout: "mobile" | "desktop" }) {
+export function InsightCard({ card, layout }: { card: Card; layout: "mobile" | "desktop" }) {
   const glow = THEME_TOKEN[card.theme].accent;
   if (layout === "desktop") {
     return (
       <div className="card" style={{ height: "100%", display: "grid", gridTemplateColumns: "1.05fr 1fr", overflow: "hidden",
         background: "var(--surface)", boxShadow: "var(--shadow-lg)" }}>
         <div style={{ position: "relative", background: `radial-gradient(120% 100% at 30% 20%, ${glow}18, transparent 70%)` }}>
-          <VisualHost card={card} active={active} near={near} />
+          <VisualHost card={card} />
         </div>
         <div style={{ padding: "36px 40px", display: "grid" }}>
           <TextBlock card={card} />
@@ -104,7 +99,7 @@ export function InsightCard({ card, active, near = true, layout }: { card: Card;
     <div style={{ height: "100%", display: "grid", gridTemplateRows: "1fr auto", padding: "16px 20px 40px",
       background: `radial-gradient(90% 45% at 50% 15%, ${glow}14, transparent 70%)` }}>
       <div style={{ position: "relative", minHeight: 0 }}>
-        <VisualHost card={card} active={active} near={near} />
+        <VisualHost card={card} />
       </div>
       <div className="card" style={{ padding: 22, background: "var(--surface)", boxShadow: "var(--shadow)" }}>
         <TextBlock card={card} />
