@@ -87,25 +87,29 @@ Deno.serve(async (req: Request) => {
         }).eq("user_id", userId);
       }
     } else if (event === "order.paid" || event === "payment.captured") {
+      // Credit packs. razorpay-credits pre-records a PENDING row keyed by order
+      // id, so we don't depend on notes reaching the payment entity (Razorpay
+      // does not copy order notes onto payments). Works on either event.
       const order = evt.payload?.order?.entity;
       const payment = evt.payload?.payment?.entity;
-      const notes = order?.notes || payment?.notes || {};
-      if (notes.kind === "credits" && notes.user_id) {
-        const credits = Number(notes.credits) || 0;
-        const paymentId = payment?.id || order?.id;
-        // Idempotency: unique payment id. If it already exists, do nothing.
-        const { error: insErr } = await supabase.from("payments").insert({
-          user_id: notes.user_id, kind: "credits",
-          razorpay_order_id: order?.id ?? null, razorpay_payment_id: paymentId,
-          amount: order?.amount ?? payment?.amount ?? null, currency: "INR",
-          status: "captured", credits_added: credits,
-        });
-        if (!insErr && credits > 0) {
-          const { data: ent } = await supabase.from("entitlements")
-            .select("purchased_quota_remaining").eq("user_id", notes.user_id).single();
-          const current = ent?.purchased_quota_remaining ?? 0;
-          await supabase.from("entitlements")
-            .update({ purchased_quota_remaining: current + credits }).eq("user_id", notes.user_id);
+      const orderId = order?.id || payment?.order_id;
+      const paymentId = payment?.id ?? null;
+      if (orderId) {
+        // Flip pending → captured atomically. Only the event that wins the
+        // status guard gets rows back, so credits are applied exactly once.
+        const { data: captured } = await supabase.from("payments")
+          .update({ status: "captured", razorpay_payment_id: paymentId })
+          .eq("razorpay_order_id", orderId).eq("kind", "credits").eq("status", "created")
+          .select("user_id, credits_added");
+        for (const row of captured ?? []) {
+          const credits = row.credits_added ?? 0;
+          if (credits > 0) {
+            const { data: ent } = await supabase.from("entitlements")
+              .select("purchased_quota_remaining").eq("user_id", row.user_id).single();
+            const current = ent?.purchased_quota_remaining ?? 0;
+            await supabase.from("entitlements")
+              .update({ purchased_quota_remaining: current + credits }).eq("user_id", row.user_id);
+          }
         }
       }
     }

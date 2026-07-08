@@ -55,5 +55,13 @@ Deno.serve(async (req: Request) => {
   const order = await rzpRes.json();
   if (!rzpRes.ok || order.error) return json({ error: order?.error?.description || `Razorpay error (${rzpRes.status}).` });
 
+  // Record a PENDING purchase keyed by order id. The webhook matches this on
+  // order.paid / payment.captured and applies the credits (no reliance on notes
+  // reaching the payment entity, which Razorpay does not copy).
+  await supabase.from("payments").insert({
+    user_id: user.id, kind: "credits", razorpay_order_id: order.id,
+    amount: pack.paise, currency: "INR", status: "created", credits_added: pack.credits,
+  });
+
   return json({ order_id: order.id, amount: pack.paise, credits: pack.credits, key_id: keyId });
 });

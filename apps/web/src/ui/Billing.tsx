@@ -18,7 +18,7 @@ export function Billing() {
   const session = useSession();
   const email = session?.email ?? "";
   const { data: payments = [] } = useQuery<InvoicePayment>(
-    "SELECT id, created_at, kind, amount, currency, credits_added, razorpay_payment_id, razorpay_order_id, status FROM payments ORDER BY created_at DESC LIMIT 50",
+    "SELECT id, created_at, kind, amount, currency, credits_added, razorpay_payment_id, razorpay_order_id, status FROM payments WHERE status = 'captured' ORDER BY created_at DESC LIMIT 50",
   );
   const [cycle, setCycle] = useState<Cycle>("monthly");
   const [busy, setBusy] = useState<string | null>(null);
@@ -81,6 +81,19 @@ export function Billing() {
         {e.subscriptionStatus === "cancelling" && (
           <span className="muted" style={{ fontSize: 12 }}>Cancels at the end of this cycle — access continues until then.</span>
         )}
+      </div>
+
+      {/* AI credit balance */}
+      <div className="card" style={{ padding: 14, display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center", background: "var(--surface-2)" }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 750 }}>{e.quotaLeft}</div>
+          <div className="muted" style={{ fontSize: 12 }}>AI prompts available</div>
+        </div>
+        <div className="muted" style={{ fontSize: 12.5, lineHeight: 1.6 }}>
+          {Math.max(0, e.quotaTotal - e.quotaUsed)} left in your plan this cycle
+          {e.purchased > 0 ? <> · {e.purchased} purchased credit{e.purchased === 1 ? "" : "s"} (never expire)</> : ""}
+          {e.quotaResetDate && e.quotaTotal > 0 ? <><br />Plan quota resets {new Date(e.quotaResetDate).toLocaleDateString()}</> : ""}
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: 12 }}>
