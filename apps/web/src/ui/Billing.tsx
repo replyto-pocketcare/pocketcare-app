@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useEntitlement } from "../entitlement";
 import { PLANS, CREDIT_PACKS, price, type PaidTier, type Cycle } from "../billing/plans";
-import { startSubscription, buyCredits } from "../billing";
+import { startSubscription, buyCredits, cancelSubscription } from "../billing";
 import { useTier, setTier } from "../tier";
 
 const FREE_FEATURES = ["All account types (bank, cash, cards, stocks…)", "Categories, labels, budgets, goals", "Transactions, transfers, search"];
@@ -54,10 +54,25 @@ export function Billing() {
         </div>
       </div>
 
-      <div className="muted" style={{ fontSize: 13 }}>
-        You’re on the <strong style={{ color: "var(--text)", textTransform: "capitalize" }}>{e.tier}</strong> plan
-        {e.isTrial ? ` · trial (${e.trialDaysLeft}d left)` : e.subscriptionStatus && e.subscriptionStatus !== "active" ? ` · ${e.subscriptionStatus}` : ""}.
-        {e.tier !== "free" && <> AI: {e.quotaLeft} prompts left this cycle.</>}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div className="muted" style={{ fontSize: 13 }}>
+          You’re on the <strong style={{ color: "var(--text)", textTransform: "capitalize" }}>{e.tier}</strong> plan
+          {e.isTrial ? ` · trial (${e.trialDaysLeft}d left)` : e.subscriptionStatus && e.subscriptionStatus !== "active" ? ` · ${e.subscriptionStatus}` : ""}.
+          {e.tier !== "free" && <> AI: {e.quotaLeft} prompts left this cycle.</>}
+        </div>
+        {e.subscriptionStatus === "active" && (
+          <button className="chip" disabled={!!busy} style={{ fontSize: 12, color: "var(--negative)", borderColor: "var(--negative)" }}
+            onClick={async () => {
+              if (typeof window !== "undefined" && !window.confirm("Cancel your subscription? You'll keep access until the end of the current billing cycle.")) return;
+              setBusy("cancel"); setMsg(null);
+              try { const r = await cancelSubscription(); setMsg(r.ok ? `Cancelled — you keep access until ${r.ends_at ? new Date(r.ends_at).toLocaleDateString() : "the cycle ends"}.` : "Couldn't cancel."); }
+              catch (err) { setMsg((err as Error).message); }
+              finally { setBusy(null); }
+            }}>{busy === "cancel" ? "Cancelling…" : "Cancel plan"}</button>
+        )}
+        {e.subscriptionStatus === "cancelling" && (
+          <span className="muted" style={{ fontSize: 12 }}>Cancels at the end of this cycle — access continues until then.</span>
+        )}
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: 12 }}>

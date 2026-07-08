@@ -128,6 +128,7 @@ supabase secrets set RZP_PLAN_LITE_MONTHLY=plan_... RZP_PLAN_LITE_YEARLY=plan_..
 ```bash
 supabase functions deploy razorpay-subscription
 supabase functions deploy razorpay-credits
+supabase functions deploy razorpay-cancel
 supabase functions deploy razorpay-webhook --no-verify-jwt
 ```
 

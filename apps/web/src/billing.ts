@@ -59,6 +59,11 @@ export async function startSubscription(tier: PaidTier, cycle: Cycle): Promise<{
   return openCheckout({ key: key_id, subscription_id, description: `PocketCare ${tier} (${cycle})`, prefill: await prefill() });
 }
 
+/** Cancel the current subscription at cycle end (access continues until then). */
+export async function cancelSubscription(): Promise<{ ok: boolean; ends_at: string | null }> {
+  return invoke<{ ok: boolean; ends_at: string | null }>("razorpay-cancel", {});
+}
+
 /** Buy a one-time AI credit pack; the webhook adds the credits shortly after. */
 export async function buyCredits(pack: CreditPackId): Promise<{ ok: boolean }> {
   await loadRazorpay();

@@ -260,7 +260,7 @@ export default function AssistantPage() {
   return (
     <div style={{ display: "grid", gap: 14, maxWidth: 760 }} className="fade-up">
       {!disclaimerAcked && (
-        <Modal onClose={ackDisclaimer}>
+        <Modal open onClose={ackDisclaimer}>
           <div style={{ padding: 24, display: "grid", gap: 16 }}>
             <h2>Privacy & AI</h2>
             <p className="muted">
