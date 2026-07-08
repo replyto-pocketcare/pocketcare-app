@@ -50,6 +50,7 @@ Deno.serve(async (req: Request) => {
   try {
     if (event === "subscription.activated" || event === "subscription.charged" || event === "subscription.updated") {
       const sub = evt.payload?.subscription?.entity;
+      const payment = evt.payload?.payment?.entity;
       const userId = sub?.notes?.user_id;
       const tier = planMap[sub?.plan_id] || sub?.notes?.tier || "lite";
       if (userId) {
@@ -64,6 +65,15 @@ Deno.serve(async (req: Request) => {
           monthly_quota_used: 0,
           quota_reset_date: iso(sub.current_end),
         }).eq("user_id", userId);
+
+        // Record the charge for billing history / invoices (idempotent by payment id).
+        if (payment?.id) {
+          await supabase.from("payments").insert({
+            user_id: userId, kind: "subscription",
+            razorpay_subscription_id: sub.id, razorpay_payment_id: payment.id, razorpay_order_id: payment.order_id ?? null,
+            amount: payment.amount ?? null, currency: payment.currency ?? "INR", status: "captured", credits_added: 0,
+          });
+        }
       }
     } else if (["subscription.halted", "subscription.cancelled", "subscription.completed", "subscription.paused"].includes(event)) {
       const sub = evt.payload?.subscription?.entity;

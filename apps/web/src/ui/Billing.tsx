@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@powersync/react";
 import { useEntitlement } from "../entitlement";
+import { useSession } from "../account";
 import { PLANS, CREDIT_PACKS, price, type PaidTier, type Cycle } from "../billing/plans";
 import { startSubscription, buyCredits, cancelSubscription } from "../billing";
+import { openInvoice, type InvoicePayment } from "../billing/invoice";
 import { useTier, setTier } from "../tier";
 
 const FREE_FEATURES = ["All account types (bank, cash, cards, stocks…)", "Categories, labels, budgets, goals", "Transactions, transfers, search"];
@@ -12,6 +15,11 @@ const PAID_EXTRA = ["Detailed Insights & Statements", "Ask PocketCare AI assista
 export function Billing() {
   const e = useEntitlement();
   const devTier = useTier();
+  const session = useSession();
+  const email = session?.email ?? "";
+  const { data: payments = [] } = useQuery<InvoicePayment>(
+    "SELECT id, created_at, kind, amount, currency, credits_added, razorpay_payment_id, razorpay_order_id, status FROM payments ORDER BY created_at DESC LIMIT 50",
+  );
   const [cycle, setCycle] = useState<Cycle>("monthly");
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -105,6 +113,23 @@ export function Billing() {
       </div>
 
       {msg && <div className="card" style={{ padding: 10, fontSize: 13, background: "var(--accent-ghost)", borderColor: "var(--accent-soft)" }}>{msg}</div>}
+
+      {/* Billing history + invoices */}
+      {payments.length > 0 && (
+        <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+          <strong style={{ fontSize: 14 }}>Billing history</strong>
+          <div style={{ display: "grid", gap: 6 }}>
+            {payments.map((p) => (
+              <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, fontSize: 13, flexWrap: "wrap" }}>
+                <span className="muted" style={{ minWidth: 0 }}>
+                  {p.created_at ? new Date(p.created_at).toLocaleDateString() : ""} · {p.kind === "credits" ? `${p.credits_added ?? 0} AI credits` : "Subscription"} · ₹{((p.amount ?? 0) / 100).toFixed(2)}
+                </span>
+                <button className="chip" style={{ padding: "2px 10px", fontSize: 12 }} onClick={() => openInvoice(p, email)}>Invoice</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="muted" style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 6, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
         Preview tier (dev):
