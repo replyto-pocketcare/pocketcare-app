@@ -85,7 +85,7 @@ export default function SubscriptionsPage() {
         <h1 style={{ margin: 0 }}>{t("pages.subscriptions", "Subscriptions")}</h1>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button className="btn ghost" onClick={() => setShowSim(true)}>Before you subscribe…</button>
-          <button className="btn" onClick={() => setShowAdd(true)}>+ Add subscription</button>
+          {subs.length > 0 && <button className="btn" onClick={() => setShowAdd(true)}>+ Add subscription</button>}
         </div>
       </div>
 
