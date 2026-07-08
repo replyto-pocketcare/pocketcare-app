@@ -1,12 +1,16 @@
 import { useQuery } from "@powersync/react";
+import { useTier } from "./tier";
 
 export function usePremiumStatus() {
   const { data } = useQuery("SELECT * FROM entitlements LIMIT 1");
+  const localTier = useTier();
   const ent = data?.[0];
 
-  if (!ent) return { isPremiumUser: false, hasActiveTrial: false, daysRemaining: 0 };
+  const dbTier = ent?.tier || "free";
+  const isPremiumUser = localTier === "premium" || dbTier === "premium";
 
-  const isPremiumUser = ent.tier === "premium";
+  if (!ent) return { isPremiumUser, hasActiveTrial: false, daysRemaining: 0 };
+
   let hasActiveTrial = false;
   let daysRemaining = 0;
 
