@@ -32,7 +32,7 @@ Deno.serve(async (req: Request) => {
   }
   if (!supabaseUrl || !serviceKey) return json({ error: "Supabase environment not configured." });
 
-  const supabase = createClient(supabaseUrl, serviceKey);
+  const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "pocketcare" } });
   const { data: { user }, error: authErr } = await supabase.auth.getUser(auth.replace("Bearer ", ""));
   if (authErr || !user) return json({ error: "Unauthorized" });
 

@@ -143,6 +143,18 @@ supabase functions deploy razorpay-webhook --no-verify-jwt
 entitlements with the service role; the client reads them via sync and gates
 features with `useEntitlement()`.
 
+**6. Expose the `pocketcare` schema to PostgREST (REQUIRED).** The edge functions
+read/write `pocketcare.entitlements` and `pocketcare.payments` via the Supabase
+client (`{ db: { schema: "pocketcare" } }`). PostgREST only serves schemas in its
+allow-list (default `public, graphql_public`), so `pocketcare` MUST be added or
+every function's DB call fails silently — payments succeed but no credits/plan
+change land. Either add `pocketcare` under **Dashboard → Project Settings → API →
+Exposed schemas**, or run in SQL:
+```sql
+alter role authenticator set pgrst.db_schemas = 'public, graphql_public, pocketcare';
+notify pgrst, 'reload config';
+```
+
 Client checkout uses Razorpay Checkout (`src/billing.ts`); Settings → Plan &
 billing (`src/ui/Billing.tsx`) drives upgrades + credit purchases. A "Preview
 tier (dev)" toggle remains for local testing. NOT tested against live Razorpay
