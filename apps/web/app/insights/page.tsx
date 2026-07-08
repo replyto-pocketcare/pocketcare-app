@@ -74,7 +74,20 @@ export default function InsightsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>{t("pages.insights", "Insights")} <span className="muted" style={{ fontSize: 13 }}>· {base}</span></h1>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>{t("pages.insights", "Insights")} <span className="muted" style={{ fontSize: 13 }}>· {base}</span></h1>
+        <Link href="/insights/feed" className="btn" style={{ padding: "8px 14px", fontSize: 13 }}>✦ Open insight feed</Link>
+      </div>
+
+      <Link href="/insights/feed" className="card" style={{ padding: 16, display: "flex", alignItems: "center", gap: 14,
+        background: "linear-gradient(100deg, var(--accent-ghost), var(--surface-2))", border: "1px solid var(--accent-soft)" }}>
+        <span style={{ fontSize: 26 }}>✦</span>
+        <span style={{ display: "grid", gap: 2 }}>
+          <strong>Today’s insight stack</strong>
+          <span className="muted" style={{ fontSize: 13 }}>Swipe through weekly recaps, budget alerts &amp; savings wins.</span>
+        </span>
+        <span style={{ marginLeft: "auto", color: "var(--accent)" }}>→</span>
+      </Link>
 
       <Panel title="Cashflow">
         <ResponsiveContainer width="100%" height={280}>
