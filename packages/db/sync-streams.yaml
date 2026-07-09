@@ -41,14 +41,24 @@ streams:
       - SELECT * FROM pocketcare.assistant_messages WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.assistant_memory WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.payments WHERE user_id = auth.user_id()
-      - SELECT * FROM pocketcare.contacts WHERE user_id = auth.user_id()
-      - SELECT * FROM pocketcare.split_groups WHERE user_id = auth.user_id()
-      - SELECT * FROM pocketcare.split_group_members WHERE user_id = auth.user_id()
-      - SELECT * FROM pocketcare.shared_expenses WHERE user_id = auth.user_id()
-      - SELECT * FROM pocketcare.shared_expense_shares WHERE user_id = auth.user_id()
-      - SELECT * FROM pocketcare.shared_expense_payers WHERE user_id = auth.user_id()
+      # --- splits: private per-user rows ---
       - SELECT * FROM pocketcare.expense_postings WHERE user_id = auth.user_id()
-      - SELECT * FROM pocketcare.settlements WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.split_invitations WHERE inviter = auth.user_id()
+      - SELECT * FROM pocketcare.connections WHERE user_a = auth.user_id() OR user_b = auth.user_id()
+
+  # Splits: the SHARED ledger, visible by group membership (one copy, no dupes).
+  # Children carry group_id so they filter by the same membership subquery.
+  split_shared:
+    auto_subscribe: true
+    queries:
+      - SELECT * FROM pocketcare.split_groups WHERE id IN (SELECT group_id FROM pocketcare.split_group_members WHERE user_id = auth.user_id() AND deleted_at IS NULL)
+      - SELECT * FROM pocketcare.split_group_members WHERE group_id IN (SELECT group_id FROM pocketcare.split_group_members WHERE user_id = auth.user_id() AND deleted_at IS NULL)
+      - SELECT * FROM pocketcare.expenses WHERE group_id IN (SELECT group_id FROM pocketcare.split_group_members WHERE user_id = auth.user_id() AND deleted_at IS NULL)
+      - SELECT * FROM pocketcare.expense_participants WHERE group_id IN (SELECT group_id FROM pocketcare.split_group_members WHERE user_id = auth.user_id() AND deleted_at IS NULL)
+      - SELECT * FROM pocketcare.settlements WHERE group_id IN (SELECT group_id FROM pocketcare.split_group_members WHERE user_id = auth.user_id() AND deleted_at IS NULL)
+      # co-members' + connections' display identity (name/email) so we can render them
+      - SELECT id, display_name, email, created_at, updated_at FROM pocketcare.profiles WHERE id IN (SELECT user_id FROM pocketcare.split_group_members WHERE deleted_at IS NULL AND group_id IN (SELECT group_id FROM pocketcare.split_group_members WHERE user_id = auth.user_id() AND deleted_at IS NULL))
+      - SELECT id, display_name, email, created_at, updated_at FROM pocketcare.profiles WHERE id IN (SELECT (CASE WHEN user_a = auth.user_id() THEN user_b ELSE user_a END) FROM pocketcare.connections WHERE deleted_at IS NULL AND (user_a = auth.user_id() OR user_b = auth.user_id()))
 
   # Global reference / lookup data — same for everyone, read-only.
   # These back the enum→table normalization (id is the code string).

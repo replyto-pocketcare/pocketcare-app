@@ -16,7 +16,7 @@ import { useAccountBalances, useBaseCurrency } from "../hooks";
 import { useAmountsHidden } from "../prefs";
 import { colorForId } from "../colors";
 import { ProgressBar } from "../ui/ProgressBar";
-import { useFriendBalances, useContacts } from "../splits/hooks";
+import { useFriendBalances, useUserProfiles } from "../splits/hooks";
 import type { TileId } from "../dashboard";
 
 const PIE = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#4f46e5", "#7c7264"];
@@ -82,8 +82,8 @@ function SplitsTile() {
   const hidden = useAmountsHidden();
   const base = useBaseCurrency();
   const balances = useFriendBalances();
-  const contacts = useContacts();
-  const name = (id: string) => contacts.find((c) => c.id === id)?.name ?? "?";
+  const profiles = useUserProfiles();
+  const name = (id: string) => profiles.get(id)?.name ?? "Someone";
   const owed = balances.reduce((s, b) => s + Math.max(0, b.net), 0);
   const owe = balances.reduce((s, b) => s + Math.max(0, -b.net), 0);
   const top = [...balances].filter((b) => b.net !== 0).sort((a, b) => Math.abs(b.net) - Math.abs(a.net)).slice(0, 3);
@@ -97,8 +97,8 @@ function SplitsTile() {
       {top.length > 0 ? (
         <div style={{ display: "grid", gap: 6 }}>
           {top.map((b) => (
-            <div key={b.contactId} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name(b.contactId)}</span>
+            <div key={b.userId} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name(b.userId)}</span>
               <span style={{ flexShrink: 0, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{b.net > 0 ? `owes you ${fmt(b.net)}` : `you owe ${fmt(-b.net)}`}</span>
             </div>
           ))}

@@ -12,6 +12,8 @@ const profiles = new Table({
   locale: column.text,
   rate_mode: column.text,
   theme: column.text,
+  display_name: column.text,
+  email: column.text,
   created_at: column.text,
   updated_at: column.text,
 });
@@ -303,114 +305,40 @@ const assistant_memory = new Table({
   updated_at: column.text,
 });
 
-// --- Expense splitting (Phase 1) ---
-const contacts = new Table({
-  user_id: column.text,
-  name: column.text,
-  email: column.text,
-  avatar_color: column.text,
-  linked_user_id: column.text,
-  is_placeholder: column.integer,
-  archived: column.integer,
-  created_at: column.text,
-  updated_at: column.text,
-  deleted_at: column.text,
-});
+// --- Expense splitting (multi-user shared ledger) ---
 const split_groups = new Table({
-  user_id: column.text,
-  name: column.text,
-  kind: column.text,
-  start_date: column.text,
-  end_date: column.text,
-  auto_split: column.integer,
-  default_mode: column.text,
-  currency: column.text,
-  archived: column.integer,
-  created_at: column.text,
-  updated_at: column.text,
-  deleted_at: column.text,
+  created_by: column.text, name: column.text, kind: column.text, is_direct: column.integer,
+  start_date: column.text, end_date: column.text, auto_split: column.integer,
+  default_mode: column.text, currency: column.text, archived: column.integer,
+  created_at: column.text, updated_at: column.text, deleted_at: column.text,
 });
 const split_group_members = new Table(
-  {
-    user_id: column.text,
-    group_id: column.text,
-    contact_id: column.text,
-    weight: column.integer,
-    created_at: column.text,
-    updated_at: column.text,
-    deleted_at: column.text,
-  },
-  { indexes: { by_group: ["group_id"] } },
+  { group_id: column.text, user_id: column.text, role: column.text, created_at: column.text, updated_at: column.text, deleted_at: column.text },
+  { indexes: { by_group: ["group_id"], by_user: ["user_id"] } },
 );
-const shared_expenses = new Table(
-  {
-    user_id: column.text,
-    created_by: column.text,
-    group_id: column.text,
-    description: column.text,
-    total_amount: column.integer,
-    currency: column.text,
-    occurred_at: column.text,
-    split_mode: column.text,
-    created_at: column.text,
-    updated_at: column.text,
-    deleted_at: column.text,
-  },
-  { indexes: { by_user: ["user_id", "occurred_at"] } },
+const expenses = new Table(
+  { group_id: column.text, created_by: column.text, description: column.text, amount: column.integer, currency: column.text, occurred_at: column.text, split_mode: column.text, version: column.integer, created_at: column.text, updated_at: column.text, deleted_at: column.text },
+  { indexes: { by_group: ["group_id", "occurred_at"] } },
 );
-const shared_expense_shares = new Table(
-  {
-    user_id: column.text,
-    expense_id: column.text,
-    contact_id: column.text,
-    share_amount: column.integer,
-    created_at: column.text,
-    updated_at: column.text,
-    deleted_at: column.text,
-  },
-  { indexes: { by_expense: ["expense_id"] } },
-);
-const shared_expense_payers = new Table(
-  {
-    user_id: column.text,
-    expense_id: column.text,
-    contact_id: column.text,
-    paid_amount: column.integer,
-    created_at: column.text,
-    updated_at: column.text,
-    deleted_at: column.text,
-  },
-  { indexes: { by_expense: ["expense_id"] } },
-);
-const expense_postings = new Table(
-  {
-    user_id: column.text,
-    expense_id: column.text,
-    transaction_id: column.text,
-    role: column.text,
-    created_at: column.text,
-    updated_at: column.text,
-    deleted_at: column.text,
-  },
-  { indexes: { by_expense: ["expense_id"] } },
+const expense_participants = new Table(
+  { expense_id: column.text, group_id: column.text, user_id: column.text, paid_amount: column.integer, share_amount: column.integer, created_at: column.text, updated_at: column.text, deleted_at: column.text },
+  { indexes: { by_group: ["group_id"], by_expense: ["expense_id"] } },
 );
 const settlements = new Table(
-  {
-    user_id: column.text,
-    contact_id: column.text,
-    group_id: column.text,
-    amount: column.integer,
-    direction: column.text,
-    account_id: column.text,
-    offset_transaction_id: column.text,
-    note: column.text,
-    settled_at: column.text,
-    created_at: column.text,
-    updated_at: column.text,
-    deleted_at: column.text,
-  },
-  { indexes: { by_contact: ["contact_id"] } },
+  { group_id: column.text, from_user: column.text, to_user: column.text, amount: column.integer, currency: column.text, method: column.text, note: column.text, settled_at: column.text, created_by: column.text, created_at: column.text, updated_at: column.text, deleted_at: column.text },
+  { indexes: { by_group: ["group_id"] } },
 );
+const expense_postings = new Table(
+  { user_id: column.text, expense_id: column.text, settlement_id: column.text, transaction_id: column.text, role: column.text, created_at: column.text, updated_at: column.text, deleted_at: column.text },
+  { indexes: { by_expense: ["expense_id"] } },
+);
+const split_invitations = new Table({
+  group_id: column.text, inviter: column.text, invitee_email: column.text, token: column.text,
+  status: column.text, accepted_by: column.text, created_at: column.text, updated_at: column.text, expires_at: column.text,
+});
+const connections = new Table({
+  user_a: column.text, user_b: column.text, created_at: column.text, deleted_at: column.text,
+});
 
 export const AppSchema = new Schema({
   profiles,
@@ -437,15 +365,15 @@ export const AppSchema = new Schema({
   assistant_threads,
   assistant_messages,
   assistant_memory,
-  // Expense splitting
-  contacts,
+  // Expense splitting (multi-user)
   split_groups,
   split_group_members,
-  shared_expenses,
-  shared_expense_shares,
-  shared_expense_payers,
-  expense_postings,
+  expenses,
+  expense_participants,
   settlements,
+  expense_postings,
+  split_invitations,
+  connections,
   // Lookup / reference tables
   account_types,
   transaction_types,
