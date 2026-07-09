@@ -23,6 +23,24 @@ export async function addContact(name: string, email?: string): Promise<string> 
 
 export type SplitMode = "equal" | "exact" | "percent";
 
+/** Create a split group / trip with the given contacts (you are added as a member). */
+export async function createGroup(opts: {
+  name: string; kind: "group" | "trip"; currency: string;
+  startDate?: string | null; endDate?: string | null; autoSplit?: boolean;
+  defaultMode?: SplitMode; memberContactIds: string[];
+}): Promise<string> {
+  const groupId = await insertRow("split_groups", {
+    name: opts.name.trim(), kind: opts.kind, currency: opts.currency,
+    start_date: opts.startDate ?? null, end_date: opts.endDate ?? null,
+    auto_split: opts.autoSplit ? 1 : 0, default_mode: opts.defaultMode ?? "equal", archived: 0,
+  });
+  await insertRow("split_group_members", { group_id: groupId, contact_id: null, weight: 1 }); // self
+  for (const cid of opts.memberContactIds) {
+    await insertRow("split_group_members", { group_id: groupId, contact_id: cid, weight: 1 });
+  }
+  return groupId;
+}
+
 export interface ParticipantInput {
   contactId: string | null; // null = self
   /** exact minor amount (exact mode) or percentage (percent mode); ignored for equal */

@@ -9,7 +9,7 @@ import { getRepositories } from "../../../src/powersync";
 import { LabelPicker } from "../../../src/ui/LabelPicker";
 import { SearchSelect } from "../../../src/ui/SearchSelect";
 import { AccountBadge } from "../../../src/ui/AccountBadge";
-import { useContacts } from "../../../src/splits/hooks";
+import { useContacts, useGroups } from "../../../src/splits/hooks";
 import { addContact, createSplitExpense, type SplitMode } from "../../../src/splits/write";
 import { splitEqual, splitByWeights } from "../../../src/splits/math";
 
@@ -50,6 +50,11 @@ export default function NewTransactionPage() {
 
   // Split.
   const contacts = useContacts();
+  const groups = useGroups();
+  const { data: groupMembers = [] } = useQuery<{ group_id: string; contact_id: string }>(
+    "SELECT group_id, contact_id FROM split_group_members WHERE deleted_at IS NULL AND contact_id IS NOT NULL",
+  );
+  const [splitGroupId, setSplitGroupId] = useState("");
   const [splitOn, setSplitOn] = useState(false);
   const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [includeSelf, setIncludeSelf] = useState(true);
@@ -167,7 +172,7 @@ export default function NewTransactionPage() {
           description: combinedDescription || null,
           note: note.trim() || null,
           occurredAt: occurredAtIso(),
-          groupId: null,
+          groupId: splitGroupId || null,
         });
         router.push("/transactions");
         return;
@@ -336,6 +341,24 @@ export default function NewTransactionPage() {
             const net = selfPaid - selfShare;
             return (
               <div style={{ display: "grid", gap: 12 }}>
+                {/* group / trip */}
+                {groups.length > 0 && (
+                  <label style={{ display: "grid", gap: 4 }}>
+                    <span className="muted" style={{ fontSize: 12 }}>Add to a group / trip (optional)</span>
+                    <select className="input" value={splitGroupId} onChange={(e) => {
+                      const gid = e.target.value;
+                      setSplitGroupId(gid);
+                      if (gid) {
+                        setSplitWith(groupMembers.filter((m) => m.group_id === gid).map((m) => m.contact_id));
+                        setIncludeSelf(true);
+                      }
+                    }}>
+                      <option value="">Not in a group</option>
+                      {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+                    </select>
+                  </label>
+                )}
+
                 {/* mode */}
                 <div style={{ display: "flex", gap: 6 }}>
                   {(["equal", "exact", "percent"] as SplitMode[]).map((m) => (

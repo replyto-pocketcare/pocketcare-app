@@ -16,6 +16,7 @@ import { useAccountBalances, useBaseCurrency } from "../hooks";
 import { useAmountsHidden } from "../prefs";
 import { colorForId } from "../colors";
 import { ProgressBar } from "../ui/ProgressBar";
+import { useFriendBalances, useContacts } from "../splits/hooks";
 import type { TileId } from "../dashboard";
 
 const PIE = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#4f46e5", "#7c7264"];
@@ -34,6 +35,7 @@ export interface TileMeta {
 export const TILE_CATALOG: TileMeta[] = [
   { id: "recent", title: "Recent activity", span: "half" },
   { id: "spending", title: "Spending this month", span: "half" },
+  { id: "splits", title: "Friends & splits", span: "half" },
   { id: "budgets", title: "Budgets", span: "full" },
   { id: "goals", title: "Goals", span: "full" },
   { id: "cashflow", title: "Cashflow", span: "full", premium: true },
@@ -62,6 +64,7 @@ export function TileView({ id }: { id: TileId }) {
   switch (id) {
     case "recent": return <RecentTile />;
     case "spending": return <SpendingTile />;
+    case "splits": return <SplitsTile />;
     case "budgets": return <BudgetsTile />;
     case "goals": return <GoalsTile />;
     case "cashflow": return <CashflowTile />;
@@ -74,6 +77,38 @@ export function TileView({ id }: { id: TileId }) {
 }
 
 // ------------------------------- Tiles -------------------------------
+
+function SplitsTile() {
+  const hidden = useAmountsHidden();
+  const base = useBaseCurrency();
+  const balances = useFriendBalances();
+  const contacts = useContacts();
+  const name = (id: string) => contacts.find((c) => c.id === id)?.name ?? "?";
+  const owed = balances.reduce((s, b) => s + Math.max(0, b.net), 0);
+  const owe = balances.reduce((s, b) => s + Math.max(0, -b.net), 0);
+  const top = [...balances].filter((b) => b.net !== 0).sort((a, b) => Math.abs(b.net) - Math.abs(a.net)).slice(0, 3);
+  const fmt = (m: number) => (hidden ? "••••" : format(money(m, base), "en-US"));
+  return (
+    <TileCard title="Friends & splits" action={<Link href="/friends" className="muted" style={{ fontSize: 13 }}>Open →</Link>}>
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+        <div><div className="muted" style={{ fontSize: 12 }}>You’re owed</div><div style={{ fontSize: 22, fontWeight: 750, color: "var(--positive)" }}>{fmt(owed)}</div></div>
+        <div><div className="muted" style={{ fontSize: 12 }}>You owe</div><div style={{ fontSize: 22, fontWeight: 750, color: "var(--negative)" }}>{fmt(owe)}</div></div>
+      </div>
+      {top.length > 0 ? (
+        <div style={{ display: "grid", gap: 6 }}>
+          {top.map((b) => (
+            <div key={b.contactId} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name(b.contactId)}</span>
+              <span style={{ flexShrink: 0, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{b.net > 0 ? `owes you ${fmt(b.net)}` : `you owe ${fmt(-b.net)}`}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="muted" style={{ fontSize: 13, margin: 0 }}>No open balances yet. Split an expense from <Link href="/transactions/new">Add transaction</Link>.</p>
+      )}
+    </TileCard>
+  );
+}
 
 function RecentTile() {
   const hidden = useAmountsHidden();

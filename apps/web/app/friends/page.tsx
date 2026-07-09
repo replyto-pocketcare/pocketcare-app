@@ -63,7 +63,10 @@ export default function FriendsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>Friends</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>Friends</h1>
+        <Link href="/groups" className="btn ghost">Groups &amp; trips</Link>
+      </div>
 
       <section className="card" style={{ padding: 20, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <div>
