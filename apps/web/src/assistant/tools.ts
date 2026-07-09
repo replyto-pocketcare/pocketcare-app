@@ -81,12 +81,15 @@ export const ASSISTANT_TOOLS = [
   },
   {
     name: "create_group",
-    description: "Create a split group or trip (for sharing expenses with friends). After creating, tell the user to invite people from Groups & trips → Invite.",
+    description: "Create a split group or trip (for sharing expenses with friends). For a trip, include its dates. After creating, tell the user to invite people from Groups & trips → Invite.",
     input_schema: {
       type: "object",
       properties: {
         name: { type: "string", description: "Group/trip name, e.g. 'Goa'." },
         kind: { type: "string", enum: ["group", "trip"], description: "'trip' for a dated getaway, 'group' for an ongoing household/flatmates group." },
+        start_date: { type: "string", description: "Trip start date, ISO YYYY-MM-DD (optional; for trips)." },
+        end_date: { type: "string", description: "Trip end date, ISO YYYY-MM-DD (optional; for trips)." },
+        auto_split: { type: "boolean", description: "If true (and dates are set), expenses added within the dates auto-split equally with the group." },
       },
       required: ["name", "kind"],
     },
@@ -123,7 +126,7 @@ export function describeToolCall(name: string, input: Record<string, unknown>): 
     case "create_subscription":
       return `Add subscription “${input.name}” — ${cur} ${input.amount}/${String(input.billing_cycle).replace("ly", "")}`;
     case "create_group":
-      return `Create ${input.kind} “${input.name}”`;
+      return `Create ${input.kind} “${input.name}”${input.start_date ? ` · ${input.start_date}${input.end_date ? `–${input.end_date}` : ""}` : ""}${input.auto_split ? " · auto-split" : ""}`;
     case "remember":
       return `Remembered: ${input.fact}`;
     default:
@@ -220,8 +223,13 @@ export async function executeTool(name: string, input: Record<string, unknown>):
 
   if (name === "create_group") {
     const kind = input.kind === "trip" ? "trip" : "group";
-    const id = await createGroup({ name: String(input.name).trim(), kind, currency: base });
-    return `Created ${kind} "${input.name}" (id ${id}). Invite people from Groups & trips.`;
+    const start = (input.start_date as string) || null;
+    const end = (input.end_date as string) || null;
+    const id = await createGroup({
+      name: String(input.name).trim(), kind, currency: base,
+      startDate: start, endDate: end, autoSplit: Boolean(input.auto_split) && !!start && !!end,
+    });
+    return `Created ${kind} "${input.name}"${start ? ` (${start}${end ? `–${end}` : ""})` : ""} (id ${id}). Invite people from Groups & trips.`;
   }
 
   if (name === "remember") {

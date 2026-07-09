@@ -25,7 +25,7 @@ export default function TemplatesPage() {
   const rules = useRules();
   const due = useDueRules();
   const { data: accounts = [] } = useQuery<{ id: string; name: string }>(
-    "SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real' ORDER BY created_at",
+    "SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real' AND type NOT IN ('stocks','mutual_funds') ORDER BY created_at",
   );
 
   const [showUpgrade, setShowUpgrade] = useState(false);

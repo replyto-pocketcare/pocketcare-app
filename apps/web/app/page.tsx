@@ -47,7 +47,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 24 }} className="fade-up">
+    <div style={{ display: "grid", gap: 24, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <h1>{t("pages.dashboard", "Dashboard")}</h1>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -62,10 +62,10 @@ export default function Dashboard() {
       </div>
 
       {/* Net worth hero */}
-      <section className="card" style={{ padding: 28, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <div>
+      <section className="card" style={{ padding: 28, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", minWidth: 0, maxWidth: "100%", boxSizing: "border-box" }}>
+        <div style={{ minWidth: 0 }}>
           <div className="muted" style={{ fontSize: 13 }}>{showAvailable ? t("netWorth.available", "Available net worth") : t("netWorth.title", "Net worth")}</div>
-          <div style={{ fontSize: 44, fontWeight: 750, letterSpacing: "-0.02em", color: "var(--forest)" }}>{fmt(net)}</div>
+          <div style={{ fontSize: "clamp(30px, 9vw, 44px)", fontWeight: 750, letterSpacing: "-0.02em", color: "var(--forest)", overflowWrap: "anywhere" }}>{fmt(net)}</div>
           <div className="muted" style={{ fontSize: 13 }}>Base currency {base}</div>
         </div>
         <button className="chip" data-active={showAvailable} onClick={() => setShowAvailable((v) => !v)}>

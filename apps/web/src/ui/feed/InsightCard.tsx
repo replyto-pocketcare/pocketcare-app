@@ -86,6 +86,7 @@ export function InsightCard({ card, layout }: { card: Card; layout: "mobile" | "
       <div className="card" style={{ height: "100%", display: "grid", gridTemplateColumns: "1.05fr 1fr", overflow: "hidden",
         background: "var(--surface)", boxShadow: "var(--shadow-lg)" }}>
         <div style={{ position: "relative", background: `radial-gradient(120% 100% at 30% 20%, ${glow}18, transparent 70%)` }}>
+          <div style={{ position: "absolute", inset: 22, borderRadius: 20, background: "var(--surface-2)", border: "1px solid var(--border)", boxShadow: "var(--shadow)" }} />
           <VisualHost card={card} />
         </div>
         <div style={{ padding: "36px 40px", display: "grid" }}>
@@ -99,6 +100,7 @@ export function InsightCard({ card, layout }: { card: Card; layout: "mobile" | "
     <div style={{ height: "100%", display: "grid", gridTemplateRows: "1fr auto", padding: "16px 20px 40px",
       background: `radial-gradient(90% 45% at 50% 15%, ${glow}14, transparent 70%)` }}>
       <div style={{ position: "relative", minHeight: 0 }}>
+        <div style={{ position: "absolute", inset: "14px 8px", borderRadius: 20, background: "var(--surface-2)", border: "1px solid var(--border)", boxShadow: "var(--shadow)" }} />
         <VisualHost card={card} />
       </div>
       <div className="card" style={{ padding: 22, background: "var(--surface)", boxShadow: "var(--shadow)" }}>

@@ -55,6 +55,7 @@ export default function GroupsPage() {
             <Link key={g.id} href={`/groups/${g.id}`} className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
               <div style={{ minWidth: 0 }}>
                 <strong>{g.name}</strong><span className="muted" style={{ fontSize: 12 }}> · {g.kind}</span>
+                {g.auto_split === 1 && <span style={{ fontSize: 11, color: "var(--accent)" }}> · auto-split</span>}
                 {g.start_date && <div className="muted" style={{ fontSize: 12 }}>{g.start_date}{g.end_date ? ` → ${g.end_date}` : ""}</div>}
               </div>
               <span style={{ color: "var(--accent)" }}>→</span>

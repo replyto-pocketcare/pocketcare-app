@@ -61,6 +61,7 @@ function SnapFeed({ cards, activeIndex, setActiveIndex }: { cards: Card[]; activ
   return (
     <div
       ref={scroller}
+      className="hide-scrollbar"
       style={{ height: "100%", overflowY: "auto", scrollSnapType: "y mandatory", overscrollBehavior: "contain", touchAction: "pan-y", borderRadius: 16 }}
     >
       {cards.map((c, i) => (
@@ -198,7 +199,9 @@ export function InsightFeed() {
   }
 
   return (
-    <div ref={ref} className="fade-up" style={{ position: "relative" }}>
+    // Negative bottom margin cancels the shell's bottom padding (FAB space) so
+    // the page itself doesn't add a second scrollbar next to the feed's swipe.
+    <div ref={ref} className="fade-up" style={{ position: "relative", marginBottom: -88 }}>
       <div style={{ height }}>
         <div style={{ position: "relative", height: "100%" }}>
           <ProgressRail total={total} activeIndex={activeIndex} layout={isDesktop ? "desktop" : "mobile"} onJump={setActiveIndex} />

@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { money } from "@pocketcare/money";
 import { useBaseCurrency } from "../../../src/hooks";
 import { useMoneyFmt } from "../../../src/ui/Money";
-import { updateRow } from "../../../src/write";
+import { updateRow, softDelete } from "../../../src/write";
 import { Modal } from "../../../src/ui/Modal";
+import { KebabMenu } from "../../../src/ui/KebabMenu";
 import { useGroup, useGroupExpenses, useGroupBalances, useGroupMemberIds, useUserProfiles } from "../../../src/splits/hooks";
 import { createInvite } from "../../../src/splits/write";
 
 export default function GroupDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const router = useRouter();
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
   const group = useGroup(id);
@@ -28,11 +30,36 @@ export default function GroupDetailPage() {
   const owe = balances.reduce((s, b) => s + Math.max(0, -b.net), 0);
 
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [eName, setEName] = useState("");
+  const [eStart, setEStart] = useState("");
+  const [eEnd, setEEnd] = useState("");
+  const [eAuto, setEAuto] = useState(false);
   const [email, setEmail] = useState("");
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  function openEdit() {
+    if (!group) return;
+    setEName(group.name); setEStart(group.start_date ?? ""); setEEnd(group.end_date ?? ""); setEAuto(group.auto_split === 1);
+    setEditOpen(true);
+  }
+  async function saveEdit() {
+    if (!group || !eName.trim()) return;
+    await updateRow("split_groups", group.id, {
+      name: eName.trim(), start_date: eStart || null, end_date: eEnd || null,
+      auto_split: eStart && eEnd && eAuto ? 1 : 0,
+    });
+    setEditOpen(false);
+  }
+  async function deleteGroup() {
+    if (!group) return;
+    if (typeof window !== "undefined" && !window.confirm(`Delete “${group.name}”? Its shared expenses stay in your ledger but the group is removed.`)) return;
+    await softDelete("split_groups", group.id);
+    router.replace("/groups");
+  }
 
   async function invite(withEmail: boolean) {
     setInviting(true); setInviteMsg(null); setInviteLink(null);
@@ -52,9 +79,19 @@ export default function GroupDetailPage() {
         <div>
           <Link href="/groups" className="muted" style={{ fontSize: 13 }}>← Groups</Link>
           <h1 style={{ margin: "6px 0 0" }}>{group.name} <span className="muted" style={{ fontSize: 14 }}>· {group.kind}</span></h1>
-          {group.start_date && <div className="muted" style={{ fontSize: 13 }}>{group.start_date}{group.end_date ? ` → ${group.end_date}` : ""}</div>}
+          <div className="muted" style={{ fontSize: 13, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 2 }}>
+            {group.start_date ? <span>📅 {group.start_date}{group.end_date ? ` – ${group.end_date}` : ""}</span> : <span>No dates set</span>}
+            <span>· {memberIds.length} member{memberIds.length === 1 ? "" : "s"}</span>
+            {group.auto_split === 1 && <span style={{ color: "var(--accent)" }}>· auto-split on</span>}
+          </div>
         </div>
-        <button className="btn" onClick={() => { setInviteOpen(true); setInviteLink(null); setInviteMsg(null); }}>+ Invite</button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button className="btn" onClick={() => { setInviteOpen(true); setInviteLink(null); setInviteMsg(null); }}>+ Invite</button>
+          <KebabMenu label="Group actions" items={[
+            { label: "Edit", onClick: openEdit },
+            { label: "Delete", danger: true, onClick: () => void deleteGroup() },
+          ]} />
+        </div>
       </div>
 
       <section className="card" style={{ padding: 20, display: "flex", gap: 24, flexWrap: "wrap" }}>
@@ -99,6 +136,26 @@ export default function GroupDetailPage() {
           </div>
         )}
       </section>
+
+      <Modal open={editOpen} onClose={() => setEditOpen(false)}>
+        <div style={{ display: "grid", gap: 12 }}>
+          <h2 style={{ margin: 0 }}>Edit {group.kind}</h2>
+          <input className="input" placeholder="Name" value={eName} onChange={(e) => setEName(e.target.value)} />
+          <span className="muted" style={{ fontSize: 12 }}>Dates (optional)</span>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input className="input" type="date" value={eStart} onChange={(e) => { setEStart(e.target.value); if (eEnd && e.target.value > eEnd) setEEnd(e.target.value); }} />
+            <input className="input" type="date" min={eStart || undefined} value={eEnd} onChange={(e) => setEEnd(e.target.value)} />
+          </div>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, opacity: eStart && eEnd ? 1 : 0.5 }}>
+            <input type="checkbox" checked={!!eStart && !!eEnd && eAuto} disabled={!eStart || !eEnd} onChange={(e) => setEAuto(e.target.checked)} />
+            Auto-split expenses within these dates
+          </label>
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
+            <button className="btn ghost" onClick={() => setEditOpen(false)}>Cancel</button>
+            <button className="btn" onClick={() => void saveEdit()} disabled={!eName.trim()}>Save</button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)}>
         <div style={{ display: "grid", gap: 12 }}>
