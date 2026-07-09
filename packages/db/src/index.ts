@@ -358,6 +358,15 @@ const recurring_rules = new Table(
   { indexes: { by_user: ["user_id", "next_due"] } },
 );
 
+const category_rules = new Table(
+  {
+    user_id: column.text, kind: column.text, key: column.text, category_id: column.text,
+    weight: column.integer, corrections: column.integer,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
+  },
+  { indexes: { by_user_key: ["user_id", "key"] } }
+);
+
 export const AppSchema = new Schema({
   profiles,
   entitlements,
@@ -394,6 +403,7 @@ export const AppSchema = new Schema({
   connections,
   transaction_templates,
   recurring_rules,
+  category_rules,
   // Lookup / reference tables
   account_types,
   transaction_types,

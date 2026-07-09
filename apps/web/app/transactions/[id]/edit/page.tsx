@@ -10,6 +10,8 @@ import { getRepositories } from "../../../../src/powersync";
 import { LabelPicker } from "../../../../src/ui/LabelPicker";
 import { SearchSelect } from "../../../../src/ui/SearchSelect";
 import { AccountBadge } from "../../../../src/ui/AccountBadge";
+import { useEntitlement } from "../../../../src/entitlement";
+import { useLearnCategory } from "../../../../src/categorize/hooks";
 
 type TxType = "expense" | "income" | "transfer" | "adjustment";
 
@@ -50,12 +52,17 @@ export default function EditTransactionPage() {
   const [itemsReady, setItemsReady] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const { isPaid } = useEntitlement();
+  const learnCategory = useLearnCategory();
+  const [originalCategoryId, setOriginalCategoryId] = useState<string | null>(null);
+
   useEffect(() => {
     if (tx && !ready) {
       setType(tx.type as TxType);
       setAccountId(tx.account_id);
       setAmount(String(toMajor(money(tx.amount, tx.currency))));
       setCategoryId(tx.category_id);
+      setOriginalCategoryId(tx.category_id);
       setPaymentMethod(tx.payment_method ?? "");
       setNote(tx.note ?? "");
       setDate(new Date(tx.occurred_at).toLocaleString("sv-SE", { timeZoneName: "short" }).substring(0, 16));
@@ -139,6 +146,11 @@ export default function EditTransactionPage() {
         occurred_at: new Date(date).toISOString(),
         items: type !== "transfer" ? payloadItems : null,
       });
+
+      if (type !== "transfer" && isPaid && categoryId !== originalCategoryId) {
+        void learnCategory(combinedDescription || "", categoryId, originalCategoryId);
+      }
+
       router.push("/transactions");
     } finally { setSaving(false); }
   }

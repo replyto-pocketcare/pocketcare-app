@@ -17,6 +17,7 @@ import { useTemplates, type Template } from "../../../src/templates/hooks";
 import { createTemplate, FREE_TEMPLATE_LIMIT } from "../../../src/templates/write";
 import { useEntitlement } from "../../../src/entitlement";
 import { UpgradeModal } from "../../../src/ui/UpgradeModal";
+import { useAutoCategorize, useLearnCategory } from "../../../src/categorize/hooks";
 
 type TxType = "expense" | "income" | "transfer";
 let counter = 0;
@@ -93,11 +94,34 @@ export default function NewTransactionPage() {
   const [tplSaved, setTplSaved] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
+  const combinedDescriptionText = useMemo(() => {
+    return type === "transfer" ? "" : items.map(it => it.description.trim()).filter(Boolean).join(", ");
+  }, [type, items]);
+  const autoCategorizeText = [combinedDescriptionText, note.trim()].filter(Boolean).join(" ");
+
+  // Auto-categorization
+  const [manualCategory, setManualCategory] = useState(false);
+  const { suggestedCategory, isAutoApplied, setIsAutoApplied } = useAutoCategorize(
+    autoCategorizeText,
+    categories,
+    isPaid && type !== "transfer"
+  );
+  const learnCategory = useLearnCategory();
+
+  // Auto-apply if not manually set
+  useEffect(() => {
+    if (suggestedCategory && !manualCategory && categoryId !== suggestedCategory) {
+      setCategoryId(suggestedCategory);
+      setIsAutoApplied(true);
+    }
+  }, [suggestedCategory, manualCategory, categoryId, setIsAutoApplied]);
+
   function applyTemplate(t: Template) {
     setType(t.type === "income" ? "income" : t.type === "transfer" ? "transfer" : "expense");
     setItems([{ id: `i${++counter}`, description: t.description ?? "", value: t.amount != null ? String(t.amount / 100) : "" }]);
     if (t.account_id) setAccountId(t.account_id);
     setCategoryId(t.category_id ?? null);
+    setManualCategory(true);
     setNote(t.note ?? "");
     if (t.payment_method) setPaymentMethod(t.payment_method);
     setSelectedLabels(t.labels ? t.labels.split(",").map((s) => s.trim()).filter(Boolean) : []);
@@ -252,6 +276,12 @@ export default function NewTransactionPage() {
           items: payload.length > 1 ? payload : undefined,
         });
       }
+
+      if (type !== "transfer" && autoCategorizeText && isPaid) {
+        // Fire and forget learning
+        void learnCategory(autoCategorizeText, categoryId, isAutoApplied ? suggestedCategory : null);
+      }
+
       router.push("/transactions");
     } finally {
       setSaving(false);
@@ -363,7 +393,29 @@ export default function NewTransactionPage() {
 
       {type !== "transfer" && (
         <Field label="Category">
-          <SearchSelect value={categoryId} onChange={setCategoryId} options={categoryOptions} placeholder="Search a category…" />
+          <div style={{ position: "relative" }}>
+            <SearchSelect 
+              value={categoryId} 
+              onChange={(val) => {
+                setCategoryId(val);
+                setManualCategory(true);
+                setIsAutoApplied(false);
+              }} 
+              options={categoryOptions} 
+              placeholder="Search a category…" 
+            />
+            {isAutoApplied && (
+              <div style={{
+                position: "absolute", top: -20, right: 0,
+                fontSize: 11, color: "var(--accent)", fontWeight: 600,
+                display: "flex", alignItems: "center", gap: 4,
+                background: "var(--accent-ghost)", padding: "2px 6px", borderRadius: 4,
+                border: "1px solid var(--accent-soft)"
+              }}>
+                ✦ Auto-categorised
+              </div>
+            )}
+          </div>
         </Field>
       )}
 
