@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ import { Logo } from "../src/ui/Logo";
 import { MenuIcon, PlusIcon, DownloadIcon } from "../src/ui/icons";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
 import { TrialNotice } from "../src/ui/TrialNotice";
+import { runRecurring } from "../src/templates/write";
 
 const APP_VERSION = "0.1.0";
 
@@ -23,6 +24,7 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
   { title: "Money", items: [
     { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "▤" },
     { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "⇅" },
+    { href: "/templates", tkey: "nav.templates", label: "Templates", icon: "▧" },
     { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "▭" },
     { href: "/friends", tkey: "nav.friends", label: "Friends", icon: "◑" },
     { href: "/groups", tkey: "nav.groups", label: "Groups & trips", icon: "◇" },
@@ -73,6 +75,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authStatus === "none" && !bare) router.replace("/onboarding");
   }, [authStatus, bare, router]);
+
+  // Materialise any due auto-post recurring transactions, once, on app open.
+  const recurringRan = useRef(false);
+  useEffect(() => {
+    if (recurringRan.current || (authStatus !== "user" && authStatus !== "guest")) return;
+    recurringRan.current = true;
+    const t = setTimeout(() => { void runRecurring().catch(() => {}); }, 2500); // let sync settle first
+    return () => clearTimeout(t);
+  }, [authStatus]);
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 

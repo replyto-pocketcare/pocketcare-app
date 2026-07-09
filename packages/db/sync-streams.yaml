@@ -45,6 +45,8 @@ streams:
       - SELECT * FROM pocketcare.expense_postings WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.split_invitations WHERE inviter = auth.user_id()
       - SELECT * FROM pocketcare.connections WHERE user_a = auth.user_id() OR user_b = auth.user_id()
+      - SELECT * FROM pocketcare.transaction_templates WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.recurring_rules WHERE user_id = auth.user_id()
 
   # Splits: the SHARED ledger, visible by group membership (one copy, no dupes).
   # Uses JOINs to traverse relationships and evaluate auth.user_id() safely.

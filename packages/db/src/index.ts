@@ -339,6 +339,23 @@ const split_invitations = new Table({
 const connections = new Table({
   user_a: column.text, user_b: column.text, created_at: column.text, deleted_at: column.text,
 });
+const transaction_templates = new Table(
+  {
+    user_id: column.text, name: column.text, type: column.text, amount: column.integer, currency: column.text,
+    account_id: column.text, to_account_id: column.text, category_id: column.text, description: column.text,
+    note: column.text, payment_method: column.text, labels: column.text, split_group_id: column.text, split_mode: column.text,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
+  },
+  { indexes: { by_user: ["user_id"] } },
+);
+const recurring_rules = new Table(
+  {
+    user_id: column.text, template_id: column.text, frequency: column.text, interval_count: column.integer,
+    next_due: column.text, last_generated: column.text, auto_post: column.integer, active: column.integer,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
+  },
+  { indexes: { by_user: ["user_id", "next_due"] } },
+);
 
 export const AppSchema = new Schema({
   profiles,
@@ -374,6 +391,8 @@ export const AppSchema = new Schema({
   expense_postings,
   split_invitations,
   connections,
+  transaction_templates,
+  recurring_rules,
   // Lookup / reference tables
   account_types,
   transaction_types,

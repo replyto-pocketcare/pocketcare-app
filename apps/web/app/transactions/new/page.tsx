@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
@@ -13,6 +13,8 @@ import { AccountBadge } from "../../../src/ui/AccountBadge";
 import { useGroups, useUserProfiles, useMyUserId } from "../../../src/splits/hooks";
 import { createSplitExpense, type SplitMode } from "../../../src/splits/write";
 import { splitEqual, splitByWeights } from "../../../src/splits/math";
+import { useTemplates } from "../../../src/templates/hooks";
+import { createTemplate } from "../../../src/templates/write";
 
 type TxType = "expense" | "income" | "transfer";
 let counter = 0;
@@ -81,6 +83,27 @@ export default function NewTransactionPage() {
       setSplitMode("equal");
     }
   }, [autoGroup, type, splitTouched, splitGroupId, groupMembers]);
+
+  // Prefill from a template (?template=ID).
+  const templates = useTemplates();
+  const tplAppliedRef = useRef(false);
+  const [tplSaved, setTplSaved] = useState(false);
+  useEffect(() => {
+    if (tplAppliedRef.current) return;
+    const id = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("template") : null;
+    if (!id) return;
+    const t = templates.find((x) => x.id === id);
+    if (!t) return;
+    tplAppliedRef.current = true;
+    setType(t.type === "income" ? "income" : t.type === "transfer" ? "transfer" : "expense");
+    setItems([{ id: `i${++counter}`, description: t.description ?? "", value: t.amount != null ? String(t.amount / 100) : "" }]);
+    if (t.account_id) setAccountId(t.account_id);
+    if (t.category_id) setCategoryId(t.category_id);
+    if (t.note) setNote(t.note);
+    if (t.payment_method) setPaymentMethod(t.payment_method);
+    if (t.labels) setSelectedLabels(t.labels.split(",").map((s) => s.trim()).filter(Boolean));
+    if (t.split_group_id) { setSplitTouched(true); setSplitOn(true); setSplitGroupId(t.split_group_id); setSplitMembers(membersOf(t.split_group_id)); setSplitMode((t.split_mode as SplitMode) || "equal"); }
+  }, [templates]);
 
   const occurredAtIso = () => new Date(date).toISOString();
 
@@ -474,8 +497,29 @@ export default function NewTransactionPage() {
       <button className="btn" disabled={!canSave} onClick={save} style={{ justifyContent: "center", padding: 14 }}>
         {saving ? "Saving…" : `Save · ${format(total, "en-US")}`}
       </button>
+      {!!account && total.amount > 0 && (
+        <button className="chip" style={{ justifySelf: "center" }} disabled={tplSaved} onClick={() => void saveAsTemplate()}>
+          {tplSaved ? "Saved as template ✓" : "Save as template"}
+        </button>
+      )}
     </div>
   );
+
+  async function saveAsTemplate() {
+    if (!account) return;
+    const guess = items.map((i) => i.description.trim()).filter(Boolean).join(", ") || (type === "income" ? "Income" : type === "transfer" ? "Transfer" : "Expense");
+    const name = typeof window !== "undefined" ? window.prompt("Template name", guess) : guess;
+    if (!name) return;
+    await createTemplate({
+      name, type: type === "transfer" ? "transfer" : type,
+      amount: total.amount ? total.amount / 100 : null,
+      accountId: account.id, toAccountId: type === "transfer" ? (toAccount?.id ?? null) : null,
+      categoryId, description: guess === "Income" || guess === "Expense" || guess === "Transfer" ? null : guess,
+      note: note.trim() || null, paymentMethod: paymentMethod || null, labels: selectedLabels,
+      splitGroupId: splitActive ? splitGroupId : null, splitMode: splitActive ? splitMode : "equal",
+    });
+    setTplSaved(true);
+  }
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
