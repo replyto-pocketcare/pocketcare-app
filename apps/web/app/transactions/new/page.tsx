@@ -3,12 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@powersync/react";
-import { fromMajor, sum, format, type Money } from "@pocketcare/money";
+import { fromMajor, sum, format, money, type Money } from "@pocketcare/money";
 import type { Account } from "@pocketcare/types";
 import { getRepositories } from "../../../src/powersync";
 import { LabelPicker } from "../../../src/ui/LabelPicker";
 import { SearchSelect } from "../../../src/ui/SearchSelect";
 import { AccountBadge } from "../../../src/ui/AccountBadge";
+import { useContacts } from "../../../src/splits/hooks";
+import { addContact, createEqualSplitExpense } from "../../../src/splits/write";
+import { splitEqual } from "../../../src/splits/math";
 
 type TxType = "expense" | "income" | "transfer";
 let counter = 0;
@@ -19,7 +22,7 @@ interface PayMethod { id: string; label: string }
 export default function NewTransactionPage() {
   const router = useRouter();
   const { data: accounts = [] } = useQuery<Account>(
-    "SELECT * FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived, 0) = 0 ORDER BY created_at",
+    "SELECT * FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived, 0) = 0 AND IFNULL(kind,'real') = 'real' ORDER BY created_at",
   );
   const { data: categories = [] } = useQuery<{ id: string; name: string; kind: string; parent_id: string | null }>(
     "SELECT id, name, kind, parent_id FROM categories WHERE deleted_at IS NULL ORDER BY name",
@@ -44,6 +47,13 @@ export default function NewTransactionPage() {
   const [toValue, setToValue] = useState(""); // cross-currency destination amount
   const [date, setDate] = useState(new Date().toLocaleString("sv-SE", { timeZoneName: "short" }).substring(0, 16)); // YYYY-MM-DDTHH:mm
   const [saving, setSaving] = useState(false);
+
+  // Split (Phase 1: you pay, equal split with contacts).
+  const contacts = useContacts();
+  const [splitOn, setSplitOn] = useState(false);
+  const [splitWith, setSplitWith] = useState<string[]>([]);
+  const [newContact, setNewContact] = useState("");
+  const splitActive = type === "expense" && splitOn && splitWith.length > 0;
 
   const occurredAtIso = () => new Date(date).toISOString();
 
@@ -90,15 +100,38 @@ export default function NewTransactionPage() {
   const canSave =
     !!account && total.amount > 0 && !saving && (type !== "transfer" || (!!toAccount && toAccount.id !== account.id));
 
+  async function handleAddContact() {
+    const name = newContact.trim();
+    if (!name) return;
+    const id = await addContact(name);
+    setSplitWith((p) => [...p, id]);
+    setNewContact("");
+  }
+
   async function save() {
     if (!account || !canSave) return;
     setSaving(true);
     try {
       const repos = getRepositories();
-      const combinedDescription = type === "transfer" 
-        ? null 
+      const combinedDescription = type === "transfer"
+        ? null
         : items.map(it => it.description.trim()).filter(Boolean).join(", ");
-        
+
+      // Split path: you paid the full bill; book only your share + lend the rest.
+      if (splitActive) {
+        await createEqualSplitExpense({
+          total,
+          accountId: account.id,
+          categoryId,
+          description: combinedDescription || null,
+          note: note.trim() || null,
+          occurredAt: occurredAtIso(),
+          otherContactIds: splitWith,
+        });
+        router.push("/transactions");
+        return;
+      }
+
       if (type === "transfer" && toAccount) {
         await repos.transactions.create({
           account_id: account.id,
@@ -245,6 +278,55 @@ export default function NewTransactionPage() {
             ))}
           </div>
         </Field>
+      )}
+
+      {type === "expense" && (
+        <div className="card" style={{ padding: 16, display: "grid", gap: 12 }}>
+          <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+            <span style={{ fontWeight: 600 }}>Split this expense</span>
+            <input type="checkbox" checked={splitOn} onChange={(e) => setSplitOn(e.target.checked)} />
+          </label>
+
+          {splitOn && (() => {
+            const n = splitWith.length + 1;
+            const shares = splitEqual(total.amount, n);
+            const ownShare = shares[0] ?? 0;
+            const lent = total.amount - ownShare;
+            return (
+              <div style={{ display: "grid", gap: 10 }}>
+                <span className="muted" style={{ fontSize: 12 }}>Split equally between you and:</span>
+                <div style={chips}>
+                  {contacts.map((c) => {
+                    const on = splitWith.includes(c.id);
+                    return (
+                      <button key={c.id} type="button" className="chip" data-active={on}
+                        onClick={() => setSplitWith((p) => on ? p.filter((x) => x !== c.id) : [...p, c.id])}>
+                        {c.name}
+                      </button>
+                    );
+                  })}
+                  {contacts.length === 0 && <span className="muted" style={{ fontSize: 12 }}>No contacts yet — add one below.</span>}
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input className="input" placeholder="Add a person…" value={newContact}
+                    onChange={(e) => setNewContact(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAddContact(); } }} />
+                  <button type="button" className="chip" onClick={() => void handleAddContact()} disabled={!newContact.trim()}>Add</button>
+                </div>
+
+                {splitWith.length > 0 ? (
+                  <div className="card" style={{ padding: 12, background: "var(--surface-2)", display: "grid", gap: 4, fontSize: 13 }}>
+                    <div><strong>{n}</strong> people · you paid {format(total, "en-US")} from {account!.name}</div>
+                    <div>Your share: <strong>{format(money(ownShare, currency), "en-US")}</strong> <span className="muted">(what counts in your budget)</span></div>
+                    <div style={{ color: "var(--positive)" }}>Friends owe you {format(money(lent, currency), "en-US")}</div>
+                  </div>
+                ) : (
+                  <span className="muted" style={{ fontSize: 12 }}>Pick at least one person to split with.</span>
+                )}
+              </div>
+            );
+          })()}
+        </div>
       )}
 
       <Field label="Labels (optional)">

@@ -41,6 +41,13 @@ streams:
       - SELECT * FROM pocketcare.assistant_messages WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.assistant_memory WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.payments WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.contacts WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.split_groups WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.split_group_members WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.shared_expenses WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.shared_expense_shares WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.shared_expense_payers WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.expense_postings WHERE user_id = auth.user_id()
 
   # Global reference / lookup data — same for everyone, read-only.
   # These back the enum→table normalization (id is the code string).

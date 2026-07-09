@@ -48,9 +48,10 @@ export interface AccountWithBalance {
 /** All accounts with their ledger-derived balances (reactive).
  *  Archived accounts are excluded unless `includeArchived` is true. */
 export function useAccountBalances(includeArchived = false): AccountWithBalance[] {
+  // Virtual split accounts (receivable/payable) are hidden from the account UI.
   const where = includeArchived
-    ? "deleted_at IS NULL"
-    : "deleted_at IS NULL AND IFNULL(is_archived, 0) = 0";
+    ? "deleted_at IS NULL AND IFNULL(kind,'real') = 'real'"
+    : "deleted_at IS NULL AND IFNULL(is_archived, 0) = 0 AND IFNULL(kind,'real') = 'real'";
   const { data: accounts = [] } = useQuery<WebAccount>(
     `SELECT * FROM accounts WHERE ${where} ORDER BY created_at`,
   );
