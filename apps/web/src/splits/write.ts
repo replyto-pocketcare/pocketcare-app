@@ -172,14 +172,26 @@ export async function settleUp(opts: {
 
 // ---------------- Invites ----------------
 
-/** Create an invite link for a group (edge function; you must be a member). */
-export async function createInvite(groupId: string, email?: string): Promise<{ token: string; link: string }> {
+export interface InviteResult {
+  added: boolean;                    // true = a registered user was added directly
+  already?: boolean | undefined;     // they were already a member
+  name?: string | undefined;         // added user's display name
+  link?: string | undefined;         // share link (when not added directly)
+}
+
+/**
+ * Invite to a group (edge function; you must be a member). If `email` belongs to
+ * a registered PocketCare user they're added to the group directly; otherwise a
+ * shareable invite link is returned. With no email, always returns a link.
+ */
+export async function createInvite(groupId: string, email?: string): Promise<InviteResult> {
   const { data, error } = await getSupabase().functions.invoke("split-invite", { body: { group_id: groupId, email } });
   if (error) throw new Error(error.message);
   if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
-  const d = data as { token: string; link: string | null };
+  const d = data as { added: boolean; already?: boolean; name?: string; token?: string; link?: string | null };
+  if (d.added) return { added: true, already: d.already, name: d.name };
   const link = d.link ?? `${typeof window !== "undefined" ? window.location.origin : ""}/join?token=${d.token}`;
-  return { token: d.token, link };
+  return { added: false, link };
 }
 
 /** Accept an invite by token (edge function). Returns the joined group id. */

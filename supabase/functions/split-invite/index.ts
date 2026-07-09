@@ -33,13 +33,33 @@ Deno.serve(async (req: Request) => {
     .select("id").eq("group_id", body.group_id).eq("user_id", user.id).is("deleted_at", null).maybeSingle();
   if (!member) return json({ error: "You are not a member of this group." }, 403);
 
+  const email = body.email?.trim().toLowerCase();
+
+  // If the email belongs to a registered user, add them to the group directly.
+  if (email) {
+    const { data: found } = await supabase.from("profiles").select("id, display_name").ilike("email", email).maybeSingle();
+    if (found?.id) {
+      if (found.id === user.id) return json({ error: "That's you." }, 400);
+      const { data: existing } = await supabase.from("split_group_members")
+        .select("id").eq("group_id", body.group_id).eq("user_id", found.id).is("deleted_at", null).maybeSingle();
+      if (existing) return json({ added: true, already: true, name: found.display_name ?? email });
+      const { error: memErr } = await supabase.from("split_group_members")
+        .upsert({ group_id: body.group_id, user_id: found.id, role: "member" }, { onConflict: "group_id,user_id", ignoreDuplicates: true });
+      if (memErr) return json({ error: memErr.message }, 500);
+      const [a, b] = [user.id, found.id].sort();
+      await supabase.from("connections").upsert({ user_a: a, user_b: b }, { onConflict: "user_a,user_b", ignoreDuplicates: true });
+      return json({ added: true, name: found.display_name ?? email });
+    }
+  }
+
+  // Otherwise create a pending invite link (they're not on PocketCare yet).
   const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
   const expiresAt = new Date(Date.now() + 14 * 86_400_000).toISOString();
   const { error: insErr } = await supabase.from("split_invitations").insert({
-    group_id: body.group_id, inviter: user.id, invitee_email: body.email ?? null, token, status: "pending", expires_at: expiresAt,
+    group_id: body.group_id, inviter: user.id, invitee_email: email ?? null, token, status: "pending", expires_at: expiresAt,
   });
   if (insErr) return json({ error: insErr.message }, 500);
 
   const appUrl = Deno.env.get("APP_URL");
-  return json({ token, link: appUrl ? `${appUrl}/join?token=${token}` : null, expires_at: expiresAt });
+  return json({ added: false, token, link: appUrl ? `${appUrl}/join?token=${token}` : null, expires_at: expiresAt });
 });

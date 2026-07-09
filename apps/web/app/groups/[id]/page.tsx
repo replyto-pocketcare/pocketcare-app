@@ -27,17 +27,20 @@ export default function GroupDetailPage() {
   const owed = balances.reduce((s, b) => s + Math.max(0, b.net), 0);
   const owe = balances.reduce((s, b) => s + Math.max(0, -b.net), 0);
 
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [email, setEmail] = useState("");
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [inviteMsg, setInviteMsg] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  async function invite() {
-    setInviting(true);
+  async function invite(withEmail: boolean) {
+    setInviting(true); setInviteMsg(null); setInviteLink(null);
     try {
-      const { link } = await createInvite(id);
-      setInviteLink(link);
-      setCopied(false);
-    } catch (e) { setInviteLink(`Error: ${(e as Error).message}`); }
+      const r = await createInvite(id, withEmail ? email.trim() : undefined);
+      if (r.added) { setInviteMsg(r.already ? `${r.name} is already in this group.` : `Added ${r.name} to the group.`); setEmail(""); }
+      else { setInviteLink(r.link ?? null); setCopied(false); }
+    } catch (e) { setInviteMsg(`Error: ${(e as Error).message}`); }
     finally { setInviting(false); }
   }
 
@@ -51,7 +54,7 @@ export default function GroupDetailPage() {
           <h1 style={{ margin: "6px 0 0" }}>{group.name} <span className="muted" style={{ fontSize: 14 }}>· {group.kind}</span></h1>
           {group.start_date && <div className="muted" style={{ fontSize: 13 }}>{group.start_date}{group.end_date ? ` → ${group.end_date}` : ""}</div>}
         </div>
-        <button className="btn" onClick={() => void invite()} disabled={inviting}>{inviting ? "Creating…" : "+ Invite"}</button>
+        <button className="btn" onClick={() => { setInviteOpen(true); setInviteLink(null); setInviteMsg(null); }}>+ Invite</button>
       </div>
 
       <section className="card" style={{ padding: 20, display: "flex", gap: 24, flexWrap: "wrap" }}>
@@ -97,14 +100,22 @@ export default function GroupDetailPage() {
         )}
       </section>
 
-      <Modal open={!!inviteLink} onClose={() => setInviteLink(null)}>
+      <Modal open={inviteOpen} onClose={() => setInviteOpen(false)}>
         <div style={{ display: "grid", gap: 12 }}>
           <h2 style={{ margin: 0 }}>Invite to {group.name}</h2>
-          <p className="muted" style={{ margin: 0, fontSize: 13 }}>Share this link. Whoever opens it and signs in joins the group. It expires in 14 days.</p>
-          <input className="input" readOnly value={inviteLink ?? ""} onFocus={(e) => e.currentTarget.select()} />
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button className="btn" onClick={async () => { if (inviteLink) { try { await navigator.clipboard.writeText(inviteLink); setCopied(true); } catch { /* ignore */ } } }}>{copied ? "Copied ✓" : "Copy link"}</button>
+          <p className="muted" style={{ margin: 0, fontSize: 13 }}>Enter a friend’s email. If they’re on PocketCare they’re added right away; otherwise we’ll give you a link to share.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input className="input" type="email" inputMode="email" placeholder="friend@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <button className="btn" onClick={() => void invite(true)} disabled={inviting || !email.trim()}>{inviting ? "…" : "Invite"}</button>
           </div>
+          <button className="chip" style={{ justifySelf: "start" }} onClick={() => void invite(false)} disabled={inviting}>Or create a shareable link</button>
+          {inviteMsg && <div className="card" style={{ padding: 10, fontSize: 13, background: "var(--surface-2)" }}>{inviteMsg}</div>}
+          {inviteLink && (
+            <div style={{ display: "grid", gap: 6 }}>
+              <input className="input" readOnly value={inviteLink} onFocus={(e) => e.currentTarget.select()} />
+              <button className="btn" style={{ justifySelf: "end" }} onClick={async () => { try { await navigator.clipboard.writeText(inviteLink); setCopied(true); } catch { /* ignore */ } }}>{copied ? "Copied ✓" : "Copy link"}</button>
+            </div>
+          )}
         </div>
       </Modal>
     </div>

@@ -25,8 +25,14 @@ export function Billing() {
   const { data: payments = [] } = useQuery<InvoicePayment>(
     "SELECT id, created_at, kind, amount, currency, credits_added, razorpay_payment_id, razorpay_order_id, status FROM payments WHERE status = 'captured' ORDER BY created_at DESC LIMIT 50",
   );
-  const [cycle, setCycle] = useState<Cycle>(e.cycle === "yearly" ? "yearly" : "monthly");
-  const [selected, setSelected] = useState<PlanKey>(e.tier);
+  // Default to the user's ACTUAL plan/cycle (which may load after first render),
+  // then stick to whatever they pick.
+  const [pickedCycle, setPickedCycle] = useState<Cycle | null>(null);
+  const [picked, setPicked] = useState<PlanKey | null>(null);
+  const cycle: Cycle = pickedCycle ?? (e.cycle === "yearly" ? "yearly" : "monthly");
+  const selected: PlanKey = picked ?? e.tier;
+  const setCycle = setPickedCycle;
+  const setSelected = setPicked;
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -39,7 +45,9 @@ export function Billing() {
 
   const planCard = (tier: PaidTier) => {
     const p = PLANS[tier];
-    const isCurrent = e.tier === tier;
+    const isYourTier = e.tier === tier;
+    // "Current" only when the tier AND the shown billing cycle match your plan.
+    const isCurrent = isYourTier && e.cycle === cycle;
     const isSelected = selected === tier;
     return (
       <div key={tier} className="card" role="button" tabIndex={0} onClick={() => setSelected(tier)}
@@ -55,7 +63,7 @@ export function Billing() {
           <button className="chip" disabled style={{ justifySelf: "start", opacity: 0.7 }}>Current plan</button>
         ) : (
           <button className="btn" disabled={!!busy} onClick={(ev) => { ev.stopPropagation(); run(tier, () => startSubscription(tier, cycle), "Payment received — your plan will activate in a moment."); }}>
-            {busy === tier ? "Opening…" : `Upgrade to ${p.label}`}
+            {busy === tier ? "Opening…" : isYourTier ? `Switch to ${cycle}` : `Upgrade to ${p.label}`}
           </button>
         )}
       </div>
