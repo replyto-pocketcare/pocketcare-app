@@ -260,6 +260,7 @@ const holdings = new Table({
   user_id: column.text,
   account_id: column.text,
   symbol: column.text,
+  exchange: column.text,
   quantity: column.real,
   avg_cost: column.integer,
   currency: column.text,
