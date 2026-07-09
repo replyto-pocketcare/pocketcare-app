@@ -320,6 +320,21 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     });
   }
 
+  async remove(id: string): Promise<void> {
+    const before = await this.db.getOptional<Transaction>("SELECT * FROM transactions WHERE id = ?", [id]);
+    if (!before) return;
+    const ts = nowIso();
+    await this.db.writeTransaction(async (tx) => {
+      await tx.execute("UPDATE transaction_items SET deleted_at = ?, updated_at = ? WHERE transaction_id = ? AND deleted_at IS NULL", [ts, ts, id]);
+      await tx.execute("DELETE FROM transaction_labels WHERE transaction_id = ?", [id]);
+      await tx.execute("UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE id = ?", [ts, ts, id]);
+      await tx.execute(
+        `INSERT INTO transaction_audit (id, user_id, transaction_id, action, changes, created_at) VALUES (?,?,?,?,?,?)`,
+        [uuid(), before.user_id, id, "delete", JSON.stringify({ deleted: { from: "active", to: "removed" } }), ts],
+      );
+    });
+  }
+
   async history(id: string): Promise<TransactionAudit[]> {
     return this.db.getAll<TransactionAudit>(
       "SELECT id, transaction_id, action, changes, created_at FROM transaction_audit WHERE transaction_id = ? ORDER BY created_at DESC",

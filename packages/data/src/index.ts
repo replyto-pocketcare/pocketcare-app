@@ -52,6 +52,8 @@ export interface TransactionRepository {
    * transaction had a breakdown, the items are cleared (they'd no longer reconcile).
    */
   update(id: string, patch: EditTransactionInput): Promise<void>;
+  /** Soft-delete a transaction (and its items/labels), appending a delete audit record. */
+  remove(id: string): Promise<void>;
   /** Chronological edit history for a transaction. */
   history(id: string): Promise<TransactionAudit[]>;
 }

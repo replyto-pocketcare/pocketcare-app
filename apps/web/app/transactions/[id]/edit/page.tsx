@@ -229,9 +229,20 @@ export default function EditTransactionPage() {
       <Field label="Note"><input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" /></Field>
       <Field label="Date"><input className="input" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
 
-      <div style={{ display: "flex", gap: 10 }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <button className="btn" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</button>
         <button className="btn ghost" onClick={() => router.push("/transactions")}>Cancel</button>
+        <button
+          className="btn ghost"
+          style={{ marginLeft: "auto", color: "var(--negative)" }}
+          disabled={saving}
+          onClick={async () => {
+            if (typeof window !== "undefined" && !window.confirm("Delete this transaction? This can't be undone.")) return;
+            setSaving(true);
+            try { await getRepositories().transactions.remove(id); router.push("/transactions"); }
+            finally { setSaving(false); }
+          }}
+        >Delete</button>
       </div>
 
       {/* Audit trail */}
