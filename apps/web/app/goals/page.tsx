@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { useBaseCurrency } from "../../src/hooks";
@@ -11,6 +11,18 @@ import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { KebabMenu } from "../../src/ui/KebabMenu";
 import { Modal } from "../../src/ui/Modal";
+import { GoalCelebration } from "../../src/goals/GoalCelebration";
+
+// Remember which goals we've already celebrated so completing one is a one-time
+// moment (survives reloads), while a goal that dips below target can re-earn it.
+const CELEB_KEY = "pc_goals_celebrated";
+function celebratedSet(): Set<string> {
+  if (typeof localStorage === "undefined") return new Set();
+  try { return new Set(JSON.parse(localStorage.getItem(CELEB_KEY) || "[]") as string[]); } catch { return new Set(); }
+}
+function persistCelebrated(s: Set<string>) {
+  try { localStorage.setItem(CELEB_KEY, JSON.stringify([...s])); } catch { /* ignore */ }
+}
 
 /** Compact, locale-aware currency (e.g. ₹1.5L / ₹10L for INR, $1.2K for USD). */
 function compactMoney(minor: number, currency: string): string {
@@ -50,6 +62,9 @@ export default function GoalsPage() {
   const [isEf, setIsEf] = useState(false);
   const hasEf = !!ef;
 
+  const [celebrate, setCelebrate] = useState<string | null>(null);
+  const onAchieved = useCallback((goalName: string) => setCelebrate(goalName), []);
+
   async function addGoal() {
     if (!name.trim() || !target) return;
     await insertRow("goals", {
@@ -74,7 +89,7 @@ export default function GoalsPage() {
       <div style={{ display: "grid", gap: 12 }}>
         {goals.map((g) => (
           <GoalCard key={g.id} goal={g} saved={saved(g.id)} savings={savings}
-            locked={!g.is_emergency_fund && !efFunded} base={base} />
+            locked={!g.is_emergency_fund && !efFunded} base={base} onAchieved={onAchieved} />
         ))}
         {goals.length === 0 && <p className="muted">No goals yet. Start with an emergency fund.</p>}
       </div>
@@ -90,14 +105,34 @@ export default function GoalsPage() {
         )}
         <button className="btn" onClick={addGoal} disabled={!name.trim() || !target}>Add goal</button>
       </div>
+
+      {celebrate && <GoalCelebration name={celebrate} onClose={() => setCelebrate(null)} />}
     </div>
   );
 }
 
-function GoalCard({ goal, saved, savings, locked, base }: {
+function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
   goal: Goal; saved: number; savings: { id: string; name: string; currency: string }[]; locked: boolean; base: string;
+  onAchieved: (name: string) => void;
 }) {
   const pct = goal.target_amount ? Math.min(100, (saved / goal.target_amount) * 100) : 0;
+  const funded = goal.target_amount > 0 && saved >= goal.target_amount;
+
+  // Fire the celebration only on the *transition* into fully-funded (not on load,
+  // and not again while it stays funded). prevFunded starts null so the first
+  // observed value just seeds the ref.
+  const prevFunded = useRef<boolean | null>(null);
+  useEffect(() => {
+    const was = prevFunded.current;
+    prevFunded.current = funded;
+    const seen = celebratedSet();
+    if (was === false && funded && !seen.has(goal.id)) {
+      seen.add(goal.id); persistCelebrated(seen);
+      onAchieved(goal.name);
+    } else if (!funded && seen.has(goal.id)) {
+      seen.delete(goal.id); persistCelebrated(seen); // dropped below → can celebrate again later
+    }
+  }, [funded, goal.id, goal.name, onAchieved]);
   const [amount, setAmount] = useState("");
   const [srcId, setSrcId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
