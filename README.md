@@ -16,7 +16,7 @@ packages/
   core/finance/  projections, recurring, subscription impact   (unit-tested)
   core/i18n/     i18next config + en/hi/ar bundles, RTL support
   core/entitlements/ freemium gating                            (unit-tested)
-  db/            PowerSync client schema + sync-rules.yaml
+  db/            PowerSync client schema + sync-streams.yaml
   data/          repository interfaces (data-access contract)
   ui-tokens/     earthy theme design tokens
 ```
@@ -50,7 +50,7 @@ This runs the `@pocketcare/money` and `@pocketcare/finance` test suites via Node
 Phase 0 ships the client scaffold. To make it sync, wire up the two services:
 
 1. **Supabase** — create a project. Enable **Anonymous sign-ins** (Auth → Providers) so every user gets a real UID from first launch (guest identity — see ARCHITECTURE.md §9). Apply the SQL schema, RLS policies, constraints, and triggers (added next phase under `supabase/migrations/`).
-2. **PowerSync** — create an instance pointed at your Supabase Postgres. Paste `packages/db/sync-rules.yaml` into the instance's Sync Rules.
+2. **PowerSync** — create an instance pointed at your Supabase Postgres. Paste `packages/db/sync-streams.yaml` into the instance's Sync Streams.
 3. **Env** — copy `.env.example` to `.env` and fill in the Supabase + PowerSync URLs/keys. Note the prefix rules: `NEXT_PUBLIC_` (web) and `EXPO_PUBLIC_` (mobile) expose vars to the client.
 
 ## Run the apps
