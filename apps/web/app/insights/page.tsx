@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEntitlement } from "../../src/entitlement";
 import { LockIcon } from "../../src/ui/icons";
 import { InsightFeed } from "../../src/ui/feed/InsightFeed";
+import { DividendPanel } from "../../src/market/DividendPanel";
 
 export default function InsightsPage() {
   const { t } = useTranslation();
@@ -34,6 +35,7 @@ export default function InsightsPage() {
         <h1 style={{ margin: 0 }}>{t("pages.insights", "Insights")}</h1>
         <Link href="/statements" className="muted" style={{ fontSize: 13 }}>Statements →</Link>
       </div>
+      <DividendPanel />
       <InsightFeed />
     </div>
   );
