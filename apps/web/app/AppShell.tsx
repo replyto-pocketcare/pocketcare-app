@@ -41,6 +41,7 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
   ] },
   { title: "", items: [
     { href: "/settings", tkey: "nav.settings", label: "Settings", icon: "◇" },
+    { href: "/help", tkey: "nav.help", label: "Help & FAQ", icon: "?" },
   ] },
 ];
 

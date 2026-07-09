@@ -2,8 +2,9 @@
 
 import { toMajor, money } from "@pocketcare/money";
 import { monthlyEquivalent } from "@pocketcare/finance";
-import { getDb, getRepositories } from "../powersync";
+import { getDb, getRepositories, getUserId } from "../powersync";
 import { getBaseCurrency } from "../prefs";
+import { pairwiseEdges, type Party } from "../splits/math";
 
 /**
  * An AGGREGATED financial snapshot computed entirely on-device. This is the ONLY
@@ -21,6 +22,7 @@ export interface FinancialSummary {
   fixedMonthlyObligations: number;
   goals: { name: string; target: number; saved: number; currency: string }[];
   upcoming: { name: string; date: string; amount: number; currency: string }[];
+  splits: { owed: number; owe: number; groups: number };
 }
 
 const major = (minor: number) => Math.round(minor) / 100;
@@ -38,6 +40,7 @@ export function summaryForPrompt(s: FinancialSummary): string {
   };
   if (s.goals.length) out.goals = s.goals.slice(0, 12).map((g) => ({ n: g.name, target: g.target, saved: g.saved, c: g.currency }));
   if (s.upcoming.length) out.upcoming = s.upcoming.slice(0, 8).map((u) => ({ n: u.name, date: u.date, amt: u.amount }));
+  if (s.splits.owed || s.splits.owe || s.splits.groups) out.splits = { friendsOweYou: s.splits.owed, youOwe: s.splits.owe, groups: s.splits.groups };
   return JSON.stringify(out);
 }
 
@@ -112,6 +115,31 @@ export async function buildFinancialSummary(): Promise<FinancialSummary> {
     .map((r) => ({ name: r.name, date: r.next_renewal, amount: major(r.amount), currency: r.currency }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
+  // Splits: aggregate you're-owed / you-owe across all groups (derived, like the
+  // Friends page), plus a count of active groups/trips.
+  const me = getUserId();
+  const partRows = await db.getAll<{ expense_id: string; user_id: string; paid_amount: number; share_amount: number }>(
+    "SELECT expense_id, user_id, paid_amount, share_amount FROM expense_participants WHERE deleted_at IS NULL",
+  );
+  const settRows = await db.getAll<{ from_user: string; to_user: string; amount: number }>(
+    "SELECT from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL",
+  );
+  const byExpense = new Map<string, Party[]>();
+  for (const p of partRows) {
+    const arr = byExpense.get(p.expense_id) ?? [];
+    arr.push({ userId: p.user_id, share: p.share_amount, paid: p.paid_amount });
+    byExpense.set(p.expense_id, arr);
+  }
+  const net = new Map<string, number>();
+  for (const [, parties] of byExpense) for (const e of pairwiseEdges(parties, me)) net.set(e.userId, (net.get(e.userId) ?? 0) + e.amount);
+  for (const st of settRows) {
+    if (st.to_user === me) net.set(st.from_user, (net.get(st.from_user) ?? 0) - st.amount);
+    else if (st.from_user === me) net.set(st.to_user, (net.get(st.to_user) ?? 0) + st.amount);
+  }
+  let owedMinor = 0, oweMinor = 0;
+  for (const n of net.values()) { if (n > 0) owedMinor += n; else oweMinor += -n; }
+  const groupCount = (await db.getOptional<{ c: number }>("SELECT COUNT(*) as c FROM split_groups WHERE deleted_at IS NULL AND IFNULL(is_direct,0)=0"))?.c ?? 0;
+
   return {
     baseCurrency: base,
     today: new Date().toISOString().slice(0, 10),
@@ -123,5 +151,6 @@ export async function buildFinancialSummary(): Promise<FinancialSummary> {
     fixedMonthlyObligations,
     goals,
     upcoming,
+    splits: { owed: major(owedMinor), owe: major(oweMinor), groups: groupCount },
   };
 }
