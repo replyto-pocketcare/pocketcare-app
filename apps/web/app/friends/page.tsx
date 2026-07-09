@@ -85,16 +85,16 @@ export default function FriendsPage() {
             const canSettle = net !== 0 && settleGroups.some((g) => g.user_id === uid);
             return (
               <div key={uid} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
                   <span style={{ width: 30, height: 30, borderRadius: 999, flexShrink: 0, background: "var(--accent)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 13 }}>{name(uid).charAt(0).toUpperCase()}</span>
-                  <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(uid)}</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(uid)}</div>
+                    <div style={{ fontSize: 12.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: net > 0 ? "var(--positive)" : net < 0 ? "var(--negative)" : "var(--text-2)" }}>
+                      {net > 0 ? `owes you ${fmt(money(net, base))}` : net < 0 ? `you owe ${fmt(money(-net, base))}` : "settled"}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                  <span style={{ fontWeight: 600, color: net > 0 ? "var(--positive)" : net < 0 ? "var(--negative)" : "var(--text-2)" }}>
-                    {net > 0 ? `owes you ${fmt(money(net, base))}` : net < 0 ? `you owe ${fmt(money(-net, base))}` : "settled"}
-                  </span>
-                  {canSettle && <button className="chip" style={{ fontSize: 12, padding: "3px 10px" }} onClick={() => openSettle(uid, net)}>Settle</button>}
-                </div>
+                {canSettle && <button className="chip" style={{ fontSize: 12, padding: "3px 10px", flexShrink: 0 }} onClick={() => openSettle(uid, net)}>Settle</button>}
               </div>
             );
           })}

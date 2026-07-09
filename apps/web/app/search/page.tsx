@@ -60,10 +60,10 @@ export default function SearchPage() {
   }, [rows, q, type, accountId, from, to, min, max, cats, accts]);
 
   return (
-    <div style={{ display: "grid", gap: 18 }} className="fade-up">
+    <div style={{ display: "grid", gap: 18, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <h1>{t("pages.search", "Search")}</h1>
 
-      <input className="input" placeholder="Search everything — label, note, description, category, account, amount…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <input className="input" placeholder="Search everything — label, note, category…" value={q} onChange={(e) => setQ(e.target.value)} />
 
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <button className="chip" onClick={() => setShowFilters((v) => !v)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -94,7 +94,7 @@ export default function SearchPage() {
 
       <div className="muted" style={{ fontSize: 13 }}>{results.length} result{results.length === 1 ? "" : "s"}</div>
 
-      <div className="card" style={{ padding: 8 }}>
+      <div className="card" style={{ padding: 8, overflowX: "hidden", minWidth: 0, maxWidth: "100%" }}>
         {results.map((t) => (
           <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} />
         ))}

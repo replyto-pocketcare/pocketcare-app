@@ -48,7 +48,7 @@ export default function StatementsPage() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 20 }} className="fade-up">
+    <div style={{ display: "grid", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <div className="no-print" style={{ display: "grid", gap: 14 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
           <h1>{t("pages.statements", "Statements")}</h1>
@@ -66,15 +66,15 @@ export default function StatementsPage() {
         </div>
       </div>
 
-      <div className="card statement-card" style={{ padding: 24 }}>
+      <div className="card statement-card" style={{ padding: 24, minWidth: 0, maxWidth: "100%", overflowX: "hidden", boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h2 style={{ fontSize: 22 }}>PocketCare Statement</h2>
             <div className="muted">{new Date(start).toLocaleDateString()} – {new Date(end).toLocaleDateString()}</div>
           </div>
-          <div style={{ textAlign: "right" }}>
+          <div style={{ textAlign: "right", minWidth: 0 }}>
             <div className="muted" style={{ fontSize: 12 }}>Net for period</div>
-            <div style={{ fontSize: 24, fontWeight: 750, color: income - expense >= 0 ? "var(--positive)" : "var(--negative)" }}>
+            <div style={{ fontSize: 22, fontWeight: 750, whiteSpace: "nowrap", color: income - expense >= 0 ? "var(--positive)" : "var(--negative)" }}>
               {format(money(income - expense, base), "en-US")}
             </div>
           </div>
