@@ -1,6 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@powersync/react";
+import { contactEdges, type PartyAgg } from "./math";
 
 export interface Contact {
   id: string;
@@ -19,26 +21,49 @@ export function useContacts(): Contact[] {
 
 export interface FriendBalance {
   contactId: string;
-  name: string;
-  avatarColor: string | null;
-  /** Minor units. Positive = they owe you. */
+  /** Minor units. Positive = they owe you; negative = you owe them. */
   net: number;
 }
 
 /**
- * Per-contact running balance. Phase 1: you are always the payer, so a contact
- * simply owes you the sum of their shares. (Settlements and contact-paid splits
- * arrive in Phase 2 and subtract here.)
+ * Per-contact running balance, derived (never materialised, so offline merges
+ * can't corrupt it): pairwise edges from every expense's shares+payers, minus
+ * settlements. Works for multi-payer and contact-paid splits.
  */
 export function useFriendBalances(): FriendBalance[] {
-  const { data = [] } = useQuery<{ contact_id: string; name: string; color: string | null; owed: number }>(
-    `SELECT s.contact_id AS contact_id, c.name AS name, c.avatar_color AS color, SUM(s.share_amount) AS owed
-     FROM shared_expense_shares s
-     JOIN contacts c ON c.id = s.contact_id
-     JOIN shared_expenses e ON e.id = s.expense_id
-     WHERE s.deleted_at IS NULL AND e.deleted_at IS NULL AND s.contact_id IS NOT NULL
-     GROUP BY s.contact_id, c.name, c.avatar_color
-     ORDER BY owed DESC`,
+  const { data: shares = [] } = useQuery<{ expense_id: string; contact_id: string | null; share_amount: number }>(
+    "SELECT expense_id, contact_id, share_amount FROM shared_expense_shares WHERE deleted_at IS NULL AND expense_id IN (SELECT id FROM shared_expenses WHERE deleted_at IS NULL)",
   );
-  return data.map((r) => ({ contactId: r.contact_id, name: r.name, avatarColor: r.color, net: r.owed }));
+  const { data: payers = [] } = useQuery<{ expense_id: string; contact_id: string | null; paid_amount: number }>(
+    "SELECT expense_id, contact_id, paid_amount FROM shared_expense_payers WHERE deleted_at IS NULL AND expense_id IN (SELECT id FROM shared_expenses WHERE deleted_at IS NULL)",
+  );
+  const { data: settlements = [] } = useQuery<{ contact_id: string; direction: string; amount: number }>(
+    "SELECT contact_id, direction, amount FROM settlements WHERE deleted_at IS NULL",
+  );
+
+  return useMemo(() => {
+    // Group shares + payers by expense into party aggregates.
+    const byExpense = new Map<string, Map<string | null, { share: number; paid: number }>>();
+    const bucket = (eid: string, cid: string | null) => {
+      let m = byExpense.get(eid);
+      if (!m) { m = new Map(); byExpense.set(eid, m); }
+      let p = m.get(cid);
+      if (!p) { p = { share: 0, paid: 0 }; m.set(cid, p); }
+      return p;
+    };
+    for (const s of shares) bucket(s.expense_id, s.contact_id).share += s.share_amount;
+    for (const p of payers) bucket(p.expense_id, p.contact_id).paid += p.paid_amount;
+
+    const net = new Map<string, number>();
+    for (const [, parties] of byExpense) {
+      const arr: PartyAgg[] = [...parties.entries()].map(([id, v]) => ({ id, share: v.share, paid: v.paid }));
+      for (const e of contactEdges(arr)) net.set(e.id, (net.get(e.id) ?? 0) + e.amount);
+    }
+    // Apply settlements: received reduces what they owe; paid reduces what you owe.
+    for (const s of settlements) {
+      const delta = s.direction === "received" ? -s.amount : s.amount;
+      net.set(s.contact_id, (net.get(s.contact_id) ?? 0) + delta);
+    }
+    return [...net.entries()].map(([contactId, n]) => ({ contactId, net: n }));
+  }, [shares, payers, settlements]);
 }

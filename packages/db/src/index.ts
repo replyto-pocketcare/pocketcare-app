@@ -396,6 +396,23 @@ const expense_postings = new Table(
   },
   { indexes: { by_expense: ["expense_id"] } },
 );
+const settlements = new Table(
+  {
+    user_id: column.text,
+    contact_id: column.text,
+    group_id: column.text,
+    amount: column.integer,
+    direction: column.text,
+    account_id: column.text,
+    offset_transaction_id: column.text,
+    note: column.text,
+    settled_at: column.text,
+    created_at: column.text,
+    updated_at: column.text,
+    deleted_at: column.text,
+  },
+  { indexes: { by_contact: ["contact_id"] } },
+);
 
 export const AppSchema = new Schema({
   profiles,
@@ -430,6 +447,7 @@ export const AppSchema = new Schema({
   shared_expense_shares,
   shared_expense_payers,
   expense_postings,
+  settlements,
   // Lookup / reference tables
   account_types,
   transaction_types,
