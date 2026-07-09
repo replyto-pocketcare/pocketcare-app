@@ -56,6 +56,7 @@ export default function NewTransactionPage() {
   );
   const [splitGroupId, setSplitGroupId] = useState("");
   const [splitOn, setSplitOn] = useState(false);
+  const [splitTouched, setSplitTouched] = useState(false); // user manually changed the split toggle/group
   const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [includeSelf, setIncludeSelf] = useState(true);
   const [splitWith, setSplitWith] = useState<string[]>([]);
@@ -64,6 +65,22 @@ export default function NewTransactionPage() {
   const [paidVals, setPaidVals] = useState<Record<string, string>>({});
   const [newContact, setNewContact] = useState("");
   const splitActive = type === "expense" && splitOn && splitWith.length > 0;
+
+  // Auto-split: if this expense's date falls inside an auto-split trip/group,
+  // turn on the split into that group automatically (user can toggle it off).
+  const autoGroup = useMemo(
+    () => groups.find((g) => g.auto_split === 1 && g.start_date && date.slice(0, 10) >= g.start_date && date.slice(0, 10) <= (g.end_date ?? "9999-12-31")),
+    [groups, date],
+  );
+  useEffect(() => {
+    if (type === "expense" && autoGroup && !splitTouched && splitGroupId !== autoGroup.id) {
+      setSplitOn(true);
+      setSplitGroupId(autoGroup.id);
+      setSplitWith(groupMembers.filter((m) => m.group_id === autoGroup.id).map((m) => m.contact_id));
+      setSplitMode("equal");
+      setIncludeSelf(true);
+    }
+  }, [autoGroup, type, splitTouched, splitGroupId, groupMembers]);
 
   const occurredAtIso = () => new Date(date).toISOString();
 
@@ -330,8 +347,13 @@ export default function NewTransactionPage() {
         <div className="card" style={{ padding: 16, display: "grid", gap: 12 }}>
           <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
             <span style={{ fontWeight: 600 }}>Split this expense</span>
-            <input type="checkbox" checked={splitOn} onChange={(e) => setSplitOn(e.target.checked)} />
+            <input type="checkbox" checked={splitOn} onChange={(e) => { setSplitTouched(true); setSplitOn(e.target.checked); }} />
           </label>
+          {splitOn && autoGroup && splitGroupId === autoGroup.id && (
+            <div style={{ fontSize: 12, color: "var(--accent)", background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", borderRadius: 8, padding: "6px 10px" }}>
+              Auto-split with <strong>{autoGroup.name}</strong> (this date is in its range). Turn off to exclude this one.
+            </div>
+          )}
 
           {splitOn && (() => {
             const partLabel = (k: string) => (k === "self" ? "You" : contacts.find((c) => c.id === k)?.name ?? "?");
@@ -347,6 +369,7 @@ export default function NewTransactionPage() {
                     <span className="muted" style={{ fontSize: 12 }}>Add to a group / trip (optional)</span>
                     <select className="input" value={splitGroupId} onChange={(e) => {
                       const gid = e.target.value;
+                      setSplitTouched(true);
                       setSplitGroupId(gid);
                       if (gid) {
                         setSplitWith(groupMembers.filter((m) => m.group_id === gid).map((m) => m.contact_id));

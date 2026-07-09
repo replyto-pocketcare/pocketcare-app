@@ -18,8 +18,10 @@ export default function GroupsPage() {
   const [members, setMembers] = useState<string[]>([]);
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [auto, setAuto] = useState(false);
   const [newContact, setNewContact] = useState("");
   const [busy, setBusy] = useState(false);
+  const canAuto = !!start && !!end;
 
   async function addNewContact() {
     const n = newContact.trim();
@@ -32,8 +34,8 @@ export default function GroupsPage() {
     if (!name.trim() || members.length === 0) return;
     setBusy(true);
     try {
-      await createGroup({ name, kind, currency: base, startDate: start || null, endDate: end || null, memberContactIds: members });
-      setName(""); setMembers([]); setStart(""); setEnd(""); setKind("trip");
+      await createGroup({ name, kind, currency: base, startDate: start || null, endDate: end || null, autoSplit: canAuto && auto, memberContactIds: members });
+      setName(""); setMembers([]); setStart(""); setEnd(""); setKind("trip"); setAuto(false);
       setShow(false);
     } finally { setBusy(false); }
   }
@@ -99,6 +101,12 @@ export default function GroupsPage() {
             <input className="input" type="date" value={start} onChange={(e) => { setStart(e.target.value); if (end && e.target.value > end) setEnd(e.target.value); }} />
             <input className="input" type="date" min={start || undefined} value={end} onChange={(e) => setEnd(e.target.value)} />
           </div>
+
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, opacity: canAuto ? 1 : 0.5 }}>
+            <input type="checkbox" checked={canAuto && auto} disabled={!canAuto} onChange={(e) => setAuto(e.target.checked)} />
+            Auto-split: any expense I add within these dates is split equally with this {kind}
+          </label>
+          {!canAuto && <span className="muted" style={{ fontSize: 11, marginTop: -6 }}>Set both dates to enable auto-split.</span>}
 
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
             <button className="btn ghost" onClick={() => setShow(false)}>Cancel</button>

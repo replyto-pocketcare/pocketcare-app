@@ -5,6 +5,7 @@ import Link from "next/link";
 import { money } from "@pocketcare/money";
 import { useBaseCurrency } from "../../../src/hooks";
 import { useMoneyFmt } from "../../../src/ui/Money";
+import { updateRow } from "../../../src/write";
 import { useGroup, useGroupExpenses, useGroupBalances, useContacts } from "../../../src/splits/hooks";
 
 export default function GroupDetailPage() {
@@ -33,6 +34,16 @@ export default function GroupDetailPage() {
         <h1 style={{ margin: "6px 0 0" }}>{group.name} <span className="muted" style={{ fontSize: 14 }}>· {group.kind}</span></h1>
         {group.start_date && <div className="muted" style={{ fontSize: 13 }}>{group.start_date}{group.end_date ? ` → ${group.end_date}` : ""}</div>}
       </div>
+
+      {group.start_date && group.end_date && (
+        <label className="card" style={{ padding: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, cursor: "pointer" }}>
+          <span style={{ fontSize: 14 }}>
+            <strong>Auto-split</strong>
+            <span className="muted"> — expenses you add within {group.start_date}–{group.end_date} are split equally with this {group.kind}.</span>
+          </span>
+          <input type="checkbox" checked={group.auto_split === 1} onChange={(e) => void updateRow("split_groups", group.id, { auto_split: e.target.checked ? 1 : 0 })} />
+        </label>
+      )}
 
       <section className="card" style={{ padding: 20, display: "flex", gap: 24, flexWrap: "wrap" }}>
         <div><div className="muted" style={{ fontSize: 13 }}>Total spent</div><div style={{ fontSize: 26, fontWeight: 750 }}>{fmt(money(total, base))}</div></div>
