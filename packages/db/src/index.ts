@@ -281,6 +281,51 @@ const exchange_rates = new Table(
   { indexes: { by_pair: ["base_currency", "quote_currency", "as_of"] } },
 );
 
+// Alpha Vantage market data (global, read-only; populated by the market-sync
+// edge function). Composite PKs synthesize a text `id` in the sync stream.
+const market_quotes = new Table(
+  {
+    symbol: column.text,
+    exchange: column.text,
+    price: column.integer, // minor units, per share
+    currency: column.text,
+    change_abs: column.integer,
+    change_pct: column.real,
+    as_of: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { by_symbol: ["symbol"] } },
+);
+const market_dividends = new Table(
+  {
+    symbol: column.text,
+    exchange: column.text,
+    ex_date: column.text,
+    pay_date: column.text,
+    amount: column.integer, // per share, minor units
+    currency: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { by_symbol: ["symbol"] } },
+);
+const market_overview = new Table(
+  {
+    symbol: column.text,
+    exchange: column.text,
+    name: column.text,
+    sector: column.text,
+    industry: column.text,
+    currency: column.text,
+    pe: column.real,
+    eps: column.real,
+    dividend_yield: column.real,
+    dividend_per_share: column.real,
+    ex_dividend_date: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { by_symbol: ["symbol"] } },
+);
+
 // AI assistant persistence (chat history + per-user memory).
 const assistant_threads = new Table({
   user_id: column.text,
@@ -391,6 +436,9 @@ export const AppSchema = new Schema({
   loans,
   holdings,
   exchange_rates,
+  market_quotes,
+  market_dividends,
+  market_overview,
   assistant_threads,
   assistant_messages,
   assistant_memory,

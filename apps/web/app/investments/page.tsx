@@ -6,13 +6,13 @@ import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { useBaseCurrency } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
-import { getDb } from "../../src/powersync";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { InstrumentPicker, ExchangeSelect } from "../../src/instruments/InstrumentPicker";
 import type { Instrument } from "../../src/instruments/catalog";
 import { useCatalog } from "../../src/instruments/hooks";
 import { CatalogProgress } from "../../src/instruments/CatalogProgress";
+import { useMarketData, type Quote } from "../../src/market/hooks";
 
 interface Holding {
   id: string;
@@ -44,7 +44,15 @@ export default function InvestmentsPage() {
   const cat = useCatalog(invAccounts.length > 0);
   const downloading = cat.phase === "loading" || cat.phase === "checking";
 
+  const market = useMarketData();
   const investedValue = holdings.reduce((s, h) => s + (h.avg_cost ?? 0) * h.quantity, 0);
+  // Current value uses the latest EOD quote where we have one, else falls back to cost.
+  const marketValue = holdings.reduce((s, h) => {
+    const q = market.quote(h.symbol, h.exchange);
+    return s + (q ? q.price * h.quantity : (h.avg_cost ?? 0) * h.quantity);
+  }, 0);
+  const gain = marketValue - investedValue;
+  const gainPct = investedValue > 0 ? (gain / investedValue) * 100 : 0;
 
   async function addHolding() {
     const account = acc ?? invAccounts[0]?.id;
@@ -57,24 +65,41 @@ export default function InvestmentsPage() {
     setInstrument(null); setQty(""); setCost("");
   }
 
-  async function toggleFetch(h: Holding) {
-    const db = getDb();
-    if (!db) return;
-    await db.execute("UPDATE holdings SET auto_fetch = ?, updated_at = ? WHERE id = ?", [h.auto_fetch ? 0 : 1, new Date().toISOString(), h.id]);
-  }
-
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <h1>{t("pages.investments", "Investments")}</h1>
 
-      <section className="card" style={{ padding: 20 }}>
-        <div className="muted" style={{ fontSize: 13 }}>Invested value (at cost)</div>
-        <div style={{ fontSize: 30, fontWeight: 750 }}>{fmt(money(Math.round(investedValue), base), "en-US")}</div>
-        <div className="muted" style={{ fontSize: 12 }}>Enable daily price fetch per holding to track live gains/losses.</div>
+      <section className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+          <div>
+            <div className="muted" style={{ fontSize: 13 }}>Current value</div>
+            <div style={{ fontSize: 30, fontWeight: 750 }}>{fmt(money(Math.round(marketValue), base), "en-US")}</div>
+          </div>
+          <div>
+            <div className="muted" style={{ fontSize: 13 }}>Invested (cost)</div>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>{fmt(money(Math.round(investedValue), base), "en-US")}</div>
+          </div>
+          <div>
+            <div className="muted" style={{ fontSize: 13 }}>Total gain / loss</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: gain >= 0 ? "var(--positive)" : "var(--negative)" }}>
+              {gain >= 0 ? "+" : "−"}{fmt(money(Math.round(Math.abs(gain)), base), "en-US")} <span style={{ fontSize: 14 }}>({gain >= 0 ? "+" : "−"}{Math.abs(gainPct).toFixed(1)}%)</span>
+            </div>
+          </div>
+        </div>
+        <div className="muted" style={{ fontSize: 12 }}>
+          {market.hasData
+            ? `Prices are end-of-day${market.latestAsOf ? `, as of ${market.latestAsOf}` : ""}. Updated daily.`
+            : "Live prices appear here once the daily market sync has run (or fall back to your cost basis)."}
+        </div>
       </section>
 
       <div style={{ display: "grid", gap: 10 }}>
-        {holdings.map((h) => <HoldingRow key={h.id} h={h} onToggle={() => toggleFetch(h)} />)}
+        {holdings.map((h) => (
+          <HoldingRow key={h.id} h={h}
+            quote={market.quote(h.symbol, h.exchange)}
+            divYield={market.overview(h.symbol, h.exchange)?.dividend_yield ?? null}
+            nextExDate={market.nextDividend(h.symbol, h.exchange)?.ex_date ?? null} />
+        ))}
         {holdings.length === 0 && <p className="muted">No holdings yet.</p>}
       </div>
 
@@ -106,7 +131,7 @@ export default function InvestmentsPage() {
   );
 }
 
-function HoldingRow({ h, onToggle }: { h: Holding; onToggle: () => void }) {
+function HoldingRow({ h, quote, divYield, nextExDate }: { h: Holding; quote: Quote | undefined; divYield: number | null; nextExDate: string | null }) {
   const fmt = useMoneyFmt();
   const [editing, setEditing] = useState(false);
   const [pick, setPick] = useState<Instrument | null>(null);
@@ -138,15 +163,36 @@ function HoldingRow({ h, onToggle }: { h: Holding; onToggle: () => void }) {
       </div>
     );
   }
+  const costTotal = (h.avg_cost ?? 0) * h.quantity;
+  const value = quote ? quote.price * h.quantity : costTotal;
+  const gain = value - costTotal;
+  const gainPct = costTotal > 0 ? (gain / costTotal) * 100 : 0;
+  const hint = [
+    divYield != null ? `${(divYield * 100).toFixed(2)}% yield` : null,
+    nextExDate ? `ex-div ${nextExDate}` : null,
+  ].filter(Boolean).join(" · ");
+
   return (
-    <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div><strong>{h.symbol}</strong>{h.exchange && <span className="muted" style={{ fontSize: 12 }}> · {h.exchange}</span>}<div className="muted" style={{ fontSize: 12 }}>{h.quantity} @ {h.avg_cost ? fmt(money(h.avg_cost, h.currency), "en-US") : "—"}</div></div>
-      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <label style={{ fontSize: 13, display: "flex", gap: 6, alignItems: "center" }} className="muted">
-          <input type="checkbox" checked={!!h.auto_fetch} onChange={onToggle} /> daily fetch
-        </label>
+    <div className="card" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+      <div style={{ minWidth: 0 }}>
+        <strong>{h.symbol}</strong>{h.exchange && <span className="muted" style={{ fontSize: 12 }}> · {h.exchange}</span>}
+        <div className="muted" style={{ fontSize: 12 }}>
+          {h.quantity} @ {h.avg_cost ? fmt(money(h.avg_cost, h.currency), "en-US") : "—"}
+          {quote && <> · now {fmt(money(quote.price, quote.currency), "en-US")}{quote.change_pct != null && <span style={{ color: quote.change_pct >= 0 ? "var(--positive)" : "var(--negative)" }}> ({quote.change_pct >= 0 ? "+" : ""}{quote.change_pct.toFixed(1)}%)</span>}</>}
+        </div>
+        {hint && <div className="muted" style={{ fontSize: 11 }}>{hint}</div>}
+      </div>
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontWeight: 700 }}>{fmt(money(Math.round(value), h.currency), "en-US")}</div>
+          {h.avg_cost != null && (
+            <div style={{ fontSize: 12, color: gain >= 0 ? "var(--positive)" : "var(--negative)" }}>
+              {gain >= 0 ? "+" : "−"}{Math.abs(gainPct).toFixed(1)}%
+            </div>
+          )}
+        </div>
         <button className="chip" onClick={() => setEditing(true)}>Edit</button>
-        <button className="chip" onClick={() => softDelete("holdings", h.id)}>×</button>
+        <button className="chip" onClick={() => softDelete("holdings", h.id)} aria-label="Remove">×</button>
       </div>
     </div>
   );

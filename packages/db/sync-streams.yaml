@@ -114,3 +114,19 @@ streams:
       SELECT *, base_currency || '-' || quote_currency || '-' || as_of AS id
       FROM pocketcare.exchange_rates
 
+  # Alpha Vantage market data — global, read-only. Composite keys, so synthesize
+  # the text `id` PowerSync requires. (market_symbols is service-role only and
+  # intentionally NOT synced.)
+  market_data:
+    auto_subscribe: true
+    queries:
+      - >
+        SELECT *, symbol || '|' || exchange AS id
+        FROM pocketcare.market_quotes
+      - >
+        SELECT *, symbol || '|' || exchange AS id
+        FROM pocketcare.market_overview
+      - >
+        SELECT *, symbol || '|' || exchange || '|' || ex_date AS id
+        FROM pocketcare.market_dividends
+
