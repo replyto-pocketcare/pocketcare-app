@@ -6,6 +6,7 @@ import { useEntitlement } from "../../src/entitlement";
 import { LockIcon } from "../../src/ui/icons";
 import { InsightFeed } from "../../src/ui/feed/InsightFeed";
 import { DividendPanel } from "../../src/market/DividendPanel";
+import { ProjectionPanel } from "../../src/market/ProjectionPanel";
 
 export default function InsightsPage() {
   const { t } = useTranslation();
@@ -36,6 +37,7 @@ export default function InsightsPage() {
         <Link href="/statements" className="muted" style={{ fontSize: 13 }}>Statements →</Link>
       </div>
       <DividendPanel />
+      <ProjectionPanel />
       <InsightFeed />
     </div>
   );
