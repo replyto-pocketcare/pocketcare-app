@@ -9,6 +9,9 @@ import { createSplitExpense } from "../splits/write";
 
 export type Freq = "daily" | "weekly" | "monthly" | "yearly";
 
+/** Free plans can keep up to this many templates; Premium is unlimited. */
+export const FREE_TEMPLATE_LIMIT = 5;
+
 export interface TemplateInput {
   name: string;
   type: "expense" | "income" | "transfer";
@@ -26,6 +29,8 @@ export interface TemplateInput {
 
 export async function createTemplate(t: TemplateInput): Promise<string> {
   const cur = getBaseCurrency();
+  const db = getDb();
+  const max = await db?.getOptional<{ s: number }>("SELECT MAX(IFNULL(sort,0)) AS s FROM transaction_templates WHERE deleted_at IS NULL");
   return insertRow("transaction_templates", {
     name: t.name.trim(), type: t.type,
     amount: t.amount != null ? fromMajor(t.amount, cur as CurrencyCode).amount : null,
@@ -33,7 +38,26 @@ export async function createTemplate(t: TemplateInput): Promise<string> {
     category_id: t.categoryId ?? null, description: t.description ?? null, note: t.note ?? null,
     payment_method: t.paymentMethod ?? null, labels: t.labels?.length ? t.labels.join(", ") : null,
     split_group_id: t.splitGroupId ?? null, split_mode: t.splitMode ?? "equal",
+    sort: (max?.s ?? 0) + 1,
   });
+}
+
+/** Update an existing template's fields. */
+export async function updateTemplate(id: string, t: TemplateInput): Promise<void> {
+  const cur = getBaseCurrency();
+  await updateRow("transaction_templates", id, {
+    name: t.name.trim(), type: t.type,
+    amount: t.amount != null ? fromMajor(t.amount, cur as CurrencyCode).amount : null,
+    account_id: t.accountId ?? null, to_account_id: t.toAccountId ?? null,
+    category_id: t.categoryId ?? null, description: t.description ?? null, note: t.note ?? null,
+    payment_method: t.paymentMethod ?? null, labels: t.labels?.length ? t.labels.join(", ") : null,
+    split_group_id: t.splitGroupId ?? null, split_mode: t.splitMode ?? "equal",
+  });
+}
+
+/** Persist a new order (writes sort = position for each id). */
+export async function reorderTemplates(orderedIds: string[]): Promise<void> {
+  for (let i = 0; i < orderedIds.length; i++) await updateRow("transaction_templates", orderedIds[i]!, { sort: i });
 }
 
 export interface TemplateRow {

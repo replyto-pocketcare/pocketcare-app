@@ -6,12 +6,12 @@ export interface Template {
   id: string; name: string; type: string; amount: number | null; currency: string | null;
   account_id: string | null; to_account_id: string | null; category_id: string | null;
   description: string | null; note: string | null; payment_method: string | null; labels: string | null;
-  split_group_id: string | null; split_mode: string | null;
+  split_group_id: string | null; split_mode: string | null; sort: number | null;
 }
 
 export function useTemplates(): Template[] {
   const { data = [] } = useQuery<Template>(
-    "SELECT id, name, type, amount, currency, account_id, to_account_id, category_id, description, note, payment_method, labels, split_group_id, split_mode FROM transaction_templates WHERE deleted_at IS NULL ORDER BY name",
+    "SELECT id, name, type, amount, currency, account_id, to_account_id, category_id, description, note, payment_method, labels, split_group_id, split_mode, sort FROM transaction_templates WHERE deleted_at IS NULL ORDER BY IFNULL(sort,0), name",
   );
   return data;
 }

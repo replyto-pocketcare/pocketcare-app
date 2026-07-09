@@ -344,6 +344,7 @@ const transaction_templates = new Table(
     user_id: column.text, name: column.text, type: column.text, amount: column.integer, currency: column.text,
     account_id: column.text, to_account_id: column.text, category_id: column.text, description: column.text,
     note: column.text, payment_method: column.text, labels: column.text, split_group_id: column.text, split_mode: column.text,
+    sort: column.integer,
     created_at: column.text, updated_at: column.text, deleted_at: column.text,
   },
   { indexes: { by_user: ["user_id"] } },

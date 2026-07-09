@@ -13,8 +13,10 @@ import { AccountBadge } from "../../../src/ui/AccountBadge";
 import { useGroups, useUserProfiles, useMyUserId } from "../../../src/splits/hooks";
 import { createSplitExpense, type SplitMode } from "../../../src/splits/write";
 import { splitEqual, splitByWeights } from "../../../src/splits/math";
-import { useTemplates } from "../../../src/templates/hooks";
-import { createTemplate } from "../../../src/templates/write";
+import { useTemplates, type Template } from "../../../src/templates/hooks";
+import { createTemplate, FREE_TEMPLATE_LIMIT } from "../../../src/templates/write";
+import { useEntitlement } from "../../../src/entitlement";
+import { UpgradeModal } from "../../../src/ui/UpgradeModal";
 
 type TxType = "expense" | "income" | "transfer";
 let counter = 0;
@@ -84,10 +86,26 @@ export default function NewTransactionPage() {
     }
   }, [autoGroup, type, splitTouched, splitGroupId, groupMembers]);
 
-  // Prefill from a template (?template=ID).
+  // Templates (Quick Apply).
   const templates = useTemplates();
+  const { isPaid } = useEntitlement();
   const tplAppliedRef = useRef(false);
   const [tplSaved, setTplSaved] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  function applyTemplate(t: Template) {
+    setType(t.type === "income" ? "income" : t.type === "transfer" ? "transfer" : "expense");
+    setItems([{ id: `i${++counter}`, description: t.description ?? "", value: t.amount != null ? String(t.amount / 100) : "" }]);
+    if (t.account_id) setAccountId(t.account_id);
+    setCategoryId(t.category_id ?? null);
+    setNote(t.note ?? "");
+    if (t.payment_method) setPaymentMethod(t.payment_method);
+    setSelectedLabels(t.labels ? t.labels.split(",").map((s) => s.trim()).filter(Boolean) : []);
+    if (t.split_group_id) { setSplitTouched(true); setSplitOn(true); setSplitGroupId(t.split_group_id); setSplitMembers(membersOf(t.split_group_id)); setSplitMode((t.split_mode as SplitMode) || "equal"); }
+    setTplSaved(false);
+  }
+
+  // One-time prefill from ?template=ID (deep link / "Use" button).
   useEffect(() => {
     if (tplAppliedRef.current) return;
     const id = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("template") : null;
@@ -95,14 +113,7 @@ export default function NewTransactionPage() {
     const t = templates.find((x) => x.id === id);
     if (!t) return;
     tplAppliedRef.current = true;
-    setType(t.type === "income" ? "income" : t.type === "transfer" ? "transfer" : "expense");
-    setItems([{ id: `i${++counter}`, description: t.description ?? "", value: t.amount != null ? String(t.amount / 100) : "" }]);
-    if (t.account_id) setAccountId(t.account_id);
-    if (t.category_id) setCategoryId(t.category_id);
-    if (t.note) setNote(t.note);
-    if (t.payment_method) setPaymentMethod(t.payment_method);
-    if (t.labels) setSelectedLabels(t.labels.split(",").map((s) => s.trim()).filter(Boolean));
-    if (t.split_group_id) { setSplitTouched(true); setSplitOn(true); setSplitGroupId(t.split_group_id); setSplitMembers(membersOf(t.split_group_id)); setSplitMode((t.split_mode as SplitMode) || "equal"); }
+    applyTemplate(t);
   }, [templates]);
 
   const occurredAtIso = () => new Date(date).toISOString();
@@ -261,7 +272,15 @@ export default function NewTransactionPage() {
 
   return (
     <div style={{ maxWidth: 620, display: "grid", gap: 16 }} className="fade-up">
-      <h1>Add transaction</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>Add transaction</h1>
+        {templates.length > 0 && (
+          <select className="input" style={{ maxWidth: 220 }} value="" onChange={(e) => { const t = templates.find((x) => x.id === e.target.value); if (t) applyTemplate(t); }}>
+            <option value="">Start from a template…</option>
+            {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        )}
+      </div>
 
       <div style={{ display: "flex", gap: 8 }}>
         {(["expense", "income", "transfer"] as TxType[]).map((tp) => {
@@ -502,11 +521,15 @@ export default function NewTransactionPage() {
           {tplSaved ? "Saved as template ✓" : "Save as template"}
         </button>
       )}
+
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} title="Template limit reached"
+        message={`Free plans can keep up to ${FREE_TEMPLATE_LIMIT} templates. Upgrade to Premium for unlimited templates.`} />
     </div>
   );
 
   async function saveAsTemplate() {
     if (!account) return;
+    if (!isPaid && templates.length >= FREE_TEMPLATE_LIMIT) { setShowUpgrade(true); return; }
     const guess = items.map((i) => i.description.trim()).filter(Boolean).join(", ") || (type === "income" ? "Income" : type === "transfer" ? "Transfer" : "Expense");
     const name = typeof window !== "undefined" ? window.prompt("Template name", guess) : guess;
     if (!name) return;
