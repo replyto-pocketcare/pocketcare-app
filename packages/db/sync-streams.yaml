@@ -1,18 +1,98 @@
-# PowerSync Sync Rules (bucket_definitions form).
-# Paste into the PowerSync Dashboard -> Sync Rules -> Deploy.
+# PowerSync Sync Streams (recommended, edition 3).
+# Paste into the PowerSync Dashboard -> Sync Streams -> Deploy.
+# Mirrors RLS: each user (anonymous guests included) syncs only their own rows.
+# auto_subscribe: true keeps offline-first "sync everything upfront" behavior.
 #
-# Membership-based sharing needs PARAMETER queries (request.user_id() → bucket
-# params), then data queries filter by `bucket.x = row.column` (equality only).
-# The newer "streams" edition rejects row-vs-parameter subqueries, so we use the
-# classic bucket form here.
+# Streams here must match the client schema in packages/db/src/index.ts (AppSchema).
 #
-# SCHEMA: all tables live in the `pocketcare` Postgres schema. The PowerSync
-# publication must include them:  create publication powersync for tables in schema pocketcare;
+# SCHEMA: all tables live in the `pocketcare` Postgres schema (see 0001_init.sql),
+# so every source table is qualified `pocketcare.<table>`. The local SQLite table
+# name is the unqualified part, which matches the client AppSchema. The PowerSync
+# publication must include the pocketcare tables, e.g.:
+#   create publication powersync for tables in schema pocketcare;
+config:
+  edition: 3
 
-bucket_definitions:
+streams:
+  # All of a user's own data, one subscription (queries share the stream).
+  user_data:
+    auto_subscribe: true
+    queries:
+      - SELECT * FROM pocketcare.profiles WHERE id = auth.user_id()
+      - SELECT * FROM pocketcare.entitlements WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.accounts WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.transactions WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.transaction_labels WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.transaction_items WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.transaction_audit WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.categories WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.labels WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.credit_card_details WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.budgets WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.budget_categories WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.budget_labels WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.goals WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.goal_allocations WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.recurring_commitments WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.subscriptions WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.loans WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.holdings WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.assistant_threads WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.assistant_messages WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.assistant_memory WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.payments WHERE user_id = auth.user_id()
+      # --- splits: private per-user rows ---
+      - SELECT * FROM pocketcare.expense_postings WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.split_invitations WHERE inviter = auth.user_id()
+      - SELECT * FROM pocketcare.connections WHERE user_a = auth.user_id() OR user_b = auth.user_id()
+
+  # Splits: the SHARED ledger, visible by group membership (one copy, no dupes).
+  # Uses JOINs to traverse relationships and evaluate auth.user_id() safely.
+  split_shared:
+    auto_subscribe: true
+    queries:
+      - >
+        SELECT pocketcare.split_groups.* FROM pocketcare.split_groups
+        JOIN pocketcare.split_group_members ON pocketcare.split_groups.id = pocketcare.split_group_members.group_id
+        WHERE pocketcare.split_group_members.user_id = auth.user_id() AND pocketcare.split_group_members.deleted_at IS NULL
+      - >
+        SELECT pocketcare.split_group_members.* FROM pocketcare.split_group_members
+        JOIN pocketcare.split_group_members AS m2 ON pocketcare.split_group_members.group_id = m2.group_id
+        WHERE m2.user_id = auth.user_id() AND m2.deleted_at IS NULL
+      - >
+        SELECT pocketcare.expenses.* FROM pocketcare.expenses
+        JOIN pocketcare.split_group_members ON pocketcare.expenses.group_id = pocketcare.split_group_members.group_id
+        WHERE pocketcare.split_group_members.user_id = auth.user_id() AND pocketcare.split_group_members.deleted_at IS NULL
+      - >
+        SELECT pocketcare.expense_participants.* FROM pocketcare.expense_participants
+        JOIN pocketcare.split_group_members ON pocketcare.expense_participants.group_id = pocketcare.split_group_members.group_id
+        WHERE pocketcare.split_group_members.user_id = auth.user_id() AND pocketcare.split_group_members.deleted_at IS NULL
+      - >
+        SELECT pocketcare.settlements.* FROM pocketcare.settlements
+        JOIN pocketcare.split_group_members ON pocketcare.settlements.group_id = pocketcare.split_group_members.group_id
+        WHERE pocketcare.split_group_members.user_id = auth.user_id() AND pocketcare.split_group_members.deleted_at IS NULL
+      - >
+        SELECT pocketcare.profiles.id, pocketcare.profiles.display_name, pocketcare.profiles.email, pocketcare.profiles.created_at, pocketcare.profiles.updated_at
+        FROM pocketcare.profiles
+        JOIN pocketcare.split_group_members ON pocketcare.profiles.id = pocketcare.split_group_members.user_id
+        JOIN pocketcare.split_group_members AS m2 ON pocketcare.split_group_members.group_id = m2.group_id
+        WHERE m2.user_id = auth.user_id() AND m2.deleted_at IS NULL AND pocketcare.split_group_members.deleted_at IS NULL
+      - >
+        SELECT pocketcare.profiles.id, pocketcare.profiles.display_name, pocketcare.profiles.email, pocketcare.profiles.created_at, pocketcare.profiles.updated_at
+        FROM pocketcare.profiles
+        JOIN pocketcare.connections ON pocketcare.profiles.id = pocketcare.connections.user_b
+        WHERE pocketcare.connections.user_a = auth.user_id() AND pocketcare.connections.deleted_at IS NULL
+      - >
+        SELECT pocketcare.profiles.id, pocketcare.profiles.display_name, pocketcare.profiles.email, pocketcare.profiles.created_at, pocketcare.profiles.updated_at
+        FROM pocketcare.profiles
+        JOIN pocketcare.connections ON pocketcare.profiles.id = pocketcare.connections.user_a
+        WHERE pocketcare.connections.user_b = auth.user_id() AND pocketcare.connections.deleted_at IS NULL
+
   # Global reference / lookup data — same for everyone, read-only.
-  global_reference:
-    data:
+  # These back the enum→table normalization (id is the code string).
+  reference_data:
+    auto_subscribe: true
+    queries:
       - SELECT * FROM pocketcare.account_types
       - SELECT * FROM pocketcare.transaction_types
       - SELECT * FROM pocketcare.category_kinds
@@ -22,66 +102,12 @@ bucket_definitions:
       - SELECT * FROM pocketcare.rate_modes
       - SELECT * FROM pocketcare.payment_methods
       - SELECT * FROM pocketcare.account_type_payment_methods
-      - SELECT *, base_currency || '-' || quote_currency || '-' || as_of AS id FROM pocketcare.exchange_rates
 
-  # A user's own private data (one bucket per user).
-  user_data:
-    parameters: SELECT request.user_id() AS user_id
-    data:
-      - SELECT * FROM pocketcare.profiles WHERE id = bucket.user_id
-      - SELECT * FROM pocketcare.entitlements WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.accounts WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.transactions WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.transaction_labels WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.transaction_items WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.transaction_audit WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.categories WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.labels WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.credit_card_details WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.budgets WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.budget_categories WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.budget_labels WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.goals WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.goal_allocations WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.recurring_commitments WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.subscriptions WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.loans WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.holdings WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.assistant_threads WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.assistant_messages WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.assistant_memory WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.payments WHERE user_id = bucket.user_id
-      # splits — private per-user rows
-      - SELECT * FROM pocketcare.expense_postings WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.split_invitations WHERE inviter = bucket.user_id
-      - SELECT * FROM pocketcare.connections WHERE user_a = bucket.user_id
-      - SELECT * FROM pocketcare.connections WHERE user_b = bucket.user_id
+  # Global reference data — same rates for everyone, read-only.
+  # exchange_rates has a composite key, so synthesize the required text `id`.
+  exchange_rates:
+    auto_subscribe: true
+    query: >
+      SELECT *, base_currency || '-' || quote_currency || '-' || as_of AS id
+      FROM pocketcare.exchange_rates
 
-  # Splits — the SHARED ledger, one bucket per group the user belongs to.
-  group_data:
-    parameters: SELECT group_id FROM pocketcare.split_group_members WHERE user_id = request.user_id() AND deleted_at IS NULL
-    data:
-      - SELECT * FROM pocketcare.split_groups WHERE id = bucket.group_id
-      - SELECT * FROM pocketcare.split_group_members WHERE group_id = bucket.group_id
-      - SELECT * FROM pocketcare.expenses WHERE group_id = bucket.group_id
-      - SELECT * FROM pocketcare.expense_participants WHERE group_id = bucket.group_id
-      - SELECT * FROM pocketcare.settlements WHERE group_id = bucket.group_id
-
-  # Display identity (name/email) of everyone we share a group with.
-  member_profiles:
-    parameters: >
-      SELECT DISTINCT m2.user_id AS member_id
-      FROM pocketcare.split_group_members m1
-      JOIN pocketcare.split_group_members m2 ON m1.group_id = m2.group_id
-      WHERE m1.user_id = request.user_id() AND m1.deleted_at IS NULL AND m2.deleted_at IS NULL
-    data:
-      - SELECT id, display_name, email, created_at, updated_at FROM pocketcare.profiles WHERE id = bucket.member_id
-
-  # Display identity of your connections (accepted invites).
-  connection_profiles:
-    parameters: >
-      SELECT (CASE WHEN user_a = request.user_id() THEN user_b ELSE user_a END) AS conn_id
-      FROM pocketcare.connections
-      WHERE (user_a = request.user_id() OR user_b = request.user_id()) AND deleted_at IS NULL
-    data:
-      - SELECT id, display_name, email, created_at, updated_at FROM pocketcare.profiles WHERE id = bucket.conn_id
