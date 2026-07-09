@@ -15,7 +15,10 @@ export async function insertRow(table: string, values: Record<string, unknown>):
   if (!db) throw new Error("DB not ready");
   const id = uuid();
   const ts = nowIso();
-  const row: Record<string, unknown> = { id, user_id: getUserId(), created_at: ts, updated_at: ts, ...values };
+  const row: Record<string, unknown> = { id, created_at: ts, updated_at: ts, ...values };
+  if (!("user_id" in values) && !["split_groups", "expenses", "settlements", "split_invitations", "connections", "profiles"].includes(table)) {
+    row.user_id = getUserId();
+  }
   const keys = Object.keys(row);
   const placeholders = keys.map(() => "?").join(",");
   await withLoading(db.execute(
