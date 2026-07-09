@@ -51,6 +51,7 @@ export default function EditTransactionPage() {
   const [labelsReady, setLabelsReady] = useState(false);
   const [itemsReady, setItemsReady] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
 
   const { isPaid } = useEntitlement();
   const learnCategory = useLearnCategory();
@@ -113,6 +114,7 @@ export default function EditTransactionPage() {
 
   async function save() {
     setSaving(true);
+    setSaveErr(null);
     try {
       let finalAmount = fromMajor(Number(amount) || 0, currency);
       let payloadItems: { id?: string; description: string; amount: Money }[] | undefined;
@@ -152,6 +154,8 @@ export default function EditTransactionPage() {
       }
 
       router.push("/transactions");
+    } catch (e) {
+      setSaveErr(e instanceof Error ? e.message : "Couldn't save changes.");
     } finally { setSaving(false); }
   }
 
@@ -228,6 +232,12 @@ export default function EditTransactionPage() {
 
       <Field label="Note"><input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" /></Field>
       <Field label="Date"><input className="input" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
+
+      {saveErr && (
+        <div className="card" style={{ padding: "10px 14px", background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)", fontSize: 14 }}>
+          {saveErr}
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <button className="btn" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</button>

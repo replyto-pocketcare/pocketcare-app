@@ -64,6 +64,7 @@ const accounts = new Table({
   color: column.text,
   is_archived: column.integer,
   include_in_net_worth: column.integer,
+  allow_negative: column.integer, // 0 = block overdraft (default), 1 = allow negative balance
   kind: column.text, // 'real' (default) | 'receivable' | 'payable' (hidden virtual accounts)
   created_at: column.text,
   updated_at: column.text,

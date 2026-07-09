@@ -95,6 +95,8 @@ export interface Account extends BaseRow {
   icon: string | null;
   color: string | null;
   is_archived: boolean;
+  /** When false/absent, transactions can't take this account below zero. */
+  allow_negative?: boolean;
 }
 
 export interface Transaction extends BaseRow {

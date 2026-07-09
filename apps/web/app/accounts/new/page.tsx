@@ -25,15 +25,17 @@ export default function NewAccountPage() {
   const [spent, setSpent] = useState("");
   const [limit, setLimit] = useState("");
   const [saving, setSaving] = useState(false);
+  const [allowNeg, setAllowNeg] = useState<boolean | null>(null); // null = follow type default
 
   const isCard = type === AccountType.CreditCard;
+  const allowNegEffective = allowNeg ?? isCard;
 
   async function save() {
     if (!name.trim() || saving) return;
     setSaving(true);
     try {
       const repos = getRepositories();
-      const account = await repos.accounts.create({ name: name.trim(), type, currency, icon: null, color, is_archived: false });
+      const account = await repos.accounts.create({ name: name.trim(), type, currency, icon: null, color, is_archived: false, allow_negative: allowNegEffective });
       if (!includeNw) {
         await getDb()?.execute("UPDATE accounts SET include_in_net_worth = 0, updated_at = ? WHERE id = ?", [new Date().toISOString(), account.id]);
       }
@@ -80,6 +82,13 @@ export default function NewAccountPage() {
       <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
         <input type="checkbox" checked={includeNw} onChange={(e) => setIncludeNw(e.target.checked)} />
         Include this account in net worth
+      </label>
+
+      <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 14 }}>
+        <input type="checkbox" checked={allowNegEffective} onChange={(e) => setAllowNeg(e.target.checked)} style={{ marginTop: 3 }} />
+        <span>Allow negative balance (overdraft)<br />
+          <span className="muted" style={{ fontSize: 12 }}>{allowNegEffective ? "Spending can take this account below zero." : "Transactions that would overdraw this account are blocked."}</span>
+        </span>
       </label>
 
       {isCard ? (

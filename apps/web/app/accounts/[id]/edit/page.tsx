@@ -15,12 +15,12 @@ import { ACCOUNT_COLORS } from "../../../../src/colors";
 const TYPES = Object.values(AccountType);
 const COLORS = ACCOUNT_COLORS;
 
-interface Row { id: string; name: string; type: string; color: string | null; include_in_net_worth: number; is_archived: number; }
+interface Row { id: string; name: string; type: string; color: string | null; include_in_net_worth: number; is_archived: number; allow_negative: number; }
 
 export default function EditAccountPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { data: rows = [] } = useQuery<Row>("SELECT id, name, type, color, include_in_net_worth, is_archived FROM accounts WHERE id = ?", [id]);
+  const { data: rows = [] } = useQuery<Row>("SELECT id, name, type, color, include_in_net_worth, is_archived, IFNULL(allow_negative,0) AS allow_negative FROM accounts WHERE id = ?", [id]);
   const acc = rows[0];
 
   const balances = useAccountBalances();
@@ -30,6 +30,7 @@ export default function EditAccountPage() {
   const [type, setType] = useState<string>(AccountType.Savings);
   const [color, setColor] = useState(COLORS[0]);
   const [include, setInclude] = useState(true);
+  const [allowNeg, setAllowNeg] = useState(false);
   const [ready, setReady] = useState(false);
 
   const [targetBal, setTargetBal] = useState("");
@@ -42,12 +43,12 @@ export default function EditAccountPage() {
   useEffect(() => {
     if (acc && !ready) {
       setName(acc.name); setType(acc.type); setColor(acc.color || COLORS[0]);
-      setInclude(acc.include_in_net_worth !== 0); setReady(true);
+      setInclude(acc.include_in_net_worth !== 0); setAllowNeg(acc.allow_negative === 1); setReady(true);
     }
   }, [acc, ready]);
 
   async function save() {
-    await getRepositories().accounts.update(id, { name: name.trim(), type: type as never, color, include_in_net_worth: include });
+    await getRepositories().accounts.update(id, { name: name.trim(), type: type as never, color, include_in_net_worth: include, allow_negative: allowNeg });
     router.push("/accounts");
   }
   
@@ -123,6 +124,13 @@ export default function EditAccountPage() {
 
       <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
         <input type="checkbox" checked={include} onChange={(e) => setInclude(e.target.checked)} /> Include in net worth
+      </label>
+
+      <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 14 }}>
+        <input type="checkbox" checked={allowNeg} onChange={(e) => setAllowNeg(e.target.checked)} style={{ marginTop: 3 }} />
+        <span>Allow negative balance (overdraft)<br />
+          <span className="muted" style={{ fontSize: 12 }}>{allowNeg ? "Spending can take this account below zero." : "Transactions that would overdraw this account are blocked."}</span>
+        </span>
       </label>
 
       <div style={{ display: "flex", gap: 10 }}>

@@ -24,6 +24,15 @@ import type {
 const uuid = () => globalThis.crypto.randomUUID();
 const nowIso = () => new Date().toISOString();
 
+/** Thrown when a write would take a no-overdraft account below zero. */
+export class OverdraftError extends Error {
+  readonly code = "OVERDRAFT" as const;
+  constructor(public readonly accountName: string, public readonly shortfall: Money) {
+    super(`Recording this would take “${accountName}” below zero. Turn on “Allow negative balance” for this account, or reduce the amount.`);
+    this.name = "OverdraftError";
+  }
+}
+
 export class PowerSyncAccountRepository implements AccountRepository {
   constructor(
     private readonly db: AbstractPowerSyncDatabase,
@@ -53,12 +62,16 @@ export class PowerSyncAccountRepository implements AccountRepository {
       updated_at: ts,
       deleted_at: null,
     };
+    // Credit cards are liabilities that carry a negative (owed) balance, so they
+    // allow it by default; every other account type blocks overdraft unless the
+    // user opts in.
+    const allowNeg = row.allow_negative ?? row.type === "credit_card";
     await this.db.execute(
-      `INSERT INTO accounts (id,user_id,name,type,currency,icon,color,is_archived,created_at,updated_at)
-       VALUES (?,?,?,?,?,?,?,?,?,?)`,
-      [id, row.user_id, row.name, row.type, row.currency, row.icon, row.color, row.is_archived ? 1 : 0, ts, ts],
+      `INSERT INTO accounts (id,user_id,name,type,currency,icon,color,is_archived,allow_negative,created_at,updated_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+      [id, row.user_id, row.name, row.type, row.currency, row.icon, row.color, row.is_archived ? 1 : 0, allowNeg ? 1 : 0, ts, ts],
     );
-    return row;
+    return { ...row, allow_negative: allowNeg };
   }
 
   /** Set/adjust opening balance by appending a ledger entry — never rewrites history. */
@@ -85,7 +98,7 @@ export class PowerSyncAccountRepository implements AccountRepository {
 
   async update(
     id: string,
-    patch: Partial<Pick<Account, "name" | "type" | "color" | "icon" | "is_archived">> & { include_in_net_worth?: boolean },
+    patch: Partial<Pick<Account, "name" | "type" | "color" | "icon" | "is_archived" | "allow_negative">> & { include_in_net_worth?: boolean },
   ): Promise<void> {
     const sets: string[] = [];
     const params: (string | number | null)[] = [];
@@ -94,6 +107,7 @@ export class PowerSyncAccountRepository implements AccountRepository {
     if (patch.color !== undefined) { sets.push("color = ?"); params.push(patch.color); }
     if (patch.icon !== undefined) { sets.push("icon = ?"); params.push(patch.icon); }
     if (patch.is_archived !== undefined) { sets.push("is_archived = ?"); params.push(patch.is_archived ? 1 : 0); }
+    if (patch.allow_negative !== undefined) { sets.push("allow_negative = ?"); params.push(patch.allow_negative ? 1 : 0); }
     if (patch.include_in_net_worth !== undefined) { sets.push("include_in_net_worth = ?"); params.push(patch.include_in_net_worth ? 1 : 0); }
     if (sets.length === 0) return;
     sets.push("updated_at = ?"); params.push(nowIso());
@@ -153,6 +167,27 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
   }
 
   /** Atomic write of a transaction + its breakdown items, with reconcile guard. */
+  /**
+   * Throw OverdraftError if applying `deltaMinor` to `accountId` would take a
+   * no-overdraft account below zero. `excludeTxnId` omits a transaction from the
+   * current balance (used on edits, so the row's own prior effect isn't counted).
+   */
+  private async assertNoOverdraft(accountId: string, deltaMinor: number, excludeTxnId: string | null): Promise<void> {
+    if (deltaMinor >= 0) return;
+    const acct = await this.db.getOptional<{ name: string; currency: CurrencyCode; allow_negative: number }>(
+      "SELECT name, currency, IFNULL(allow_negative, 0) AS allow_negative FROM accounts WHERE id = ?",
+      [accountId],
+    );
+    if (!acct || acct.allow_negative) return; // unknown account or overdraft allowed
+    const entries = await this.db.getAll<LedgerEntry>(
+      `SELECT type, account_id, amount, to_account_id, to_amount FROM transactions
+       WHERE deleted_at IS NULL AND (account_id = ? OR to_account_id = ?)${excludeTxnId ? " AND id != ?" : ""}`,
+      excludeTxnId ? [accountId, accountId, excludeTxnId] : [accountId, accountId],
+    );
+    const projected = deriveBalance(accountId, acct.currency, entries).amount + deltaMinor;
+    if (projected < 0) throw new OverdraftError(acct.name, money(projected, acct.currency));
+  }
+
   async create(input: NewTransactionInput): Promise<Transaction> {
     const items = input.items ?? [];
     if (items.length > 0 && !itemsReconcile(input.amount, items.map((i) => i.amount))) {
@@ -160,6 +195,10 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     }
     if (input.type === "transfer" && !input.to_account_id) {
       throw new Error("Transfer requires a destination account");
+    }
+    // Overdraft guard: expenses and the source side of a transfer reduce the account.
+    if (input.type === "expense" || input.type === "transfer") {
+      await this.assertNoOverdraft(input.account_id, -input.amount.amount, null);
     }
 
     const userId = this.getUserId();
@@ -276,6 +315,14 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
 
     const relabel = patch.labels !== undefined && patch.labels !== null;
     if (sets.length === 0 && !relabel) return;
+
+    // Overdraft guard on the resulting state (excluding this row's prior effect).
+    const newType = patch.type ?? before.type;
+    const newAccount = patch.account_id ?? before.account_id;
+    const newAmount = patch.amount?.amount ?? before.amount;
+    if (newType === "expense" || newType === "transfer") {
+      await this.assertNoOverdraft(newAccount, -newAmount, id);
+    }
 
     const ts = nowIso();
     await this.db.writeTransaction(async (tx) => {

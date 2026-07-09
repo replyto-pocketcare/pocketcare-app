@@ -152,4 +152,5 @@ export {
   PowerSyncBalanceRepository,
   PowerSyncBudgetRepository,
   PowerSyncCreditCardRepository,
+  OverdraftError,
 } from "./powersync-repositories.ts";

@@ -53,6 +53,7 @@ export default function NewTransactionPage() {
   const [toValue, setToValue] = useState(""); // cross-currency destination amount
   const [date, setDate] = useState(new Date().toLocaleString("sv-SE", { timeZoneName: "short" }).substring(0, 16)); // YYYY-MM-DDTHH:mm
   const [saving, setSaving] = useState(false);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
 
   // Split (multi-user: participants are members of a chosen group).
   const groups = useGroups();
@@ -225,6 +226,7 @@ export default function NewTransactionPage() {
   async function save() {
     if (!account || !canSave) return;
     setSaving(true);
+    setSaveErr(null);
     try {
       const repos = getRepositories();
       const combinedDescription = type === "transfer"
@@ -283,6 +285,8 @@ export default function NewTransactionPage() {
       }
 
       router.push("/transactions");
+    } catch (e) {
+      setSaveErr(e instanceof Error ? e.message : "Couldn't save this transaction.");
     } finally {
       setSaving(false);
     }
@@ -564,6 +568,12 @@ export default function NewTransactionPage() {
       <Field label="Date">
         <input className="input" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} />
       </Field>
+
+      {saveErr && (
+        <div className="card" style={{ padding: "10px 14px", background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)", fontSize: 14 }}>
+          {saveErr}
+        </div>
+      )}
 
       <button className="btn" disabled={!canSave} onClick={save} style={{ justifyContent: "center", padding: 14 }}>
         {saving ? "Saving…" : `Save · ${format(total, "en-US")}`}

@@ -162,7 +162,13 @@ export async function runRecurring(): Promise<number> {
     let due = r.next_due;
     let guard = 0;
     while (due <= today && guard++ < 24) {
-      await materializeTemplate(tpl, dueIso(due));
+      try {
+        await materializeTemplate(tpl, dueIso(due));
+      } catch {
+        // e.g. an overdraft-blocked auto-post: leave next_due where it is so it
+        // shows as still-due, and move on to other rules instead of stalling.
+        break;
+      }
       const next = advance(due, r.frequency, r.interval_count || 1);
       await updateRow("recurring_rules", r.id, { next_due: next, last_generated: due });
       due = next;
