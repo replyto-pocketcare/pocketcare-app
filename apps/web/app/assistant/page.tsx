@@ -329,6 +329,9 @@ export default function AssistantPage() {
             "I want to buy an iPhone in the Diwali sale — help me plan for it.",
             "Can I afford a ₹40,000 trip in 3 months?",
             "Set up a monthly budget for eating out.",
+            "How do I split rent with my flatmates?",
+            "Who owes me money right now, and how much?",
+            "Create a Goa trip so I can split expenses with friends.",
           ].map((ex) => (
             <button key={ex} className="chip" style={{ textAlign: "left", whiteSpace: "normal", borderRadius: 12, width: "100%" }} onClick={() => setInput(ex)}>{ex}</button>
           ))}
