@@ -133,17 +133,18 @@ export async function createSplitExpense(input: SplitExpenseInput): Promise<stri
     postings.push({ txId: tx.id, role: "lend" });
   }
 
-  // Shared fact.
+  // Shared fact — kept free of any private data (no account, no category id).
+  // The account you paid from + your category live only on your private posting
+  // (transactions row), linked to this expense via expense_postings.
   const expenseId = await insertRow("shared_expenses", {
     created_by: userId, group_id: input.groupId ?? null, description: input.description ?? null,
     total_amount: input.total.amount, currency, occurred_at: input.occurredAt, split_mode: input.mode,
-    category_id: input.categoryId ?? null,
   });
   for (let i = 0; i < input.participants.length; i++) {
     await insertRow("shared_expense_shares", { expense_id: expenseId, contact_id: input.participants[i]!.contactId, share_amount: shares[i] });
   }
   for (const p of input.payers) {
-    await insertRow("shared_expense_payers", { expense_id: expenseId, contact_id: p.contactId, paid_amount: p.paid, account_id: p.contactId === null ? p.accountId ?? null : null });
+    await insertRow("shared_expense_payers", { expense_id: expenseId, contact_id: p.contactId, paid_amount: p.paid });
   }
   for (const pg of postings) {
     await insertRow("expense_postings", { expense_id: expenseId, transaction_id: pg.txId, role: pg.role });
