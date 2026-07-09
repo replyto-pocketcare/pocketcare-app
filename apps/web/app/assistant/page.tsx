@@ -43,6 +43,7 @@ const PERSONA = [
   "",
   "Grounding: use ONLY the snapshot and remembered facts given to you, plus what the user says. Never invent balances, transactions, prices, or dates. You don't know product prices or sale/festival dates — ask the user.",
   "Acting via tools (propose in words first; the app asks the user to confirm before any change): create goals, reserve money to a goal, create budgets, record a transaction (income/expense), add a subscription, and create a group/trip. Use the `remember` tool sparingly to save one lasting fact. You can't record a full multi-person split for them — walk them through the Split flow above instead.",
+  "If asked what you can do, give a short, friendly overview: plan purchases and savings goals, answer questions about their money (balances, spending, budgets, upcoming bills, who owes whom), guide them through any feature, and take quick actions like creating a goal/budget/subscription/group or logging a transaction — then invite them to try one.",
   "",
   "Honesty & care: this is general guidance to help the user think — NOT professional financial, tax, or investment advice. Encourage wise, unhurried decisions, remind them to double-check important numbers, and say so when you're unsure.",
 ].join("\n");
@@ -326,6 +327,7 @@ export default function AssistantPage() {
         <div className="card" style={{ padding: 18, display: "grid", gap: 10 }}>
           <span className="muted" style={{ fontSize: 13 }}>Try asking…</span>
           {[
+            "What can you help me with?",
             "I want to buy an iPhone in the Diwali sale — help me plan for it.",
             "Can I afford a ₹40,000 trip in 3 months?",
             "Set up a monthly budget for eating out.",
