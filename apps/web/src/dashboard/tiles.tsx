@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend,
+  BarChart, Bar, AreaChart, Area, XAxis, YAxis, LabelList,
 } from "recharts";
 import { money, format, toMajor, type Money } from "@pocketcare/money";
 import { budgetProgress } from "@pocketcare/budget";
@@ -277,16 +277,28 @@ function useCashflow() {
   return { byMonth, cashflow };
 }
 
+function gradientDefs() {
+  return (
+    <defs>
+      <linearGradient id="gInc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#5f7a52" stopOpacity={0.95} /><stop offset="100%" stopColor="#5f7a52" stopOpacity={0.55} /></linearGradient>
+      <linearGradient id="gExp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#b06a4f" stopOpacity={0.95} /><stop offset="100%" stopColor="#b06a4f" stopOpacity={0.55} /></linearGradient>
+      <linearGradient id="gNet" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3e4a38" stopOpacity={0.5} /><stop offset="100%" stopColor="#3e4a38" stopOpacity={0.03} /></linearGradient>
+      <linearGradient id="gBar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#b06a4f" stopOpacity={0.55} /><stop offset="100%" stopColor="#b06a4f" stopOpacity={1} /></linearGradient>
+    </defs>
+  );
+}
+const axisX = { tick: { fontSize: 11, fill: "var(--text-2)" }, axisLine: false, tickLine: false } as const;
+
 function CashflowTile() {
   const { cashflow } = useCashflow();
   return (
     <TileCard title="Cashflow">
       <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={cashflow}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-          <XAxis dataKey="month" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 12 }} /><Tooltip /><Legend />
-          <Bar dataKey="income" fill="#5f7a52" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="expense" fill="#b06a4f" radius={[4, 4, 0, 0]} />
+        <BarChart data={cashflow} margin={{ top: 10, right: 8, bottom: 0, left: 0 }} barGap={2}>
+          {gradientDefs()}
+          <XAxis dataKey="month" {...axisX} /><YAxis hide /><Tooltip cursor={{ fill: "var(--surface-2)" }} />
+          <Bar dataKey="income" fill="url(#gInc)" radius={[6, 6, 0, 0]} maxBarSize={22} />
+          <Bar dataKey="expense" fill="url(#gExp)" radius={[6, 6, 0, 0]} maxBarSize={22} />
         </BarChart>
       </ResponsiveContainer>
     </TileCard>
@@ -298,12 +310,31 @@ function NetTrendTile() {
   return (
     <TileCard title="Net cashflow trend">
       <ResponsiveContainer width="100%" height={240}>
-        <LineChart data={cashflow}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-          <XAxis dataKey="month" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 12 }} /><Tooltip />
-          <Line type="monotone" dataKey="net" stroke="#3e4a38" strokeWidth={2.5} dot={{ r: 3 }} />
-        </LineChart>
+        <AreaChart data={cashflow} margin={{ top: 10, right: 12, bottom: 0, left: 6 }}>
+          {gradientDefs()}
+          <XAxis dataKey="month" {...axisX} /><Tooltip />
+          <Area type="monotone" dataKey="net" stroke="#3e4a38" strokeWidth={2.5} fill="url(#gNet)" dot={false} activeDot={{ r: 5, fill: "#3e4a38", stroke: "var(--surface)", strokeWidth: 2 }} />
+        </AreaChart>
       </ResponsiveContainer>
+    </TileCard>
+  );
+}
+
+function HBarTile({ title, data, empty }: { title: string; data: { name: string; value: number }[]; empty: string }) {
+  return (
+    <TileCard title={title}>
+      {data.length ? (
+        <ResponsiveContainer width="100%" height={Math.max(180, data.length * 34)}>
+          <BarChart layout="vertical" data={data} margin={{ top: 4, right: 40, bottom: 4, left: 6 }}>
+            {gradientDefs()}
+            <XAxis type="number" hide />
+            <YAxis type="category" dataKey="name" width={96} tick={{ fontSize: 12, fill: "var(--text)" }} axisLine={false} tickLine={false} />
+            <Bar dataKey="value" radius={[0, 8, 8, 0]} fill="url(#gBar)" barSize={16}>
+              <LabelList dataKey="value" position="right" formatter={(v: number) => v.toLocaleString()} style={{ fontSize: 11, fill: "var(--text-2)" }} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      ) : <p className="muted">{empty}</p>}
     </TileCard>
   );
 }
@@ -312,19 +343,7 @@ function ByCategoryTile() {
   const { data: byCat = [] } = useQuery<{ name: string | null; total: number }>(
     "SELECT c.name as name, SUM(t.amount) as total FROM transactions t LEFT JOIN categories c ON c.id = t.category_id WHERE t.deleted_at IS NULL AND t.type='expense' GROUP BY t.category_id ORDER BY total DESC LIMIT 8",
   );
-  const catData = byCat.map((r) => ({ name: r.name ?? "Uncategorised", value: major(r.total) }));
-  return (
-    <TileCard title="Spending by category">
-      {catData.length ? (
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart layout="vertical" data={catData}>
-            <XAxis type="number" tick={{ fontSize: 11 }} /><YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} /><Tooltip />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]}>{catData.map((_, i) => <Cell key={i} fill={PIE[i % PIE.length]} />)}</Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      ) : <p className="muted">No expenses recorded yet.</p>}
-    </TileCard>
-  );
+  return <HBarTile title="Spending by category" data={byCat.map((r) => ({ name: r.name ?? "Uncategorised", value: major(r.total) }))} empty="No expenses recorded yet." />;
 }
 
 function ByLabelTile() {
@@ -333,19 +352,7 @@ function ByLabelTile() {
      FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id JOIN transactions t ON t.id = tl.transaction_id
      WHERE t.deleted_at IS NULL AND t.type='expense' GROUP BY l.id ORDER BY total DESC LIMIT 8`,
   );
-  const labelData = labelRows.map((r) => ({ name: r.name, value: major(r.total) }));
-  return (
-    <TileCard title="Spending by label">
-      {labelData.length ? (
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart layout="vertical" data={labelData}>
-            <XAxis type="number" tick={{ fontSize: 11 }} /><YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} /><Tooltip />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]}>{labelData.map((_, i) => <Cell key={i} fill={PIE[(i + 3) % PIE.length]} />)}</Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      ) : <p className="muted">Add labels to transactions to see this.</p>}
-    </TileCard>
-  );
+  return <HBarTile title="Spending by label" data={labelRows.map((r) => ({ name: r.name, value: major(r.total) }))} empty="Add labels to transactions to see this." />;
 }
 
 function MonthCompareTile() {
@@ -362,11 +369,11 @@ function MonthCompareTile() {
   return (
     <TileCard title="This month vs last">
       <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={comparison}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-          <XAxis dataKey="period" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 12 }} /><Tooltip /><Legend />
-          <Bar dataKey="income" fill="#5f7a52" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="expense" fill="#b06a4f" radius={[4, 4, 0, 0]} />
+        <BarChart data={comparison} margin={{ top: 10, right: 8, bottom: 0, left: 0 }} barGap={4}>
+          {gradientDefs()}
+          <XAxis dataKey="period" {...axisX} /><YAxis hide /><Tooltip cursor={{ fill: "var(--surface-2)" }} />
+          <Bar dataKey="income" fill="url(#gInc)" radius={[6, 6, 0, 0]} maxBarSize={40} />
+          <Bar dataKey="expense" fill="url(#gExp)" radius={[6, 6, 0, 0]} maxBarSize={40} />
         </BarChart>
       </ResponsiveContainer>
     </TileCard>
