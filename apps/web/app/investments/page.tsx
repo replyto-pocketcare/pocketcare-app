@@ -11,6 +11,8 @@ import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { InstrumentPicker, ExchangeSelect } from "../../src/instruments/InstrumentPicker";
 import type { Instrument } from "../../src/instruments/catalog";
+import { useCatalog } from "../../src/instruments/hooks";
+import { CatalogProgress } from "../../src/instruments/CatalogProgress";
 
 interface Holding {
   id: string;
@@ -36,6 +38,11 @@ export default function InvestmentsPage() {
   const [exFilter, setExFilter] = useState<string | null>(null);
   const [qty, setQty] = useState(""); const [cost, setCost] = useState("");
   const [acc, setAcc] = useState<string | null>(null);
+
+  // Only download the global ticker DB for people who actually track investments,
+  // and only the first time they open this screen (with a progress bar).
+  const cat = useCatalog(invAccounts.length > 0);
+  const downloading = cat.phase === "loading" || cat.phase === "checking";
 
   const investedValue = holdings.reduce((s, h) => s + (h.avg_cost ?? 0) * h.quantity, 0);
 
@@ -79,7 +86,8 @@ export default function InvestmentsPage() {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {invAccounts.map((a) => <button key={a.id} className="chip" data-active={(acc ?? invAccounts[0]?.id) === a.id} onClick={() => setAcc(a.id)}>{a.name}</button>)}
           </div>
-          <div style={{ display: "grid", gap: 8 }}>
+          <CatalogProgress phase={cat.phase} pct={cat.pct} onRetry={cat.retry} />
+          <div style={{ display: "grid", gap: 8, opacity: downloading ? 0.5 : 1, pointerEvents: downloading ? "none" : "auto" }}>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <div style={{ width: 160, flexShrink: 0 }}><ExchangeSelect value={exFilter} onChange={setExFilter} /></div>
               <div style={{ flex: 1, minWidth: 200 }}>

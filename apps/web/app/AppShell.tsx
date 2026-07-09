@@ -13,7 +13,6 @@ import { MenuIcon, PlusIcon, DownloadIcon } from "../src/ui/icons";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
 import { TrialNotice } from "../src/ui/TrialNotice";
 import { runRecurring } from "../src/templates/write";
-import { refreshCatalog } from "../src/instruments/catalog";
 
 const APP_VERSION = "0.1.0";
 
@@ -83,9 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (recurringRan.current || (authStatus !== "user" && authStatus !== "guest")) return;
     recurringRan.current = true;
     const t = setTimeout(() => { void runRecurring().catch(() => {}); }, 2500); // let sync settle first
-    // Refresh the (offline) stock/ETF catalog at most once a day; no-ops offline.
-    const c = setTimeout(() => { void refreshCatalog().catch(() => {}); }, 4000);
-    return () => { clearTimeout(t); clearTimeout(c); };
+    return () => clearTimeout(t);
   }, [authStatus]);
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));

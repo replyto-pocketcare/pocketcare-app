@@ -247,6 +247,74 @@ export async function refreshCatalog(force = false): Promise<void> {
   }
 }
 
+export type CatalogFetchResult = "ok" | "unchanged" | "offline" | "error";
+
+/** Has the full catalog ever been downloaded on this device? (Seed doesn't count.) */
+export async function isCatalogReady(): Promise<boolean> {
+  const db = await openDb();
+  if (!db) return false;
+  return (await idbMeta<number>(db, "fetchedAt")) !== undefined;
+}
+
+/**
+ * One-time (and daily) download that streams the response so the caller can
+ * render a real progress bar. Reports 0–100 via `onProgress`. On offline/error
+ * it leaves the seed usable and returns a status so the UI can proceed anyway.
+ */
+export async function refreshCatalogWithProgress(onProgress: (pct: number) => void, force = false): Promise<CatalogFetchResult> {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return "offline";
+  const db = await openDb();
+  if (!db) return "error";
+  try {
+    const prevEtag = await idbMeta<string>(db, "etag");
+    const headers: Record<string, string> = {};
+    if (prevEtag && !force) headers["if-none-match"] = prevEtag;
+    const res = await fetch(SOURCE_URL, { headers });
+    if (res.status === 304) {
+      db.transaction(META, "readwrite").objectStore(META).put(Date.now(), "fetchedAt");
+      onProgress(100);
+      return "unchanged";
+    }
+    if (!res.ok) return "error";
+
+    const total = Number(res.headers.get("content-length")) || 0;
+    const ASSUMED = 7 * 1024 * 1024; // fallback denominator when length is unknown
+    let text: string;
+    if (res.body && typeof res.body.getReader === "function") {
+      const reader = res.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let loaded = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          loaded += value.length;
+          onProgress(Math.min(99, Math.round((loaded / (total || ASSUMED)) * 100)));
+        }
+      }
+      const buf = new Uint8Array(loaded);
+      let off = 0;
+      for (const c of chunks) { buf.set(c, off); off += c.length; }
+      text = new TextDecoder("utf-8").decode(buf);
+    } else {
+      text = await res.text(); // environments without a readable stream
+      onProgress(90);
+    }
+
+    const rows = SOURCE_URL.toLowerCase().includes(".json") ? normalizeJson(text) : normalizeCsv(text);
+    if (rows.length === 0) return "error";
+    await idbReplace(db, rows, Date.now());
+    const etag = res.headers.get("etag");
+    if (etag) db.transaction(META, "readwrite").objectStore(META).put(etag, "etag");
+    memo = mergeSeed(rows);
+    onProgress(100);
+    return "ok";
+  } catch {
+    return "error";
+  }
+}
+
 /** Parse the `tickers.csv` schema into instruments (stocks & ETFs only). */
 function normalizeCsv(text: string): Instrument[] {
   const out: Instrument[] = [];
