@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import {
@@ -35,6 +35,7 @@ export interface TileMeta {
 export const TILE_CATALOG: TileMeta[] = [
   { id: "recent", title: "Recent activity", span: "half" },
   { id: "spending", title: "Spending this month", span: "half" },
+  { id: "trends", title: "Expense trends", span: "full" },
   { id: "splits", title: "Friends & splits", span: "half" },
   { id: "budgets", title: "Budgets", span: "full" },
   { id: "goals", title: "Goals", span: "full" },
@@ -64,6 +65,7 @@ export function TileView({ id }: { id: TileId }) {
   switch (id) {
     case "recent": return <RecentTile />;
     case "spending": return <SpendingTile />;
+    case "trends": return <TrendsTile />;
     case "splits": return <SplitsTile />;
     case "budgets": return <BudgetsTile />;
     case "goals": return <GoalsTile />;
@@ -158,16 +160,19 @@ function SpendingTile() {
     [monthStart],
   );
   const pieData = spend.slice(0, 7).map((s) => ({ name: catName(s.category_id), value: s.total }));
+  const total = pieData.reduce((s, d) => s + d.value, 0);
+  const pct = (v: number) => (total > 0 ? (v / total) * 100 : 0);
 
   return (
     <TileCard title="Spending this month">
       {pieData.length ? (
         <ResponsiveContainer width="100%" height={220}>
           <PieChart>
-            <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2}>
+            {/* minAngle guarantees even tiny categories get a visible slice next to a big one */}
+            <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2} minAngle={6}>
               {pieData.map((_, i) => <Cell key={i} fill={PIE[i % PIE.length]} />)}
             </Pie>
-            {!hidden && <Tooltip formatter={(v: number) => (v / 100).toFixed(2)} />}
+            {!hidden && <Tooltip formatter={(v: number) => `${(v / 100).toFixed(2)} · ${pct(v).toFixed(1)}%`} />}
           </PieChart>
         </ResponsiveContainer>
       ) : (
@@ -175,9 +180,9 @@ function SpendingTile() {
       )}
       <div style={{ display: "grid", gap: 4 }}>
         {pieData.map((d, i) => (
-          <div key={d.name} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span><span style={{ color: PIE[i % PIE.length] }}>●</span> {d.name}</span>
-            <span className="muted">{hidden ? "••••" : toMajor(money(d.value, base)).toFixed(2)}</span>
+          <div key={d.name} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
+            <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><span style={{ color: PIE[i % PIE.length] }}>●</span> {d.name}</span>
+            <span className="muted" style={{ flexShrink: 0 }}>{pct(d.value).toFixed(1)}%{hidden ? "" : ` · ${toMajor(money(d.value, base)).toFixed(2)}`}</span>
           </div>
         ))}
       </div>
@@ -284,10 +289,95 @@ function gradientDefs() {
       <linearGradient id="gExp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#b06a4f" stopOpacity={0.95} /><stop offset="100%" stopColor="#b06a4f" stopOpacity={0.55} /></linearGradient>
       <linearGradient id="gNet" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3e4a38" stopOpacity={0.5} /><stop offset="100%" stopColor="#3e4a38" stopOpacity={0.03} /></linearGradient>
       <linearGradient id="gBar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#b06a4f" stopOpacity={0.55} /><stop offset="100%" stopColor="#b06a4f" stopOpacity={1} /></linearGradient>
+      <linearGradient id="gTrend" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#b06a4f" stopOpacity={0.5} /><stop offset="100%" stopColor="#b06a4f" stopOpacity={0.03} /></linearGradient>
     </defs>
   );
 }
+
+type TrendPeriod = "3d" | "1w" | "1m" | "1y";
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Bucket daily expense totals into period-appropriate buckets (days / weeks / months). */
+function buildTrend(map: Map<string, number>, period: TrendPeriod): { label: string; value: number }[] {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+  const out: { label: string; value: number }[] = [];
+  if (period === "3d" || period === "1w") {
+    const n = period === "3d" ? 3 : 7;
+    for (let i = n - 1; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      out.push({ label: `${d.getDate()} ${MON[d.getMonth()]}`, value: (map.get(dayKey(d)) ?? 0) / 100 });
+    }
+  } else if (period === "1m") {
+    for (let w = 3; w >= 0; w--) {
+      const start = new Date(today); start.setDate(start.getDate() - (w * 7 + 6));
+      const end = new Date(today); end.setDate(end.getDate() - w * 7);
+      let sum = 0;
+      for (const [k, v] of map) { const kd = new Date(k + "T00:00:00"); if (kd >= start && kd <= end) sum += v; }
+      out.push({ label: `${start.getDate()} ${MON[start.getMonth()]}`, value: sum / 100 });
+    }
+  } else {
+    for (let m = 11; m >= 0; m--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - m, 1);
+      const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      let sum = 0;
+      for (const [k, v] of map) if (k.startsWith(ym)) sum += v;
+      out.push({ label: MON[d.getMonth()]!, value: sum / 100 });
+    }
+  }
+  return out;
+}
+
+function TrendsTile() {
+  const [period, setPeriod] = useState<TrendPeriod>("1m");
+  const days = period === "3d" ? 3 : period === "1w" ? 7 : period === "1m" ? 28 : 365;
+  const since = useMemo(() => {
+    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - days + 1);
+    return d.toISOString().slice(0, 10) + "T00:00:00";
+  }, [days]);
+  const { data: rows = [] } = useQuery<{ d: string; total: number }>(
+    "SELECT date(occurred_at) as d, SUM(amount) as total FROM transactions WHERE deleted_at IS NULL AND type='expense' AND occurred_at >= ? GROUP BY d ORDER BY d",
+    [since],
+  );
+  const data = useMemo(() => buildTrend(new Map(rows.map((r) => [r.d, r.total])), period), [rows, period]);
+  const totalMinor = rows.reduce((s, r) => s + r.total, 0);
+  const base = useBaseCurrency();
+  const hidden = useAmountsHidden();
+
+  const label = period === "3d" ? "last 3 days" : period === "1w" ? "last week" : period === "1m" ? "last month" : "last year";
+  return (
+    <TileCard title="Expense trends" action={
+      <select className="input" value={period} onChange={(e) => setPeriod(e.target.value as TrendPeriod)} style={{ width: "auto", padding: "4px 8px", fontSize: 13, height: 32 }}>
+        <option value="3d">Last 3 days</option>
+        <option value="1w">Last week</option>
+        <option value="1m">Last month</option>
+        <option value="1y">Last year</option>
+      </select>
+    }>
+      <div className="muted" style={{ fontSize: 13, marginTop: -4 }}>
+        Spent {hidden ? "••••" : format(money(totalMinor, base), "en-US")} <span style={{ opacity: 0.7 }}>· {label}</span>
+      </div>
+      <ResponsiveContainer width="100%" height={230}>
+        <AreaChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
+          {gradientDefs()}
+          <XAxis dataKey="label" {...axisX} interval="preserveStartEnd" />
+          <YAxis {...axisY} />
+          <Tooltip cursor={{ stroke: "var(--border)" }} formatter={(v: number) => (hidden ? "••••" : v.toLocaleString())} />
+          <Area type="monotone" dataKey="value" stroke="#b06a4f" strokeWidth={2.5} fill="url(#gTrend)" dot={false} activeDot={{ r: 5, fill: "#b06a4f", stroke: "var(--surface)", strokeWidth: 2 }} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </TileCard>
+  );
+}
 const axisX = { tick: { fontSize: 11, fill: "var(--text-2)" }, axisLine: false, tickLine: false } as const;
+/** Compact axis-tick formatter, e.g. 12.5k / 1.2M. */
+const compactTick = (v: number): string => {
+  const a = Math.abs(v);
+  if (a >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (a >= 1_000) return `${(v / 1_000).toFixed(1)}k`;
+  return String(Math.round(v));
+};
+const axisY = { tick: { fontSize: 11, fill: "var(--text-2)" }, axisLine: false, tickLine: false, width: 44, tickFormatter: compactTick } as const;
 
 function CashflowTile() {
   const { cashflow } = useCashflow();
@@ -296,7 +386,7 @@ function CashflowTile() {
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={cashflow} margin={{ top: 10, right: 8, bottom: 0, left: 0 }} barGap={2}>
           {gradientDefs()}
-          <XAxis dataKey="month" {...axisX} /><YAxis hide /><Tooltip cursor={{ fill: "var(--surface-2)" }} />
+          <XAxis dataKey="month" {...axisX} /><YAxis {...axisY} /><Tooltip cursor={{ fill: "var(--surface-2)" }} />
           <Bar dataKey="income" fill="url(#gInc)" radius={[6, 6, 0, 0]} maxBarSize={22} />
           <Bar dataKey="expense" fill="url(#gExp)" radius={[6, 6, 0, 0]} maxBarSize={22} />
         </BarChart>
