@@ -12,6 +12,8 @@ interface EntRow {
   quota_reset_date?: string | null;
   subscription_status?: string | null;
   billing_cycle?: string | null;
+  comp_tier?: string | null;
+  comp_until?: string | null;
 }
 
 export interface Entitlement {
@@ -33,15 +35,21 @@ export interface Entitlement {
 const normalize = (t?: string): "free" | "lite" | "pro" =>
   t === "pro" || t === "premium" ? "pro" : t === "lite" ? "lite" : "free";
 
+const RANK: Record<"free" | "lite" | "pro", number> = { free: 0, lite: 1, pro: 2 };
+
 /** Single source of truth for the current user's plan + AI quota. */
 export function useEntitlement(): Entitlement {
   const { data = [] } = useQuery<EntRow>(
-    "SELECT tier, premium_trial_start_date, monthly_quota_total, monthly_quota_used, purchased_quota_remaining, additional_purchased_quota, quota_reset_date, subscription_status, billing_cycle FROM entitlements LIMIT 1",
+    "SELECT tier, premium_trial_start_date, monthly_quota_total, monthly_quota_used, purchased_quota_remaining, additional_purchased_quota, quota_reset_date, subscription_status, billing_cycle, comp_tier, comp_until FROM entitlements LIMIT 1",
   );
   const ent = data[0];
 
-  // Server-authoritative: the plan comes only from the synced entitlements row.
-  const effective = normalize(ent?.tier);
+  // Server-authoritative plan, plus any active complimentary tier from a redeemed
+  // coupon (time-bound via comp_until) — whichever is higher wins.
+  const baseTier = normalize(ent?.tier);
+  const compActive = !!ent?.comp_until && new Date(ent.comp_until).getTime() > Date.now();
+  const compTier = compActive ? normalize(ent?.comp_tier ?? undefined) : "free";
+  const effective = RANK[compTier] > RANK[baseTier] ? compTier : baseTier;
 
   // 14-day trial (from the new-user trigger) grants paid access while active.
   let isTrial = false;

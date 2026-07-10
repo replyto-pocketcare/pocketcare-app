@@ -5,7 +5,7 @@ import { useQuery } from "@powersync/react";
 import { useEntitlement } from "../entitlement";
 import { useSession } from "../account";
 import { PLANS, CREDIT_PACKS, price, type PaidTier, type Cycle } from "../billing/plans";
-import { startSubscription, buyCredits, cancelSubscription } from "../billing";
+import { startSubscription, buyCredits, cancelSubscription, redeemCoupon } from "../billing";
 import { openInvoice, type InvoicePayment } from "../billing/invoice";
 
 const FREE_FEATURES = ["All account types (bank, cash, cards, stocks…)", "Categories, labels, budgets, goals", "Transactions, transfers, search"];
@@ -35,6 +35,24 @@ export function Billing() {
   const setSelected = setPicked;
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+
+  // Reward coupons (earned via bug reports) + manual redemption.
+  const { data: coupons = [] } = useQuery<{ id: string; code: string; tier: string; expires_at: string; redeemed_at: string | null }>(
+    "SELECT id, code, tier, expires_at, redeemed_at FROM coupons ORDER BY created_at DESC",
+  );
+  const [couponCode, setCouponCode] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  async function doRedeem(code: string) {
+    if (!code.trim()) return;
+    setRedeeming(true); setCouponMsg(null);
+    try {
+      const r = await redeemCoupon(code);
+      setCouponMsg(`✓ ${r.tier[0]!.toUpperCase()}${r.tier.slice(1)} unlocked until ${new Date(r.until).toLocaleDateString()}.`);
+      setCouponCode("");
+    } catch (err) { setCouponMsg((err as Error).message); }
+    finally { setRedeeming(false); }
+  }
 
   async function run(id: string, fn: () => Promise<{ ok: boolean }>, okMsg: string) {
     setBusy(id); setMsg(null);
@@ -163,6 +181,23 @@ export function Billing() {
       </div>
 
       {msg && <div className="card" style={{ padding: 10, fontSize: 13, background: "var(--accent-ghost)", borderColor: "var(--accent-soft)" }}>{msg}</div>}
+
+      {/* Reward coupons */}
+      <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+        <div><strong style={{ fontSize: 14 }}>Have a coupon?</strong> <span className="muted" style={{ fontSize: 12 }}>— redeem a reward code for a free plan, no charge.</span></div>
+        {coupons.filter((c) => !c.redeemed_at && new Date(c.expires_at).getTime() > Date.now()).map((c) => (
+          <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 10, border: "1px solid var(--accent-soft)", background: "var(--accent-ghost)", flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13 }}>🎁 <strong>{c.tier[0]!.toUpperCase()}{c.tier.slice(1)}</strong> reward · <code>{c.code}</code> <span className="muted">· expires {new Date(c.expires_at).toLocaleDateString()}</span></span>
+            <button className="btn" style={{ padding: "4px 12px", fontSize: 13, minHeight: 0, height: 30 }} disabled={redeeming} onClick={() => doRedeem(c.code)}>{redeeming ? "Redeeming…" : "Redeem"}</button>
+          </div>
+        ))}
+        <div style={{ display: "flex", gap: 8 }}>
+          <input className="input" placeholder="Enter coupon code" value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} onKeyDown={(e) => { if (e.key === "Enter") void doRedeem(couponCode); }} />
+          <button className="btn ghost" disabled={redeeming || !couponCode.trim()} onClick={() => doRedeem(couponCode)}>Redeem</button>
+        </div>
+        {couponMsg && <span style={{ fontSize: 12, color: couponMsg.startsWith("✓") ? "var(--positive)" : "var(--negative)" }}>{couponMsg}</span>}
+        <p className="muted" style={{ fontSize: 11, margin: 0 }}>Beta testers earn coupons: 5 bug reports → 1 month Lite, 25 → Pro.</p>
+      </div>
 
       {/* Billing history + invoices */}
       {payments.length > 0 && (

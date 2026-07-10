@@ -28,6 +28,11 @@ async function invoke<T>(fn: string, body: Record<string, unknown>): Promise<T> 
   return data as T;
 }
 
+/** Redeem a reward coupon → time-bound complimentary Lite/Pro. */
+export async function redeemCoupon(code: string): Promise<{ ok: boolean; tier: string; until: string }> {
+  return invoke("redeem-coupon", { code: code.trim().toUpperCase() });
+}
+
 async function prefill(): Promise<{ email?: string }> {
   try {
     const { data } = await getSupabase().auth.getUser();

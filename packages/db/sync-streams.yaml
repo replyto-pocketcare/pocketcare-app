@@ -52,6 +52,9 @@ streams:
       - SELECT *, user_id AS id FROM pocketcare.user_keys WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.support_grants WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.security_audit WHERE subject_user = auth.user_id()
+      # --- beta feedback + reward coupons ---
+      - SELECT * FROM pocketcare.bug_reports WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.coupons WHERE user_id = auth.user_id()
 
   # Splits: the SHARED ledger, visible by group membership (one copy, no dupes).
   # Uses JOINs to traverse relationships and evaluate auth.user_id() safely.

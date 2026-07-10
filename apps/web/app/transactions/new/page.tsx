@@ -107,7 +107,7 @@ export default function NewTransactionPage() {
   const { suggestedCategory, isAutoApplied, setIsAutoApplied, working: autoCatWorking } = useAutoCategorize(
     autoCategorizeText,
     categories,
-    type !== "transfer" // available to everyone (on-device, no network)
+    isPaid && type !== "transfer"
   );
   const learnCategory = useLearnCategory();
 
@@ -283,8 +283,7 @@ export default function NewTransactionPage() {
         });
       }
 
-      if (type !== "transfer" && autoCategorizeText) {
-        // Fire and forget: learn from what the user chose (improves future suggestions).
+      if (type !== "transfer" && autoCategorizeText && isPaid) {
         void learnCategory(autoCategorizeText, categoryId, isAutoApplied ? suggestedCategory : null);
       }
 

@@ -358,6 +358,34 @@ const security_audit = new Table({
   created_at: column.text,
 });
 
+// Beta bug reports + reward coupons.
+const bug_reports = new Table({
+  user_id: column.text,
+  severity: column.text,
+  area: column.text,
+  title: column.text,
+  description: column.text,
+  app_version: column.text,
+  route: column.text,
+  platform: column.text,
+  user_agent: column.text,
+  viewport: column.text,
+  online: column.integer,
+  status: column.text,
+  created_at: column.text,
+});
+const coupons = new Table({
+  code: column.text,
+  user_id: column.text,
+  tier: column.text,
+  months: column.integer,
+  reason: column.text,
+  expires_at: column.text,
+  redeemed_at: column.text,
+  applied_until: column.text,
+  created_at: column.text,
+});
+
 // AI assistant persistence (chat history + per-user memory).
 const assistant_threads = new Table({
   user_id: column.text,
@@ -474,6 +502,8 @@ export const AppSchema = new Schema({
   user_keys,
   support_grants,
   security_audit,
+  bug_reports,
+  coupons,
   assistant_threads,
   assistant_messages,
   assistant_memory,

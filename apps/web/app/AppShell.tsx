@@ -16,6 +16,7 @@ import { runRecurring } from "../src/templates/write";
 import { useInstallPrompt } from "../src/pwa";
 import { InstallGuide } from "../src/ui/InstallGuide";
 import { Modal } from "../src/ui/Modal";
+import { BugReportModal } from "../src/ui/BugReport";
 
 const APP_VERSION = "0.1.0";
 
@@ -55,6 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { standalone } = useInstallPrompt();
   const [showInstall, setShowInstall] = useState(false);
+  const [showBug, setShowBug] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const session = useSession();
   const authStatus = useAuthStatus();
@@ -163,6 +165,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div style={{ color: "var(--accent)", marginTop: 2 }}>Create account →</div>
             </Link>
           )}
+          <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => { setShowBug(true); setMenuOpen(false); }}>
+            🐞 Report a bug
+          </button>
           {!standalone && (
             <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => setShowInstall(true)}>
               <DownloadIcon size={16} /> Install app
@@ -178,6 +183,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <h2 style={{ margin: "0 0 12px" }}>Install PocketCare</h2>
         <InstallGuide />
       </Modal>
+
+      <BugReportModal open={showBug} onClose={() => setShowBug(false)} />
 
       <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, overflowX: "hidden" }}>
         {showBack && (
