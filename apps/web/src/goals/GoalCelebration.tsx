@@ -22,6 +22,13 @@ export function GoalCelebration({ name, onClose }: { name: string; onClose: () =
   const [scale, setScale] = useState(1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // After the rise/rotate settles, the cake becomes a draggable 3D model.
+  const [interactive, setInteractive] = useState(false);
+  const [rot, setRot] = useState({ x: -22, y: 0 }); // matches the settled pose
+  const dragging = useRef(false);
+  const last = useRef({ x: 0, y: 0 });
+  const closeTimer = useRef<number | undefined>(undefined);
+
   useEffect(() => {
     const mq = typeof window !== "undefined" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
     setReduced(!!mq?.matches);
@@ -31,10 +38,36 @@ export function GoalCelebration({ name, onClose }: { name: string; onClose: () =
     return () => window.removeEventListener("resize", fit);
   }, []);
 
+  // Auto-dismiss — but cancelled once the user starts orbiting the cake.
   useEffect(() => {
-    const t = setTimeout(onClose, reduced ? 4200 : 7000);
-    return () => clearTimeout(t);
+    closeTimer.current = window.setTimeout(onClose, reduced ? 4200 : 9000);
+    return () => { if (closeTimer.current) clearTimeout(closeTimer.current); };
   }, [onClose, reduced]);
+
+  // Hand control to the user after the entrance animation.
+  useEffect(() => {
+    if (reduced) return;
+    const t = setTimeout(() => setInteractive(true), 2600);
+    return () => clearTimeout(t);
+  }, [reduced]);
+
+  const orbit = interactive ? {
+    onPointerDown: (e: React.PointerEvent) => {
+      e.stopPropagation();
+      dragging.current = true;
+      last.current = { x: e.clientX, y: e.clientY };
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = undefined; } // stop auto-close
+    },
+    onPointerMove: (e: React.PointerEvent) => {
+      if (!dragging.current) return;
+      const dx = e.clientX - last.current.x, dy = e.clientY - last.current.y;
+      last.current = { x: e.clientX, y: e.clientY };
+      setRot((r) => ({ x: Math.max(-85, Math.min(85, r.x - dy * 0.4)), y: r.y + dx * 0.4 }));
+    },
+    onPointerUp: () => { dragging.current = false; },
+    onClick: (e: React.MouseEvent) => e.stopPropagation(),
+  } : {};
 
   // Confetti burst — timed to fire as the cake begins to rise & rotate.
   useEffect(() => {
@@ -122,9 +155,14 @@ export function GoalCelebration({ name, onClose }: { name: string; onClose: () =
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
 
       <div style={{ display: "grid", justifyItems: "center", gap: 18 }}>
-        {/* 3D stage */}
-        <div style={{ perspective: 1200, transform: `scale(${scale})` }}>
-          <div style={{ position: "relative", width: W, height: D, transformStyle: "preserve-3d", animation: "pc-cake-rise 2.5s cubic-bezier(0.22,0.9,0.24,1) forwards" }}>
+        {/* 3D stage — draggable to orbit once it settles */}
+        <div {...orbit} style={{ perspective: 1200, transform: `scale(${scale})`, cursor: interactive ? (dragging.current ? "grabbing" : "grab") : "default", touchAction: "none" }}>
+          <div style={{
+            position: "relative", width: W, height: D, transformStyle: "preserve-3d",
+            ...(interactive
+              ? { transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)` }
+              : { animation: "pc-cake-rise 2.5s cubic-bezier(0.22,0.9,0.24,1) forwards" }),
+          }}>
             {/* bottom / plate */}
             <div style={{ ...face, width: W, height: D, transform: `translate(-50%,-50%) rotateX(-90deg) translateZ(${HH}px)`, background: "#e9e4dc", borderRadius: 18 }} />
             {/* sides */}
@@ -165,7 +203,7 @@ export function GoalCelebration({ name, onClose }: { name: string; onClose: () =
         <div style={{ textAlign: "center", display: "grid", gap: 4, justifyItems: "center", opacity: 0, animation: "pc-caption 500ms 1.5s ease forwards" }}>
           <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#f0c419" }}>Goal achieved</div>
           <h2 style={{ margin: 0, color: "#fff", fontSize: "clamp(22px, 5vw, 34px)", letterSpacing: "-0.02em" }}>{name} 🎉</h2>
-          <span style={{ marginTop: 4, color: "rgba(255,255,255,0.5)", fontSize: 12 }}>Tap anywhere to continue</span>
+          <span style={{ marginTop: 4, color: "rgba(255,255,255,0.5)", fontSize: 12 }}>{interactive ? "Drag the cake to spin it · tap outside to close" : "Tap anywhere to continue"}</span>
         </div>
       </div>
 
