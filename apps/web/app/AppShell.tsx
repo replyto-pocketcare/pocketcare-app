@@ -85,7 +85,36 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => clearTimeout(t);
   }, [authStatus]);
 
+  // Per-route scroll restoration: save window scroll for each path and restore
+  // it when the user returns (retrying briefly while async data grows the page).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const key = `pc_scroll:${pathname}`;
+    const saved = Number(sessionStorage.getItem(key) || "0");
+    if (saved > 0) {
+      let attempts = 0;
+      const tryRestore = () => {
+        window.scrollTo(0, saved);
+        if (++attempts < 20 && Math.abs(window.scrollY - saved) > 2) setTimeout(tryRestore, 60);
+      };
+      requestAnimationFrame(tryRestore);
+    }
+    let t: number | undefined;
+    const onScroll = () => {
+      if (t) return;
+      t = window.setTimeout(() => { sessionStorage.setItem(key, String(window.scrollY)); t = undefined; }, 150);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (t) window.clearTimeout(t);
+      sessionStorage.setItem(key, String(window.scrollY)); // capture final position on leave
+    };
+  }, [pathname]);
+
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  // Show a Back affordance on sub-pages (anything nested below a top-level section).
+  const showBack = pathname.split("/").filter(Boolean).length >= 2;
 
   // Onboarding / login render full-screen without the sidebar.
   if (bare) return <div style={{ minHeight: "100vh" }}>{children}</div>;
@@ -152,6 +181,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, overflowX: "hidden" }}>
+        {showBack && (
+          <button
+            onClick={() => router.back()}
+            className="chip"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16 }}
+          >
+            <span style={{ fontSize: 16, lineHeight: 1 }}>‹</span> Back
+          </button>
+        )}
         {(() => {
           const m = syncMessage(sync);
           if (!m) return null;
