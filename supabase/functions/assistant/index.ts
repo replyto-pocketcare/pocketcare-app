@@ -14,6 +14,37 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+
+// --- Guardrail (mirror of packages/core/guardrail; keep in sync with its tests) ---
+const GUARDRAIL_RULES: Array<{ category: string; test: RegExp }> = [
+  { category: "injection", test: /\b(ignore|disregard|forget|override|bypass)\b[\s\S]{0,40}\b(previous|prior|above|earlier|all)?\s*(instructions?|rules?|prompt|guidelines?|guardrails?)\b/i },
+  { category: "injection", test: /\b(reveal|show|print|repeat|output|display|leak|tell me)\b[\s\S]{0,40}\b(your\s+)?(system\s*prompt|initial\s*instructions?|persona|the\s+(text|prompt)\s+above|hidden\s+(prompt|instructions?))\b/i },
+  { category: "injection", test: /\b(you are now|pretend (to be|you)|act as (if|though|an?)|from now on you|developer mode|jailbreak|DAN mode|do anything now|unfiltered|no (restrictions|rules|guardrails))\b/i },
+  { category: "injection", test: /(^|\n)\s*(system|assistant|developer)\s*:|<\/?(system|assistant|instructions?)>|\[\/?INST\]|<\|.*?\|>/i },
+  { category: "exfiltration", test: /\b(other|another|someone else'?s|every|all|other people'?s)\s+(users?|people|persons?|accounts?|customers?|members?)\b[\s\S]{0,40}\b(data|transactions?|balance|info|records?|passwords?|account)\b/i },
+  { category: "exfiltration", test: /(select\s+\*|drop\s+table|delete\s+from|insert\s+into|update\s+.+\s+set|dump (the )?(database|db|table)|raw (sql|query)|union\s+select)/i },
+  { category: "exfiltration", test: /\b(list|show|give me|export)\b[\s\S]{0,30}\b(all|every)\s+(users?|accounts?|rows?|records?|customers?)\b/i },
+  { category: "secrets", test: /\b(api[_\s-]?key|secret[_\s-]?key|service[_\s-]?role|access[_\s-]?token|bearer\s+token|env(ironment)?\s+(vars?|variables?)|\.env|private\s+key|password|credentials?|connection\s+string)\b/i },
+  { category: "secrets", test: /\b(anthropic|openai|supabase|alphavantage|stripe|razorpay)\b[\s\S]{0,20}\b(key|token|secret)\b/i },
+  { category: "malware", test: /\b(write|create|generate|build|give me)\b[\s\S]{0,40}\b(malware|ransomware|keylogger|virus|worm|trojan|exploit|(sql|xss|csrf)\s*injection|phishing (page|kit|site)|backdoor|rootkit|botnet|ddos)\b/i },
+  { category: "harmful", test: /\b(how (to|do i|can i|would i)\s+(make|build|synthesize|create|obtain|produce)|instructions? for|recipe for|steps? to (make|build|synthesize))\b[\s\S]{0,40}\b(bomb|explosive|nerve agent|bioweapon|chemical weapon|nuclear (device|weapon)|meth(amphetamine)?|napalm|ricin)\b/i },
+  { category: "harmful", test: /\b(child|minor|underage|preteen|teen)\b[\s\S]{0,25}\b(sex|sexual|nude|naked|porn|explicit)\b/i },
+  { category: "harmful", test: /\b(how (can|do) i|best way to|help me)\b[\s\S]{0,25}\b(kill myself|end my life|commit suicide|overdose|hurt myself)\b/i },
+];
+const REFUSAL_MESSAGE = "I can only help with your own PocketCare finances — budgets, spending, goals, and the like. I can't help with that request.";
+function screenConversation(messages: unknown[]): { allow: boolean; category?: string } {
+  const arr = messages as Array<{ role?: string; content?: unknown }>;
+  const lastUser = [...arr].reverse().find((m) => m?.role === "user");
+  if (!lastUser) return { allow: true };
+  const text = (typeof lastUser.content === "string"
+    ? lastUser.content
+    : Array.isArray(lastUser.content)
+      ? lastUser.content.map((b) => (b && typeof b === "object" && "text" in b ? String((b as { text: unknown }).text) : "")).join(" ")
+      : "").normalize("NFKC");
+  if (!text.trim()) return { allow: true };
+  for (const r of GUARDRAIL_RULES) if (r.test.test(text)) return { allow: false, category: r.category };
+  return { allow: true };
+}
 // Pinned id (the `-latest` aliases don't always resolve). Override with the
 // ASSISTANT_MODEL secret to match whatever your Anthropic account supports.
 const DEFAULT_MODEL = "claude-3-5-haiku-20241022";
@@ -85,6 +116,18 @@ Deno.serve(async (req: Request) => {
   const { system, messages, tools } = payload;
   if (!Array.isArray(messages) || messages.length === 0) {
     return json({ error: "messages[] is required." });
+  }
+
+  // Defense-in-depth: deterministically refuse prompt-injection / exfiltration /
+  // secret-harvesting / malware / harmful classes BEFORE they reach the model.
+  // Canonical spec + 50+ tests live in packages/core/guardrail (kept in sync).
+  const screen = screenConversation(messages);
+  if (!screen.allow) {
+    return json({
+      content: [{ type: "text", text: REFUSAL_MESSAGE }],
+      stop_reason: "guardrail",
+      guardrail: { blocked: true, category: screen.category },
+    });
   }
 
   const model = payload.model || Deno.env.get("ASSISTANT_MODEL") || DEFAULT_MODEL;
