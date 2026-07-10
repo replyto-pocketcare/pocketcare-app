@@ -43,5 +43,5 @@ Server stores only `wrapped_dek_*` + salt + ciphertext envelopes (`v1.<iv>.<ct>`
 
 ## Operational notes
 
-- Support keypair generated once offline; private key Shamir-split and distributed to officers; **public key ships in config**. Rotating it re-issues future grants only.
+- Support keypair generated once offline via `scripts/gen-support-key.ts` (`node --experimental-strip-types scripts/gen-support-key.ts --shares 3 --threshold 2 --out ./support-key`): prints the PUBLIC JWK for `NEXT_PUBLIC_SUPPORT_PUBLIC_JWK` and writes N Shamir `.share` files (one per officer). Distribute shares over secure channels, then delete the output dir. `scripts/support-admin.ts decrypt` reads ≥ threshold shares to reassemble the key. Verified end-to-end (2-of-3 reconstruct → unwrap grant DEK). Rotating the keypair only affects future grants.
 - Losing the passphrase requires the recovery code; losing both = unrecoverable (by design — that's what zero-trust means). The UI must make the recovery code impossible to skip at setup.
