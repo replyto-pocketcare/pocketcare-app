@@ -48,6 +48,10 @@ streams:
       - SELECT * FROM pocketcare.transaction_templates WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.recurring_rules WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.category_rules WHERE user_id = auth.user_id()
+      # --- zero-trust encryption: wrapped keys, consent grants, audit (own rows) ---
+      - SELECT *, user_id AS id FROM pocketcare.user_keys WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.support_grants WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.security_audit WHERE subject_user = auth.user_id()
 
   # Splits: the SHARED ledger, visible by group membership (one copy, no dupes).
   # Uses JOINs to traverse relationships and evaluate auth.user_id() safely.

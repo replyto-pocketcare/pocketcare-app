@@ -155,6 +155,38 @@ export async function verifyGrant(payload: object, signature: string, publicJwk:
   return subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, bs(fromBase64(signature)), bs(enc.encode(canonical(payload))));
 }
 
+// ---- security audit hash-chain (mirror of the 0021 DB trigger) ----
+export interface AuditRow {
+  id: string; actor: string; action: string;
+  subject_user?: string | null; grant_id?: string | null; detail?: string | null;
+  created_at: string; prev_hash?: string | null; row_hash?: string;
+}
+
+async function sha256Hex(s: string): Promise<string> {
+  const d = new Uint8Array(await subtle.digest("SHA-256", bs(enc.encode(s))));
+  let out = "";
+  for (const b of d) out += b.toString(16).padStart(2, "0");
+  return out;
+}
+
+/** Compute a row's chain hash from the previous row's hash (same field order as the trigger). */
+export async function auditRowHash(prevHash: string, r: AuditRow): Promise<string> {
+  const s = prevHash + (r.actor ?? "") + (r.action ?? "") + (r.subject_user ?? "") +
+    (r.grant_id ?? "") + (r.detail ?? "") + r.id + r.created_at;
+  return sha256Hex(s);
+}
+
+/** Verify an ordered audit chain; returns the id of the first tampered/broken row if any. */
+export async function verifyAuditChain(rows: AuditRow[]): Promise<{ ok: boolean; brokenAt?: string }> {
+  let prev = "";
+  for (const r of rows) {
+    const expected = await auditRowHash(prev, r);
+    if (r.row_hash !== undefined && r.row_hash !== expected) return { ok: false, brokenAt: r.id };
+    prev = r.row_hash ?? expected;
+  }
+  return { ok: true };
+}
+
 /** Stable JSON (sorted keys) so signatures are deterministic. */
 function canonical(obj: unknown): string {
   if (obj === null || typeof obj !== "object") return JSON.stringify(obj);

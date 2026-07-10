@@ -13,6 +13,7 @@ import { useSession, updateUsername, signOut } from "../../src/account";
 import { useSyncStatus, syncMessage } from "../../src/sync";
 import { Modal } from "../../src/ui/Modal";
 import { SunIcon, MoonIcon, EyeIcon, EyeOffIcon } from "../../src/ui/icons";
+import { SecurityPanel } from "../../src/crypto/SecurityPanel";
 
 const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 
@@ -146,6 +147,8 @@ export default function SettingsPage() {
           </button>
         </div>
       </section>
+
+      <SecurityPanel />
 
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>{t("settings.baseCurrency", "Base currency")}</h2>

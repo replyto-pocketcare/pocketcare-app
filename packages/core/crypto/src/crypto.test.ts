@@ -4,6 +4,7 @@ import {
   deriveKek, newSalt, generateDek, wrapDek, unwrapDek, encryptField, decryptField, isEncrypted,
   generateRecoveryCode, generateSupportKeypair, wrapDekForSupport, unwrapDekFromSupport,
   generateSigningKeypair, signGrant, verifyGrant, toBase64, fromBase64,
+  auditRowHash, verifyAuditChain, type AuditRow,
 } from "./index.ts";
 import { split, combine } from "./shamir.ts";
 
@@ -90,4 +91,40 @@ test("Shamir 3-of-5 reconstructs from exactly threshold shares", async () => {
   const secret = new Uint8Array([1, 2, 3, 4, 5, 250, 255, 0]);
   const shares = split(secret, 5, 3);
   assert.deepEqual([...combine([shares[0]!, shares[2]!, shares[4]!])], [...secret]);
+});
+
+async function buildChain(rows: AuditRow[]): Promise<AuditRow[]> {
+  let prev = "";
+  const out: AuditRow[] = [];
+  for (const r of rows) {
+    const row_hash = await auditRowHash(prev, r);
+    out.push({ ...r, prev_hash: prev, row_hash });
+    prev = row_hash;
+  }
+  return out;
+}
+
+test("audit chain verifies and detects tampering (immutability)", async () => {
+  const chain = await buildChain([
+    { id: "a1", actor: "user:u1", action: "grant_issued", subject_user: "u1", created_at: "2026-07-10T00:00:00Z" },
+    { id: "a2", actor: "support:o1", action: "drift_fixed", subject_user: "u1", created_at: "2026-07-10T00:05:00Z" },
+    { id: "a3", actor: "support:o1", action: "content_decrypted", subject_user: "u1", detail: "tx_042", created_at: "2026-07-10T00:06:00Z" },
+  ]);
+  assert.equal((await verifyAuditChain(chain)).ok, true);
+
+  // Tamper the middle row's detail — its stored hash no longer matches.
+  const tampered = chain.map((r) => (r.id === "a2" ? { ...r, detail: "sneaky edit" } : r));
+  const res = await verifyAuditChain(tampered);
+  assert.equal(res.ok, false);
+  assert.equal(res.brokenAt, "a2");
+});
+
+test("deleting an audit row breaks the chain link", async () => {
+  const chain = await buildChain([
+    { id: "b1", actor: "system", action: "grant_issued", created_at: "t1" },
+    { id: "b2", actor: "system", action: "grant_revoked", created_at: "t2" },
+    { id: "b3", actor: "system", action: "drift_fixed", created_at: "t3" },
+  ]);
+  const withHole = [chain[0]!, chain[2]!]; // b2 removed
+  assert.equal((await verifyAuditChain(withHole)).ok, false);
 });

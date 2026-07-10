@@ -18,6 +18,7 @@ import { createTemplate, FREE_TEMPLATE_LIMIT } from "../../../src/templates/writ
 import { useEntitlement } from "../../../src/entitlement";
 import { UpgradeModal } from "../../../src/ui/UpgradeModal";
 import { useAutoCategorize, useLearnCategory } from "../../../src/categorize/hooks";
+import { encryptForWrite } from "../../../src/crypto/fields";
 
 type TxType = "expense" | "income" | "transfer";
 let counter = 0;
@@ -232,6 +233,8 @@ export default function NewTransactionPage() {
       const combinedDescription = type === "transfer"
         ? null
         : items.map(it => it.description.trim()).filter(Boolean).join(", ");
+      // Encrypt the free-text note if encryption is unlocked (else stored as-is).
+      const encNote = await encryptForWrite(note.trim() || null);
 
       // Split path: book only your share; lend/borrow the rest via virtual accounts.
       if (splitActive && splitPlan.valid) {
@@ -240,7 +243,7 @@ export default function NewTransactionPage() {
           total,
           categoryId,
           description: combinedDescription || null,
-          note: note.trim() || null,
+          note: encNote,
           occurredAt: occurredAtIso(),
         });
         router.push("/transactions");
@@ -255,7 +258,7 @@ export default function NewTransactionPage() {
           to_account_id: toAccount.id,
           to_amount: crossCurrency ? fromMajor(Number.parseFloat(toValue) || 0, toAccount.currency) : null,
           labels: selectedLabels,
-          note: note.trim() || null,
+          note: encNote,
           occurred_at: occurredAtIso(),
         });
       } else {
@@ -271,7 +274,7 @@ export default function NewTransactionPage() {
           amount: total,
           category_id: categoryId,
           labels: selectedLabels,
-          note: note.trim() || null,
+          note: encNote,
           description: combinedDescription || null,
           payment_method: paymentMethod || null,
           occurred_at: occurredAtIso(),

@@ -12,6 +12,9 @@ import { SearchSelect } from "../../../../src/ui/SearchSelect";
 import { AccountBadge } from "../../../../src/ui/AccountBadge";
 import { useEntitlement } from "../../../../src/entitlement";
 import { useLearnCategory } from "../../../../src/categorize/hooks";
+import { encryptForWrite } from "../../../../src/crypto/fields";
+import { decryptField, isEncrypted } from "@pocketcare/crypto";
+import { getDek } from "../../../../src/crypto/session";
 
 type TxType = "expense" | "income" | "transfer" | "adjustment";
 
@@ -65,7 +68,13 @@ export default function EditTransactionPage() {
       setCategoryId(tx.category_id);
       setOriginalCategoryId(tx.category_id);
       setPaymentMethod(tx.payment_method ?? "");
-      setNote(tx.note ?? "");
+      // Decrypt the note for editing if it's an encrypted envelope and unlocked.
+      const rawNote = tx.note ?? "";
+      if (isEncrypted(rawNote) && getDek()) {
+        void decryptField(rawNote, getDek()!).then((p) => setNote(p)).catch(() => setNote(""));
+      } else {
+        setNote(rawNote);
+      }
       setDate(new Date(tx.occurred_at).toLocaleString("sv-SE", { timeZoneName: "short" }).substring(0, 16));
       setReady(true);
     }
@@ -144,7 +153,7 @@ export default function EditTransactionPage() {
         labels: selectedLabels,
         description: combinedDescription || null,
         payment_method: paymentMethod || null,
-        note: note.trim() || null,
+        note: await encryptForWrite(note.trim() || null),
         occurred_at: new Date(date).toISOString(),
         items: type !== "transfer" ? payloadItems : null,
       });

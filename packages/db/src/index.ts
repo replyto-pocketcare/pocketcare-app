@@ -326,6 +326,38 @@ const market_overview = new Table(
   { indexes: { by_symbol: ["symbol"] } },
 );
 
+// Zero-trust encryption: wrapped keys, consent grants, hash-chained audit.
+// The server only ever holds wrapped keys + ciphertext (see SECURITY_ENCRYPTION_PLAN.md).
+const user_keys = new Table({
+  user_id: column.text,
+  salt: column.text,
+  wrapped_dek_passphrase: column.text,
+  wrapped_dek_recovery: column.text,
+  signing_public_jwk: column.text, // JSON string
+  wrapped_signing_private: column.text,
+  created_at: column.text,
+  updated_at: column.text,
+});
+const support_grants = new Table({
+  user_id: column.text,
+  scope: column.text,
+  wrapped_dek_for_support: column.text,
+  signature: column.text,
+  expires_at: column.text,
+  revoked_at: column.text,
+  created_at: column.text,
+});
+const security_audit = new Table({
+  actor: column.text,
+  action: column.text,
+  subject_user: column.text,
+  grant_id: column.text,
+  detail: column.text,
+  prev_hash: column.text,
+  row_hash: column.text,
+  created_at: column.text,
+});
+
 // AI assistant persistence (chat history + per-user memory).
 const assistant_threads = new Table({
   user_id: column.text,
@@ -439,6 +471,9 @@ export const AppSchema = new Schema({
   market_quotes,
   market_dividends,
   market_overview,
+  user_keys,
+  support_grants,
+  security_audit,
   assistant_threads,
   assistant_messages,
   assistant_memory,
