@@ -100,15 +100,9 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Customizable tiles */}
+      {/* Customizable tiles — draggable to reorder */}
       {visibleTiles.length > 0 ? (
-        <div className="dash-grid">
-          {visibleTiles.map((id) => (
-            <div key={id} style={{ gridColumn: tileMeta(id).span === "full" ? "1 / -1" : "auto" }}>
-              <TileView id={id} />
-            </div>
-          ))}
-        </div>
+        <DraggableGrid ids={visibleTiles} enabled={enabled} />
       ) : (
         <section className="card" style={{ padding: 24, textAlign: "center", display: "grid", gap: 8 }}>
           <p className="muted">No tiles shown. Add some to your dashboard.</p>
@@ -117,6 +111,81 @@ export default function Dashboard() {
       )}
 
       <CustomizeModal open={customizing} onClose={() => setCustomizing(false)} enabled={enabled} isPaid={isPaid} />
+    </div>
+  );
+}
+
+/**
+ * Drag-to-reorder dashboard tiles in place. A grip on each tile starts the drag;
+ * as the pointer moves over another tile (hit-tested by rect) the order updates
+ * live, and the new order is persisted on release. Works with the 2-column grid
+ * and full-width tiles because it uses the tiles' actual rendered positions.
+ */
+function DraggableGrid({ ids, enabled }: { ids: TileId[]; enabled: TileId[] }) {
+  const [order, setOrder] = useState<TileId[]>(ids);
+  const [dragging, setDragging] = useState<TileId | null>(null);
+  const refs = useRef<Map<TileId, HTMLElement>>(new Map());
+  useEffect(() => { if (!dragging) setOrder(ids); }, [ids.join(","), dragging]);
+
+  function move(e: React.PointerEvent) {
+    if (!dragging) return;
+    const { clientX: x, clientY: y } = e;
+    let target: TileId | null = null;
+    for (const [tid, el] of refs.current) {
+      const r = el.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) { target = tid; break; }
+    }
+    if (!target || target === dragging) return;
+    setOrder((prev) => {
+      const from = prev.indexOf(dragging), to = prev.indexOf(target!);
+      if (from < 0 || to < 0) return prev;
+      const next = [...prev];
+      const [m] = next.splice(from, 1);
+      next.splice(to, 0, m!);
+      return next;
+    });
+  }
+  function end() {
+    if (!dragging) return;
+    const hidden = enabled.filter((id) => !order.includes(id)); // premium tiles not shown
+    reorderTiles([...order, ...hidden]);
+    setDragging(null);
+  }
+
+  return (
+    <div className="dash-grid">
+      {order.map((id) => (
+        <div
+          key={id}
+          ref={(el) => { if (el) refs.current.set(id, el); else refs.current.delete(id); }}
+          style={{
+            gridColumn: tileMeta(id).span === "full" ? "1 / -1" : "auto",
+            position: "relative",
+            opacity: dragging === id ? 0.65 : 1,
+            transform: dragging === id ? "scale(0.99)" : undefined,
+            boxShadow: dragging === id ? "var(--shadow-lg)" : undefined,
+            borderRadius: 16,
+            zIndex: dragging === id ? 5 : undefined,
+            transition: "box-shadow 150ms ease, opacity 150ms ease",
+          }}
+        >
+          <button
+            aria-label="Drag to reorder"
+            title="Drag to reorder"
+            onPointerDown={(e) => { e.preventDefault(); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); setDragging(id); }}
+            onPointerMove={move}
+            onPointerUp={end}
+            onPointerCancel={end}
+            style={{
+              position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)", zIndex: 3,
+              cursor: dragging === id ? "grabbing" : "grab", touchAction: "none",
+              background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8,
+              color: "var(--text-2)", fontSize: 12, lineHeight: 1, padding: "3px 12px", opacity: 0.75,
+            }}
+          >⠿</button>
+          <TileView id={id} />
+        </div>
+      ))}
     </div>
   );
 }
