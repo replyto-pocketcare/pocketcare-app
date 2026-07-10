@@ -8,6 +8,7 @@ import { useBaseCurrency } from "../../src/hooks";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
 import { useFriendBalances, useUserProfiles, useConnections } from "../../src/splits/hooks";
+import { FriendsGraph } from "../../src/splits/FriendsGraph";
 import { settleUp } from "../../src/splits/write";
 
 interface SettleTarget { userId: string; name: string; net: number }
@@ -71,6 +72,8 @@ export default function FriendsPage() {
         <div><div className="muted" style={{ fontSize: 13 }}>You’re owed</div><div style={{ fontSize: 30, fontWeight: 750, color: "var(--positive)" }}>{fmt(money(owed, base))}</div></div>
         <div style={{ textAlign: "right" }}><div className="muted" style={{ fontSize: 13 }}>You owe</div><div style={{ fontSize: 20, fontWeight: 700, color: "var(--negative)" }}>{fmt(money(owe, base))}</div></div>
       </section>
+
+      <FriendsGraph />
 
       {people.length === 0 ? (
         <div className="card" style={{ padding: 32, textAlign: "center", display: "grid", gap: 10, justifyItems: "center" }}>
