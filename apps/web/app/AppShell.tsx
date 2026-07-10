@@ -13,6 +13,9 @@ import { MenuIcon, PlusIcon, DownloadIcon } from "../src/ui/icons";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
 import { TrialNotice } from "../src/ui/TrialNotice";
 import { runRecurring } from "../src/templates/write";
+import { useInstallPrompt } from "../src/pwa";
+import { InstallGuide } from "../src/ui/InstallGuide";
+import { Modal } from "../src/ui/Modal";
 
 const APP_VERSION = "0.1.0";
 
@@ -50,7 +53,8 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [installEvt, setInstallEvt] = useState<Event | null>(null);
+  const { standalone } = useInstallPrompt();
+  const [showInstall, setShowInstall] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const session = useSession();
   const authStatus = useAuthStatus();
@@ -65,9 +69,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
-    const onPrompt = (e: Event) => { e.preventDefault(); setInstallEvt(e); };
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", onPrompt);
   }, []);
 
   // Gate on the session, not a "seen" flag: an unauthenticated visitor must
@@ -162,15 +163,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div style={{ color: "var(--accent)", marginTop: 2 }}>Create account →</div>
             </Link>
           )}
-          {installEvt && (
-            <button
-              className="btn"
-              style={{ justifyContent: "center", gap: 8 }}
-              onClick={async () => {
-                await (installEvt as unknown as { prompt: () => Promise<void> }).prompt();
-                setInstallEvt(null);
-              }}
-            >
+          {!standalone && (
+            <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => setShowInstall(true)}>
               <DownloadIcon size={16} /> Install app
             </button>
           )}
@@ -179,6 +173,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </aside>
+
+      <Modal open={showInstall} onClose={() => setShowInstall(false)}>
+        <h2 style={{ margin: "0 0 12px" }}>Install PocketCare</h2>
+        <InstallGuide />
+      </Modal>
 
       <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, overflowX: "hidden" }}>
         {showBack && (

@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Logo } from "../../src/ui/Logo";
 import { getSupabase } from "../../src/powersync";
+import { Modal } from "../../src/ui/Modal";
+import { InstallGuide } from "../../src/ui/InstallGuide";
+import { DownloadIcon } from "../../src/ui/icons";
 
 const SLIDES = [
   { title: "Every account, one calm view", body: "Savings, cash, cards, stocks and funds — see your true net worth in your own currency, with or without money you’ve set aside." },
@@ -17,6 +20,7 @@ export default function OnboardingPage() {
   const [i, setI] = useState(0);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [showInstall, setShowInstall] = useState(false);
   const last = i === SLIDES.length - 1;
 
   const done = (dest: string) => {
@@ -76,7 +80,16 @@ export default function OnboardingPage() {
         </div>
         {err && <div className="card" style={{ padding: 12, fontSize: 13, borderColor: "var(--negative)", color: "var(--negative)" }}>{err}</div>}
         <p className="muted" style={{ fontSize: 12 }}>Create an account to sync across devices. Guest data stays on this device and is kept for 3 days.</p>
+
+        <button className="chip" style={{ justifySelf: "center", display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => setShowInstall(true)}>
+          <DownloadIcon size={15} /> Install app on your device
+        </button>
       </div>
+
+      <Modal open={showInstall} onClose={() => setShowInstall(false)}>
+        <h2 style={{ margin: "0 0 12px" }}>Install PocketCare</h2>
+        <InstallGuide />
+      </Modal>
     </div>
   );
 }
