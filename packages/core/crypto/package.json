@@ -1,0 +1,17 @@
+{
+  "name": "@pocketcare/crypto",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./shamir": "./src/shamir.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "echo \"consumed as source; no build\"",
+    "test": "node --test --experimental-strip-types src/*.test.ts"
+  }
+}
