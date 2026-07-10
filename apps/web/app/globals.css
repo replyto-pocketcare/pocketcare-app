@@ -256,3 +256,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 /* Hide scrollbar but keep scrolling (insight feed snap surface). */
 .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Small spinner used by the auto-categorisation "finding…" indicator. */
+.pc-spin { animation: pc-spin 0.9s linear infinite; }
+@keyframes pc-spin { to { transform: rotate(360deg); } }

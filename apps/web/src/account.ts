@@ -12,31 +12,46 @@ export interface SessionInfo {
 }
 
 const GUEST_DAYS = 3;
+const CACHE_KEY = "pc_session";
+
+function readCache(): SessionInfo | null {
+  if (typeof window === "undefined") return null;
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "null") as SessionInfo | null; } catch { return null; }
+}
+function writeCache(info: SessionInfo | null): void {
+  try { info ? localStorage.setItem(CACHE_KEY, JSON.stringify(info)) : localStorage.removeItem(CACHE_KEY); } catch { /* ignore */ }
+}
 
 export function useSession(): SessionInfo | null {
-  const [info, setInfo] = useState<SessionInfo | null>(null);
+  // Hydrate from the cache first so name/email show instantly and survive offline.
+  const [info, setInfo] = useState<SessionInfo | null>(() => readCache());
 
   useEffect(() => {
     let active = true;
     const load = async () => {
       try {
-        const { data } = await getSupabase().auth.getUser();
+        // getSession() reads the locally-stored session (no network), so this
+        // resolves the display name/email even with no connectivity.
+        const { data } = await getSupabase().auth.getSession();
         if (!active) return;
-        const u = data.user;
-        const isGuest = Boolean((u as { is_anonymous?: boolean } | null)?.is_anonymous);
-        const created = u?.created_at ? new Date(u.created_at).getTime() : Date.now();
+        const u = data.session?.user ?? null;
+        if (!u) { setInfo(null); writeCache(null); return; } // actually signed out
+        const isGuest = Boolean((u as { is_anonymous?: boolean }).is_anonymous);
+        const created = u.created_at ? new Date(u.created_at).getTime() : Date.now();
         const remainMs = created + GUEST_DAYS * 86_400_000 - Date.now();
         const daysLeft = isGuest ? Math.max(0, Math.ceil(remainMs / 86_400_000)) : null;
         const username =
-          (u?.user_metadata?.username as string | undefined) ??
-          (typeof window !== "undefined" ? localStorage.getItem("username") ?? "" : "");
-        setInfo({ email: u?.email ?? null, isGuest, username, daysLeft });
+          (u.user_metadata?.username as string | undefined) ||
+          (typeof window !== "undefined" ? localStorage.getItem("username") || "" : "") ||
+          readCache()?.username || "";
+        const next: SessionInfo = { email: u.email ?? readCache()?.email ?? null, isGuest, username, daysLeft };
+        setInfo(next);
+        writeCache(next);
       } catch {
-        if (active) setInfo({ email: null, isGuest: true, username: "", daysLeft: GUEST_DAYS });
+        // Offline / transient error: keep whatever we cached (don't blank it out).
       }
     };
     void load();
-    // Refresh when auth state changes (sign in, sign up conversion, sign out).
     const { data: sub } = getSupabase().auth.onAuthStateChange(() => { void load(); });
     return () => {
       active = false;

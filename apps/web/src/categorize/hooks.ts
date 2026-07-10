@@ -13,29 +13,34 @@ export function useAutoCategorize(
 ) {
   const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
   const [isAutoApplied, setIsAutoApplied] = useState(false);
+  const [working, setWorking] = useState(false); // true while a suggestion is being computed
   const debounceRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) { setWorking(false); return; }
 
-    // Debounce the suggestion engine
     clearTimeout(debounceRef.current);
-    
-    // Clear suggestion immediately if text is empty
+
     if (!text.trim()) {
       setSuggestedCategory(null);
       setIsAutoApplied(false);
+      setWorking(false);
       return;
     }
 
+    // Show "working" immediately on each keystroke, then resolve after a short debounce.
+    setWorking(true);
     debounceRef.current = setTimeout(async () => {
       const db = getDb();
       const userId = getUserId();
-      if (!db || !userId) return;
-
-      const suggestion = await suggestCategory(text, db, userId, categories);
-      setSuggestedCategory(suggestion);
-    }, 250);
+      if (!db || !userId) { setWorking(false); return; }
+      try {
+        const suggestion = await suggestCategory(text, db, userId, categories);
+        setSuggestedCategory(suggestion);
+      } finally {
+        setWorking(false);
+      }
+    }, 200);
 
     return () => clearTimeout(debounceRef.current);
   }, [text, categories, enabled]);
@@ -44,6 +49,7 @@ export function useAutoCategorize(
     suggestedCategory,
     isAutoApplied,
     setIsAutoApplied,
+    working,
   };
 }
 

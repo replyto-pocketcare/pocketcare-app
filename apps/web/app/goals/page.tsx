@@ -104,7 +104,7 @@ export default function GoalsPage() {
         <h2>New goal</h2>
         <FloatingInput label="Goal name" value={name} onChange={setName} />
         <div style={{ display: "flex", gap: 8 }}>
-          <FloatingInput label={`Target (${currency})`} group value={target} onChange={setTarget} style={{ flex: 1 }} />
+          <FloatingInput label={`Target (${currency})`} group currency={currency} value={target} onChange={setTarget} style={{ flex: 1 }} />
           <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 96 }}>
             {GOAL_CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -177,7 +177,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
       {editing ? (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           <FloatingInput label="Goal name" value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
-          <FloatingInput label="Target" group value={eTarget} onChange={setETarget} style={{ width: 140 }} />
+          <FloatingInput label="Target" group currency={goal.currency} value={eTarget} onChange={setETarget} style={{ width: 140 }} />
           <button className="btn" onClick={saveEdit}>Save</button>
           <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
         </div>
@@ -222,7 +222,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
                   {savings.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </label>
-              <FloatingInput label={`Amount (${goal.currency})`} group value={amount} onChange={setAmount} />
+              <FloatingInput label={`Amount (${goal.currency})`} group currency={goal.currency} value={amount} onChange={setAmount} />
               <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
                 <button className="btn ghost" onClick={() => setShowAlloc(false)}>Cancel</button>
                 <button className="btn" onClick={allocate} disabled={!amount}>{goal.is_emergency_fund ? "Add" : "Block"}</button>

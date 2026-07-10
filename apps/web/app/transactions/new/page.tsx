@@ -104,7 +104,7 @@ export default function NewTransactionPage() {
 
   // Auto-categorization
   const [manualCategory, setManualCategory] = useState(false);
-  const { suggestedCategory, isAutoApplied, setIsAutoApplied } = useAutoCategorize(
+  const { suggestedCategory, isAutoApplied, setIsAutoApplied, working: autoCatWorking } = useAutoCategorize(
     autoCategorizeText,
     categories,
     isPaid && type !== "transfer"
@@ -344,7 +344,7 @@ export default function NewTransactionPage() {
         </div>
 
         {type === "transfer" ? (
-          <AmountInput placeholder="0.00" autoFocus
+          <AmountInput placeholder="0.00" autoFocus currency={currency}
             value={items[0]?.value ?? ""}
             onChange={(raw) => setItems([{ ...(items[0] ?? newItem()), value: raw }])}
             style={{ fontSize: 20, textAlign: "right" }} />
@@ -394,7 +394,7 @@ export default function NewTransactionPage() {
 
       {crossCurrency && (
         <Field label={`Amount received (${toAccount?.currency})`}>
-          <AmountInput placeholder="0.00" value={toValue} onChange={setToValue} />
+          <AmountInput placeholder="0.00" currency={toAccount?.currency} value={toValue} onChange={setToValue} />
         </Field>
       )}
 
@@ -411,7 +411,7 @@ export default function NewTransactionPage() {
               options={categoryOptions} 
               placeholder="Search a category…" 
             />
-            {isAutoApplied && (
+            {(autoCatWorking || isAutoApplied) && (
               <div style={{
                 position: "absolute", top: -20, right: 0,
                 fontSize: 11, color: "var(--accent)", fontWeight: 600,
@@ -419,7 +419,9 @@ export default function NewTransactionPage() {
                 background: "var(--accent-ghost)", padding: "2px 6px", borderRadius: 4,
                 border: "1px solid var(--accent-soft)"
               }}>
-                ✦ Auto-categorised
+                {autoCatWorking
+                  ? <><span className="pc-spin" style={{ display: "inline-block" }}>✦</span> Finding category…</>
+                  : <>✦ Auto-categorised{categories.find((c) => c.id === categoryId)?.name ? ` · ${categories.find((c) => c.id === categoryId)!.name}` : ""}</>}
               </div>
             )}
           </div>

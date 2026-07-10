@@ -155,7 +155,7 @@ export default function BudgetsPage() {
           <h2 style={{ margin: 0 }}>New budget</h2>
           <FloatingInput label="Name (e.g. Japan Trip)" value={name} onChange={setName} />
           <div style={{ display: "flex", gap: 8 }}>
-            <FloatingInput label={`Limit (${currency})`} group value={limit} onChange={setLimit} style={{ flex: 1 }} />
+            <FloatingInput label={`Limit (${currency})`} group currency={currency} value={limit} onChange={setLimit} style={{ flex: 1 }} />
             <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 96 }}>
               {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -269,7 +269,7 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
         <div style={{ display: "grid", gap: 8 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <FloatingInput label="Name (optional)" value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
-            <FloatingInput label="Limit" group value={eLimit} onChange={setELimit} style={{ width: 130 }} />
+            <FloatingInput label="Limit" group currency={budget.currency} value={eLimit} onChange={setELimit} style={{ width: 130 }} />
           </div>
           <span className="muted" style={{ fontSize: 12 }}>Categories (empty = all spending)</span>
           <MultiSelect options={catOptions} selected={eCats} onChange={setECats} placeholder="Add categories…" />
@@ -326,14 +326,18 @@ function BudgetSpendChart({ budget, catIds, labelNames, win, limitMajor, color }
     if ((!hasCat && !hasLbl) || catOk || lblOk) perDay.set(r.d, (perDay.get(r.d) ?? 0) + r.amount);
   }
 
-  // Build a cumulative series across the window (weekly steps for long windows).
+  // Build a cumulative series across the window — only the days that have already
+  // happened (up to today), never future days of the period.
   const start = new Date(win.start + "T00:00:00"), end = new Date(win.end + "T00:00:00");
-  const spanDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const lastDay = end < today ? end : today; // clamp to today
+  const spanDays = Math.max(1, Math.round((lastDay.getTime() - start.getTime()) / 86400000) + 1);
   const step = spanDays > 92 ? 7 : 1;
   const series: { label: string; cum: number }[] = [];
   let cum = 0;
   for (let i = 0; i < spanDays; i++) {
     const day = new Date(start); day.setDate(day.getDate() + i);
+    if (day > today) break;
     cum += (perDay.get(isoDay(day)) ?? 0);
     if (i % step === 0 || i === spanDays - 1) series.push({ label: fmtDay(isoDay(day)), cum: cum / 100 });
   }
