@@ -15,10 +15,27 @@ import { useMoneyFmt } from "../../src/ui/Money";
 import { MultiSelect } from "../../src/ui/MultiSelect";
 import { LabelPicker } from "../../src/ui/LabelPicker";
 import { Modal } from "../../src/ui/Modal";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, ReferenceLine, Tooltip } from "recharts";
 import type { BudgetLike } from "@pocketcare/data";
 
 const PERIODS: Period[] = ["daily", "weekly", "monthly", "yearly"];
+const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 type TimeMode = "recurring" | "custom";
+
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+const fmtDay = (s: string) => new Date(s + (s.length <= 10 ? "T00:00:00" : "")).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+
+/** The active date window + label for a budget (current period for recurring). */
+function periodWindow(b: BudgetLike): { start: string; end: string; label: string } {
+  if (b.start_date && b.end_date) return { start: b.start_date.slice(0, 10), end: b.end_date.slice(0, 10), label: `${fmtDay(b.start_date)} – ${fmtDay(b.end_date)}` };
+  const now = new Date();
+  let s: Date, e: Date;
+  if (b.period === "daily") { s = new Date(now.getFullYear(), now.getMonth(), now.getDate()); e = new Date(s); }
+  else if (b.period === "weekly") { const dow = (now.getDay() + 6) % 7; s = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow); e = new Date(s); e.setDate(e.getDate() + 6); }
+  else if (b.period === "yearly") { s = new Date(now.getFullYear(), 0, 1); e = new Date(now.getFullYear(), 11, 31); }
+  else { s = new Date(now.getFullYear(), now.getMonth(), 1); e = new Date(now.getFullYear(), now.getMonth() + 1, 0); }
+  return { start: isoDay(s), end: isoDay(e), label: `${fmtDay(isoDay(s))} – ${fmtDay(isoDay(e))}` };
+}
 
 /** Find-or-create label rows by name, returning their ids. */
 async function resolveLabelIds(names: string[]): Promise<string[]> {
@@ -89,22 +106,27 @@ export default function BudgetsPage() {
   const [period, setPeriod] = useState<Period>("monthly");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [threshold, setThreshold] = useState("80");
+  const [currency, setCurrency] = useState(base);
   const [showNew, setShowNew] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   async function addBudget() {
-    if (!limit) return;
+    setErr(null);
+    if (!limit || Number(limit) <= 0) { setErr("Enter a spending limit."); return; }
+    if (timeMode === "custom" && (!start || !end)) { setErr("Pick a start and end date."); return; }
     const budgetId = await insertRow("budgets", {
       name: name.trim() || null,
       period,
       start_date: timeMode === "custom" ? start || null : null,
       end_date: timeMode === "custom" ? end || null : null,
-      limit_amount: fromMajor(Number(limit), base).amount,
-      currency: base,
-      threshold_pct: 80,
+      limit_amount: fromMajor(Number(limit), currency).amount,
+      currency,
+      threshold_pct: Math.min(100, Math.max(1, Number(threshold) || 80)),
       rollover: 0,
     });
     await writeBudgetScope(budgetId, selCats, selLabels);
-    setName(""); setLimit(""); setSelCats([]); setSelLabels([]); setStart(""); setEnd("");
+    setName(""); setLimit(""); setSelCats([]); setSelLabels([]); setStart(""); setEnd(""); setThreshold("80"); setCurrency(base);
     setShowNew(false);
   }
 
@@ -132,7 +154,17 @@ export default function BudgetsPage() {
         <div style={{ display: "grid", gap: 12 }}>
           <h2 style={{ margin: 0 }}>New budget</h2>
           <FloatingInput label="Name (e.g. Japan Trip)" value={name} onChange={setName} />
-          <FloatingInput label={`Limit (${base})`} inputMode="decimal" value={limit} onChange={(v) => setLimit(v.replace(/[^0-9.]/g, ""))} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <FloatingInput label={`Limit (${currency})`} inputMode="decimal" value={limit} onChange={(v) => setLimit(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+            <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 96 }}>
+              {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <label className="muted" style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+            Alert me at
+            <input className="input" style={{ width: 72 }} inputMode="numeric" value={threshold} onChange={(e) => setThreshold(e.target.value.replace(/\D/g, ""))} />
+            % of the limit
+          </label>
 
           <span className="muted" style={{ fontSize: 13 }}>Categories (optional — leave empty for all spending)</span>
           <MultiSelect options={catOptions} selected={selCats} onChange={setSelCats} placeholder="Add categories…" />
@@ -156,9 +188,10 @@ export default function BudgetsPage() {
             </div>
           )}
 
+          {err && <div className="card" style={{ padding: "8px 12px", background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)", fontSize: 13 }}>{err}</div>}
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
             <button className="btn ghost" onClick={() => setShowNew(false)}>Cancel</button>
-            <button className="btn" onClick={addBudget} disabled={!limit || (timeMode === "custom" && (!start || !end))}>Add budget</button>
+            <button className="btn" onClick={addBudget}>Add budget</button>
           </div>
         </div>
       </Modal>
@@ -198,9 +231,8 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
   const catNames = catIds.map((id) => cats.find((c) => c.id === id)?.name).filter(Boolean) as string[];
   const scopeLabel = [...catNames, ...labelNames].join(", ") || "All spending";
   const title = budget.name || scopeLabel;
-  const timeframe = budget.start_date && budget.end_date
-    ? `${new Date(budget.start_date).toLocaleDateString()} – ${new Date(budget.end_date).toLocaleDateString()}`
-    : budget.period;
+  const win = periodWindow(budget);
+  const timeframe = budget.start_date && budget.end_date ? win.label : `${budget.period} · ${win.label}`;
 
   const [editing, setEditing] = useState(false);
   const [eName, setEName] = useState(budget.name ?? "");
@@ -261,7 +293,8 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span className="muted">{Number.isFinite(p.pct) ? `${Math.round(p.pct)}%` : "—"}</span>
             <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={openEdit}>Edit</button>
-            <button className="chip" style={{ padding: "2px 8px" }} onClick={() => softDelete("budgets", budget.id)}>×</button>
+            <button className="chip" style={{ padding: "2px 8px" }} aria-label="Delete budget"
+              onClick={() => { if (typeof window !== "undefined" && window.confirm(`Delete the budget “${title}”? This can't be undone.`)) softDelete("budgets", budget.id); }}>×</button>
           </div>
         </div>
       )}
@@ -270,6 +303,54 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
         <span>{fmt(spent)} spent</span>
         <span>{p.overLimit ? `${fmt(money(spent.amount - limit.amount, budget.currency))} over` : `${fmt(remaining)} left`}</span>
       </div>
+      {!editing && <BudgetSpendChart budget={budget} catIds={catIds} labelNames={labelNames} win={win} limitMajor={toMajor(limit)} color={color} />}
     </div>
+  );
+}
+
+/** Cumulative expenditure across the budget's active window, vs the limit line. */
+function BudgetSpendChart({ budget, catIds, labelNames, win, limitMajor, color }: {
+  budget: BudgetLike; catIds: string[]; labelNames: string[]; win: { start: string; end: string }; limitMajor: number; color: string;
+}) {
+  const { data: rows = [] } = useQuery<{ d: string; amount: number; category_id: string | null; lbls: string | null }>(
+    `SELECT date(occurred_at) AS d, amount, category_id,
+       (SELECT GROUP_CONCAT(l.name) FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS lbls
+     FROM transactions t WHERE deleted_at IS NULL AND type='expense' AND occurred_at >= ? AND occurred_at <= ? ORDER BY d`,
+    [win.start + "T00:00:00", win.end + "T23:59:59"],
+  );
+  const hasCat = catIds.length > 0, hasLbl = labelNames.length > 0;
+  const perDay = new Map<string, number>();
+  for (const r of rows) {
+    const catOk = hasCat && r.category_id ? catIds.includes(r.category_id) : false;
+    const lblOk = hasLbl && r.lbls ? r.lbls.split(",").some((n) => labelNames.includes(n.trim())) : false;
+    if ((!hasCat && !hasLbl) || catOk || lblOk) perDay.set(r.d, (perDay.get(r.d) ?? 0) + r.amount);
+  }
+
+  // Build a cumulative series across the window (weekly steps for long windows).
+  const start = new Date(win.start + "T00:00:00"), end = new Date(win.end + "T00:00:00");
+  const spanDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+  const step = spanDays > 92 ? 7 : 1;
+  const series: { label: string; cum: number }[] = [];
+  let cum = 0;
+  for (let i = 0; i < spanDays; i++) {
+    const day = new Date(start); day.setDate(day.getDate() + i);
+    cum += (perDay.get(isoDay(day)) ?? 0);
+    if (i % step === 0 || i === spanDays - 1) series.push({ label: fmtDay(isoDay(day)), cum: cum / 100 });
+  }
+  if (series.length < 2) return null;
+
+  return (
+    <ResponsiveContainer width="100%" height={120}>
+      <AreaChart data={series} margin={{ top: 6, right: 6, bottom: 0, left: 0 }}>
+        <defs>
+          <linearGradient id={`gBud-${budget.id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity={0.35} /><stop offset="100%" stopColor={color} stopOpacity={0.02} /></linearGradient>
+        </defs>
+        <XAxis dataKey="label" tick={{ fontSize: 10, fill: "var(--text-2)" }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={24} />
+        <YAxis hide />
+        <Tooltip formatter={(v: number) => v.toLocaleString()} labelStyle={{ fontSize: 11 }} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+        {limitMajor > 0 && <ReferenceLine y={limitMajor} stroke="var(--text-2)" strokeDasharray="4 4" strokeOpacity={0.7} />}
+        <Area type="monotone" dataKey="cum" stroke={color} strokeWidth={2} fill={`url(#gBud-${budget.id})`} dot={false} />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 }
