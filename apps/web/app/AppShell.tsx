@@ -166,7 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           )}
           <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => { setShowBug(true); setMenuOpen(false); }}>
-            🐞 Report a bug
+            💬 Feedback
           </button>
           {!standalone && (
             <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => setShowInstall(true)}>

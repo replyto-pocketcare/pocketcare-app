@@ -361,6 +361,7 @@ const security_audit = new Table({
 // Beta bug reports + reward coupons.
 const bug_reports = new Table({
   user_id: column.text,
+  kind: column.text, // 'bug' | 'suggestion'
   severity: column.text,
   area: column.text,
   title: column.text,
