@@ -158,7 +158,7 @@ export default function EditTransactionPage() {
         items: type !== "transfer" ? payloadItems : null,
       });
 
-      if (type !== "transfer" && isPaid && categoryId !== originalCategoryId) {
+      if (type !== "transfer" && categoryId !== originalCategoryId) {
         void learnCategory(combinedDescription || "", categoryId, originalCategoryId);
       }
 

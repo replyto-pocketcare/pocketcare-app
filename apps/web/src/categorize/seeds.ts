@@ -19,17 +19,28 @@ export const SEED_RULES: Record<string, string> = {
   "petrol": "Transport",
   "shell": "Transport",
 
-  // Food
-  "swiggy": "Food",
-  "zomato": "Food",
-  "ubereats": "Food",
-  "doordash": "Food",
-  "starbucks": "Food",
-  "mcdonalds": "Food",
-  "kfc": "Food",
-  "dominos": "Food",
-  "restaurant": "Food",
-  "cafe": "Food",
+  // Food & Dining (merchants + common items)
+  "swiggy": "Food & Dining",
+  "zomato": "Food & Dining",
+  "ubereats": "Food & Dining",
+  "doordash": "Food & Dining",
+  "starbucks": "Food & Dining",
+  "mcdonalds": "Food & Dining",
+  "kfc": "Food & Dining",
+  "dominos": "Food & Dining",
+  "restaurant": "Food & Dining",
+  "cafe": "Food & Dining",
+  "coffee": "Food & Dining",
+  "tea": "Food & Dining",
+  "lunch": "Food & Dining",
+  "dinner": "Food & Dining",
+  "breakfast": "Food & Dining",
+  "pizza": "Food & Dining",
+  "burger": "Food & Dining",
+  "meal": "Food & Dining",
+  "snacks": "Food & Dining",
+  "chocolate": "Food & Dining",
+  "icecream": "Food & Dining",
 
   // Groceries
   "blinkit": "Groceries",
@@ -40,14 +51,48 @@ export const SEED_RULES: Record<string, string> = {
   "whole foods": "Groceries",
   "walmart": "Groceries",
   "target": "Groceries",
+  "grocery": "Groceries",
+  "groceries": "Groceries",
+  "milk": "Groceries",
+  "bread": "Groceries",
+  "eggs": "Groceries",
+  "vegetables": "Groceries",
+  "veggies": "Groceries",
+  "fruits": "Groceries",
+  "rice": "Groceries",
+  "oil": "Groceries",
+  "sugar": "Groceries",
 
-  // Shopping
+  // Shopping (merchants + common items)
   "amazon": "Shopping",
   "flipkart": "Shopping",
   "myntra": "Shopping",
   "ajio": "Shopping",
   "zara": "Shopping",
   "h&m": "Shopping",
+  "shoes": "Shopping",
+  "shirt": "Shopping",
+  "tshirt": "Shopping",
+  "clothes": "Shopping",
+  "dress": "Shopping",
+  "jeans": "Shopping",
+  "jacket": "Shopping",
+  "bag": "Shopping",
+  "watch": "Shopping",
+
+  // Health
+  "medicine": "Health",
+  "pharmacy": "Health",
+  "chemist": "Health",
+  "doctor": "Health",
+  "hospital": "Health",
+  "clinic": "Health",
+  "gym": "Health",
+
+  // Personal Care
+  "salon": "Personal Care",
+  "haircut": "Personal Care",
+  "spa": "Personal Care",
 
   // Subscriptions / Entertainment
   "netflix": "Subscriptions",
@@ -70,11 +115,11 @@ export const SEED_RULES: Record<string, string> = {
   "jio": "Utilities",
 
   // Income
-  "salary": "Income",
-  "paycheck": "Income",
-  "bonus": "Income",
-  "dividend": "Income",
-  "refund": "Income",
+  "salary": "Salary",
+  "paycheck": "Salary",
+  "bonus": "Bonus",
+  "dividend": "Dividends",
+  "refund": "Refunds",
 };
 
 export interface CategoryData {
@@ -88,19 +133,25 @@ export interface CategoryData {
  */
 export function buildSeedMap(categories: CategoryData[]): Map<string, string> {
   const map = new Map<string, string>();
-  
-  // Build a lowercased name -> id lookup for the user's categories
   const nameToId = new Map<string, string>();
-  for (const c of categories) {
-    nameToId.set(c.name.toLowerCase(), c.id);
-  }
+  for (const c of categories) nameToId.set(c.name.toLowerCase(), c.id);
+
+  // Resolve a seed's target name to a real category id — exact first, then a
+  // tolerant contains-match so "Food" still resolves to "Food & Dining", etc.
+  const resolve = (categoryName: string): string | undefined => {
+    const lower = categoryName.toLowerCase();
+    const exact = nameToId.get(lower);
+    if (exact) return exact;
+    for (const c of categories) {
+      const cn = c.name.toLowerCase();
+      if (cn === lower || cn.includes(lower) || lower.includes(cn)) return c.id;
+    }
+    return undefined;
+  };
 
   for (const [keyword, categoryName] of Object.entries(SEED_RULES)) {
-    const id = nameToId.get(categoryName.toLowerCase());
-    if (id) {
-      map.set(keyword, id);
-    }
+    const id = resolve(categoryName);
+    if (id) map.set(keyword, id);
   }
-
   return map;
 }
