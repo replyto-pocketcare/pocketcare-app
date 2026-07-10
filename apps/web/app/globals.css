@@ -185,6 +185,8 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 .sidebar {
   position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
   padding: 16px; border-right: 1px solid var(--border); background: var(--surface);
+  overflow-y: auto;                          /* long nav scrolls within the sidebar */
+  overscroll-behavior: contain;
 }
 .topbar { display: none; }
 .scrim { display: none; }
