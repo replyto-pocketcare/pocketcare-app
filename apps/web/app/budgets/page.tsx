@@ -155,7 +155,7 @@ export default function BudgetsPage() {
           <h2 style={{ margin: 0 }}>New budget</h2>
           <FloatingInput label="Name (e.g. Japan Trip)" value={name} onChange={setName} />
           <div style={{ display: "flex", gap: 8 }}>
-            <FloatingInput label={`Limit (${currency})`} inputMode="decimal" value={limit} onChange={(v) => setLimit(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+            <FloatingInput label={`Limit (${currency})`} group value={limit} onChange={setLimit} style={{ flex: 1 }} />
             <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 96 }}>
               {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -269,7 +269,7 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
         <div style={{ display: "grid", gap: 8 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <FloatingInput label="Name (optional)" value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
-            <FloatingInput label="Limit" inputMode="decimal" value={eLimit} onChange={(v) => setELimit(v.replace(/[^0-9.]/g, ""))} style={{ width: 130 }} />
+            <FloatingInput label="Limit" group value={eLimit} onChange={setELimit} style={{ width: 130 }} />
           </div>
           <span className="muted" style={{ fontSize: 12 }}>Categories (empty = all spending)</span>
           <MultiSelect options={catOptions} selected={eCats} onChange={setECats} placeholder="Add categories…" />

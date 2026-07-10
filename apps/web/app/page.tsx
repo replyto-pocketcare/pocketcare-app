@@ -9,7 +9,7 @@ import { useEntitlement } from "../src/entitlement";
 import { useAmountsHidden, setAmountsHidden } from "../src/prefs";
 import { colorForId } from "../src/colors";
 import { getDb } from "../src/powersync";
-import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon } from "../src/ui/icons";
+import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon, ScaleIcon } from "../src/ui/icons";
 import { Modal } from "../src/ui/Modal";
 import { useDashboardTiles, setTileEnabled, reorderTiles, type TileId } from "../src/dashboard";
 import { TILE_CATALOG, TileView, tileMeta } from "../src/dashboard/tiles";
@@ -86,9 +86,9 @@ export default function Dashboard() {
                 <div style={{ padding: 16, display: "grid", gap: 3, flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                     <span className="muted" style={{ fontSize: 12, textTransform: "capitalize", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.type.replace("_", " ")}</span>
-                    <button onClick={() => toggleNw(account.id, included)} title={included ? "In net worth — click to exclude" : "Excluded — click to include"}
-                      style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-2)", opacity: included ? 1 : 0.45, display: "inline-flex", padding: 0, flexShrink: 0 }}>
-                      {included ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />}
+                    <button onClick={() => toggleNw(account.id, included)} title={included ? "Counts toward net worth — click to exclude" : "Excluded from net worth — click to include"}
+                      style={{ background: "transparent", border: "none", cursor: "pointer", color: included ? "var(--accent)" : "var(--text-2)", opacity: included ? 1 : 0.4, display: "inline-flex", padding: 0, flexShrink: 0 }}>
+                      <ScaleIcon size={16} />
                     </button>
                   </div>
                   <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.name}</span>

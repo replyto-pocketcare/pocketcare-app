@@ -31,6 +31,8 @@ function compactMoney(minor: number, currency: string): string {
     .format(toMajor(money(minor, currency as CurrencyCode)));
 }
 
+const GOAL_CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
+
 interface Goal {
   id: string;
   name: string;
@@ -59,22 +61,26 @@ export default function GoalsPage() {
 
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
+  const [currency, setCurrency] = useState(base);
   const [isEf, setIsEf] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const hasEf = !!ef;
 
   const [celebrate, setCelebrate] = useState<string | null>(null);
   const onAchieved = useCallback((goalName: string) => setCelebrate(goalName), []);
 
   async function addGoal() {
-    if (!name.trim() || !target) return;
+    setErr(null);
+    if (!name.trim()) { setErr("Give your goal a name."); return; }
+    if (!target || Number(target) <= 0) { setErr("Enter a target amount."); return; }
     await insertRow("goals", {
       name: name.trim(),
-      target_amount: fromMajor(Number(target), base).amount,
-      currency: base,
+      target_amount: fromMajor(Number(target), currency).amount,
+      currency,
       is_emergency_fund: isEf && !hasEf ? 1 : 0,
       priority: goals.length,
     });
-    setName(""); setTarget(""); setIsEf(false);
+    setName(""); setTarget(""); setCurrency(base); setIsEf(false);
   }
 
   return (
@@ -97,13 +103,19 @@ export default function GoalsPage() {
       <div className="card" style={{ padding: 20, display: "grid", gap: 10, maxWidth: 460 }}>
         <h2>New goal</h2>
         <FloatingInput label="Goal name" value={name} onChange={setName} />
-        <FloatingInput label={`Target (${base})`} inputMode="decimal" value={target} onChange={(v) => setTarget(v.replace(/[^0-9.]/g, ""))} />
+        <div style={{ display: "flex", gap: 8 }}>
+          <FloatingInput label={`Target (${currency})`} group value={target} onChange={setTarget} style={{ flex: 1 }} />
+          <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 96 }}>
+            {GOAL_CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
         {!hasEf && (
           <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
             <input type="checkbox" checked={isEf} onChange={(e) => setIsEf(e.target.checked)} /> This is my emergency fund (kept liquid, filled first)
           </label>
         )}
-        <button className="btn" onClick={addGoal} disabled={!name.trim() || !target}>Add goal</button>
+        {err && <div className="card" style={{ padding: "8px 12px", background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)", fontSize: 13 }}>{err}</div>}
+        <button className="btn" onClick={addGoal}>Add goal</button>
       </div>
 
       {celebrate && <GoalCelebration name={celebrate} onClose={() => setCelebrate(null)} />}
@@ -165,7 +177,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
       {editing ? (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           <FloatingInput label="Goal name" value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
-          <FloatingInput label="Target" inputMode="decimal" value={eTarget} onChange={(v) => setETarget(v.replace(/[^0-9.]/g, ""))} style={{ width: 140 }} />
+          <FloatingInput label="Target" group value={eTarget} onChange={setETarget} style={{ width: 140 }} />
           <button className="btn" onClick={saveEdit}>Save</button>
           <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
         </div>
@@ -210,7 +222,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
                   {savings.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </label>
-              <FloatingInput label={`Amount (${goal.currency})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} />
+              <FloatingInput label={`Amount (${goal.currency})`} group value={amount} onChange={setAmount} />
               <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
                 <button className="btn ghost" onClick={() => setShowAlloc(false)}>Cancel</button>
                 <button className="btn" onClick={allocate} disabled={!amount}>{goal.is_emergency_fund ? "Add" : "Block"}</button>

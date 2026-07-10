@@ -92,3 +92,12 @@ export function DownloadIcon({ size = 18, strokeWidth = 1.8 }: P) {
     </svg>
   );
 }
+
+/** Balance scale — clearer than an eye for "counts toward net worth". */
+export function ScaleIcon({ size = 18, strokeWidth = 1.8 }: P) {
+  return (
+    <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
+      <path d="M12 3v18M7 21h10M12 6l7 2-2.5 5a2.6 2.6 0 0 1-4.5 0L19 8M12 6 5 8l2.5 5a2.6 2.6 0 0 1-4.5 0L5 8" />
+    </svg>
+  );
+}

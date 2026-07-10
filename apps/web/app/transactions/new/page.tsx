@@ -19,6 +19,7 @@ import { useEntitlement } from "../../../src/entitlement";
 import { UpgradeModal } from "../../../src/ui/UpgradeModal";
 import { useAutoCategorize, useLearnCategory } from "../../../src/categorize/hooks";
 import { encryptForWrite } from "../../../src/crypto/fields";
+import { AmountInput } from "../../../src/ui/AmountInput";
 
 type TxType = "expense" | "income" | "transfer";
 let counter = 0;
@@ -343,9 +344,9 @@ export default function NewTransactionPage() {
         </div>
 
         {type === "transfer" ? (
-          <input className="input" inputMode="decimal" placeholder="0.00" autoFocus
+          <AmountInput placeholder="0.00" autoFocus
             value={items[0]?.value ?? ""}
-            onChange={(e) => setItems([{ ...(items[0] ?? newItem()), value: e.target.value.replace(/[^0-9.]/g, "") }])}
+            onChange={(raw) => setItems([{ ...(items[0] ?? newItem()), value: raw }])}
             style={{ fontSize: 20, textAlign: "right" }} />
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
@@ -353,9 +354,9 @@ export default function NewTransactionPage() {
               <div key={it.id} style={{ display: "flex", gap: 8 }}>
                 <input className="input" placeholder={items.length > 1 ? `Item ${idx + 1}` : "What for? (optional)"} value={it.description}
                   onChange={(e) => update(it.id, { description: e.target.value })} />
-                <input className="input" style={{ width: 140, textAlign: "right", fontWeight: 600 }} inputMode="decimal" placeholder="0.00"
+                <AmountInput style={{ width: 140, textAlign: "right", fontWeight: 600 }} placeholder="0.00"
                   autoFocus={idx === 0} value={it.value}
-                  onChange={(e) => update(it.id, { value: e.target.value.replace(/[^0-9.]/g, "") })} />
+                  onChange={(raw) => update(it.id, { value: raw })} />
                 {items.length > 1 && (
                   <button className="chip" onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))} aria-label="Remove">×</button>
                 )}
@@ -393,8 +394,7 @@ export default function NewTransactionPage() {
 
       {crossCurrency && (
         <Field label={`Amount received (${toAccount?.currency})`}>
-          <input className="input" inputMode="decimal" placeholder="0.00" value={toValue}
-            onChange={(e) => setToValue(e.target.value.replace(/[^0-9.]/g, ""))} />
+          <AmountInput placeholder="0.00" value={toValue} onChange={setToValue} />
         </Field>
       )}
 
