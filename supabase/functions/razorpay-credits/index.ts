@@ -38,6 +38,13 @@ Deno.serve(async (req: Request) => {
   const { data: { user }, error: authErr } = await supabase.auth.getUser(auth.replace("Bearer ", ""));
   if (authErr || !user) return json({ error: "Unauthorized" });
 
+  // AI credit top-ups require an active Lite or Pro plan — free users must
+  // upgrade first. (Enforced here so a client bypass can't buy credits.)
+  const { data: ent } = await supabase.from("entitlements").select("tier, subscription_status").eq("user_id", user.id).maybeSingle();
+  const tier = String((ent as { tier?: string } | null)?.tier ?? "free").toLowerCase();
+  const isPaidTier = tier === "lite" || tier === "pro" || tier === "premium";
+  if (!isPaidTier) return json({ error: "AI credits require a Lite or Pro plan. Please upgrade first, then buy credits." });
+
   let body: { pack?: string };
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON body." }); }
   const pack = body.pack ? PACKS[body.pack] : undefined;

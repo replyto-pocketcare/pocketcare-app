@@ -9,6 +9,7 @@ import { LockIcon } from "../../src/ui/icons";
 import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/summary";
 import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, loadMemory } from "../../src/assistant/tools";
 import { buyCredits } from "../../src/billing";
+import { useEntitlement } from "../../src/entitlement";
 import { CREDIT_PACKS } from "../../src/billing/plans";
 
 // ---- Anthropic message shapes (minimal) ----
@@ -82,6 +83,7 @@ export default function AssistantPage() {
     "SELECT monthly_quota_total, monthly_quota_used, purchased_quota_remaining, quota_reset_date, additional_purchased_quota FROM entitlements LIMIT 1"
   );
   const quota = entitlements[0];
+  const { isPaid } = useEntitlement(); // AI credits require a paid (Lite/Pro) plan
   // Keep this identical to useEntitlement() so Settings and here never disagree:
   // plan portion (clamped ≥0) + all purchased credits.
   const planLeft = quota ? Math.max(0, quota.monthly_quota_total - quota.monthly_quota_used) : 0;
@@ -342,16 +344,25 @@ export default function AssistantPage() {
 
       {isOutOfQuota && quota && (
         <div className="card" style={{ padding: 16, display: "grid", gap: 12, borderColor: "var(--warning)", background: "var(--accent-ghost)" }}>
-          <div style={{ fontSize: 14 }}><strong>You’ve used all your AI prompts for this cycle.</strong> Buy a credit top-up to keep going — credits never expire.</div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {CREDIT_PACKS.map((c) => (
-              <button key={c.id} className="chip" disabled={!!buyingCredits} onClick={async () => {
-                setBuyingCredits(c.id);
-                try { await buyCredits(c.id); } catch (e) { pushUi("assistant", `Payment couldn't start: ${(e as Error).message}`); }
-                finally { setBuyingCredits(null); }
-              }}>{buyingCredits === c.id ? "Opening…" : `₹${c.price} · +${c.credits}`}</button>
-            ))}
-          </div>
+          {isPaid ? (
+            <>
+              <div style={{ fontSize: 14 }}><strong>You’ve used all your AI prompts for this cycle.</strong> Buy a credit top-up to keep going — credits never expire.</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {CREDIT_PACKS.map((c) => (
+                  <button key={c.id} className="chip" disabled={!!buyingCredits} onClick={async () => {
+                    setBuyingCredits(c.id);
+                    try { await buyCredits(c.id); } catch (e) { pushUi("assistant", `Payment couldn't start: ${(e as Error).message}`); }
+                    finally { setBuyingCredits(null); }
+                  }}>{buyingCredits === c.id ? "Opening…" : `₹${c.price} · +${c.credits}`}</button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 14 }}><strong>You’ve used all your free AI prompts.</strong> AI credit top-ups are available on the Lite and Pro plans — upgrade to keep going, then you can buy credits anytime.</div>
+              <Link href="/settings" className="btn" style={{ justifySelf: "start" }}>See Lite &amp; Pro plans</Link>
+            </>
+          )}
         </div>
       )}
 

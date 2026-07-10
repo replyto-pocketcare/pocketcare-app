@@ -146,16 +146,20 @@ export function Billing() {
         </ul>
       </div>
 
-      {/* AI credit top-ups */}
+      {/* AI credit top-ups — Lite/Pro only */}
       <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
         <div><strong style={{ fontSize: 14 }}>Buy AI credits</strong> <span className="muted" style={{ fontSize: 12 }}>— extra Ask PocketCare prompts that never expire.</span></div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {CREDIT_PACKS.map((c) => (
-            <button key={c.id} className="chip" disabled={!!busy} onClick={() => run(c.id, () => buyCredits(c.id), "Payment received — credits will be added shortly.")}>
-              {busy === c.id ? "Opening…" : `₹${c.price} · +${c.credits}`}
-            </button>
-          ))}
-        </div>
+        {e.isPaid ? (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {CREDIT_PACKS.map((c) => (
+              <button key={c.id} className="chip" disabled={!!busy} onClick={() => run(c.id, () => buyCredits(c.id), "Payment received — credits will be added shortly.")}>
+                {busy === c.id ? "Opening…" : `₹${c.price} · +${c.credits}`}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="muted" style={{ fontSize: 13, margin: 0 }}>Available on the Lite and Pro plans — choose a plan above, then you can buy credit top-ups anytime.</p>
+        )}
       </div>
 
       {msg && <div className="card" style={{ padding: 10, fontSize: 13, background: "var(--accent-ghost)", borderColor: "var(--accent-soft)" }}>{msg}</div>}
