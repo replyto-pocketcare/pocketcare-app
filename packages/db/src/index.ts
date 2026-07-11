@@ -45,6 +45,8 @@ const entitlements = new Table({
   razorpay_subscription_id: column.text,
   razorpay_customer_id: column.text,
   current_period_end: column.text,
+  comp_tier: column.text,   // complimentary tier from a redeemed coupon/promo
+  comp_until: column.text,  // …valid until (time-bound)
   updated_at: column.text,
 });
 
