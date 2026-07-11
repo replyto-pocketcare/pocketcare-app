@@ -61,7 +61,10 @@ Deno.serve(async (req: Request) => {
       const userId = sub?.notes?.user_id;
       const tier = planMap[sub?.plan_id] || sub?.notes?.tier || "lite";
       if (userId) {
-        await supabase.from("entitlements").update({
+        // Upsert (NOT update) so the plan activates even if no entitlements row
+        // exists yet — otherwise the tier silently never changes.
+        await supabase.from("entitlements").upsert({
+          user_id: userId,
           tier,
           subscription_status: "active",
           razorpay_subscription_id: sub.id,
@@ -71,7 +74,7 @@ Deno.serve(async (req: Request) => {
           monthly_quota_total: QUOTA[tier] ?? 50,
           monthly_quota_used: 0,
           quota_reset_date: iso(sub.current_end),
-        }).eq("user_id", userId);
+        }, { onConflict: "user_id" });
 
         // Record the charge for billing history / invoices (idempotent by payment id).
         if (payment?.id) {
@@ -88,10 +91,11 @@ Deno.serve(async (req: Request) => {
       const status = event.split(".")[1];
       const downgrade = status !== "paused";
       if (userId) {
-        await supabase.from("entitlements").update({
+        await supabase.from("entitlements").upsert({
+          user_id: userId,
           subscription_status: status,
           ...(downgrade ? { tier: "free", monthly_quota_total: 0 } : {}),
-        }).eq("user_id", userId);
+        }, { onConflict: "user_id" });
       }
     } else if (event === "order.paid" || event === "payment.captured") {
       // Credit packs. razorpay-credits pre-records a PENDING row keyed by order
@@ -113,10 +117,10 @@ Deno.serve(async (req: Request) => {
           const credits = row.credits_added ?? 0;
           if (credits > 0) {
             const { data: ent } = await supabase.from("entitlements")
-              .select("purchased_quota_remaining").eq("user_id", row.user_id).single();
+              .select("purchased_quota_remaining").eq("user_id", row.user_id).maybeSingle();
             const current = ent?.purchased_quota_remaining ?? 0;
             const { error: updErr } = await supabase.from("entitlements")
-              .update({ purchased_quota_remaining: current + credits }).eq("user_id", row.user_id);
+              .upsert({ user_id: row.user_id, purchased_quota_remaining: current + credits }, { onConflict: "user_id" });
             console.log("[razorpay-webhook] credits applied:", { user: row.user_id, added: credits, newTotal: current + credits, updErr: updErr?.message ?? null });
           }
         }

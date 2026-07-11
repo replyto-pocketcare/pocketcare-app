@@ -61,12 +61,17 @@ export function Billing() {
     finally { setBusy(null); }
   }
 
+    const RANK: Record<PlanKey, number> = { free: 0, lite: 1, pro: 2 };
   const planCard = (tier: PaidTier) => {
     const p = PLANS[tier];
     const isYourTier = e.tier === tier;
     // "Current" only when the tier AND the shown billing cycle match your plan.
     const isCurrent = isYourTier && e.cycle === cycle;
     const isSelected = selected === tier;
+    // Block re-buying while a subscription is active: same tier (any cycle other
+    // than a cycle-switch) or a lower tier is already included in the active plan.
+    const hasActiveSub = e.subscriptionStatus === "active" && e.tier !== "free";
+    const isLower = hasActiveSub && RANK[tier] < RANK[e.tier];
     return (
       <div key={tier} className="card" role="button" tabIndex={0} onClick={() => setSelected(tier)}
         style={{ padding: 16, display: "grid", gap: 8, cursor: "pointer", background: "var(--surface-2)",
@@ -79,9 +84,15 @@ export function Billing() {
         <div className="muted" style={{ fontSize: 12.5 }}>{p.blurb} <strong>{p.quota} AI prompts/mo.</strong></div>
         {isCurrent ? (
           <button className="chip" disabled style={{ justifySelf: "start", opacity: 0.7 }}>Current plan</button>
+        ) : isLower ? (
+          <button className="chip" disabled style={{ justifySelf: "start", opacity: 0.7 }}>Included in your plan</button>
+        ) : isYourTier ? (
+          <button className="btn" disabled={!!busy} onClick={(ev) => { ev.stopPropagation(); run(tier, () => startSubscription(tier, cycle), "Payment received — your plan will update in a moment."); }}>
+            {busy === tier ? "Opening…" : `Switch to ${cycle}`}
+          </button>
         ) : (
           <button className="btn" disabled={!!busy} onClick={(ev) => { ev.stopPropagation(); run(tier, () => startSubscription(tier, cycle), "Payment received — your plan will activate in a moment."); }}>
-            {busy === tier ? "Opening…" : isYourTier ? `Switch to ${cycle}` : `Upgrade to ${p.label}`}
+            {busy === tier ? "Opening…" : `Upgrade to ${p.label}`}
           </button>
         )}
       </div>

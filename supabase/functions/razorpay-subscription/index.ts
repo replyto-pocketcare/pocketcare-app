@@ -61,9 +61,10 @@ Deno.serve(async (req: Request) => {
   if (!rzpRes.ok || sub.error) return json({ error: sub?.error?.description || `Razorpay error (${rzpRes.status}).` });
 
   // Record the pending subscription (webhook flips it to active on payment).
-  await supabase.from("entitlements").update({
-    razorpay_subscription_id: sub.id, plan_id: planId, billing_cycle: cycle, subscription_status: "created",
-  }).eq("user_id", user.id);
+  // Upsert so a missing entitlements row is created rather than silently skipped.
+  await supabase.from("entitlements").upsert({
+    user_id: user.id, razorpay_subscription_id: sub.id, plan_id: planId, billing_cycle: cycle, subscription_status: "created",
+  }, { onConflict: "user_id" });
 
   return json({ subscription_id: sub.id, key_id: keyId });
 });

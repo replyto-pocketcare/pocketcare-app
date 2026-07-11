@@ -30,6 +30,7 @@ async function invoke<T>(fn: string, body: Record<string, unknown>): Promise<T> 
 
 /** Redeem a reward coupon → time-bound complimentary Lite/Pro. */
 export async function redeemCoupon(code: string): Promise<{ ok: boolean; tier: string; until: string }> {
+  assertOnline();
   return invoke("redeem-coupon", { code: code.trim().toUpperCase() });
 }
 
@@ -55,8 +56,16 @@ function openCheckout(options: Record<string, unknown>): Promise<{ ok: boolean }
   });
 }
 
+/** Payments/plan changes need connectivity — fail fast (and clearly) when offline. */
+function assertOnline(): void {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    throw new Error("You're offline. Please reconnect to the internet to change your plan.");
+  }
+}
+
 /** Start a recurring subscription; the webhook activates the plan shortly after. */
 export async function startSubscription(tier: PaidTier, cycle: Cycle): Promise<{ ok: boolean }> {
+  assertOnline();
   await loadRazorpay();
   const { subscription_id, key_id } = await invoke<{ subscription_id: string; key_id: string }>(
     "razorpay-subscription", { tier, cycle },
@@ -71,6 +80,7 @@ export async function cancelSubscription(): Promise<{ ok: boolean; ends_at: stri
 
 /** Buy a one-time AI credit pack; the webhook adds the credits shortly after. */
 export async function buyCredits(pack: CreditPackId): Promise<{ ok: boolean }> {
+  assertOnline();
   await loadRazorpay();
   const { order_id, amount, key_id, credits } = await invoke<{ order_id: string; amount: number; key_id: string; credits: number }>(
     "razorpay-credits", { pack },
