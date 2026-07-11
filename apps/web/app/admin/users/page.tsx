@@ -3,15 +3,21 @@
 import { useEffect, useState } from "react";
 import { getAdminUsers } from "../../../src/admin-actions";
 import { Spinner } from "../../../src/ui/Spinner";
+import { AdminError } from "../AdminError";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<any[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    getAdminUsers().then(setUsers);
+    getAdminUsers().then((res) => {
+      if (res.ok) setUsers(res.data);
+      else setError(res.error);
+    });
   }, []);
 
+  if (error) return <AdminError title="Couldn’t load users" message={error} />;
   if (!users) return <Spinner />;
 
   const filtered = users.filter((u) => 

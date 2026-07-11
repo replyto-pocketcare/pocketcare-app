@@ -3,15 +3,21 @@
 import { useEffect, useState } from "react";
 import { getAdminFeedback } from "../../../src/admin-actions";
 import { Spinner } from "../../../src/ui/Spinner";
+import { AdminError } from "../AdminError";
 
 export default function AdminFeedback() {
   const [feedback, setFeedback] = useState<any[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [filterKind, setFilterKind] = useState<string>("all");
 
   useEffect(() => {
-    getAdminFeedback().then(setFeedback);
+    getAdminFeedback().then((res) => {
+      if (res.ok) setFeedback(res.data);
+      else setError(res.error);
+    });
   }, []);
 
+  if (error) return <AdminError title="Couldn’t load feedback" message={error} />;
   if (!feedback) return <Spinner />;
 
   const filtered = feedback.filter((f) => filterKind === "all" || f.kind === filterKind);

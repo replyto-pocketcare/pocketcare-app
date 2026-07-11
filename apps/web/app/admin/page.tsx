@@ -3,15 +3,21 @@
 import { useEffect, useState } from "react";
 import { getAdminDashboardStats } from "../../src/admin-actions";
 import { Spinner } from "../../src/ui/Spinner";
+import { AdminError } from "./AdminError";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getAdminDashboardStats().then(setStats);
+    getAdminDashboardStats().then((res) => {
+      if (res.ok) setStats(res.data);
+      else setError(res.error);
+    });
   }, []);
 
+  if (error) return <AdminError title="Couldn’t load dashboard" message={error} />;
   if (!stats) return <Spinner />;
 
   // Mock data for beautiful graphs
