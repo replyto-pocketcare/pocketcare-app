@@ -108,6 +108,80 @@ export function useFriendBalances(): FriendBalance[] {
   return useMemo(() => computeBalances(parts, setts, me), [parts, setts, me]);
 }
 
+export interface GroupOverview {
+  group: Group;
+  memberIds: string[];       // other members (excludes you), in join order
+  peopleCount: number;       // total members incl. you
+  net: number;               // your net within this group (+ = you're owed)
+  perUser: FriendBalance[];  // your balance vs each member in this group
+}
+export interface SplitOverview {
+  netPosition: number; // owed - owe across everything
+  owed: number;
+  owe: number;
+  groups: GroupOverview[];   // non-direct groups & trips
+  direct: FriendBalance[];   // aggregated 1:1 balances (+ = they owe you)
+}
+
+/** Everything the Splits ledger needs, computed in one pass. */
+export function useSplitOverview(): SplitOverview {
+  const me = useMyUserId();
+  const { data: groups = [] } = useQuery<Group>(
+    `SELECT id, created_by, name, kind, is_direct, start_date, end_date, auto_split, default_mode, currency
+     FROM split_groups WHERE deleted_at IS NULL AND IFNULL(archived,0)=0 ORDER BY created_at DESC`,
+  );
+  const { data: members = [] } = useQuery<{ group_id: string; user_id: string }>(
+    "SELECT group_id, user_id FROM split_group_members WHERE deleted_at IS NULL ORDER BY created_at",
+  );
+  const { data: parts = [] } = useQuery<{ group_id: string; expense_id: string; user_id: string; paid_amount: number; share_amount: number }>(
+    "SELECT group_id, expense_id, user_id, paid_amount, share_amount FROM expense_participants WHERE deleted_at IS NULL",
+  );
+  const { data: setts = [] } = useQuery<{ group_id: string; from_user: string; to_user: string; amount: number }>(
+    "SELECT group_id, from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL",
+  );
+
+  return useMemo(() => {
+    const partsByGroup = new Map<string, typeof parts>();
+    for (const p of parts) { const a = partsByGroup.get(p.group_id) ?? []; a.push(p); partsByGroup.set(p.group_id, a); }
+    const settsByGroup = new Map<string, typeof setts>();
+    for (const s of setts) { const a = settsByGroup.get(s.group_id) ?? []; a.push(s); settsByGroup.set(s.group_id, a); }
+    const membersByGroup = new Map<string, string[]>();
+    for (const m of members) { const a = membersByGroup.get(m.group_id) ?? []; a.push(m.user_id); membersByGroup.set(m.group_id, a); }
+
+    const groupViews: GroupOverview[] = [];
+    const direct = new Map<string, number>();
+    let owed = 0, owe = 0;
+
+    for (const g of groups) {
+      const perUser = computeBalances(partsByGroup.get(g.id) ?? [], settsByGroup.get(g.id) ?? [], me);
+      const net = perUser.reduce((s, b) => s + b.net, 0);
+      const allMembers = membersByGroup.get(g.id) ?? [];
+      const others = allMembers.filter((u) => u !== me);
+      owed += perUser.reduce((s, b) => s + Math.max(0, b.net), 0);
+      owe += perUser.reduce((s, b) => s + Math.max(0, -b.net), 0);
+
+      if (g.is_direct) {
+        // Fold direct groups into per-person aggregate balances.
+        for (const b of perUser) direct.set(b.userId, (direct.get(b.userId) ?? 0) + b.net);
+      } else {
+        groupViews.push({
+          group: g,
+          memberIds: others,
+          peopleCount: allMembers.length || others.length + 1,
+          net,
+          perUser: perUser.filter((b) => b.net !== 0),
+        });
+      }
+    }
+
+    const directList = [...direct.entries()]
+      .filter(([, n]) => n !== 0)
+      .map(([userId, net]) => ({ userId, net }));
+
+    return { netPosition: owed - owe, owed, owe, groups: groupViews, direct: directList };
+  }, [groups, members, parts, setts, me]);
+}
+
 /** Per-user balances within a single group. */
 export function useGroupBalances(groupId: string): FriendBalance[] {
   const me = useMyUserId();

@@ -30,7 +30,7 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
     { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "⇅" },
     { href: "/templates", tkey: "nav.templates", label: "Templates", icon: "▧" },
     { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "▭" },
-    { href: "/friends", tkey: "nav.friends", label: "Friends", icon: "◑" },
+    { href: "/friends", tkey: "nav.friends", label: "Splits", icon: "◑" },
     { href: "/groups", tkey: "nav.groups", label: "Groups & trips", icon: "◇" },
     { href: "/search", tkey: "nav.search", label: "Search", icon: "⌕" },
   ] },
