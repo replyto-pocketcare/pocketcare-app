@@ -386,6 +386,7 @@ const bug_reports = new Table({
   online: column.integer,
   status: column.text,
   created_at: column.text,
+  updated_at: column.text, // insertRow/updateRow always set this
 });
 const coupons = new Table({
   code: column.text,

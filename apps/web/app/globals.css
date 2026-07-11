@@ -262,3 +262,77 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 /* Small spinner used by the auto-categorisation "finding…" indicator. */
 .pc-spin { animation: pc-spin 0.9s linear infinite; }
 @keyframes pc-spin { to { transform: rotate(360deg); } }
+
+/* ============================ Admin console ============================ */
+/* Layout lives in CSS (not inline styles) so media queries can override it. */
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #111;
+  color: #eee;
+}
+.admin-aside {
+  width: 260px;
+  flex-shrink: 0;
+  border-right: 1px solid #333;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.admin-nav a {
+  padding: 10px;
+  border-radius: 8px;
+  background: #222;
+  color: #eee;
+  white-space: nowrap;
+}
+.admin-nav a.admin-nav-back {
+  background: transparent;
+  color: #aaa;
+  margin-top: auto;
+}
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  padding: 40px;
+  overflow-y: auto;
+}
+/* Make wide admin tables scroll horizontally instead of overflowing. */
+.admin-main table { min-width: 520px; }
+
+@media (max-width: 768px) {
+  .admin-shell { flex-direction: column; }
+  .admin-aside {
+    width: auto;
+    border-right: none;
+    border-bottom: 1px solid #333;
+    padding: 12px 14px;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #111;
+  }
+  .admin-brand { margin-bottom: 4px; }
+  .admin-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-nav a { padding: 8px 12px; font-size: 14px; }
+  .admin-nav a.admin-nav-back { margin-top: 0; margin-left: 4px; }
+  .admin-main { padding: 16px; }
+}

@@ -64,21 +64,21 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="shell admin-shell" style={{ display: "flex", minHeight: "100vh", background: "#111", color: "#eee" }}>
-      <aside style={{ width: 260, borderRight: "1px solid #333", padding: 20, display: "flex", flexDirection: "column", gap: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+    <div className="admin-shell">
+      <aside className="admin-aside">
+        <div className="admin-brand">
           <Logo size={24} />
           <strong style={{ fontSize: 18 }}>Admin Console</strong>
         </div>
-        <nav style={{ display: "grid", gap: 10 }}>
-          <Link href="/admin" style={{ padding: 10, borderRadius: 8, background: "#222" }}>Dashboard</Link>
-          <Link href="/admin/users" style={{ padding: 10, borderRadius: 8, background: "#222" }}>Users & Support</Link>
-          <Link href="/admin/feedback" style={{ padding: 10, borderRadius: 8, background: "#222" }}>Feedback</Link>
-          <Link href="/admin/notifications" style={{ padding: 10, borderRadius: 8, background: "#222" }}>Notifications</Link>
-          <Link href="/" style={{ padding: 10, borderRadius: 8, color: "#aaa", marginTop: "auto" }}>← Back to App</Link>
+        <nav className="admin-nav">
+          <Link href="/admin">Dashboard</Link>
+          <Link href="/admin/users">Users &amp; Support</Link>
+          <Link href="/admin/feedback">Feedback</Link>
+          <Link href="/admin/notifications">Notifications</Link>
+          <Link href="/" className="admin-nav-back">← Back to App</Link>
         </nav>
       </aside>
-      <main style={{ flex: 1, padding: 40, overflowY: "auto" }}>
+      <main className="admin-main">
         {children}
       </main>
     </div>

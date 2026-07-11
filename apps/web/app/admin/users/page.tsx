@@ -39,7 +39,7 @@ export default function AdminUsers() {
         />
       </div>
 
-      <div style={{ background: "#222", borderRadius: 12, border: "1px solid #333", overflow: "hidden" }}>
+      <div style={{ background: "#222", borderRadius: 12, border: "1px solid #333", overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid #333", background: "#1a1a1a" }}>
