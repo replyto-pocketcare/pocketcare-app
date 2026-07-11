@@ -73,12 +73,34 @@ export async function getAdminUsers(): Promise<AdminResult<Record<string, unknow
 export async function getAdminFeedback(): Promise<AdminResult<Record<string, unknown>[]>> {
   try {
     const supabase = getAdminClient();
-    const { data, error } = await supabase
+    const { data: reports, error } = await supabase
       .from("bug_reports")
       .select("*")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return { ok: true, data: data ?? [] };
+
+    const rows = reports ?? [];
+    // Resolve reporter name/email — bug_reports.user_id references auth.users,
+    // so there's no automatic PostgREST embed; look the profiles up separately.
+    const ids = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
+    const byId = new Map<string, { display_name?: string; email?: string }>();
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, email")
+        .in("id", ids);
+      for (const p of profs ?? []) byId.set(p.id as string, p);
+    }
+
+    const enriched = rows.map((r) => {
+      const p = byId.get(r.user_id as string);
+      return {
+        ...r,
+        reporter_name: p?.display_name ?? null,
+        reporter_email: p?.email ?? null,
+      };
+    });
+    return { ok: true, data: enriched };
   } catch (e) {
     return fail(e);
   }

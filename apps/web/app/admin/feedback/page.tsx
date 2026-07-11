@@ -43,9 +43,11 @@ export default function AdminFeedback() {
           <thead>
             <tr style={{ borderBottom: "1px solid #333", background: "#1a1a1a" }}>
               <th style={{ padding: 16 }}>Date</th>
+              <th style={{ padding: 16 }}>Reported by</th>
               <th style={{ padding: 16 }}>Kind</th>
               <th style={{ padding: 16 }}>Severity</th>
               <th style={{ padding: 16 }}>Area</th>
+              <th style={{ padding: 16 }}>Title</th>
               <th style={{ padding: 16 }}>Description</th>
             </tr>
           </thead>
@@ -55,8 +57,16 @@ export default function AdminFeedback() {
                 <td style={{ padding: 16, fontSize: 13, color: "#888", whiteSpace: "nowrap" }}>
                   {new Date(f.created_at).toLocaleDateString()}
                 </td>
+                <td style={{ padding: 16, fontSize: 13, whiteSpace: "nowrap" }}>
+                  {f.reporter_name || f.reporter_email
+                    ? <>
+                        {f.reporter_name && <div>{f.reporter_name}</div>}
+                        {f.reporter_email && <div style={{ color: "#888", fontSize: 12 }}>{f.reporter_email}</div>}
+                      </>
+                    : <span style={{ color: "#666" }}>{f.user_id ? `${String(f.user_id).slice(0, 8)}…` : "—"}</span>}
+                </td>
                 <td style={{ padding: 16 }}>
-                  <span style={{ 
+                  <span style={{
                     padding: "4px 8px", borderRadius: 4, fontSize: 12, fontWeight: 600,
                     background: f.kind === "bug" ? "var(--warning-soft, #ff444433)" : "var(--accent-ghost)",
                     color: f.kind === "bug" ? "var(--warning, #ff4444)" : "var(--accent)"
@@ -66,6 +76,7 @@ export default function AdminFeedback() {
                 </td>
                 <td style={{ padding: 16 }}>{f.severity || "—"}</td>
                 <td style={{ padding: 16 }}>{f.area || "—"}</td>
+                <td style={{ padding: 16, fontWeight: 600, maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.title || "—"}</td>
                 <td style={{ padding: 16, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {f.description}
                 </td>
