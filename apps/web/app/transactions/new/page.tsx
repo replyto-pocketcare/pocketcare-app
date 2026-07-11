@@ -279,7 +279,7 @@ export default function NewTransactionPage() {
           description: combinedDescription || null,
           payment_method: paymentMethod || null,
           occurred_at: occurredAtIso(),
-          items: payload.length > 1 ? payload : undefined,
+          ...(payload.length > 1 ? { items: payload } : {}),
         });
       }
 
@@ -370,7 +370,7 @@ export default function NewTransactionPage() {
       <Field label={type === "transfer" ? "From account" : "Account"}>
         <div style={chips}>
           {accounts.map((a) => (
-            <button key={a.id} className="chip" data-active={a.id === account.id} onClick={() => setAccountId(a.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <button key={a.id} className="chip" data-active={a.id === account?.id} onClick={() => setAccountId(a.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               <AccountBadge type={a.type} color={a.color} id={a.id} name={a.name} />
               {a.name} <span className="muted">· {a.currency}</span>
             </button>
@@ -381,7 +381,7 @@ export default function NewTransactionPage() {
       {type === "transfer" && (
         <Field label="To account">
           <div style={chips}>
-            {accounts.filter((a) => a.id !== account.id).map((a) => (
+            {accounts.filter((a) => a.id !== account?.id).map((a) => (
               <button key={a.id} className="chip" data-active={a.id === toAccount?.id} onClick={() => setToAccountId(a.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <AccountBadge type={a.type} color={a.color} id={a.id} name={a.name} />
                 {a.name} <span className="muted">· {a.currency}</span>

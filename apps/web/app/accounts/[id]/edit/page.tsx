@@ -28,7 +28,7 @@ export default function EditAccountPage() {
 
   const [name, setName] = useState("");
   const [type, setType] = useState<string>(AccountType.Savings);
-  const [color, setColor] = useState(COLORS[0]);
+  const [color, setColor] = useState<string>(COLORS[0]!);
   const [include, setInclude] = useState(true);
   const [allowNeg, setAllowNeg] = useState(false);
   const [ready, setReady] = useState(false);

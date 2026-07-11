@@ -92,7 +92,7 @@ export default function LoansPage() {
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <FloatingInput label="Amount" inputMode="decimal" value={camount} onChange={(v) => setCamount(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-              <div style={{ display: "flex", gap: 6 }}>{CYCLES.map((c) => <button key={c} className="chip" data-active={c === cfreq} onClick={() => setCfreq(c)}>{c[0].toUpperCase()}</button>)}</div>
+              <div style={{ display: "flex", gap: 6 }}>{CYCLES.map((c) => <button key={c} className="chip" data-active={c === cfreq} onClick={() => setCfreq(c)}>{c[0]!.toUpperCase()}</button>)}</div>
             </div>
             <button className="btn" onClick={addCommitment} disabled={!camount}>Add commitment</button>
           </div>
@@ -164,7 +164,7 @@ function CommitmentRow({ c }: { c: Commitment }) {
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <FloatingInput label="Amount" inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-          <div style={{ display: "flex", gap: 6 }}>{CYCLES.map((cy) => <button key={cy} className="chip" data-active={cy === freq} onClick={() => setFreq(cy)}>{cy[0].toUpperCase()}</button>)}</div>
+          <div style={{ display: "flex", gap: 6 }}>{CYCLES.map((cy) => <button key={cy} className="chip" data-active={cy === freq} onClick={() => setFreq(cy)}>{cy[0]!.toUpperCase()}</button>)}</div>
         </div>
         <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={save}>Save</button><button className="chip" onClick={() => setEditing(false)}>Cancel</button></div>
       </div>

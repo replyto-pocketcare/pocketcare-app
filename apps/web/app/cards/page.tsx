@@ -75,7 +75,7 @@ export default function CardsPage() {
               }}
               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))", gap: 20, alignItems: "center" }}
             >
-              <CreditCard name={holder} color={b.account.color || PALETTE[i % PALETTE.length]} currency={b.account.currency} last4={last4} network={b.account.name} />
+              <CreditCard name={holder} color={b.account.color || PALETTE[i % PALETTE.length]!} currency={b.account.currency} last4={last4} network={b.account.name} />
               <CardPanel
                 account={b.account}
                 owed={b.balance.amount}

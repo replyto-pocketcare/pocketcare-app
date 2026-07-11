@@ -52,8 +52,8 @@ export default function OnboardingPage() {
             transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
             style={{ display: "grid", gap: 16, justifyItems: "center" }}
           >
-            <h1 style={{ fontSize: 30 }}>{SLIDES[i].title}</h1>
-            <p className="muted" style={{ fontSize: 17, lineHeight: 1.6, maxWidth: 440 }}>{SLIDES[i].body}</p>
+            <h1 style={{ fontSize: 30 }}>{SLIDES[i]!.title}</h1>
+            <p className="muted" style={{ fontSize: 17, lineHeight: 1.6, maxWidth: 440 }}>{SLIDES[i]!.body}</p>
           </motion.div>
         </AnimatePresence>
 

@@ -136,11 +136,11 @@ export default function EditTransactionPage() {
         payloadItems = items
           .filter((it) => Number.parseFloat(it.value) > 0)
           .map((it, i) => ({
-            id: it.id.startsWith("new_") ? undefined : it.id,
+            ...(it.id.startsWith("new_") ? {} : { id: it.id }),
             description: it.description.trim() || `Item ${i + 1}`,
             amount: fromMajor(Number.parseFloat(it.value) || 0, currency),
           }));
-        if (payloadItems.length <= 1) {
+        if ((payloadItems?.length ?? 0) <= 1) {
           payloadItems = [];
         }
       }
@@ -155,7 +155,7 @@ export default function EditTransactionPage() {
         payment_method: paymentMethod || null,
         note: await encryptForWrite(note.trim() || null),
         occurred_at: new Date(date).toISOString(),
-        items: type !== "transfer" ? payloadItems : null,
+        items: type !== "transfer" ? (payloadItems ?? []) : null,
       });
 
       if (type !== "transfer" && isPaid && categoryId !== originalCategoryId) {

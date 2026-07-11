@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
 
   // Full-screen routes with no app chrome.
-  const bare = pathname === "/onboarding" || pathname === "/login" || pathname === "/join";
+  const bare = pathname === "/onboarding" || pathname === "/login" || pathname === "/join" || pathname.startsWith("/admin");
 
   useEffect(() => {
     applySavedTheme();

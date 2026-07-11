@@ -27,5 +27,5 @@ export function colorForId(id: string | null | undefined, fallback = "#7c7264"):
   if (!id) return fallback;
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return ACCOUNT_COLORS[h % ACCOUNT_COLORS.length];
+  return ACCOUNT_COLORS[h % ACCOUNT_COLORS.length] ?? fallback;
 }
