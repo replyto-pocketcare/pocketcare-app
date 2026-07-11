@@ -29,8 +29,9 @@ export async function suggestCategory(
   const norm = normalizeText(text);
   if (!norm.phrase) return null;
 
-  // 1. Check for an exact phrase match (highest priority, immediate return)
-  const phraseHit = await db.get<CategoryRule>(
+  // 1. Check for an exact phrase match (highest priority, immediate return).
+  // getOptional (not get) — get() throws "Result set is empty" when there's no rule.
+  const phraseHit = await db.getOptional<CategoryRule>(
     `SELECT category_id FROM category_rules WHERE user_id = ? AND kind = 'phrase' AND key = ? AND deleted_at IS NULL ORDER BY weight DESC LIMIT 1`,
     [userId, norm.phrase]
   );
