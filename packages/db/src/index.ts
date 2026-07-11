@@ -14,8 +14,18 @@ const profiles = new Table({
   theme: column.text,
   display_name: column.text,
   email: column.text,
+  gender: column.text,
+  country: column.text,
   created_at: column.text,
   updated_at: column.text,
+});
+
+// Shared promo-code redemptions (own rows).
+const promo_redemptions = new Table({
+  code: column.text,
+  user_id: column.text,
+  applied_until: column.text,
+  redeemed_at: column.text,
 });
 
 const entitlements = new Table({
@@ -505,6 +515,7 @@ export const AppSchema = new Schema({
   security_audit,
   bug_reports,
   coupons,
+  promo_redemptions,
   assistant_threads,
   assistant_messages,
   assistant_memory,

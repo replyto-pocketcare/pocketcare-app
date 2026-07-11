@@ -14,6 +14,7 @@ import { useSyncStatus, syncMessage } from "../../src/sync";
 import { Modal } from "../../src/ui/Modal";
 import { SunIcon, MoonIcon, EyeIcon, EyeOffIcon } from "../../src/ui/icons";
 import { SecurityPanel } from "../../src/crypto/SecurityPanel";
+import { ProfileTraits } from "../../src/ui/ProfileTraits";
 
 const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 
@@ -147,6 +148,8 @@ export default function SettingsPage() {
           </button>
         </div>
       </section>
+
+      <ProfileTraits />
 
       <SecurityPanel />
 

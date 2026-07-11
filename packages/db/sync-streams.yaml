@@ -55,6 +55,7 @@ streams:
       # --- beta feedback + reward coupons ---
       - SELECT * FROM pocketcare.bug_reports WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.coupons WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.promo_redemptions WHERE user_id = auth.user_id()
 
   # Splits: the SHARED ledger, visible by group membership (one copy, no dupes).
   # Uses JOINs to traverse relationships and evaluate auth.user_id() safely.
