@@ -26,14 +26,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Check if the signed-in user has a row in pocketcare_admin.admins.
-      // RLS lets a user read only their own row; the schema is exposed via the
-      // Data API "Exposed schemas" setting.
+      // Check if the signed-in user is an admin. The admins table lives in the
+      // pocketcare_admin schema (not exposed to PostgREST on this project), so
+      // we read it through the security_invoker view pocketcare.admins, which
+      // IS exposed. RLS on the base table still restricts rows to the caller.
       // NOTE: use limit(1)+array rather than .maybeSingle() — the object+json
       // Accept header used by single/maybeSingle returns HTTP 406 on zero rows
       // in some PostgREST versions, which is exactly the non-admin case.
       const { data: adminRows, error } = await getSupabase()
-        .schema("pocketcare_admin")
+        .schema("pocketcare")
         .from("admins")
         .select("id")
         .eq("user_id", session.user.id)
