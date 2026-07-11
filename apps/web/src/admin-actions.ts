@@ -6,12 +6,15 @@ import { cookies } from "next/headers";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// This client bypasses RLS and can query any schema
+// Service-role client: bypasses RLS. Scoped to the `pocketcare` schema so
+// .from("profiles" | "transactions" | "subscriptions" | "bug_reports") resolve
+// to the real app tables (they live in pocketcare, not public).
 export const getAdminClient = () => {
   return createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
       persistSession: false,
     },
+    db: { schema: "pocketcare" },
   });
 };
 

@@ -20,17 +20,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Check if user is in pocketcare_admin.admins
-      const { data, error } = await getSupabase()
-        .from("admins")
-        .select("id")
-        .eq("user_id", session.user.id)
-        .maybeSingle(); // This will query public.admins unless we specify schema, wait!
-      // Supabase JS defaults to the 'public' schema.
-      // We need to specify the schema.
-      // We can do this in getSupabase() or pass a custom header. 
-      // Actually, since we created pocketcare_admin schema and enabled RLS but allowed users to select their own row.
-      
+      // Check if the signed-in user has a row in pocketcare_admin.admins.
+      // RLS lets a user read only their own row; the schema is exposed via the
+      // Data API "Exposed schemas" setting.
       const { data: adminData } = await getSupabase()
         .schema("pocketcare_admin")
         .from("admins")
