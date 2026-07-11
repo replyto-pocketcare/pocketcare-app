@@ -15,7 +15,10 @@
 import { anchorsFor } from "./anchors";
 import type { CategoryData } from "./seeds";
 
-const TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@xenova/[email protected]";
+// Built by concatenation and with jsdelivr's "/+esm" entrypoint. Concatenation
+// keeps the literal "name@version" text out of source (an email-obfuscation
+// pass otherwise mangles it into "[email protected]", producing a 400).
+const TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@xenova/transformers" + "@2.17.2/+esm";
 const MODEL = "Xenova/all-MiniLM-L6-v2";
 const THRESHOLD = 0.30; // min cosine similarity to accept a suggestion
 const MAX_LEARNED_PER_CATEGORY = 40;
