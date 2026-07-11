@@ -22,20 +22,22 @@ export const getAdminClient = () => {
 
 export async function getAdminDashboardStats() {
   const supabase = getAdminClient();
-  
-  // Example stats: we can query the public schema tables for total users, subscriptions, etc.
-  const [{ count: totalUsers }, { data: incomeData }, { data: activeSubs }] = await Promise.all([
+
+  const [usersRes, incomeRes, subsRes] = await Promise.all([
     supabase.from("profiles").select("*", { count: "exact", head: true }),
-    supabase.from("transactions").select("amount, occurred_at").eq("type", "income"), // Just a basic aggregate
-    supabase.from("subscriptions").select("*").in("status", ["active", "trialing"]),
+    supabase.from("transactions").select("amount").eq("type", "income").is("deleted_at", null),
+    // subscriptions has `is_active` (boolean) + soft-delete — there is no `status` column.
+    supabase.from("subscriptions").select("*", { count: "exact", head: true }).eq("is_active", true).is("deleted_at", null),
   ]);
 
+  const firstError = usersRes.error || incomeRes.error || subsRes.error;
+  if (firstError) throw new Error(firstError.message);
+
   return {
-    totalUsers: totalUsers || 0,
-    activeSubscriptions: activeSubs?.length || 0,
-    totalIncome: incomeData?.reduce((acc, tx) => acc + tx.amount, 0) || 0,
-    // Add logic to group income by month for charts
-    incomeByMonth: [] // Placeholder
+    totalUsers: usersRes.count ?? 0,
+    activeSubscriptions: subsRes.count ?? 0,
+    totalIncome: (incomeRes.data ?? []).reduce((acc, tx) => acc + (tx.amount ?? 0), 0),
+    incomeByMonth: [] as { month: string; income: number }[],
   };
 }
 
