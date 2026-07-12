@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { insertRow, updateRow, softDelete } from "../../../src/write";
 import { FloatingInput } from "../../../src/ui/FloatingInput";
+import { useConfirm } from "../../../src/ui/Confirm";
 
 interface Label { id: string; name: string; color: string | null }
 
@@ -51,6 +52,7 @@ const TrashIcon = () => (
 );
 
 function LabelItem({ label }: { label: Label }) {
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(label.name);
   const [color, setColor] = useState(label.color || "#b06a4f");
@@ -77,7 +79,7 @@ function LabelItem({ label }: { label: Label }) {
         <button className="chip" style={{ padding: "8px" }} onClick={() => { setName(label.name); setColor(label.color || "#b06a4f"); setEditing(true); }} aria-label="Edit">
           <EditIcon />
         </button>
-        <button className="chip" style={{ padding: "8px", color: "var(--negative)" }} onClick={() => softDelete("labels", label.id)} aria-label="Delete">
+        <button className="chip" style={{ padding: "8px", color: "var(--negative)" }} onClick={async () => { if (await confirm({ title: "Delete this label?", message: `“${label.name}” will be removed from transactions that use it.` })) softDelete("labels", label.id); }} aria-label="Delete">
           <TrashIcon />
         </button>
       </div>

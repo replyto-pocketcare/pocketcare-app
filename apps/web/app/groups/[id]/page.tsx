@@ -7,6 +7,7 @@ import { money } from "@pocketcare/money";
 import { useBaseCurrency } from "../../../src/hooks";
 import { useMoneyFmt } from "../../../src/ui/Money";
 import { updateRow, softDelete } from "../../../src/write";
+import { useConfirm } from "../../../src/ui/Confirm";
 import { Modal } from "../../../src/ui/Modal";
 import { KebabMenu } from "../../../src/ui/KebabMenu";
 import { useGroup, useGroupExpenses, useGroupBalances, useGroupMemberIds, useUserProfiles } from "../../../src/splits/hooks";
@@ -17,6 +18,7 @@ export default function GroupDetailPage() {
   const id = params.id;
   const router = useRouter();
   const base = useBaseCurrency();
+  const confirm = useConfirm();
   const fmt = useMoneyFmt();
   const group = useGroup(id);
   const expenses = useGroupExpenses(id);
@@ -56,7 +58,7 @@ export default function GroupDetailPage() {
   }
   async function deleteGroup() {
     if (!group) return;
-    if (typeof window !== "undefined" && !window.confirm(`Delete “${group.name}”? Its shared expenses stay in your ledger but the group is removed.`)) return;
+    if (!(await confirm({ title: "Delete this group?", message: `“${group.name}” will be removed. Its shared expenses stay in your ledger.` }))) return;
     await softDelete("split_groups", group.id);
     router.replace("/groups");
   }

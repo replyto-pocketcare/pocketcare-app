@@ -10,6 +10,7 @@ import { useBaseCurrency } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useMoneyFmt } from "../../src/ui/Money";
+import { useConfirm } from "../../src/ui/Confirm";
 
 interface Loan { id: string; lender: string; principal: number; currency: string; emi_amount: number | null; }
 interface Commitment { id: string; kind: string; amount: number; currency: string; frequency: Period; }
@@ -104,6 +105,7 @@ export default function LoansPage() {
 
 function LoanRow({ loan }: { loan: Loan }) {
   const fmt = useMoneyFmt();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [lender, setLender] = useState(loan.lender ?? "");
   const [principal, setPrincipal] = useState(String(toMajor(money(loan.principal, loan.currency))));
@@ -136,7 +138,7 @@ function LoanRow({ loan }: { loan: Loan }) {
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <span>{fmt(money(loan.principal, loan.currency), "en-US")}</span>
         <button className="chip" onClick={() => setEditing(true)}>Edit</button>
-        <button className="chip" onClick={() => softDelete("loans", loan.id)}>×</button>
+        <button className="chip" onClick={async () => { if (await confirm({ title: "Delete this loan?", message: `“${loan.lender || "Loan"}” will be removed.` })) softDelete("loans", loan.id); }}>×</button>
       </div>
     </div>
   );
@@ -144,6 +146,7 @@ function LoanRow({ loan }: { loan: Loan }) {
 
 function CommitmentRow({ c }: { c: Commitment }) {
   const fmt = useMoneyFmt();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [kind, setKind] = useState<(typeof KINDS)[number]>(c.kind as (typeof KINDS)[number]);
   const [amount, setAmount] = useState(String(toMajor(money(c.amount, c.currency))));
@@ -176,7 +179,7 @@ function CommitmentRow({ c }: { c: Commitment }) {
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <span className="muted">{fmt(money(monthlyEquivalent(c.amount, c.frequency), c.currency), "en-US")}/mo</span>
         <button className="chip" onClick={() => setEditing(true)}>Edit</button>
-        <button className="chip" onClick={() => softDelete("recurring_commitments", c.id)}>×</button>
+        <button className="chip" onClick={async () => { if (await confirm({ title: "Delete this commitment?", message: `This ${c.kind.replace("_", " ")} will be removed.` })) softDelete("recurring_commitments", c.id); }}>×</button>
       </div>
     </div>
   );

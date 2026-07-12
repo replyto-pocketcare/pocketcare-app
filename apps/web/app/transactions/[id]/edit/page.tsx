@@ -10,6 +10,7 @@ import { getRepositories } from "../../../../src/powersync";
 import { LabelPicker } from "../../../../src/ui/LabelPicker";
 import { SearchSelect } from "../../../../src/ui/SearchSelect";
 import { AccountBadge } from "../../../../src/ui/AccountBadge";
+import { useConfirm } from "../../../../src/ui/Confirm";
 import { useEntitlement } from "../../../../src/entitlement";
 import { useLearnCategory } from "../../../../src/categorize/hooks";
 import { encryptForWrite } from "../../../../src/crypto/fields";
@@ -21,6 +22,7 @@ type TxType = "expense" | "income" | "transfer" | "adjustment";
 export default function EditTransactionPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const confirm = useConfirm();
   const { data: rows = [] } = useQuery<Transaction>("SELECT * FROM transactions WHERE id = ?", [id]);
   const tx = rows[0];
   const { data: accounts = [] } = useQuery<Account>("SELECT * FROM accounts WHERE deleted_at IS NULL AND IFNULL(kind,'real') = 'real'");
@@ -256,7 +258,7 @@ export default function EditTransactionPage() {
           style={{ marginLeft: "auto", color: "var(--negative)" }}
           disabled={saving}
           onClick={async () => {
-            if (typeof window !== "undefined" && !window.confirm("Delete this transaction? This can't be undone.")) return;
+            if (!(await confirm({ title: "Delete this transaction?", message: "This can't be undone." }))) return;
             setSaving(true);
             try { await getRepositories().transactions.remove(id); router.push("/transactions"); }
             finally { setSaving(false); }

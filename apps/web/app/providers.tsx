@@ -7,6 +7,7 @@ import { initI18n } from "@pocketcare/i18n";
 import { lightTheme } from "@pocketcare/ui-tokens";
 import { initSystem } from "../src/powersync";
 import { Spinner } from "../src/ui/Spinner";
+import { ConfirmProvider } from "../src/ui/Confirm";
 
 // Boot i18n once. Prefer the user's saved choice, else the browser language.
 const savedLang = typeof window !== "undefined" ? localStorage.getItem("lang") : null;
@@ -59,7 +60,11 @@ export function Providers({ children }: { children: ReactNode }) {
     );
   }
 
-  return <PowerSyncContext.Provider value={db}>{children}</PowerSyncContext.Provider>;
+  return (
+    <PowerSyncContext.Provider value={db}>
+      <ConfirmProvider>{children}</ConfirmProvider>
+    </PowerSyncContext.Provider>
+  );
 }
 
 const fallback: React.CSSProperties = {

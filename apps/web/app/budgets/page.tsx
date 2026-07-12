@@ -15,6 +15,7 @@ import { useMoneyFmt } from "../../src/ui/Money";
 import { MultiSelect } from "../../src/ui/MultiSelect";
 import { LabelPicker } from "../../src/ui/LabelPicker";
 import { Modal } from "../../src/ui/Modal";
+import { useConfirm } from "../../src/ui/Confirm";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, ReferenceLine, Tooltip } from "recharts";
 import type { BudgetLike } from "@pocketcare/data";
 
@@ -207,6 +208,7 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
 }) {
   const [spent, setSpent] = useState<Money>(money(0, budget.currency));
   const fmt = useMoneyFmt();
+  const confirm = useConfirm();
   // This budget's scope, from the junction tables.
   const { data: budgetCats = [] } = useQuery<{ category_id: string }>("SELECT category_id FROM budget_categories WHERE budget_id = ?", [budget.id]);
   const { data: budgetLabels = [] } = useQuery<{ name: string }>(
@@ -294,7 +296,7 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
             <span className="muted">{Number.isFinite(p.pct) ? `${Math.round(p.pct)}%` : "—"}</span>
             <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={openEdit}>Edit</button>
             <button className="chip" style={{ padding: "2px 8px" }} aria-label="Delete budget"
-              onClick={() => { if (typeof window !== "undefined" && window.confirm(`Delete the budget “${title}”? This can't be undone.`)) softDelete("budgets", budget.id); }}>×</button>
+              onClick={async () => { if (await confirm({ title: "Delete this budget?", message: `“${title}” will be removed. This can't be undone.` })) softDelete("budgets", budget.id); }}>×</button>
           </div>
         </div>
       )}

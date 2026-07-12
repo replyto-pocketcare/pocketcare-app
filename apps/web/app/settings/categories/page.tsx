@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { insertRow, updateRow, softDelete } from "../../../src/write";
 import { FloatingInput } from "../../../src/ui/FloatingInput";
+import { useConfirm } from "../../../src/ui/Confirm";
 
 interface Cat { id: string; name: string; kind: string; parent_id: string | null }
 
@@ -74,6 +75,7 @@ export default function ManageCategoriesPage() {
 }
 
 function CatItem({ cat, indent, childCount }: { cat: Cat; indent?: boolean; childCount?: number }) {
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(cat.name);
   async function save() { await updateRow("categories", cat.id, { name: name.trim() || cat.name }); setEditing(false); }
@@ -92,7 +94,7 @@ function CatItem({ cat, indent, childCount }: { cat: Cat; indent?: boolean; chil
       <span>{indent ? "↳ " : ""}{cat.name}{!indent && <span className="muted" style={{ fontSize: 11 }}> {cat.kind}{childCount ? ` · ${childCount}` : ""}</span>}</span>
       <span style={{ display: "flex", gap: 6 }}>
         <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={() => { setName(cat.name); setEditing(true); }}>Edit</button>
-        <button className="chip" style={{ padding: "2px 8px" }} onClick={() => softDelete("categories", cat.id)}>×</button>
+        <button className="chip" style={{ padding: "2px 8px" }} onClick={async () => { if (await confirm({ title: "Delete this category?", message: `“${cat.name}” will be removed. Transactions keep their history but lose this category.` })) softDelete("categories", cat.id); }}>×</button>
       </span>
     </div>
   );

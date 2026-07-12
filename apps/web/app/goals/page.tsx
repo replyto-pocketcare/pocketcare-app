@@ -11,6 +11,7 @@ import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { KebabMenu } from "../../src/ui/KebabMenu";
 import { Modal } from "../../src/ui/Modal";
+import { useConfirm } from "../../src/ui/Confirm";
 import { GoalCelebration } from "../../src/goals/GoalCelebration";
 
 // Remember which goals we've already celebrated so completing one is a one-time
@@ -127,6 +128,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
   goal: Goal; saved: number; savings: { id: string; name: string; currency: string }[]; locked: boolean; base: string;
   onAchieved: (name: string) => void;
 }) {
+  const confirm = useConfirm();
   const pct = goal.target_amount ? Math.min(100, (saved / goal.target_amount) * 100) : 0;
   const funded = goal.target_amount > 0 && saved >= goal.target_amount;
 
@@ -205,7 +207,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
               label={`${goal.name} actions`}
               items={[
                 { label: "Edit", onClick: () => { setEName(goal.name); setETarget(String(toMajor(money(goal.target_amount, goal.currency)))); setEditing(true); } },
-                { label: "Delete", danger: true, onClick: () => softDelete("goals", goal.id) },
+                { label: "Delete", danger: true, onClick: async () => { if (await confirm({ title: "Delete this goal?", message: `“${goal.name}” and its saved allocations will be removed.` })) softDelete("goals", goal.id); } },
               ]}
             />
           </div>

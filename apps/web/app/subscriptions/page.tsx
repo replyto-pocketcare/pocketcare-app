@@ -12,6 +12,7 @@ import { useEntitlement } from "../../src/entitlement";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
 import { FloatingInput } from "../../src/ui/FloatingInput";
+import { useConfirm } from "../../src/ui/Confirm";
 import { KebabMenu } from "../../src/ui/KebabMenu";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
@@ -151,6 +152,7 @@ export default function SubscriptionsPage() {
 
 function SubRow({ sub }: { sub: Sub }) {
   const fmt = useMoneyFmt();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(sub.name);
   const [amount, setAmount] = useState(String(toMajor(money(sub.amount, sub.currency))));
@@ -194,7 +196,7 @@ function SubRow({ sub }: { sub: Sub }) {
           label={`${sub.name} actions`}
           items={[
             { label: "Edit", onClick: () => setEditing(true) },
-            { label: "Remove", danger: true, onClick: () => softDelete("subscriptions", sub.id) },
+            { label: "Remove", danger: true, onClick: async () => { if (await confirm({ title: "Remove this subscription?", message: `“${sub.name}” will be removed.`, confirmLabel: "Remove" })) softDelete("subscriptions", sub.id); } },
           ]}
         />
       </div>

@@ -6,6 +6,7 @@ import { useQuery } from "@powersync/react";
 import { getSupabase, getDb } from "../../src/powersync";
 import { insertRow, softDelete, nowIso } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
+import { useConfirm } from "../../src/ui/Confirm";
 import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/summary";
 import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, loadMemory } from "../../src/assistant/tools";
 import { buyCredits } from "../../src/billing";
@@ -55,6 +56,7 @@ import { Modal } from "../../src/ui/Modal";
 
 export default function AssistantPage() {
   const { isPremiumUser, hasActiveTrial } = usePremiumStatus();
+  const confirm = useConfirm();
   const [ui, setUi] = useState<UiItem[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -319,7 +321,7 @@ export default function AssistantPage() {
               <button className="chip" style={{ flex: 1, minWidth: 0, textAlign: "left", justifyContent: "flex-start", whiteSpace: "normal", overflowWrap: "anywhere" }} onClick={() => openThread(th.id)}>
                 {th.title || "Untitled chat"}
               </button>
-              <button className="chip" aria-label="Delete chat" style={{ padding: "4px 8px" }} onClick={() => { void softDelete("assistant_threads", th.id); if (threadRef.current === th.id) newChat(); }}>×</button>
+              <button className="chip" aria-label="Delete chat" style={{ padding: "4px 8px" }} onClick={async () => { if (await confirm({ title: "Delete this chat?", message: "This conversation will be removed." })) { void softDelete("assistant_threads", th.id); if (threadRef.current === th.id) newChat(); } }}>×</button>
             </div>
           ))}
         </div>

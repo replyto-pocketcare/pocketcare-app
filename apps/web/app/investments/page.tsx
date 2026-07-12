@@ -8,6 +8,7 @@ import { useBaseCurrency } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useMoneyFmt } from "../../src/ui/Money";
+import { useConfirm } from "../../src/ui/Confirm";
 import { InstrumentPicker, ExchangeSelect } from "../../src/instruments/InstrumentPicker";
 import type { Instrument } from "../../src/instruments/catalog";
 import { useCatalog } from "../../src/instruments/hooks";
@@ -133,6 +134,7 @@ export default function InvestmentsPage() {
 
 function HoldingRow({ h, quote, divYield, nextExDate }: { h: Holding; quote: Quote | undefined; divYield: number | null; nextExDate: string | null }) {
   const fmt = useMoneyFmt();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [pick, setPick] = useState<Instrument | null>(null);
   const [qty, setQty] = useState(String(h.quantity));
@@ -192,7 +194,7 @@ function HoldingRow({ h, quote, divYield, nextExDate }: { h: Holding; quote: Quo
           )}
         </div>
         <button className="chip" onClick={() => setEditing(true)}>Edit</button>
-        <button className="chip" onClick={() => softDelete("holdings", h.id)} aria-label="Remove">×</button>
+        <button className="chip" onClick={async () => { if (await confirm({ title: "Remove this holding?", message: `“${h.symbol || "This holding"}” will be removed from your portfolio.`, confirmLabel: "Remove" })) softDelete("holdings", h.id); }} aria-label="Remove">×</button>
       </div>
     </div>
   );

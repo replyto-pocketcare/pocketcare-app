@@ -10,6 +10,7 @@ import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
 import { UpgradeModal } from "../../src/ui/UpgradeModal";
 import { KebabMenu } from "../../src/ui/KebabMenu";
+import { useConfirm } from "../../src/ui/Confirm";
 import { softDelete } from "../../src/write";
 import { useTemplates, useRules, useDueRules, type Template } from "../../src/templates/hooks";
 import { createTemplate, updateTemplate, reorderTemplates, createRule, postRuleOnce, skipRuleOnce, FREE_TEMPLATE_LIMIT, type Freq } from "../../src/templates/write";
@@ -20,6 +21,7 @@ const every = (f: string, n: number) => (n > 1 ? `every ${n} ${f.replace("ly", "
 export default function TemplatesPage() {
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
+  const confirm = useConfirm();
   const { isPaid } = useEntitlement();
   const templates = useTemplates();
   const rules = useRules();
@@ -139,7 +141,7 @@ export default function TemplatesPage() {
                   <Link href={`/transactions/new?template=${t.id}`} className="chip">Use</Link>
                   <KebabMenu label={`${t.name} actions`} items={[
                     { label: "Edit", onClick: () => openEdit(t) },
-                    { label: "Delete", danger: true, onClick: () => softDelete("transaction_templates", t.id) },
+                    { label: "Delete", danger: true, onClick: async () => { if (await confirm({ title: "Delete this template?", message: `“${t.name}” will be removed.` })) softDelete("transaction_templates", t.id); } },
                   ]} />
                 </div>
               </div>
@@ -165,7 +167,7 @@ export default function TemplatesPage() {
                 </div>
                 <KebabMenu label={`${r.template_name} recurring actions`} items={[
                   { label: "Post now", onClick: () => void postRuleOnce(r.id) },
-                  { label: "Delete", danger: true, onClick: () => softDelete("recurring_rules", r.id) },
+                  { label: "Delete", danger: true, onClick: async () => { if (await confirm({ title: "Delete this recurring rule?", message: `The schedule for “${r.template_name}” will be removed.` })) softDelete("recurring_rules", r.id); } },
                 ]} />
               </div>
             ))}
