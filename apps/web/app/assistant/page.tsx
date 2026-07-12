@@ -57,9 +57,12 @@ import { Modal } from "../../src/ui/Modal";
 export default function AssistantPage() {
   const { isPremiumUser, hasActiveTrial } = usePremiumStatus();
   const confirm = useConfirm();
+  const taRef = useRef<HTMLTextAreaElement>(null);
   const [ui, setUi] = useState<UiItem[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  // Collapse the composer back to one line after it's cleared (e.g. after send).
+  useEffect(() => { const el = taRef.current; if (el && !input) el.style.height = "auto"; }, [input]);
   const [pending, setPending] = useState<Pending | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [buyingCredits, setBuyingCredits] = useState<string | null>(null);
@@ -272,13 +275,13 @@ export default function AssistantPage() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 14, maxWidth: 760 }} className="fade-up">
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, maxWidth: 760, width: "100%", marginInline: "auto" }} className="fade-up">
       {!disclaimerAcked && (
         <Modal open onClose={ackDisclaimer}>
           <div style={{ padding: 24, display: "grid", gap: 16 }}>
             <h2>Privacy & AI</h2>
             <p className="muted">
-              We never share PII or email. Anthropic is contractually bound to NOT use your data for model training. 
+              We never share PII or email. Anthropic is contractually bound to NOT use your data for model training.
               However, please avoid typing personally identifiable information (PII) like account numbers or exact names in the chat.
             </p>
             <button className="btn" style={{ justifySelf: "end" }} onClick={ackDisclaimer}>I understand</button>
@@ -286,6 +289,8 @@ export default function AssistantPage() {
         </Modal>
       )}
 
+      {/* Scrollable conversation area; the composer below stays pinned. */}
+      <div className="assist-scroll">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <h1>Ask PocketCare</h1>
@@ -406,17 +411,27 @@ export default function AssistantPage() {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8, position: "sticky", bottom: 0, background: "var(--bg)", paddingTop: 8, paddingBottom: 8 }}>
-        <input
+      </div>
+
+      {/* Composer — pinned to the bottom; multiline; Enter = newline, ⌘/Ctrl+Enter or Send = send. */}
+      <div className="assist-composer">
+        <textarea
+          ref={taRef}
           className="input"
-          style={{ flex: 1, minWidth: 0 }}
-          placeholder="Ask about a purchase, goal, or budget…"
+          rows={1}
+          style={{ flex: 1, minWidth: 0, resize: "none", maxHeight: 160, lineHeight: 1.5, paddingTop: 10, paddingBottom: 10 }}
+          placeholder="Ask about a purchase, goal, or budget…  (Enter for a new line)"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") send(); }}
+          onChange={(e) => {
+            setInput(e.target.value);
+            const el = e.target;
+            el.style.height = "auto";
+            el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+          }}
+          onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void send(); } }}
           disabled={busy}
         />
-        <button className="btn" style={{ flexShrink: 0 }} onClick={send} disabled={busy || !input.trim() || !!pending}>Send</button>
+        <button className="btn" style={{ flexShrink: 0, alignSelf: "flex-end" }} onClick={send} disabled={busy || !input.trim() || !!pending}>Send</button>
       </div>
     </div>
   );

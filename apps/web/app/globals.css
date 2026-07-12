@@ -97,6 +97,27 @@ button { font-family: inherit; }
 /* Edit-mode wiggle for draggable dashboard tiles. */
 @keyframes tileWiggle { 0% { transform: rotate(-0.5deg); } 50% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
 
+/* Assistant chat: scrollable history + composer pinned to the bottom. */
+.assist-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding-bottom: 8px;
+}
+.assist-composer {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
 /* Loading placeholders (skeletons). */
 .skeleton { position: relative; overflow: hidden; background: var(--surface-2); }
 .skeleton::after {
