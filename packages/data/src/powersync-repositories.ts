@@ -341,7 +341,10 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
           const placeholders: string[] = [];
           for (const it of patch.items) {
             placeholders.push("(?, ?, ?, ?, ?, ?, ?)");
-            itemParams.push(it.id || uuid(), before.user_id, id, it.description, it.amount.amount, ts, ts);
+            // Always a fresh id: the previous items were just soft-deleted (their
+            // rows still exist), so reusing an incoming id would collide on the
+            // PRIMARY KEY (UNIQUE constraint failed: ps_data__transaction_items.id).
+            itemParams.push(uuid(), before.user_id, id, it.description, it.amount.amount, ts, ts);
           }
           await tx.execute(
             `INSERT INTO transaction_items (id, user_id, transaction_id, description, amount, created_at, updated_at) VALUES ${placeholders.join(", ")}`,
