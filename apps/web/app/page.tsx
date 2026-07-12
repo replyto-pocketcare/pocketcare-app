@@ -13,15 +13,39 @@ import { colorForId } from "../src/colors";
 import { getDb } from "../src/powersync";
 import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon, ScaleIcon } from "../src/ui/icons";
 import { Modal } from "../src/ui/Modal";
-import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSpans, setTileSpan, type TileId, type TileSpan } from "../src/dashboard";
+import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSizes, setTileSize, W_COLS, H_ROWS, nextDim, type TileId, type TileSize } from "../src/dashboard";
 import { TILE_CATALOG, TileView, tileMeta } from "../src/dashboard/tiles";
 
-const ResizeIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a1 1 0 0 1-1-1v-4M15 3h4a1 1 0 0 1 1 1v4M4 20l6-6M20 4l-6 6" /></svg>
+// Sensible default size per tile (content-heavy tiles start taller/wider).
+const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
+  recent: { w: "md", h: "lg" },
+  spending: { w: "md", h: "lg" },
+  trends: { w: "lg", h: "md" },
+  splits: { w: "md", h: "md" },
+  budgets: { w: "lg", h: "md" },
+  goals: { w: "lg", h: "md" },
+  subscriptions: { w: "md", h: "md" },
+  cashflow: { w: "lg", h: "md" },
+  netTrend: { w: "lg", h: "md" },
+  byCategory: { w: "md", h: "md" },
+  byLabel: { w: "md", h: "md" },
+  monthCompare: { w: "lg", h: "md" },
+};
+const defaultSize = (id: TileId): TileSize => DEFAULT_SIZE[id] ?? { w: "md", h: "md" };
+
+const WidthIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12H3M7 8l-4 4 4 4M17 8l4 4-4 4" /></svg>
+);
+const HeightIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4" /></svg>
 );
 const CheckIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
 );
+const sizeBtn: React.CSSProperties = {
+  width: 30, height: 30, borderRadius: 999, background: "var(--accent)", border: "2px solid var(--surface)",
+  display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)",
+};
 
 export default function Dashboard() {
   const { total, available, base } = useNetWorth();
@@ -29,7 +53,7 @@ export default function Dashboard() {
   const hidden = useAmountsHidden();
   const { isPaid } = useEntitlement();
   const enabled = useDashboardTiles();
-  const spans = useTileSpans();
+  const sizes = useTileSizes();
   const [showAvailable, setShowAvailable] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -41,7 +65,7 @@ export default function Dashboard() {
 
   // Only show tiles the user enabled; premium tiles need a paid plan.
   const visibleTiles = enabled.filter((id) => isPaid || !tileMeta(id).premium);
-  const spanOf = (id: TileId): TileSpan => spans[id] ?? tileMeta(id).span;
+  const sizeOf = (id: TileId): TileSize => sizes[id] ?? defaultSize(id);
 
   async function toggleNw(id: string, included: boolean) {
     await getDb()?.execute("UPDATE accounts SET include_in_net_worth = ?, updated_at = ? WHERE id = ?", [included ? 0 : 1, new Date().toISOString(), id]);
@@ -131,7 +155,7 @@ export default function Dashboard() {
 
       {/* Customizable tiles — long-press to edit, drag to reorder, tap corner to resize */}
       {visibleTiles.length > 0 ? (
-        <DraggableGrid ids={visibleTiles} editing={editing} onLongPress={() => setEditing(true)} spanOf={spanOf} />
+        <DraggableGrid ids={visibleTiles} editing={editing} onLongPress={() => setEditing(true)} sizeOf={sizeOf} />
       ) : (
         <section className="card" style={{ padding: 24, textAlign: "center", display: "grid", gap: 8 }}>
           <p className="muted">No tiles shown. Add some to your dashboard.</p>
@@ -215,8 +239,8 @@ function NetWorthHero({ net, base, fmt, showAvailable, onToggle }: {
  *  - A corner handle cycles the tile between half- and full-width (persisted).
  *  - A remove handle takes the tile off the dashboard.
  */
-function DraggableGrid({ ids, editing, onLongPress, spanOf }: {
-  ids: TileId[]; editing: boolean; onLongPress: () => void; spanOf: (id: TileId) => TileSpan;
+function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
+  ids: TileId[]; editing: boolean; onLongPress: () => void; sizeOf: (id: TileId) => TileSize;
 }) {
   const [order, setOrder] = useState<TileId[]>(ids);
   const [dragging, setDragging] = useState<TileId | null>(null);
@@ -285,51 +309,56 @@ function DraggableGrid({ ids, editing, onLongPress, spanOf }: {
     <>
       <div className="dash-grid">
         {order.map((id) => {
-          const full = spanOf(id) === "full";
+          const sz = sizeOf(id);
           const isDrag = dragging === id;
           return (
             <div
               key={id}
+              className="dash-tile"
               ref={(el) => { if (el) refs.current.set(id, el); else refs.current.delete(id); }}
               onPointerDown={(e) => down(e, id)}
               onPointerMove={pmove}
               onPointerUp={up}
               onPointerCancel={up}
               style={{
-                gridColumn: full ? "1 / -1" : "auto",
+                gridColumn: `span ${W_COLS[sz.w]}`,
+                gridRow: `span ${H_ROWS[sz.h]}`,
                 position: "relative",
-                borderRadius: 24,
                 touchAction: isDrag ? "none" : "auto",
                 cursor: editing ? (isDrag ? "grabbing" : "grab") : "default",
               }}
             >
               {isDrag ? (
                 // Dashed snap zone showing where the lifted tile will land.
-                <div style={{ minHeight: size.current.h, borderRadius: 24, border: "2px dashed var(--accent)", background: "var(--accent-ghost)" }} />
+                <div style={{ height: "100%", borderRadius: 24, border: "2px dashed var(--accent)", background: "var(--accent-ghost)" }} />
               ) : (
                 <>
                   {editing && (
-                    <>
+                    <div style={{ position: "absolute", top: 10, left: 10, zIndex: 6, display: "flex", gap: 6 }} onPointerDown={(e) => e.stopPropagation()}>
                       <button
-                        aria-label={full ? "Make half width" : "Make full width"} title="Resize"
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onClick={() => setTileSpan(id, full ? "half" : "full")}
-                        style={{ position: "absolute", top: 10, left: 10, zIndex: 6, width: 30, height: 30, borderRadius: 999, background: "var(--accent)", border: "2px solid var(--surface)", display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)" }}
-                      >
-                        <ResizeIcon />
-                      </button>
+                        aria-label="Cycle width" title={`Width: ${sz.w}`}
+                        onClick={() => setTileSize(id, { ...sz, w: nextDim(sz.w) })}
+                        style={sizeBtn}
+                      ><WidthIcon /></button>
                       <button
-                        aria-label="Remove tile" title="Remove"
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onClick={() => setTileEnabled(id, false)}
-                        style={{ position: "absolute", top: 10, right: 10, zIndex: 6, width: 28, height: 28, borderRadius: 999, background: "var(--negative)", border: "2px solid var(--surface)", display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)" }}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
-                      </button>
-                    </>
+                        aria-label="Cycle height" title={`Height: ${sz.h}`}
+                        onClick={() => setTileSize(id, { ...sz, h: nextDim(sz.h) })}
+                        style={sizeBtn}
+                      ><HeightIcon /></button>
+                    </div>
+                  )}
+                  {editing && (
+                    <button
+                      aria-label="Remove tile" title="Remove"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => setTileEnabled(id, false)}
+                      style={{ position: "absolute", top: 10, right: 10, zIndex: 6, width: 28, height: 28, borderRadius: 999, background: "var(--negative)", border: "2px solid var(--surface)", display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)" }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
+                    </button>
                   )}
                   {/* Freeze interactions inside the tile while editing so drags don't trigger links. */}
-                  <div style={{ pointerEvents: editing ? "none" : "auto" }}>
+                  <div className="dash-tile-body" style={{ pointerEvents: editing ? "none" : "auto" }}>
                     <TileView id={id} />
                   </div>
                 </>
@@ -341,7 +370,7 @@ function DraggableGrid({ ids, editing, onLongPress, spanOf }: {
 
       {/* Lifted tile follows the pointer. */}
       {dragging && (
-        <div style={{ position: "fixed", left: pointer.x - grab.current.ox, top: pointer.y - grab.current.oy, width: size.current.w, zIndex: 1000, pointerEvents: "none", transform: "scale(1.03)", filter: "drop-shadow(0 24px 44px rgba(43,39,35,0.34))", opacity: 0.97 }}>
+        <div className="dash-tile-body" style={{ position: "fixed", left: pointer.x - grab.current.ox, top: pointer.y - grab.current.oy, width: size.current.w, height: size.current.h, zIndex: 1000, pointerEvents: "none", transform: "scale(1.03)", filter: "drop-shadow(0 24px 44px rgba(43,39,35,0.34))", opacity: 0.97 }}>
           <TileView id={dragging} />
         </div>
       )}

@@ -225,8 +225,20 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 .topbar { display: none; }
 .scrim { display: none; }
 
-/* Customizable dashboard tile grid (full tiles span both columns via inline style). */
-.dash-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+/* Customizable dashboard tile grid.
+   Fixed 4-column track with a fixed row unit (proportional to viewport height)
+   and dense packing, so tiles snap to discrete sizes and backfill gaps. */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: clamp(80px, 10.5vh, 118px);
+  grid-auto-flow: row dense;
+  gap: 20px;
+}
+/* Each tile fills its allotted cell; content scrolls if it overflows the box. */
+.dash-tile { min-width: 0; min-height: 0; border-radius: 24px; }
+.dash-tile-body { height: 100%; min-height: 0; border-radius: 24px; overflow: hidden; }
+.dash-tile-body > section { height: 100%; box-sizing: border-box; overflow: auto; overscroll-behavior: contain; }
 
 /* Subscriptions: list + add/simulator side column. Single column on narrow. */
 .subs-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
@@ -259,7 +271,11 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
   .shell-main { padding: 16px 16px 96px !important; } /* bottom room for the FAB */
   .scrim { display: block; position: fixed; inset: 0; background: rgba(43, 39, 35, 0.42); z-index: 55; }
   .dash-cols { grid-template-columns: 1fr !important; }
-  .dash-grid { grid-template-columns: 1fr !important; }
+  /* On phones: single column, natural content heights (no fixed grid / clipping). */
+  .dash-grid { grid-template-columns: 1fr !important; grid-auto-rows: auto !important; }
+  .dash-grid .dash-tile { grid-column: auto !important; grid-row: auto !important; }
+  .dash-tile-body { overflow: visible; }
+  .dash-tile-body > section { height: auto; overflow: visible; }
   h1 { font-size: 22px; }
 }
 
