@@ -5,17 +5,17 @@ import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
-  BarChart, Bar, ComposedChart, Line, CartesianGrid, AreaChart, Area, XAxis, YAxis, LabelList,
+  BarChart, Bar, AreaChart, Area, XAxis, YAxis, LabelList,
 } from "recharts";
 import { money, format, toMajor, type Money } from "@pocketcare/money";
 import { budgetProgress } from "@pocketcare/budget";
+import { monthlyEquivalent } from "@pocketcare/finance";
 import type { BudgetLike } from "@pocketcare/data";
-import type { Transaction } from "@pocketcare/types";
+import type { Transaction, Period } from "@pocketcare/types";
 import { getRepositories } from "../powersync";
 import { useAccountBalances, useBaseCurrency } from "../hooks";
 import { useAmountsHidden } from "../prefs";
 import { colorForId } from "../colors";
-import { ProgressBar } from "../ui/ProgressBar";
 import { useFriendBalances, useUserProfiles } from "../splits/hooks";
 import type { TileId } from "../dashboard";
 
@@ -39,6 +39,7 @@ export const TILE_CATALOG: TileMeta[] = [
   { id: "splits", title: "Friends & splits", span: "half" },
   { id: "budgets", title: "Budgets", span: "full" },
   { id: "goals", title: "Goals", span: "full" },
+  { id: "subscriptions", title: "Subscriptions", span: "half" },
   { id: "cashflow", title: "Cashflow", span: "full", premium: true },
   { id: "netTrend", title: "Net cashflow trend", span: "full", premium: true },
   { id: "byCategory", title: "Spending by category", span: "half", premium: true },
@@ -60,6 +61,52 @@ function TileCard({ title, action, children }: { title: string; action?: React.R
   );
 }
 
+/* ---- Gradient "showpiece" tiles (light content on an earthy gradient) ---- */
+const HERO = {
+  cashflow: { grad: "linear-gradient(150deg,#b06a4f 0%,#8f533c 100%)", glow: "0 20px 44px -22px rgba(176,106,79,0.75)" },
+  budgets: { grad: "linear-gradient(150deg,#c08a3e 0%,#a8503a 100%)", glow: "0 20px 44px -22px rgba(192,138,62,0.7)" },
+  goals: { grad: "linear-gradient(150deg,#2f6f6a 0%,#3e4a38 100%)", glow: "0 20px 44px -22px rgba(47,111,106,0.7)" },
+  subs: { grad: "linear-gradient(150deg,#7a4a6b 0%,#4f3a54 100%)", glow: "0 20px 44px -22px rgba(122,74,107,0.7)" },
+} as const;
+const HERO_MUTED = "rgba(246,240,231,0.82)";
+
+function HeroTile({ title, action, grad, glow, children }: { title: string; action?: React.ReactNode; grad: string; glow: string; children: React.ReactNode }) {
+  return (
+    <section style={{ position: "relative", overflow: "hidden", borderRadius: 24, padding: "22px 24px", color: "#f6f0e7", background: grad, boxShadow: glow, display: "grid", gap: 14, alignContent: "start" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(246,240,231,0.72)" }}>{title}</div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+const heroLink = (href: string, label: string) => (
+  <Link href={href} style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)" }}>{label}</Link>
+);
+function LightBar({ pct, color = "#f6f0e7" }: { pct: number; color?: string }) {
+  return (
+    <div style={{ height: 8, borderRadius: 999, background: "rgba(255,255,255,0.18)", overflow: "hidden" }}>
+      <div style={{ height: "100%", width: `${Math.max(0, Math.min(100, pct))}%`, borderRadius: 999, background: color }} />
+    </div>
+  );
+}
+function HeroArea({ values, stroke = "#f6ede2", fillId }: { values: number[]; stroke?: string; fillId: string }) {
+  if (values.length < 2) return null;
+  const w = 300, h = 56, pad = 3;
+  const min = Math.min(...values), max = Math.max(...values), range = max - min || 1;
+  const pts = values.map((v, i) => [(i / (values.length - 1)) * w, h - pad - ((v - min) / range) * (h - pad * 2)] as const);
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+  const area = `${line} L ${w} ${h} L 0 ${h} Z`;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" width="100%" height="56" style={{ display: "block" }}>
+      <defs><linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={stroke} stopOpacity="0.45" /><stop offset="1" stopColor={stroke} stopOpacity="0" /></linearGradient></defs>
+      <path d={area} fill={`url(#${fillId})`} />
+      <path d={line} fill="none" stroke={stroke} strokeWidth="2.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** Render the tile for a given id. */
 export function TileView({ id }: { id: TileId }) {
   switch (id) {
@@ -69,6 +116,7 @@ export function TileView({ id }: { id: TileId }) {
     case "splits": return <SplitsTile />;
     case "budgets": return <BudgetsTile />;
     case "goals": return <GoalsTile />;
+    case "subscriptions": return <SubscriptionsTile />;
     case "cashflow": return <CashflowTile />;
     case "netTrend": return <NetTrendTile />;
     case "byCategory": return <ByCategoryTile />;
@@ -195,15 +243,15 @@ function BudgetsTile() {
     "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 6",
   );
   return (
-    <TileCard title="Budgets" action={<Link className="muted" style={{ fontSize: 13 }} href="/budgets">Manage</Link>}>
+    <HeroTile title="Budgets" grad={HERO.budgets.grad} glow={HERO.budgets.glow} action={heroLink("/budgets", "Manage")}>
       {budgets.length ? (
-        <div style={{ display: "grid", gap: 12 }}>
+        <div style={{ display: "grid", gap: 14 }}>
           {budgets.map((b) => <BudgetMini key={b.id} budget={b} />)}
         </div>
       ) : (
-        <p className="muted">No budgets yet. <Link href="/budgets">Create one</Link>.</p>
+        <p style={{ margin: 0, color: HERO_MUTED }}>No budgets yet. <Link href="/budgets" style={{ color: "#fff", textDecoration: "underline" }}>Create one</Link>.</p>
       )}
-    </TileCard>
+    </HeroTile>
   );
 }
 
@@ -217,15 +265,15 @@ function BudgetMini({ budget }: { budget: BudgetLike }) {
   }, [budget]);
   const limit = money(budget.limit_amount, budget.currency);
   const p = budgetProgress(limit, spent, budget.threshold_pct);
-  const color = p.overLimit ? "var(--negative)" : p.atOrOverThreshold ? "var(--warning)" : "var(--positive)";
+  const fill = p.overLimit ? "#f0d8c9" : p.atOrOverThreshold ? "#f3e4c6" : "#dde7c9";
   const fmt = (m: Money) => (hidden ? "••••" : format(m, "en-US"));
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-        <span style={{ fontWeight: 550 }}>{budget.name || budget.period}</span>
-        <span className="muted">{fmt(spent)} / {fmt(limit)}</span>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
+        <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{budget.name || budget.period}</span>
+        <span style={{ color: HERO_MUTED, flexShrink: 0 }}>{fmt(spent)} / {fmt(limit)}</span>
       </div>
-      <ProgressBar pct={p.pct} color={color} height={8} />
+      <LightBar pct={p.pct} color={fill} />
     </div>
   );
 }
@@ -242,27 +290,62 @@ function GoalsTile() {
   const fmt = (m: Money) => (hidden ? "••••" : format(m, "en-US"));
 
   return (
-    <TileCard title="Goals" action={<Link className="muted" style={{ fontSize: 13 }} href="/goals">Manage</Link>}>
+    <HeroTile title="Goals" grad={HERO.goals.grad} glow={HERO.goals.glow} action={heroLink("/goals", "Manage")}>
       {goals.length ? (
-        <div style={{ display: "grid", gap: 12 }}>
+        <div style={{ display: "grid", gap: 14 }}>
           {goals.map((g) => {
             const s = saved(g.id);
             const pct = g.target_amount ? Math.min(100, (s / g.target_amount) * 100) : 0;
             return (
               <div key={g.id} style={{ display: "grid", gap: 6 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                  <span style={{ fontWeight: 550 }}>{g.name}{g.is_emergency_fund ? " · EF" : ""}</span>
-                  <span className="muted">{fmt(money(s, g.currency))} / {fmt(money(g.target_amount, g.currency))}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
+                  <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.name}{g.is_emergency_fund ? " · EF" : ""}</span>
+                  <span style={{ color: HERO_MUTED, flexShrink: 0 }}>{fmt(money(s, g.currency))} / {fmt(money(g.target_amount, g.currency))}</span>
                 </div>
-                <ProgressBar pct={pct} color={g.is_emergency_fund ? "var(--sage)" : "var(--accent)"} height={8} />
+                <LightBar pct={pct} color={g.is_emergency_fund ? "#c6cdb3" : "#f3e4c6"} />
               </div>
             );
           })}
         </div>
       ) : (
-        <p className="muted">No goals yet. <Link href="/goals">Add one</Link>.</p>
+        <p style={{ margin: 0, color: HERO_MUTED }}>No goals yet. <Link href="/goals" style={{ color: "#fff", textDecoration: "underline" }}>Add one</Link>.</p>
       )}
-    </TileCard>
+    </HeroTile>
+  );
+}
+
+function SubscriptionsTile() {
+  const base = useBaseCurrency();
+  const hidden = useAmountsHidden();
+  const { data: subs = [] } = useQuery<{ name: string; amount: number; currency: string; billing_cycle: string; next_renewal: string | null }>(
+    "SELECT name, amount, currency, billing_cycle, next_renewal FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY next_renewal",
+  );
+  const monthly = subs.reduce((s, x) => s + monthlyEquivalent(x.amount, x.billing_cycle as Period), 0);
+  const fmt = (m: number, c: string = base) => (hidden ? "••••" : format(money(Math.round(m), c), "en-US"));
+  const upcoming = subs.filter((x) => x.next_renewal).slice(0, 3);
+  return (
+    <HeroTile title="Subscriptions" grad={HERO.subs.grad} glow={HERO.subs.glow} action={heroLink("/subscriptions", "Manage")}>
+      {subs.length === 0 ? (
+        <p style={{ margin: 0, color: HERO_MUTED }}>No active subscriptions. <Link href="/subscriptions" style={{ color: "#fff", textDecoration: "underline" }}>Add one</Link>.</p>
+      ) : (
+        <>
+          <div>
+            <div style={{ fontSize: 32, fontWeight: 750 }}>{fmt(monthly)}<span style={{ fontSize: 15, fontWeight: 600, color: HERO_MUTED }}> /mo</span></div>
+            <div style={{ fontSize: 13, color: HERO_MUTED, marginTop: 4 }}>{subs.length} active {subs.length === 1 ? "subscription" : "subscriptions"}</div>
+          </div>
+          {upcoming.length > 0 && (
+            <div style={{ display: "grid", gap: 8, borderTop: "1px solid rgba(255,255,255,0.16)", paddingTop: 12 }}>
+              {upcoming.map((x, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13 }}>
+                  <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.name}</span>
+                  <span style={{ color: HERO_MUTED, flexShrink: 0 }}>{fmt(x.amount, x.currency)}{x.next_renewal ? ` · ${new Date(x.next_renewal).toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : ""}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </HeroTile>
   );
 }
 
@@ -391,71 +474,33 @@ function CashflowTile() {
   const base = useBaseCurrency();
   const hidden = useAmountsHidden();
   const fmtCur = (v: number) => (hidden ? "••••" : format(money(Math.round(v * 100), base), "en-US"));
-
-  const spansYears = new Set(cashflow.map((c) => c.month.slice(0, 4))).size > 1;
-  const data = cashflow.map((c) => ({ ...c, label: monthLabel(c.month, spansYears) }));
   const totalIn = cashflow.reduce((s, c) => s + c.income, 0);
   const totalOut = cashflow.reduce((s, c) => s + c.expense, 0);
   const net = totalIn - totalOut;
-
-  if (cashflow.length === 0) {
-    return (
-      <TileCard title="Cashflow">
-        <div style={{ display: "grid", placeItems: "center", height: 200, textAlign: "center", gap: 6 }}>
-          <span style={{ fontSize: 22, opacity: 0.5 }}>⇅</span>
-          <p className="muted" style={{ margin: 0 }}>No income or expenses yet.<br />Add a transaction to see your cashflow.</p>
-        </div>
-      </TileCard>
-    );
-  }
-
-  const stat = (label: string, value: number, color: string, sign = false) => (
-    <div style={{ display: "grid", gap: 2 }}>
-      <span className="muted" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
-      <span style={{ fontSize: 18, fontWeight: 750, color }}>{sign && value > 0 ? "+" : ""}{fmtCur(value)}</span>
-    </div>
-  );
+  const spark = cashflow.map((c) => c.net);
 
   return (
-    <TileCard title="Cashflow">
-      {/* Summary of the visible window */}
-      <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 6 }}>
-        {stat("In", totalIn, "var(--positive)")}
-        {stat("Out", totalOut, "var(--negative)")}
-        {stat("Net", net, net >= 0 ? "var(--forest)" : "var(--negative)", true)}
-      </div>
-      <ResponsiveContainer width="100%" height={230}>
-        <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: 0 }} barGap={3}>
-          {gradientDefs()}
-          <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
-          <XAxis dataKey="label" {...axisX} />
-          <YAxis {...axisY} />
-          <Tooltip
-            cursor={{ fill: "var(--surface-2)" }}
-            contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", boxShadow: "var(--shadow)" }}
-            formatter={(v: number, n: string) => [fmtCur(v), n === "income" ? "In" : n === "expense" ? "Out" : "Net"]}
-          />
-          <Bar dataKey="income" name="income" fill="url(#gInc)" radius={[6, 6, 0, 0]} maxBarSize={26} />
-          <Bar dataKey="expense" name="expense" fill="url(#gExp)" radius={[6, 6, 0, 0]} maxBarSize={26} />
-          <Line type="monotone" dataKey="net" name="net" stroke="var(--forest)" strokeWidth={2.4} dot={{ r: 2.5, fill: "var(--forest)" }} activeDot={{ r: 5, fill: "var(--forest)", stroke: "var(--surface)", strokeWidth: 2 }} />
-        </ComposedChart>
-      </ResponsiveContainer>
-      {/* Legend */}
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8, fontSize: 12, color: "var(--text-2)" }}>
-        <LegendDot color="#5f7a52" label="In" />
-        <LegendDot color="#b06a4f" label="Out" />
-        <LegendDot color="var(--forest)" label="Net" line />
-      </div>
-    </TileCard>
-  );
-}
-
-function LegendDot({ color, label, line = false }: { color: string; label: string; line?: boolean }) {
-  return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-      <span style={{ width: line ? 14 : 9, height: line ? 3 : 9, borderRadius: line ? 999 : 3, background: color, display: "inline-block" }} />
-      {label}
-    </span>
+    <HeroTile title="Cashflow" grad={HERO.cashflow.grad} glow={HERO.cashflow.glow} action={heroLink("/insights", "Details →")}>
+      {cashflow.length === 0 ? (
+        <p style={{ margin: 0, color: HERO_MUTED }}>No income or expenses yet. Add a transaction to see your cashflow.</p>
+      ) : (
+        <>
+          <div>
+            <div style={{ fontSize: 34, fontWeight: 750, letterSpacing: "-0.01em" }}>
+              {net >= 0 ? "+" : "−"}{fmtCur(Math.abs(net))}<span style={{ fontSize: 14, fontWeight: 600, color: HERO_MUTED }}> net</span>
+            </div>
+            <div style={{ display: "flex", gap: 18, marginTop: 6, fontSize: 13 }}>
+              <span style={{ color: HERO_MUTED }}>In <strong style={{ color: "#dde7c9" }}>{fmtCur(totalIn)}</strong></span>
+              <span style={{ color: HERO_MUTED }}>Out <strong style={{ color: "#f3e0d9" }}>{fmtCur(totalOut)}</strong></span>
+            </div>
+          </div>
+          <HeroArea values={spark} fillId="cfFill" />
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "rgba(246,240,231,0.7)" }}>
+            {cashflow.map((c, i) => <span key={i}>{monthLabel(c.month, false)}</span>)}
+          </div>
+        </>
+      )}
+    </HeroTile>
   );
 }
 
