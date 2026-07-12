@@ -339,7 +339,7 @@ export default function NewTransactionPage() {
       <div className="card" style={{ padding: 22, display: "grid", gap: 14 }}>
         <div>
           <div className="muted" style={{ fontSize: 13 }}>Amount{items.length > 1 ? " · sum of items" : ""}</div>
-          <div style={{ fontSize: 40, fontWeight: 750, color: accentFor[type], letterSpacing: "-0.02em" }}>{format(total, "en-US")}</div>
+          <div style={{ fontSize: 40, fontFamily: "var(--font-serif)", fontWeight: 750, color: accentFor[type], letterSpacing: "-0.02em" }}>{format(total, "en-US")}</div>
         </div>
 
         {type === "transfer" ? (

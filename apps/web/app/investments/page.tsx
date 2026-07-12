@@ -73,7 +73,7 @@ export default function InvestmentsPage() {
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
           <div>
             <div className="muted" style={{ fontSize: 13 }}>Current value</div>
-            <div style={{ fontSize: 30, fontWeight: 750 }}>{fmt(money(Math.round(marketValue), base), "en-US")}</div>
+            <div style={{ fontSize: 30, fontFamily: "var(--font-serif)", fontWeight: 750 }}>{fmt(money(Math.round(marketValue), base), "en-US")}</div>
           </div>
           <div>
             <div className="muted" style={{ fontSize: 13 }}>Invested (cost)</div>

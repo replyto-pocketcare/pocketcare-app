@@ -87,7 +87,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
   return (
     <div>
       <div className="muted" style={{ fontSize: 12 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 750, color: accent ? "var(--accent)" : "var(--text)" }}>{value}</div>
+      <div style={{ fontSize: 20, fontFamily: "var(--font-serif)", fontWeight: 750, color: accent ? "var(--accent)" : "var(--text)" }}>{value}</div>
     </div>
   );
 }

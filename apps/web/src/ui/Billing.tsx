@@ -134,7 +134,7 @@ export function Billing() {
       {/* AI credit balance */}
       <div className="card" style={{ padding: 14, display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center", background: "var(--surface-2)" }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 750 }}>{e.quotaLeft}</div>
+          <div style={{ fontSize: 22, fontFamily: "var(--font-serif)", fontWeight: 750 }}>{e.quotaLeft}</div>
           <div className="muted" style={{ fontSize: 12 }}>AI prompts available</div>
         </div>
         <div className="muted" style={{ fontSize: 12.5, lineHeight: 1.6 }}>

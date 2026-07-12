@@ -95,7 +95,7 @@ export default function GroupDetailPage() {
       </div>
 
       <section className="card" style={{ padding: 20, display: "flex", gap: 24, flexWrap: "wrap" }}>
-        <div><div className="muted" style={{ fontSize: 13 }}>Total spent</div><div style={{ fontSize: 26, fontWeight: 750 }}>{fmt(money(total, base))}</div></div>
+        <div><div className="muted" style={{ fontSize: 13 }}>Total spent</div><div style={{ fontSize: 26, fontFamily: "var(--font-serif)", fontWeight: 750 }}>{fmt(money(total, base))}</div></div>
         <div><div className="muted" style={{ fontSize: 13 }}>You’re owed</div><div style={{ fontSize: 20, fontWeight: 700, color: "var(--positive)" }}>{fmt(money(owed, base))}</div></div>
         <div><div className="muted" style={{ fontSize: 13 }}>You owe</div><div style={{ fontSize: 20, fontWeight: 700, color: "var(--negative)" }}>{fmt(money(owe, base))}</div></div>
       </section>

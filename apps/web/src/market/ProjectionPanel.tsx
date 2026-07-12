@@ -122,7 +122,7 @@ function Stat({ label, value, accent, positive }: { label: string; value: string
   return (
     <div>
       <div className="muted" style={{ fontSize: 12 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 750, color: accent ? "var(--accent)" : positive ? "var(--positive)" : "var(--text)" }}>{value}</div>
+      <div style={{ fontSize: 20, fontFamily: "var(--font-serif)", fontWeight: 750, color: accent ? "var(--accent)" : positive ? "var(--positive)" : "var(--text)" }}>{value}</div>
     </div>
   );
 }
