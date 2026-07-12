@@ -131,14 +131,14 @@ export default function Dashboard() {
           <h2 style={{ margin: 0 }}>Accounts</h2>
           <Link href="/accounts" className="chip" style={{ fontSize: 13 }}>View all{balances.length > 8 ? ` (${balances.length})` : ""}</Link>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(150px, 100%), 1fr))", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(112px, 100%), 1fr))", gap: 8 }}>
           {balances.slice(0, 8).map(({ account, balance }) => {
             const color = account.color || colorForId(account.id);
             return (
-              <Link key={account.id} href={`/accounts/${account.id}/edit`} style={{ background: color, color: "#fff", borderRadius: 14, padding: "12px 14px", display: "grid", gap: 1, minWidth: 0, boxShadow: "0 6px 16px -12px rgba(43,39,35,0.6)" }}>
-                <span style={{ fontSize: 11, opacity: 0.85, textTransform: "capitalize", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.type.replace("_", " ")}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.name}</span>
-                <span style={{ fontSize: 16, fontWeight: 750, textShadow: "0 1px 2px rgba(0,0,0,0.22)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(balance)}</span>
+              <Link key={account.id} href={`/accounts/${account.id}/edit`} style={{ background: color, color: "#fff", borderRadius: 12, padding: "9px 11px", display: "grid", gap: 1, minWidth: 0, boxShadow: "0 6px 16px -12px rgba(43,39,35,0.6)" }}>
+                <span style={{ fontSize: 10, opacity: 0.85, textTransform: "capitalize", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.type.replace("_", " ")}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.name}</span>
+                <span style={{ fontSize: 14.5, fontWeight: 750, textShadow: "0 1px 2px rgba(0,0,0,0.22)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(balance)}</span>
               </Link>
             );
           })}

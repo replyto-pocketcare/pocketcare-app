@@ -270,8 +270,8 @@ function BudgetMini({ budget }: { budget: BudgetLike }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
-        <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{budget.name || budget.period}</span>
-        <span style={{ color: HERO_MUTED, flexShrink: 0 }}>{fmt(spent)} / {fmt(limit)}</span>
+        <span style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{budget.name || budget.period}</span>
+        <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(spent)} / {fmt(limit)}</span>
       </div>
       <LightBar pct={p.pct} color={fill} />
     </div>
@@ -299,8 +299,8 @@ function GoalsTile() {
             return (
               <div key={g.id} style={{ display: "grid", gap: 6 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
-                  <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.name}{g.is_emergency_fund ? " · EF" : ""}</span>
-                  <span style={{ color: HERO_MUTED, flexShrink: 0 }}>{fmt(money(s, g.currency))} / {fmt(money(g.target_amount, g.currency))}</span>
+                  <span style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.name}{g.is_emergency_fund ? " · EF" : ""}</span>
+                  <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(money(s, g.currency))} / {fmt(money(g.target_amount, g.currency))}</span>
                 </div>
                 <LightBar pct={pct} color={g.is_emergency_fund ? "#c6cdb3" : "#f3e4c6"} />
               </div>
@@ -337,8 +337,8 @@ function SubscriptionsTile() {
             <div style={{ display: "grid", gap: 8, borderTop: "1px solid rgba(255,255,255,0.16)", paddingTop: 12 }}>
               {upcoming.map((x, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13 }}>
-                  <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.name}</span>
-                  <span style={{ color: HERO_MUTED, flexShrink: 0 }}>{fmt(x.amount, x.currency)}{x.next_renewal ? ` · ${new Date(x.next_renewal).toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : ""}</span>
+                  <span style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.name}</span>
+                  <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(x.amount, x.currency)}{x.next_renewal ? ` · ${new Date(x.next_renewal).toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : ""}</span>
                 </div>
               ))}
             </div>
