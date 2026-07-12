@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { format, money, type Money } from "@pocketcare/money";
-import { useNetWorth, useAccountBalances } from "../src/hooks";
+import { useNetWorth, useAccountBalances, useAccountsLoading } from "../src/hooks";
+import { HeroSkeleton, CardsSkeleton } from "../src/ui/Skeleton";
 import { useEntitlement } from "../src/entitlement";
 import { useAmountsHidden, setAmountsHidden } from "../src/prefs";
 import { colorForId } from "../src/colors";
@@ -34,6 +35,7 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(false);
   const { t } = useTranslation();
   const net = showAvailable ? available : total;
+  const accountsLoading = useAccountsLoading();
 
   const fmt = (m: Money) => (hidden ? "••••••" : format(m, "en-US"));
 
@@ -43,6 +45,17 @@ export default function Dashboard() {
 
   async function toggleNw(id: string, included: boolean) {
     await getDb()?.execute("UPDATE accounts SET include_in_net_worth = ?, updated_at = ? WHERE id = ?", [included ? 0 : 1, new Date().toISOString(), id]);
+  }
+
+  // While the local DB is still returning results, show placeholders rather
+  // than the misleading "create your first account" screen.
+  if (balances.length === 0 && accountsLoading) {
+    return (
+      <div style={{ display: "grid", gap: 24 }}>
+        <HeroSkeleton height={110} />
+        <CardsSkeleton count={4} />
+      </div>
+    );
   }
 
   if (balances.length === 0) {

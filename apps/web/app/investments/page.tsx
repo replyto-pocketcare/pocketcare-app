@@ -9,6 +9,7 @@ import { insertRow, updateRow, softDelete } from "../../src/write";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { useConfirm } from "../../src/ui/Confirm";
+import { ListSkeleton } from "../../src/ui/Skeleton";
 import { InstrumentPicker, ExchangeSelect } from "../../src/instruments/InstrumentPicker";
 import type { Instrument } from "../../src/instruments/catalog";
 import { useCatalog } from "../../src/instruments/hooks";
@@ -30,7 +31,7 @@ export default function InvestmentsPage() {
   const { t } = useTranslation();
   const fmt = useMoneyFmt();
   const base = useBaseCurrency();
-  const { data: holdings = [] } = useQuery<Holding>("SELECT * FROM holdings WHERE deleted_at IS NULL ORDER BY created_at");
+  const { data: holdings = [], isLoading: holdingsLoading } = useQuery<Holding>("SELECT * FROM holdings WHERE deleted_at IS NULL ORDER BY created_at");
   const { data: invAccounts = [] } = useQuery<{ id: string; name: string; currency: string }>(
     "SELECT id, name, currency FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND type IN ('stocks','mutual_funds')",
   );
@@ -101,7 +102,7 @@ export default function InvestmentsPage() {
             divYield={market.overview(h.symbol, h.exchange)?.dividend_yield ?? null}
             nextExDate={market.nextDividend(h.symbol, h.exchange)?.ex_date ?? null} />
         ))}
-        {holdings.length === 0 && <p className="muted">No holdings yet.</p>}
+        {holdings.length === 0 && (holdingsLoading ? <ListSkeleton rows={3} /> : <p className="muted">No holdings yet.</p>)}
       </div>
 
       {invAccounts.length === 0 ? (

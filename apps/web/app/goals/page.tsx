@@ -12,6 +12,7 @@ import { FloatingInput } from "../../src/ui/FloatingInput";
 import { KebabMenu } from "../../src/ui/KebabMenu";
 import { Modal } from "../../src/ui/Modal";
 import { useConfirm } from "../../src/ui/Confirm";
+import { ListSkeleton } from "../../src/ui/Skeleton";
 import { GoalCelebration } from "../../src/goals/GoalCelebration";
 
 // Remember which goals we've already celebrated so completing one is a one-time
@@ -46,7 +47,7 @@ interface Goal {
 export default function GoalsPage() {
   const { t } = useTranslation();
   const base = useBaseCurrency();
-  const { data: goals = [] } = useQuery<Goal>(
+  const { data: goals = [], isLoading: goalsLoading } = useQuery<Goal>(
     "SELECT id, name, target_amount, currency, is_emergency_fund, priority FROM goals WHERE deleted_at IS NULL ORDER BY is_emergency_fund DESC, priority",
   );
   const { data: allocs = [] } = useQuery<{ goal_id: string; amount_blocked: number }>(
@@ -98,7 +99,7 @@ export default function GoalsPage() {
           <GoalCard key={g.id} goal={g} saved={saved(g.id)} savings={savings}
             locked={!g.is_emergency_fund && !efFunded} base={base} onAchieved={onAchieved} />
         ))}
-        {goals.length === 0 && <p className="muted">No goals yet. Start with an emergency fund.</p>}
+        {goals.length === 0 && (goalsLoading ? <ListSkeleton rows={3} /> : <p className="muted">No goals yet. Start with an emergency fund.</p>)}
       </div>
 
       <div className="card" style={{ padding: 20, display: "grid", gap: 10, maxWidth: 460 }}>

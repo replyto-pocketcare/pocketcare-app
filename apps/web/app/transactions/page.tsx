@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import type { Transaction } from "@pocketcare/types";
 import { TransactionRow } from "../../src/ui/TransactionRow";
+import { Skeleton } from "../../src/ui/Skeleton";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
@@ -15,7 +16,7 @@ export default function TransactionsPage() {
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
 
   const like = `%${q}%`;
-  const { data: rows = [] } = useQuery<Transaction & { labels: string | null; method_label: string | null }>(
+  const { data: rows = [], isLoading: rowsLoading } = useQuery<Transaction & { labels: string | null; method_label: string | null }>(
     `SELECT t.*,
        (SELECT GROUP_CONCAT(l.name, ', ') FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS labels,
        (SELECT pm.label FROM payment_methods pm WHERE pm.id = t.payment_method) AS method_label
@@ -53,7 +54,13 @@ export default function TransactionsPage() {
         {rows.map((t) => (
           <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} />
         ))}
-        {rows.length === 0 && <p className="muted" style={{ padding: 16 }}>No matching transactions.</p>}
+        {rows.length === 0 && (rowsLoading ? (
+          <div style={{ display: "grid", gap: 10, padding: 12 }}>
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} h={44} r={12} />)}
+          </div>
+        ) : (
+          <p className="muted" style={{ padding: 16 }}>No matching transactions.</p>
+        ))}
       </div>
     </div>
   );

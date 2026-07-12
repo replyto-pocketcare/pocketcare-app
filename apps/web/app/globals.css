@@ -97,6 +97,16 @@ button { font-family: inherit; }
 /* Edit-mode wiggle for draggable dashboard tiles. */
 @keyframes tileWiggle { 0% { transform: rotate(-0.5deg); } 50% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
 
+/* Loading placeholders (skeletons). */
+.skeleton { position: relative; overflow: hidden; background: var(--surface-2); }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+:root[data-theme="dark"] .skeleton::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent); }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+
 /* Clickable cards get a gentle lift. */
 a.card { transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.18s, border-color 0.18s; }
 a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--accent-soft); }

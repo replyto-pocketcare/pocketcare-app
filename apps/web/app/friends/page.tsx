@@ -9,6 +9,7 @@ import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
 import { useSplitOverview, useUserProfiles } from "../../src/splits/hooks";
 import { settleUp } from "../../src/splits/write";
+import { ListSkeleton } from "../../src/ui/Skeleton";
 
 interface SettleTarget { userId: string; name: string; net: number }
 
@@ -44,7 +45,7 @@ export default function SplitsPage() {
   const { data: accounts = [] } = useQuery<{ id: string; name: string }>(
     "SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real' AND type NOT IN ('stocks','mutual_funds') ORDER BY created_at",
   );
-  const { data: settleGroups = [] } = useQuery<{ group_id: string; user_id: string }>(
+  const { data: settleGroups = [], isLoading: splitsLoading } = useQuery<{ group_id: string; user_id: string }>(
     "SELECT group_id, user_id FROM split_group_members WHERE deleted_at IS NULL",
   );
 
@@ -126,7 +127,9 @@ export default function SplitsPage() {
           </div>
         </div>
 
-        {empty ? (
+        {empty && splitsLoading ? (
+          <ListSkeleton rows={3} />
+        ) : empty ? (
           <div style={{ padding: "24px 8px", textAlign: "center", display: "grid", gap: 10, justifyItems: "center" }}>
             <div style={{ fontSize: 26 }}>◑</div>
             <h2 style={{ margin: 0 }}>No splits yet</h2>

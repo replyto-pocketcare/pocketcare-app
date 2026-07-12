@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor } from "@pocketcare/money";
 import { billingCycle } from "@pocketcare/budget";
-import { useAccountBalances } from "../../src/hooks";
+import { useAccountBalances, useAccountsLoading } from "../../src/hooks";
+import { Skeleton, CardsSkeleton } from "../../src/ui/Skeleton";
 import { useSession } from "../../src/account";
 import { getRepositories } from "../../src/powersync";
 import { CreditCard } from "../../src/cards/CreditCard";
@@ -23,8 +24,19 @@ export default function CardsPage() {
   const session = useSession();
   const holder = (session?.username || "").trim() || "Card Holder";
   const cards = balances.filter((b) => b.account.type === "credit_card");
+  const accountsLoading = useAccountsLoading();
   const { data: details = [] } = useQuery<CardDetail>("SELECT account_id, statement_day, due_day, credit_limit, card_last4 FROM credit_card_details");
   const detailFor = (id: string) => details.find((d) => d.account_id === id);
+
+  if (cards.length === 0 && accountsLoading) {
+    return (
+      <div style={{ display: "grid", gap: 16 }}>
+        <h1>{t("pages.cards", "Cards")}</h1>
+        <Skeleton h={92} r={18} />
+        <CardsSkeleton count={2} minWidth={300} />
+      </div>
+    );
+  }
 
   if (cards.length === 0) {
     return (

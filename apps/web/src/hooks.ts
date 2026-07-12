@@ -38,6 +38,13 @@ export function useRates(): RateLookup {
   };
 }
 
+/** True until the accounts table has returned its first result. Use to show a
+ *  skeleton instead of a misleading "create your first account" flash. */
+export function useAccountsLoading(): boolean {
+  const { isLoading } = useQuery("SELECT id FROM accounts WHERE deleted_at IS NULL LIMIT 1");
+  return isLoading;
+}
+
 export type WebAccount = Account & { include_in_net_worth?: number; color?: string | null };
 
 export interface AccountWithBalance {

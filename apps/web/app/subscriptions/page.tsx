@@ -13,6 +13,7 @@ import { insertRow, updateRow, softDelete } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useConfirm } from "../../src/ui/Confirm";
+import { ListSkeleton } from "../../src/ui/Skeleton";
 import { KebabMenu } from "../../src/ui/KebabMenu";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
@@ -52,7 +53,7 @@ export default function SubscriptionsPage() {
   const base = useBaseCurrency();
   const { isPaid } = useEntitlement();
   const fmt = useMoneyFmt();
-  const { data: subs = [] } = useQuery<Sub>(
+  const { data: subs = [], isLoading: subsLoading } = useQuery<Sub>(
     "SELECT id, name, amount, currency, billing_cycle, purchased_on FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY created_at",
   );
 
@@ -102,6 +103,8 @@ export default function SubscriptionsPage() {
         <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
           {subs.map((s) => <SubRow key={s.id} sub={s} />)}
         </div>
+      ) : subsLoading ? (
+        <ListSkeleton rows={4} />
       ) : (
         <div className="card" style={{ padding: 32, textAlign: "center", display: "grid", gap: 10, justifyItems: "center" }}>
           <div style={{ fontSize: 26 }}>↻</div>

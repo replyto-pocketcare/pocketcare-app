@@ -16,6 +16,7 @@ import { MultiSelect } from "../../src/ui/MultiSelect";
 import { LabelPicker } from "../../src/ui/LabelPicker";
 import { Modal } from "../../src/ui/Modal";
 import { useConfirm } from "../../src/ui/Confirm";
+import { ListSkeleton } from "../../src/ui/Skeleton";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, ReferenceLine, Tooltip } from "recharts";
 import type { BudgetLike } from "@pocketcare/data";
 
@@ -92,7 +93,7 @@ async function writeBudgetScope(budgetId: string, catIds: string[], labelNames: 
 export default function BudgetsPage() {
   const { t } = useTranslation();
   const base = useBaseCurrency();
-  const { data: budgets = [] } = useQuery<BudgetLike>(
+  const { data: budgets = [], isLoading: budgetsLoading } = useQuery<BudgetLike>(
     "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL AND kind='expense' ORDER BY name");
@@ -142,6 +143,8 @@ export default function BudgetsPage() {
         <div style={{ display: "grid", gap: 12 }}>
           {budgets.map((b) => <BudgetRow key={b.id} budget={b} cats={cats} labels={labels} catOptions={catOptions} />)}
         </div>
+      ) : budgetsLoading ? (
+        <ListSkeleton rows={3} />
       ) : (
         <div className="card" style={{ padding: 32, textAlign: "center", display: "grid", gap: 10, justifyItems: "center" }}>
           <div style={{ fontSize: 26 }}>◔</div>
