@@ -232,7 +232,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Quick add-transaction — only on the dashboard (other pages have their
           own contextual add buttons). Pill-shaped with a label for clarity. */}
       {pathname === "/" && (
-        <Link href="/transactions/new" aria-label="Add transaction"
+        <Link href="/transactions/new" aria-label="Add transaction" className="add-fab"
           style={{ position: "fixed", right: 20, bottom: 20, zIndex: 40, borderRadius: 999,
             padding: "14px 20px", gap: 8, background: "var(--accent)", color: "#fff", fontWeight: 600,
             display: "inline-flex", alignItems: "center",

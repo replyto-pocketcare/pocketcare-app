@@ -66,6 +66,12 @@ export default function Dashboard() {
 
   const fmt = (m: Money) => (hidden ? "••••••" : format(m, "en-US"));
 
+  // Hide the global "Add transaction" FAB while rearranging (see globals.css).
+  useEffect(() => {
+    document.body.dataset.dashEdit = editing ? "true" : "false";
+    return () => { delete document.body.dataset.dashEdit; };
+  }, [editing]);
+
   // Only show tiles the user enabled; premium tiles need a paid plan.
   const visibleTiles = enabled.filter((id) => isPaid || !tileMeta(id).premium);
   const sizeOf = (id: TileId): TileSize => sizes[id] ?? defaultSize(id);
@@ -156,6 +162,14 @@ export default function Dashboard() {
       )}
 
       <AddWidgetModal open={showAdd} onClose={() => setShowAdd(false)} enabled={enabled} isPaid={isPaid} />
+
+      {/* Floating edit toolbar — stays visible while rearranging (header scrolls away). */}
+      {editing && (
+        <div style={{ position: "fixed", left: "50%", bottom: "calc(20px + env(safe-area-inset-bottom, 0px))", transform: "translateX(-50%)", zIndex: 70, display: "flex", gap: 8, padding: 6, borderRadius: 999, background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-lg)" }}>
+          <button className="btn ghost" onClick={() => setShowAdd(true)} style={{ gap: 6 }}><PlusIcon size={16} /> Widget</button>
+          <button className="btn" onClick={() => setEditing(false)} style={{ gap: 7, background: "var(--positive)", boxShadow: "0 12px 28px -10px rgba(95,102,71,0.9)" }}><CheckIcon /> Done</button>
+        </div>
+      )}
     </div>
   );
 }

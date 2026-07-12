@@ -118,6 +118,9 @@ button { font-family: inherit; }
   background: var(--bg);
 }
 
+/* Hide the Add-transaction FAB while the dashboard is in edit mode. */
+body[data-dash-edit="true"] .add-fab { display: none !important; }
+
 /* Loading placeholders (skeletons). */
 .skeleton { position: relative; overflow: hidden; background: var(--surface-2); }
 .skeleton::after {
