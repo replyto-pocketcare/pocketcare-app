@@ -11,8 +11,15 @@ import { colorForId } from "../src/colors";
 import { getDb } from "../src/powersync";
 import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon, ScaleIcon } from "../src/ui/icons";
 import { Modal } from "../src/ui/Modal";
-import { useDashboardTiles, setTileEnabled, reorderTiles, type TileId } from "../src/dashboard";
+import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSpans, setTileSpan, type TileId, type TileSpan } from "../src/dashboard";
 import { TILE_CATALOG, TileView, tileMeta } from "../src/dashboard/tiles";
+
+const ResizeIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a1 1 0 0 1-1-1v-4M15 3h4a1 1 0 0 1 1 1v4M4 20l6-6M20 4l-6 6" /></svg>
+);
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+);
 
 export default function Dashboard() {
   const { total, available, base } = useNetWorth();
@@ -20,8 +27,10 @@ export default function Dashboard() {
   const hidden = useAmountsHidden();
   const { isPaid } = useEntitlement();
   const enabled = useDashboardTiles();
+  const spans = useTileSpans();
   const [showAvailable, setShowAvailable] = useState(false);
-  const [customizing, setCustomizing] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState(false);
   const { t } = useTranslation();
   const net = showAvailable ? available : total;
 
@@ -29,6 +38,7 @@ export default function Dashboard() {
 
   // Only show tiles the user enabled; premium tiles need a paid plan.
   const visibleTiles = enabled.filter((id) => isPaid || !tileMeta(id).premium);
+  const spanOf = (id: TileId): TileSpan => spans[id] ?? tileMeta(id).span;
 
   async function toggleNw(id: string, included: boolean) {
     await getDb()?.execute("UPDATE accounts SET include_in_net_worth = ?, updated_at = ? WHERE id = ?", [included ? 0 : 1, new Date().toISOString(), id]);
@@ -48,17 +58,31 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: "grid", gap: 24, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1>{t("pages.dashboard", "Dashboard")}</h1>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button className="chip" onClick={() => setCustomizing(true)} title="Customize tiles" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <SlidersIcon size={16} /> Customize
-          </button>
-          <button className="chip" onClick={() => setAmountsHidden(!hidden)} title={hidden ? "Show amounts" : "Hide amounts"} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            {hidden ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />} {hidden ? "Show" : "Hide"}
-          </button>
-          <Link href="/accounts/new" className="btn ghost" style={{ gap: 6 }}><PlusIcon size={16} /> Account</Link>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h1>{t("pages.dashboard", "Dashboard")}</h1>
+          {editing && (
+            <div style={{ fontSize: 12.5, color: "var(--accent)", marginTop: 5 }}>
+              Drag cards to rearrange · tap the corner handle to resize
+            </div>
+          )}
         </div>
+        {editing ? (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button className="btn ghost" onClick={() => setShowAdd(true)} style={{ gap: 6 }}><PlusIcon size={16} /> Widget</button>
+            <button className="btn" onClick={() => setEditing(false)} style={{ gap: 7, background: "var(--positive)", boxShadow: "0 10px 24px -12px rgba(95,102,71,0.9)" }}><CheckIcon /> Done</button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button className="chip" onClick={() => setEditing(true)} title="Customize tiles" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <SlidersIcon size={16} /> Customize
+            </button>
+            <button className="chip" onClick={() => setAmountsHidden(!hidden)} title={hidden ? "Show amounts" : "Hide amounts"} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              {hidden ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />} {hidden ? "Show" : "Hide"}
+            </button>
+            <Link href="/accounts/new" className="btn ghost" style={{ gap: 6 }}><PlusIcon size={16} /> Account</Link>
+          </div>
+        )}
       </div>
 
       {/* Net worth hero */}
@@ -100,34 +124,42 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Customizable tiles — draggable to reorder */}
+      {/* Customizable tiles — long-press to edit, drag to reorder, tap corner to resize */}
       {visibleTiles.length > 0 ? (
-        <DraggableGrid ids={visibleTiles} enabled={enabled} />
+        <DraggableGrid ids={visibleTiles} editing={editing} onLongPress={() => setEditing(true)} spanOf={spanOf} />
       ) : (
         <section className="card" style={{ padding: 24, textAlign: "center", display: "grid", gap: 8 }}>
           <p className="muted">No tiles shown. Add some to your dashboard.</p>
-          <button className="btn" style={{ justifySelf: "center", gap: 6 }} onClick={() => setCustomizing(true)}><SlidersIcon size={16} /> Customize</button>
+          <button className="btn" style={{ justifySelf: "center", gap: 6 }} onClick={() => setShowAdd(true)}><PlusIcon size={16} /> Add a widget</button>
         </section>
       )}
 
-      <CustomizeModal open={customizing} onClose={() => setCustomizing(false)} enabled={enabled} isPaid={isPaid} />
+      <AddWidgetModal open={showAdd} onClose={() => setShowAdd(false)} enabled={enabled} isPaid={isPaid} />
     </div>
   );
 }
 
 /**
- * Drag-to-reorder dashboard tiles in place. A grip on each tile starts the drag;
- * as the pointer moves over another tile (hit-tested by rect) the order updates
- * live, and the new order is persisted on release. Works with the 2-column grid
- * and full-width tiles because it uses the tiles' actual rendered positions.
+ * Dashboard tiles with an edit mode that mirrors the design:
+ *  - Long-press any tile (~450ms) to enter edit mode (or the Customize button).
+ *  - In edit mode tiles wiggle; drag a tile to reorder — the layout snaps live to
+ *    the 2-column grid slots by hit-testing rendered rects, persisted on release.
+ *  - A corner handle cycles the tile between half- and full-width (persisted).
+ *  - A remove handle takes the tile off the dashboard.
  */
-function DraggableGrid({ ids, enabled }: { ids: TileId[]; enabled: TileId[] }) {
+function DraggableGrid({ ids, editing, onLongPress, spanOf }: {
+  ids: TileId[]; editing: boolean; onLongPress: () => void; spanOf: (id: TileId) => TileSpan;
+}) {
   const [order, setOrder] = useState<TileId[]>(ids);
   const [dragging, setDragging] = useState<TileId | null>(null);
   const refs = useRef<Map<TileId, HTMLElement>>(new Map());
+  const hold = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const start = useRef<{ x: number; y: number } | null>(null);
   useEffect(() => { if (!dragging) setOrder(ids); }, [ids.join(","), dragging]);
 
-  function move(e: React.PointerEvent) {
+  const clearHold = () => { if (hold.current) { clearTimeout(hold.current); hold.current = undefined; } };
+
+  function reorderTo(e: React.PointerEvent) {
     if (!dragging) return;
     const { clientX: x, clientY: y } = e;
     let target: TileId | null = null;
@@ -145,87 +177,115 @@ function DraggableGrid({ ids, enabled }: { ids: TileId[]; enabled: TileId[] }) {
       return next;
     });
   }
-  function end() {
-    if (!dragging) return;
-    const hidden = enabled.filter((id) => !order.includes(id)); // premium tiles not shown
-    reorderTiles([...order, ...hidden]);
-    setDragging(null);
+
+  function down(e: React.PointerEvent, id: TileId) {
+    start.current = { x: e.clientX, y: e.clientY };
+    const el = e.currentTarget as HTMLElement;
+    const pid = e.pointerId;
+    if (editing) {
+      el.setPointerCapture(pid);
+      setDragging(id);
+    } else {
+      // Long-press enters edit mode and begins dragging the held tile.
+      hold.current = setTimeout(() => { onLongPress(); el.setPointerCapture(pid); setDragging(id); }, 450);
+    }
+  }
+  function pmove(e: React.PointerEvent) {
+    if (dragging) { reorderTo(e); return; }
+    if (hold.current && start.current && (Math.abs(e.clientX - start.current.x) > 8 || Math.abs(e.clientY - start.current.y) > 8)) {
+      clearHold(); // moved before the hold fired — treat as a scroll
+    }
+  }
+  function up() {
+    clearHold();
+    if (dragging) { reorderTiles(order); setDragging(null); }
   }
 
   return (
     <div className="dash-grid">
-      {order.map((id) => (
-        <div
-          key={id}
-          ref={(el) => { if (el) refs.current.set(id, el); else refs.current.delete(id); }}
-          style={{
-            gridColumn: tileMeta(id).span === "full" ? "1 / -1" : "auto",
-            position: "relative",
-            opacity: dragging === id ? 0.65 : 1,
-            transform: dragging === id ? "scale(0.99)" : undefined,
-            boxShadow: dragging === id ? "var(--shadow-lg)" : undefined,
-            borderRadius: 16,
-            zIndex: dragging === id ? 5 : undefined,
-            transition: "box-shadow 150ms ease, opacity 150ms ease",
-          }}
-        >
-          <button
-            aria-label="Drag to reorder"
-            title="Drag to reorder"
-            onPointerDown={(e) => { e.preventDefault(); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); setDragging(id); }}
-            onPointerMove={move}
-            onPointerUp={end}
-            onPointerCancel={end}
+      {order.map((id) => {
+        const full = spanOf(id) === "full";
+        const isDrag = dragging === id;
+        return (
+          <div
+            key={id}
+            ref={(el) => { if (el) refs.current.set(id, el); else refs.current.delete(id); }}
+            onPointerDown={(e) => down(e, id)}
+            onPointerMove={pmove}
+            onPointerUp={up}
+            onPointerCancel={up}
             style={{
-              position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)", zIndex: 3,
-              cursor: dragging === id ? "grabbing" : "grab", touchAction: "none",
-              background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8,
-              color: "var(--text-2)", fontSize: 12, lineHeight: 1, padding: "3px 12px", opacity: 0.75,
+              gridColumn: full ? "1 / -1" : "auto",
+              position: "relative",
+              borderRadius: 24,
+              touchAction: editing ? "none" : "auto",
+              cursor: editing ? (isDrag ? "grabbing" : "grab") : "default",
+              opacity: isDrag ? 0.7 : 1,
+              transform: isDrag ? "scale(0.99)" : undefined,
+              boxShadow: isDrag ? "var(--shadow-lg)" : undefined,
+              zIndex: isDrag ? 5 : undefined,
+              transition: "box-shadow 150ms ease, opacity 150ms ease",
+              animation: editing && !isDrag ? "tileWiggle 0.55s ease-in-out infinite" : undefined,
             }}
-          >⠿</button>
-          <TileView id={id} />
-        </div>
-      ))}
+          >
+            {editing && (
+              <>
+                <button
+                  aria-label={full ? "Make half width" : "Make full width"} title="Resize"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => setTileSpan(id, full ? "half" : "full")}
+                  style={{ position: "absolute", top: 10, left: 10, zIndex: 6, width: 30, height: 30, borderRadius: 999, background: "var(--accent)", border: "2px solid var(--surface)", display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)" }}
+                >
+                  <ResizeIcon />
+                </button>
+                <button
+                  aria-label="Remove tile" title="Remove"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => setTileEnabled(id, false)}
+                  style={{ position: "absolute", top: 10, right: 10, zIndex: 6, width: 28, height: 28, borderRadius: 999, background: "var(--negative)", border: "2px solid var(--surface)", display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)" }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
+                </button>
+              </>
+            )}
+            {/* Freeze interactions inside the tile while editing so drags don't trigger links. */}
+            <div style={{ pointerEvents: editing ? "none" : "auto" }}>
+              <TileView id={id} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function CustomizeModal({ open, onClose, enabled, isPaid }: {
+/** Add-a-widget picker — the tiles not currently on the dashboard. */
+function AddWidgetModal({ open, onClose, enabled, isPaid }: {
   open: boolean; onClose: () => void; enabled: TileId[]; isPaid: boolean;
 }) {
   const available = TILE_CATALOG.filter((t) => !enabled.includes(t.id));
   return (
     <Modal open={open} onClose={onClose}>
       <div style={{ display: "grid", gap: 4, marginBottom: 12 }}>
-        <h2 style={{ margin: 0 }}>Customize dashboard</h2>
-        <p className="muted" style={{ fontSize: 13 }}>Drag the grip to reorder your tiles. Toggle tiles on or off below.</p>
+        <h2 style={{ margin: 0 }}>Add a widget</h2>
+        <p className="muted" style={{ fontSize: 13 }}>Pick a tile to add to your dashboard. Resize and reorder it right on the page.</p>
       </div>
 
-      <div style={{ display: "grid", gap: 10, maxHeight: "60vh", overflowY: "auto" }}>
-        {enabled.length > 0 && (
-          <div style={{ display: "grid", gap: 4 }}>
-            <div className="muted" style={{ fontSize: 12, fontWeight: 600 }}>On your dashboard · drag to reorder</div>
-            <SortableEnabled enabled={enabled} isPaid={isPaid} />
-          </div>
-        )}
-
-        {available.length > 0 && (
-          <div style={{ display: "grid", gap: 4 }}>
-            <div className="muted" style={{ fontSize: 12, fontWeight: 600 }}>Add a tile</div>
-            {available.map((t) => {
-              const locked = !!t.premium && !isPaid;
-              return (
-                <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface-2)", opacity: locked ? 0.6 : 1 }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14 }}>
-                    {t.title}
-                    {locked && <span className="muted" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12 }}><LockIcon size={13} /> Premium</span>}
-                  </span>
-                  <button className="chip" disabled={locked} onClick={() => setTileEnabled(t.id, true)}>Add</button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+      <div style={{ display: "grid", gap: 8, maxHeight: "60vh", overflowY: "auto" }}>
+        {available.length === 0 ? (
+          <p className="muted" style={{ fontSize: 13, padding: "8px 2px" }}>Every widget is already on your dashboard.</p>
+        ) : available.map((t) => {
+          const locked = !!t.premium && !isPaid;
+          return (
+            <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "11px 14px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface-2)", opacity: locked ? 0.6 : 1 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+                {t.title}
+                {locked && <span className="muted" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12 }}><LockIcon size={13} /> Premium</span>}
+              </span>
+              <button className="btn" style={{ padding: "6px 14px", gap: 5 }} disabled={locked} onClick={() => { setTileEnabled(t.id, true); }}><PlusIcon size={14} /> Add</button>
+            </div>
+          );
+        })}
       </div>
 
       {!isPaid && (
@@ -237,61 +297,5 @@ function CustomizeModal({ open, onClose, enabled, isPaid }: {
         <button className="btn" onClick={onClose}>Done</button>
       </div>
     </Modal>
-  );
-}
-
-/** Pointer-drag sortable list of the enabled tiles (touch + mouse). */
-function SortableEnabled({ enabled, isPaid }: { enabled: TileId[]; isPaid: boolean }) {
-  const [order, setOrder] = useState<TileId[]>(enabled);
-  const [dragging, setDragging] = useState<TileId | null>(null);
-  const rows = useRef<Map<TileId, HTMLElement>>(new Map());
-  useEffect(() => { setOrder(enabled); }, [enabled]);
-
-  function move(e: React.PointerEvent) {
-    if (!dragging) return;
-    const y = e.clientY;
-    let target: TileId | null = null;
-    for (const [id, el] of rows.current) {
-      const r = el.getBoundingClientRect();
-      if (y >= r.top && y <= r.bottom) { target = id; break; }
-    }
-    if (!target || target === dragging) return;
-    setOrder((prev) => {
-      const from = prev.indexOf(dragging);
-      const to = prev.indexOf(target!);
-      if (from < 0 || to < 0) return prev;
-      const next = [...prev];
-      const [m] = next.splice(from, 1);
-      next.splice(to, 0, m!);
-      return next;
-    });
-  }
-  function end() {
-    if (dragging) { reorderTiles(order); setDragging(null); }
-  }
-
-  return (
-    <div style={{ display: "grid", gap: 4 }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
-      {order.map((id) => {
-        const meta = tileMeta(id);
-        const locked = !!meta.premium && !isPaid;
-        return (
-          <div
-            key={id}
-            ref={(el) => { if (el) rows.current.set(id, el); else rows.current.delete(id); }}
-            style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 10, border: "1px solid var(--border)",
-              background: dragging === id ? "var(--accent-ghost)" : "var(--surface-2)", boxShadow: dragging === id ? "var(--shadow)" : "none", opacity: locked ? 0.6 : 1 }}
-          >
-            <button
-              aria-label="Drag to reorder"
-              onPointerDown={(e) => { e.preventDefault(); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); setDragging(id); }}
-              style={{ cursor: "grab", touchAction: "none", background: "transparent", border: "none", color: "var(--text-2)", fontSize: 16, padding: "2px 4px", lineHeight: 1 }}
-            >⠿</button>
-            <span style={{ flex: 1, fontSize: 14 }}>{meta.title}{locked && <span className="muted" style={{ fontSize: 12 }}> · Premium</span>}</span>
-            <button className="chip" onClick={() => setTileEnabled(id, false)} aria-label={`Remove ${meta.title}`}>Remove</button>
-          </div>
-        );
-      })}
-    </div>
   );
 }
