@@ -10,6 +10,7 @@ import { useTheme, setTheme } from "../../src/theme";
 import { useBaseCurrency } from "../../src/hooks";
 import { setBaseCurrency, useAmountsHidden, setAmountsHidden } from "../../src/prefs";
 import { useSession, updateUsername, signOut } from "../../src/account";
+import { useConfirm } from "../../src/ui/Confirm";
 import { useSyncStatus, syncMessage } from "../../src/sync";
 import { Modal } from "../../src/ui/Modal";
 import { SunIcon, MoonIcon, EyeIcon, EyeOffIcon } from "../../src/ui/icons";
@@ -32,7 +33,19 @@ export default function SettingsPage() {
   const [confirmSignout, setConfirmSignout] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
+  const confirm = useConfirm();
+
+  async function replayIntro() {
+    if (!(await confirm({
+      title: "Replay the intro?",
+      message: "You’ll be signed out and taken back to the welcome screens. You’ll need to sign in again afterwards.",
+      confirmLabel: "Replay intro",
+      danger: false,
+    }))) return;
+    if (typeof window !== "undefined") localStorage.removeItem("onboardingSeen");
+    await signOut(); // routes to /onboarding
+  }
+
   useEffect(() => { if (session) setUsername(session.username); }, [session]);
 
   async function deleteAccount(orphan: boolean) {
@@ -192,7 +205,7 @@ export default function SettingsPage() {
         <h2>{t("settings.help", "Help & Support")}</h2>
         <div style={{ display: "grid", gap: 6 }}>
           <a href="mailto:support@pocketcare.app" className="chip" style={{ justifySelf: "start" }}>Contact support</a>
-          <Link href="/onboarding" className="chip" style={{ justifySelf: "start" }}>Replay the intro</Link>
+          <button className="chip" style={{ justifySelf: "start" }} onClick={() => void replayIntro()}>Replay the intro</button>
           <span className="muted" style={{ fontSize: 12 }}>PocketCare · your data is stored on your device and synced securely. Guest data is removed after 3 days if you don’t register.</span>
         </div>
       </section>

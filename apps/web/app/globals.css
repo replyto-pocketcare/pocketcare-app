@@ -5,6 +5,7 @@
   --surface-2: #f3ebdd;
   --border: #e7dccd;
   --border-strong: #e4d8c7;
+  --sidebar: #f6f0e7;
   --text: #2b2723;
   --text-2: #8a7d6c;
   --text-3: #a79a88;
@@ -32,6 +33,8 @@
   --surface: #2a2521;
   --surface-2: #332d27;
   --border: #3c352d;
+  --border-strong: #463d33;
+  --sidebar: #26211b;
   --text: #f1e8de;
   --text-2: #a89b8a;
   --accent: #c98a72;
@@ -205,7 +208,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 .shell-main { min-width: 0; }
 .sidebar {
   position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
-  padding: 18px 14px; border-right: 1px solid var(--border-strong); background: #f6f0e7;
+  padding: 18px 14px; border-right: 1px solid var(--border-strong); background: var(--sidebar);
   overflow-y: auto;                          /* long nav scrolls within the sidebar */
   overscroll-behavior: contain;
 }
