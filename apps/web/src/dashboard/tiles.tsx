@@ -72,7 +72,7 @@ const HERO_MUTED = "rgba(246,240,231,0.82)";
 
 function HeroTile({ title, action, grad, glow, children }: { title: string; action?: React.ReactNode; grad: string; glow: string; children: React.ReactNode }) {
   return (
-    <section style={{ position: "relative", overflow: "hidden", borderRadius: 24, padding: "22px 24px", color: "#f6f0e7", background: grad, boxShadow: glow, display: "grid", gap: 14, alignContent: "start" }}>
+    <section style={{ position: "relative", borderRadius: 24, padding: "22px 24px", color: "#f6f0e7", background: grad, boxShadow: glow, display: "grid", gap: 14, alignContent: "start" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(246,240,231,0.72)" }}>{title}</div>
         {action}

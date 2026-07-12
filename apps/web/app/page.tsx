@@ -10,8 +10,7 @@ import { HeroSkeleton, CardsSkeleton } from "../src/ui/Skeleton";
 import { useEntitlement } from "../src/entitlement";
 import { useAmountsHidden, setAmountsHidden } from "../src/prefs";
 import { colorForId } from "../src/colors";
-import { getDb } from "../src/powersync";
-import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon, ScaleIcon } from "../src/ui/icons";
+import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon } from "../src/ui/icons";
 import { Modal } from "../src/ui/Modal";
 import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSizes, setTileSize, W_COLS, H_ROWS, nextDim, type TileId, type TileSize } from "../src/dashboard";
 import { TILE_CATALOG, TileView, tileMeta } from "../src/dashboard/tiles";
@@ -46,6 +45,10 @@ const sizeBtn: React.CSSProperties = {
   width: 30, height: 30, borderRadius: 999, background: "var(--accent)", border: "2px solid var(--surface)",
   display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)",
 };
+const moveBtn: React.CSSProperties = {
+  width: 28, height: 28, borderRadius: 999, background: "var(--forest)", border: "2px solid var(--surface)",
+  display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)",
+};
 
 export default function Dashboard() {
   const { total, available, base } = useNetWorth();
@@ -66,10 +69,6 @@ export default function Dashboard() {
   // Only show tiles the user enabled; premium tiles need a paid plan.
   const visibleTiles = enabled.filter((id) => isPaid || !tileMeta(id).premium);
   const sizeOf = (id: TileId): TileSize => sizes[id] ?? defaultSize(id);
-
-  async function toggleNw(id: string, included: boolean) {
-    await getDb()?.execute("UPDATE accounts SET include_in_net_worth = ?, updated_at = ? WHERE id = ?", [included ? 0 : 1, new Date().toISOString(), id]);
-  }
 
   // While the local DB is still returning results, show placeholders rather
   // than the misleading "create your first account" screen.
@@ -101,7 +100,7 @@ export default function Dashboard() {
           <h1>{t("pages.dashboard", "Dashboard")}</h1>
           {editing && (
             <div style={{ fontSize: 12.5, color: "var(--accent)", marginTop: 5 }}>
-              Drag cards to rearrange · tap the corner handle to resize
+              Reorder with the ▲▼ arrows (or drag on desktop) · handles resize
             </div>
           )}
         </div>
@@ -126,28 +125,21 @@ export default function Dashboard() {
       {/* Net worth hero — rich green-gradient tile with trend sparkline */}
       <NetWorthHero net={net} base={base} fmt={fmt} showAvailable={showAvailable} onToggle={() => setShowAvailable((v) => !v)} />
 
-      {/* Accounts */}
-      <section style={{ display: "grid", gap: 12 }}>
-        <h2>Accounts</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(230px, 100%), 1fr))", gap: 12 }}>
-          {balances.map(({ account, balance }) => {
-            const included = account.include_in_net_worth !== 0;
+      {/* Accounts — compact colored chips inside one card; manage the rest via View all */}
+      <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          <h2 style={{ margin: 0 }}>Accounts</h2>
+          <Link href="/accounts" className="chip" style={{ fontSize: 13 }}>View all{balances.length > 8 ? ` (${balances.length})` : ""}</Link>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(150px, 100%), 1fr))", gap: 10 }}>
+          {balances.slice(0, 8).map(({ account, balance }) => {
             const color = account.color || colorForId(account.id);
             return (
-              <div key={account.id} className="card" style={{ padding: 0, overflow: "hidden", display: "flex" }}>
-                <div style={{ width: 5, background: color }} />
-                <div style={{ padding: 16, display: "grid", gap: 3, flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <span className="muted" style={{ fontSize: 12, textTransform: "capitalize", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.type.replace("_", " ")}</span>
-                    <button onClick={() => toggleNw(account.id, included)} title={included ? "Counts toward net worth — click to exclude" : "Excluded from net worth — click to include"}
-                      style={{ background: "transparent", border: "none", cursor: "pointer", color: included ? "var(--accent)" : "var(--text-2)", opacity: included ? 1 : 0.4, display: "inline-flex", padding: 0, flexShrink: 0 }}>
-                      <ScaleIcon size={16} />
-                    </button>
-                  </div>
-                  <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.name}</span>
-                  <span style={{ fontSize: 20, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(balance)}</span>
-                </div>
-              </div>
+              <Link key={account.id} href={`/accounts/${account.id}/edit`} style={{ background: color, color: "#fff", borderRadius: 14, padding: "12px 14px", display: "grid", gap: 1, minWidth: 0, boxShadow: "0 6px 16px -12px rgba(43,39,35,0.6)" }}>
+                <span style={{ fontSize: 11, opacity: 0.85, textTransform: "capitalize", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.type.replace("_", " ")}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.name}</span>
+                <span style={{ fontSize: 16, fontWeight: 750, textShadow: "0 1px 2px rgba(0,0,0,0.22)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(balance)}</span>
+              </Link>
             );
           })}
         </div>
@@ -250,9 +242,25 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
   const refs = useRef<Map<TileId, HTMLElement>>(new Map());
   const hold = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const start = useRef<{ x: number; y: number } | null>(null);
+  // Touch (coarse pointer) devices reorder with the ▲▼ buttons instead of drag,
+  // which is unreliable on mobile (text selection, no scroll, bad placeholder).
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => { setCoarse(typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches); }, []);
   useEffect(() => { if (!dragging) setOrder(ids); }, [ids.join(","), dragging]);
 
   const clearHold = () => { if (hold.current) { clearTimeout(hold.current); hold.current = undefined; } };
+
+  function moveBy(id: TileId, dir: -1 | 1) {
+    setOrder((prev) => {
+      const i = prev.indexOf(id), j = i + dir;
+      if (i < 0 || j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      const [m] = next.splice(i, 1);
+      next.splice(j, 0, m!);
+      reorderTiles(next);
+      return next;
+    });
+  }
 
   function pickUp(id: TileId, el: HTMLElement, pid: number, x: number, y: number) {
     const r = el.getBoundingClientRect();
@@ -284,9 +292,14 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
     start.current = { x: e.clientX, y: e.clientY };
     const el = e.currentTarget as HTMLElement;
     const pid = e.pointerId, x = e.clientX, y = e.clientY;
-    // Require a brief hold before picking a tile up, so a quick swipe scrolls
-    // the page (fixes "can't scroll" on mobile). Longer when not yet editing.
-    const delay = editing ? 170 : 430;
+    if (coarse) {
+      // No drag on touch. Long-press only enters edit mode; reorder via ▲▼.
+      if (!editing) hold.current = setTimeout(() => onLongPress(), 500);
+      return;
+    }
+    // Mouse: require a brief hold before picking up, so a quick click/scroll
+    // isn't hijacked. Longer when not yet editing.
+    const delay = editing ? 150 : 400;
     hold.current = setTimeout(() => { if (!editing) onLongPress(); pickUp(id, el, pid, x, y); }, delay);
   }
   function pmove(e: React.PointerEvent) {
@@ -348,14 +361,18 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
                     </div>
                   )}
                   {editing && (
-                    <button
-                      aria-label="Remove tile" title="Remove"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={() => setTileEnabled(id, false)}
-                      style={{ position: "absolute", top: 10, right: 10, zIndex: 6, width: 28, height: 28, borderRadius: 999, background: "var(--negative)", border: "2px solid var(--surface)", display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)" }}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
-                    </button>
+                    <div style={{ position: "absolute", top: 10, right: 10, zIndex: 6, display: "flex", gap: 6 }} onPointerDown={(e) => e.stopPropagation()}>
+                      <button aria-label="Move earlier" title="Move up" onClick={() => moveBy(id, -1)} style={moveBtn}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M18 15l-6-6-6 6" /></svg>
+                      </button>
+                      <button aria-label="Move later" title="Move down" onClick={() => moveBy(id, 1)} style={moveBtn}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+                      </button>
+                      <button aria-label="Remove tile" title="Remove" onClick={() => setTileEnabled(id, false)}
+                        style={{ width: 28, height: 28, borderRadius: 999, background: "var(--negative)", border: "2px solid var(--surface)", display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
+                      </button>
+                    </div>
                   )}
                   {/* Freeze interactions inside the tile while editing so drags don't trigger links. */}
                   <div className="dash-tile-body" style={{ pointerEvents: editing ? "none" : "auto" }}>
