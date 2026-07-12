@@ -46,7 +46,7 @@ export default function AccountsPage() {
                   {account.type.replace("_", " ")} · {account.currency}{archived ? " · archived" : ""}
                 </span>
                 <span style={{ fontWeight: 600 }}>{account.name}</span>
-                <span style={{ fontSize: 22, fontWeight: 700 }}>{fmt(balance)}</span>
+                <span style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 700 }}>{fmt(balance)}</span>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
                   {archived ? (
                     <button className="chip" style={{ padding: "2px 10px", fontSize: 12 }} onClick={() => setArchived(account.id, false)}>Unarchive</button>

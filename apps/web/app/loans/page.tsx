@@ -62,7 +62,7 @@ export default function LoansPage() {
         </div>
         <div style={{ textAlign: "right" }}>
           <div className="muted" style={{ fontSize: 13 }}>Of monthly income</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: Number.isFinite(pct) && pct > 50 ? "var(--negative)" : "var(--forest)" }}>
+          <div style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 700, color: Number.isFinite(pct) && pct > 50 ? "var(--negative)" : "var(--forest)" }}>
             {Number.isFinite(pct) ? `${pct.toFixed(0)}%` : "—"}
           </div>
           <div className="muted" style={{ fontSize: 12 }}>Income {fmt(money(monthlyIncome, base), "en-US")}</div>

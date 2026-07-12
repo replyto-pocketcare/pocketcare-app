@@ -77,11 +77,11 @@ export default function InvestmentsPage() {
           </div>
           <div>
             <div className="muted" style={{ fontSize: 13 }}>Invested (cost)</div>
-            <div style={{ fontSize: 22, fontWeight: 700 }}>{fmt(money(Math.round(investedValue), base), "en-US")}</div>
+            <div style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 700 }}>{fmt(money(Math.round(investedValue), base), "en-US")}</div>
           </div>
           <div>
             <div className="muted" style={{ fontSize: 13 }}>Total gain / loss</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: gain >= 0 ? "var(--positive)" : "var(--negative)" }}>
+            <div style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 700, color: gain >= 0 ? "var(--positive)" : "var(--negative)" }}>
               {gain >= 0 ? "+" : "−"}{fmt(money(Math.round(Math.abs(gain)), base), "en-US")} <span style={{ fontSize: 14 }}>({gain >= 0 ? "+" : "−"}{Math.abs(gainPct).toFixed(1)}%)</span>
             </div>
           </div>

@@ -38,15 +38,15 @@ export default function AdminDashboard() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20 }}>
         <div style={{ padding: 20, background: "#222", borderRadius: 12, border: "1px solid #333" }}>
           <div style={{ color: "#aaa", fontSize: 14 }}>Total Users</div>
-          <div style={{ fontSize: 32, fontWeight: 700 }}>{stats.totalUsers}</div>
+          <div style={{ fontFamily: "var(--font-serif)", fontSize: 32, fontWeight: 700 }}>{stats.totalUsers}</div>
         </div>
         <div style={{ padding: 20, background: "#222", borderRadius: 12, border: "1px solid #333" }}>
           <div style={{ color: "#aaa", fontSize: 14 }}>Active Subscriptions</div>
-          <div style={{ fontSize: 32, fontWeight: 700 }}>{stats.activeSubscriptions}</div>
+          <div style={{ fontFamily: "var(--font-serif)", fontSize: 32, fontWeight: 700 }}>{stats.activeSubscriptions}</div>
         </div>
         <div style={{ padding: 20, background: "#222", borderRadius: 12, border: "1px solid #333" }}>
           <div style={{ color: "#aaa", fontSize: 14 }}>Total Income</div>
-          <div style={{ fontSize: 32, fontWeight: 700, color: "var(--accent)" }}>
+          <div style={{ fontFamily: "var(--font-serif)", fontSize: 32, fontWeight: 700, color: "var(--accent)" }}>
             ${(stats.totalIncome / 100).toFixed(2)}
           </div>
         </div>
