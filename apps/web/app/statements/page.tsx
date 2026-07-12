@@ -74,7 +74,7 @@ export default function StatementsPage() {
           </div>
           <div style={{ textAlign: "right", minWidth: 0 }}>
             <div className="muted" style={{ fontSize: 12 }}>Net for period</div>
-            <div style={{ fontSize: 22, fontFamily: "var(--font-serif)", fontWeight: 750, whiteSpace: "nowrap", color: income - expense >= 0 ? "var(--positive)" : "var(--negative)" }}>
+            <div style={{ fontSize: 22, fontWeight: 750, whiteSpace: "nowrap", color: income - expense >= 0 ? "var(--positive)" : "var(--negative)" }}>
               {format(money(income - expense, base), "en-US")}
             </div>
           </div>

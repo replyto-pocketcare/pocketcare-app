@@ -127,7 +127,7 @@ function CardPanel({ account, owed, detail, sources }: {
       <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", cursor: "pointer", userSelect: "none", outline: "none" }}>
         <div>
           <div className="muted" style={{ fontSize: 12 }}>Spent this cycle</div>
-          <div style={{ fontSize: 28, fontFamily: "var(--font-serif)", fontWeight: 750, color: "var(--negative)" }}>{fmt(owedMoney)}</div>
+          <div style={{ fontSize: 28, fontWeight: 750, color: "var(--negative)" }}>{fmt(owedMoney)}</div>
           {detail?.credit_limit ? (
             <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
               of {fmt(money(detail.credit_limit, account.currency))} limit

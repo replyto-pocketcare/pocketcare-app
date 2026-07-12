@@ -3,9 +3,9 @@
 Reference for the visual language (from `design rewamp/Split debt visualization design/PocketCare.dc.html`). Source of truth for tokens is `apps/web/app/globals.css` `:root`.
 
 ## Fonts
-- **Fraunces** (serif) — headings (`h1/h2/h3`), the wordmark, and large stat numbers. Loaded via Google Fonts in `apps/web/app/layout.tsx`. Token: `--font-serif`.
-- **Inter** (sans) — body, labels, buttons, nav. Token: `--font`.
-- Opt-in serif utilities: `.serif`, `.stat`. Eyebrow label: `.eyebrow` (11px, 600, uppercase, tracked).
+- **Inter** (sans) — the single app typeface: headings, body, labels, buttons, nav, figures. Loaded via Google Fonts in `apps/web/app/layout.tsx`. Token: `--font`.
+- Eyebrow label: `.eyebrow` (11px, 600, uppercase, tracked).
+- (The design mockup used Fraunces for display type; we intentionally keep Inter throughout.)
 
 ## Palette (tokens)
 | Token | Value | Use |

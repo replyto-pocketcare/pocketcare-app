@@ -196,7 +196,7 @@ export default function EditTransactionPage() {
         <div className="card" style={{ padding: 22, display: "grid", gap: 14 }}>
           <div>
             <div className="muted" style={{ fontSize: 13 }}>Amount{items.length > 1 ? " · sum of items" : ""}</div>
-            <div style={{ fontSize: 40, fontFamily: "var(--font-serif)", fontWeight: 750, letterSpacing: "-0.02em", color: type === "expense" ? "var(--negative)" : "var(--positive)" }}>
+            <div style={{ fontSize: 40, fontWeight: 750, letterSpacing: "-0.02em", color: type === "expense" ? "var(--negative)" : "var(--positive)" }}>
               {format(total, "en-US")}
             </div>
           </div>

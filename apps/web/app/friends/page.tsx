@@ -117,7 +117,7 @@ export default function SplitsPage() {
         {/* Net position */}
         <div style={{ background: "var(--accent-ghost, rgba(0,0,0,0.04))", borderRadius: 18, padding: "22px 24px", display: "grid", gap: 14, justifyItems: "center" }}>
           <div className="muted" style={{ fontSize: 14 }}>Net position</div>
-          <div style={{ fontSize: 46, fontFamily: "var(--font-serif)", fontWeight: 750, lineHeight: 1, color: netColor }}>
+          <div style={{ fontSize: 46, fontWeight: 750, lineHeight: 1, color: netColor }}>
             {netPosition >= 0 ? "+" : "−"}{amt(netPosition)}
           </div>
           <div style={{ width: "100%", height: 12, borderRadius: 999, overflow: "hidden", display: "flex", background: "var(--border)" }}>
@@ -161,7 +161,7 @@ export default function SplitsPage() {
                           <div className="muted" style={{ fontSize: 14 }}>{g.peopleCount} {g.peopleCount === 1 ? "person" : "people"} · {g.group.kind === "trip" ? "trip" : "group"}</div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                          <span style={{ fontFamily: "var(--font-serif)", fontWeight: 750, fontSize: 19, color: g.net > 0 ? "var(--positive)" : g.net < 0 ? "var(--negative)" : "var(--text-2)" }}>
+                          <span style={{ fontWeight: 750, fontSize: 19, color: g.net > 0 ? "var(--positive)" : g.net < 0 ? "var(--negative)" : "var(--text-2)" }}>
                             {g.net === 0 ? amt(0) : (g.net > 0 ? "" : "−") + amt(g.net)}
                           </span>
                           <span className="muted" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s", fontSize: 12 }}>▾</span>
@@ -200,7 +200,7 @@ export default function SplitsPage() {
                       <div style={{ fontWeight: 700, fontSize: 18, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(b.userId)}</div>
                       <div style={{ fontSize: 14, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{b.net > 0 ? "owes you" : "you owe"}</div>
                     </div>
-                    <span style={{ fontFamily: "var(--font-serif)", fontWeight: 750, fontSize: 19, color: b.net > 0 ? "var(--positive)" : "var(--negative)", flexShrink: 0 }}>{amt(b.net)}</span>
+                    <span style={{ fontWeight: 750, fontSize: 19, color: b.net > 0 ? "var(--positive)" : "var(--negative)", flexShrink: 0 }}>{amt(b.net)}</span>
                   </button>
                 ))}
               </div>
@@ -216,11 +216,11 @@ export default function SplitsPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <Avatar id={person.userId} name={person.name} size={56} />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontFamily: "var(--font-serif)", fontWeight: 750, fontSize: 24, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{person.name}</div>
+                <div style={{ fontWeight: 750, fontSize: 24, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{person.name}</div>
                 <div style={{ fontSize: 15, color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{person.net > 0 ? "owes you" : "you owe"}</div>
               </div>
             </div>
-            <div style={{ fontSize: 44, fontFamily: "var(--font-serif)", fontWeight: 750, lineHeight: 1, color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(person.net)}</div>
+            <div style={{ fontSize: 44, fontWeight: 750, lineHeight: 1, color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(person.net)}</div>
             <div style={{ display: "flex", gap: 12 }}>
               <button className="btn" style={{ flex: 1 }} onClick={() => openSettle(person.userId, person.net)}>Settle up</button>
               <button className="btn ghost" style={{ flex: "0 0 auto", minWidth: 120 }} onClick={() => void remind(person)}>{reminded ? "Copied!" : "Remind"}</button>

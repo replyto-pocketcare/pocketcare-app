@@ -19,7 +19,7 @@ export function Logo({ size = 30, wordmark = true }: { size?: number; wordmark?:
     <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
       <LogoMark size={size} />
       {wordmark && (
-        <strong style={{ fontFamily: "var(--font-serif)", fontWeight: 600, fontSize: size * 0.58, letterSpacing: "-0.01em" }}>
+        <strong style={{ fontWeight: 600, fontSize: size * 0.58, letterSpacing: "-0.01em" }}>
           Pocket<span style={{ color: "var(--accent)" }}>Care</span>
         </strong>
       )}

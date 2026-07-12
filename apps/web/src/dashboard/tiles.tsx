@@ -93,8 +93,8 @@ function SplitsTile() {
   return (
     <TileCard title="Friends & splits" action={<Link href="/friends" className="muted" style={{ fontSize: 13 }}>Open →</Link>}>
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-        <div><div className="muted" style={{ fontSize: 12 }}>You’re owed</div><div style={{ fontSize: 22, fontFamily: "var(--font-serif)", fontWeight: 750, color: "var(--positive)" }}>{fmt(owed)}</div></div>
-        <div><div className="muted" style={{ fontSize: 12 }}>You owe</div><div style={{ fontSize: 22, fontFamily: "var(--font-serif)", fontWeight: 750, color: "var(--negative)" }}>{fmt(owe)}</div></div>
+        <div><div className="muted" style={{ fontSize: 12 }}>You’re owed</div><div style={{ fontSize: 22, fontWeight: 750, color: "var(--positive)" }}>{fmt(owed)}</div></div>
+        <div><div className="muted" style={{ fontSize: 12 }}>You owe</div><div style={{ fontSize: 22, fontWeight: 750, color: "var(--negative)" }}>{fmt(owe)}</div></div>
       </div>
       {top.length > 0 ? (
         <div style={{ display: "grid", gap: 6 }}>

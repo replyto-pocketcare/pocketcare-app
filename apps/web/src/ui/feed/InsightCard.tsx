@@ -56,7 +56,7 @@ function TextBlock({ card }: { card: Card }) {
       {card.subhead && <div className="muted" style={{ fontSize: 14, marginTop: -4 }}>{card.subhead}</div>}
       {card.metric && (
         <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-          <span style={{ fontSize: "clamp(26px, 4vw, 40px)", fontFamily: "var(--font-serif)", fontWeight: 750, color: accent }}>{card.metric.display}</span>
+          <span style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 750, color: accent }}>{card.metric.display}</span>
           <DeltaPill card={card} />
         </div>
       )}

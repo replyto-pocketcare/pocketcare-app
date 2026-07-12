@@ -58,11 +58,11 @@ export default function LoansPage() {
       <section className="card" style={{ padding: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <div className="muted" style={{ fontSize: 13 }}>Recurring commitments / month</div>
-          <div style={{ fontSize: 30, fontFamily: "var(--font-serif)", fontWeight: 750 }}>{fmt(money(recurringMonthly, base), "en-US")}</div>
+          <div style={{ fontSize: 30, fontWeight: 750 }}>{fmt(money(recurringMonthly, base), "en-US")}</div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div className="muted" style={{ fontSize: 13 }}>Of monthly income</div>
-          <div style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 700, color: Number.isFinite(pct) && pct > 50 ? "var(--negative)" : "var(--forest)" }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: Number.isFinite(pct) && pct > 50 ? "var(--negative)" : "var(--forest)" }}>
             {Number.isFinite(pct) ? `${pct.toFixed(0)}%` : "—"}
           </div>
           <div className="muted" style={{ fontSize: 12 }}>Income {fmt(money(monthlyIncome, base), "en-US")}</div>

@@ -16,7 +16,7 @@ function Center({ label, sub }: { label?: string | undefined; sub?: string | und
   return (
     <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none" }}>
       <div style={{ textAlign: "center" }}>
-        {label && <div style={{ fontSize: "clamp(20px, 3.2vw, 30px)", fontFamily: "var(--font-serif)", fontWeight: 750, lineHeight: 1 }}>{label}</div>}
+        {label && <div style={{ fontSize: "clamp(20px, 3.2vw, 30px)", fontWeight: 750, lineHeight: 1 }}>{label}</div>}
         {sub && <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{sub}</div>}
       </div>
     </div>

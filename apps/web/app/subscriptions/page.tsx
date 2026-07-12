@@ -92,7 +92,7 @@ export default function SubscriptionsPage() {
       <section className="card" style={{ padding: 20, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <div>
           <div className="muted" style={{ fontSize: 13 }}>Total monthly cost</div>
-          <div style={{ fontSize: 30, fontFamily: "var(--font-serif)", fontWeight: 750 }}>{fmt(money(monthlyTotal, base))}</div>
+          <div style={{ fontSize: 30, fontWeight: 750 }}>{fmt(money(monthlyTotal, base))}</div>
         </div>
         <div className="muted" style={{ fontSize: 13 }}>{subs.length} active · {fmt(money(monthlyTotal * 12, base))}/yr</div>
       </section>
