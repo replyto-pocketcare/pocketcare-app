@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
-  BarChart, Bar, AreaChart, Area, XAxis, YAxis, LabelList,
+  BarChart, Bar, ComposedChart, Line, CartesianGrid, AreaChart, Area, XAxis, YAxis, LabelList,
 } from "recharts";
 import { money, format, toMajor, type Money } from "@pocketcare/money";
 import { budgetProgress } from "@pocketcare/budget";
@@ -379,19 +379,83 @@ const compactTick = (v: number): string => {
 };
 const axisY = { tick: { fontSize: 11, fill: "var(--text-2)" }, axisLine: false, tickLine: false, width: 44, tickFormatter: compactTick } as const;
 
+/** "YYYY-MM" -> "Jul" (append 2-digit year only when the window spans years). */
+function monthLabel(ym: string, showYear: boolean): string {
+  const [y, m] = ym.split("-").map(Number);
+  const mon = MON[(m ?? 1) - 1] ?? ym;
+  return showYear ? `${mon} '${String(y ?? 0).slice(-2)}` : mon;
+}
+
 function CashflowTile() {
   const { cashflow } = useCashflow();
+  const base = useBaseCurrency();
+  const hidden = useAmountsHidden();
+  const fmtCur = (v: number) => (hidden ? "••••" : format(money(Math.round(v * 100), base), "en-US"));
+
+  const spansYears = new Set(cashflow.map((c) => c.month.slice(0, 4))).size > 1;
+  const data = cashflow.map((c) => ({ ...c, label: monthLabel(c.month, spansYears) }));
+  const totalIn = cashflow.reduce((s, c) => s + c.income, 0);
+  const totalOut = cashflow.reduce((s, c) => s + c.expense, 0);
+  const net = totalIn - totalOut;
+
+  if (cashflow.length === 0) {
+    return (
+      <TileCard title="Cashflow">
+        <div style={{ display: "grid", placeItems: "center", height: 200, textAlign: "center", gap: 6 }}>
+          <span style={{ fontSize: 22, opacity: 0.5 }}>⇅</span>
+          <p className="muted" style={{ margin: 0 }}>No income or expenses yet.<br />Add a transaction to see your cashflow.</p>
+        </div>
+      </TileCard>
+    );
+  }
+
+  const stat = (label: string, value: number, color: string, sign = false) => (
+    <div style={{ display: "grid", gap: 2 }}>
+      <span className="muted" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
+      <span style={{ fontSize: 18, fontWeight: 750, color }}>{sign && value > 0 ? "+" : ""}{fmtCur(value)}</span>
+    </div>
+  );
+
   return (
     <TileCard title="Cashflow">
-      <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={cashflow} margin={{ top: 10, right: 8, bottom: 0, left: 0 }} barGap={2}>
+      {/* Summary of the visible window */}
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 6 }}>
+        {stat("In", totalIn, "var(--positive)")}
+        {stat("Out", totalOut, "var(--negative)")}
+        {stat("Net", net, net >= 0 ? "var(--forest)" : "var(--negative)", true)}
+      </div>
+      <ResponsiveContainer width="100%" height={230}>
+        <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: 0 }} barGap={3}>
           {gradientDefs()}
-          <XAxis dataKey="month" {...axisX} /><YAxis {...axisY} /><Tooltip cursor={{ fill: "var(--surface-2)" }} />
-          <Bar dataKey="income" fill="url(#gInc)" radius={[6, 6, 0, 0]} maxBarSize={22} />
-          <Bar dataKey="expense" fill="url(#gExp)" radius={[6, 6, 0, 0]} maxBarSize={22} />
-        </BarChart>
+          <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
+          <XAxis dataKey="label" {...axisX} />
+          <YAxis {...axisY} />
+          <Tooltip
+            cursor={{ fill: "var(--surface-2)" }}
+            contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", boxShadow: "var(--shadow)" }}
+            formatter={(v: number, n: string) => [fmtCur(v), n === "income" ? "In" : n === "expense" ? "Out" : "Net"]}
+          />
+          <Bar dataKey="income" name="income" fill="url(#gInc)" radius={[6, 6, 0, 0]} maxBarSize={26} />
+          <Bar dataKey="expense" name="expense" fill="url(#gExp)" radius={[6, 6, 0, 0]} maxBarSize={26} />
+          <Line type="monotone" dataKey="net" name="net" stroke="var(--forest)" strokeWidth={2.4} dot={{ r: 2.5, fill: "var(--forest)" }} activeDot={{ r: 5, fill: "var(--forest)", stroke: "var(--surface)", strokeWidth: 2 }} />
+        </ComposedChart>
       </ResponsiveContainer>
+      {/* Legend */}
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8, fontSize: 12, color: "var(--text-2)" }}>
+        <LegendDot color="#5f7a52" label="In" />
+        <LegendDot color="#b06a4f" label="Out" />
+        <LegendDot color="var(--forest)" label="Net" line />
+      </div>
     </TileCard>
+  );
+}
+
+function LegendDot({ color, label, line = false }: { color: string; label: string; line?: boolean }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+      <span style={{ width: line ? 14 : 9, height: line ? 3 : 9, borderRadius: line ? 999 : 3, background: color, display: "inline-block" }} />
+      {label}
+    </span>
   );
 }
 
