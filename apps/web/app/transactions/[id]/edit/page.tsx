@@ -11,6 +11,8 @@ import { LabelPicker } from "../../../../src/ui/LabelPicker";
 import { SearchSelect } from "../../../../src/ui/SearchSelect";
 import { AccountBadge } from "../../../../src/ui/AccountBadge";
 import { useConfirm } from "../../../../src/ui/Confirm";
+import { Modal } from "../../../../src/ui/Modal";
+import { KebabMenu } from "../../../../src/ui/KebabMenu";
 import { useEntitlement } from "../../../../src/entitlement";
 import { useLearnCategory } from "../../../../src/categorize/hooks";
 import { encryptForWrite } from "../../../../src/crypto/fields";
@@ -23,6 +25,7 @@ export default function EditTransactionPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const confirm = useConfirm();
+  const [showHistory, setShowHistory] = useState(false);
   const { data: rows = [] } = useQuery<Transaction>("SELECT * FROM transactions WHERE id = ?", [id]);
   const tx = rows[0];
   const { data: accounts = [] } = useQuery<Account>("SELECT * FROM accounts WHERE deleted_at IS NULL AND IFNULL(kind,'real') = 'real'");
@@ -119,6 +122,10 @@ export default function EditTransactionPage() {
   })();
   const activeAccountType = accounts.find((a) => a.id === accountId)?.type;
   const payMethods = payMethodMap.filter((m) => m.account_type_id === activeAccountType);
+  // Resolve backend ids to human-readable names for the edit-history view.
+  const catName = (cid: string) => cats.find((c) => c.id === cid)?.name ?? "—";
+  const acctName = (aid: string) => accounts.find((a) => a.id === aid)?.name ?? "—";
+  const payName = (pid: string) => payMethodMap.find((m) => m.id === pid)?.label ?? pid;
 
   const updateItem = (id: string, patch: Partial<(typeof items)[number]>) =>
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
@@ -172,7 +179,14 @@ export default function EditTransactionPage() {
 
   return (
     <div style={{ maxWidth: 620, display: "grid", gap: 14 }} className="fade-up">
-      <h1>Edit transaction</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        <h1>Edit transaction</h1>
+        {audit.length > 0 && (
+          <KebabMenu label="Transaction options" items={[
+            { label: "View edit history", onClick: () => setShowHistory(true) },
+          ]} />
+        )}
+      </div>
 
       <div style={{ display: "flex", gap: 8 }}>
         {(["expense", "income", "transfer"] as TxType[]).map((tp) => (
@@ -266,34 +280,72 @@ export default function EditTransactionPage() {
         >Delete</button>
       </div>
 
-      {/* Audit trail */}
-      {audit.length > 0 && (
-        <section className="card" style={{ padding: 20, marginTop: 8 }}>
-          <h2 style={{ marginBottom: 10 }}>Edit history</h2>
-          <div style={{ display: "grid", gap: 10 }}>
-            {audit.map((a) => (
-              <div key={a.id} style={{ fontSize: 13, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>
-                <div className="muted" style={{ fontSize: 12 }}>{new Date(a.created_at).toLocaleString()} · {a.action}</div>
-                <AuditChanges changes={a.changes} currency={currency} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Edit history — behind the ⋯ menu, not shown by default */}
+      <Modal open={showHistory} onClose={() => setShowHistory(false)}>
+        <h2 style={{ margin: "0 0 12px" }}>Edit history</h2>
+        <div style={{ display: "grid", gap: 10, maxHeight: "60vh", overflowY: "auto" }}>
+          {audit.length === 0 ? (
+            <p className="muted" style={{ margin: 0, fontSize: 13 }}>No edits yet.</p>
+          ) : audit.map((a) => (
+            <div key={a.id} style={{ fontSize: 13, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>
+              <div className="muted" style={{ fontSize: 12 }}>{new Date(a.created_at).toLocaleString()} · {a.action}</div>
+              <AuditChanges changes={a.changes} currency={currency} catName={catName} acctName={acctName} payName={payName} />
+            </div>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }
 
-function AuditChanges({ changes, currency }: { changes: string | null; currency: string }) {
+// Only these fields are shown in edit history — everything else (ids we can't
+// resolve, timestamps, checksums, user_id, etc.) is backend noise and hidden.
+const AUDIT_LABELS: Record<string, string> = {
+  amount: "Amount",
+  to_amount: "To amount",
+  description: "Description",
+  merchant: "Merchant",
+  note: "Note",
+  occurred_at: "Date",
+  type: "Type",
+  category_id: "Category",
+  account_id: "Account",
+  to_account_id: "To account",
+  payment_method_id: "Payment method",
+};
+
+function AuditChanges({ changes, currency, catName, acctName, payName }: {
+  changes: string | null; currency: string;
+  catName: (id: string) => string; acctName: (id: string) => string; payName: (id: string) => string;
+}) {
   if (!changes) return null;
   let parsed: Record<string, { from: unknown; to: unknown }> = {};
   try { parsed = JSON.parse(changes); } catch { return null; }
-  const fmt = (field: string, v: unknown) =>
-    field === "amount" || field === "to_amount" ? format(money(Number(v) || 0, currency), "en-US") : String(v ?? "—");
+
+  const show = (field: string, v: unknown): string => {
+    if (v === null || v === undefined || v === "") return "—";
+    const s = String(v);
+    switch (field) {
+      case "amount":
+      case "to_amount": return format(money(Number(v) || 0, currency), "en-US");
+      case "occurred_at": return new Date(s).toLocaleString();
+      case "category_id": return catName(s);
+      case "account_id":
+      case "to_account_id": return acctName(s);
+      case "payment_method_id": return payName(s);
+      case "type": return s.charAt(0).toUpperCase() + s.slice(1);
+      default: return s;
+    }
+  };
+
+  const entries = Object.entries(parsed).filter(([field]) => AUDIT_LABELS[field]);
+  if (entries.length === 0) {
+    return <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>Minor update.</div>;
+  }
   return (
     <div style={{ display: "grid", gap: 2, marginTop: 4 }}>
-      {Object.entries(parsed).map(([field, { from, to }]) => (
-        <div key={field}><strong>{field}</strong>: <span className="muted">{fmt(field, from)}</span> → {fmt(field, to)}</div>
+      {entries.map(([field, { from, to }]) => (
+        <div key={field}><strong>{AUDIT_LABELS[field]}</strong>: <span className="muted">{show(field, from)}</span> → {show(field, to)}</div>
       ))}
     </div>
   );
