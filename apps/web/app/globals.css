@@ -97,25 +97,37 @@ button { font-family: inherit; }
 /* Edit-mode wiggle for draggable dashboard tiles. */
 @keyframes tileWiggle { 0% { transform: rotate(-0.5deg); } 50% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
 
-/* Assistant chat: scrollable history + composer pinned to the bottom. */
-.assist-scroll {
+/* Assistant chat.
+   The BODY is the scroller (no nested scroll container — nested overflow +
+   overscroll-behavior swallowed touch scrolls on mobile). The composer is
+   sticky at the viewport bottom; min-height pushes it down on short chats. */
+.assist-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 80px);           /* desktop: main padding */
+}
+.assist-thread {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   display: grid;
   gap: 14px;
   align-content: start;
   padding-bottom: 8px;
 }
 .assist-composer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
   flex-shrink: 0;
   display: flex;
   gap: 8px;
   align-items: flex-end;
-  padding-top: 10px;
+  padding: 10px 0 14px;
   border-top: 1px solid var(--border);
   background: var(--bg);
+}
+@media (max-width: 860px) {
+  .assist-page { min-height: calc(100dvh - 150px); }  /* topbar + main padding */
+  .assist-composer { padding-bottom: 10px; }
 }
 
 /* Hide the Add-transaction FAB while the dashboard is in edit mode. */
