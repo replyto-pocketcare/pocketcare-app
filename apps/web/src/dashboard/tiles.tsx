@@ -242,11 +242,18 @@ function BudgetsTile() {
   const { data: budgets = [] } = useQuery<BudgetLike>(
     "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 6",
   );
+  // Cap what we render to what fits the default tile height (~3 rows); surface
+  // the rest via a "+N more" link so the tile never overflows its gradient card.
+  const shown = budgets.slice(0, 4);
+  const extra = budgets.length - shown.length;
   return (
     <HeroTile title="Budgets" grad={HERO.budgets.grad} glow={HERO.budgets.glow} action={heroLink("/budgets", "Manage")}>
       {budgets.length ? (
-        <div style={{ display: "grid", gap: 14 }}>
-          {budgets.map((b) => <BudgetMini key={b.id} budget={b} />)}
+        <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
+          {shown.map((b) => <BudgetMini key={b.id} budget={b} />)}
+          {extra > 0 && (
+            <Link href="/budgets" style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)" }}>+{extra} more →</Link>
+          )}
         </div>
       ) : (
         <p style={{ margin: 0, color: HERO_MUTED }}>No budgets yet. <Link href="/budgets" style={{ color: "#fff", textDecoration: "underline" }}>Create one</Link>.</p>
@@ -268,10 +275,10 @@ function BudgetMini({ budget }: { budget: BudgetLike }) {
   const fill = p.overLimit ? "#f0d8c9" : p.atOrOverThreshold ? "#f3e4c6" : "#dde7c9";
   const fmt = (m: Money) => (hidden ? "••••" : format(m, "en-US"));
   return (
-    <div style={{ display: "grid", gap: 6 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
+    <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontSize: 13, gap: 8, minWidth: 0 }}>
         <span style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{budget.name || budget.period}</span>
-        <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(spent)} / {fmt(limit)}</span>
+        <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap", maxWidth: "58%", overflow: "hidden", textOverflow: "ellipsis" }}>{fmt(spent)} / {fmt(limit)}</span>
       </div>
       <LightBar pct={p.pct} color={fill} />
     </div>
