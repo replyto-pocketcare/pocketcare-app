@@ -9,7 +9,7 @@
  * the right synced table: incomes/household/savings → `planned_cashflow`,
  * subscriptions → `subscriptions`, loans → `loans`. Design tokens only.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@powersync/react";
 import { money, fromMajor, toMajor } from "@pocketcare/money";
 import { monthlyEquivalent } from "@pocketcare/finance";
@@ -39,6 +39,12 @@ import { SplitDonut, RatioBars } from "../../src/cashflow/Charts";
 import { ProjectionPanel } from "../../src/cashflow/Projections";
 
 const CYCLES: Period[] = ["daily", "weekly", "monthly", "yearly"];
+
+/** Smooth-scroll to a section by id (used by the hero cards + #hash deep-links). */
+function scrollToSection(id: string) {
+  if (typeof document === "undefined") return;
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 interface Sub { id: string; name: string; amount: number; currency: string; billing_cycle: Period; next_renewal: string | null }
 interface Loan { id: string; lender: string; principal: number; currency: string; emi_amount: number | null }
@@ -73,6 +79,22 @@ export default function CashflowPage() {
 
   const [timeframe, setTimeframe] = useState<Timeframe>("monthly");
   const [add, setAdd] = useState<{ direction: Direction; seed?: Template } | null>(null);
+
+  // Deep-link support: e.g. /cashflow#payments (from the dashboard tile) scrolls
+  // straight to that section. Retry briefly while synced data grows the page.
+  useEffect(() => {
+    const hash = typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+    if (!hash) return;
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const tryScroll = () => {
+      const el = document.getElementById(hash);
+      if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+      if (tries++ < 20) timer = setTimeout(tryScroll, 100);
+    };
+    timer = setTimeout(tryScroll, 200);
+    return () => clearTimeout(timer);
+  }, []);
 
   const totals = computeTotals({
     incomes,
@@ -111,10 +133,10 @@ export default function CashflowPage() {
 
       {/* Aggregate summary hero */}
       <div className="pc-hero">
-        <HeroStat label="Recurring income" value={fmt(money(tfIncome, base))} tone="positive" sub={`per ${timeframe.replace("ly", "")}`} />
-        <HeroStat label="Planned payments" value={fmt(money(tfPayments, base))} tone="negative" sub={`${household.length + subs.length + loans.filter((l) => l.emi_amount).length} commitments`} />
-        <HeroStat label="Net difference" value={fmt(money(tfNet, base))} tone={tfNet >= 0 ? "positive" : "negative"} sub="income − payments" emphasis />
-        <HeroStat label="Into savings" value={fmt(money(tfSavings, base))} tone="teal" sub={`${savings.length} plans`} />
+        <HeroStat label="Recurring income" value={fmt(money(tfIncome, base))} tone="positive" sub={`per ${timeframe.replace("ly", "")}`} targetId="incomes" />
+        <HeroStat label="Planned payments" value={fmt(money(tfPayments, base))} tone="negative" sub={`${household.length + subs.length + loans.filter((l) => l.emi_amount).length} commitments`} targetId="payments" />
+        <HeroStat label="Net difference" value={fmt(money(tfNet, base))} tone={tfNet >= 0 ? "positive" : "negative"} sub="income − payments" emphasis targetId="summary" />
+        <HeroStat label="Into savings" value={fmt(money(tfSavings, base))} tone="teal" sub={`${savings.length} plans`} targetId="savings" />
       </div>
 
       {/* Overview charts */}
@@ -147,13 +169,13 @@ export default function CashflowPage() {
       </section>
 
       {/* Recurring incomes */}
-      <Section title="Recurring incomes" accent="positive" count={incomes.length} onAdd={() => setAdd({ direction: "income" })} addLabel="Add income"
+      <Section id="incomes" title="Recurring incomes" accent="positive" count={incomes.length} onAdd={() => setAdd({ direction: "income" })} addLabel="Add income"
         empty="Log your salary, freelance payments and other regular income to see your true monthly inflow.">
         {incomes.map((i) => <PlannedRow key={i.id} item={i} base={base} />)}
       </Section>
 
       {/* Planned payments (household + subscriptions + loans) */}
-      <Section title="Planned payments" accent="negative" count={household.length + subs.length + loans.length} onAdd={() => setAdd({ direction: "payment" })} addLabel="Add payment"
+      <Section id="payments" title="Planned payments" accent="negative" count={household.length + subs.length + loans.length} onAdd={() => setAdd({ direction: "payment" })} addLabel="Add payment"
         empty="Add rent, bills, subscriptions and loan EMIs to track everything you're committed to.">
         {household.map((i) => <PlannedRow key={i.id} item={i} base={base} />)}
         {subs.map((s) => <SubRow key={s.id} sub={s} base={base} />)}
@@ -161,13 +183,13 @@ export default function CashflowPage() {
       </Section>
 
       {/* Savings tracker */}
-      <Section title="Savings & investments" accent="teal" count={savings.length} onAdd={() => setAdd({ direction: "saving" })} addLabel="Add plan"
+      <Section id="savings" title="Savings & investments" accent="teal" count={savings.length} onAdd={() => setAdd({ direction: "saving" })} addLabel="Add plan"
         empty="Plan your FDs, emergency fund, mutual funds, stocks and crypto — projected forward with compounding.">
         {savings.map((i) => <PlannedRow key={i.id} item={i} base={base} showReturn />)}
       </Section>
 
       {/* Financial summary + AI projections */}
-      <section className="card pc-glass" style={{ padding: 20, display: "grid", gap: 16 }}>
+      <section id="summary" className="card pc-glass" style={{ padding: 20, display: "grid", gap: 16, scrollMarginTop: 80 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <div className="eyebrow">Financial summary · AI projection</div>
           <span className="beta-badge">BETA</span>
@@ -199,23 +221,30 @@ export default function CashflowPage() {
 
 // --- Building blocks -------------------------------------------------------
 
-function HeroStat({ label, value, tone, sub, emphasis }: { label: string; value: string; tone: "positive" | "negative" | "teal"; sub?: string; emphasis?: boolean }) {
+function HeroStat({ label, value, tone, sub, emphasis, targetId }: { label: string; value: string; tone: "positive" | "negative" | "teal"; sub?: string; emphasis?: boolean; targetId?: string }) {
   const color = tone === "positive" ? "var(--positive)" : tone === "negative" ? "var(--negative)" : "var(--teal)";
   return (
-    <div className="card lift" style={{ padding: 18, display: "grid", gap: 4, borderColor: emphasis ? color : undefined, borderWidth: emphasis ? 1.5 : 1 }}>
-      <span className="eyebrow">{label}</span>
+    <button
+      type="button"
+      onClick={() => targetId && scrollToSection(targetId)}
+      className="card lift press"
+      style={{ padding: 18, display: "grid", gap: 4, textAlign: "left", cursor: "pointer", width: "100%", font: "inherit", color: "inherit", borderColor: emphasis ? color : undefined, borderWidth: emphasis ? 1.5 : 1 }}
+    >
+      <span className="eyebrow" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+        {label}<span aria-hidden style={{ color: "var(--text-3)", fontWeight: 700 }}>↓</span>
+      </span>
       <div style={{ fontSize: emphasis ? 27 : 24, fontWeight: 760, letterSpacing: "-0.015em", color }}>{value}</div>
       {sub && <span className="muted" style={{ fontSize: 11.5, textTransform: "capitalize" }}>{sub}</span>}
-    </div>
+    </button>
   );
 }
 
-function Section({ title, accent, count, onAdd, addLabel, empty, children }: {
-  title: string; accent: "positive" | "negative" | "teal"; count: number; onAdd: () => void; addLabel: string; empty: string; children: React.ReactNode;
+function Section({ id, title, accent, count, onAdd, addLabel, empty, children }: {
+  id?: string; title: string; accent: "positive" | "negative" | "teal"; count: number; onAdd: () => void; addLabel: string; empty: string; children: React.ReactNode;
 }) {
   const color = accent === "positive" ? "var(--positive)" : accent === "negative" ? "var(--negative)" : "var(--teal)";
   return (
-    <section style={{ display: "grid", gap: 12 }}>
+    <section id={id} style={{ display: "grid", gap: 12, scrollMarginTop: 80 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <h2 style={{ margin: 0, display: "flex", alignItems: "center", gap: 10, fontSize: 18 }}>
           <span style={{ width: 10, height: 10, borderRadius: 999, background: color }} /> {title}

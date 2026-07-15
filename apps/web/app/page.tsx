@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { format, money, type Money } from "@pocketcare/money";
@@ -13,7 +14,7 @@ import { colorForId } from "../src/colors";
 import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon } from "../src/ui/icons";
 import { Modal } from "../src/ui/Modal";
 import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSizes, setTileSize, W_COLS, H_ROWS, nextDim, type TileId, type TileSize } from "../src/dashboard";
-import { TILE_CATALOG, TileView, tileMeta } from "../src/dashboard/tiles";
+import { TILE_CATALOG, TileView, tileMeta, TILE_HREF } from "../src/dashboard/tiles";
 
 // Sensible default size per tile (content-heavy tiles start taller/wider).
 const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
@@ -248,6 +249,7 @@ function NetWorthHero({ net, base, fmt, showAvailable, onToggle }: {
 function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
   ids: TileId[]; editing: boolean; onLongPress: () => void; sizeOf: (id: TileId) => TileSize;
 }) {
+  const router = useRouter();
   const [order, setOrder] = useState<TileId[]>(ids);
   const [dragging, setDragging] = useState<TileId | null>(null);
   const [pointer, setPointer] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -308,13 +310,14 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
     const pid = e.pointerId, x = e.clientX, y = e.clientY;
     if (coarse) {
       // No drag on touch. Long-press only enters edit mode; reorder via ▲▼.
-      if (!editing) hold.current = setTimeout(() => onLongPress(), 500);
+      // Null the ref when it fires so a released long-press isn't read as a tap.
+      if (!editing) hold.current = setTimeout(() => { hold.current = undefined; onLongPress(); }, 500);
       return;
     }
     // Mouse: require a brief hold before picking up, so a quick click/scroll
     // isn't hijacked. Longer when not yet editing.
     const delay = editing ? 150 : 400;
-    hold.current = setTimeout(() => { if (!editing) onLongPress(); pickUp(id, el, pid, x, y); }, delay);
+    hold.current = setTimeout(() => { hold.current = undefined; if (!editing) onLongPress(); pickUp(id, el, pid, x, y); }, delay);
   }
   function pmove(e: React.PointerEvent) {
     if (dragging) {
@@ -327,9 +330,20 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
       clearHold(); // moved before the hold fired — it's a scroll, let it through
     }
   }
-  function up() {
+  function up(e?: React.PointerEvent, id?: TileId) {
+    // A tap = released before the press-hold timer fired and we never dragged.
+    const wasTap = !!hold.current && !dragging;
     clearHold();
-    if (dragging) { reorderTiles(order); setDragging(null); }
+    if (dragging) { reorderTiles(order); setDragging(null); return; }
+    // No tap should go to waste: navigate to the tile's detail view (some
+    // deep-link to a section via #hash). Skip if a tap landed on an inner
+    // control (its own link/button handles it) or while editing the layout.
+    if (wasTap && !editing && e && id) {
+      const t = e.target as HTMLElement;
+      if (t.closest("a, button, select, input, textarea, label")) return;
+      const href = TILE_HREF[id];
+      if (href) router.push(href);
+    }
   }
 
   return (
@@ -345,14 +359,14 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
               ref={(el) => { if (el) refs.current.set(id, el); else refs.current.delete(id); }}
               onPointerDown={(e) => down(e, id)}
               onPointerMove={pmove}
-              onPointerUp={up}
-              onPointerCancel={up}
+              onPointerUp={(e) => up(e, id)}
+              onPointerCancel={() => up()}
               style={{
                 gridColumn: `span ${W_COLS[sz.w]}`,
                 gridRow: `span ${H_ROWS[sz.h]}`,
                 position: "relative",
                 touchAction: isDrag ? "none" : "auto",
-                cursor: editing ? (isDrag ? "grabbing" : "grab") : "default",
+                cursor: editing ? (isDrag ? "grabbing" : "grab") : "pointer",
               }}
             >
               {isDrag ? (

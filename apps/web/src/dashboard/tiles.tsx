@@ -49,6 +49,26 @@ export const TILE_CATALOG: TileMeta[] = [
 
 export const tileMeta = (id: TileId): TileMeta => TILE_CATALOG.find((t) => t.id === id)!;
 
+/**
+ * Where a tap on each tile navigates for "more details". Some deep-link with a
+ * hash so the target page scrolls straight to the relevant section (e.g. the
+ * merged subscriptions live under the Planned Cashflow payments section).
+ */
+export const TILE_HREF: Record<TileId, string> = {
+  recent: "/transactions",
+  spending: "/transactions",
+  trends: "/insights",
+  splits: "/friends",
+  budgets: "/budgets",
+  goals: "/goals",
+  subscriptions: "/cashflow#payments",
+  cashflow: "/cashflow",
+  netTrend: "/insights",
+  byCategory: "/insights",
+  byLabel: "/insights",
+  monthCompare: "/insights",
+};
+
 function TileCard({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="card" style={{ padding: 20, display: "grid", gap: 12, alignContent: "start" }}>
@@ -331,7 +351,7 @@ function SubscriptionsTile() {
   const fmt = (m: number, c: string = base) => (hidden ? "••••" : format(money(Math.round(m), c), "en-US"));
   const upcoming = subs.filter((x) => x.next_renewal).slice(0, 3);
   return (
-    <HeroTile title="Subscriptions" grad={HERO.subs.grad} glow={HERO.subs.glow} action={heroLink("/subscriptions", "Manage")}>
+    <HeroTile title="Subscriptions" grad={HERO.subs.grad} glow={HERO.subs.glow} action={heroLink("/cashflow#payments", "Manage")}>
       {subs.length === 0 ? (
         <p style={{ margin: 0, color: HERO_MUTED }}>No active subscriptions. <Link href="/subscriptions" style={{ color: "#fff", textDecoration: "underline" }}>Add one</Link>.</p>
       ) : (
