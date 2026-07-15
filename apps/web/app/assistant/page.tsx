@@ -8,6 +8,7 @@ import { insertRow, softDelete, nowIso } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
 import { useConfirm } from "../../src/ui/Confirm";
 import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/summary";
+import { parseAssistantMessage, AssistantUiBlock } from "../../src/assistant/richMessage";
 import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, loadMemory } from "../../src/assistant/tools";
 import { buyCredits } from "../../src/billing";
 import { useEntitlement } from "../../src/entitlement";
@@ -24,7 +25,7 @@ interface UiItem { id: string; role: "user" | "assistant" | "action"; text: stri
 interface Pending { msgs: ApiMessage[]; queue: ToolUseBlock[]; results: ToolResultBlock[] }
 
 const HISTORY_CAP = 16; // messages sent to the model per turn (memory carries the rest)
-const MAX_TOKENS = 700;
+const MAX_TOKENS = 900; // headroom for the structured <ui> block
 const uid = () => Math.random().toString(36).slice(2);
 
 const GREETING =
@@ -62,6 +63,18 @@ const PERSONA = [
   "Acting via tools (propose in words first; the app asks the user to confirm before any change): create goals, reserve money to a goal, create budgets, record a transaction (income/expense), add a subscription, and create a group/trip. Use the `remember` tool sparingly to save one lasting fact. You can't record a full multi-person split for them — walk them through the Split flow above instead.",
   "If asked what you can do, give a short, friendly overview: plan purchases and savings goals, answer questions about their money (balances, spending, budgets, upcoming bills, who owes whom), guide them through any feature, and take quick actions like creating a goal/budget/subscription/group or logging a transaction — then invite them to try one.",
   "",
+  "RESPONSE FORMAT — visual, not texty. The app renders a structured block as native cards and buttons:",
+  "• Keep prose to 1–3 short sentences per reply. Never put lists of numbers, step-by-step plans, or comparisons in prose — put them in the UI block instead.",
+  '• When you present numbers, a plan, progress, or choices, append exactly ONE block after your text: <ui>{"cards":[...],"actions":[...]}</ui> (valid JSON inside the tags).',
+  "• cards (max 4), three kinds:",
+  '  {"kind":"stat","label":"Monthly saving needed","value":"₹13,300","sub":"6 months to go","tone":"accent|positive|negative|neutral"} — one headline number each.',
+  '  {"kind":"progress","label":"Emergency fund","value":"₹45,000 of ₹90,000","pct":50} — progress toward a target.',
+  '  {"kind":"breakdown","label":"Where it goes","items":[{"label":"Eating out","value":"₹4,200","pct":34}]} — parts of a whole or a step plan (pct optional).',
+  "• actions (2–4): you SUGGEST, the user decides by tapping. Each is either",
+  '  {"label":"Create this goal","send":"Yes, create the goal"} — send = the exact message sent to you on tap — or',
+  '  {"label":"Open Budgets","href":"/budgets"} — hrefs limited to: /accounts /transactions /budgets /goals /subscriptions /loans /investments /friends /groups /insights /statements /settings.',
+  "• Format amounts yourself (currency symbol + grouping). Don't repeat card contents in prose, never mention the block or JSON, and use it in most substantive replies — plain text is only for small talk or a single quick fact.",
+  "",
   "Honesty & care: this is general guidance to help the user think — NOT professional financial, tax, or investment advice. Encourage wise, unhurried decisions, remind them to double-check important numbers, and say so when you're unsure.",
 ].join("\n");
 
@@ -85,6 +98,40 @@ export default function AssistantPage() {
   const systemRef = useRef<{ type: "text"; text: string; cache_control: { type: "ephemeral" } }[]>([]);
   const apiRef = useRef<ApiMessage[]>([]);
   const threadRef = useRef<string | null>(null);
+
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  // Chat view = a fixed frame filling the *visual* viewport (Discord/ChatGPT
+  // style): the thread is the only scroller, the composer is pinned at the
+  // bottom, and the body is locked. Sizing tracks window.visualViewport so the
+  // on-screen keyboard shrinks the frame instead of covering the composer
+  // (dvh alone doesn't shrink for the keyboard on iOS Safari).
+  useEffect(() => {
+    if (view !== "chat") return;
+    document.body.dataset.assistChat = "true";
+    const el = pageRef.current;
+    const vv = window.visualViewport;
+    const apply = () => {
+      if (!el) return;
+      const bottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      el.style.height = `${Math.max(bottom - el.getBoundingClientRect().top, 280)}px`;
+      endRef.current?.scrollIntoView({ block: "end" }); // keep the newest message above the keyboard
+    };
+    apply();
+    // Re-measure after the route-transition animation settles (template.tsx).
+    const settle = window.setTimeout(apply, 400);
+    vv?.addEventListener("resize", apply);
+    vv?.addEventListener("scroll", apply);
+    window.addEventListener("resize", apply);
+    return () => {
+      delete document.body.dataset.assistChat;
+      window.clearTimeout(settle);
+      vv?.removeEventListener("resize", apply);
+      vv?.removeEventListener("scroll", apply);
+      window.removeEventListener("resize", apply);
+      if (el) el.style.height = "";
+    };
+  }, [view]);
 
   const [disclaimerAcked, setDisclaimerAcked] = useState(true);
   useEffect(() => {
@@ -368,9 +415,9 @@ export default function AssistantPage() {
     );
   }
 
-  // ---------- Chat: full-screen conversation with a pinned composer ----------
+  // ---------- Chat: fixed-height frame — header · scrollable thread · pinned composer ----------
   return (
-    <div className="assist-page" style={{ maxWidth: 760, width: "100%", marginInline: "auto" }}>
+    <div ref={pageRef} className="assist-page" style={{ maxWidth: 760, width: "100%", marginInline: "auto" }}>
       {!disclaimerAcked && (
         <Modal open onClose={ackDisclaimer}>
           <div style={{ padding: 24, display: "grid", gap: 16 }}>
@@ -384,19 +431,20 @@ export default function AssistantPage() {
         </Modal>
       )}
 
-      <div className="assist-thread">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <button className="chip" onClick={backToLanding}>‹ Chats</button>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {quota && (
-              <div className="chip" style={{ fontSize: 11, cursor: "default", background: isOutOfQuota ? "var(--negative-ghost)" : "var(--surface-2)" }}>
-                {planLeft} / {quota.monthly_quota_total}{purchasedCredits > 0 ? ` +${purchasedCredits} credits` : ""} queries
-              </div>
-            )}
-            <button className="chip" onClick={newChat}>New chat</button>
-          </div>
+      {/* Header stays visible while the thread below scrolls independently. */}
+      <div className="assist-header">
+        <button className="chip" onClick={backToLanding}>‹ Chats</button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {quota && (
+            <div className="chip" style={{ fontSize: 11, cursor: "default", background: isOutOfQuota ? "var(--negative-ghost)" : "var(--surface-2)" }}>
+              {planLeft} / {quota.monthly_quota_total}{purchasedCredits > 0 ? ` +${purchasedCredits} credits` : ""} queries
+            </div>
+          )}
+          <button className="chip" onClick={newChat}>New chat</button>
         </div>
+      </div>
 
+      <div className="assist-thread">
         {payloadData && (
           <details className="card" style={{ padding: "8px 14px", background: "var(--surface-1)" }}>
             <summary className="muted" style={{ fontSize: 12, cursor: "pointer", userSelect: "none" }}>View data sent to AI</summary>
@@ -404,22 +452,32 @@ export default function AssistantPage() {
           </details>
         )}
 
-        {ui.map((m) => (
-          <div key={m.id} style={{ justifySelf: m.role === "user" ? "end" : "start", maxWidth: "85%" }}>
-            {m.role === "action" ? (
-              <div className="muted" style={{ fontSize: 13 }}>{m.text}</div>
-            ) : (
-              <div className="card" style={{
-                padding: "10px 14px", whiteSpace: "pre-wrap", lineHeight: 1.5,
-                background: m.role === "user" ? "var(--accent)" : "var(--surface)",
-                color: m.role === "user" ? "#fff" : "var(--text)",
-                borderColor: m.role === "user" ? "var(--accent)" : "var(--border)",
-              }}>
-                {m.text}
+        {ui.map((m) => {
+          if (m.role === "action") {
+            return <div key={m.id} className="muted" style={{ justifySelf: "start", maxWidth: "85%", fontSize: 13 }}>{m.text}</div>;
+          }
+          if (m.role === "user") {
+            return (
+              <div key={m.id} style={{ justifySelf: "end", maxWidth: "85%" }}>
+                <div className="card" style={{ padding: "10px 14px", whiteSpace: "pre-wrap", lineHeight: 1.5, background: "var(--accent)", color: "#fff", borderColor: "var(--accent)" }}>
+                  {m.text}
+                </div>
               </div>
-            )}
-          </div>
-        ))}
+            );
+          }
+          // Assistant: concise text bubble + structured visual cards & tappable actions.
+          const { text, ui: rich } = parseAssistantMessage(m.text);
+          return (
+            <div key={m.id} style={{ justifySelf: "start", maxWidth: "85%", display: "grid", gap: 10, minWidth: rich ? "min(100%, 420px)" : undefined }}>
+              {text && (
+                <div className="card" style={{ padding: "10px 14px", whiteSpace: "pre-wrap", lineHeight: 1.5, background: "var(--surface)", color: "var(--text)" }}>
+                  {text}
+                </div>
+              )}
+              {rich && <AssistantUiBlock ui={rich} onSend={(t) => void sendText(t)} disabled={busy || !!pending || !!isOutOfQuota} />}
+            </div>
+          );
+        })}
 
         {/* Suggestion chips ride along with the greeting until the first user turn. */}
         {!hasUserTurn && (
@@ -476,7 +534,8 @@ export default function AssistantPage() {
         <div ref={endRef} />
       </div>
 
-      {/* Composer — sticky at the viewport bottom; multiline; Enter = newline, ⌘/Ctrl+Enter or Send = send. */}
+      {/* Composer — pinned to the bottom of the chat frame (always above the keyboard);
+          multiline auto-expanding; Enter = newline, ⌘/Ctrl+Enter or Send = send. */}
       <div className="assist-composer">
         <textarea
           ref={taRef}

@@ -97,37 +97,53 @@ button { font-family: inherit; }
 /* Edit-mode wiggle for draggable dashboard tiles. */
 @keyframes tileWiggle { 0% { transform: rotate(-0.5deg); } 50% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
 
-/* Assistant chat.
-   The BODY is the scroller (no nested scroll container — nested overflow +
-   overscroll-behavior swallowed touch scrolls on mobile). The composer is
-   sticky at the viewport bottom; min-height pushes it down on short chats. */
+/* Assistant chat — native-messenger layout (Discord/ChatGPT style).
+   The chat view is a FIXED-HEIGHT frame (JS sizes it to the visual viewport,
+   so the on-screen keyboard shrinks it instead of covering the composer):
+     header (always visible) · thread (the ONLY scroller) · composer (pinned).
+   The body is scroll-locked while chatting, so the earlier mobile bug
+   (a nested scroller inside a scrolling page swallowing touch gestures)
+   cannot recur — there is no outer scroll to chain to.
+   CSS heights are a first paint fallback; JS refines via element.style.height. */
+body[data-assist-chat="true"] { overflow: hidden; }
 .assist-page {
   display: flex;
   flex-direction: column;
-  min-height: calc(100dvh - 80px);           /* desktop: main padding */
+  min-height: 0;
+  height: calc(100dvh - 80px);               /* desktop: main padding (JS refines) */
+}
+.assist-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
 }
 .assist-thread {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   display: grid;
   gap: 14px;
   align-content: start;
-  padding-bottom: 8px;
+  padding: 12px 2px 8px;
 }
 .assist-composer {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
   flex-shrink: 0;
   display: flex;
   gap: 8px;
   align-items: flex-end;
-  padding: 10px 0 14px;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
   background: var(--bg);
 }
 @media (max-width: 860px) {
-  .assist-page { min-height: calc(100dvh - 150px); }  /* topbar + main padding */
-  .assist-composer { padding-bottom: 10px; }
+  .assist-page { height: calc(100dvh - 150px); }  /* topbar + main padding (JS refines) */
 }
 
 /* Hide the Add-transaction FAB while the dashboard is in edit mode. */
