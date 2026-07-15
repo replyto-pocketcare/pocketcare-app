@@ -140,7 +140,7 @@ export default function BudgetsPage() {
       </div>
 
       {budgets.length > 0 ? (
-        <div style={{ display: "grid", gap: 12 }}>
+        <div className="list-grid">
           {budgets.map((b) => <BudgetRow key={b.id} budget={b} cats={cats} labels={labels} catOptions={catOptions} />)}
         </div>
       ) : budgetsLoading ? (

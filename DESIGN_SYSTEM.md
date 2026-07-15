@@ -42,5 +42,11 @@ Reference for the visual language (from `design rewamp/Split debt visualization 
 - `.input` — 12px radius, accent-soft focus ring.
 - Micro-interactions: `.press` (active scale), `.lift` (hover raise), `.page-anim` (pageIn entrance).
 
+## Responsive list grid (shared)
+`.list-grid` (in `globals.css`) replaces full-width stacked lists with space-efficient tiles: `repeat(auto-fill, minmax(min(320px,100%),1fr))` → 1 col mobile, 2 laptop, 3+ wide. Each child must be a self-contained card/tile. Applied to Cashflow sections, Search, Transactions, Goals, Budgets, Investments, Templates, and Friends/Splits (Accounts already used this pattern at 260px). Dense `TransactionRow` gets a `tile` prop that renders `.tx-tile` (bordered card w/ hover lift) instead of the divider row. On Friends/Splits the Groups & Direct lists moved out of the summary card into tiled sections; an **expanded group tile spans the full row** (`gridColumn: 1 / -1`) so the per-person breakdown stays readable.
+
+## Planned Cashflow (BETA) additions
+Added in `globals.css` (tokens only, theme-aware): `.beta-badge` (+`.sm`) accent-ghost pill for experimental features; `.pc-segment` / `.pc-seg-btn` sliding segmented control (timeframe tabs); `.pc-hero` auto-fit summary grid; `.pc-template` dashed quick-add pill (fills accent-ghost on hover); `.pc-row-icon` rounded accent icon chip; `.pc-glass` glassmorphism panel (backdrop-blur + accent radial glow, uses `color-mix`); `.pc-range` themed slider with accent thumb + `--shadow-accent`. Reuses `.card`, `.lift`, `.eyebrow`, `.chip`, `.btn`. Charts use recharts with CSS-var fills so they track light/dark.
+
 ## Applying to a page
 Use `.card` for panels, `h1/h2/h3` for headings (already serif), `.eyebrow` for section labels, `.stat`/`.serif` for large figures, `--positive`/`--negative` for money direction. Prefer tokens over hardcoded hex.

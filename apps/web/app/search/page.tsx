@@ -94,12 +94,15 @@ export default function SearchPage() {
 
       <div className="muted" style={{ fontSize: 13 }}>{results.length} result{results.length === 1 ? "" : "s"}</div>
 
-      <div className="card" style={{ padding: 8, overflowX: "hidden", minWidth: 0, maxWidth: "100%" }}>
-        {results.map((t) => (
-          <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} />
-        ))}
-        {results.length === 0 && <p className="muted" style={{ padding: 16 }}>No matching transactions.</p>}
-      </div>
+      {results.length > 0 ? (
+        <div className="list-grid">
+          {results.map((t) => (
+            <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} tile />
+          ))}
+        </div>
+      ) : (
+        <p className="muted card" style={{ padding: 16, margin: 0 }}>No matching transactions.</p>
+      )}
     </div>
   );
 }

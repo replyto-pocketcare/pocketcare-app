@@ -269,6 +269,34 @@ const loans = new Table({
   deleted_at: column.text,
 });
 
+// Planned Cashflow hub (BETA): named recurring incomes, planned payments, and
+// savings/investment plans. `direction` splits income vs payment vs saving;
+// `bucket` groups payments (subscription/loan/household/other); `timeframe`
+// controls which summary tab an item rolls up into. `expected_return` (annual %,
+// stored ×100 as int) powers the savings-growth + AI projection engine.
+const planned_cashflow = new Table(
+  {
+    user_id: column.text,
+    name: column.text,
+    direction: column.text, // 'income' | 'payment' | 'saving'
+    bucket: column.text, // income: 'salary'|'freelance'|'other'; payment: 'subscription'|'loan'|'household'|'other'; saving: 'fd'|'emergency'|'mutual_fund'|'stocks'|'crypto'|'other'
+    amount: column.integer, // minor units
+    currency: column.text,
+    frequency: column.text, // Period: daily|weekly|monthly|yearly
+    timeframe: column.text, // 'monthly' | 'quarterly' | 'yearly'
+    next_due: column.text,
+    expected_return: column.integer, // annual % ×100 (savings only); null otherwise
+    category_id: column.text,
+    account_id: column.text,
+    notes: column.text,
+    is_active: column.integer,
+    created_at: column.text,
+    updated_at: column.text,
+    deleted_at: column.text,
+  },
+  { indexes: { by_user: ["user_id", "direction"] } },
+);
+
 const holdings = new Table({
   user_id: column.text,
   account_id: column.text,
@@ -508,6 +536,7 @@ export const AppSchema = new Schema({
   recurring_commitments,
   subscriptions,
   loans,
+  planned_cashflow,
   holdings,
   exchange_rates,
   market_quotes,

@@ -50,18 +50,19 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 8, overflowX: "hidden", minWidth: 0, maxWidth: "100%" }}>
-        {rows.map((t) => (
-          <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} />
-        ))}
-        {rows.length === 0 && (rowsLoading ? (
-          <div style={{ display: "grid", gap: 10, padding: 12 }}>
-            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} h={44} r={12} />)}
-          </div>
-        ) : (
-          <p className="muted" style={{ padding: 16 }}>No matching transactions.</p>
-        ))}
-      </div>
+      {rows.length > 0 ? (
+        <div className="list-grid">
+          {rows.map((t) => (
+            <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} tile />
+          ))}
+        </div>
+      ) : rowsLoading ? (
+        <div className="list-grid">
+          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} h={64} r={12} />)}
+        </div>
+      ) : (
+        <p className="muted card" style={{ padding: 16, margin: 0 }}>No matching transactions.</p>
+      )}
     </div>
   );
 }

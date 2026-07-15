@@ -20,7 +20,7 @@ import { BugReportModal } from "../src/ui/BugReport";
 
 const APP_VERSION = "0.1.0";
 
-const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: string; icon: string }[] }[] = [
+const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: string; icon: string; beta?: boolean }[] }[] = [
   { title: "", items: [
     { href: "/", tkey: "nav.home", label: "Dashboard", icon: "◧" },
     { href: "/assistant", tkey: "nav.assistant", label: "Ask PocketCare", icon: "✦" },
@@ -37,8 +37,7 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
   { title: "Planning", items: [
     { href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "◔" },
     { href: "/goals", tkey: "nav.goals", label: "Goals", icon: "◎" },
-    { href: "/subscriptions", tkey: "nav.subscriptions", label: "Subscriptions", icon: "↻" },
-    { href: "/loans", tkey: "nav.loans", label: "Loans & Recurring", icon: "≈" },
+    { href: "/cashflow", tkey: "nav.cashflow", label: "Planned Cashflow", icon: "⇌", beta: true },
   ] },
   { title: "Growth", items: [
     { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "▲" },
@@ -153,6 +152,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Link key={n.href} href={n.href} style={navItem(isActive(n.href))} onClick={() => setMenuOpen(false)}>
                   <span style={{ width: 20, textAlign: "center", opacity: 0.75 }}>{n.icon}</span>
                   {t(n.tkey, n.label)}
+                  {n.beta && <span className="beta-badge sm" style={{ marginLeft: "auto" }}>BETA</span>}
                 </Link>
               ))}
             </div>

@@ -124,9 +124,9 @@ export default function TemplatesPage() {
         {templates.length === 0 ? (
           <p className="muted" style={{ fontSize: 13 }}>No templates yet. Create one for things you log often — rent, salary, groceries.</p>
         ) : (
-          <div className="card" style={{ padding: 8 }}>
+          <div className="list-grid">
             {templates.map((t, i) => (
-              <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: "1px solid var(--border)" }}>
+              <div key={t.id} className="card lift" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
                   <div style={{ display: "grid" }}>
                     <button className="chip" style={{ padding: "0 6px", fontSize: 11, lineHeight: 1.2, opacity: i === 0 ? 0.3 : 1 }} disabled={i === 0} onClick={() => void move(i, -1)} aria-label="Move up">▲</button>
@@ -158,9 +158,9 @@ export default function TemplatesPage() {
         {rules.length === 0 ? (
           <p className="muted" style={{ fontSize: 13 }}>No recurring rules. Turn a template into a recurring payment or salary.</p>
         ) : (
-          <div className="card" style={{ padding: 8 }}>
+          <div className="list-grid">
             {rules.map((r) => (
-              <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: "1px solid var(--border)" }}>
+              <div key={r.id} className="card lift" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px" }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.template_name}</div>
                   <div className="muted" style={{ fontSize: 12 }}>{every(r.frequency, r.interval_count)} · next {r.next_due} · {r.auto_post ? "auto" : "confirm"}</div>

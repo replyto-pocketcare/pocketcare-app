@@ -95,7 +95,7 @@ export default function InvestmentsPage() {
         </div>
       </section>
 
-      <div style={{ display: "grid", gap: 10 }}>
+      <div className="list-grid">
         {holdings.map((h) => (
           <HoldingRow key={h.id} h={h}
             quote={market.quote(h.symbol, h.exchange)}

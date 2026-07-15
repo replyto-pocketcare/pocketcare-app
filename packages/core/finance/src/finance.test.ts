@@ -8,6 +8,9 @@ import {
   recurringMonthlyTotal,
   percentOfIncome,
   subscriptionImpact,
+  projectCashflow,
+  yearlyEquivalent,
+  timeframeTotal,
   PERIODS_PER_YEAR,
 } from "./index.ts";
 
@@ -77,4 +80,61 @@ test("subscriptionImpact: totalPaid and opportunity cost", () => {
 
 test("PERIODS_PER_YEAR is complete", () => {
   assert.deepEqual(PERIODS_PER_YEAR, { daily: 365, weekly: 52, monthly: 12, yearly: 1 });
+});
+
+test("yearlyEquivalent scales by period count", () => {
+  assert.equal(yearlyEquivalent(100, "monthly"), 1200);
+  assert.equal(yearlyEquivalent(100, "weekly"), 5200);
+  assert.equal(yearlyEquivalent(100, "yearly"), 100);
+});
+
+test("timeframeTotal multiplies monthly amount by bucket length", () => {
+  assert.equal(timeframeTotal(1000, "monthly"), 1000);
+  assert.equal(timeframeTotal(1000, "quarterly"), 3000);
+  assert.equal(timeframeTotal(1000, "yearly"), 12000);
+});
+
+test("projectCashflow returns one snapshot per year", () => {
+  const rows = projectCashflow(
+    { monthlyIncome: 100000, monthlyPayments: 40000, monthlySavings: 20000, currentSavings: 0, annualReturnPct: 12, annualInflationPct: 0 },
+    3,
+  );
+  assert.equal(rows.length, 3);
+  assert.equal(rows[0]!.year, 1);
+  assert.equal(rows[2]!.year, 3);
+});
+
+test("projectCashflow: net cashflow = income − payments − savings (no inflation)", () => {
+  const [y1] = projectCashflow(
+    { monthlyIncome: 100000, monthlyPayments: 40000, monthlySavings: 20000, currentSavings: 0, annualReturnPct: 0, annualInflationPct: 0 },
+    1,
+  );
+  assert.equal(y1!.income, 100000 * 12);
+  assert.equal(y1!.payments, 40000 * 12);
+  assert.equal(y1!.savingsContributed, 20000 * 12);
+  assert.equal(y1!.netCashflow, (100000 - 40000 - 20000) * 12);
+});
+
+test("projectCashflow: zero-return savings balance is sum of contributions", () => {
+  const [y1] = projectCashflow(
+    { monthlyIncome: 0, monthlyPayments: 0, monthlySavings: 5000, currentSavings: 10000, annualReturnPct: 0, annualInflationPct: 0 },
+    1,
+  );
+  assert.equal(y1!.savingsBalance, 10000 + 5000 * 12);
+});
+
+test("projectCashflow: positive return grows savings above contributions", () => {
+  const [y1] = projectCashflow(
+    { monthlyIncome: 0, monthlyPayments: 0, monthlySavings: 5000, currentSavings: 0, annualReturnPct: 12, annualInflationPct: 0 },
+    1,
+  );
+  assert.ok(y1!.savingsBalance > 5000 * 12);
+});
+
+test("projectCashflow: inflation deflates real savings below nominal", () => {
+  const [y1] = projectCashflow(
+    { monthlyIncome: 0, monthlyPayments: 0, monthlySavings: 5000, currentSavings: 0, annualReturnPct: 0, annualInflationPct: 8 },
+    1,
+  );
+  assert.ok(y1!.realSavingsBalance < y1!.savingsBalance);
 });

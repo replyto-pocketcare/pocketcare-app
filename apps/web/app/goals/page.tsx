@@ -94,7 +94,7 @@ export default function GoalsPage() {
         </div>
       )}
 
-      <div style={{ display: "grid", gap: 12 }}>
+      <div className="list-grid">
         {goals.map((g) => (
           <GoalCard key={g.id} goal={g} saved={saved(g.id)} savings={savings}
             locked={!g.is_emergency_fund && !efFunded} base={base} onAchieved={onAchieved} />

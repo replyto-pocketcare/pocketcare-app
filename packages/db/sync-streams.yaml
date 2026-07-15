@@ -36,6 +36,7 @@ streams:
       - SELECT * FROM pocketcare.recurring_commitments WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.subscriptions WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.loans WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.planned_cashflow WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.holdings WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.assistant_threads WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.assistant_messages WHERE user_id = auth.user_id()

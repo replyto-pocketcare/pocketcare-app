@@ -15,13 +15,14 @@ type Acct = { id: string; name: string; type: string; color: string | null } | u
  * and anywhere else we list transactions. Truncates long labels, respects the
  * "hide amounts" setting, and links to the edit page.
  */
-export function TransactionRow({ tx, account, categoryName }: { tx: TxRow; account: Acct; categoryName: string }) {
+export function TransactionRow({ tx, account, categoryName, tile = false }: { tx: TxRow; account: Acct; categoryName: string; tile?: boolean }) {
   const fmt = useMoneyFmt();
   const primary = tx.description || tx.labels || categoryName || "Uncategorised";
   const sign = tx.type === "expense" ? "−" : tx.type === "income" ? "+" : "⇄ ";
   return (
     <Link
       href={`/transactions/${tx.id}/edit`}
+      className={tile ? "tx-tile" : undefined}
       style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)", width: "100%", boxSizing: "border-box", overflowX: "hidden" }}
     >
       <div style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0, flex: 1, overflow: "hidden" }}>

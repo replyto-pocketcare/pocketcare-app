@@ -438,3 +438,128 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
   .admin-nav a.admin-nav-back { margin-top: 0; margin-left: 4px; }
   .admin-main { padding: 16px; }
 }
+
+/* ===================== Responsive list grid (shared) ===================== */
+/* Turns full-width list rows into space-efficient tiles: multiple per row,
+   auto-fitting to the viewport (~320px min → 1 col mobile, 2 laptop, 3+ wide).
+   Each list item must be a self-contained card/tile. */
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+/* A transaction row rendered as a standalone tile (vs. divider row). */
+.tx-tile {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 13px 15px !important;
+  border-bottom: 1px solid var(--border) !important; /* override the divider default */
+  transition: transform 0.16s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.16s, border-color 0.16s;
+}
+.tx-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--accent-soft); }
+
+/* ========================= Planned Cashflow (BETA) ========================= */
+/* All tokens — inherits light/dark automatically. */
+
+.beta-badge {
+  display: inline-flex; align-items: center;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.09em;
+  padding: 3px 7px; border-radius: 999px; line-height: 1;
+  color: var(--accent); background: var(--accent-ghost);
+  border: 1px solid var(--accent-soft); text-transform: uppercase;
+}
+.beta-badge.sm { font-size: 8.5px; padding: 2px 5px; letter-spacing: 0.06em; }
+
+/* Segmented timeframe control */
+.pc-segment {
+  display: inline-flex; gap: 2px; padding: 3px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.pc-seg-btn {
+  border: none; background: transparent; cursor: pointer;
+  padding: 7px 16px; border-radius: 999px; font: inherit;
+  font-size: 13px; font-weight: 550; color: var(--text-2);
+  transition: color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.12s;
+}
+.pc-seg-btn:active { transform: scale(0.97); }
+.pc-seg-btn[data-active="true"] {
+  background: var(--surface); color: var(--text);
+  box-shadow: var(--shadow); font-weight: 650;
+}
+
+/* Aggregate hero grid */
+.pc-hero {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+/* Template quick-add pills */
+.pc-template {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 13px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 500; color: var(--text);
+  background: var(--surface); border: 1px dashed var(--border-strong);
+  transition: border-color 0.16s, background 0.16s, transform 0.12s, box-shadow 0.16s;
+}
+.pc-template:hover {
+  border-style: solid; border-color: var(--accent-soft);
+  background: var(--accent-ghost); box-shadow: var(--shadow);
+}
+
+/* Round icon chip on each row */
+.pc-row-icon {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 12px; font-size: 16px;
+  color: var(--accent); background: var(--accent-ghost);
+}
+
+/* Glassmorphism panel for the AI summary */
+.pc-glass {
+  position: relative;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface) 86%, transparent), color-mix(in srgb, var(--surface-2) 78%, transparent));
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  backdrop-filter: blur(12px) saturate(1.1);
+  border: 1px solid var(--border-strong);
+  overflow: hidden;
+}
+.pc-glass::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 80% at 100% 0%, var(--accent-ghost) 0%, transparent 55%);
+  opacity: 0.5;
+}
+.pc-glass > * { position: relative; }
+
+.pc-netline {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 16px; flex-wrap: wrap;
+}
+
+/* Themed range slider for projection assumptions */
+.pc-range {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 6px; border-radius: 999px; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.pc-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; border-radius: 999px;
+  background: var(--accent); border: 2px solid var(--surface);
+  box-shadow: var(--shadow-accent); cursor: pointer;
+  transition: transform 0.12s;
+}
+.pc-range::-webkit-slider-thumb:active { transform: scale(1.15); }
+.pc-range::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 999px; border: 2px solid var(--surface);
+  background: var(--accent); box-shadow: var(--shadow-accent); cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .pc-segment { width: 100%; }
+  .pc-seg-btn { flex: 1; padding: 8px 8px; }
+  .pc-netline > div > div { font-size: 28px !important; }
+}

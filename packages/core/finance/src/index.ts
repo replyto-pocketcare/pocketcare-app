@@ -118,3 +118,101 @@ export function subscriptionImpact(
   const invested = futureValue(0, monthly, r, months);
   return { totalPaid, opportunityCost: invested };
 }
+
+// ---------------------------------------------------------------------------
+// Planned Cashflow projection engine (BETA)
+// Deterministic, offline, inflation-aware forecast powering the 1/2/3-year
+// "future financial structure" in the Planned Cashflow hub. All money values
+// are minor-unit integers in and out. Modelled month-by-month so compounding is
+// accurate; income/payments grow annually, savings compound at a real return.
+// ---------------------------------------------------------------------------
+
+export interface CashflowInputs {
+  /** Recurring income normalised to a monthly minor-unit amount. */
+  monthlyIncome: number;
+  /** Planned payments (subscriptions + loan EMIs + household) per month. */
+  monthlyPayments: number;
+  /** Planned savings/investment contributions per month. */
+  monthlySavings: number;
+  /** Starting savings/investment balance (minor units). */
+  currentSavings: number;
+  /** Expected blended annual return on savings, percent (e.g. 8). */
+  annualReturnPct: number;
+  /** Expected annual inflation, percent (e.g. 6). Grows payments + deflates real value. */
+  annualInflationPct: number;
+  /** Optional annual income growth (raises), percent. Defaults to 0. */
+  incomeGrowthPct?: number;
+}
+
+export interface YearProjection {
+  /** 1-based year offset from today. */
+  year: number;
+  /** Nominal income received across the year. */
+  income: number;
+  /** Nominal planned payments across the year (inflation-grown). */
+  payments: number;
+  /** Nominal savings contributed across the year. */
+  savingsContributed: number;
+  /** Surplus after payments and savings contributions (income − payments − savings). */
+  netCashflow: number;
+  /** Projected end-of-year savings balance incl. compounded growth. */
+  savingsBalance: number;
+  /** Savings balance expressed in today's money (inflation-adjusted). */
+  realSavingsBalance: number;
+}
+
+/**
+ * Project year-by-year cashflow and savings growth over `years`.
+ * Income and payments step up once per year (raises / inflation); savings
+ * compound monthly at the annual return and receive the monthly contribution.
+ */
+export function projectCashflow(inp: CashflowInputs, years: number): YearProjection[] {
+  if (years < 0) throw new Error("years must be >= 0");
+  const monthlyReturn = inp.annualReturnPct / 100 / 12;
+  const inflation = inp.annualInflationPct / 100;
+  const incomeGrowth = (inp.incomeGrowthPct ?? 0) / 100;
+
+  let savings = inp.currentSavings;
+  const out: YearProjection[] = [];
+
+  for (let y = 1; y <= years; y++) {
+    // Annual step-ups applied at the start of each year.
+    const growthFactor = (1 + incomeGrowth) ** (y - 1);
+    const inflationFactor = (1 + inflation) ** (y - 1);
+    const income = Math.round(inp.monthlyIncome * growthFactor);
+    const payments = Math.round(inp.monthlyPayments * inflationFactor);
+    const contribution = Math.round(inp.monthlySavings * inflationFactor);
+
+    let yearIncome = 0;
+    let yearPayments = 0;
+    let yearContrib = 0;
+    for (let m = 0; m < 12; m++) {
+      yearIncome += income;
+      yearPayments += payments;
+      yearContrib += contribution;
+      savings = savings * (1 + monthlyReturn) + contribution;
+    }
+    const realDeflator = (1 + inflation) ** y;
+    out.push({
+      year: y,
+      income: yearIncome,
+      payments: yearPayments,
+      savingsContributed: yearContrib,
+      netCashflow: yearIncome - yearPayments - yearContrib,
+      savingsBalance: Math.round(savings),
+      realSavingsBalance: Math.round(savings / realDeflator),
+    });
+  }
+  return out;
+}
+
+/** Convert an amount from any period to its yearly equivalent (rounded minor units). */
+export function yearlyEquivalent(amount: number, period: Period): number {
+  return Math.round(amount * PERIODS_PER_YEAR[period]);
+}
+
+/** Convert a monthly minor-unit amount to a given timeframe bucket total. */
+export function timeframeTotal(monthlyAmount: number, timeframe: "monthly" | "quarterly" | "yearly"): number {
+  const mult = timeframe === "monthly" ? 1 : timeframe === "quarterly" ? 3 : 12;
+  return Math.round(monthlyAmount * mult);
+}

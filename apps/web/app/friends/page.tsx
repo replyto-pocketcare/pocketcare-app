@@ -105,7 +105,7 @@ export default function SplitsPage() {
   const amt = (n: number) => fmt(money(Math.abs(n), base));
 
   return (
-    <div className="fade-up">
+    <div className="fade-up" style={{ display: "grid", gap: 20 }}>
       <section className="card" style={{ padding: 24, display: "grid", gap: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
@@ -135,82 +135,89 @@ export default function SplitsPage() {
             <h2 style={{ margin: 0 }}>No splits yet</h2>
             <p className="muted" style={{ margin: 0, maxWidth: 380 }}>Create a group and invite people from <Link href="/groups">Groups &amp; trips</Link>. Once they join, you can split and settle here.</p>
           </div>
-        ) : (
-          <>
-            {/* Groups & trips */}
-            {groups.length > 0 && (
-              <div style={{ display: "grid", gap: 12 }}>
-                <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>GROUPS &amp; TRIPS</div>
-                {groups.map((g) => {
-                  const isOpen = expanded.has(g.group.id);
-                  const shown = g.memberIds.slice(0, 3);
-                  const extra = g.memberIds.length - shown.length;
-                  return (
-                    <div key={g.group.id} style={{ borderRadius: 16, background: isOpen ? "var(--accent-ghost, rgba(0,0,0,0.03))" : "transparent", transition: "background 0.15s" }}>
-                      <button
-                        onClick={() => toggle(g.group.id)}
-                        style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "10px 12px", display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                          {shown.map((uid, i) => (
-                            <span key={uid} style={{ marginLeft: i === 0 ? 0 : -12 }}><Avatar id={uid} name={name(uid)} size={44} ring /></span>
-                          ))}
-                          {extra > 0 && (
-                            <span style={{ marginLeft: -12, width: 44, height: 44, borderRadius: 999, background: "var(--border)", color: "var(--text-2)", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 14, boxShadow: "0 0 0 2px var(--bg)" }}>+{extra}</span>
-                          )}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: 19, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.group.name}</div>
-                          <div className="muted" style={{ fontSize: 14 }}>{g.peopleCount} {g.peopleCount === 1 ? "person" : "people"} · {g.group.kind === "trip" ? "trip" : "group"}</div>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                          <span style={{ fontWeight: 750, fontSize: 19, color: g.net > 0 ? "var(--positive)" : g.net < 0 ? "var(--negative)" : "var(--text-2)" }}>
-                            {g.net === 0 ? amt(0) : (g.net > 0 ? "" : "−") + amt(g.net)}
-                          </span>
-                          <span className="muted" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s", fontSize: 12 }}>▾</span>
-                        </div>
-                      </button>
-                      {isOpen && (
-                        <div style={{ padding: "0 14px 12px 70px", display: "grid", gap: 10 }}>
-                          {g.perUser.length === 0 && <div className="muted" style={{ fontSize: 13 }}>Everyone’s settled up.</div>}
-                          {g.perUser.map((b) => (
-                            <button key={b.userId} onClick={() => openPerson(b.userId, b.net)}
-                              style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, textAlign: "left" }}>
-                              <span style={{ fontSize: 16 }}>{name(b.userId)}</span>
-                              <span style={{ fontWeight: 700, fontSize: 16, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(b.net)}</span>
-                            </button>
-                          ))}
-                        </div>
+        ) : null}
+      </section>
+
+      {/* Groups & trips — tiled; an expanded group spans the full row. */}
+      {!empty && groups.length > 0 && (
+        <section style={{ display: "grid", gap: 12 }}>
+          <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>GROUPS &amp; TRIPS</div>
+          <div className="list-grid">
+            {groups.map((g) => {
+              const isOpen = expanded.has(g.group.id);
+              const shown = g.memberIds.slice(0, 3);
+              const extra = g.memberIds.length - shown.length;
+              return (
+                <div
+                  key={g.group.id}
+                  className={isOpen ? "card" : "card lift"}
+                  style={{ padding: 0, overflow: "hidden", gridColumn: isOpen ? "1 / -1" : "auto", background: isOpen ? "var(--accent-ghost)" : "var(--surface)", transition: "background 0.15s" }}
+                >
+                  <button
+                    onClick={() => toggle(g.group.id)}
+                    style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                      {shown.map((uid, i) => (
+                        <span key={uid} style={{ marginLeft: i === 0 ? 0 : -12 }}><Avatar id={uid} name={name(uid)} size={44} ring /></span>
+                      ))}
+                      {extra > 0 && (
+                        <span style={{ marginLeft: -12, width: 44, height: 44, borderRadius: 999, background: "var(--border)", color: "var(--text-2)", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 14, boxShadow: "0 0 0 2px var(--bg)" }}>+{extra}</span>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Direct */}
-            {direct.length > 0 && (
-              <div style={{ display: "grid", gap: 4 }}>
-                <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", marginBottom: 8 }}>DIRECT</div>
-                {direct.map((b) => (
-                  <button
-                    key={b.userId}
-                    onClick={() => openPerson(b.userId, b.net)}
-                    style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "10px 4px", display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}
-                  >
-                    <Avatar id={b.userId} name={name(b.userId)} size={44} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 18, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(b.userId)}</div>
-                      <div style={{ fontSize: 14, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{b.net > 0 ? "owes you" : "you owe"}</div>
+                      <div style={{ fontWeight: 700, fontSize: 18, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.group.name}</div>
+                      <div className="muted" style={{ fontSize: 13.5 }}>{g.peopleCount} {g.peopleCount === 1 ? "person" : "people"} · {g.group.kind === "trip" ? "trip" : "group"}</div>
                     </div>
-                    <span style={{ fontWeight: 750, fontSize: 19, color: b.net > 0 ? "var(--positive)" : "var(--negative)", flexShrink: 0 }}>{amt(b.net)}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      <span style={{ fontWeight: 750, fontSize: 18, color: g.net > 0 ? "var(--positive)" : g.net < 0 ? "var(--negative)" : "var(--text-2)" }}>
+                        {g.net === 0 ? amt(0) : (g.net > 0 ? "" : "−") + amt(g.net)}
+                      </span>
+                      <span className="muted" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s", fontSize: 12 }}>▾</span>
+                    </div>
                   </button>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </section>
+                  {isOpen && (
+                    <div style={{ padding: "0 16px 14px 74px", display: "grid", gap: 10, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+                      {g.perUser.length === 0 && <div className="muted" style={{ fontSize: 13 }}>Everyone’s settled up.</div>}
+                      {g.perUser.map((b) => (
+                        <button key={b.userId} onClick={() => openPerson(b.userId, b.net)}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, textAlign: "left" }}>
+                          <span style={{ fontSize: 16 }}>{name(b.userId)}</span>
+                          <span style={{ fontWeight: 700, fontSize: 16, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(b.net)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Direct balances — tiled. */}
+      {!empty && direct.length > 0 && (
+        <section style={{ display: "grid", gap: 12 }}>
+          <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>DIRECT</div>
+          <div className="list-grid">
+            {direct.map((b) => (
+              <button
+                key={b.userId}
+                onClick={() => openPerson(b.userId, b.net)}
+                className="card lift"
+                style={{ width: "100%", cursor: "pointer", padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}
+              >
+                <Avatar id={b.userId} name={name(b.userId)} size={44} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(b.userId)}</div>
+                  <div style={{ fontSize: 13.5, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{b.net > 0 ? "owes you" : "you owe"}</div>
+                </div>
+                <span style={{ fontWeight: 750, fontSize: 18, color: b.net > 0 ? "var(--positive)" : "var(--negative)", flexShrink: 0 }}>{amt(b.net)}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Person detail sheet — opens when you tap a friend */}
       <Modal open={!!person} onClose={() => setPerson(null)}>
