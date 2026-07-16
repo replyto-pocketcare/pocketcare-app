@@ -33,6 +33,7 @@ export default function SettingsPage() {
   const [confirmSignout, setConfirmSignout] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteErr, setDeleteErr] = useState<string | null>(null);
   const confirm = useConfirm();
 
   async function replayIntro() {
@@ -48,13 +49,32 @@ export default function SettingsPage() {
 
   useEffect(() => { if (session) setUsername(session.username); }, [session]);
 
-  async function deleteAccount(orphan: boolean) {
+  async function deleteAccount() {
     setDeleting(true);
-    const { getSupabase } = await import("../../src/powersync");
-    const supabase = getSupabase();
-    await supabase.rpc('delete_user_account', { orphan_records: orphan });
-    await signOut();
-    setDeleting(false);
+    setDeleteErr(null);
+    try {
+      const { getSupabase } = await import("../../src/powersync");
+      const supabase = getSupabase();
+      // The RPC lives in the `pocketcare` schema (same as every table), so it
+      // must be called schema-qualified — a plain supabase.rpc() hits `public`
+      // and 404s, which is why deletes silently did nothing before.
+      const { error } = await supabase.schema("pocketcare").rpc("delete_user_account", { orphan_records: false });
+      if (error) {
+        // Wipe the local mirror so the just-deleted data can't linger / re-upload,
+        // then sign out to a clean slate.
+        setDeleteErr(error.message || "Couldn’t delete your account. Please try again.");
+        setDeleting(false);
+        return;
+      }
+      try {
+        const { getDb } = await import("../../src/powersync");
+        await getDb()?.disconnectAndClear();
+      } catch { /* best-effort local clear; signOut reloads regardless */ }
+      await signOut(); // reloads to /onboarding with a fresh, empty session
+    } catch (e) {
+      setDeleteErr(e instanceof Error ? e.message : "Couldn’t delete your account. Please try again.");
+      setDeleting(false);
+    }
   }
 
   async function saveUsername() {
@@ -219,18 +239,18 @@ export default function SettingsPage() {
       <Modal open={confirmDelete} onClose={() => !deleting && setConfirmDelete(false)}>
         <h2 style={{ marginBottom: 8, color: "var(--negative)" }}>Delete account?</h2>
         <p className="muted" style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 12 }}>
-          This action is permanent and cannot be undone. You can choose to cascade delete all your transactions and data, or keep them as orphaned anonymous records.
+          This permanently deletes your account and <strong>all</strong> your data — accounts, transactions, budgets, goals, planned cashflow and more. Your email will be freed so you can register again from scratch. This cannot be undone.
         </p>
-        <div style={{ display: "grid", gap: 8 }}>
-          <button className="btn" disabled={deleting} onClick={() => deleteAccount(false)}>
-            Option A: Cascade delete everything
+        {deleteErr && (
+          <div style={{ padding: "9px 12px", borderRadius: 10, marginBottom: 12, fontSize: 13, background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)" }}>
+            {deleteErr}
+          </div>
+        )}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 4 }}>
+          <button className="chip" disabled={deleting} onClick={() => { setConfirmDelete(false); setDeleteErr(null); }}>Cancel</button>
+          <button className="btn" style={{ background: "var(--negative)" }} disabled={deleting} onClick={() => deleteAccount()}>
+            {deleting ? "Deleting…" : "Delete everything"}
           </button>
-          <button className="btn ghost" disabled={deleting} onClick={() => deleteAccount(true)}>
-            Option B: Keep as orphaned records
-          </button>
-        </div>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-          <button className="chip" disabled={deleting} onClick={() => setConfirmDelete(false)}>Cancel</button>
         </div>
       </Modal>
     </div>
