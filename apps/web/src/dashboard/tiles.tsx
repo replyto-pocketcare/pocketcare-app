@@ -13,7 +13,7 @@ import { monthlyEquivalent } from "@pocketcare/finance";
 import type { BudgetLike } from "@pocketcare/data";
 import type { Transaction, Period } from "@pocketcare/types";
 import { getRepositories } from "../powersync";
-import { useAccountBalances, useBaseCurrency } from "../hooks";
+import { useAccountBalances, useBaseCurrency, useCurrencyBreakdown } from "../hooks";
 import { useAmountsHidden } from "../prefs";
 import { colorForId } from "../colors";
 import { useFriendBalances, useUserProfiles } from "../splits/hooks";
@@ -45,6 +45,7 @@ export const TILE_CATALOG: TileMeta[] = [
   { id: "byCategory", title: "Spending by category", span: "half", premium: true },
   { id: "byLabel", title: "Spending by label", span: "half", premium: true },
   { id: "monthCompare", title: "This month vs last", span: "full", premium: true },
+  { id: "currencies", title: "Across currencies", span: "half" },
 ];
 
 export const tileMeta = (id: TileId): TileMeta => TILE_CATALOG.find((t) => t.id === id)!;
@@ -67,6 +68,7 @@ export const TILE_HREF: Record<TileId, string> = {
   byCategory: "/insights",
   byLabel: "/insights",
   monthCompare: "/insights",
+  currencies: "/accounts",
 };
 
 function TileCard({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
@@ -142,6 +144,7 @@ export function TileView({ id }: { id: TileId }) {
     case "byCategory": return <ByCategoryTile />;
     case "byLabel": return <ByLabelTile />;
     case "monthCompare": return <MonthCompareTile />;
+    case "currencies": return <CurrenciesTile />;
     default: return null;
   }
 }
@@ -175,6 +178,42 @@ function SplitsTile() {
         </div>
       ) : (
         <p className="muted" style={{ fontSize: 13, margin: 0 }}>No open balances yet. Split an expense from <Link href="/transactions/new">Add transaction</Link>.</p>
+      )}
+    </TileCard>
+  );
+}
+
+function CurrenciesTile() {
+  const hidden = useAmountsHidden();
+  const { base, slices, total } = useCurrencyBreakdown();
+  const fmt = (m: Money) => (hidden ? "••••" : format(m, "en-US"));
+  return (
+    <TileCard title="Across currencies" action={<Link href="/accounts" className="muted" style={{ fontSize: 13 }}>Accounts →</Link>}>
+      {slices.length < 2 ? (
+        <p className="muted" style={{ fontSize: 13, margin: 0 }}>All your money is in {base}. Add an account in another currency to see the split, converted to {base}.</p>
+      ) : (
+        <div style={{ display: "grid", gap: 10 }}>
+          <div style={{ display: "flex", height: 10, borderRadius: 999, overflow: "hidden", background: "var(--surface-2)" }}>
+            {slices.map((s, i) => {
+              const pct = total !== 0 ? Math.max(0, (s.base / total) * 100) : 0;
+              return <div key={s.currency} title={`${s.currency} ${pct.toFixed(0)}%`} style={{ width: `${pct}%`, background: PIE[i % PIE.length] }} />;
+            })}
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            {slices.map((s, i) => {
+              const pct = total !== 0 ? (s.base / total) * 100 : 0;
+              return (
+                <div key={s.currency} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
+                    <span style={{ color: PIE[i % PIE.length] }}>●</span> <strong>{s.currency}</strong>
+                    <span className="muted" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fmt(money(s.native, s.currency))}</span>
+                  </span>
+                  <span className="muted" style={{ flexShrink: 0 }}>{s.currency === base ? "" : `≈ ${fmt(money(s.base, base))} · `}{pct.toFixed(0)}%</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
     </TileCard>
   );
