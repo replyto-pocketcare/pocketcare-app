@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@powersync/react";
-import { getSupabase, getUserId } from "../powersync";
+import { getDb, getUserId } from "../powersync";
+import { updateRow } from "../write";
 
 const GENDERS = ["", "female", "male", "non-binary", "prefer not to say"];
 const COUNTRIES = ["", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other"];
@@ -16,20 +17,43 @@ export function ProfileTraits() {
   const row = data[0];
   const [gender, setGender] = useState("");
   const [country, setCountry] = useState("");
-  const [ready, setReady] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
+  // Seed the selects from the synced row until the user edits them. Because we
+  // now write locally (below), the query re-runs after a save and this keeps the
+  // fields in sync across devices without clobbering an in-progress edit.
   useEffect(() => {
-    if (row && !ready) { setGender(row.gender ?? ""); setCountry(row.country ?? ""); setReady(true); }
-  }, [row, ready]);
+    if (row && !dirty) { setGender(row.gender ?? ""); setCountry(row.country ?? ""); }
+  }, [row, dirty]);
 
   async function save() {
     const uid = getUserId();
-    if (!uid) return;
+    const db = getDb();
+    if (!uid || !db) return;
     setMsg(null);
-    const { error } = await getSupabase().schema("pocketcare").from("profiles")
-      .update({ gender: gender || null, country: country || null, updated_at: new Date().toISOString() }).eq("id", uid);
-    setMsg(error ? error.message : "Saved.");
+    setSaving(true);
+    try {
+      // Offline-first: write to the LOCAL synced DB (PowerSync uploads to
+      // Postgres). Writing straight to Supabase — as before — left the local
+      // row untouched, so the UI kept showing nothing and re-prompting.
+      if (row) {
+        await updateRow("profiles", uid, { gender: gender || null, country: country || null });
+      } else {
+        const ts = new Date().toISOString();
+        await db.execute(
+          "INSERT INTO profiles (id, gender, country, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+          [uid, gender || null, country || null, ts, ts],
+        );
+      }
+      setDirty(false);
+      setMsg("Saved.");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Couldn’t save. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -41,19 +65,19 @@ export function ProfileTraits() {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <label style={{ display: "grid", gap: 4, flex: 1, minWidth: 150 }}>
           <span className="muted" style={{ fontSize: 12 }}>Gender</span>
-          <select className="input" value={gender} onChange={(e) => { setGender(e.target.value); setMsg(null); }}>
+          <select className="input" value={gender} onChange={(e) => { setGender(e.target.value); setDirty(true); setMsg(null); }}>
             {GENDERS.map((g) => <option key={g} value={g}>{g ? g[0]!.toUpperCase() + g.slice(1) : "Not specified"}</option>)}
           </select>
         </label>
         <label style={{ display: "grid", gap: 4, flex: 1, minWidth: 150 }}>
           <span className="muted" style={{ fontSize: 12 }}>Country</span>
-          <select className="input" value={country} onChange={(e) => { setCountry(e.target.value); setMsg(null); }}>
+          <select className="input" value={country} onChange={(e) => { setCountry(e.target.value); setDirty(true); setMsg(null); }}>
             {COUNTRIES.map((c) => <option key={c} value={c}>{c || "Not specified"}</option>)}
           </select>
         </label>
       </div>
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <button className="btn" onClick={save}>Save</button>
+        <button className="btn" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</button>
         {msg && <span className="muted" style={{ fontSize: 13 }}>{msg}</span>}
       </div>
     </section>
