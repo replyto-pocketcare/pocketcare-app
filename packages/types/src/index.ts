@@ -16,6 +16,7 @@ export const AccountType = {
   Cash: "cash",
   MutualFunds: "mutual_funds",
   Stocks: "stocks",
+  Demat: "demat",
 } as const;
 export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 

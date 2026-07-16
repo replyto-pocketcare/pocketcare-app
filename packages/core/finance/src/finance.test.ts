@@ -11,6 +11,7 @@ import {
   projectCashflow,
   yearlyEquivalent,
   timeframeTotal,
+  amortizationSchedule,
   PERIODS_PER_YEAR,
 } from "./index.ts";
 
@@ -129,6 +130,33 @@ test("projectCashflow: positive return grows savings above contributions", () =>
     1,
   );
   assert.ok(y1!.savingsBalance > 5000 * 12);
+});
+
+test("amortizationSchedule: zero interest is flat principal, ends at zero", () => {
+  const rows = amortizationSchedule(12000, 0, 1000, 12);
+  assert.equal(rows.length, 12);
+  assert.equal(rows[0]!.interest, 0);
+  assert.equal(rows[0]!.principal, 1000);
+  assert.equal(rows[11]!.balance, 0);
+});
+
+test("amortizationSchedule: with interest, interest falls and principal rises", () => {
+  const rows = amortizationSchedule(100000, 12, 8885, 12); // ~1yr @12%
+  assert.ok(rows.length >= 12 - 1 && rows.length <= 13);
+  assert.ok(rows[0]!.interest > rows[rows.length - 1]!.interest);
+  assert.ok(rows[0]!.principal < rows[rows.length - 1]!.principal);
+  assert.equal(rows[rows.length - 1]!.balance, 0);
+  // each EMI = interest + principal
+  for (const r of rows) assert.equal(r.emi, r.interest + r.principal);
+});
+
+test("amortizationSchedule: EMI below interest never amortizes → empty", () => {
+  assert.deepEqual(amortizationSchedule(100000, 12, 100, 60), []);
+});
+
+test("amortizationSchedule: caps at tenure", () => {
+  const rows = amortizationSchedule(1000000, 10, 5000, 6);
+  assert.ok(rows.length <= 6);
 });
 
 test("projectCashflow: inflation deflates real savings below nominal", () => {

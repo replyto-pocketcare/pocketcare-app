@@ -1,0 +1,18 @@
+digraph sync {
+  rankdir=TB; bgcolor="transparent"; nodesep=0.5;
+  node [shape=box style="rounded,filled" fontname="DejaVu Sans" fontsize=11 color="#e7dccd" fillcolor="#fffdf9"];
+  edge [color="#8a7d6c" fontname="DejaVu Sans" fontsize=9];
+
+  U   [label="User action (create / edit / delete)" fillcolor="#b06a4f" fontcolor="#fffdf9"];
+  W   [label="write.ts helper\ninsertRow / updateRow / softDelete\n(fills id, user_id, timestamps)"];
+  L   [label="Local SQLite\n(optimistic, instant, offline-OK)" shape=cylinder fillcolor="#f0d8c9"];
+  Q   [label="Upload queue\n(persists offline, retries on reconnect)" fillcolor="#f3ebdd"];
+  PG  [label="Supabase Postgres\n(RLS: user_id = auth.uid())" shape=cylinder fillcolor="#fffdf9"];
+  Dev [label="All devices\n(down-sync fan-out)" fillcolor="#f3ebdd"];
+
+  U -> W -> L;
+  L -> U [label="reactive query re-runs → UI updates" color="#2f6f6a" constraint=false];
+  L -> Q [label="change recorded"];
+  Q -> PG [label="flush when online (JWT)" color="#b06a4f" penwidth=1.6];
+  PG -> Dev [label="sync stream"]; Dev -> L [style=dashed];
+}

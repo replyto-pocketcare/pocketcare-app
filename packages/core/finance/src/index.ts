@@ -211,6 +211,59 @@ export function yearlyEquivalent(amount: number, period: Period): number {
   return Math.round(amount * PERIODS_PER_YEAR[period]);
 }
 
+// ---------------------------------------------------------------------------
+// Loan amortization (reducing-balance EMI schedule)
+// All money is minor-unit integers. Powers the loan detail page's month-by-month
+// principal-vs-interest breakdown.
+// ---------------------------------------------------------------------------
+
+export interface AmortRow {
+  /** 1-based EMI number. */
+  month: number;
+  /** EMI actually paid this month (equals `emi`, except a smaller final payment). */
+  emi: number;
+  /** Interest portion of this EMI. */
+  interest: number;
+  /** Principal portion of this EMI. */
+  principal: number;
+  /** Outstanding principal after this EMI. */
+  balance: number;
+}
+
+/**
+ * Reducing-balance amortization schedule. Each month, interest = balance × monthly
+ * rate, and the rest of the EMI reduces principal. A 0% rate gives a flat
+ * principal-only schedule. Stops at `maxMonths` (the tenure) or when the balance
+ * hits zero; returns `[]` if the EMI can't even cover the first month's interest
+ * (i.e. the loan would never amortize).
+ */
+export function amortizationSchedule(
+  principal: number,
+  annualRatePct: number,
+  emi: number,
+  maxMonths: number,
+): AmortRow[] {
+  const rows: AmortRow[] = [];
+  const r = annualRatePct / 100 / 12;
+  let balance = Math.max(0, Math.round(principal));
+  const emiRounded = Math.round(emi);
+  const cap = Math.min(Math.max(0, Math.round(maxMonths || 0)) || 1200, 1200);
+
+  for (let m = 1; m <= cap && balance > 0; m++) {
+    const interest = Math.round(balance * r);
+    let principalPaid = emiRounded - interest;
+    if (principalPaid <= 0) break; // EMI doesn't cover interest → never amortizes
+    let pay = emiRounded;
+    if (principalPaid >= balance) {
+      principalPaid = balance; // final (partial) payment
+      pay = balance + interest;
+    }
+    balance -= principalPaid;
+    rows.push({ month: m, emi: pay, interest, principal: principalPaid, balance });
+  }
+  return rows;
+}
+
 /** Convert a monthly minor-unit amount to a given timeframe bucket total. */
 export function timeframeTotal(monthlyAmount: number, timeframe: "monthly" | "quarterly" | "yearly"): number {
   const mult = timeframe === "monthly" ? 1 : timeframe === "quarterly" ? 3 : 12;

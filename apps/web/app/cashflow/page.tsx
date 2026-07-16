@@ -10,6 +10,7 @@
  * subscriptions → `subscriptions`, loans → `loans`. Design tokens only.
  */
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { money, fromMajor, toMajor } from "@pocketcare/money";
 import { monthlyEquivalent } from "@pocketcare/finance";
@@ -273,9 +274,9 @@ function Legend({ items }: { items: { label: string; color: string }[] }) {
   );
 }
 
-function RowShell({ icon, title, subtitle, right, actions }: { icon: string; title: string; subtitle: string; right: React.ReactNode; actions: React.ReactNode }) {
-  return (
-    <div className="card lift" style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 14 }}>
+function RowShell({ icon, title, subtitle, right, actions, href }: { icon: string; title: string; subtitle: string; right: React.ReactNode; actions: React.ReactNode; href?: string }) {
+  const info = (
+    <>
       <span className="pc-row-icon">{icon}</span>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -283,6 +284,15 @@ function RowShell({ icon, title, subtitle, right, actions }: { icon: string; tit
         </div>
         <div className="muted" style={{ fontSize: 12 }}>{subtitle}</div>
       </div>
+    </>
+  );
+  return (
+    <div className="card lift" style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 14 }}>
+      {href ? (
+        <Link href={href} style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 0, color: "inherit" }}>{info}</Link>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 0 }}>{info}</div>
+      )}
       <div style={{ textAlign: "right", display: "grid", gap: 2 }}>{right}</div>
       {actions}
     </div>
@@ -343,14 +353,16 @@ function LoanRow({ loan, base }: { loan: Loan; base: string }) {
   return (
     <RowShell
       icon="≈"
+      href={`/loans/${loan.id}`}
       title={loan.lender || "Loan"}
-      subtitle={`Loan / EMI · principal ${fmt(money(loan.principal, loan.currency || base))}`}
+      subtitle={`Loan / EMI · principal ${fmt(money(loan.principal, loan.currency || base))} · view schedule →`}
       right={<>
         <span style={{ fontWeight: 650, fontSize: 14 }}>{loan.emi_amount ? fmt(money(loan.emi_amount, loan.currency || base)) : "—"}</span>
         <span className="muted" style={{ fontSize: 11 }}>EMI / mo</span>
       </>}
       actions={
         <KebabMenu label={`${loan.lender} actions`} items={[
+          { label: "View schedule", onClick: () => { window.location.href = `/loans/${loan.id}`; } },
           { label: "Remove", danger: true, onClick: async () => { if (await confirm({ title: "Remove loan?", message: `"${loan.lender || "Loan"}" will be removed.`, confirmLabel: "Remove" })) softDelete("loans", loan.id); } },
         ]} />
       }
@@ -397,6 +409,9 @@ function AddModal({ ctx, base, onClose }: { ctx: { direction: Direction; seed?: 
   const [ret, setRet] = useState(seed?.expectedReturnPct != null ? String(seed.expectedReturnPct) : "");
   const [principal, setPrincipal] = useState("");
   const [start, setStart] = useState(new Date().toISOString().slice(0, 10));
+  const [tenure, setTenure] = useState("");
+  const [rate, setRate] = useState("");
+  const [emisPaid, setEmisPaid] = useState("0");
 
   const isSub = direction === "payment" && bucket === "subscription";
   const isLoan = direction === "payment" && bucket === "loan";
@@ -408,7 +423,14 @@ function AddModal({ ctx, base, onClose }: { ctx: { direction: Direction; seed?: 
     if (isSub) {
       await insertRow("subscriptions", { name: name.trim(), amount: minor, currency: base, billing_cycle: freq, purchased_on: start || null, next_renewal: start || null, is_active: 1 });
     } else if (isLoan) {
-      await insertRow("loans", { lender: name.trim(), principal: principal ? fromMajor(Number(principal), base).amount : 0, currency: base, interest_rate: 0, emi_amount: minor });
+      await insertRow("loans", {
+        lender: name.trim(), currency: base, emi_amount: minor,
+        principal: principal ? fromMajor(Number(principal), base).amount : 0,
+        interest_rate: rate ? Number(rate) : 0,
+        tenure_months: tenure ? Number(tenure) : null,
+        start_date: start || null,
+        emis_paid: Number(emisPaid) || 0,
+      });
     } else {
       await insertRow("planned_cashflow", {
         name: name.trim(), direction, bucket, amount: minor, currency: base, frequency: freq,
@@ -439,6 +461,19 @@ function AddModal({ ctx, base, onClose }: { ctx: { direction: Direction; seed?: 
           {isLoan && <FloatingInput label={`Principal (${base})`} inputMode="decimal" value={principal} onChange={(v) => setPrincipal(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 130 }} />}
           {direction === "saving" && <FloatingInput label="Return % p.a." inputMode="decimal" value={ret} onChange={(v) => setRet(v.replace(/[^0-9.]/g, ""))} style={{ width: 120 }} />}
         </div>
+        {isLoan && (
+          <>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <FloatingInput label="Tenure (months)" inputMode="numeric" value={tenure} onChange={(v) => setTenure(v.replace(/\D/g, ""))} style={{ flex: 1, minWidth: 120 }} />
+              <FloatingInput label="Interest % p.a. (optional)" inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 120 }} />
+              <FloatingInput label="EMIs already paid" inputMode="numeric" value={emisPaid} onChange={(v) => setEmisPaid(v.replace(/\D/g, ""))} style={{ width: 130 }} />
+            </div>
+            <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>EMIs started on
+              <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+            </label>
+            <span className="muted" style={{ fontSize: 12, marginTop: -4 }}>You'll get a full month-by-month schedule (principal vs interest) on the loan's page.</span>
+          </>
+        )}
         {!isLoan && (
           <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
             <span className="muted" style={{ fontSize: 12 }}>Frequency</span>

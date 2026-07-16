@@ -182,6 +182,8 @@ const credit_card_details = new Table({
   due_day: column.integer,
   credit_limit: column.integer,
   card_last4: column.text,
+  pending_due: column.integer, // amount owed (minor units) for the current statement
+  due_on: column.text, // date that pending_due is payable (may be next cycle)
   created_at: column.text,
   updated_at: column.text,
 });
@@ -264,6 +266,7 @@ const loans = new Table({
   tenure_months: column.integer,
   emi_amount: column.integer,
   start_date: column.text,
+  emis_paid: column.integer, // how many EMIs the user has already paid
   created_at: column.text,
   updated_at: column.text,
   deleted_at: column.text,
@@ -302,10 +305,13 @@ const holdings = new Table({
   account_id: column.text,
   symbol: column.text,
   exchange: column.text,
-  quantity: column.real,
-  avg_cost: column.integer,
+  quantity: column.real, // shares (stocks) or units (mutual funds)
+  avg_cost: column.integer, // per-unit cost / NAV in minor units
   currency: column.text,
   auto_fetch: column.integer,
+  instrument_type: column.text, // 'stock' | 'mf'
+  off_list: column.integer, // 1 = not in our fetched catalog → gains/losses untracked
+  name: column.text, // display name for off-list holdings (symbol may be blank)
   created_at: column.text,
   updated_at: column.text,
   deleted_at: column.text,

@@ -1,0 +1,36 @@
+digraph arch {
+  rankdir=LR; bgcolor="transparent";
+  node [shape=box style="rounded,filled" fontname="DejaVu Sans" fontsize=11 color="#e7dccd" penwidth=1.2];
+  edge [color="#8a7d6c" fontname="DejaVu Sans" fontsize=9];
+
+  subgraph cluster_device {
+    label="User device (browser / installed PWA)"; labeljust=l; fontname="DejaVu Sans"; fontsize=12; color="#b06a4f"; style=rounded;
+    UI   [label="Next.js App Router UI\n(React 18, Framer Motion)" fillcolor="#fffdf9"];
+    Repo [label="Repositories\n@pocketcare/data" fillcolor="#f3ebdd"];
+    Core [label="Domain core\nmoney · finance · ledger · budget" fillcolor="#f3ebdd"];
+    PS   [label="PowerSync\nWASM SQLite" shape=cylinder fillcolor="#f0d8c9"];
+    SW   [label="Service Worker\n(offline shell)" fillcolor="#f3ebdd"];
+  }
+  subgraph cluster_supa {
+    label="Supabase (server-authoritative)"; labeljust=l; fontname="DejaVu Sans"; fontsize=12; color="#2f6f6a"; style=rounded;
+    Auth [label="Auth\n(anon guest + email)" fillcolor="#fffdf9"];
+    PG   [label="Postgres\nschema: pocketcare" shape=cylinder fillcolor="#fffdf9"];
+    RLS  [label="Row-Level Security\nuser_id = auth.uid()" fillcolor="#f3ebdd"];
+    EF   [label="Edge Functions\nmarket-sync · razorpay-* · redeem-coupon" fillcolor="#fffdf9"];
+  }
+  subgraph cluster_ext {
+    label="External"; labeljust=l; fontname="DejaVu Sans"; fontsize=12; color="#c08a3e"; style=rounded;
+    AV  [label="Alpha Vantage\n(market data)" fillcolor="#fffdf9"];
+    RZP [label="Razorpay\n(billing)" fillcolor="#fffdf9"];
+    LLM [label="LLM provider\n(assistant)" fillcolor="#fffdf9"];
+  }
+
+  UI -> Repo -> Core;
+  Repo -> PS [dir=both];
+  UI -> SW [style=dashed label="install"];
+  PS -> PG [dir=both label="sync streams (per-user)" color="#b06a4f" penwidth=1.6];
+  UI -> Auth [label="JWT REST/RPC"];
+  UI -> EF [label="rpc / fn"];
+  PG -> RLS [dir=none];
+  EF -> AV; EF -> RZP; UI -> LLM [label="assistant fn"];
+}

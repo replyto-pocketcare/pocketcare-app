@@ -1,0 +1,37 @@
+digraph data {
+  rankdir=LR; bgcolor="transparent"; splines=spline; nodesep=0.4; ranksep=0.7;
+  node [shape=box style="rounded,filled" fontname="DejaVu Sans" fontsize=10 color="#e7dccd"];
+  edge [color="#8a7d6c" fontname="DejaVu Sans" fontsize=9 arrowhead=vee];
+
+  profiles [label="profiles / auth.users" fillcolor="#b06a4f" fontcolor="#fffdf9"];
+  accounts [label="accounts" fillcolor="#fffdf9"];
+  transactions [label="transactions\n(income/expense/transfer/opening/adjust)" fillcolor="#fffdf9"];
+  titems [label="transaction_items\n(breakdown, sum=parent)" fillcolor="#f3ebdd"];
+  categories [label="categories / labels" fillcolor="#f3ebdd"];
+  budgets [label="budgets\n(+ categories/labels)" fillcolor="#fffdf9"];
+  goals [label="goals\n(+ goal_allocations)" fillcolor="#fffdf9"];
+  planned [label="planned_cashflow\n(income/payment/saving)" fillcolor="#f0d8c9"];
+  subs [label="subscriptions" fillcolor="#fffdf9"];
+  loans [label="loans" fillcolor="#fffdf9"];
+  holdings [label="holdings" fillcolor="#fffdf9"];
+  market [label="market_* (global RO)" fillcolor="#f3ebdd"];
+
+  splitg [label="split_groups" fillcolor="#fffdf9"];
+  members [label="split_group_members" fillcolor="#f3ebdd"];
+  expenses [label="expenses" fillcolor="#fffdf9"];
+  eparts [label="expense_participants" fillcolor="#f3ebdd"];
+  settle [label="settlements" fillcolor="#f3ebdd"];
+
+  profiles -> accounts; profiles -> transactions; profiles -> categories;
+  profiles -> budgets; profiles -> goals; profiles -> planned; profiles -> subs;
+  profiles -> loans; profiles -> holdings;
+  accounts -> transactions [dir=both label="src/dest"];
+  transactions -> titems; transactions -> categories;
+  budgets -> categories [style=dashed]; goals -> accounts [style=dashed label="blocks"];
+  holdings -> market [style=dashed label="priced by symbol"];
+
+  profiles -> splitg [label="created_by"];
+  splitg -> members; splitg -> expenses; splitg -> settle;
+  expenses -> eparts;
+  {rank=same; splitg; members; expenses; eparts; settle;}
+}
