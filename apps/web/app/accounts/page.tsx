@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { useAccountBalances, useAccountsLoading } from "../../src/hooks";
+import { money } from "@pocketcare/money";
+import { useAccountBalances, useAccountsLoading, useCurrencyBreakdown } from "../../src/hooks";
 import { getDb } from "../../src/powersync";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { CardsSkeleton } from "../../src/ui/Skeleton";
@@ -36,6 +37,7 @@ export default function AccountsPage() {
           <Link href="/accounts/new" className="btn">＋ New account</Link>
         </div>
       </div>
+      <MultiCurrencyCard />
       {balances.length === 0 && accountsLoading ? (
         <CardsSkeleton count={4} minWidth={260} />
       ) : (
@@ -70,5 +72,48 @@ export default function AccountsPage() {
       </div>
       )}
     </div>
+  );
+}
+
+const CCY_COLORS = ["var(--accent)", "var(--teal)", "var(--forest)", "var(--warning)", "var(--positive)", "var(--accent-soft)"];
+
+/** "Across currencies" — where your money is held, converted to base. */
+function MultiCurrencyCard() {
+  const fmt = useMoneyFmt();
+  const { base, slices, total } = useCurrencyBreakdown();
+  if (slices.length < 2) return null; // single-currency users don't need this
+  return (
+    <section className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
+        <h2 style={{ margin: 0, fontSize: 17 }}>Across currencies</h2>
+        <span className="muted" style={{ fontSize: 13 }}>{fmt(money(total, base))} total · {slices.length} currencies</span>
+      </div>
+      {/* Stacked share bar */}
+      <div style={{ display: "flex", height: 12, borderRadius: 999, overflow: "hidden", background: "var(--surface-2)" }}>
+        {slices.map((s, i) => {
+          const pct = total !== 0 ? Math.max(0, (s.base / total) * 100) : 0;
+          return <div key={s.currency} title={`${s.currency} ${pct.toFixed(0)}%`} style={{ width: `${pct}%`, background: CCY_COLORS[i % CCY_COLORS.length] }} />;
+        })}
+      </div>
+      <div style={{ display: "grid", gap: 6 }}>
+        {slices.map((s, i) => {
+          const pct = total !== 0 ? (s.base / total) * 100 : 0;
+          return (
+            <div key={s.currency} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, gap: 8 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                <span style={{ width: 9, height: 9, borderRadius: 999, background: CCY_COLORS[i % CCY_COLORS.length], flexShrink: 0 }} />
+                <strong>{s.currency}</strong>
+                <span className="muted">{fmt(money(s.native, s.currency))}</span>
+              </span>
+              <span style={{ flexShrink: 0 }}>
+                {s.currency === base ? "" : <span className="muted" style={{ fontSize: 12 }}>≈ {fmt(money(s.base, base))} · </span>}
+                {pct.toFixed(0)}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>Converted to {base} at the latest exchange rate. Accounts stay in their own currency.</p>
+    </section>
   );
 }

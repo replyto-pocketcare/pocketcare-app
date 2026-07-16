@@ -106,6 +106,7 @@ Some actions cannot be expressed as owner-scoped row writes and run server-side:
 | Function | Purpose |
 |---|---|
 | `market-sync` | Fetch Alpha Vantage quotes/dividends/overview → `market_*` tables |
+| `fx-sync` | Fetch daily FX rates → `exchange_rates` (drives base-currency conversion app-wide) |
 | `razorpay-subscription` / `razorpay-credits` / `razorpay-webhook` | Billing: recurring subs, credit packs, HMAC-verified activation |
 | `redeem-coupon` | Validate + apply earned coupons / shared promo codes |
 | guest purge | Delete expired guest accounts after the 3-day TTL |

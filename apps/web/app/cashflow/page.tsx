@@ -15,7 +15,7 @@ import { useQuery } from "@powersync/react";
 import { money, fromMajor, toMajor } from "@pocketcare/money";
 import { monthlyEquivalent } from "@pocketcare/finance";
 import type { Period } from "@pocketcare/types";
-import { useBaseCurrency } from "../../src/hooks";
+import { useBaseCurrency, useConvert, useConvertAmount } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { Modal } from "../../src/ui/Modal";
@@ -63,6 +63,7 @@ function nextMonthly(start: string | null): string | null {
 export default function CashflowPage() {
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
+  const convertAmount = useConvertAmount();
 
   const { data: items = [] } = useQuery<PlannedItem>(
     "SELECT id, name, direction, bucket, amount, currency, frequency, timeframe, next_due, expected_return, is_active FROM planned_cashflow WHERE deleted_at IS NULL AND is_active = 1 ORDER BY created_at",
@@ -97,12 +98,16 @@ export default function CashflowPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Everything is summed in the base currency: convert each item's amount from
+  // its stored currency so totals are correct even across currencies / after a
+  // base-currency change.
+  const cv = (amount: number, currency: string | null) => convertAmount(amount, currency || base);
   const totals = computeTotals({
-    incomes,
-    household,
-    savings,
-    subscriptions: subs.map((s) => ({ amount: s.amount, frequency: s.billing_cycle })),
-    loanEmis: loans.filter((l) => l.emi_amount).map((l) => ({ amount: l.emi_amount!, frequency: "monthly" as Period })),
+    incomes: incomes.map((i) => ({ amount: cv(i.amount, i.currency), frequency: i.frequency })),
+    household: household.map((i) => ({ amount: cv(i.amount, i.currency), frequency: i.frequency })),
+    savings: savings.map((i) => ({ amount: cv(i.amount, i.currency), frequency: i.frequency })),
+    subscriptions: subs.map((s) => ({ amount: cv(s.amount, s.currency), frequency: s.billing_cycle })),
+    loanEmis: loans.filter((l) => l.emi_amount).map((l) => ({ amount: cv(l.emi_amount!, l.currency), frequency: "monthly" as Period })),
   });
 
   const tfIncome = scaleToTimeframe(totals.income, timeframe);
@@ -301,9 +306,11 @@ function RowShell({ icon, title, subtitle, right, actions, href }: { icon: strin
 
 function PlannedRow({ item, base, showReturn }: { item: PlannedItem; base: string; showReturn?: boolean }) {
   const fmt = useMoneyFmt();
+  const conv = useConvert();
   const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const monthly = monthlyEquivalent(item.amount, item.frequency);
+  const cur = item.currency || base;
   if (editing) return <EditPlanned item={item} onDone={() => setEditing(false)} />;
   return (
     <RowShell
@@ -311,8 +318,8 @@ function PlannedRow({ item, base, showReturn }: { item: PlannedItem; base: strin
       title={item.name}
       subtitle={`${bucketLabel(item.direction, item.bucket)} · ${item.frequency}${showReturn && item.expected_return != null ? ` · ${(item.expected_return / 100).toFixed(1)}% p.a.` : ""}`}
       right={<>
-        <span style={{ fontWeight: 650, fontSize: 14 }}>{fmt(money(item.amount, item.currency || base))}</span>
-        <span className="muted" style={{ fontSize: 11 }}>{fmt(money(monthly, item.currency || base))}/mo</span>
+        <span style={{ fontWeight: 650, fontSize: 14 }}>{fmt(conv(money(item.amount, cur)))}</span>
+        <span className="muted" style={{ fontSize: 11 }}>{fmt(conv(money(monthly, cur)))}/mo</span>
       </>}
       actions={
         <KebabMenu label={`${item.name} actions`} items={[
@@ -326,17 +333,19 @@ function PlannedRow({ item, base, showReturn }: { item: PlannedItem; base: strin
 
 function SubRow({ sub, base }: { sub: Sub; base: string }) {
   const fmt = useMoneyFmt();
+  const conv = useConvert();
   const confirm = useConfirm();
   const monthly = monthlyEquivalent(sub.amount, sub.billing_cycle);
   const due = nextMonthly(sub.next_renewal);
+  const cur = sub.currency || base;
   return (
     <RowShell
       icon="↻"
       title={sub.name}
       subtitle={`Subscription · ${sub.billing_cycle}${due ? ` · next ${due}` : ""}`}
       right={<>
-        <span style={{ fontWeight: 650, fontSize: 14 }}>{fmt(money(sub.amount, sub.currency || base))}</span>
-        <span className="muted" style={{ fontSize: 11 }}>{fmt(money(monthly, sub.currency || base))}/mo</span>
+        <span style={{ fontWeight: 650, fontSize: 14 }}>{fmt(conv(money(sub.amount, cur)))}</span>
+        <span className="muted" style={{ fontSize: 11 }}>{fmt(conv(money(monthly, cur)))}/mo</span>
       </>}
       actions={
         <KebabMenu label={`${sub.name} actions`} items={[
@@ -349,15 +358,17 @@ function SubRow({ sub, base }: { sub: Sub; base: string }) {
 
 function LoanRow({ loan, base }: { loan: Loan; base: string }) {
   const fmt = useMoneyFmt();
+  const conv = useConvert();
   const confirm = useConfirm();
+  const cur = loan.currency || base;
   return (
     <RowShell
       icon="≈"
       href={`/loans/${loan.id}`}
       title={loan.lender || "Loan"}
-      subtitle={`Loan / EMI · principal ${fmt(money(loan.principal, loan.currency || base))} · view schedule →`}
+      subtitle={`Loan / EMI · principal ${fmt(conv(money(loan.principal, cur)))} · view schedule →`}
       right={<>
-        <span style={{ fontWeight: 650, fontSize: 14 }}>{loan.emi_amount ? fmt(money(loan.emi_amount, loan.currency || base)) : "—"}</span>
+        <span style={{ fontWeight: 650, fontSize: 14 }}>{loan.emi_amount ? fmt(conv(money(loan.emi_amount, cur))) : "—"}</span>
         <span className="muted" style={{ fontSize: 11 }}>EMI / mo</span>
       </>}
       actions={

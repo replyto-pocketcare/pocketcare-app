@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@powersync/react";
-import { money, type Money } from "@pocketcare/money";
+import { money, convert, type Money } from "@pocketcare/money";
 import {
   deriveBalance,
   aggregateNetWorth,
@@ -104,4 +104,54 @@ export function useNetWorth(): { total: Money; available: Money; base: string } 
     available: aggregateNetWorth(accountBalances, base, rates, false),
     base,
   };
+}
+
+/**
+ * Convert a Money into the user's base currency using live exchange rates.
+ * Accounts keep their own currency; anywhere we aggregate or show a base-currency
+ * figure (net worth, subscriptions, planned cashflow, dashboard) we convert here.
+ * Falls back to par (1:1) when a rate pair isn't known yet.
+ */
+export function useConvert(): (m: Money) => Money {
+  const base = useBaseCurrency();
+  const rates = useRates();
+  return (m: Money): Money => {
+    if (!m || m.currency === base) return m;
+    const rate = rates(m.currency, base);
+    return convert(m, base, rate);
+  };
+}
+
+/** Convenience: convert a raw minor-unit amount from `currency` → base minor units. */
+export function useConvertAmount(): (amount: number, currency: string) => number {
+  const base = useBaseCurrency();
+  const conv = useConvert();
+  return (amount: number, currency: string) => (currency === base ? amount : conv(money(amount, currency)).amount);
+}
+
+export interface CurrencySlice { currency: string; native: number; base: number }
+
+/**
+ * Net worth split by the currency each account is held in — powers the
+ * multi-currency insight. `native` is the total in that currency; `base` is the
+ * converted value in the user's base currency.
+ */
+export function useCurrencyBreakdown(): { base: string; slices: CurrencySlice[]; total: number } {
+  const base = useBaseCurrency();
+  const rates = useRates();
+  const balances = useAccountBalances();
+  const byCcy = new Map<string, number>();
+  for (const { account, balance } of balances) {
+    if (account.include_in_net_worth === 0) continue;
+    byCcy.set(balance.currency, (byCcy.get(balance.currency) ?? 0) + balance.amount);
+  }
+  const slices: CurrencySlice[] = [...byCcy.entries()]
+    .map(([currency, native]) => ({
+      currency,
+      native,
+      base: currency === base ? native : convert(money(native, currency), base, rates(currency, base)).amount,
+    }))
+    .sort((a, b) => Math.abs(b.base) - Math.abs(a.base));
+  const total = slices.reduce((s, x) => s + x.base, 0);
+  return { base, slices, total };
 }
