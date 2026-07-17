@@ -188,107 +188,63 @@ export default function LoanDetailPage() {
         <section style={{ display: "grid", gap: 10 }}>
           <div className="eyebrow">Monthly EMIs · you enter each month’s amount</div>
           <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 420 }}>
-                <thead>
-                  <tr style={{ textAlign: "right", color: "var(--text-2)" }}>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600 }}>#</th>
-                    <th style={{ padding: "10px 14px", fontWeight: 600 }}>Due</th>
-                    <th style={{ padding: "10px 14px", fontWeight: 600 }}>EMI this month</th>
-                    <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 600 }}>Paid</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {variableMonths.map((m) => {
-                    const rowPaid = isPaid(m);
-                    const manualPaid = isManual(m);
-                    const autoPaid = rowPaid && !manualPaid;
-                    const isNext = m === nextUnpaid;
-                    const due = emiDueDate(loan.start_date, dueDay, m);
-                    const paidOn = manual[m];
-                    return (
-                      <tr key={m} style={{ borderTop: "1px solid var(--border)", textAlign: "right", background: isNext ? "var(--accent-ghost)" : "transparent" }}>
-                        <td style={{ textAlign: "left", padding: "8px 14px", opacity: rowPaid ? 0.7 : 1 }}>{rowPaid ? "✓ " : ""}{m}</td>
-                        <td style={{ padding: "8px 14px", color: "var(--text-2)" }}>{fmtDateShort(due)}</td>
-                        <td style={{ padding: "6px 14px" }}>
-                          <VariableAmountCell key={`amt-${m}-${amounts[m] ?? 0}`} value={amounts[m] ?? null} currency={cur} onSave={(minor) => setAmount(m, minor)} />
-                        </td>
-                        <td style={{ textAlign: "center", padding: "8px 14px", whiteSpace: "nowrap" }}>
-                          {autoPaid ? (
-                            <span className="chip" title={`Auto-marked — due ${fmtDate(due)}`} style={{ padding: "2px 8px", fontSize: 11, opacity: 0.85 }}>Auto ✓</span>
-                          ) : manualPaid ? (
-                            <button className="chip" title={paidOn ? `Paid on ${fmtDate(paidOn)} · click to undo` : "Paid · click to undo"} onClick={() => setManualPaid(m, null)} style={{ padding: "2px 8px", fontSize: 11 }}>
-                              {paidOn ? fmtDateShort(paidOn) : "Paid"} ✓
-                            </button>
-                          ) : (
-                            <button className="chip" onClick={() => setPayFor({ month: m, due })} style={{ padding: "2px 8px", fontSize: 11 }}>Mark paid</button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            {variableMonths.map((m, idx) => {
+              const rowPaid = isPaid(m);
+              const manualPaid = isManual(m);
+              const isNext = m === nextUnpaid;
+              const due = emiDueDate(loan.start_date, dueDay, m);
+              const paidOn = manual[m];
+              return (
+                <div key={m} style={{ padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap",
+                  borderTop: idx === 0 ? "none" : "1px solid var(--border)", background: isNext ? "var(--accent-ghost)" : "transparent" }}>
+                  <div style={{ minWidth: 0, opacity: rowPaid ? 0.7 : 1 }}>
+                    <div style={{ fontWeight: 650, fontSize: 14 }}>{rowPaid ? "✓ " : ""}EMI #{m}</div>
+                    <div className="muted" style={{ fontSize: 12 }}>Due {fmtDateShort(due)}</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                    <VariableAmountCell key={`amt-${m}-${amounts[m] ?? 0}`} value={amounts[m] ?? null} currency={cur} onSave={(minor) => setAmount(m, minor)} />
+                    <PaidControl state={paidState(rowPaid, manualPaid)} due={due} paidOn={paidOn} onMark={() => setPayFor({ month: m, due })} onUnmark={() => setManualPaid(m, null)} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
           <p className="muted" style={{ fontSize: 12, margin: 0 }}>Variable-rate loans re-price over time, so enter each month’s EMI as your bank sets it. {tenure ? "" : "Add a tenure (edit) to lay out the full schedule."}</p>
         </section>
       )}
 
-      {/* Amortization schedule (fixed-rate) */}
+      {/* Amortization schedule (fixed-rate) — stacked cards, no horizontal scroll */}
       {!isVariable && (schedule.length > 0 ? (
         <section style={{ display: "grid", gap: 10 }}>
           <div className="eyebrow">Amortization schedule {hasInterest ? "· principal vs interest" : "· principal only"}</div>
           <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 460 }}>
-                <thead>
-                  <tr style={{ textAlign: "right", color: "var(--text-2)" }}>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600 }}>#</th>
-                    <th style={{ padding: "10px 14px", fontWeight: 600 }}>Due</th>
-                    <th style={{ padding: "10px 14px", fontWeight: 600 }}>EMI</th>
-                    <th style={{ padding: "10px 14px", fontWeight: 600 }}>Principal</th>
-                    <th style={{ padding: "10px 14px", fontWeight: 600 }}>Interest</th>
-                    <th style={{ padding: "10px 14px", fontWeight: 600 }}>Balance</th>
-                    <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 600 }}>Paid</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {schedule.map((r) => {
-                    const rowPaid = isPaid(r.month);
-                    const manualPaid = isManual(r.month);
-                    const autoPaid = rowPaid && !manualPaid; // auto-marked, derived
-                    const isNext = r.month === nextUnpaid;
-                    const due = emiDueDate(loan.start_date, dueDay, r.month);
-                    const paidOn = manual[r.month];
-                    return (
-                      <tr key={r.month} style={{ borderTop: "1px solid var(--border)", textAlign: "right",
-                        background: isNext ? "var(--accent-ghost)" : "transparent", opacity: rowPaid ? 0.6 : 1 }}>
-                        <td style={{ textAlign: "left", padding: "8px 14px" }}>{rowPaid ? "✓ " : ""}{r.month}</td>
-                        <td style={{ padding: "8px 14px", color: "var(--text-2)" }}>{fmtDateShort(due)}</td>
-                        <td style={{ padding: "8px 14px" }}>{fmt(money(r.emi, cur))}</td>
-                        <td style={{ padding: "8px 14px" }}>{fmt(money(r.principal, cur))}</td>
-                        <td style={{ padding: "8px 14px", color: hasInterest ? "var(--negative)" : "var(--text-3)" }}>{fmt(money(r.interest, cur))}</td>
-                        <td style={{ padding: "8px 14px" }}>{fmt(money(r.balance, cur))}</td>
-                        <td style={{ textAlign: "center", padding: "8px 14px", whiteSpace: "nowrap" }}>
-                          {autoPaid ? (
-                            <span className="chip" title={`Auto-marked — due ${fmtDate(due)}`} style={{ padding: "2px 8px", fontSize: 11, opacity: 0.85 }}>
-                              Auto ✓
-                            </span>
-                          ) : manualPaid ? (
-                            <button className="chip" title={paidOn ? `Paid on ${fmtDate(paidOn)} · click to undo` : "Paid · click to undo"} onClick={() => setManualPaid(r.month, null)} style={{ padding: "2px 8px", fontSize: 11 }}>
-                              {paidOn ? fmtDateShort(paidOn) : "Paid"} ✓
-                            </button>
-                          ) : (
-                            <button className="chip" onClick={() => setPayFor({ month: r.month, due })} style={{ padding: "2px 8px", fontSize: 11 }}>Mark paid</button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            {schedule.map((r, idx) => {
+              const rowPaid = isPaid(r.month);
+              const manualPaid = isManual(r.month);
+              const isNext = r.month === nextUnpaid;
+              const due = emiDueDate(loan.start_date, dueDay, r.month);
+              const paidOn = manual[r.month];
+              return (
+                <div key={r.month} style={{ padding: "12px 14px", display: "grid", gap: 6,
+                  borderTop: idx === 0 ? "none" : "1px solid var(--border)", background: isNext ? "var(--accent-ghost)" : "transparent", opacity: rowPaid ? 0.65 : 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8, minWidth: 0 }}>
+                      <strong style={{ fontSize: 14 }}>{rowPaid ? "✓ " : ""}#{r.month}</strong>
+                      <span className="muted" style={{ fontSize: 12 }}>{fmtDateShort(due)}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      <strong style={{ fontSize: 14 }}>{fmt(money(r.emi, cur))}</strong>
+                      <PaidControl state={paidState(rowPaid, manualPaid)} due={due} paidOn={paidOn} onMark={() => setPayFor({ month: r.month, due })} onUnmark={() => setManualPaid(r.month, null)} />
+                    </div>
+                  </div>
+                  <div className="muted" style={{ fontSize: 11.5, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                    <span>Principal <span style={{ color: "var(--text-2)" }}>{fmt(money(r.principal, cur))}</span></span>
+                    {hasInterest && <span>Interest <span style={{ color: "var(--negative)" }}>{fmt(money(r.interest, cur))}</span></span>}
+                    <span>Balance <span style={{ color: "var(--text-2)" }}>{fmt(money(r.balance, cur))}</span></span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
           {!hasInterest && <p className="muted" style={{ fontSize: 12, margin: 0 }}>Add an interest rate (edit) to see the principal-vs-interest split each month.</p>}
         </section>
@@ -343,6 +299,22 @@ function Card({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+/** The paid state control shared by the fixed & variable EMI lists. */
+function PaidControl({ state, due, paidOn, onMark, onUnmark }: {
+  state: "auto" | "manual" | "unpaid"; due: string | null; paidOn: string | undefined; onMark: () => void; onUnmark: () => void;
+}) {
+  if (state === "auto") return <span className="chip" title={`Auto-marked — due ${fmtDate(due)}`} style={{ padding: "3px 9px", fontSize: 11, opacity: 0.85 }}>Auto ✓</span>;
+  if (state === "manual") return (
+    <button className="chip" title={paidOn ? `Paid on ${fmtDate(paidOn)} · tap to undo` : "Paid · tap to undo"} onClick={onUnmark} style={{ padding: "3px 9px", fontSize: 11 }}>
+      {paidOn ? fmtDateShort(paidOn) : "Paid"} ✓
+    </button>
+  );
+  return <button className="chip" onClick={onMark} style={{ padding: "3px 9px", fontSize: 11 }}>Mark paid</button>;
+}
+
+const paidState = (rowPaid: boolean, manualPaid: boolean): "auto" | "manual" | "unpaid" =>
+  !rowPaid ? "unpaid" : manualPaid ? "manual" : "auto";
 
 /** Inline editable EMI amount for a variable-rate month; saves on blur.
  *  Keyed by its saved value in the parent, so it re-seeds when the value changes. */
