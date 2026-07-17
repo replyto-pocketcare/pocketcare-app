@@ -23,6 +23,10 @@ export interface FinancialSummary {
   goals: { name: string; target: number; saved: number; currency: string }[];
   upcoming: { name: string; date: string; amount: number; currency: string }[];
   splits: { owed: number; owe: number; groups: number };
+  /** Last 6 calendar months of income vs expense (major units) for trend charts. */
+  monthlyCashflow: { ym: string; income: number; expense: number }[];
+  /** Top expense categories over the last ~3 months (major units) for breakdowns. */
+  topCategories: { name: string; amount: number }[];
 }
 
 const major = (minor: number) => Math.round(minor) / 100;
@@ -41,6 +45,8 @@ export function summaryForPrompt(s: FinancialSummary): string {
   if (s.goals.length) out.goals = s.goals.slice(0, 12).map((g) => ({ n: g.name, target: g.target, saved: g.saved, c: g.currency }));
   if (s.upcoming.length) out.upcoming = s.upcoming.slice(0, 8).map((u) => ({ n: u.name, date: u.date, amt: u.amount }));
   if (s.splits.owed || s.splits.owe || s.splits.groups) out.splits = { friendsOweYou: s.splits.owed, youOwe: s.splits.owe, groups: s.splits.groups };
+  if (s.monthlyCashflow.some((m) => m.income || m.expense)) out.monthly = s.monthlyCashflow.map((m) => ({ ym: m.ym, in: m.income, exp: m.expense }));
+  if (s.topCategories.length) out.topSpendCategories = s.topCategories.map((c) => ({ n: c.name, amt: c.amount }));
   return JSON.stringify(out);
 }
 
@@ -73,6 +79,26 @@ export async function buildFinancialSummary(): Promise<FinancialSummary> {
   const exp = flow.find((f) => f.type === "expense")?.total ?? 0;
   const avgMonthlyIncome = major(inc / 3);
   const avgMonthlyExpense = major(exp / 3);
+
+  // Last 6 calendar months of income vs expense (for trend charts).
+  const sixAgo = new Date(); sixAgo.setDate(1); sixAgo.setMonth(sixAgo.getMonth() - 5);
+  const byMonth = await db.getAll<{ ym: string; type: string; total: number }>(
+    "SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total FROM transactions WHERE deleted_at IS NULL AND type IN ('income','expense') AND occurred_at >= ? GROUP BY ym, type",
+    [sixAgo.toISOString()],
+  );
+  const months: string[] = [];
+  const cursor = new Date(); cursor.setDate(1);
+  for (let i = 5; i >= 0; i--) { const m = new Date(cursor.getFullYear(), cursor.getMonth() - i, 1); months.push(`${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, "0")}`); }
+  const mMap = new Map<string, { income: number; expense: number }>(months.map((m) => [m, { income: 0, expense: 0 }]));
+  for (const r of byMonth) { const e = mMap.get(r.ym); if (e) { if (r.type === "income") e.income = major(r.total); else e.expense = major(r.total); } }
+  const monthlyCashflow = months.map((ym) => ({ ym, income: mMap.get(ym)!.income, expense: mMap.get(ym)!.expense }));
+
+  // Top expense categories over the last ~3 months (for breakdowns).
+  const catRows = await db.getAll<{ name: string | null; total: number }>(
+    "SELECT c.name as name, SUM(t.amount) as total FROM transactions t LEFT JOIN categories c ON c.id = t.category_id WHERE t.deleted_at IS NULL AND t.type = 'expense' AND t.occurred_at >= ? GROUP BY t.category_id ORDER BY total DESC LIMIT 8",
+    [since.toISOString()],
+  );
+  const topCategories = catRows.map((r) => ({ name: r.name || "Uncategorized", amount: major(r.total) }));
 
   // Fixed monthly obligations = subscriptions + loan EMIs + recurring commitments.
   const subs = await db.getAll<{ amount: number; billing_cycle: string }>(
@@ -152,5 +178,7 @@ export async function buildFinancialSummary(): Promise<FinancialSummary> {
     goals,
     upcoming,
     splits: { owed: major(owedMinor), owe: major(oweMinor), groups: groupCount },
+    monthlyCashflow,
+    topCategories,
   };
 }
