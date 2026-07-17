@@ -12,6 +12,7 @@ import {
   yearlyEquivalent,
   timeframeTotal,
   amortizationSchedule,
+  emiFromPrincipal,
   emiDueDate,
   isDuePassed,
   effectivePaidEmis,
@@ -168,6 +169,30 @@ test("projectCashflow: inflation deflates real savings below nominal", () => {
     1,
   );
   assert.ok(y1!.realSavingsBalance < y1!.savingsBalance);
+});
+
+// --- EMI from principal ---
+
+test("emiFromPrincipal: 0% rate is the flat P/n", () => {
+  assert.equal(emiFromPrincipal(120000, 0, 12), 10000);
+});
+
+test("emiFromPrincipal: standard reducing-balance formula", () => {
+  // ₹1,00,000 @ 12% p.a. (1%/mo) over 12 months → ≈ ₹8,885 EMI.
+  assert.equal(emiFromPrincipal(100000, 12, 12), 8885);
+});
+
+test("emiFromPrincipal: non-positive tenure or principal → 0", () => {
+  assert.equal(emiFromPrincipal(100000, 10, 0), 0);
+  assert.equal(emiFromPrincipal(0, 10, 12), 0);
+});
+
+test("emiFromPrincipal: computed EMI amortizes the loan within the tenure", () => {
+  const P = 500000, rate = 9, n = 24;
+  const emi = emiFromPrincipal(P, rate, n);
+  const rows = amortizationSchedule(P, rate, emi, n);
+  assert.ok(rows.length <= n);                                   // never runs past the tenure
+  assert.ok((rows[rows.length - 1]!.balance) < emi);             // essentially cleared by the last EMI
 });
 
 // --- Loan EMI scheduling ---

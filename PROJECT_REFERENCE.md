@@ -82,6 +82,7 @@ Each feature ships to mobile **and** web in the same phase (shared core); web us
 Market-data API for holdings · FX rate provider for `exchange_rates` · launch languages (which + RTL) · RevenueCat vs native billing.
 
 ## Gotchas / platform notes
+- **Single React (build break if duplicated):** `react-native@0.74.5` (transitive via `@react-three/fiber` + `react-i18next` optional peers) pins `react: 18.2.0` exactly, which pulls a **second React** into the tree. With two Reacts, `next build` fails prerendering the error pages (`/_error: /404,/500`) with `useContext` null / invalid hook call. Fixed by a root **`pnpm.overrides`** forcing `react`/`react-dom` to `18.3.1` — after editing overrides run `pnpm install` to dedupe. Don't remove this override.
 - **PowerSync web must NOT be instantiated during SSR** (crashes: `SSRDBAdapter … tx.execute is not a function`). `apps/web/src/powersync.ts` creates the DB lazily, browser-only (`getDb()`, `getRepositories()`); `app/providers.tsx` gates the tree until `initSystem()` resolves on the client. Never construct `PowerSyncDatabase` at web module top-level.
 - i18n JSON is imported plainly (no `with { type: "json" }` import attributes) for SWC/webpack compatibility.
 - **Client env must be referenced statically**: `process.env.NEXT_PUBLIC_*` (web) / `process.env.EXPO_PUBLIC_*` (mobile). Dynamic `process.env[key]` is NOT inlined into the client bundle → value is undefined at runtime. Both `src/powersync.ts` files use static consts.

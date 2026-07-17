@@ -231,6 +231,21 @@ export interface AmortRow {
 }
 
 /**
+ * Standard reducing-balance EMI for a fixed-rate loan (minor-unit integer).
+ *   EMI = P·r·(1+r)^n / ((1+r)^n − 1),  r = monthly rate, n = tenure in months.
+ * A 0% (or missing) rate gives the flat P/n. Returns 0 for a non-positive tenure.
+ */
+export function emiFromPrincipal(principal: number, annualRatePct: number, tenureMonths: number): number {
+  const P = Math.max(0, Math.round(principal));
+  const n = Math.max(0, Math.floor(tenureMonths || 0));
+  if (P <= 0 || n <= 0) return 0;
+  const r = (annualRatePct || 0) / 100 / 12;
+  if (r <= 0) return Math.round(P / n);
+  const pow = Math.pow(1 + r, n);
+  return Math.round((P * r * pow) / (pow - 1));
+}
+
+/**
  * Reducing-balance amortization schedule. Each month, interest = balance × monthly
  * rate, and the rest of the EMI reduces principal. A 0% rate gives a flat
  * principal-only schedule. Stops at `maxMonths` (the tenure) or when the balance

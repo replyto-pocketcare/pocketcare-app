@@ -270,6 +270,8 @@ const loans = new Table({
   emi_payments: column.text, // JSON map { "<emiNo>": "<paidOn ISO date>" }
   emi_due_day: column.integer, // day-of-month (1–31) each EMI is due; combined with start_date to derive due dates
   auto_mark_paid: column.integer, // 0/1 — when on, past-due EMIs are treated as paid (derived at read time)
+  rate_type: column.text, // 'fixed' (compute EMI + schedule) | 'variable' (user enters each month's EMI)
+  emi_amounts: column.text, // JSON map { "<emiNo>": <amountMinor> } — per-month EMI for variable loans
   created_at: column.text,
   updated_at: column.text,
   deleted_at: column.text,
