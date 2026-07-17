@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@powersync/react";
 import { money, toMajor } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
@@ -23,6 +24,23 @@ export default function SearchPage() {
   const [showFilters, setShowFilters] = useState(false);
   const activeFilters = [type !== "all", !!accountId, !!from, !!to, !!min, !!max].filter(Boolean).length;
   const clearFilters = () => { setType("all"); setAccountId(""); setFrom(""); setTo(""); setMin(""); setMax(""); };
+
+  // Deep-link prefill: /search?q=&type=&account=<id>&from=&to=&min=&max= (e.g. from the assistant), once.
+  const params = useSearchParams();
+  const [prefilled, setPrefilled] = useState(false);
+  useEffect(() => {
+    if (prefilled) return;
+    const g = (k: string) => params.get(k) ?? "";
+    if (g("q")) setQ(g("q"));
+    const tp = g("type"); if (tp && (TYPES as readonly string[]).includes(tp)) setType(tp as (typeof TYPES)[number]);
+    if (g("account")) setAccountId(g("account"));
+    if (g("from")) setFrom(g("from"));
+    if (g("to")) setTo(g("to"));
+    if (g("min")) setMin(g("min"));
+    if (g("max")) setMax(g("max"));
+    if (["type", "account", "from", "to", "min", "max"].some((k) => g(k))) setShowFilters(true);
+    setPrefilled(true);
+  }, [params, prefilled]);
 
   const { data: rows = [] } = useQuery<Transaction & { labels: string | null; method_label: string | null }>(
     `SELECT t.*,

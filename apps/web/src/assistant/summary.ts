@@ -14,7 +14,7 @@ import { pairwiseEdges, type Party } from "../splits/math";
 export interface FinancialSummary {
   baseCurrency: string;
   today: string;
-  accounts: { name: string; type: string; currency: string; balance: number }[];
+  accounts: { id: string; name: string; type: string; currency: string; balance: number }[];
   liquidSavings: number;
   avgMonthlyIncome: number;
   avgMonthlyExpense: number;
@@ -40,7 +40,7 @@ export function summaryForPrompt(s: FinancialSummary): string {
     avgMonthlyExpense: s.avgMonthlyExpense,
     monthlySurplus: s.monthlySurplus,
     fixedMonthlyObligations: s.fixedMonthlyObligations,
-    accounts: s.accounts.slice(0, 12).map((a) => ({ n: a.name, t: a.type, c: a.currency, bal: a.balance })),
+    accounts: s.accounts.slice(0, 12).map((a) => ({ id: a.id, n: a.name, t: a.type, c: a.currency, bal: a.balance })),
   };
   if (s.goals.length) out.goals = s.goals.slice(0, 12).map((g) => ({ n: g.name, target: g.target, saved: g.saved, c: g.currency }));
   if (s.upcoming.length) out.upcoming = s.upcoming.slice(0, 8).map((u) => ({ n: u.name, date: u.date, amt: u.amount }));
@@ -64,7 +64,7 @@ export async function buildFinancialSummary(): Promise<FinancialSummary> {
   for (const a of accountRows) {
     const bal = await repos.balances.accountBalance(a.id);
     const balMajor = toMajor(bal);
-    accounts.push({ name: a.name, type: a.type, currency: a.currency, balance: balMajor });
+    accounts.push({ id: a.id, name: a.name, type: a.type, currency: a.currency, balance: balMajor });
     if (["savings", "current", "cash"].includes(a.type) && a.currency === base) liquidSavings += balMajor;
   }
 
