@@ -38,6 +38,9 @@ import {
   type Template,
 } from "../../src/cashflow/model";
 import { SplitDonut, RatioBars } from "../../src/cashflow/Charts";
+import { useRecurringItems, removeRecurring, type RecurringItem, type RecurringDirection } from "../../src/cashflow/recurring";
+import { RecurringModal } from "../../src/cashflow/RecurringModal";
+import type { Freq } from "../../src/templates/write";
 import { ProjectionPanel } from "../../src/cashflow/Projections";
 
 const CYCLES: Period[] = ["daily", "weekly", "monthly", "yearly"];
@@ -81,8 +84,15 @@ export default function CashflowPage() {
   const household = items.filter((i) => i.direction === "payment");
   const savings = items.filter((i) => i.direction === "saving");
 
+  // Recurring-rule-backed items (real templates + rules that post transactions).
+  const recurring = useRecurringItems();
+  const recIncomes = recurring.filter((r) => r.direction === "income");
+  const recPayments = recurring.filter((r) => r.direction === "payment");
+  const recSavings = recurring.filter((r) => r.direction === "saving");
+
   const [timeframe, setTimeframe] = useState<Timeframe>("monthly");
-  const [add, setAdd] = useState<{ direction: Direction; seed?: Template } | null>(null);
+  // Recurring add/edit/convert modal state.
+  const [rec, setRec] = useState<{ direction: RecurringDirection; edit?: RecurringItem; prefill?: { name?: string; amount?: number; frequency?: Freq }; convertFromId?: string } | null>(null);
 
   // Deep-link support: e.g. /cashflow#payments (from the dashboard tile) scrolls
   // straight to that section. Retry briefly while synced data grows the page.
@@ -104,10 +114,11 @@ export default function CashflowPage() {
   // its stored currency so totals are correct even across currencies / after a
   // base-currency change.
   const cv = (amount: number, currency: string | null) => convertAmount(amount, currency || base);
+  const recRow = (r: RecurringItem) => ({ amount: cv(r.amount, r.currency), frequency: r.frequency as Period });
   const totals = computeTotals({
-    incomes: incomes.map((i) => ({ amount: cv(i.amount, i.currency), frequency: i.frequency })),
-    household: household.map((i) => ({ amount: cv(i.amount, i.currency), frequency: i.frequency })),
-    savings: savings.map((i) => ({ amount: cv(i.amount, i.currency), frequency: i.frequency })),
+    incomes: [...incomes.map((i) => ({ amount: cv(i.amount, i.currency), frequency: i.frequency })), ...recIncomes.map(recRow)],
+    household: [...household.map((i) => ({ amount: cv(i.amount, i.currency), frequency: i.frequency })), ...recPayments.map(recRow)],
+    savings: [...savings.map((i) => ({ amount: cv(i.amount, i.currency), frequency: i.frequency })), ...recSavings.map(recRow)],
     subscriptions: subs.map((s) => ({ amount: cv(s.amount, s.currency), frequency: s.billing_cycle })),
     loanEmis: loans.filter((l) => l.emi_amount).map((l) => ({ amount: cv(l.emi_amount!, l.currency), frequency: "monthly" as Period })),
   });
@@ -169,32 +180,37 @@ export default function CashflowPage() {
         <div className="eyebrow">Quick add · templates</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {TEMPLATES.map((t) => (
-            <button key={t.label} className="pc-template press" onClick={() => setAdd({ direction: t.direction, seed: t })}>
+            <button key={t.label} className="pc-template press" onClick={() => setRec({ direction: t.direction, prefill: { name: t.label, frequency: t.frequency as Freq } })}>
               <span style={{ opacity: 0.7 }}>{bucketIcon(t.direction, t.bucket)}</span> {t.label}
             </button>
           ))}
         </div>
+        <p className="muted" style={{ fontSize: 12, margin: 0 }}>Quick-add sets up a recurring rule that posts automatically (or asks you to confirm). Manage all recurring items on <Link href="/templates">Templates</Link>.</p>
       </section>
 
       {/* Recurring incomes */}
-      <Section id="incomes" title="Recurring incomes" accent="positive" count={incomes.length} onAdd={() => setAdd({ direction: "income" })} addLabel="Add income"
+      <Section id="incomes" title="Recurring incomes" accent="positive" count={incomes.length + recIncomes.length} onAdd={() => setRec({ direction: "income" })} addLabel="Add income"
         empty="Log your salary, freelance payments and other regular income to see your true monthly inflow.">
-        {incomes.map((i) => <PlannedRow key={i.id} item={i} base={base} />)}
+        {recIncomes.map((r) => <RecurringRow key={r.ruleId} item={r} base={base} onEdit={() => setRec({ direction: "income", edit: r })} />)}
+        {incomes.map((i) => <PlannedRow key={i.id} item={i} base={base} onConvert={() => convert(i)} />)}
       </Section>
 
-      {/* Planned payments (household + subscriptions + loans) */}
-      <Section id="payments" title="Planned payments" accent="negative" count={household.length + subs.length + loans.length} onAdd={() => setAdd({ direction: "payment" })} addLabel="Add payment"
+      {/* Planned payments (recurring + subscriptions + loans + legacy) */}
+      <Section id="payments" title="Planned payments" accent="negative" count={recPayments.length + household.length + subs.length + loans.length} onAdd={() => setRec({ direction: "payment" })} addLabel="Add payment"
         empty="Add rent, bills, subscriptions and loan EMIs to track everything you're committed to.">
-        {household.map((i) => <PlannedRow key={i.id} item={i} base={base} />)}
+        {recPayments.map((r) => <RecurringRow key={r.ruleId} item={r} base={base} onEdit={() => setRec({ direction: "payment", edit: r })} />)}
+        {household.map((i) => <PlannedRow key={i.id} item={i} base={base} onConvert={() => convert(i)} />)}
         {subs.map((s) => <SubRow key={s.id} sub={s} base={base} />)}
         {loans.map((l) => <LoanRow key={l.id} loan={l} base={base} />)}
       </Section>
 
-      {/* Savings & investments — managed on the Investments page (single source of truth) */}
-      <Section id="savings" title="Savings & investments" accent="teal" count={savings.length} onAdd={() => router.push("/investments")} addLabel="Add investment"
-        empty="Track your FDs, mutual funds, stocks, SIPs and crypto in one place. Add and manage them on the Investments page.">
+      {/* Savings & investments */}
+      <Section id="savings" title="Savings & investments" accent="teal" count={savings.length + recSavings.length} onAdd={() => setRec({ direction: "saving" })} addLabel="Add recurring saving"
+        empty="Set up a recurring saving (a transfer into an investment account), or add individual holdings on the Investments page.">
         <PortfolioSummary base={base} />
-        {savings.map((i) => <PlannedRow key={i.id} item={i} base={base} showReturn />)}
+        {recSavings.map((r) => <RecurringRow key={r.ruleId} item={r} base={base} onEdit={() => setRec({ direction: "saving", edit: r })} />)}
+        {savings.map((i) => <PlannedRow key={i.id} item={i} base={base} showReturn onConvert={() => convert(i)} />)}
+        <p className="muted" style={{ fontSize: 12, margin: 0 }}>Track individual holdings (stocks, MFs, FDs, crypto) on the <Link href="/investments">Investments</Link> page.</p>
       </Section>
 
       {/* Financial summary + AI projections */}
@@ -223,9 +239,29 @@ export default function CashflowPage() {
         />
       </section>
 
-      {add && <AddModal ctx={add} base={base} onClose={() => setAdd(null)} />}
+      {rec && (
+        <RecurringModal
+          direction={rec.direction}
+          base={base}
+          edit={rec.edit ?? null}
+          prefill={rec.prefill ?? null}
+          onClose={(saved) => {
+            // Converting a legacy standalone item → remove it once the rule is created.
+            if (saved && rec.convertFromId) softDelete("planned_cashflow", rec.convertFromId);
+            setRec(null);
+          }}
+        />
+      )}
     </div>
   );
+
+  function convert(i: PlannedItem) {
+    setRec({
+      direction: i.direction as RecurringDirection,
+      prefill: { name: i.name, amount: i.amount, frequency: i.frequency as Freq },
+      convertFromId: i.id,
+    });
+  }
 }
 
 // --- Building blocks -------------------------------------------------------
@@ -338,7 +374,7 @@ function PortfolioSummary({ base }: { base: string }) {
   );
 }
 
-function PlannedRow({ item, base, showReturn }: { item: PlannedItem; base: string; showReturn?: boolean }) {
+function PlannedRow({ item, base, showReturn, onConvert }: { item: PlannedItem; base: string; showReturn?: boolean; onConvert?: () => void }) {
   const fmt = useMoneyFmt();
   const conv = useConvert();
   const confirm = useConfirm();
@@ -350,15 +386,44 @@ function PlannedRow({ item, base, showReturn }: { item: PlannedItem; base: strin
     <RowShell
       icon={bucketIcon(item.direction, item.bucket)}
       title={item.name}
-      subtitle={`${bucketLabel(item.direction, item.bucket)} · ${item.frequency}${showReturn && item.expected_return != null ? ` · ${(item.expected_return / 100).toFixed(1)}% p.a.` : ""}`}
+      subtitle={`${bucketLabel(item.direction, item.bucket)} · ${item.frequency}${showReturn && item.expected_return != null ? ` · ${(item.expected_return / 100).toFixed(1)}% p.a.` : ""} · one-off entry`}
       right={<>
         <span style={{ fontWeight: 650, fontSize: 14 }}>{fmt(conv(money(item.amount, cur)))}</span>
         <span className="muted" style={{ fontSize: 11 }}>{fmt(conv(money(monthly, cur)))}/mo</span>
       </>}
       actions={
         <KebabMenu label={`${item.name} actions`} items={[
+          ...(onConvert ? [{ label: "Make it recurring", onClick: onConvert }] : []),
           { label: "Edit", onClick: () => setEditing(true) },
           { label: "Remove", danger: true, onClick: async () => { if (await confirm({ title: "Remove this item?", message: `"${item.name}" will be removed.`, confirmLabel: "Remove" })) softDelete("planned_cashflow", item.id); } },
+        ]} />
+      }
+    />
+  );
+}
+
+/** A recurring-rule-backed row (real template + rule that posts transactions). */
+function RecurringRow({ item, base, onEdit }: { item: RecurringItem; base: string; onEdit: () => void }) {
+  const fmt = useMoneyFmt();
+  const conv = useConvert();
+  const confirm = useConfirm();
+  const monthly = monthlyEquivalent(item.amount, item.frequency as Period);
+  const cur = item.currency || base;
+  const icon = item.direction === "income" ? "＋" : item.direction === "saving" ? "▲" : "↻";
+  const nextDue = item.next_due ? new Date(item.next_due + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short" }) : "—";
+  return (
+    <RowShell
+      icon={icon}
+      title={item.name}
+      subtitle={`${item.frequency} · next ${nextDue} · ${item.auto_post ? "auto-posts" : "confirm"}`}
+      right={<>
+        <span style={{ fontWeight: 650, fontSize: 14 }}>{fmt(conv(money(item.amount, cur)))}</span>
+        <span className="muted" style={{ fontSize: 11 }}>{fmt(conv(money(monthly, cur)))}/mo</span>
+      </>}
+      actions={
+        <KebabMenu label={`${item.name} actions`} items={[
+          { label: "Edit", onClick: onEdit },
+          { label: "Remove", danger: true, onClick: async () => { if (await confirm({ title: "Remove this recurring item?", message: `"${item.name}" will stop recurring.`, confirmLabel: "Remove" })) removeRecurring(item.ruleId, item.templateId); } },
         ]} />
       }
     />

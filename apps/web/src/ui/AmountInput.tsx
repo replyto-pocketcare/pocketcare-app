@@ -5,7 +5,7 @@ import { groupAmount, onGroupedInput } from "./amountFormat";
 
 /** A plain `.input` that shows thousand separators live while storing the raw value. */
 export function AmountInput({
-  value, onChange, placeholder, style, ariaLabel, autoFocus, currency,
+  value, onChange, placeholder, style, ariaLabel, autoFocus, currency, onBlur,
 }: {
   value: string;
   onChange: (raw: string) => void;
@@ -14,6 +14,7 @@ export function AmountInput({
   ariaLabel?: string;
   autoFocus?: boolean;
   currency?: string;
+  onBlur?: () => void;
 }) {
   return (
     <input
@@ -24,6 +25,7 @@ export function AmountInput({
       autoFocus={autoFocus}
       value={groupAmount(value, currency)}
       onChange={(e) => onGroupedInput(e, onChange, currency)}
+      onBlur={onBlur}
       style={style}
     />
   );

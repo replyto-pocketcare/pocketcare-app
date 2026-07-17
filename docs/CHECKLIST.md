@@ -7,9 +7,9 @@ _Last updated: 2026-07-17. Covers Planned Cashflow, currency conversion, loans/i
 - Core tests: **96/96 pass** (finance 33 incl. new EMI-schedule tests, + money/ledger/budget/entitlements/guardrail/reconcile/crypto).
 
 ## 🚀 Deploy steps (do in order)
-- [ ] **Apply migrations** to Supabase: `supabase db push` (or run in SQL editor) — `0029`–`0035`:
-  - `0029` planned_cashflow · `0030`/`0031` account deletion · `0032` loans/holdings/cards/demat · `0033` loan emi_payments · `0034` loan emi_due_day + auto_mark_paid · `0035` investment schemes (holdings asset_class/current_value/annual_rate/maturity_date/source_account_id/planned_id).
-- [ ] **Redeploy PowerSync sync rules** (`packages/db/sync-streams.yaml`) — required because `planned_cashflow` was added; the column-only migrations (0032–0035) don't change streams but redeploy is safe.
+- [ ] **Apply migrations** to Supabase: `supabase db push` (or run in SQL editor) — `0029`–`0036`:
+  - `0029` planned_cashflow · `0030`/`0031` account deletion · `0032` loans/holdings/cards/demat · `0033` loan emi_payments · `0034` loan emi_due_day + auto_mark_paid · `0035` investment schemes (holdings asset_class/current_value/annual_rate/maturity_date/source_account_id/planned_id) · `0036` loan rate_type + emi_amounts.
+- [ ] **Redeploy PowerSync sync rules** (`packages/db/sync-streams.yaml`) — required because `planned_cashflow` was added; the column-only migrations (0032–0036) don't change streams but redeploy is safe.
 - [ ] **Deploy edge functions:** `supabase functions deploy fx-sync` and (if not already) `market-sync`.
 - [ ] **Schedule `fx-sync` daily** (Supabase scheduled function / cron → POST the function). Set secrets `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (and optional `FX_PROVIDER_URL`). Until it runs, unknown currency pairs fall back to 1:1.
 - [ ] **Smoke test:** trigger both jobs from **/admin/jobs**; confirm success + that net worth / subscriptions convert after `fx-sync` populates `exchange_rates`.
@@ -37,6 +37,12 @@ Also: an old stray `PocketCare-Investor-Deck.pptx` sits at repo root (canonical 
 - [ ] **Tests** — ✅ EMI paid-map / due-date derivation now unit-tested (`emiDueDate`, `isDuePassed`, `effectivePaidEmis` — 9 tests). Still to do: `cardDueDate`, `useCurrencyBreakdown`, and a Playwright smoke for the new pages (`/loans`, `/loans/[id]`, `/investments` demat flow).
 - [ ] **Full monorepo typecheck** — run `pnpm -w typecheck` (all packages) in a real environment before release; the agent only ran `apps/web`.
 - [ ] **Drive mirror** — `/docs` markdown partially uploaded to Google Drive (README + 2 architecture docs); finish or drag-drop the rest + binaries.
+
+## ⚠️ Sync error `PGRST204 … Could not find the '<col>' column … in the schema cache`
+The client (local SQLite schema) is ahead of Postgres/PostgREST. This surfaces as `[PocketCare sync] upload failed … PGRST204` (e.g. `sort` on `transaction_templates`, or the new `loans`/`holdings` columns). Fix:
+1. **Apply all pending migrations** (see Deploy steps) — `0016` adds `transaction_templates.sort`; `0029`–`0036` add the newer columns.
+2. **Reload the PostgREST schema cache** so it sees the new columns: run `notify pgrst, 'reload schema';` in the SQL editor, or Dashboard → Settings → API → **Reload schema**. (Even with a column present, a stale cache throws PGRST204.)
+The failed writes stay queued locally and re-upload automatically once the column exists + cache is reloaded — no data loss.
 
 ## 🩹 Known constraints
 - Agent git commits blocked by the workspace mount (no unlink); commit locally.

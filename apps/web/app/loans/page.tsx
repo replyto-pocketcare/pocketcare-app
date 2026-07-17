@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
-import { money, fromMajor } from "@pocketcare/money";
-import { effectivePaidEmis } from "@pocketcare/finance";
+import { money, fromMajor, toMajor } from "@pocketcare/money";
+import { effectivePaidEmis, emiFromPrincipal } from "@pocketcare/finance";
 import { useBaseCurrency, useConvert } from "../../src/hooks";
 import { insertRow } from "../../src/write";
 import { useMoneyFmt } from "../../src/ui/Money";
@@ -15,6 +15,7 @@ interface Loan {
   id: string; lender: string; principal: number; currency: string;
   emi_amount: number | null; tenure_months: number | null; emis_paid: number | null; interest_rate: number | null;
   start_date: string | null; emi_payments: string | null; emi_due_day: number | null; auto_mark_paid: number | null;
+  rate_type: string | null;
 }
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -37,7 +38,7 @@ export default function LoansPage() {
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
   const conv = useConvert();
-  const { data: loans = [] } = useQuery<Loan>("SELECT id, lender, principal, currency, emi_amount, tenure_months, emis_paid, interest_rate, start_date, emi_payments, emi_due_day, auto_mark_paid FROM loans WHERE deleted_at IS NULL ORDER BY created_at");
+  const { data: loans = [] } = useQuery<Loan>("SELECT id, lender, principal, currency, emi_amount, tenure_months, emis_paid, interest_rate, start_date, emi_payments, emi_due_day, auto_mark_paid, rate_type FROM loans WHERE deleted_at IS NULL ORDER BY created_at");
   const [adding, setAdding] = useState(false);
 
   const totalEmi = loans.reduce((s, l) => s + (l.emi_amount ? conv(money(l.emi_amount, l.currency || base)).amount : 0), 0);
@@ -75,7 +76,7 @@ export default function LoansPage() {
               <Link key={l.id} href={`/loans/${l.id}`} className="card lift" style={{ padding: 16, display: "grid", gap: 6, color: "inherit" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
                   <strong>{l.lender || "Loan"}</strong>
-                  <span style={{ fontWeight: 650 }}>{l.emi_amount ? fmt(conv(money(l.emi_amount, l.currency || base))) : "—"}<span className="muted" style={{ fontSize: 11, fontWeight: 400 }}> /mo</span></span>
+                  <span style={{ fontWeight: 650 }}>{l.emi_amount ? fmt(conv(money(l.emi_amount, l.currency || base))) : (l.rate_type === "variable" ? "Varies" : "—")}<span className="muted" style={{ fontSize: 11, fontWeight: 400 }}> /mo</span></span>
                 </div>
                 <div className="muted" style={{ fontSize: 12 }}>Principal {fmt(conv(money(l.principal, l.currency || base)))}{l.interest_rate ? ` · ${l.interest_rate}% p.a.` : ""}</div>
                 {tenure > 0 && (
@@ -99,27 +100,38 @@ export default function LoansPage() {
 }
 
 function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
+  const fmt = useMoneyFmt();
   const [lender, setLender] = useState("");
   const [principal, setPrincipal] = useState("");
   const [emi, setEmi] = useState("");
+  const [emiTouched, setEmiTouched] = useState(false);
   const [tenure, setTenure] = useState("");
   const [rate, setRate] = useState("");
+  const [rateType, setRateType] = useState<"fixed" | "variable">("fixed");
   const [start, setStart] = useState(new Date().toISOString().slice(0, 10));
   const [dueDay, setDueDay] = useState("");
   const [autoMark, setAutoMark] = useState(false);
 
+  // Fixed loans: derive the EMI from principal/rate/tenure (user can override).
+  const principalMinor = principal ? fromMajor(Number(principal), base).amount : 0;
+  const computedEmiMinor = rateType === "fixed" ? emiFromPrincipal(principalMinor, Number(rate) || 0, Number(tenure) || 0) : 0;
+  const computedEmiMajor = computedEmiMinor ? String(toMajor(money(computedEmiMinor, base))) : "";
+  const emiValue = rateType === "variable" ? "" : (emiTouched ? emi : computedEmiMajor);
+
   async function save() {
     if (!lender.trim() && !principal) return;
     const dd = dueDay ? Math.min(31, Math.max(1, Number(dueDay))) : null;
+    const emiToUse = rateType === "variable" ? null : (emiTouched ? emi : computedEmiMajor);
     await insertRow("loans", {
       lender: lender.trim(), currency: base,
-      principal: principal ? fromMajor(Number(principal), base).amount : 0,
-      emi_amount: emi ? fromMajor(Number(emi), base).amount : null,
+      principal: principalMinor,
+      emi_amount: emiToUse ? fromMajor(Number(emiToUse), base).amount : null,
       interest_rate: rate ? Number(rate) : 0,
       tenure_months: tenure ? Number(tenure) : null,
       start_date: start || null,
       emi_due_day: dd,
       auto_mark_paid: autoMark ? 1 : 0,
+      rate_type: rateType,
       emis_paid: 0,
     });
     onClose();
@@ -130,14 +142,37 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
       <div style={{ display: "grid", gap: 12 }}>
         <h2 style={{ margin: 0 }}>Add loan</h2>
         <FloatingInput label="Lender" value={lender} onChange={setLender} />
+
+        {/* Interest type */}
+        <div style={{ display: "grid", gap: 4 }}>
+          <span className="muted" style={{ fontSize: 12 }}>Interest type</span>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button className="chip" data-active={rateType === "fixed"} onClick={() => setRateType("fixed")}>Fixed</button>
+            <button className="chip" data-active={rateType === "variable"} onClick={() => setRateType("variable")}>Variable</button>
+          </div>
+        </div>
+
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <FloatingInput label={`Principal (${base})`} group currency={base} value={principal} onChange={setPrincipal} style={{ flex: 1, minWidth: 130 }} />
-          <FloatingInput label={`Monthly EMI (${base})`} group currency={base} value={emi} onChange={setEmi} style={{ flex: 1, minWidth: 130 }} />
+          <FloatingInput label="Tenure (months)" inputMode="numeric" value={tenure} onChange={(v) => setTenure(v.replace(/\D/g, ""))} style={{ flex: 1, minWidth: 120 }} />
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <FloatingInput label="Tenure (months)" inputMode="numeric" value={tenure} onChange={(v) => setTenure(v.replace(/\D/g, ""))} style={{ flex: 1, minWidth: 120 }} />
-          <FloatingInput label="Interest % p.a. (optional)" inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 120 }} />
+          <FloatingInput label={rateType === "variable" ? "Current interest % p.a." : "Interest % p.a."} inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 120 }} />
+          {rateType === "fixed" && (
+            <FloatingInput label={`Monthly EMI (${base})`} group currency={base} value={emiValue} onChange={(v) => { setEmi(v); setEmiTouched(true); }} style={{ flex: 1, minWidth: 130 }} />
+          )}
         </div>
+        {rateType === "fixed" ? (
+          computedEmiMinor > 0 && (
+            <div className="muted" style={{ fontSize: 12, marginTop: -4 }}>
+              {emiTouched ? <>Auto-calculated EMI was {fmt(money(computedEmiMinor, base))}. <button className="chip" style={{ padding: "1px 8px", fontSize: 11 }} onClick={() => { setEmiTouched(false); setEmi(""); }}>Use it</button></> : "EMI auto-calculated from principal, rate and tenure — edit it to override."}
+            </div>
+          )
+        ) : (
+          <div style={{ padding: "9px 12px", borderRadius: 10, fontSize: 12, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", color: "var(--text-2)" }}>
+            Variable-rate EMIs change over time and can’t be auto-calculated, so we’ll ask you to <strong style={{ color: "var(--text)" }}>enter each month’s EMI</strong> on the loan’s page.
+          </div>
+        )}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
           <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>Loan started on
             <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />

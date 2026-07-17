@@ -1,7 +1,12 @@
 # Planned Cashflow (BETA)
 
 ## Overview
-A consolidated hub for **recurring income, planned payments, and savings**, with **aggregate summaries** per timeframe and a **deterministic, inflation-aware AI projection engine** (1/2/3-year structure). It merges the former standalone Subscriptions and Loans pages: subscriptions and loan EMIs are surfaced here alongside household payments. Marked **BETA**.
+A consolidated hub for **recurring income, planned payments, and savings**, with **aggregate summaries** per timeframe and a **deterministic, inflation-aware AI projection engine** (1/2/3-year structure). It merges the former standalone Subscriptions and Loans pages: subscriptions and loan EMIs are surfaced here alongside recurring payments. Marked **BETA**.
+
+## Recurring rules are the source (nothing standalone)
+Incomes, payments and savings are backed by **real recurring rules** (`transaction_templates` + `recurring_rules`) that actually post transactions via the recurring engine — not informational-only rows. The **Add income / Add payment / Add recurring saving** buttons and the quick-add templates open a **RecurringModal** that creates a template + rule in one step (`src/cashflow/recurring.ts` → `createRecurring`; direction → template type: income→income, payment→expense, saving→transfer into an investment account). The hub reads these via `useRecurringItems()` and includes them in every total/projection.
+
+Legacy standalone `planned_cashflow` entries still render (labelled "one-off entry") with a **"Make it recurring"** action that opens the modal prefilled and removes the standalone row once the rule is created. Subscriptions and loan EMIs keep their own tables and are shown in the payments section; SIPs/holdings are managed on Investments.
 
 ## Structure
 ```mermaid

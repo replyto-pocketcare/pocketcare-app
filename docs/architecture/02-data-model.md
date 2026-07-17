@@ -101,7 +101,9 @@ erDiagram
         text start_date
         int  emi_due_day
         int  auto_mark_paid
+        text rate_type
         text emi_payments
+        text emi_amounts
     }
     holdings {
         uuid id PK

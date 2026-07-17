@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@powersync/react";
 import { money, fromMajor, toMajor } from "@pocketcare/money";
-import { amortizationSchedule, emiDueDate, effectivePaidEmis } from "@pocketcare/finance";
+import { amortizationSchedule, emiDueDate, effectivePaidEmis, emiFromPrincipal } from "@pocketcare/finance";
+import { AmountInput } from "../../../src/ui/AmountInput";
 import { useBaseCurrency, useAccountBalances } from "../../../src/hooks";
 import { getRepositories } from "../../../src/powersync";
 import { updateRow, softDelete } from "../../../src/write";
@@ -18,6 +19,7 @@ interface Loan {
   interest_rate: number | null; tenure_months: number | null; emi_amount: number | null;
   start_date: string | null; emis_paid: number | null; emi_payments: string | null;
   emi_due_day: number | null; auto_mark_paid: number | null;
+  rate_type: string | null; emi_amounts: string | null;
 }
 
 /** Parse the emi_payments JSON map { emiNo: paidOnISO }. */
@@ -27,6 +29,17 @@ function parsePaid(json: string | null): Record<number, string> {
     const obj = JSON.parse(json) as Record<string, string>;
     const out: Record<number, string> = {};
     for (const [k, v] of Object.entries(obj)) if (v) out[Number(k)] = v;
+    return out;
+  } catch { return {}; }
+}
+
+/** Parse the emi_amounts JSON map { emiNo: amountMinor } (variable-rate loans). */
+function parseAmounts(json: string | null): Record<number, number> {
+  if (!json) return {};
+  try {
+    const obj = JSON.parse(json) as Record<string, number>;
+    const out: Record<number, number> = {};
+    for (const [k, v] of Object.entries(obj)) if (typeof v === "number" && v > 0) out[Number(k)] = v;
     return out;
   } catch { return {}; }
 }
@@ -53,10 +66,10 @@ export default function LoanDetailPage() {
   const emi = loan.emi_amount ?? 0;
   const dueDay = loan.emi_due_day ?? null;
   const autoMark = (loan.auto_mark_paid ?? 0) === 1;
-  const schedule = emi > 0 ? amortizationSchedule(loan.principal, loan.interest_rate ?? 0, emi, tenure || 600) : [];
+  const isVariable = loan.rate_type === "variable";
+  const schedule = !isVariable && emi > 0 ? amortizationSchedule(loan.principal, loan.interest_rate ?? 0, emi, tenure || 600) : [];
   const totalInterest = schedule.reduce((s, r) => s + r.interest, 0);
   const hasInterest = (loan.interest_rate ?? 0) > 0;
-  const totalEmis = tenure || schedule.length;
 
   // Manual paid map is the source of truth; fall back to the emis_paid count
   // (first N marked) for loans created before per-EMI tracking existed.
@@ -64,6 +77,13 @@ export default function LoanDetailPage() {
   if (Object.keys(manual).length === 0 && (loan.emis_paid ?? 0) > 0) {
     for (let m = 1; m <= (loan.emis_paid ?? 0); m++) manual[m] = "";
   }
+  const amounts = parseAmounts(loan.emi_amounts); // variable-rate per-month EMIs
+
+  const knownMax = Math.max(0, ...Object.keys(amounts).map(Number), ...Object.keys(manual).map(Number));
+  const totalEmis = tenure || (isVariable ? knownMax : schedule.length);
+  // Variable loans show a month-by-month EMI list (user-entered amounts).
+  const variableMonths = isVariable ? Array.from({ length: Math.max(totalEmis, knownMax, 1) }, (_, i) => i + 1) : [];
+
   // Effective paid = manual ∪ (auto-mark ? past-due). Auto ones are DERIVED
   // (never written), so turning the toggle off instantly reverts them.
   const effective = effectivePaidEmis(Object.keys(manual).map(Number), totalEmis, {
@@ -73,8 +93,16 @@ export default function LoanDetailPage() {
   const isPaid = (m: number) => effective.has(m);
   const emisPaid = effective.size;
   const remaining = totalEmis ? Math.max(0, totalEmis - emisPaid) : null;
-  const nextUnpaid = schedule.find((r) => !isPaid(r.month))?.month ?? null;
+  const monthsList = isVariable ? variableMonths : schedule.map((r) => r.month);
+  const nextUnpaid = monthsList.find((m) => !isPaid(m)) ?? null;
   const nextEmiDue = nextUnpaid ? emiDueDate(loan.start_date, dueDay, nextUnpaid) : null;
+  const variablePaidTotal = variableMonths.filter(isPaid).reduce((s, m) => s + (amounts[m] ?? 0), 0);
+
+  async function setAmount(month: number, minor: number | null) {
+    const next = { ...amounts };
+    if (minor == null || minor <= 0) delete next[month]; else next[month] = minor;
+    await updateRow("loans", loan!.id, { emi_amounts: JSON.stringify(next) });
+  }
 
   async function setManualPaid(month: number, paidOn: string | null) {
     const next = { ...manual };
@@ -103,8 +131,8 @@ export default function LoanDetailPage() {
       {/* Summary */}
       <div className="pc-hero">
         <Card label="Principal" value={fmt(money(loan.principal, cur))} />
-        <Card label="Monthly EMI" value={emi ? fmt(money(emi, cur)) : "—"} />
-        <Card label="Interest rate" value={hasInterest ? `${loan.interest_rate}% p.a.` : "—"} />
+        <Card label="Monthly EMI" value={isVariable ? "Varies" : emi ? fmt(money(emi, cur)) : "—"} />
+        <Card label={isVariable ? "Interest rate" : "Interest rate"} value={hasInterest ? `${loan.interest_rate}% p.a.${isVariable ? " · variable" : ""}` : (isVariable ? "Variable" : "—")} />
         <Card label="EMIs paid" value={tenure ? `${emisPaid} / ${tenure}` : String(emisPaid)} />
       </div>
 
@@ -117,7 +145,12 @@ export default function LoanDetailPage() {
           <div className="muted" style={{ fontSize: 12 }}>Remaining</div>
           <div style={{ fontSize: 20, fontWeight: 700 }}>{remaining != null ? `${remaining} EMIs` : "—"}</div>
         </div>
-        {hasInterest && (
+        {isVariable ? (
+          <div>
+            <div className="muted" style={{ fontSize: 12 }}>Paid so far</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{fmt(money(variablePaidTotal, cur))}</div>
+          </div>
+        ) : hasInterest && (
           <div>
             <div className="muted" style={{ fontSize: 12 }}>Total interest (schedule)</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: "var(--negative)" }}>{fmt(money(totalInterest, cur))}</div>
@@ -133,7 +166,7 @@ export default function LoanDetailPage() {
       </section>
 
       {/* Auto-mark policy */}
-      {schedule.length > 0 && (
+      {(schedule.length > 0 || variableMonths.length > 0) && (
         <section className="card" style={{ padding: 16, display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ maxWidth: 460 }}>
             <div style={{ fontWeight: 650 }}>Auto-mark past-due EMIs as paid</div>
@@ -150,8 +183,60 @@ export default function LoanDetailPage() {
         </section>
       )}
 
-      {/* Amortization schedule */}
-      {schedule.length > 0 ? (
+      {/* Variable-rate: month-by-month EMIs entered by the user */}
+      {isVariable && (
+        <section style={{ display: "grid", gap: 10 }}>
+          <div className="eyebrow">Monthly EMIs · you enter each month’s amount</div>
+          <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 420 }}>
+                <thead>
+                  <tr style={{ textAlign: "right", color: "var(--text-2)" }}>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600 }}>#</th>
+                    <th style={{ padding: "10px 14px", fontWeight: 600 }}>Due</th>
+                    <th style={{ padding: "10px 14px", fontWeight: 600 }}>EMI this month</th>
+                    <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 600 }}>Paid</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {variableMonths.map((m) => {
+                    const rowPaid = isPaid(m);
+                    const manualPaid = isManual(m);
+                    const autoPaid = rowPaid && !manualPaid;
+                    const isNext = m === nextUnpaid;
+                    const due = emiDueDate(loan.start_date, dueDay, m);
+                    const paidOn = manual[m];
+                    return (
+                      <tr key={m} style={{ borderTop: "1px solid var(--border)", textAlign: "right", background: isNext ? "var(--accent-ghost)" : "transparent" }}>
+                        <td style={{ textAlign: "left", padding: "8px 14px", opacity: rowPaid ? 0.7 : 1 }}>{rowPaid ? "✓ " : ""}{m}</td>
+                        <td style={{ padding: "8px 14px", color: "var(--text-2)" }}>{fmtDateShort(due)}</td>
+                        <td style={{ padding: "6px 14px" }}>
+                          <VariableAmountCell key={`amt-${m}-${amounts[m] ?? 0}`} value={amounts[m] ?? null} currency={cur} onSave={(minor) => setAmount(m, minor)} />
+                        </td>
+                        <td style={{ textAlign: "center", padding: "8px 14px", whiteSpace: "nowrap" }}>
+                          {autoPaid ? (
+                            <span className="chip" title={`Auto-marked — due ${fmtDate(due)}`} style={{ padding: "2px 8px", fontSize: 11, opacity: 0.85 }}>Auto ✓</span>
+                          ) : manualPaid ? (
+                            <button className="chip" title={paidOn ? `Paid on ${fmtDate(paidOn)} · click to undo` : "Paid · click to undo"} onClick={() => setManualPaid(m, null)} style={{ padding: "2px 8px", fontSize: 11 }}>
+                              {paidOn ? fmtDateShort(paidOn) : "Paid"} ✓
+                            </button>
+                          ) : (
+                            <button className="chip" onClick={() => setPayFor({ month: m, due })} style={{ padding: "2px 8px", fontSize: 11 }}>Mark paid</button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p className="muted" style={{ fontSize: 12, margin: 0 }}>Variable-rate loans re-price over time, so enter each month’s EMI as your bank sets it. {tenure ? "" : "Add a tenure (edit) to lay out the full schedule."}</p>
+        </section>
+      )}
+
+      {/* Amortization schedule (fixed-rate) */}
+      {!isVariable && (schedule.length > 0 ? (
         <section style={{ display: "grid", gap: 10 }}>
           <div className="eyebrow">Amortization schedule {hasInterest ? "· principal vs interest" : "· principal only"}</div>
           <div className="card" style={{ padding: 0, overflow: "hidden" }}>
@@ -211,31 +296,34 @@ export default function LoanDetailPage() {
         <div className="card" style={{ padding: 24, color: "var(--text-3)", fontSize: 13, textAlign: "center" }}>
           Add a monthly EMI (and tenure) to generate the amortization schedule.
         </div>
-      )}
+      ))}
 
-      {payFor && (
-        <MarkPaidDialog
-          loan={loan}
-          month={payFor.month}
-          due={payFor.due}
-          emiAmount={emi}
-          currency={cur}
-          onClose={() => setPayFor(null)}
-          onConfirm={async (paidOn, accountId) => {
-            await setManualPaid(payFor.month, paidOn);
-            if (accountId && emi > 0) {
-              await getRepositories().transactions.create({
-                account_id: accountId,
-                type: "expense",
-                amount: money(emi, cur),
-                description: `EMI #${payFor.month}${loan.lender ? ` — ${loan.lender}` : ""}`,
-                occurred_at: new Date(paidOn + "T12:00:00").toISOString(),
-              });
-            }
-            setPayFor(null);
-          }}
-        />
-      )}
+      {payFor && (() => {
+        const payAmount = isVariable ? (amounts[payFor.month] ?? 0) : emi;
+        return (
+          <MarkPaidDialog
+            loan={loan}
+            month={payFor.month}
+            due={payFor.due}
+            emiAmount={payAmount}
+            currency={cur}
+            onClose={() => setPayFor(null)}
+            onConfirm={async (paidOn, accountId) => {
+              await setManualPaid(payFor.month, paidOn);
+              if (accountId && payAmount > 0) {
+                await getRepositories().transactions.create({
+                  account_id: accountId,
+                  type: "expense",
+                  amount: money(payAmount, cur),
+                  description: `EMI #${payFor.month}${loan.lender ? ` — ${loan.lender}` : ""}`,
+                  occurred_at: new Date(paidOn + "T12:00:00").toISOString(),
+                });
+              }
+              setPayFor(null);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -253,6 +341,23 @@ function Card({ label, value }: { label: string; value: string }) {
       <span className="eyebrow">{label}</span>
       <div style={{ fontSize: 20, fontWeight: 720, letterSpacing: "-0.01em" }}>{value}</div>
     </div>
+  );
+}
+
+/** Inline editable EMI amount for a variable-rate month; saves on blur.
+ *  Keyed by its saved value in the parent, so it re-seeds when the value changes. */
+function VariableAmountCell({ value, currency, onSave }: { value: number | null; currency: string; onSave: (minor: number | null) => void }) {
+  const [raw, setRaw] = useState(value != null ? String(toMajor(money(value, currency))) : "");
+  return (
+    <AmountInput
+      style={{ width: 120, textAlign: "right" }}
+      currency={currency}
+      placeholder="0"
+      value={raw}
+      ariaLabel="EMI this month"
+      onChange={setRaw}
+      onBlur={() => onSave(raw ? fromMajor(Number(raw), currency).amount : null)}
+    />
   );
 }
 
@@ -302,25 +407,35 @@ function MarkPaidDialog({ loan, month, due, emiAmount, currency, onClose, onConf
 }
 
 function EditLoan({ loan, onDone }: { loan: Loan; onDone: () => void }) {
+  const fmt = useMoneyFmt();
   const cur = loan.currency;
   const [lender, setLender] = useState(loan.lender ?? "");
   const [principal, setPrincipal] = useState(String(toMajor(money(loan.principal, cur))));
   const [emi, setEmi] = useState(loan.emi_amount ? String(toMajor(money(loan.emi_amount, cur))) : "");
+  const [emiTouched, setEmiTouched] = useState(false);
   const [rate, setRate] = useState(loan.interest_rate != null ? String(loan.interest_rate) : "");
+  const [rateType, setRateType] = useState<"fixed" | "variable">(loan.rate_type === "variable" ? "variable" : "fixed");
   const [tenure, setTenure] = useState(loan.tenure_months != null ? String(loan.tenure_months) : "");
   const [start, setStart] = useState(loan.start_date ?? new Date().toISOString().slice(0, 10));
   const [dueDay, setDueDay] = useState(loan.emi_due_day != null ? String(loan.emi_due_day) : "");
 
+  const principalMinor = fromMajor(Number(principal) || 0, cur).amount;
+  const computedEmiMinor = rateType === "fixed" ? emiFromPrincipal(principalMinor, Number(rate) || 0, Number(tenure) || 0) : 0;
+  const computedEmiMajor = computedEmiMinor ? String(toMajor(money(computedEmiMinor, cur))) : "";
+  const emiValue = rateType === "variable" ? "" : (emiTouched ? emi : (emi || computedEmiMajor));
+
   async function save() {
     const dd = dueDay ? Math.min(31, Math.max(1, Number(dueDay))) : null;
+    const emiToUse = rateType === "variable" ? null : (emiTouched ? emi : (emi || computedEmiMajor));
     await updateRow("loans", loan.id, {
       lender: lender.trim() || null,
-      principal: fromMajor(Number(principal) || 0, cur).amount,
-      emi_amount: emi ? fromMajor(Number(emi), cur).amount : null,
+      principal: principalMinor,
+      emi_amount: emiToUse ? fromMajor(Number(emiToUse), cur).amount : null,
       interest_rate: rate ? Number(rate) : 0,
       tenure_months: tenure ? Number(tenure) : null,
       start_date: start || null,
       emi_due_day: dd,
+      rate_type: rateType,
     });
     onDone();
   }
@@ -329,14 +444,30 @@ function EditLoan({ loan, onDone }: { loan: Loan; onDone: () => void }) {
     <div style={{ display: "grid", gap: 14, maxWidth: 520 }} className="fade-up">
       <h1 style={{ margin: 0 }}>Edit loan</h1>
       <FloatingInput label="Lender" value={lender} onChange={setLender} />
+      <div style={{ display: "grid", gap: 4 }}>
+        <span className="muted" style={{ fontSize: 12 }}>Interest type</span>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button className="chip" data-active={rateType === "fixed"} onClick={() => setRateType("fixed")}>Fixed</button>
+          <button className="chip" data-active={rateType === "variable"} onClick={() => setRateType("variable")}>Variable</button>
+        </div>
+      </div>
       <div style={{ display: "flex", gap: 8 }}>
         <FloatingInput label={`Principal (${cur})`} group currency={cur} value={principal} onChange={setPrincipal} style={{ flex: 1 }} />
-        <FloatingInput label={`Monthly EMI (${cur})`} group currency={cur} value={emi} onChange={setEmi} style={{ flex: 1 }} />
-      </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <FloatingInput label="Interest % p.a. (optional)" inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
         <FloatingInput label="Tenure (months)" inputMode="numeric" value={tenure} onChange={(v) => setTenure(v.replace(/\D/g, ""))} style={{ flex: 1 }} />
       </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <FloatingInput label={rateType === "variable" ? "Current interest % p.a." : "Interest % p.a."} inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+        {rateType === "fixed" && (
+          <FloatingInput label={`Monthly EMI (${cur})`} group currency={cur} value={emiValue} onChange={(v) => { setEmi(v); setEmiTouched(true); }} style={{ flex: 1 }} />
+        )}
+      </div>
+      {rateType === "fixed" ? (
+        computedEmiMinor > 0 && <div className="muted" style={{ fontSize: 12, marginTop: -6 }}>Auto-calculated EMI: {fmt(money(computedEmiMinor, cur))}. <button className="chip" style={{ padding: "1px 8px", fontSize: 11 }} onClick={() => { setEmi(computedEmiMajor); setEmiTouched(true); }}>Use it</button></div>
+      ) : (
+        <div style={{ padding: "9px 12px", borderRadius: 10, fontSize: 12, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", color: "var(--text-2)" }}>
+          Variable-rate loan — enter each month’s EMI on the loan’s schedule below. The single EMI field is disabled.
+        </div>
+      )}
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>Loan started on
           <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />

@@ -472,6 +472,11 @@ function useUpcomingPayments(): Upcoming[] {
   const { data: cards = [] } = useQuery<{ account_id: string; name: string; currency: string; pending_due: number | null; due_on: string | null }>(
     "SELECT cd.account_id AS account_id, a.name AS name, a.currency AS currency, cd.pending_due AS pending_due, cd.due_on AS due_on FROM credit_card_details cd JOIN accounts a ON a.id = cd.account_id WHERE a.deleted_at IS NULL",
   );
+  const { data: rules = [] } = useQuery<{ id: string; name: string; type: string; amount: number | null; currency: string | null; frequency: string; next_due: string }>(
+    `SELECT r.id AS id, t.name AS name, t.type AS type, t.amount AS amount, t.currency AS currency, r.frequency AS frequency, r.next_due AS next_due
+     FROM recurring_rules r JOIN transaction_templates t ON t.id = r.template_id
+     WHERE r.deleted_at IS NULL AND t.deleted_at IS NULL AND r.active = 1 AND t.type IN ('expense','transfer')`,
+  );
 
   return useMemo(() => {
     const today = startOfToday();
@@ -504,8 +509,15 @@ function useUpcomingPayments(): Upcoming[] {
       if (!d) continue;
       out.push({ key: `card:${c.account_id}`, name: `${c.name || "Card"} bill`, sub: "Credit card", icon: "▭", date: d, amountBase: convert(c.pending_due, c.currency) });
     }
+    for (const r of rules) {
+      if (!r.amount) continue;
+      const d = nextOccurrence(r.next_due, r.frequency, today);
+      if (!d) continue;
+      const saving = r.type === "transfer";
+      out.push({ key: `rule:${r.id}`, name: r.name || (saving ? "Saving" : "Payment"), sub: saving ? "Recurring saving" : "Recurring payment", icon: saving ? "▲" : "↻", date: d, amountBase: convert(r.amount, r.currency ?? "") });
+    }
     return out.sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [subs, loans, planned, cards, convert]);
+  }, [subs, loans, planned, cards, rules, convert]);
 }
 
 function whenLabel(d: Date, today: Date): string {
