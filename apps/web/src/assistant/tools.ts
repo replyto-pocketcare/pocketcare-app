@@ -111,6 +111,25 @@ export type ToolName = (typeof ASSISTANT_TOOLS)[number]["name"];
 const CONFIRM_TOOLS = new Set(["create_goal", "reserve_to_goal", "create_budget", "record_transaction", "create_subscription", "create_group"]);
 export const needsConfirm = (name: string): boolean => CONFIRM_TOOLS.has(name);
 
+/**
+ * Reject obviously-invalid / placeholder tool calls (e.g. the model firing
+ * record_transaction with amount 0 for a navigation request). Invalid calls are
+ * never surfaced as a confirm card — the model is told to use a link instead.
+ */
+export function isValidToolInput(name: string, input: Record<string, unknown>): boolean {
+  const pos = (v: unknown) => typeof v === "number" && Number.isFinite(v) && v > 0;
+  const str = (v: unknown) => typeof v === "string" && v.trim().length > 0;
+  switch (name) {
+    case "record_transaction": return pos(input.amount) && (input.type === "expense" || input.type === "income");
+    case "create_goal": return str(input.name) && pos(input.target_amount);
+    case "reserve_to_goal": return str(input.goal_name) && pos(input.amount);
+    case "create_budget": return str(input.name) && pos(input.limit_amount);
+    case "create_subscription": return str(input.name) && pos(input.amount);
+    case "create_group": return str(input.name);
+    default: return true;
+  }
+}
+
 /** One-line, human-readable summary of a proposed action for the confirm card. */
 export function describeToolCall(name: string, input: Record<string, unknown>): string {
   const cur = (input.currency as string) || getBaseCurrency();

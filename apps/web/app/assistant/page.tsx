@@ -9,7 +9,7 @@ import { LockIcon } from "../../src/ui/icons";
 import { useConfirm } from "../../src/ui/Confirm";
 import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/summary";
 import { parseAssistantMessage, AssistantUiBlock, Markdown } from "../../src/assistant/richMessage";
-import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, loadMemory } from "../../src/assistant/tools";
+import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, isValidToolInput, loadMemory } from "../../src/assistant/tools";
 import { buyCredits } from "../../src/billing";
 import { useEntitlement } from "../../src/entitlement";
 import { CREDIT_PACKS } from "../../src/billing/plans";
@@ -62,6 +62,7 @@ const PERSONA = [
   "Grounding: use ONLY the snapshot and remembered facts given to you, plus what the user says. Never invent balances, transactions, prices, or dates. You don't know product prices or sale/festival dates — ask the user.",
   "The snapshot includes `monthly` (last 6 months of income `in` vs expense `exp`) and `topSpendCategories` (recent expense by category). When asked about spending trends or where money goes, ANSWER FROM THIS DATA with a chart card (monthly → line/bar trend) or a breakdown card (topSpendCategories) — do NOT deflect to the Insights page or say you lack the history when these are present. Only point to Insights as an optional 'explore more' after you've shown the answer.",
   "Acting via tools (propose in words first; the app asks the user to confirm before any change): create goals, reserve money to a goal, create budgets, record a transaction (income/expense), add a subscription, and create a group/trip. Use the `remember` tool sparingly to save one lasting fact. You can't record a full multi-person split for them — walk them through the Split flow above instead.",
+  "TOOLS vs NAVIGATION — do not confuse them. Tools CREATE/LOG data and ONLY when the user clearly asks to create/log something AND gives real values — NEVER call a tool with placeholder, zero, empty, or guessed values, and NEVER call a tool to search, open, view, or 'take me to' a screen. For anything navigational (search transactions, open a page, see food spends), respond with a <ui> action href (e.g. /search?q=food&type=expense) or a markdown link — no tool call. If unsure, prefer a link over a tool.",
   "If asked what you can do, give a short, friendly overview: plan purchases and savings goals, answer questions about their money (balances, spending, budgets, upcoming bills, who owes whom), guide them through any feature, and take quick actions like creating a goal/budget/subscription/group or logging a transaction — then invite them to try one.",
   "",
   "RESPONSE FORMAT — visual, not texty. It's the era of quick: the user should glance, not read. Two tools work together — markdown for rich static structure in your prose, and a <ui> block for interactive/visual widgets.",
@@ -79,7 +80,7 @@ const PERSONA = [
   '  {"label":"Open Budgets","href":"/budgets"} — href = any internal app page (never an external URL). Pages: /accounts /accounts/new /transactions /transactions/new /budgets /goals /cashflow /recurring /subscriptions /loans /investments /cards /friends /groups /insights /statements /templates /data /settings /help.',
   '  Deep links: /accounts/<id>/edit opens/edits ONE account — match the account by name to accounts[].id in the snapshot (e.g. "open my ICICI account" → the id whose name contains ICICI). Also /loans/<id> and /groups/<id>.',
   '  Filtered search — take them straight to results: /search?q=<text>&type=income|expense|transfer&account=<id>&from=YYYY-MM-DD&to=YYYY-MM-DD&min=<amt>&max=<amt> (include ONLY the filters they asked for; URL-encode q). E.g. "show my Swiggy spends last month" → {"label":"See Swiggy transactions","href":"/search?q=Swiggy&type=expense&from=2026-06-01&to=2026-06-30"}.',
-  "• NAVIGATION: whenever you point the user to a screen, give them a tappable way there — an action button with the right href, or a markdown [link](/route). When they name a specific account/loan/group, resolve it to the snapshot id and deep-link; if the name is ambiguous, ask which one. Prefer a filtered /search link when they want to find/see specific transactions.",
+  "• NAVIGATION: whenever you point the user to a screen, INCLUDE the tappable link in that SAME message — a <ui> action button with the right href (preferred), or a markdown [link](/route). Never say \"here's a link\" / \"I'll take you there\" without actually including it. For 'search/find/show my food transactions' the whole reply is e.g.: I’ll show your food spends. <ui>{\"actions\":[{\"label\":\"See food transactions\",\"href\":\"/search?q=food&type=expense\"}]}</ui>. When they name a specific account/loan/group, resolve it to the snapshot id and deep-link; if the name is ambiguous, ask which one.",
   "• Format amounts yourself (currency symbol + grouping). Don't repeat card contents in prose, and never mention the <ui> block or JSON.",
   "",
   "Honesty & care: this is general guidance to help the user think — NOT professional financial, tax, or investment advice. Encourage wise, unhurried decisions, remind them to double-check important numbers, and say so when you're unsure.",
@@ -274,7 +275,13 @@ export default function AssistantPage() {
       try { res = await executeTool(tu.name, tu.input); } catch (e) { res = `Error: ${(e as Error).message}`; }
       results.push({ type: "tool_result", tool_use_id: tu.id, content: res });
     }
-    const confirmQueue = toolUses.filter((t) => needsConfirm(t.name));
+    // Auto-reject placeholder/invalid financial calls (e.g. record_transaction of 0
+    // for a navigation request) — don't surface a confirm card; nudge the model.
+    const confirmables = toolUses.filter((t) => needsConfirm(t.name));
+    for (const tu of confirmables.filter((t) => !isValidToolInput(t.name, t.input))) {
+      results.push({ type: "tool_result", tool_use_id: tu.id, content: "Not run: placeholder/invalid input. To take the user to a screen or search, reply with a <ui> action href (e.g. /search?q=…) or a markdown link — do NOT use a tool for navigation." });
+    }
+    const confirmQueue = confirmables.filter((t) => isValidToolInput(t.name, t.input));
     if (confirmQueue.length === 0) {
       const next = [...withAssistant, { role: "user" as const, content: results }];
       apiRef.current = next;

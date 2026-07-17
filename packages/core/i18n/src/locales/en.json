@@ -24,7 +24,7 @@
     "statements": "Statements",
     "goals": "Goals",
     "subscriptions": "Subscriptions",
-    "loans": "Loans & Recurring",
+    "loans": "Loans",
     "investments": "Investments",
     "settings": "Settings",
     "assistant": "Ask PocketCare"
@@ -40,7 +40,7 @@
     "statements": "Statements",
     "goals": "Goals",
     "subscriptions": "Subscriptions",
-    "loans": "Loans & Recurring",
+    "loans": "Loans",
     "investments": "Investments",
     "settings": "Settings"
   },
