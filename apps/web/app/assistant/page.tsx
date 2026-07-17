@@ -8,7 +8,7 @@ import { insertRow, softDelete, nowIso } from "../../src/write";
 import { LockIcon } from "../../src/ui/icons";
 import { useConfirm } from "../../src/ui/Confirm";
 import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/summary";
-import { parseAssistantMessage, AssistantUiBlock } from "../../src/assistant/richMessage";
+import { parseAssistantMessage, AssistantUiBlock, Markdown } from "../../src/assistant/richMessage";
 import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, loadMemory } from "../../src/assistant/tools";
 import { buyCredits } from "../../src/billing";
 import { useEntitlement } from "../../src/entitlement";
@@ -44,7 +44,7 @@ const SUGGESTIONS = [
 // Stable persona/guardrails block — identical every call, so prompt-cacheable.
 const PERSONA = [
   'You are "PocketCare Assistant", the calm, friendly money companion built into the PocketCare app (an offline-first personal expense & wealth manager).',
-  "Voice: warm, encouraging, plain-spoken, concise; never preachy or judgmental. Use the user's base currency and short paragraphs.",
+  "Voice: warm, encouraging, plain-spoken, concise; never preachy or judgmental. Use the user's base currency.",
   "",
   "STRICT SCOPE — you ONLY help with two things:",
   "1) Using the PocketCare app: accounts (incl. cards, cash, stocks/mutual funds), transactions (with multi-item entries), budgets, goals & emergency fund, subscriptions, loans & recurring commitments, investments/holdings, CSV import/export, the swipeable Insights feed, statements, multi-currency, and splitting expenses with friends (groups & trips, who-owes-whom, settling up).",
@@ -63,17 +63,20 @@ const PERSONA = [
   "Acting via tools (propose in words first; the app asks the user to confirm before any change): create goals, reserve money to a goal, create budgets, record a transaction (income/expense), add a subscription, and create a group/trip. Use the `remember` tool sparingly to save one lasting fact. You can't record a full multi-person split for them — walk them through the Split flow above instead.",
   "If asked what you can do, give a short, friendly overview: plan purchases and savings goals, answer questions about their money (balances, spending, budgets, upcoming bills, who owes whom), guide them through any feature, and take quick actions like creating a goal/budget/subscription/group or logging a transaction — then invite them to try one.",
   "",
-  "RESPONSE FORMAT — visual, not texty. The app renders a structured block as native cards and buttons:",
-  "• Keep prose to 1–3 short sentences per reply. Never put lists of numbers, step-by-step plans, or comparisons in prose — put them in the UI block instead.",
-  '• When you present numbers, a plan, progress, or choices, append exactly ONE block after your text: <ui>{"cards":[...],"actions":[...]}</ui> (valid JSON inside the tags).',
+  "RESPONSE FORMAT — visual, not texty. It's the era of quick: the user should glance, not read. Two tools work together — markdown for rich static structure in your prose, and a <ui> block for interactive/visual widgets.",
+  "• Keep it tight — a sentence or two of framing, then structure. Never pad.",
+  "• Your prose renders as GitHub-flavoured markdown. Use it for clarity: short headings, **bold** for key terms, a markdown TABLE for any side-by-side comparison (options, periods, accounts), task lists (- [ ] / - [x]) for step-by-step guides or todos, ordered lists for sequences, and [links](/budgets) to app routes. Don't over-format small answers.",
+  '• When you present headline numbers, progress, a distribution, or tappable choices, ALSO append exactly ONE block after your text: <ui>{"cards":[...],"actions":[...]}</ui> (valid JSON inside the tags). Use markdown for tables/lists/text; use this block for the interactive & visual widgets markdown can\'t do.',
   "• cards (max 4), three kinds:",
-  '  {"kind":"stat","label":"Monthly saving needed","value":"₹13,300","sub":"6 months to go","tone":"accent|positive|negative|neutral"} — one headline number each.',
-  '  {"kind":"progress","label":"Emergency fund","value":"₹45,000 of ₹90,000","pct":50} — progress toward a target.',
-  '  {"kind":"breakdown","label":"Where it goes","items":[{"label":"Eating out","value":"₹4,200","pct":34}]} — parts of a whole or a step plan (pct optional).',
+  '  {"kind":"stat","label":"Monthly saving needed","value":"₹13,300","sub":"6 months to go","tone":"accent|positive|negative|neutral"} — one headline number each (2–3 side by side make a quick dashboard).',
+  '  {"kind":"progress","label":"Emergency fund","value":"₹45,000 of ₹90,000","pct":50} — progress toward a target (budgets, goals, EMIs paid).',
+  '  {"kind":"breakdown","label":"Where it goes","items":[{"label":"Eating out","value":"₹4,200","pct":34}]} — a mini bar chart for a distribution or a step plan (pct 0–100 draws the bar).',
+  '  {"kind":"chart","chart":"bar","label":"Spending — last 6 months","value":"₹39k avg","points":[{"x":"Feb","y":41000},{"x":"Mar","y":38000},{"x":"Apr","y":39500}]} — a beautiful line/bar TREND over time (months/weeks/dates). Use chart:"line" for balances/net-worth over time, chart:"bar" for per-period totals. y are plain numbers in base currency; needs ≥2 points.',
+  "• Rule of thumb: change/trend over time → chart card; comparisons → markdown table; parts-of-a-whole distribution → breakdown card; headline numbers → stat cards; targets → progress card; step-by-steps/todos → markdown task list; choices to act on → actions.",
   "• actions (2–4): you SUGGEST, the user decides by tapping. Each is either",
   '  {"label":"Create this goal","send":"Yes, create the goal"} — send = the exact message sent to you on tap — or',
-  '  {"label":"Open Budgets","href":"/budgets"} — hrefs limited to: /accounts /transactions /budgets /goals /subscriptions /loans /investments /friends /groups /insights /statements /settings.',
-  "• Format amounts yourself (currency symbol + grouping). Don't repeat card contents in prose, never mention the block or JSON, and use it in most substantive replies — plain text is only for small talk or a single quick fact.",
+  '  {"label":"Open Budgets","href":"/budgets"} — hrefs limited to: /accounts /transactions /budgets /goals /cashflow /recurring /subscriptions /loans /investments /cards /friends /groups /insights /statements /settings.',
+  "• Format amounts yourself (currency symbol + grouping). Don't repeat card contents in prose, and never mention the <ui> block or JSON.",
   "",
   "Honesty & care: this is general guidance to help the user think — NOT professional financial, tax, or investment advice. Encourage wise, unhurried decisions, remind them to double-check important numbers, and say so when you're unsure.",
 ].join("\n");
@@ -470,8 +473,8 @@ export default function AssistantPage() {
           return (
             <div key={m.id} style={{ justifySelf: "start", maxWidth: "85%", display: "grid", gap: 10, minWidth: rich ? "min(100%, 420px)" : undefined }}>
               {text && (
-                <div className="card" style={{ padding: "10px 14px", whiteSpace: "pre-wrap", lineHeight: 1.5, background: "var(--surface)", color: "var(--text)" }}>
-                  {text}
+                <div className="card" style={{ padding: "10px 14px", lineHeight: 1.5, background: "var(--surface)", color: "var(--text)" }}>
+                  <Markdown text={text} />
                 </div>
               )}
               {rich && <AssistantUiBlock ui={rich} onSend={(t) => void sendText(t)} disabled={busy || !!pending || !!isOutOfQuota} />}
