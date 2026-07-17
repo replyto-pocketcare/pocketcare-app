@@ -97,6 +97,11 @@ erDiagram
         int  principal
         int  emi_amount
         real interest_rate
+        int  tenure_months
+        text start_date
+        int  emi_due_day
+        int  auto_mark_paid
+        text emi_payments
     }
     holdings {
         uuid id PK

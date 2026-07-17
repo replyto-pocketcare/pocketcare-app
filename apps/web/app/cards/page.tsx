@@ -13,6 +13,7 @@ import { useSession } from "../../src/account";
 import { getRepositories, getDb } from "../../src/powersync";
 import { CreditCard } from "../../src/cards/CreditCard";
 import { useMoneyFmt } from "../../src/ui/Money";
+import { AmountInput } from "../../src/ui/AmountInput";
 
 const PALETTE = ["#3e4a38", "#b06a4f", "#5f6647", "#7c4a3a", "#2b2723"];
 
@@ -202,10 +203,10 @@ function CardPanel({ account, owed, detail, sources }: {
                 <input className="input" style={{ width: 80 }} value={due} onChange={(e) => setDue(e.target.value.replace(/\D/g, ""))} />
               </label>
               <label className="muted" style={{ fontSize: 12 }}>Credit limit
-                <input className="input" style={{ width: 120 }} inputMode="decimal" value={creditLimit} onChange={(e) => setCreditLimit(e.target.value.replace(/[^0-9.]/g, ""))} />
+                <AmountInput style={{ width: 120 }} currency={account.currency} value={creditLimit} onChange={setCreditLimit} ariaLabel="Credit limit" />
               </label>
               <label className="muted" style={{ fontSize: 12 }}>Amount due
-                <input className="input" style={{ width: 120 }} inputMode="decimal" value={dueAmt} onChange={(e) => setDueAmt(e.target.value.replace(/[^0-9.]/g, ""))} />
+                <AmountInput style={{ width: 120 }} currency={account.currency} value={dueAmt} onChange={setDueAmt} ariaLabel="Amount due" />
               </label>
             </div>
             <label className="muted" style={{ fontSize: 12 }}>Card number (optional — last 4 shown)
@@ -225,7 +226,7 @@ function CardPanel({ account, owed, detail, sources }: {
             {sources.map((s) => <button key={s.id} className="chip" data-active={(fromId ?? sources[0]?.id) === s.id} onClick={() => setFromId(s.id)}>{s.name}</button>)}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <input className="input" inputMode="decimal" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} />
+            <AmountInput placeholder="Amount" currency={account.currency} value={amount} onChange={setAmount} ariaLabel="Settle amount" />
             <button className="btn" onClick={settle} disabled={!amount || sources.length === 0}>Settle</button>
           </div>
         </div>

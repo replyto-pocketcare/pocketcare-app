@@ -268,6 +268,8 @@ const loans = new Table({
   start_date: column.text,
   emis_paid: column.integer, // how many EMIs the user has already paid (derived from emi_payments when present)
   emi_payments: column.text, // JSON map { "<emiNo>": "<paidOn ISO date>" }
+  emi_due_day: column.integer, // day-of-month (1–31) each EMI is due; combined with start_date to derive due dates
+  auto_mark_paid: column.integer, // 0/1 — when on, past-due EMIs are treated as paid (derived at read time)
   created_at: column.text,
   updated_at: column.text,
   deleted_at: column.text,

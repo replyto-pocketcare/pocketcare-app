@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { money, fromMajor } from "@pocketcare/money";
-import { monthlyEquivalent } from "@pocketcare/finance";
+import { effectivePaidEmis } from "@pocketcare/finance";
 import { useBaseCurrency, useConvert } from "../../src/hooks";
 import { insertRow } from "../../src/write";
 import { useMoneyFmt } from "../../src/ui/Money";
@@ -14,13 +14,30 @@ import { Modal } from "../../src/ui/Modal";
 interface Loan {
   id: string; lender: string; principal: number; currency: string;
   emi_amount: number | null; tenure_months: number | null; emis_paid: number | null; interest_rate: number | null;
+  start_date: string | null; emi_payments: string | null; emi_due_day: number | null; auto_mark_paid: number | null;
+}
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+/** Effective paid-EMI count for a loan row (manual marks ∪ auto-marked past-due). */
+function paidCount(l: Loan): number {
+  const tenure = l.tenure_months ?? 0;
+  let manual: number[] = [];
+  try {
+    const obj = l.emi_payments ? (JSON.parse(l.emi_payments) as Record<string, string>) : {};
+    manual = Object.entries(obj).filter(([, v]) => v).map(([k]) => Number(k));
+  } catch { /* ignore */ }
+  if (manual.length === 0 && (l.emis_paid ?? 0) > 0) manual = Array.from({ length: l.emis_paid ?? 0 }, (_, i) => i + 1);
+  return effectivePaidEmis(manual, tenure, {
+    autoMark: (l.auto_mark_paid ?? 0) === 1, startIso: l.start_date, dueDay: l.emi_due_day, asOfIso: todayIso(),
+  }).size;
 }
 
 export default function LoansPage() {
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
   const conv = useConvert();
-  const { data: loans = [] } = useQuery<Loan>("SELECT id, lender, principal, currency, emi_amount, tenure_months, emis_paid, interest_rate FROM loans WHERE deleted_at IS NULL ORDER BY created_at");
+  const { data: loans = [] } = useQuery<Loan>("SELECT id, lender, principal, currency, emi_amount, tenure_months, emis_paid, interest_rate, start_date, emi_payments, emi_due_day, auto_mark_paid FROM loans WHERE deleted_at IS NULL ORDER BY created_at");
   const [adding, setAdding] = useState(false);
 
   const totalEmi = loans.reduce((s, l) => s + (l.emi_amount ? conv(money(l.emi_amount, l.currency || base)).amount : 0), 0);
@@ -52,7 +69,7 @@ export default function LoansPage() {
       ) : (
         <div className="list-grid">
           {loans.map((l) => {
-            const paid = l.emis_paid ?? 0;
+            const paid = paidCount(l);
             const tenure = l.tenure_months ?? 0;
             return (
               <Link key={l.id} href={`/loans/${l.id}`} className="card lift" style={{ padding: 16, display: "grid", gap: 6, color: "inherit" }}>
@@ -88,10 +105,12 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
   const [tenure, setTenure] = useState("");
   const [rate, setRate] = useState("");
   const [start, setStart] = useState(new Date().toISOString().slice(0, 10));
-  const [paid, setPaid] = useState("0");
+  const [dueDay, setDueDay] = useState("");
+  const [autoMark, setAutoMark] = useState(false);
 
   async function save() {
     if (!lender.trim() && !principal) return;
+    const dd = dueDay ? Math.min(31, Math.max(1, Number(dueDay))) : null;
     await insertRow("loans", {
       lender: lender.trim(), currency: base,
       principal: principal ? fromMajor(Number(principal), base).amount : 0,
@@ -99,7 +118,9 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
       interest_rate: rate ? Number(rate) : 0,
       tenure_months: tenure ? Number(tenure) : null,
       start_date: start || null,
-      emis_paid: Number(paid) || 0,
+      emi_due_day: dd,
+      auto_mark_paid: autoMark ? 1 : 0,
+      emis_paid: 0,
     });
     onClose();
   }
@@ -116,10 +137,16 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <FloatingInput label="Tenure (months)" inputMode="numeric" value={tenure} onChange={(v) => setTenure(v.replace(/\D/g, ""))} style={{ flex: 1, minWidth: 120 }} />
           <FloatingInput label="Interest % p.a. (optional)" inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 120 }} />
-          <FloatingInput label="EMIs already paid" inputMode="numeric" value={paid} onChange={(v) => setPaid(v.replace(/\D/g, ""))} style={{ width: 130 }} />
         </div>
-        <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>EMIs started on
-          <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>Loan started on
+            <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+          </label>
+          <FloatingInput label="EMI due day (1–31)" inputMode="numeric" value={dueDay} onChange={(v) => setDueDay(v.replace(/\D/g, "").slice(0, 2))} style={{ width: 150 }} />
+        </div>
+        <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, cursor: "pointer" }}>
+          <input type="checkbox" checked={autoMark} onChange={(e) => setAutoMark(e.target.checked)} style={{ marginTop: 3 }} />
+          <span>Auto-mark EMIs as paid on their due date<br /><span className="muted" style={{ fontSize: 12 }}>Otherwise you mark each EMI paid yourself. You can change this later.</span></span>
         </label>
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
           <button className="btn ghost" onClick={onClose}>Cancel</button>

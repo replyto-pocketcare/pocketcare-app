@@ -12,6 +12,9 @@ import {
   yearlyEquivalent,
   timeframeTotal,
   amortizationSchedule,
+  emiDueDate,
+  isDuePassed,
+  effectivePaidEmis,
   PERIODS_PER_YEAR,
 } from "./index.ts";
 
@@ -165,4 +168,58 @@ test("projectCashflow: inflation deflates real savings below nominal", () => {
     1,
   );
   assert.ok(y1!.realSavingsBalance < y1!.savingsBalance);
+});
+
+// --- Loan EMI scheduling ---
+
+test("emiDueDate: first EMI on the due-day of the start month when due-day >= start day", () => {
+  // started on the 3rd, EMI due on the 5th → first EMI same month on the 5th.
+  assert.equal(emiDueDate("2026-01-03", 5, 1), "2026-01-05");
+  assert.equal(emiDueDate("2026-01-03", 5, 2), "2026-02-05");
+  assert.equal(emiDueDate("2026-01-03", 5, 13), "2027-01-05");
+});
+
+test("emiDueDate: rolls to next month when the due-day already passed at start", () => {
+  // started on the 20th, EMI due on the 5th → first EMI next month.
+  assert.equal(emiDueDate("2026-01-20", 5, 1), "2026-02-05");
+  assert.equal(emiDueDate("2026-01-20", 5, 2), "2026-03-05");
+});
+
+test("emiDueDate: clamps a 31 due-day to short months", () => {
+  assert.equal(emiDueDate("2026-01-31", 31, 2), "2026-02-28"); // Feb (non-leap)
+  assert.equal(emiDueDate("2024-01-31", 31, 2), "2024-02-29"); // Feb (leap)
+  assert.equal(emiDueDate("2026-01-31", 31, 4), "2026-04-30"); // Apr
+});
+
+test("emiDueDate: falls back to the start day when no due-day given", () => {
+  assert.equal(emiDueDate("2026-03-12", null, 1), "2026-03-12");
+  assert.equal(emiDueDate("2026-03-12", null, 3), "2026-05-12");
+});
+
+test("emiDueDate: null start → null", () => {
+  assert.equal(emiDueDate(null, 5, 1), null);
+});
+
+test("isDuePassed: on-or-before as-of counts as passed", () => {
+  assert.equal(isDuePassed("2026-01-05", "2026-01-05"), true);
+  assert.equal(isDuePassed("2026-01-05", "2026-01-04"), false);
+  assert.equal(isDuePassed("2026-01-05", "2026-06-01"), true);
+  assert.equal(isDuePassed(null, "2026-06-01"), false);
+});
+
+test("effectivePaidEmis: manual only when autoMark off", () => {
+  const p = effectivePaidEmis([1, 3], 12, { autoMark: false, startIso: "2026-01-05", dueDay: 5, asOfIso: "2026-12-31" });
+  assert.deepEqual([...p].sort((a, b) => a - b), [1, 3]);
+});
+
+test("effectivePaidEmis: autoMark adds every past-due EMI, keeps manual future ones", () => {
+  // As of 2026-04-10, EMIs due Jan/Feb/Mar/Apr 5th have passed → 1..4 auto-paid.
+  // EMI 7 was manually marked (future) and must stay.
+  const p = effectivePaidEmis([7], 12, { autoMark: true, startIso: "2026-01-05", dueDay: 5, asOfIso: "2026-04-10" });
+  assert.deepEqual([...p].sort((a, b) => a - b), [1, 2, 3, 4, 7]);
+});
+
+test("effectivePaidEmis: autoMark before the first due date paints nothing", () => {
+  const p = effectivePaidEmis([], 12, { autoMark: true, startIso: "2026-01-05", dueDay: 5, asOfIso: "2026-01-01" });
+  assert.equal(p.size, 0);
 });

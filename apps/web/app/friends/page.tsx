@@ -7,6 +7,7 @@ import { money } from "@pocketcare/money";
 import { useBaseCurrency } from "../../src/hooks";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
+import { AmountInput } from "../../src/ui/AmountInput";
 import { useSplitOverview, useUserProfiles } from "../../src/splits/hooks";
 import { settleUp } from "../../src/splits/write";
 import { ListSkeleton } from "../../src/ui/Skeleton";
@@ -246,7 +247,7 @@ export default function SplitsPage() {
             <p className="muted" style={{ margin: 0, fontSize: 13 }}>{target.net >= 0 ? `${target.name} pays you back.` : `You pay ${target.name} back.`}</p>
             <label style={{ display: "grid", gap: 4 }}>
               <span className="muted" style={{ fontSize: 12 }}>Amount ({base})</span>
-              <input className="input" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} />
+              <AmountInput currency={base} value={amount} onChange={setAmount} ariaLabel="Settle amount" />
             </label>
             <label style={{ display: "grid", gap: 4 }}>
               <span className="muted" style={{ fontSize: 12 }}>{target.net >= 0 ? "Received into" : "Paid from"} account</span>

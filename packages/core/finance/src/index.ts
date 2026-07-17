@@ -269,3 +269,90 @@ export function timeframeTotal(monthlyAmount: number, timeframe: "monthly" | "qu
   const mult = timeframe === "monthly" ? 1 : timeframe === "quarterly" ? 3 : 12;
   return Math.round(monthlyAmount * mult);
 }
+
+// --- Loan EMI scheduling -----------------------------------------------------
+// Pure date math for "which EMI is due when" and "which EMIs count as paid".
+// Dates are handled as UTC calendar days (YYYY-MM-DD) to avoid timezone drift.
+
+/** Parse a YYYY-MM-DD (or ISO) string into {y, m (0-based), d}, or null. */
+function ymd(iso: string | null | undefined): { y: number; m: number; d: number } | null {
+  if (!iso) return null;
+  const s = String(iso).slice(0, 10);
+  const mMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!mMatch) return null;
+  const y = Number(mMatch[1]), m = Number(mMatch[2]) - 1, d = Number(mMatch[3]);
+  if (m < 0 || m > 11 || d < 1 || d > 31) return null;
+  return { y, m, d };
+}
+
+/** Days in a given month (month is 0-based). */
+function daysInMonth(y: number, m: number): number {
+  return new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+}
+
+/** Build a YYYY-MM-DD for (y, m 0-based, day) clamping day to the month length. */
+function isoOf(y: number, m: number, day: number): string {
+  // normalise month overflow/underflow
+  const base = new Date(Date.UTC(y, m, 1));
+  const ny = base.getUTCFullYear(), nm = base.getUTCMonth();
+  const clamped = Math.min(day, daysInMonth(ny, nm));
+  const mm = String(nm + 1).padStart(2, "0");
+  const dd = String(clamped).padStart(2, "0");
+  return `${ny}-${mm}-${dd}`;
+}
+
+/**
+ * Due date (YYYY-MM-DD) of EMI number `emiNo` (1-based).
+ *
+ * `startIso` is when the loan started. `dueDay` (1–31) is the day of the month
+ * each EMI falls on; if omitted, the start date's own day-of-month is used.
+ * The FIRST EMI is the first occurrence of `dueDay` strictly on/after the start
+ * date, and each subsequent EMI is one calendar month later (day clamped to the
+ * month, e.g. a 31 due-day lands on Feb 28/29).
+ */
+export function emiDueDate(startIso: string | null | undefined, dueDay: number | null | undefined, emiNo: number): string | null {
+  const start = ymd(startIso);
+  if (!start) return null;
+  const day = dueDay && dueDay >= 1 && dueDay <= 31 ? Math.floor(dueDay) : start.d;
+  // First due: dueDay in the start month, rolled to next month if already passed.
+  let firstMonthOffset = 0;
+  if (day < start.d) firstMonthOffset = 1;
+  const n = Math.max(1, Math.floor(emiNo));
+  return isoOf(start.y, start.m + firstMonthOffset + (n - 1), day);
+}
+
+/** True if `dueIso` is on or before `asOfIso` (both YYYY-MM-DD, UTC compare). */
+export function isDuePassed(dueIso: string | null, asOfIso: string): boolean {
+  if (!dueIso) return false;
+  return dueIso <= asOfIso.slice(0, 10);
+}
+
+/**
+ * The set of EMI numbers that count as paid, given manually-marked EMIs and an
+ * optional "auto-mark past-due" policy. Derived (not persisted) so toggling
+ * `autoMark` off instantly reverts the auto ones; manual marks always win.
+ *
+ * @param manual   EMI numbers the user marked paid by hand.
+ * @param totalEmis how many EMIs the schedule has.
+ * @param opts.autoMark  when true, every EMI whose due date has passed counts as paid.
+ * @param opts.startIso  loan start date (for due-date derivation).
+ * @param opts.dueDay    day-of-month the EMI is due.
+ * @param opts.asOfIso   "today" (YYYY-MM-DD); defaults to the real current UTC day.
+ */
+export function effectivePaidEmis(
+  manual: Iterable<number>,
+  totalEmis: number,
+  opts: { autoMark?: boolean; startIso?: string | null; dueDay?: number | null; asOfIso?: string } = {},
+): Set<number> {
+  const out = new Set<number>();
+  for (const m of manual) if (Number.isFinite(m)) out.add(Math.floor(m));
+  const total = Math.max(0, Math.floor(totalEmis || 0));
+  if (opts.autoMark && total > 0) {
+    const asOf = (opts.asOfIso ?? new Date().toISOString()).slice(0, 10);
+    for (let n = 1; n <= total; n++) {
+      const due = emiDueDate(opts.startIso, opts.dueDay, n);
+      if (isDuePassed(due, asOf)) out.add(n);
+    }
+  }
+  return out;
+}

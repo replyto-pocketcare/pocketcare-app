@@ -401,7 +401,7 @@ function EditPlanned({ item, onDone }: { item: PlannedItem; onDone: () => void }
     <div className="card" style={{ padding: 16, display: "grid", gap: 10 }}>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <FloatingInput label="Name" value={name} onChange={setName} style={{ flex: 1, minWidth: 150 }} />
-        <FloatingInput label="Amount" inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} style={{ width: 130 }} />
+        <FloatingInput label="Amount" group currency={item.currency} value={amount} onChange={setAmount} style={{ width: 130 }} />
         {item.direction === "saving" && <FloatingInput label="Return %" inputMode="decimal" value={ret} onChange={(v) => setRet(v.replace(/[^0-9.]/g, ""))} style={{ width: 110 }} />}
       </div>
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>

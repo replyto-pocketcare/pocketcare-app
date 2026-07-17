@@ -353,7 +353,7 @@ export default function NewTransactionPage() {
               <div key={it.id} style={{ display: "flex", gap: 8 }}>
                 <input className="input" placeholder={items.length > 1 ? `Item ${idx + 1}` : "What for? (optional)"} value={it.description}
                   onChange={(e) => update(it.id, { description: e.target.value })} />
-                <AmountInput style={{ width: 140, textAlign: "right", fontWeight: 600 }} placeholder="0.00"
+                <AmountInput style={{ width: 140, textAlign: "right", fontWeight: 600 }} placeholder="0.00" currency={currency}
                   autoFocus={idx === 0} value={it.value}
                   onChange={(raw) => update(it.id, { value: raw })} />
                 {items.length > 1 && (
@@ -505,9 +505,14 @@ export default function NewTransactionPage() {
                           <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                             <span style={{ fontSize: 14 }}>{memberName(k)}</span>
                             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                              <input className="input" style={{ width: 110, textAlign: "right" }} inputMode="decimal"
-                                placeholder={splitMode === "percent" ? "%" : currency}
-                                value={shareVals[k] ?? ""} onChange={(e) => setShareVals((p) => ({ ...p, [k]: e.target.value.replace(/[^0-9.]/g, "") }))} />
+                              {splitMode === "percent" ? (
+                                <input className="input" style={{ width: 110, textAlign: "right" }} inputMode="decimal"
+                                  placeholder="%" value={shareVals[k] ?? ""}
+                                  onChange={(e) => setShareVals((p) => ({ ...p, [k]: e.target.value.replace(/[^0-9.]/g, "") }))} />
+                              ) : (
+                                <AmountInput style={{ width: 110, textAlign: "right" }} placeholder={currency} currency={currency}
+                                  value={shareVals[k] ?? ""} onChange={(raw) => setShareVals((p) => ({ ...p, [k]: raw }))} />
+                              )}
                               <span className="muted" style={{ fontSize: 12, width: 80, textAlign: "right" }}>{format(money(splitPlan.shares[i] ?? 0, currency), "en-US")}</span>
                             </div>
                           </div>
@@ -530,8 +535,8 @@ export default function NewTransactionPage() {
                         {splitPlan.partKeys.map((k) => (
                           <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                             <span style={{ fontSize: 14 }}>{memberName(k)} paid</span>
-                            <input className="input" style={{ width: 110, textAlign: "right" }} inputMode="decimal" placeholder={currency}
-                              value={paidVals[k] ?? ""} onChange={(e) => setPaidVals((p) => ({ ...p, [k]: e.target.value.replace(/[^0-9.]/g, "") }))} />
+                            <AmountInput style={{ width: 110, textAlign: "right" }} placeholder={currency} currency={currency}
+                              value={paidVals[k] ?? ""} onChange={(raw) => setPaidVals((p) => ({ ...p, [k]: raw }))} />
                           </div>
                         ))}
                         <span className="muted" style={{ fontSize: 12 }}>
