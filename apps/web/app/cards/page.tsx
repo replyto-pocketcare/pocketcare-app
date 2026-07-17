@@ -10,13 +10,13 @@ import { billingCycle } from "@pocketcare/budget";
 import { useAccountBalances, useAccountsLoading } from "../../src/hooks";
 import { Skeleton, CardsSkeleton } from "../../src/ui/Skeleton";
 import { useSession } from "../../src/account";
-import { getRepositories } from "../../src/powersync";
+import { getRepositories, getDb } from "../../src/powersync";
 import { CreditCard } from "../../src/cards/CreditCard";
 import { useMoneyFmt } from "../../src/ui/Money";
 
 const PALETTE = ["#3e4a38", "#b06a4f", "#5f6647", "#7c4a3a", "#2b2723"];
 
-interface CardDetail { account_id: string; statement_day: number; due_day: number; credit_limit: number | null; card_last4: string | null; }
+interface CardDetail { account_id: string; statement_day: number; due_day: number; credit_limit: number | null; card_last4: string | null; pending_due: number | null; due_on: string | null; }
 
 export default function CardsPage() {
   const { t } = useTranslation();
@@ -25,7 +25,7 @@ export default function CardsPage() {
   const holder = (session?.username || "").trim() || "Card Holder";
   const cards = balances.filter((b) => b.account.type === "credit_card");
   const accountsLoading = useAccountsLoading();
-  const { data: details = [] } = useQuery<CardDetail>("SELECT account_id, statement_day, due_day, credit_limit, card_last4 FROM credit_card_details");
+  const { data: details = [] } = useQuery<CardDetail>("SELECT account_id, statement_day, due_day, credit_limit, card_last4, pending_due, due_on FROM credit_card_details");
   const detailFor = (id: string) => details.find((d) => d.account_id === id);
 
   if (cards.length === 0 && accountsLoading) {
@@ -113,6 +113,7 @@ function CardPanel({ account, owed, detail, sources }: {
   const [stmt, setStmt] = useState(String(detail?.statement_day ?? 1));
   const [due, setDue] = useState(String(detail?.due_day ?? 20));
   const [creditLimit, setCreditLimit] = useState(detail?.credit_limit ? String(toMajor(money(detail.credit_limit, account.currency))) : "");
+  const [dueAmt, setDueAmt] = useState(detail?.pending_due != null ? String(toMajor(money(detail.pending_due, account.currency))) : "");
   const [last4, setLast4] = useState(detail?.card_last4 ?? "");
   const [editing, setEditing] = useState(false);
   const [fromId, setFromId] = useState<string | null>(null);
@@ -120,11 +121,20 @@ function CardPanel({ account, owed, detail, sources }: {
   const owedMoney = money(Math.abs(owed), account.currency);
 
   async function saveCycle() {
+    const sDay = Math.min(28, Math.max(1, Number(stmt) || 1));
+    const dDay = Math.min(28, Math.max(1, Number(due) || 20));
     await getRepositories().creditCards.upsertDetails({
-      account_id: account.id, statement_day: Number(stmt) || 1, due_day: Number(due) || 20,
+      account_id: account.id, statement_day: sDay, due_day: dDay,
       credit_limit: creditLimit ? fromMajor(Number(creditLimit), account.currency).amount : (detail?.credit_limit ?? null),
       card_last4: last4 ? last4.slice(-4) : null,
     });
+    // pending_due / due_on aren't in the repo type — persist directly. Recompute
+    // due_on from the (possibly new) cycle so "pay by" stays correct.
+    const c = billingCycle(sDay, dDay, new Date());
+    await getDb()?.execute(
+      "UPDATE credit_card_details SET pending_due = ?, due_on = ?, updated_at = ? WHERE account_id = ?",
+      [dueAmt ? fromMajor(Number(dueAmt), account.currency).amount : null, c.dueDate.toISOString().slice(0, 10), new Date().toISOString(), account.id],
+    );
     setEditing(false);
   }
   async function settle() {
@@ -146,13 +156,27 @@ function CardPanel({ account, owed, detail, sources }: {
             </div>
           ) : null}
         </div>
-        {cycle && !editing && (
-          <div style={{ textAlign: "right" }}>
-            <div className="muted" style={{ fontSize: 12 }}>Payment due</div>
-            <div style={{ fontWeight: 650 }}>{cycle.dueDate.toLocaleDateString()}</div>
-            <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>Click to manage ▾</div>
-          </div>
-        )}
+        {cycle && !editing && (() => {
+          const dueOn = detail?.due_on ? new Date(detail.due_on) : cycle.dueDate;
+          const rolledToNext = detail?.pending_due != null && dueOn.getTime() > cycle.dueDate.getTime();
+          const dueThisCycle = detail?.pending_due != null ? (rolledToNext ? 0 : detail.pending_due) : null;
+          return (
+            <div style={{ textAlign: "right" }}>
+              {dueThisCycle != null && (
+                <>
+                  <div className="muted" style={{ fontSize: 12 }}>Due this cycle</div>
+                  <div style={{ fontWeight: 750, fontSize: 20, color: dueThisCycle > 0 ? "var(--negative)" : "var(--positive)" }}>{fmt(money(dueThisCycle, account.currency))}</div>
+                </>
+              )}
+              <div className="muted" style={{ fontSize: 12, marginTop: dueThisCycle != null ? 4 : 0 }}>Pay by</div>
+              <div style={{ fontWeight: 650 }}>{dueOn.toLocaleDateString()}</div>
+              {rolledToNext && detail?.pending_due ? (
+                <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>{fmt(money(detail.pending_due, account.currency))} due next cycle</div>
+              ) : null}
+              <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>Click to manage ▾</div>
+            </div>
+          );
+        })()}
       </summary>
 
       <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
@@ -179,6 +203,9 @@ function CardPanel({ account, owed, detail, sources }: {
               </label>
               <label className="muted" style={{ fontSize: 12 }}>Credit limit
                 <input className="input" style={{ width: 120 }} inputMode="decimal" value={creditLimit} onChange={(e) => setCreditLimit(e.target.value.replace(/[^0-9.]/g, ""))} />
+              </label>
+              <label className="muted" style={{ fontSize: 12 }}>Amount due
+                <input className="input" style={{ width: 120 }} inputMode="decimal" value={dueAmt} onChange={(e) => setDueAmt(e.target.value.replace(/[^0-9.]/g, ""))} />
               </label>
             </div>
             <label className="muted" style={{ fontSize: 12 }}>Card number (optional — last 4 shown)

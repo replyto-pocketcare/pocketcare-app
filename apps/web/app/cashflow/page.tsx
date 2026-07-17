@@ -11,6 +11,7 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@powersync/react";
 import { money, fromMajor, toMajor } from "@pocketcare/money";
 import { monthlyEquivalent } from "@pocketcare/finance";
@@ -63,6 +64,7 @@ function nextMonthly(start: string | null): string | null {
 export default function CashflowPage() {
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
+  const router = useRouter();
   const convertAmount = useConvertAmount();
 
   const { data: items = [] } = useQuery<PlannedItem>(
@@ -188,9 +190,9 @@ export default function CashflowPage() {
         {loans.map((l) => <LoanRow key={l.id} loan={l} base={base} />)}
       </Section>
 
-      {/* Savings tracker */}
-      <Section id="savings" title="Savings & investments" accent="teal" count={savings.length} onAdd={() => setAdd({ direction: "saving" })} addLabel="Add plan"
-        empty="Plan your FDs, emergency fund, mutual funds, stocks and crypto — projected forward with compounding.">
+      {/* Savings & investments — managed on the Investments page (single source of truth) */}
+      <Section id="savings" title="Savings & investments" accent="teal" count={savings.length} onAdd={() => router.push("/investments")} addLabel="Add investment"
+        empty="Track your FDs, mutual funds, stocks and crypto in one place. Add and manage them on the Investments page.">
         {savings.map((i) => <PlannedRow key={i.id} item={i} base={base} showReturn />)}
       </Section>
 
@@ -418,14 +420,10 @@ function AddModal({ ctx, base, onClose }: { ctx: { direction: Direction; seed?: 
   const [amount, setAmount] = useState("");
   const [freq, setFreq] = useState<Period>(seed?.frequency ?? "monthly");
   const [ret, setRet] = useState(seed?.expectedReturnPct != null ? String(seed.expectedReturnPct) : "");
-  const [principal, setPrincipal] = useState("");
   const [start, setStart] = useState(new Date().toISOString().slice(0, 10));
-  const [tenure, setTenure] = useState("");
-  const [rate, setRate] = useState("");
-  const [emisPaid, setEmisPaid] = useState("0");
 
   const isSub = direction === "payment" && bucket === "subscription";
-  const isLoan = direction === "payment" && bucket === "loan";
+  const isLoan = direction === "payment" && bucket === "loan"; // loans are managed on /loans; the modal redirects there
   const title = direction === "income" ? "Add recurring income" : direction === "saving" ? "Add savings plan" : "Add planned payment";
 
   async function submit() {
@@ -433,15 +431,6 @@ function AddModal({ ctx, base, onClose }: { ctx: { direction: Direction; seed?: 
     const minor = fromMajor(Number(amount), base).amount;
     if (isSub) {
       await insertRow("subscriptions", { name: name.trim(), amount: minor, currency: base, billing_cycle: freq, purchased_on: start || null, next_renewal: start || null, is_active: 1 });
-    } else if (isLoan) {
-      await insertRow("loans", {
-        lender: name.trim(), currency: base, emi_amount: minor,
-        principal: principal ? fromMajor(Number(principal), base).amount : 0,
-        interest_rate: rate ? Number(rate) : 0,
-        tenure_months: tenure ? Number(tenure) : null,
-        start_date: start || null,
-        emis_paid: Number(emisPaid) || 0,
-      });
     } else {
       await insertRow("planned_cashflow", {
         name: name.trim(), direction, bucket, amount: minor, currency: base, frequency: freq,
@@ -466,40 +455,38 @@ function AddModal({ ctx, base, onClose }: { ctx: { direction: Direction; seed?: 
             </button>
           ))}
         </div>
-        <FloatingInput label={isLoan ? "Lender" : "Name"} value={name} onChange={setName} />
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <FloatingInput label={isLoan ? `EMI (${base})` : `Amount (${base})`} inputMode="decimal" value={amount} onChange={(v) => setAmount(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 130 }} />
-          {isLoan && <FloatingInput label={`Principal (${base})`} inputMode="decimal" value={principal} onChange={(v) => setPrincipal(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 130 }} />}
-          {direction === "saving" && <FloatingInput label="Return % p.a." inputMode="decimal" value={ret} onChange={(v) => setRet(v.replace(/[^0-9.]/g, ""))} style={{ width: 120 }} />}
-        </div>
-        {isLoan && (
-          <>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <FloatingInput label="Tenure (months)" inputMode="numeric" value={tenure} onChange={(v) => setTenure(v.replace(/\D/g, ""))} style={{ flex: 1, minWidth: 120 }} />
-              <FloatingInput label="Interest % p.a. (optional)" inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 120 }} />
-              <FloatingInput label="EMIs already paid" inputMode="numeric" value={emisPaid} onChange={(v) => setEmisPaid(v.replace(/\D/g, ""))} style={{ width: 130 }} />
+        {isLoan ? (
+          <div style={{ display: "grid", gap: 12, padding: "6px 0" }}>
+            <p className="muted" style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5 }}>
+              Loans have their own page — add the lender, EMI, tenure and interest, then track EMIs paid and a full month-by-month amortization schedule.
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button className="btn ghost" onClick={onClose}>Cancel</button>
+              <Link href="/loans" className="btn" onClick={onClose}>Go to Loans →</Link>
             </div>
-            <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>EMIs started on
-              <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
-            </label>
-            <span className="muted" style={{ fontSize: 12, marginTop: -4 }}>You'll get a full month-by-month schedule (principal vs interest) on the loan's page.</span>
+          </div>
+        ) : (
+          <>
+            <FloatingInput label="Name" value={name} onChange={setName} />
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <FloatingInput label={`Amount (${base})`} group currency={base} value={amount} onChange={setAmount} style={{ flex: 1, minWidth: 130 }} />
+              {direction === "saving" && <FloatingInput label="Return % p.a." inputMode="decimal" value={ret} onChange={(v) => setRet(v.replace(/[^0-9.]/g, ""))} style={{ width: 120 }} />}
+            </div>
+            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+              <span className="muted" style={{ fontSize: 12 }}>Frequency</span>
+              {CYCLES.map((c) => <button key={c} className="chip" data-active={c === freq} onClick={() => setFreq(c)}>{c}</button>)}
+            </div>
+            {(isSub || direction !== "payment") && (
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{direction === "income" ? "Next expected on" : isSub ? "Started / next renewal" : "Next due"}
+                <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+              </label>
+            )}
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
+              <button className="btn ghost" onClick={onClose}>Cancel</button>
+              <button className="btn" onClick={submit} disabled={!name.trim() || !amount}>Add</button>
+            </div>
           </>
         )}
-        {!isLoan && (
-          <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-            <span className="muted" style={{ fontSize: 12 }}>Frequency</span>
-            {CYCLES.map((c) => <button key={c} className="chip" data-active={c === freq} onClick={() => setFreq(c)}>{c}</button>)}
-          </div>
-        )}
-        {(isSub || direction !== "payment") && !isLoan && (
-          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{direction === "income" ? "Next expected on" : isSub ? "Started / next renewal" : "Next due"}
-            <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
-          </label>
-        )}
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
-          <button className="btn ghost" onClick={onClose}>Cancel</button>
-          <button className="btn" onClick={submit} disabled={!name.trim() || !amount}>Add</button>
-        </div>
       </div>
     </Modal>
   );

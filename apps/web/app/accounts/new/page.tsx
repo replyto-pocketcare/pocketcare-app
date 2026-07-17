@@ -124,8 +124,8 @@ export default function NewAccountPage() {
         <>
           <span className="muted" style={{ fontSize: 13 }}>Credit card details</span>
           <div style={{ display: "flex", gap: 8 }}>
-            <FloatingInput label={`Credit limit (${currency})`} inputMode="decimal" value={limit} onChange={(v) => setLimit(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-            <FloatingInput label={`Amount due (${currency})`} inputMode="decimal" value={dueAmount} onChange={(v) => setDueAmount(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+            <FloatingInput label={`Credit limit (${currency})`} group currency={currency} value={limit} onChange={setLimit} style={{ flex: 1 }} />
+            <FloatingInput label={`Amount due (${currency})`} group currency={currency} value={dueAmount} onChange={setDueAmount} style={{ flex: 1 }} />
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <FloatingInput label="Statement day (1–28)" inputMode="numeric" value={statementDay} onChange={(v) => setStatementDay(v.replace(/\D/g, "").slice(0, 2))} style={{ flex: 1 }} />
@@ -141,11 +141,11 @@ export default function NewAccountPage() {
         </>
       ) : isDemat ? (
         <>
-          <FloatingInput label={`Invested amount (${currency})`} inputMode="decimal" value={opening} onChange={(v) => setOpening(v.replace(/[^0-9.]/g, ""))} />
+          <FloatingInput label={`Invested amount (${currency})`} group currency={currency} value={opening} onChange={setOpening} />
           <span className="muted" style={{ fontSize: 12, marginTop: -4 }}>This is the total you've put into your demat account. Allocate it across stocks &amp; mutual funds in the Investments section.</span>
         </>
       ) : (
-        <FloatingInput label={`Opening balance (${currency}, optional)`} inputMode="decimal" value={opening} onChange={(v) => setOpening(v.replace(/[^0-9.]/g, ""))} />
+        <FloatingInput label={`Opening balance (${currency}, optional)`} group currency={currency} value={opening} onChange={setOpening} />
       )}
 
       <button className="btn" onClick={save} disabled={!name.trim() || saving} style={{ justifyContent: "center", padding: 13 }}>

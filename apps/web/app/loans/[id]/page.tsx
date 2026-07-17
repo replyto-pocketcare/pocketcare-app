@@ -14,8 +14,21 @@ import { useConfirm } from "../../../src/ui/Confirm";
 interface Loan {
   id: string; lender: string; principal: number; currency: string;
   interest_rate: number | null; tenure_months: number | null; emi_amount: number | null;
-  start_date: string | null; emis_paid: number | null;
+  start_date: string | null; emis_paid: number | null; emi_payments: string | null;
 }
+
+/** Parse the emi_payments JSON map { emiNo: paidOnISO }. */
+function parsePaid(json: string | null): Record<number, string> {
+  if (!json) return {};
+  try {
+    const obj = JSON.parse(json) as Record<string, string>;
+    const out: Record<number, string> = {};
+    for (const [k, v] of Object.entries(obj)) if (v) out[Number(k)] = v;
+    return out;
+  } catch { return {}; }
+}
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
 
 /** Add whole months to a date, clamping the day. */
 function addMonths(iso: string | null, n: number): Date | null {
@@ -41,13 +54,31 @@ export default function LoanDetailPage() {
 
   const cur = loan.currency || base;
   const tenure = loan.tenure_months ?? 0;
-  const emisPaid = Math.max(0, Math.min(loan.emis_paid ?? 0, tenure || (loan.emis_paid ?? 0)));
-  const remaining = tenure ? Math.max(0, tenure - emisPaid) : null;
   const emi = loan.emi_amount ?? 0;
-  const nextEmi = addMonths(loan.start_date, emisPaid);
   const schedule = emi > 0 ? amortizationSchedule(loan.principal, loan.interest_rate ?? 0, emi, tenure || 600) : [];
   const totalInterest = schedule.reduce((s, r) => s + r.interest, 0);
   const hasInterest = (loan.interest_rate ?? 0) > 0;
+
+  // Per-EMI paid map is the source of truth; fall back to the emis_paid count
+  // (first N marked) for loans created before per-EMI tracking existed.
+  const paid = parsePaid(loan.emi_payments);
+  if (Object.keys(paid).length === 0 && (loan.emis_paid ?? 0) > 0) {
+    for (let m = 1; m <= (loan.emis_paid ?? 0); m++) paid[m] = "";
+  }
+  const isPaid = (m: number) => m in paid;
+  const emisPaid = Object.keys(paid).length;
+  const totalEmis = tenure || schedule.length;
+  const remaining = totalEmis ? Math.max(0, totalEmis - emisPaid) : null;
+  const nextUnpaid = schedule.find((r) => !isPaid(r.month))?.month ?? null;
+  const nextEmi = nextUnpaid ? addMonths(loan.start_date, nextUnpaid - 1) : null;
+
+  async function togglePaid(month: number, on: boolean) {
+    const next = { ...paid };
+    if (on) next[month] = todayIso(); else delete next[month];
+    const clean: Record<string, string> = {};
+    for (const [k, v] of Object.entries(next)) clean[k] = v || todayIso();
+    await updateRow("loans", loan!.id, { emi_payments: JSON.stringify(clean), emis_paid: Object.keys(clean).length });
+  }
 
   if (editing) return <EditLoan loan={loan} onDone={() => setEditing(false)} />;
 
@@ -108,22 +139,33 @@ export default function LoanDetailPage() {
                     <th style={{ padding: "10px 14px", fontWeight: 600 }}>Principal</th>
                     <th style={{ padding: "10px 14px", fontWeight: 600 }}>Interest</th>
                     <th style={{ padding: "10px 14px", fontWeight: 600 }}>Balance</th>
+                    <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 600 }}>Paid</th>
                   </tr>
                 </thead>
                 <tbody>
                   {schedule.map((r) => {
-                    const paid = r.month <= emisPaid;
-                    const isNext = r.month === emisPaid + 1;
+                    const rowPaid = isPaid(r.month);
+                    const isNext = r.month === nextUnpaid;
                     const due = addMonths(loan.start_date, r.month - 1);
+                    const paidOn = paid[r.month];
                     return (
                       <tr key={r.month} style={{ borderTop: "1px solid var(--border)", textAlign: "right",
-                        background: isNext ? "var(--accent-ghost)" : "transparent", opacity: paid ? 0.5 : 1 }}>
-                        <td style={{ textAlign: "left", padding: "8px 14px" }}>{paid ? "✓ " : ""}{r.month}</td>
+                        background: isNext ? "var(--accent-ghost)" : "transparent", opacity: rowPaid ? 0.55 : 1 }}>
+                        <td style={{ textAlign: "left", padding: "8px 14px" }}>{rowPaid ? "✓ " : ""}{r.month}</td>
                         <td style={{ padding: "8px 14px", color: "var(--text-2)" }}>{due ? due.toLocaleDateString(undefined, { month: "short", year: "2-digit" }) : "—"}</td>
                         <td style={{ padding: "8px 14px" }}>{fmt(money(r.emi, cur))}</td>
                         <td style={{ padding: "8px 14px" }}>{fmt(money(r.principal, cur))}</td>
                         <td style={{ padding: "8px 14px", color: hasInterest ? "var(--negative)" : "var(--text-3)" }}>{fmt(money(r.interest, cur))}</td>
                         <td style={{ padding: "8px 14px" }}>{fmt(money(r.balance, cur))}</td>
+                        <td style={{ textAlign: "center", padding: "8px 14px", whiteSpace: "nowrap" }}>
+                          {rowPaid ? (
+                            <button className="chip" title={paidOn ? `Paid on ${new Date(paidOn).toLocaleDateString()}` : "Paid"} onClick={() => togglePaid(r.month, false)} style={{ padding: "2px 8px", fontSize: 11 }}>
+                              {paidOn ? new Date(paidOn).toLocaleDateString(undefined, { day: "numeric", month: "short" }) : "Paid"} ✓
+                            </button>
+                          ) : (
+                            <button className="chip" onClick={() => togglePaid(r.month, true)} style={{ padding: "2px 8px", fontSize: 11 }}>Mark paid</button>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -179,8 +221,8 @@ function EditLoan({ loan, onDone }: { loan: Loan; onDone: () => void }) {
       <h1 style={{ margin: 0 }}>Edit loan</h1>
       <FloatingInput label="Lender" value={lender} onChange={setLender} />
       <div style={{ display: "flex", gap: 8 }}>
-        <FloatingInput label={`Principal (${cur})`} inputMode="decimal" value={principal} onChange={(v) => setPrincipal(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-        <FloatingInput label={`Monthly EMI (${cur})`} inputMode="decimal" value={emi} onChange={(v) => setEmi(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+        <FloatingInput label={`Principal (${cur})`} group currency={cur} value={principal} onChange={setPrincipal} style={{ flex: 1 }} />
+        <FloatingInput label={`Monthly EMI (${cur})`} group currency={cur} value={emi} onChange={setEmi} style={{ flex: 1 }} />
       </div>
       <div style={{ display: "flex", gap: 8 }}>
         <FloatingInput label="Interest % p.a. (optional)" inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />

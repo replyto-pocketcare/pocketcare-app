@@ -38,6 +38,7 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
     { href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "◔" },
     { href: "/goals", tkey: "nav.goals", label: "Goals", icon: "◎" },
     { href: "/cashflow", tkey: "nav.cashflow", label: "Planned Cashflow", icon: "⇌", beta: true },
+    { href: "/loans", tkey: "nav.loans", label: "Loans", icon: "≈" },
   ] },
   { title: "Growth", items: [
     { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "▲" },

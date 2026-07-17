@@ -266,7 +266,8 @@ const loans = new Table({
   tenure_months: column.integer,
   emi_amount: column.integer,
   start_date: column.text,
-  emis_paid: column.integer, // how many EMIs the user has already paid
+  emis_paid: column.integer, // how many EMIs the user has already paid (derived from emi_payments when present)
+  emi_payments: column.text, // JSON map { "<emiNo>": "<paidOn ISO date>" }
   created_at: column.text,
   updated_at: column.text,
   deleted_at: column.text,

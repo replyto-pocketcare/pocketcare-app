@@ -222,7 +222,7 @@ function AddHolding({ accounts, catPhase, catPct, catRetry, downloading, base }:
 
       <div style={{ display: "flex", gap: 8 }}>
         <FloatingInput label={kind === "mf" ? "Units" : "Qty"} inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-        <FloatingInput label={`${kind === "mf" ? "NAV / avg cost" : "Avg cost"} (${cur})`} inputMode="decimal" value={cost} onChange={(v) => setCost(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+        <FloatingInput label={`${kind === "mf" ? "NAV / avg cost" : "Avg cost"} (${cur})`} group currency={cur} value={cost} onChange={setCost} style={{ flex: 1 }} />
       </div>
 
       {over && <div style={{ fontSize: 12.5, color: "var(--negative)" }}>This would deploy {fmt(money(costTotal, cur))}, more than the {fmt(money(acc!.available, acc!.currency))} available in this demat account. Reduce the amount or top up the account.</div>}
@@ -256,7 +256,7 @@ function HoldingRow({ h, quote, accountName }: { h: Holding; quote: Quote | unde
         <div className="muted" style={{ fontSize: 12 }}>{label}{h.exchange ? ` · ${h.exchange}` : ""}</div>
         <div style={{ display: "flex", gap: 8 }}>
           <FloatingInput label={isMf ? "Units" : "Qty"} inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-          <FloatingInput label={`${isMf ? "NAV" : "Avg cost"} (${h.currency})`} inputMode="decimal" value={cost} onChange={(v) => setCost(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+          <FloatingInput label={`${isMf ? "NAV" : "Avg cost"} (${h.currency})`} group currency={h.currency} value={cost} onChange={setCost} style={{ flex: 1 }} />
         </div>
         <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={save}>Save</button><button className="chip" onClick={() => setEditing(false)}>Cancel</button></div>
       </div>
