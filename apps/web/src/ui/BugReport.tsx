@@ -14,7 +14,7 @@ const SEVERITIES: { id: "fatal" | "high" | "medium" | "low"; label: string; colo
 
 const AREAS = [
   "Dashboard", "Transactions", "Accounts & Cards", "Budgets", "Goals",
-  "Investments", "Friends & Splits", "Subscriptions", "Loans & Recurring",
+  "Investments", "Friends & Splits", "Subscriptions", "Loans",
   "Ask PocketCare", "Insights", "Settings & Billing", "Sync / Offline", "Other",
 ];
 

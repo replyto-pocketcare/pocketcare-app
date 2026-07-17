@@ -149,7 +149,7 @@ export default function InvestmentsPage() {
           ctx={addCtx}
           accounts={invAccounts.map((b) => ({ id: b.account.id, name: b.account.name, currency: b.account.currency, type: b.account.type }))}
           availableOf={(id) => (invAccounts.find((b) => b.account.id === id)?.balance.amount ?? 0) - holdings.filter((h) => h.account_id === id).reduce((s, h) => s + (h.avg_cost ?? 0) * h.quantity, 0)}
-          fundingAccounts={balances.filter((b) => !DEMAT_TYPES.includes(b.account.type) && (b.account as { kind?: string }).kind === undefined).map((b) => ({ id: b.account.id, name: b.account.name, currency: b.account.currency, balance: b.balance.amount }))}
+          fundingAccounts={balances.filter((b) => !DEMAT_TYPES.includes(b.account.type)).map((b) => ({ id: b.account.id, name: b.account.name, currency: b.account.currency, balance: b.balance.amount }))}
           base={base}
           onClose={() => setAddCtx(null)}
         />

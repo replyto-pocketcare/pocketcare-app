@@ -41,8 +41,9 @@ export interface AddHoldingInput {
   offList: boolean;
   autoFetch: boolean;
   funding: { mode: "existing" } | { mode: "new"; sourceAccountId: string };
-  /** When present, also records a recurring saving in Planned Cashflow (SIP). */
-  sip?: { amount: number; frequency: Period; expectedReturnPct: number | null } | null;
+  /** When present, sets up a recurring SIP transfer (debit account → this investment
+   *  account) that posts on `firstDue` and each period — shows under Recurring / Planned Cashflow. */
+  sip?: { amount: number; frequency: Period; firstDue: string; sourceAccountId: string } | null;
 }
 
 export async function addHolding(inp: AddHoldingInput): Promise<string> {
@@ -71,20 +72,23 @@ export async function addHolding(inp: AddHoldingInput): Promise<string> {
     }
   }
 
-  // 2) Optional linked SIP saving in Planned Cashflow.
+  // 2) SIP → a recurring transfer rule (debit account → this investment account)
+  //    that auto-posts on the SIP date. Surfaces under Recurring / Planned Cashflow.
   let plannedId: string | null = null;
-  if (inp.sip && inp.sip.amount > 0) {
-    plannedId = await insertRow("planned_cashflow", {
+  if (inp.sip && inp.sip.amount > 0 && inp.sip.sourceAccountId) {
+    const templateId = await insertRow("transaction_templates", {
       name: inp.name || inp.symbol || "SIP",
-      direction: "saving",
-      bucket: "sip",
+      type: "transfer",
       amount: inp.sip.amount,
       currency: inp.currency,
-      frequency: inp.sip.frequency,
-      timeframe: inp.sip.frequency === "yearly" ? "yearly" : "monthly",
-      next_due: null,
-      expected_return: inp.sip.expectedReturnPct != null ? Math.round(inp.sip.expectedReturnPct * 100) : null,
-      is_active: 1,
+      account_id: inp.sip.sourceAccountId,
+      to_account_id: inp.investmentAccountId,
+      category_id: null, description: "SIP", note: null, payment_method: null,
+      labels: null, split_group_id: null, split_mode: "equal", sort: 0,
+    });
+    plannedId = await insertRow("recurring_rules", {
+      template_id: templateId, frequency: inp.sip.frequency, interval_count: 1,
+      next_due: inp.sip.firstDue, last_generated: null, auto_post: 1, active: 1,
     });
   }
 

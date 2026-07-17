@@ -17,7 +17,7 @@ flowchart TD
 flowchart TD
     A[Add investment] --> T{Type?}
     T -->|stock / MF| Listed[Catalog picker + exchange, or 'not listed']
-    T -->|SIP| Sip[Name + recurring amount + frequency → also a Planned Cashflow saving]
+    T -->|SIP| Sip[Amount + frequency + next SIP date + debit account → recurring transfer rule]
     T -->|crypto / other| Val[Name + qty + cost + current value]
     T -->|FD| Fd[Amount + interest % p.a. + maturity date]
     Listed --> F{Existing or new?}
@@ -45,7 +45,10 @@ Adding a holding keeps the account's "available to invest" coherent:
 The insights card estimates dividends earned **Apr 1 → today** of the current Indian financial year: for each declared dividend (`market_dividends`), amount-per-share × current quantity held, converted to base (`computeDividendEvents`), filtered to the FY window. Estimate caveat: uses current share counts (historical lots aren't tracked).
 
 ## Data touched
-`holdings` (`symbol`, `exchange`, `quantity`, `avg_cost`, `asset_class`, `current_value`, `annual_rate`, `maturity_date`, `source_account_id`, `planned_id`, `auto_fetch`, `off_list`), `transactions` (funding transfer / adjustment), `planned_cashflow` (linked SIP saving), global `market_quotes` / `market_overview` / `market_dividends` (read-only), `exchange_rates` for base-currency roll-up.
+`holdings` (`symbol`, `exchange`, `quantity`, `avg_cost`, `asset_class`, `current_value`, `annual_rate`, `maturity_date`, `source_account_id`, `planned_id`, `auto_fetch`, `off_list`), `transactions` (funding transfer / adjustment), `transaction_templates` + `recurring_rules` (SIP debit as a recurring transfer, with a first-due date), global `market_quotes` / `market_overview` / `market_dividends` (read-only), `exchange_rates` for base-currency roll-up.
+
+## SIP as a recurring transfer
+A **SIP** captures an amount, frequency, **next SIP date** and a **"debits from" account**. It creates a recurring **transfer** rule (debit account → the investment account) that auto-posts on the SIP date and each period — so the scheduled bank debit is a real transaction, visible under [Recurring](recurring.md) and Planned Cashflow. Any current units/value entered are tracked as already-held. `holdings.planned_id` links the SIP holding to its recurring rule.
 
 ## Key files
 `app/investments/page.tsx`, `src/investments/{model.ts, Charts.tsx, write.ts, AddDialog.tsx}`, `src/market/*`, `src/instruments/*`, `supabase/functions/market-sync`. Migration `0035` (holdings columns).

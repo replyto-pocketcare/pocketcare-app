@@ -47,6 +47,8 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
   const [maturity, setMaturity] = useState("");
   const [sipAmt, setSipAmt] = useState("");
   const [sipFreq, setSipFreq] = useState<Period>("monthly");
+  const [sipDate, setSipDate] = useState(new Date().toISOString().slice(0, 10)); // first debit date
+  const [sipSource, setSipSource] = useState(fundingAccounts[0]?.id ?? "");        // account debited each SIP
   // Funding: "existing" = already own it (track only); "new" = fund from an account.
   const [funding, setFunding] = useState<"existing" | "new">("existing");
   const [sourceId, setSourceId] = useState(fundingAccounts[0]?.id ?? "");
@@ -68,10 +70,16 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
     : (cost ? fromMajor(Number(cost), cur).amount : 0);
   const costTotal = Math.round(costMinor * qtyNum);
 
+  const isSip = cls === "sip";
   const nameOk = useCatalogPicker ? !!instrument : !!name.trim();
   const source = fundingAccounts.find((f) => f.id === sourceId);
   const overFunds = funding === "new" && source ? costTotal > source.balance : false;
-  const canAdd = !!acc && nameOk && (isLump ? !!cost : !!qty) && (funding === "existing" || (!!sourceId && !overFunds));
+  // SIP: money movement is the recurring transfer (debit account + date), so the
+  // amount/qty and existing-vs-new funding section don't gate it.
+  const amountOk = isSip ? !!sipAmt : (isLump ? !!cost : !!qty);
+  const fundingOk = isSip ? !!sipSource : (funding === "existing" || (!!sourceId && !overFunds));
+  const sipOk = !isSip || (!!sipAmt && !!sipDate && !!sipSource);
+  const canAdd = !!acc && nameOk && amountOk && fundingOk && sipOk;
 
   async function submit() {
     if (!canAdd || !acc) return;
@@ -93,8 +101,9 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
         maturityDate: cls === "fd" && maturity ? maturity : null,
         offList: !useCatalogPicker,
         autoFetch: useCatalogPicker,
-        funding: funding === "new" ? { mode: "new", sourceAccountId: sourceId } : { mode: "existing" },
-        sip: cls === "sip" && sipAmt ? { amount: fromMajor(Number(sipAmt), cur).amount, frequency: sipFreq, expectedReturnPct: rate ? Number(rate) : null } : null,
+        // SIP tracks any current holding as already-owned; the scheduled debits are the recurring transfer.
+        funding: (!isSip && funding === "new") ? { mode: "new", sourceAccountId: sourceId } : { mode: "existing" },
+        sip: isSip && sipAmt && sipSource ? { amount: fromMajor(Number(sipAmt), cur).amount, frequency: sipFreq, firstDue: sipDate, sourceAccountId: sipSource } : null,
       });
       onClose();
     } finally {
@@ -165,20 +174,34 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
             </label>
           </div>
         )}
-        {cls === "sip" && (
-          <div style={{ display: "grid", gap: 6 }}>
+        {isSip && (
+          <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
               <FloatingInput label={`SIP amount (${cur})`} group currency={cur} value={sipAmt} onChange={setSipAmt} style={{ flex: 1, minWidth: 140 }} />
               <div style={{ display: "flex", gap: 6 }}>{SIP_CYCLES.map((c) => <button key={c} className="chip" data-active={c === sipFreq} onClick={() => setSipFreq(c)}>{c}</button>)}</div>
             </div>
-            <div className="muted" style={{ fontSize: 11 }}>Adds a recurring saving to Planned Cashflow so your SIP shows up there too.</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>Next SIP date
+                <input className="input" type="date" value={sipDate} onChange={(e) => setSipDate(e.target.value)} />
+              </label>
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 170 }}>Debits from
+                {fundingAccounts.length === 0
+                  ? <span style={{ color: "var(--negative)" }}>Add a bank/savings account first.</span>
+                  : <select className="input" value={sipSource} onChange={(e) => setSipSource(e.target.value)}>
+                      <option value="" disabled>Select an account</option>
+                      {fundingAccounts.map((f) => <option key={f.id} value={f.id}>{f.name} · {fmt(money(f.balance, f.currency))}</option>)}
+                    </select>}
+              </label>
+            </div>
+            <div className="muted" style={{ fontSize: 11 }}>On each SIP date we record a transfer of {sipAmt ? fmt(money(fromMajor(Number(sipAmt), cur).amount, cur)) : "the amount"} from that account into {acc?.name ?? "this account"} — it shows under Recurring &amp; Planned Cashflow too.</div>
           </div>
         )}
         {!classIsListed && cls !== "sip" && (
           <FloatingInput label={`Current value (${cur}, optional)`} group currency={cur} value={curVal} onChange={setCurVal} />
         )}
 
-        {/* Existing vs new */}
+        {/* Existing vs new — not for SIPs (their money movement is the recurring transfer) */}
+        {!isSip && (
         <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
           <div className="muted" style={{ fontSize: 12 }}>Is this a new investment or one you already hold?</div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -199,6 +222,7 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
           {overFunds && <div style={{ fontSize: 12, color: "var(--negative)" }}>That’s more than the balance in {source?.name}. Reduce the amount or pick another account.</div>}
           {funding === "existing" && <div className="muted" style={{ fontSize: 11 }}>No money leaves your accounts — this only records an investment you already own.</div>}
         </div>
+        )}
 
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 2 }}>
           <button className="btn ghost" onClick={onClose} disabled={saving}>Cancel</button>
