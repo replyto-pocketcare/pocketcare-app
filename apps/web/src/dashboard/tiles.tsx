@@ -9,14 +9,15 @@ import {
 } from "recharts";
 import { money, format, toMajor, type Money } from "@pocketcare/money";
 import { budgetProgress } from "@pocketcare/budget";
-import { monthlyEquivalent } from "@pocketcare/finance";
+import { monthlyEquivalent, emiDueDate } from "@pocketcare/finance";
 import type { BudgetLike } from "@pocketcare/data";
 import type { Transaction, Period } from "@pocketcare/types";
 import { getRepositories } from "../powersync";
-import { useAccountBalances, useBaseCurrency, useCurrencyBreakdown } from "../hooks";
+import { useAccountBalances, useBaseCurrency, useCurrencyBreakdown, useConvertAmount } from "../hooks";
 import { useAmountsHidden } from "../prefs";
 import { colorForId } from "../colors";
 import { useFriendBalances, useUserProfiles } from "../splits/hooks";
+import { bucketLabel, bucketIcon } from "../cashflow/model";
 import type { TileId } from "../dashboard";
 
 const PIE = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#4f46e5", "#7c7264"];
@@ -35,6 +36,7 @@ export interface TileMeta {
 export const TILE_CATALOG: TileMeta[] = [
   { id: "recent", title: "Recent activity", span: "half" },
   { id: "spending", title: "Spending this month", span: "half" },
+  { id: "upcoming", title: "Upcoming payments", span: "half" },
   { id: "trends", title: "Expense trends", span: "full" },
   { id: "splits", title: "Friends & splits", span: "half" },
   { id: "budgets", title: "Budgets", span: "full" },
@@ -58,6 +60,7 @@ export const tileMeta = (id: TileId): TileMeta => TILE_CATALOG.find((t) => t.id 
 export const TILE_HREF: Record<TileId, string> = {
   recent: "/transactions",
   spending: "/transactions",
+  upcoming: "/cashflow#payments",
   trends: "/insights",
   splits: "/friends",
   budgets: "/budgets",
@@ -134,6 +137,7 @@ export function TileView({ id }: { id: TileId }) {
   switch (id) {
     case "recent": return <RecentTile />;
     case "spending": return <SpendingTile />;
+    case "upcoming": return <UpcomingTile />;
     case "trends": return <TrendsTile />;
     case "splits": return <SplitsTile />;
     case "budgets": return <BudgetsTile />;
@@ -412,6 +416,148 @@ function SubscriptionsTile() {
         </>
       )}
     </HeroTile>
+  );
+}
+
+// ----- Upcoming payments -----
+
+interface Upcoming { key: string; name: string; sub: string; icon: string; date: Date; amountBase: number }
+
+const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const asDate = (iso: string | null): Date | null => {
+  if (!iso) return null;
+  const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
+/** Roll a recurring anchor date forward to its next occurrence on/after `today`. */
+function nextOccurrence(anchor: string | null, freq: string, today: Date): Date | null {
+  const d = asDate(anchor);
+  if (!d) return null;
+  let guard = 0;
+  while (d < today && guard++ < 1200) {
+    if (freq === "daily") d.setDate(d.getDate() + 1);
+    else if (freq === "weekly") d.setDate(d.getDate() + 7);
+    else if (freq === "yearly") d.setFullYear(d.getFullYear() + 1);
+    else d.setMonth(d.getMonth() + 1); // monthly (default)
+  }
+  return d;
+}
+
+/** Next EMI due date for a loan (first unpaid EMI whose due date is on/after today). */
+function nextEmiDate(loan: { start_date: string | null; emi_due_day: number | null; tenure_months: number | null; emis_paid: number | null }, today: Date): Date | null {
+  const tenure = loan.tenure_months ?? 0;
+  let n = (loan.emis_paid ?? 0) + 1;
+  if (tenure && n > tenure) return null;
+  let due = asDate(emiDueDate(loan.start_date, loan.emi_due_day, n));
+  let guard = 0;
+  while (due && due < today && (!tenure || n < tenure) && guard++ < 1200) {
+    n += 1;
+    due = asDate(emiDueDate(loan.start_date, loan.emi_due_day, n));
+  }
+  return due;
+}
+
+function useUpcomingPayments(): Upcoming[] {
+  const convert = useConvertAmount();
+  const { data: subs = [] } = useQuery<{ id: string; name: string; amount: number; currency: string; billing_cycle: string; next_renewal: string | null }>(
+    "SELECT id, name, amount, currency, billing_cycle, next_renewal FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1",
+  );
+  const { data: loans = [] } = useQuery<{ id: string; lender: string; emi_amount: number | null; currency: string; start_date: string | null; emi_due_day: number | null; tenure_months: number | null; emis_paid: number | null }>(
+    "SELECT id, lender, emi_amount, currency, start_date, emi_due_day, tenure_months, emis_paid FROM loans WHERE deleted_at IS NULL",
+  );
+  const { data: planned = [] } = useQuery<{ id: string; name: string; direction: string; bucket: string; amount: number; currency: string; frequency: string; next_due: string | null }>(
+    "SELECT id, name, direction, bucket, amount, currency, frequency, next_due FROM planned_cashflow WHERE deleted_at IS NULL AND is_active = 1 AND direction IN ('payment','saving')",
+  );
+  const { data: cards = [] } = useQuery<{ account_id: string; name: string; currency: string; pending_due: number | null; due_on: string | null }>(
+    "SELECT cd.account_id AS account_id, a.name AS name, a.currency AS currency, cd.pending_due AS pending_due, cd.due_on AS due_on FROM credit_card_details cd JOIN accounts a ON a.id = cd.account_id WHERE a.deleted_at IS NULL",
+  );
+
+  return useMemo(() => {
+    const today = startOfToday();
+    const out: Upcoming[] = [];
+    for (const s of subs) {
+      const d = nextOccurrence(s.next_renewal, s.billing_cycle, today);
+      if (d) out.push({ key: `sub:${s.id}`, name: s.name || "Subscription", sub: "Subscription", icon: "↻", date: d, amountBase: convert(s.amount, s.currency) });
+    }
+    for (const l of loans) {
+      if (!l.emi_amount) continue;
+      const d = nextEmiDate(l, today);
+      if (d) out.push({ key: `emi:${l.id}`, name: `${l.lender || "Loan"} EMI`, sub: "Loan EMI", icon: "≈", date: d, amountBase: convert(l.emi_amount, l.currency) });
+    }
+    for (const p of planned) {
+      const d = nextOccurrence(p.next_due, p.frequency, today);
+      if (!d) continue;
+      const isSaving = p.direction === "saving";
+      out.push({
+        key: `pc:${p.id}`,
+        name: p.name || (isSaving ? "Saving" : "Payment"),
+        sub: bucketLabel(p.direction as never, p.bucket),
+        icon: isSaving ? (p.bucket === "sip" ? "↻" : "▲") : bucketIcon("payment", p.bucket),
+        date: d,
+        amountBase: convert(p.amount, p.currency),
+      });
+    }
+    for (const c of cards) {
+      if (!c.pending_due || c.pending_due <= 0) continue;
+      const d = asDate(c.due_on);
+      if (!d) continue;
+      out.push({ key: `card:${c.account_id}`, name: `${c.name || "Card"} bill`, sub: "Credit card", icon: "▭", date: d, amountBase: convert(c.pending_due, c.currency) });
+    }
+    return out.sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [subs, loans, planned, cards, convert]);
+}
+
+function whenLabel(d: Date, today: Date): string {
+  const days = Math.round((d.getTime() - today.getTime()) / 86400000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  if (days < 7) return `in ${days} days`;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function UpcomingTile() {
+  const base = useBaseCurrency();
+  const hidden = useAmountsHidden();
+  const items = useUpcomingPayments();
+  const today = startOfToday();
+  const fmt = (m: number) => (hidden ? "••••" : format(money(Math.round(m), base), "en-US"));
+
+  const horizon = new Date(today); horizon.setDate(horizon.getDate() + 30);
+  const due30 = items.filter((x) => x.date <= horizon).reduce((s, x) => s + x.amountBase, 0);
+  const shown = items.slice(0, 6);
+
+  return (
+    <TileCard title="Upcoming payments" action={<Link href="/cashflow#payments" className="muted" style={{ fontSize: 13 }}>Manage →</Link>}>
+      {items.length === 0 ? (
+        <p className="muted" style={{ fontSize: 13, margin: 0 }}>
+          No scheduled payments yet. Add subscriptions, loan EMIs, SIPs or bills from <Link href="/cashflow#payments">Planned Cashflow</Link>.
+        </p>
+      ) : (
+        <>
+          <div>
+            <div className="muted" style={{ fontSize: 12 }}>Due in the next 30 days</div>
+            <div style={{ fontSize: 26, fontWeight: 750 }}>{fmt(due30)}</div>
+          </div>
+          <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+            {shown.map((x) => {
+              const overdue = x.date < today;
+              return (
+                <div key={x.key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span aria-hidden style={{ width: 26, height: 26, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 8, background: "var(--surface-2)", fontSize: 13, color: "var(--text-2)" }}>{x.icon}</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.name}</div>
+                    <div className="muted" style={{ fontSize: 11.5 }}>{x.sub} · <span style={{ color: overdue ? "var(--negative)" : "var(--text-2)" }}>{overdue ? "overdue" : whenLabel(x.date, today)}</span></div>
+                  </div>
+                  <div style={{ fontSize: 13.5, fontWeight: 650, flexShrink: 0 }}>{fmt(x.amountBase)}</div>
+                </div>
+              );
+            })}
+          </div>
+          {items.length > shown.length && <div className="muted" style={{ fontSize: 12 }}>+{items.length - shown.length} more · <Link href="/cashflow#payments">view all</Link></div>}
+        </>
+      )}
+    </TileCard>
   );
 }
 

@@ -1,7 +1,9 @@
 # Dashboard
 
 ## Overview
-The home screen (`/`) shows net worth, accounts, and a **customizable grid of tiles** (recent activity, spending, budgets, goals, subscriptions, splits, cashflow, insight charts). Tiles can be reordered, resized, added, and removed. Every tile is **tap-to-navigate** to its detail page.
+The home screen (`/`) shows net worth, accounts, and a **customizable grid of tiles** (recent activity, spending, upcoming payments, budgets, goals, subscriptions, splits, cashflow, insight charts). Tiles can be reordered, resized, added, and removed. Every tile is **tap-to-navigate** to its detail page.
+
+The **Upcoming payments** tile aggregates every scheduled outflow across sources — subscriptions (`next_renewal`), loan EMIs (next unpaid EMI via `emiDueDate`), SIPs and planned payments like electricity/piped-gas/household (`planned_cashflow.next_due` rolled forward by frequency), and credit-card bills (`credit_card_details.pending_due`/`due_on`) — converts each to base currency, shows the total due in the next 30 days, and lists the soonest six by date (with "Today / Tomorrow / in N days / overdue" labels).
 
 ## User flow
 ```mermaid
