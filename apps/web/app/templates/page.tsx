@@ -12,11 +12,8 @@ import { UpgradeModal } from "../../src/ui/UpgradeModal";
 import { KebabMenu } from "../../src/ui/KebabMenu";
 import { useConfirm } from "../../src/ui/Confirm";
 import { softDelete } from "../../src/write";
-import { useTemplates, useRules, useDueRules, type Template } from "../../src/templates/hooks";
-import { createTemplate, updateTemplate, reorderTemplates, createRule, postRuleOnce, skipRuleOnce, FREE_TEMPLATE_LIMIT, type Freq } from "../../src/templates/write";
-
-const FREQS: Freq[] = ["daily", "weekly", "monthly", "yearly"];
-const every = (f: string, n: number) => (n > 1 ? `every ${n} ${f.replace("ly", "").replace("dai", "day")}s` : f);
+import { useTemplates, type Template } from "../../src/templates/hooks";
+import { createTemplate, updateTemplate, reorderTemplates, FREE_TEMPLATE_LIMIT } from "../../src/templates/write";
 
 export default function TemplatesPage() {
   const base = useBaseCurrency();
@@ -24,8 +21,6 @@ export default function TemplatesPage() {
   const confirm = useConfirm();
   const { isPaid } = useEntitlement();
   const templates = useTemplates();
-  const rules = useRules();
-  const due = useDueRules();
   const { data: accounts = [] } = useQuery<{ id: string; name: string }>(
     "SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real' AND type NOT IN ('stocks','mutual_funds') ORDER BY created_at",
   );
@@ -77,23 +72,10 @@ export default function TemplatesPage() {
     await reorderTemplates(ids);
   }
 
-  // create rule
-  const [showR, setShowR] = useState(false);
-  const [rTemplate, setRTemplate] = useState("");
-  const [rFreq, setRFreq] = useState<Freq>("monthly");
-  const [rDue, setRDue] = useState(new Date().toISOString().slice(0, 10));
-  const [rAuto, setRAuto] = useState(false);
-  async function addRule() {
-    if (!rTemplate) return;
-    setBusy(true);
-    try { await createRule({ templateId: rTemplate, frequency: rFreq, firstDue: rDue, autoPost: rAuto }); setRTemplate(""); setRAuto(false); setShowR(false); }
-    finally { setBusy(false); }
-  }
-
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0 }}>Templates &amp; recurring</h1>
+        <h1 style={{ margin: 0 }}>Templates</h1>
         <button className="btn" onClick={openNew}>+ New template</button>
       </div>
 
@@ -104,23 +86,9 @@ export default function TemplatesPage() {
         </div>
       )}
 
-      {due.length > 0 && (
-        <section className="card" style={{ padding: 16, display: "grid", gap: 10, borderColor: "var(--accent-soft)", background: "var(--accent-ghost)" }}>
-          <strong style={{ fontSize: 14 }}>Recurring due — confirm to record</strong>
-          {due.map((r) => (
-            <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 14 }}>{r.template_name} <span className="muted" style={{ fontSize: 12 }}>· due {r.next_due}{r.amount != null ? ` · ${fmt(money(r.amount, r.currency ?? base))}` : ""}</span></span>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button className="chip" onClick={() => void skipRuleOnce(r.id)}>Skip</button>
-                <button className="btn" style={{ padding: "4px 12px", fontSize: 13, minHeight: 0 }} onClick={() => void postRuleOnce(r.id)}>Record</button>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
+      <p className="muted" style={{ fontSize: 12.5, margin: 0 }}>Templates are one-tap shortcuts for transactions you log often. For salary, rent and other automatic schedules, use <Link href="/recurring">Recurring payments &amp; income</Link>.</p>
 
       <section style={{ display: "grid", gap: 8 }}>
-        <h2 style={{ margin: 0, fontSize: 17 }}>Templates</h2>
         {templates.length === 0 ? (
           <p className="muted" style={{ fontSize: 13 }}>No templates yet. Create one for things you log often — rent, salary, groceries.</p>
         ) : (
@@ -150,31 +118,6 @@ export default function TemplatesPage() {
         )}
       </section>
 
-      <section style={{ display: "grid", gap: 8 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ margin: 0, fontSize: 17 }}>Recurring</h2>
-          {templates.length > 0 && <button className="chip" onClick={() => { setRTemplate(templates[0]!.id); setShowR(true); }}>+ Add recurring</button>}
-        </div>
-        {rules.length === 0 ? (
-          <p className="muted" style={{ fontSize: 13 }}>No recurring rules. Turn a template into a recurring payment or salary.</p>
-        ) : (
-          <div className="list-grid">
-            {rules.map((r) => (
-              <div key={r.id} className="card lift" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px" }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.template_name}</div>
-                  <div className="muted" style={{ fontSize: 12 }}>{every(r.frequency, r.interval_count)} · next {r.next_due} · {r.auto_post ? "auto" : "confirm"}</div>
-                </div>
-                <KebabMenu label={`${r.template_name} recurring actions`} items={[
-                  { label: "Post now", onClick: () => void postRuleOnce(r.id) },
-                  { label: "Delete", danger: true, onClick: async () => { if (await confirm({ title: "Delete this recurring rule?", message: `The schedule for “${r.template_name}” will be removed.` })) softDelete("recurring_rules", r.id); } },
-                ]} />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
       <Modal open={showT} onClose={() => setShowT(false)}>
         <div style={{ display: "grid", gap: 12 }}>
           <h2 style={{ margin: 0 }}>{editTpl ? "Edit template" : "New template"}</h2>
@@ -194,33 +137,6 @@ export default function TemplatesPage() {
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
             <button className="btn ghost" onClick={() => setShowT(false)}>Cancel</button>
             <button className="btn" onClick={() => void submitTemplate()} disabled={busy || !tName.trim()}>{editTpl ? "Save" : "Create"}</button>
-          </div>
-        </div>
-      </Modal>
-
-      <Modal open={showR} onClose={() => setShowR(false)}>
-        <div style={{ display: "grid", gap: 12 }}>
-          <h2 style={{ margin: 0 }}>New recurring</h2>
-          <label style={{ display: "grid", gap: 4 }}>
-            <span className="muted" style={{ fontSize: 12 }}>Template</span>
-            <select className="input" value={rTemplate} onChange={(e) => setRTemplate(e.target.value)}>
-              {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
-          </label>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {FREQS.map((f) => <button key={f} className="chip" data-active={f === rFreq} style={{ textTransform: "capitalize" }} onClick={() => setRFreq(f)}>{f}</button>)}
-          </div>
-          <label style={{ display: "grid", gap: 4 }}>
-            <span className="muted" style={{ fontSize: 12 }}>First due date</span>
-            <input className="input" type="date" value={rDue} onChange={(e) => setRDue(e.target.value)} />
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
-            <input type="checkbox" checked={rAuto} onChange={(e) => setRAuto(e.target.checked)} />
-            Post automatically (otherwise I'll confirm each time)
-          </label>
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
-            <button className="btn ghost" onClick={() => setShowR(false)}>Cancel</button>
-            <button className="btn" onClick={() => void addRule()} disabled={busy || !rTemplate}>Create</button>
           </div>
         </div>
       </Modal>

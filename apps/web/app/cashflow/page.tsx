@@ -39,8 +39,6 @@ import {
 } from "../../src/cashflow/model";
 import { SplitDonut, RatioBars } from "../../src/cashflow/Charts";
 import { useRecurringItems, removeRecurring, type RecurringItem, type RecurringDirection } from "../../src/cashflow/recurring";
-import { RecurringModal } from "../../src/cashflow/RecurringModal";
-import type { Freq } from "../../src/templates/write";
 import { ProjectionPanel } from "../../src/cashflow/Projections";
 
 const CYCLES: Period[] = ["daily", "weekly", "monthly", "yearly"];
@@ -91,8 +89,15 @@ export default function CashflowPage() {
   const recSavings = recurring.filter((r) => r.direction === "saving");
 
   const [timeframe, setTimeframe] = useState<Timeframe>("monthly");
-  // Recurring add/edit/convert modal state.
-  const [rec, setRec] = useState<{ direction: RecurringDirection; edit?: RecurringItem; prefill?: { name?: string; amount?: number; frequency?: Freq }; convertFromId?: string } | null>(null);
+  // Adding/editing/converting recurring items happens on the dedicated /recurring page.
+  const goRecurring = (direction: RecurringDirection, opts?: { name?: string; amountMinor?: number; freq?: string; convertFrom?: string }) => {
+    const p = new URLSearchParams({ add: direction });
+    if (opts?.name) p.set("name", opts.name);
+    if (opts?.amountMinor != null) p.set("amount", String(opts.amountMinor));
+    if (opts?.freq) p.set("freq", opts.freq);
+    if (opts?.convertFrom) p.set("convertFrom", opts.convertFrom);
+    router.push(`/recurring?${p.toString()}`);
+  };
 
   // Deep-link support: e.g. /cashflow#payments (from the dashboard tile) scrolls
   // straight to that section. Retry briefly while synced data grows the page.
@@ -180,35 +185,35 @@ export default function CashflowPage() {
         <div className="eyebrow">Quick add · templates</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {TEMPLATES.map((t) => (
-            <button key={t.label} className="pc-template press" onClick={() => setRec({ direction: t.direction, prefill: { name: t.label, frequency: t.frequency as Freq } })}>
+            <button key={t.label} className="pc-template press" onClick={() => goRecurring(t.direction, { name: t.label, freq: t.frequency })}>
               <span style={{ opacity: 0.7 }}>{bucketIcon(t.direction, t.bucket)}</span> {t.label}
             </button>
           ))}
         </div>
-        <p className="muted" style={{ fontSize: 12, margin: 0 }}>Quick-add sets up a recurring rule that posts automatically (or asks you to confirm). Manage all recurring items on <Link href="/templates">Templates</Link>.</p>
+        <p className="muted" style={{ fontSize: 12, margin: 0 }}>Quick-add opens the <Link href="/recurring">Recurring</Link> page to set up a rule that posts automatically (or asks you to confirm).</p>
       </section>
 
       {/* Recurring incomes */}
-      <Section id="incomes" title="Recurring incomes" accent="positive" count={incomes.length + recIncomes.length} onAdd={() => setRec({ direction: "income" })} addLabel="Add income"
+      <Section id="incomes" title="Recurring incomes" accent="positive" count={incomes.length + recIncomes.length} onAdd={() => goRecurring("income")} addLabel="Add income"
         empty="Log your salary, freelance payments and other regular income to see your true monthly inflow.">
-        {recIncomes.map((r) => <RecurringRow key={r.ruleId} item={r} base={base} onEdit={() => setRec({ direction: "income", edit: r })} />)}
+        {recIncomes.map((r) => <RecurringRow key={r.ruleId} item={r} base={base} onEdit={() => router.push(`/recurring?edit=${r.ruleId}`)} />)}
         {incomes.map((i) => <PlannedRow key={i.id} item={i} base={base} onConvert={() => convert(i)} />)}
       </Section>
 
       {/* Planned payments (recurring + subscriptions + loans + legacy) */}
-      <Section id="payments" title="Planned payments" accent="negative" count={recPayments.length + household.length + subs.length + loans.length} onAdd={() => setRec({ direction: "payment" })} addLabel="Add payment"
+      <Section id="payments" title="Planned payments" accent="negative" count={recPayments.length + household.length + subs.length + loans.length} onAdd={() => goRecurring("payment")} addLabel="Add payment"
         empty="Add rent, bills, subscriptions and loan EMIs to track everything you're committed to.">
-        {recPayments.map((r) => <RecurringRow key={r.ruleId} item={r} base={base} onEdit={() => setRec({ direction: "payment", edit: r })} />)}
+        {recPayments.map((r) => <RecurringRow key={r.ruleId} item={r} base={base} onEdit={() => router.push(`/recurring?edit=${r.ruleId}`)} />)}
         {household.map((i) => <PlannedRow key={i.id} item={i} base={base} onConvert={() => convert(i)} />)}
         {subs.map((s) => <SubRow key={s.id} sub={s} base={base} />)}
         {loans.map((l) => <LoanRow key={l.id} loan={l} base={base} />)}
       </Section>
 
       {/* Savings & investments */}
-      <Section id="savings" title="Savings & investments" accent="teal" count={savings.length + recSavings.length} onAdd={() => setRec({ direction: "saving" })} addLabel="Add recurring saving"
+      <Section id="savings" title="Savings & investments" accent="teal" count={savings.length + recSavings.length} onAdd={() => goRecurring("saving")} addLabel="Add recurring saving"
         empty="Set up a recurring saving (a transfer into an investment account), or add individual holdings on the Investments page.">
         <PortfolioSummary base={base} />
-        {recSavings.map((r) => <RecurringRow key={r.ruleId} item={r} base={base} onEdit={() => setRec({ direction: "saving", edit: r })} />)}
+        {recSavings.map((r) => <RecurringRow key={r.ruleId} item={r} base={base} onEdit={() => router.push(`/recurring?edit=${r.ruleId}`)} />)}
         {savings.map((i) => <PlannedRow key={i.id} item={i} base={base} showReturn onConvert={() => convert(i)} />)}
         <p className="muted" style={{ fontSize: 12, margin: 0 }}>Track individual holdings (stocks, MFs, FDs, crypto) on the <Link href="/investments">Investments</Link> page.</p>
       </Section>
@@ -239,28 +244,13 @@ export default function CashflowPage() {
         />
       </section>
 
-      {rec && (
-        <RecurringModal
-          direction={rec.direction}
-          base={base}
-          edit={rec.edit ?? null}
-          prefill={rec.prefill ?? null}
-          onClose={(saved) => {
-            // Converting a legacy standalone item → remove it once the rule is created.
-            if (saved && rec.convertFromId) softDelete("planned_cashflow", rec.convertFromId);
-            setRec(null);
-          }}
-        />
-      )}
     </div>
   );
 
+  // "Make it recurring" on a legacy standalone item → the /recurring page opens
+  // prefilled and removes the standalone entry once the rule is created.
   function convert(i: PlannedItem) {
-    setRec({
-      direction: i.direction as RecurringDirection,
-      prefill: { name: i.name, amount: i.amount, frequency: i.frequency as Freq },
-      convertFromId: i.id,
-    });
+    goRecurring(i.direction as RecurringDirection, { name: i.name, amountMinor: i.amount, freq: i.frequency, convertFrom: i.id });
   }
 }
 

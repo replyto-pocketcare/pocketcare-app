@@ -17,6 +17,7 @@ Each feature has a dedicated doc with: **Overview**, **User flow** (Mermaid), **
 | Budgets | [budgets](budgets.md) | `/budgets` |
 | Goals & emergency fund | [goals](goals.md) | `/goals` |
 | Planned Cashflow (BETA) | [planned-cashflow](planned-cashflow.md) | `/cashflow` |
+| Recurring payments & income | [recurring](recurring.md) | `/recurring` |
 | Loans (EMI schedule) | [loans](loans.md) | `/loans`, `/loans/[id]` |
 | Investments | [investments](investments.md) | `/investments` |
 | Splits (friends, groups & trips) | [splits](splits.md) | `/friends`, `/groups` |
