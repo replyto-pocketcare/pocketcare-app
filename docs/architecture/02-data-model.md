@@ -106,8 +106,15 @@ erDiagram
     holdings {
         uuid id PK
         text symbol
+        text exchange
         real quantity
         int  avg_cost
+        text asset_class
+        int  current_value
+        real annual_rate
+        text maturity_date
+        text source_account_id
+        text planned_id
         int  auto_fetch
     }
     holdings }o--o| market_overview : "priced by (symbol)"

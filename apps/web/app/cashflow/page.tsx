@@ -192,7 +192,8 @@ export default function CashflowPage() {
 
       {/* Savings & investments — managed on the Investments page (single source of truth) */}
       <Section id="savings" title="Savings & investments" accent="teal" count={savings.length} onAdd={() => router.push("/investments")} addLabel="Add investment"
-        empty="Track your FDs, mutual funds, stocks and crypto in one place. Add and manage them on the Investments page.">
+        empty="Track your FDs, mutual funds, stocks, SIPs and crypto in one place. Add and manage them on the Investments page.">
+        <PortfolioSummary base={base} />
         {savings.map((i) => <PlannedRow key={i.id} item={i} base={base} showReturn />)}
       </Section>
 
@@ -303,6 +304,37 @@ function RowShell({ icon, title, subtitle, right, actions, href }: { icon: strin
       <div style={{ textAlign: "right", display: "grid", gap: 2 }}>{right}</div>
       {actions}
     </div>
+  );
+}
+
+/** Read-only invested-portfolio summary (cost + current) linking to /investments.
+ *  Uses current_value (else cost) so it works without the live market feed. */
+function PortfolioSummary({ base }: { base: string }) {
+  const fmt = useMoneyFmt();
+  const convertAmount = useConvertAmount();
+  const { data: holdings = [] } = useQuery<{ quantity: number; avg_cost: number | null; current_value: number | null; currency: string }>(
+    "SELECT quantity, avg_cost, current_value, currency FROM holdings WHERE deleted_at IS NULL",
+  );
+  if (holdings.length === 0) return null;
+  let cost = 0, value = 0;
+  for (const h of holdings) {
+    const c = Math.round((h.avg_cost ?? 0) * h.quantity);
+    cost += convertAmount(c, h.currency);
+    value += convertAmount(h.current_value ?? c, h.currency);
+  }
+  const gain = value - cost;
+  const up = gain >= 0;
+  return (
+    <Link href="/investments" className="card lift" style={{ padding: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, color: "inherit", background: "linear-gradient(135deg, var(--teal-ghost, var(--surface-2)), transparent)" }}>
+      <div>
+        <div className="eyebrow">Invested portfolio</div>
+        <div className="muted" style={{ fontSize: 12 }}>{holdings.length} holding{holdings.length === 1 ? "" : "s"} · invested {fmt(money(Math.round(cost), base))} · view →</div>
+      </div>
+      <div style={{ textAlign: "right" }}>
+        <div style={{ fontSize: 18, fontWeight: 740 }}>{fmt(money(Math.round(value), base))}</div>
+        <div style={{ fontSize: 12, color: up ? "var(--positive)" : "var(--negative)", fontWeight: 600 }}>{up ? "+" : "−"}{fmt(money(Math.round(Math.abs(gain)), base))}</div>
+      </div>
+    </Link>
   );
 }
 

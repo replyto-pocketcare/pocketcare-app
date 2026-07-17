@@ -50,6 +50,8 @@ flowchart LR
 ## Data touched
 `planned_cashflow` (`direction` income|payment|saving, `bucket`, `amount`, `frequency`, `timeframe`, `expected_return`), plus read/write of `subscriptions` and `loans`. Synced via the `user_data` stream (migration `0029`, sync-rules updated).
 
+**Savings ↔ Investments:** adding a **SIP** on the Investments page creates a linked `planned_cashflow` saving (bucket `sip`), so SIPs appear in the Savings section here too. The Savings section also shows a read-only **invested-portfolio summary** card (current value + invested, from `holdings`) that links to `/investments`. See [features/investments](investments.md).
+
 ## Key files
 `app/cashflow/page.tsx`, `src/cashflow/model.ts` (buckets, templates, aggregation), `src/cashflow/Charts.tsx` (recharts, token colors), `src/cashflow/Projections.tsx` (sliders + engine), `@pocketcare/finance` (`projectCashflow`, `yearlyEquivalent`, `timeframeTotal`).
 

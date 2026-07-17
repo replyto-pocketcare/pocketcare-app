@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#EFE9DF;font-family:"Inter",ui-sans-serif,system-ui,sans-serif;}
+  .dv-turn{padding:44px 44px 40px;border-bottom:1px solid rgba(43,39,35,.08);scroll-margin-top:16px;}
+  .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 22px;}
+  .dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#2B2723;color:#fff;border-radius:4px;text-decoration:none;}
+  .dv-tname{font:600 13px/1.2 "Inter",sans-serif;color:#2B2723;}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px;}
+  .dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(43,39,35,.08);color:#2B2723;border-radius:5px;text-decoration:none;}
+  .dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11.5px/1.3 "Inter",sans-serif;color:rgba(43,39,35,.55);}
+  .dv-card{max-width:100%;background:#FAF6F1;border:1px solid #E7DCCD;border-radius:28px;box-shadow:0 1px 2px rgba(43,39,35,.04),0 20px 50px -18px rgba(43,39,35,.22);overflow:hidden;position:relative;}
+  .dv-opt:target .dv-oid{background:#B06A4F;color:#fff;}
+  .dv-next{margin:24px 0 0;font:12px/1.5 "Inter",sans-serif;color:rgba(43,39,35,.5);}
+  .fr-row{transition:background .15s ease;}
+  .fr-row:hover{background:#F4ECE1;}
+  .fr-btn{transition:transform .12s ease, filter .15s ease;}
+  .fr-btn:active{transform:scale(0.97);}
+  .sheet-backdrop{transition:opacity .2s ease;}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t3">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Functional directions — folding in groups &amp; trips (dropping <a class="dv-oid" href="#2a">2a</a>/<a class="dv-oid" href="#2b">2b</a>)</span></div>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="3a">
+      <div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Ledger — grouped list, expandable</div>
+      <div class="dv-card" style="width:390px">
+
+        <div style="padding:24px 24px 4px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:600 12px/1 'Inter',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#B06A4F">Splits</div>
+          <div style="font:500 26px/1.2 'Fraunces',serif;color:#2B2723">Your balance</div>
+        </div>
+
+        <div style="margin:16px 24px 0;padding:18px 20px;border-radius:18px;background:#F4ECE1;display:flex;flex-direction:column;gap:10px">
+          <div style="text-align:center">
+            <div style="font-size:12px;color:#7C7264">Net position</div>
+            <div style="font:500 30px/1.15 'Fraunces',serif;color:{{ netColorE }}">{{ netFmtE }}</div>
+          </div>
+          <div style="position:relative;height:8px;border-radius:999px;background:#E7DCCD;overflow:hidden">
+            <div style="position:absolute;top:0;bottom:0;left:0;background:#A8503A;width:{{ owePctE }}%"></div>
+            <div style="position:absolute;top:0;bottom:0;right:0;background:#5F7A52;width:{{ owedPctE }}%"></div>
+          </div>
+        </div>
+
+        <div style="padding:18px 12px 4px">
+          <div style="padding:4px 10px 8px;font:600 11px/1 'Inter',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#7C7264">Groups &amp; trips</div>
+          <sc-for list="{{ groupsE }}" as="g" hint-placeholder-count="2">
+            <div style="border-radius:16px;overflow:hidden;margin-bottom:6px;background:{{ g.expandedBg }}">
+              <div class="fr-row" style="display:flex;align-items:center;gap:12px;padding:11px 10px;cursor:pointer" onClick="{{ g.onToggle }}">
+                <div style="display:flex;flex-shrink:0">
+                  <sc-for list="{{ g.members }}" as="m" hint-placeholder-count="3">
+                    <span style="width:28px;height:28px;border-radius:999px;background:{{ m.color }};border:2px solid #FAF6F1;margin-left:{{ m.stackMargin }}px;display:grid;place-items:center;font:600 10px 'Inter',sans-serif;color:#2B2723">{{ m.initials }}</span>
+                  </sc-for>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:14px;color:#2B2723">{{ g.name }}</div>
+                  <div style="font-size:12px;color:#7C7264">{{ g.memberCountText }} &middot; {{ g.kind }}</div>
+                </div>
+                <div style="font:600 14px 'Fraunces',serif;color:{{ g.dirColor }};flex-shrink:0">{{ g.amountFmt }}</div>
+                <svg width="11" height="11" viewBox="0 0 24 24" style="flex-shrink:0;transform:{{ g.chevronRotate }};transition:transform .15s ease"><path d="M6 9l6 6 6-6" stroke="#7C7264" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+              <sc-if value="{{ g.expanded }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:0 10px 10px 50px;display:flex;flex-direction:column;gap:2px">
+                  <sc-for list="{{ g.members }}" as="m" hint-placeholder-count="3">
+                    <div class="fr-row" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer" onClick="{{ m.onClick }}">
+                      <div style="flex:1;min-width:0;font-size:13px;color:#2B2723">{{ m.name }}</div>
+                      <div style="font-size:12.5px;font-weight:600;color:{{ m.dirColor }}">{{ m.amountFmt }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding:8px 12px 22px">
+          <div style="padding:4px 10px 8px;font:600 11px/1 'Inter',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#7C7264">Direct</div>
+          <sc-for list="{{ directE }}" as="f" hint-placeholder-count="2">
+            <div class="fr-row" style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;cursor:pointer" onClick="{{ f.onClick }}">
+              <span style="width:30px;height:30px;border-radius:999px;flex-shrink:0;background:{{ f.color }};display:grid;place-items:center;font:600 11.5px 'Inter',sans-serif;color:#2B2723">{{ f.initials }}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:14px;color:#2B2723">{{ f.name }}</div>
+                <div style="font-size:12px;color:{{ f.dirColor }}">{{ f.dirText }}</div>
+              </div>
+              <div style="font:600 14px 'Fraunces',serif;color:{{ f.dirColor }}">{{ f.amountFmt }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ selectedE }}" hint-placeholder-val="{{ false }}">
+          <div class="sheet-backdrop" style="position:absolute;inset:0;background:rgba(43,39,35,.4);display:flex;align-items:flex-end;z-index:5" onClick="{{ closeE }}">
+            <div style="width:100%;background:#FFFDF9;border-radius:24px 24px 0 0;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 -20px 50px -20px rgba(43,39,35,.3)" onClick="{{ stop }}">
+              <div style="width:36px;height:4px;border-radius:2px;background:#E7DCCD;margin:-8px auto 0"></div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="width:44px;height:44px;border-radius:999px;background:{{ selectedE.color }};display:grid;place-items:center;font:600 15px 'Inter',sans-serif;color:#2B2723">{{ selectedE.initials }}</span>
+                <div>
+                  <div style="font-weight:650;font-size:17px;color:#2B2723">{{ selectedE.name }}</div>
+                  <div style="font-size:13px;color:{{ selectedE.dirColor }}">{{ selectedE.dirText }}</div>
+                </div>
+              </div>
+              <div style="font:500 34px 'Fraunces',serif;color:{{ selectedE.dirColor }}">{{ selectedE.amountFmt }}</div>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <button class="fr-btn" style="flex:1;padding:13px;border-radius:999px;border:none;background:#B06A4F;color:#fff;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ settleE }}">Settle up</button>
+                <button class="fr-btn" style="padding:13px 18px;border-radius:999px;border:1px solid #E7DCCD;background:#fff;color:#2B2723;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ closeE }}">Remind</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <div class="dv-opt" id="3b">
+      <div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>Two lanes — owed vs. owe, side by side</div>
+      <div class="dv-card" style="width:560px">
+
+        <div style="padding:24px 28px 4px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:600 12px/1 'Inter',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#B06A4F">Splits</div>
+          <div style="font:500 26px/1.2 'Fraunces',serif;color:#2B2723">Two-lane balance</div>
+        </div>
+
+        <div style="display:flex;gap:16px;padding:18px 28px 26px;align-items:flex-start">
+
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:2px;padding:0 4px">
+              <div style="font:600 11px 'Inter',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#5F7A52">Owed to you</div>
+              <div style="font:500 20px 'Fraunces',serif;color:#5F7A52">{{ totalOwedFFmt }}</div>
+            </div>
+            <sc-for list="{{ lanePosF }}" as="it" hint-placeholder-count="4">
+              <div class="fr-row" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;cursor:pointer;background:#F4ECE1" onClick="{{ it.onClick }}">
+                <sc-if value="{{ it.isGroup }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-shrink:0">
+                    <sc-for list="{{ it.avatars }}" as="m" hint-placeholder-count="2">
+                      <span style="width:22px;height:22px;border-radius:999px;background:{{ m.color }};border:2px solid #F4ECE1;margin-left:{{ m.stackMargin }}px"></span>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ it.notGroup }}" hint-placeholder-val="{{ false }}">
+                  <span style="width:26px;height:26px;border-radius:999px;flex-shrink:0;background:{{ it.color }};display:grid;place-items:center;font:600 10px 'Inter',sans-serif;color:#2B2723">{{ it.initials }}</span>
+                </sc-if>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:13px;color:#2B2723;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.name }}</div>
+                </div>
+                <div style="font:600 12.5px 'Fraunces',serif;color:#5F7A52;flex-shrink:0">{{ it.amountFmt }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="width:1px;align-self:stretch;background:#E7DCCD"></div>
+
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:2px;padding:0 4px">
+              <div style="font:600 11px 'Inter',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#A8503A">You owe</div>
+              <div style="font:500 20px 'Fraunces',serif;color:#A8503A">{{ totalOweFFmt }}</div>
+            </div>
+            <sc-for list="{{ laneNegF }}" as="it" hint-placeholder-count="3">
+              <div class="fr-row" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;cursor:pointer;background:#F4ECE1" onClick="{{ it.onClick }}">
+                <sc-if value="{{ it.isGroup }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-shrink:0">
+                    <sc-for list="{{ it.avatars }}" as="m" hint-placeholder-count="2">
+                      <span style="width:22px;height:22px;border-radius:999px;background:{{ m.color }};border:2px solid #F4ECE1;margin-left:{{ m.stackMargin }}px"></span>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ it.notGroup }}" hint-placeholder-val="{{ false }}">
+                  <span style="width:26px;height:26px;border-radius:999px;flex-shrink:0;background:{{ it.color }};display:grid;place-items:center;font:600 10px 'Inter',sans-serif;color:#2B2723">{{ it.initials }}</span>
+                </sc-if>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:13px;color:#2B2723;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.name }}</div>
+                </div>
+                <div style="font:600 12.5px 'Fraunces',serif;color:#A8503A;flex-shrink:0">{{ it.amountFmt }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+        </div>
+
+        <sc-if value="{{ selectedF }}" hint-placeholder-val="{{ false }}">
+          <div class="sheet-backdrop" style="position:absolute;inset:0;background:rgba(43,39,35,.4);display:flex;align-items:flex-end;z-index:5" onClick="{{ closeF }}">
+            <div style="width:100%;background:#FFFDF9;border-radius:24px 24px 0 0;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 -20px 50px -20px rgba(43,39,35,.3)" onClick="{{ stop }}">
+              <div style="width:36px;height:4px;border-radius:2px;background:#E7DCCD;margin:-8px auto 0"></div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="width:44px;height:44px;border-radius:999px;background:{{ selectedF.color }};display:grid;place-items:center;font:600 15px 'Inter',sans-serif;color:#2B2723">{{ selectedF.initials }}</span>
+                <div>
+                  <div style="font-weight:650;font-size:17px;color:#2B2723">{{ selectedF.name }}</div>
+                  <div style="font-size:13px;color:{{ selectedF.dirColor }}">{{ selectedF.dirText }}</div>
+                </div>
+              </div>
+              <div style="font:500 34px 'Fraunces',serif;color:{{ selectedF.dirColor }}">{{ selectedF.amountFmt }}</div>
+              <sc-if value="{{ selectedF.isGroup }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:2px;padding-top:4px;border-top:1px solid #E7DCCD">
+                  <sc-for list="{{ selectedF.members }}" as="m" hint-placeholder-count="2">
+                    <div style="display:flex;justify-content:space-between;padding:8px 2px;font-size:13px">
+                      <span style="color:#2B2723">{{ m.name }}</span>
+                      <span style="font-weight:600;color:{{ m.dirColor }}">{{ m.amountFmt }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <button class="fr-btn" style="flex:1;padding:13px;border-radius:999px;border:none;background:#B06A4F;color:#fff;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ settleF }}">Settle up</button>
+                <button class="fr-btn" style="padding:13px 18px;border-radius:999px;border:1px solid #E7DCCD;background:#fff;color:#2B2723;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ closeF }}">Remind</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "make <a class="dv-oid" href="#3a">3a</a> the direction" · "make <a class="dv-oid" href="#3b">3b</a> the direction" · "show group auto-split details in the sheet"</p>
+</section>
+
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">New metaphors — replacing the orbit (<a class="dv-oid" href="#1a">1a</a>)</span></div>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="2a">
+      <div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Horizon — rolling hills &amp; valleys</div>
+      <div class="dv-card" style="width:390px">
+
+        <div style="padding:24px 24px 8px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:600 12px/1 'Inter',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#B06A4F">Splits</div>
+          <div style="font:500 26px/1.2 'Fraunces',serif;color:#2B2723">Your horizon</div>
+        </div>
+
+        <div style="padding:14px 24px 4px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px">
+          <div>
+            <div style="font-size:12.5px;color:#7C7264">You're owed</div>
+            <div style="font:500 28px/1.1 'Fraunces',serif;color:#5F7A52">{{ totalOwedCFmt }}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12.5px;color:#7C7264">You owe</div>
+            <div style="font:500 20px/1.1 'Fraunces',serif;color:#A8503A">{{ totalOweCFmt }}</div>
+          </div>
+        </div>
+
+        <div style="margin:10px 24px 0;position:relative;width:342px;height:220px">
+          <svg viewBox="0 0 342 220" width="342" height="220" style="position:absolute;left:0;top:0" aria-label="Balance horizon">
+            <line x1="0" y1="110" x2="342" y2="110" stroke="#E7DCCD" stroke-width="1.5" stroke-dasharray="3 5"></line>
+            <sc-for list="{{ hillsC }}" as="h" hint-placeholder-count="7">
+              <path d="{{ h.d }}" fill="{{ h.fill }}" opacity="0.9" style="cursor:pointer" onClick="{{ h.onClick }}"></path>
+            </sc-for>
+            <sc-for list="{{ hillsC }}" as="h" hint-placeholder-count="7">
+              <circle cx="{{ h.cx }}" cy="{{ h.apexY }}" r="15" fill="{{ h.avatarFill }}" stroke="#FAF6F1" stroke-width="2" style="cursor:pointer" onClick="{{ h.onClick }}"></circle>
+            </sc-for>
+          </svg>
+          <sc-for list="{{ hillsC }}" as="h" hint-placeholder-count="7">
+            <div style="position:absolute;left:{{ h.labelLeft }}px;top:{{ h.labelTop }}px;width:44px;text-align:center;cursor:pointer;pointer-events:auto" onClick="{{ h.onClick }}">
+              <div style="font:600 11px 'Inter',sans-serif;color:#2B2723">{{ h.initials }}</div>
+              <div style="font:600 10.5px 'Fraunces',serif;color:{{ h.dirColor }};margin-top:1px">{{ h.amountFmt }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding:14px 24px 22px;display:flex;justify-content:center;gap:18px;font-size:11.5px;color:#7C7264">
+          <span><span style="color:#5F7A52;font-weight:700">▲</span>&nbsp;peaks owe you</span>
+          <span><span style="color:#A8503A;font-weight:700">▼</span>&nbsp;valleys you owe</span>
+        </div>
+
+        <sc-if value="{{ selectedFriendC }}" hint-placeholder-val="{{ false }}">
+          <div class="sheet-backdrop" style="position:absolute;inset:0;background:rgba(43,39,35,.4);display:flex;align-items:flex-end;z-index:5" onClick="{{ closeC }}">
+            <div style="width:100%;background:#FFFDF9;border-radius:24px 24px 0 0;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 -20px 50px -20px rgba(43,39,35,.3)" onClick="{{ stop }}">
+              <div style="width:36px;height:4px;border-radius:2px;background:#E7DCCD;margin:-8px auto 0"></div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="width:44px;height:44px;border-radius:999px;background:{{ selectedFriendC.avatarFill }};display:grid;place-items:center;font:600 15px 'Inter',sans-serif;color:#2B2723">{{ selectedFriendC.initials }}</span>
+                <div>
+                  <div style="font-weight:650;font-size:17px;color:#2B2723">{{ selectedFriendC.name }}</div>
+                  <div style="font-size:13px;color:{{ selectedFriendC.dirColor }}">{{ selectedFriendC.dirText }}</div>
+                </div>
+              </div>
+              <div style="font:500 34px 'Fraunces',serif;color:{{ selectedFriendC.dirColor }}">{{ selectedFriendC.amountFmt }}</div>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <button class="fr-btn" style="flex:1;padding:13px;border-radius:999px;border:none;background:#B06A4F;color:#fff;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ settleC }}">Settle up</button>
+                <button class="fr-btn" style="padding:13px 18px;border-radius:999px;border:1px solid #E7DCCD;background:#fff;color:#2B2723;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ closeC }}">Remind</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <div class="dv-opt" id="2b">
+      <div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Dial — segmented balance instrument</div>
+      <div class="dv-card" style="width:390px">
+
+        <div style="padding:24px 24px 8px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:600 12px/1 'Inter',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#B06A4F">Splits</div>
+          <div style="font:500 26px/1.2 'Fraunces',serif;color:#2B2723">Balance dial</div>
+        </div>
+
+        <div style="margin:8px 24px 0;position:relative;width:342px;height:342px">
+          <svg viewBox="0 0 342 342" width="342" height="342" style="position:absolute;left:0;top:0">
+            <sc-for list="{{ dialSegsD }}" as="s" hint-placeholder-count="7">
+              <path d="{{ s.d }}" fill="{{ s.fill }}" style="cursor:pointer" onClick="{{ s.onClick }}"></path>
+            </sc-for>
+          </svg>
+
+          <div style="position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none">
+            <div style="text-align:center">
+              <div style="font-size:11.5px;color:#7C7264;letter-spacing:.03em">Net position</div>
+              <div style="font:500 32px/1.15 'Fraunces',serif;color:{{ netColorD }}">{{ netFmtD }}</div>
+            </div>
+          </div>
+
+          <sc-for list="{{ dialSegsD }}" as="s" hint-placeholder-count="7">
+            <div style="position:absolute;left:{{ s.labelLeft }}px;top:{{ s.labelTop }}px;width:52px;text-align:center;cursor:pointer" onClick="{{ s.onClick }}">
+              <div style="font:600 11px 'Inter',sans-serif;color:#2B2723">{{ s.initials }}</div>
+              <div style="font:600 10px 'Fraunces',serif;color:{{ s.fill }}">{{ s.amountFmt }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding:4px 24px 0;display:flex;justify-content:center;gap:18px;font-size:11.5px;color:#7C7264">
+          <span><span style="color:#5F7A52;font-weight:700">●</span>&nbsp;right — owed to you</span>
+          <span><span style="color:#A8503A;font-weight:700">●</span>&nbsp;left — you owe</span>
+        </div>
+
+        <div style="padding:16px 12px 22px">
+          <sc-for list="{{ rowsD }}" as="f" hint-placeholder-count="7">
+            <div class="fr-row" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:14px;cursor:pointer" onClick="{{ f.onClick }}">
+              <span style="width:30px;height:30px;border-radius:999px;flex-shrink:0;background:{{ f.fill }};display:grid;place-items:center;font:600 11.5px 'Inter',sans-serif;color:#2B2723">{{ f.initials }}</span>
+              <div style="flex:1;min-width:0;font-weight:600;font-size:13.5px;color:#2B2723;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</div>
+              <div style="font:600 13px 'Fraunces',serif;color:{{ f.dirColor }};flex-shrink:0">{{ f.amountFmt }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ selectedFriendD }}" hint-placeholder-val="{{ false }}">
+          <div class="sheet-backdrop" style="position:absolute;inset:0;background:rgba(43,39,35,.4);display:flex;align-items:flex-end;z-index:5" onClick="{{ closeD }}">
+            <div style="width:100%;background:#FFFDF9;border-radius:24px 24px 0 0;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 -20px 50px -20px rgba(43,39,35,.3)" onClick="{{ stop }}">
+              <div style="width:36px;height:4px;border-radius:2px;background:#E7DCCD;margin:-8px auto 0"></div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="width:44px;height:44px;border-radius:999px;background:{{ selectedFriendD.avatarFill }};display:grid;place-items:center;font:600 15px 'Inter',sans-serif;color:#2B2723">{{ selectedFriendD.initials }}</span>
+                <div>
+                  <div style="font-weight:650;font-size:17px;color:#2B2723">{{ selectedFriendD.name }}</div>
+                  <div style="font-size:13px;color:{{ selectedFriendD.dirColor }}">{{ selectedFriendD.dirText }}</div>
+                </div>
+              </div>
+              <div style="font:500 34px 'Fraunces',serif;color:{{ selectedFriendD.dirColor }}">{{ selectedFriendD.amountFmt }}</div>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <button class="fr-btn" style="flex:1;padding:13px;border-radius:999px;border:none;background:#B06A4F;color:#fff;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ settleD }}">Settle up</button>
+                <button class="fr-btn" style="padding:13px 18px;border-radius:999px;border:1px solid #E7DCCD;background:#fff;color:#2B2723;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ closeD }}">Remind</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "make <a class="dv-oid" href="#2a">2a</a> the direction" · "make <a class="dv-oid" href="#2b">2b</a> the direction" · "combine the hill shapes from <a class="dv-oid" href="#2a">2a</a> with the list from <a class="dv-oid" href="#1b">1b</a>"</p>
+</section>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Friends &amp; splits — redesigned balance view</span></div>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Orbit — radial balance graph</div>
+      <div class="dv-card" style="width:390px">
+
+        <div style="padding:24px 24px 8px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:600 12px/1 'Inter',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#B06A4F">Splits</div>
+          <div style="font:500 26px/1.2 'Fraunces',serif;color:#2B2723">Who owes what</div>
+        </div>
+
+        <div style="padding:18px 24px 6px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px">
+          <div>
+            <div style="font-size:12.5px;color:#7C7264">You're owed</div>
+            <div style="font:500 30px/1.1 'Fraunces',serif;color:#5F7A52">{{ totalOwedAFmt }}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12.5px;color:#7C7264">You owe</div>
+            <div style="font:500 20px/1.1 'Fraunces',serif;color:#A8503A">{{ totalOweAFmt }}</div>
+          </div>
+        </div>
+
+        <div style="padding:8px 12px 4px;display:flex;justify-content:center">
+          <div style="position:relative;width:342px;height:342px">
+            <svg viewBox="0 0 380 380" width="342" height="342" role="img" aria-label="Friend balances orbit" style="position:absolute;left:0;top:0">
+              <sc-for list="{{ orbitLinesA }}" as="ln" hint-placeholder-count="6">
+                <line x1="{{ ln.x1 }}" y1="{{ ln.y1 }}" x2="{{ ln.x2 }}" y2="{{ ln.y2 }}" stroke="{{ ln.color }}" stroke-width="2" opacity="0.55" stroke-linecap="round"></line>
+              </sc-for>
+              <sc-for list="{{ orbitNodesA }}" as="nd" hint-placeholder-count="6">
+                <circle cx="{{ nd.x }}" cy="{{ nd.y }}" r="{{ nd.r }}" fill="{{ nd.fill }}" stroke="#E7DCCD" style="cursor:pointer" onClick="{{ nd.onClick }}"></circle>
+              </sc-for>
+              <circle cx="190" cy="190" r="34" fill="#B06A4F"></circle>
+            </svg>
+
+            <div style="position:absolute;left:167px;top:181px;width:46px;text-align:center;font:700 13.5px 'Inter',sans-serif;color:#fff;pointer-events:none">You</div>
+
+            <sc-for list="{{ orbitLinesA }}" as="ln" hint-placeholder-count="6">
+              <div style="position:absolute;left:{{ ln.pillLeft }}px;top:{{ ln.pillTop }}px;width:58px;height:18px;border-radius:9px;background:#FAF6F1;border:1px solid #E7DCCD;display:flex;align-items:center;justify-content:center;font:600 10.5px 'Inter',sans-serif;color:{{ ln.color }};pointer-events:none">{{ ln.label }}</div>
+            </sc-for>
+
+            <sc-for list="{{ orbitNodesA }}" as="nd" hint-placeholder-count="6">
+              <div style="position:absolute;left:{{ nd.initLeft }}px;top:{{ nd.initTop }}px;width:36px;height:16px;display:flex;align-items:center;justify-content:center;font:600 12.5px 'Inter',sans-serif;color:#2B2723;cursor:pointer" onClick="{{ nd.onClick }}">{{ nd.initials }}</div>
+              <div style="position:absolute;left:{{ nd.nameLeft }}px;top:{{ nd.nameTop }}px;width:60px;text-align:center;font-size:10.5px;color:#7C7264;cursor:pointer" onClick="{{ nd.onClick }}">{{ nd.firstName }}</div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:10px 16px 20px;display:flex;flex-direction:column">
+          <div style="padding:6px 8px 10px;font:600 11px/1 'Inter',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#7C7264">All friends</div>
+          <sc-for list="{{ orbitNodesA }}" as="f" hint-placeholder-count="6">
+            <div class="fr-row" style="display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:12px;cursor:pointer" onClick="{{ f.onClick }}">
+              <span style="width:34px;height:34px;border-radius:999px;flex-shrink:0;background:{{ f.fill }};display:grid;place-items:center;font:600 12.5px 'Inter',sans-serif;color:#2B2723">{{ f.initials }}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:14px;color:#2B2723;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</div>
+                <div style="font-size:12px;color:{{ f.dirColor }}">{{ f.dirText }}</div>
+              </div>
+              <div style="font:600 14px 'Fraunces',serif;color:{{ f.dirColor }};flex-shrink:0">{{ f.amountFmt }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ selectedFriendA }}" hint-placeholder-val="{{ false }}">
+          <div class="sheet-backdrop" style="position:absolute;inset:0;background:rgba(43,39,35,.4);display:flex;align-items:flex-end;z-index:5" onClick="{{ closeA }}">
+            <div style="width:100%;background:#FFFDF9;border-radius:24px 24px 0 0;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 -20px 50px -20px rgba(43,39,35,.3)" onClick="{{ stop }}">
+              <div style="width:36px;height:4px;border-radius:2px;background:#E7DCCD;margin:-8px auto 0"></div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="width:44px;height:44px;border-radius:999px;background:{{ selectedFriendA.fill }};display:grid;place-items:center;font:600 15px 'Inter',sans-serif;color:#2B2723">{{ selectedFriendA.initials }}</span>
+                <div>
+                  <div style="font-weight:650;font-size:17px;color:#2B2723">{{ selectedFriendA.name }}</div>
+                  <div style="font-size:13px;color:{{ selectedFriendA.dirColor }}">{{ selectedFriendA.dirText }}</div>
+                </div>
+              </div>
+              <div style="font:500 34px 'Fraunces',serif;color:{{ selectedFriendA.dirColor }}">{{ selectedFriendA.amountFmt }}</div>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <button class="fr-btn" style="flex:1;padding:13px;border-radius:999px;border:none;background:#B06A4F;color:#fff;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ settleA }}">Settle up</button>
+                <button class="fr-btn" style="padding:13px 18px;border-radius:999px;border:1px solid #E7DCCD;background:#fff;color:#2B2723;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ closeA }}">Remind</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Balance rows — diverging bar + avatar list</div>
+      <div class="dv-card" style="width:390px">
+
+        <div style="padding:24px 24px 8px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:600 12px/1 'Inter',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#B06A4F">Splits</div>
+          <div style="font:500 26px/1.2 'Fraunces',serif;color:#2B2723">Your balance</div>
+        </div>
+
+        <div style="margin:18px 20px 0;padding:20px;border-radius:20px;background:#F4ECE1;display:flex;flex-direction:column;gap:12px">
+          <div style="text-align:center">
+            <div style="font-size:12.5px;color:#7C7264">Net position</div>
+            <div style="font:500 36px/1.15 'Fraunces',serif;color:{{ netColorB }}">{{ netFmtB }}</div>
+          </div>
+          <div style="position:relative;height:14px;border-radius:999px;background:#E7DCCD;overflow:hidden">
+            <div style="position:absolute;top:0;bottom:0;left:0;background:#A8503A;border-radius:999px 0 0 999px;width:{{ owePctB }}%"></div>
+            <div style="position:absolute;top:0;bottom:0;right:0;background:#5F7A52;border-radius:0 999px 999px 0;width:{{ owedPctB }}%"></div>
+            <div style="position:absolute;top:-3px;bottom:-3px;left:50%;width:2px;background:#F4ECE1"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <span style="color:#A8503A;font-weight:600">You owe {{ totalOweBFmt }}</span>
+            <span style="color:#5F7A52;font-weight:600">Owed {{ totalOwedBFmt }}</span>
+          </div>
+        </div>
+
+        <div style="padding:16px 12px 20px">
+          <div style="padding:6px 12px 10px;font:600 11px/1 'Inter',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#7C7264">Everyone</div>
+          <sc-for list="{{ rowsB }}" as="f" hint-placeholder-count="7">
+            <div class="fr-row" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:14px;cursor:pointer" onClick="{{ f.onClick }}">
+              <span style="width:36px;height:36px;border-radius:999px;flex-shrink:0;background:{{ f.fill }};display:grid;place-items:center;font:600 13px 'Inter',sans-serif;color:#2B2723">{{ f.initials }}</span>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
+                <div style="display:flex;justify-content:space-between;gap:8px">
+                  <span style="font-weight:600;font-size:14px;color:#2B2723;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</span>
+                  <span style="font:600 13.5px 'Fraunces',serif;color:{{ f.dirColor }};flex-shrink:0">{{ f.amountFmt }}</span>
+                </div>
+                <div style="height:6px;border-radius:999px;background:#EFE9DF;overflow:hidden">
+                  <div style="height:100%;border-radius:999px;background:{{ f.dirColor }};width:{{ f.barPct }}%"></div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ selectedFriendB }}" hint-placeholder-val="{{ false }}">
+          <div class="sheet-backdrop" style="position:absolute;inset:0;background:rgba(43,39,35,.4);display:flex;align-items:flex-end;z-index:5" onClick="{{ closeB }}">
+            <div style="width:100%;background:#FFFDF9;border-radius:24px 24px 0 0;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 -20px 50px -20px rgba(43,39,35,.3)" onClick="{{ stop }}">
+              <div style="width:36px;height:4px;border-radius:2px;background:#E7DCCD;margin:-8px auto 0"></div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="width:44px;height:44px;border-radius:999px;background:{{ selectedFriendB.fill }};display:grid;place-items:center;font:600 15px 'Inter',sans-serif;color:#2B2723">{{ selectedFriendB.initials }}</span>
+                <div>
+                  <div style="font-weight:650;font-size:17px;color:#2B2723">{{ selectedFriendB.name }}</div>
+                  <div style="font-size:13px;color:{{ selectedFriendB.dirColor }}">{{ selectedFriendB.dirText }}</div>
+                </div>
+              </div>
+              <div style="font:500 34px 'Fraunces',serif;color:{{ selectedFriendB.dirColor }}">{{ selectedFriendB.amountFmt }}</div>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <button class="fr-btn" style="flex:1;padding:13px;border-radius:999px;border:none;background:#B06A4F;color:#fff;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ settleB }}">Settle up</button>
+                <button class="fr-btn" style="padding:13px 18px;border-radius:999px;border:1px solid #E7DCCD;background:#fff;color:#2B2723;font-weight:600;font-size:14.5px;cursor:pointer" onClick="{{ closeB }}">Remind</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "make <a class="dv-oid" href="#1a">1a</a> the primary direction" · "combine the hero from <a class="dv-oid" href="#1b">1b</a> with the orbit from <a class="dv-oid" href="#1a">1a</a>" · "add a settle confirmation step"</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SEED = [
+  { id: "maya", name: "Maya Chen", net: 4820, color: "#9CAE8E" },
+  { id: "diego", name: "Diego Ramirez", net: 2500, color: "#C9B79C" },
+  { id: "priya", name: "Priya Nair", net: -1500, color: "#D2B79C" },
+  { id: "sam", name: "Sam Okafor", net: 9000, color: "#E4D3C1" },
+  { id: "elena", name: "Elena Petrova", net: -3200, color: "#C98A72" },
+  { id: "aisha", name: "Aisha Bello", net: 1200, color: "#F1E8DE" },
+  { id: "tom", name: "Tom Becker", net: -600, color: "#EAD9C4" },
+];
+
+const DIRECT_SEED = [
+  { id: "aisha", name: "Aisha Bello", net: 1200, color: "#F1E8DE" },
+  { id: "tom", name: "Tom Becker", net: -600, color: "#EAD9C4" },
+];
+
+const GROUPS_SEED = [
+  { id: "goa", name: "Goa Trip", kind: "trip", members: [
+    { id: "maya", name: "Maya Chen", net: 4820, color: "#9CAE8E" },
+    { id: "diego", name: "Diego Ramirez", net: 2500, color: "#C9B79C" },
+    { id: "priya", name: "Priya Nair", net: -1500, color: "#D2B79C" },
+  ] },
+  { id: "apt", name: "Apartment", kind: "group", members: [
+    { id: "sam", name: "Sam Okafor", net: 9000, color: "#E4D3C1" },
+    { id: "elena", name: "Elena Petrova", net: -3200, color: "#C98A72" },
+  ] },
+];
+
+function fmt(cents) {
+  const abs = Math.abs(cents) / 100;
+  return "$" + abs.toFixed(2);
+}
+
+function initialsOf(name) {
+  return name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function trim(x1, y1, x2, y2, r1, r2) {
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
+  return { x1: x1 + (dx / L) * r1, y1: y1 + (dy / L) * r1, x2: x2 - (dx / L) * r2, y2: y2 - (dy / L) * r2 };
+}
+
+function hillPath(x0, x1, xc, baseY, apexY) {
+  const half = (x1 - x0) / 2;
+  return `M ${x0} ${baseY} C ${x0 + half * 0.6} ${baseY} ${xc - half * 0.6} ${apexY} ${xc} ${apexY} C ${xc + half * 0.6} ${apexY} ${x1 - half * 0.6} ${baseY} ${x1} ${baseY} Z`;
+}
+
+function donutSegPath(cx, cy, rOuter, rInner, startA, endA) {
+  const pt = (r, a) => ({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+  const large = endA - startA > Math.PI ? 1 : 0;
+  const o1 = pt(rOuter, startA), o2 = pt(rOuter, endA), i1 = pt(rInner, endA), i2 = pt(rInner, startA);
+  return `M ${o1.x} ${o1.y} A ${rOuter} ${rOuter} 0 ${large} 1 ${o2.x} ${o2.y} L ${i1.x} ${i1.y} A ${rInner} ${rInner} 0 ${large} 0 ${i2.x} ${i2.y} Z`;
+}
+
+class Component extends DCLogic {
+  state = {
+    friendsA: SEED.map((f) => ({ ...f })),
+    friendsB: SEED.map((f) => ({ ...f })),
+    friendsC: SEED.map((f) => ({ ...f })),
+    friendsD: SEED.map((f) => ({ ...f })),
+    selectedA: null,
+    selectedB: null,
+    selectedC: null,
+    selectedD: null,
+
+    directE: DIRECT_SEED.map((f) => ({ ...f })),
+    groupsE: GROUPS_SEED.map((g) => ({ ...g, members: g.members.map((m) => ({ ...m })) })),
+    expandedGroupE: null,
+    selectedE: null,
+
+    directF: DIRECT_SEED.map((f) => ({ ...f })),
+    groupsF: GROUPS_SEED.map((g) => ({ ...g, members: g.members.map((m) => ({ ...m })) })),
+    selectedF: null,
+  };
+
+  stop = (e) => { if (e && e.stopPropagation) e.stopPropagation(); };
+
+  selectA = (id) => this.setState({ selectedA: id });
+  closeA = () => this.setState({ selectedA: null });
+  settleA = () => this.setState((s) => ({
+    friendsA: s.friendsA.map((f) => (f.id === s.selectedA ? { ...f, net: 0 } : f)),
+    selectedA: null,
+  }));
+
+  selectB = (id) => this.setState({ selectedB: id });
+  closeB = () => this.setState({ selectedB: null });
+  settleB = () => this.setState((s) => ({
+    friendsB: s.friendsB.map((f) => (f.id === s.selectedB ? { ...f, net: 0 } : f)),
+    selectedB: null,
+  }));
+
+  selectC = (id) => this.setState({ selectedC: id });
+  closeC = () => this.setState({ selectedC: null });
+  settleC = () => this.setState((s) => ({
+    friendsC: s.friendsC.map((f) => (f.id === s.selectedC ? { ...f, net: 0 } : f)),
+    selectedC: null,
+  }));
+
+  selectD = (id) => this.setState({ selectedD: id });
+  closeD = () => this.setState({ selectedD: null });
+  settleD = () => this.setState((s) => ({
+    friendsD: s.friendsD.map((f) => (f.id === s.selectedD ? { ...f, net: 0 } : f)),
+    selectedD: null,
+  }));
+
+  toggleGroupE = (gid) => this.setState((s) => ({ expandedGroupE: s.expandedGroupE === gid ? null : gid }));
+  selectDirectE = (obj) => this.setState({ selectedE: obj });
+  closeE = () => this.setState({ selectedE: null });
+  settleE = () => this.setState((s) => ({
+    directE: s.directE.map((f) => (s.selectedE && f.id === s.selectedE.id ? { ...f, net: 0 } : f)),
+    selectedE: null,
+  }));
+
+  selectF = (obj) => this.setState({ selectedF: obj });
+  closeF = () => this.setState({ selectedF: null });
+  settleF = () => this.setState((s) => ({
+    directF: s.directF.map((f) => (s.selectedF && f.id === s.selectedF.id ? { ...f, net: 0 } : f)),
+    selectedF: null,
+  }));
+
+  renderVals() {
+    const { friendsA, friendsB, friendsC, friendsD, selectedA, selectedB, selectedC, selectedD,
+      directE, groupsE, expandedGroupE, selectedE, directF, groupsF, selectedF } = this.state;
+
+    const totalOwedA = friendsA.reduce((s, f) => s + Math.max(0, f.net), 0);
+    const totalOweA = friendsA.reduce((s, f) => s + Math.max(0, -f.net), 0);
+    const totalOwedB = friendsB.reduce((s, f) => s + Math.max(0, f.net), 0);
+    const totalOweB = friendsB.reduce((s, f) => s + Math.max(0, -f.net), 0);
+    const netB = totalOwedB - totalOweB;
+    const denomB = totalOwedB + totalOweB || 1;
+
+    // ---- Option A: orbit ----
+    const open = friendsA.filter((f) => f.net !== 0);
+    const N = open.length || 1;
+    const scale = 342 / 380;
+    const cx = 190, cy = 190, R = 130, cr = 34, fr = 27;
+    const orbitNodesA = open.map((f, i) => {
+      const a = -Math.PI / 2 + (i * 2 * Math.PI) / N;
+      const x = cx + R * Math.cos(a), y = cy + R * Math.sin(a);
+      const sx = x * scale, sy = y * scale;
+      const owedToYou = f.net > 0;
+      return {
+        ...f,
+        x, y, r: fr,
+        initLeft: sx - 18,
+        initTop: sy - 8,
+        nameLeft: sx - 30,
+        nameTop: sy + fr * scale + 4,
+        initials: initialsOf(f.name),
+        firstName: f.name.split(" ")[0],
+        fill: f.color,
+        dirColor: owedToYou ? "#5F7A52" : "#A8503A",
+        dirText: owedToYou ? "owes you" : "you owe",
+        amountFmt: fmt(f.net),
+        name: f.name,
+        onClick: () => this.selectA(f.id),
+      };
+    });
+    const orbitLinesA = orbitNodesA.map((n) => {
+      const owedToYou = n.net > 0;
+      const color = owedToYou ? "#5F7A52" : "#A8503A";
+      const seg = owedToYou ? trim(n.x, n.y, cx, cy, fr, cr) : trim(cx, cy, n.x, n.y, cr, fr);
+      const mx = (n.x + cx) / 2, my = (n.y + cy) / 2;
+      return { ...seg, color, pillLeft: mx * scale - 29, pillTop: my * scale - 9, label: fmt(n.net) };
+    });
+
+    // ---- Option B: balance rows ----
+    const maxAbs = Math.max(1, ...friendsB.map((f) => Math.abs(f.net)));
+    const rowsB = friendsB.map((f) => {
+      const owedToYou = f.net > 0;
+      const color = owedToYou ? "#5F7A52" : f.net < 0 ? "#A8503A" : "#C9B79C";
+      return {
+        ...f,
+        initials: initialsOf(f.name),
+        fill: f.color,
+        dirColor: color,
+        amountFmt: f.net === 0 ? "settled" : fmt(f.net),
+        barPct: Math.max(6, Math.round((Math.abs(f.net) / maxAbs) * 100)),
+        onClick: () => this.selectB(f.id),
+      };
+    });
+
+    // ---- Option C: horizon (hills & valleys) ----
+    const totalOwedC = friendsC.reduce((s, f) => s + Math.max(0, f.net), 0);
+    const totalOweC = friendsC.reduce((s, f) => s + Math.max(0, -f.net), 0);
+    const maxAbsC = Math.max(1, ...friendsC.map((f) => Math.abs(f.net)));
+    const nC = friendsC.length;
+    const padC = 30, usableC = 342 - padC * 2, gapC = usableC / nC;
+    const baseY = 110;
+    const hillsC = friendsC.map((f, i) => {
+      const xc = padC + gapC * (i + 0.5);
+      const half = gapC * 0.42;
+      const owedToYou = f.net > 0;
+      const h = 30 + (Math.abs(f.net) / maxAbsC) * 55;
+      const apexY = owedToYou ? baseY - h : baseY + h;
+      const color = owedToYou ? "#9CAE8E" : f.net < 0 ? "#C98A72" : "#E7DCCD";
+      const dirColor = owedToYou ? "#5F7A52" : f.net < 0 ? "#A8503A" : "#7C7264";
+      return {
+        ...f,
+        cx: xc,
+        apexY,
+        d: hillPath(xc - half, xc + half, xc, baseY, apexY),
+        fill: color,
+        avatarFill: f.color,
+        initials: initialsOf(f.name),
+        dirColor,
+        dirText: owedToYou ? "owes you" : f.net < 0 ? "you owe" : "settled",
+        amountFmt: f.net === 0 ? "—" : fmt(f.net),
+        name: f.name,
+        labelLeft: xc - 22,
+        labelTop: owedToYou ? apexY - 15 - 34 : apexY + 15 + 6,
+        onClick: () => this.selectC(f.id),
+      };
+    });
+
+    // ---- Option D: balance dial ----
+    const totalOwedD = friendsD.reduce((s, f) => s + Math.max(0, f.net), 0);
+    const totalOweD = friendsD.reduce((s, f) => s + Math.max(0, -f.net), 0);
+    const netD = totalOwedD - totalOweD;
+    const cxD = 171, cyD = 171, rOuter = 140, rInner = 95, labelR = 168, gapAngle = 0.035;
+    const owedFriendsD = friendsD.filter((f) => f.net > 0);
+    const oweFriendsD = friendsD.filter((f) => f.net < 0);
+
+    function buildSegs(list, sumAbs, startA, endA, colorFor, onSel) {
+      let cursor = startA;
+      const span = endA - startA;
+      return list.map((f) => {
+        const frac = Math.abs(f.net) / (sumAbs || 1);
+        const segSpan = span * frac;
+        const a0 = cursor + gapAngle / 2;
+        const a1 = cursor + segSpan - gapAngle / 2;
+        cursor += segSpan;
+        const mid = (a0 + a1) / 2;
+        const color = colorFor(f);
+        return {
+          ...f,
+          d: donutSegPath(cxD, cyD, rOuter, rInner, a0, Math.max(a1, a0 + 0.01)),
+          fill: color,
+          initials: initialsOf(f.name),
+          amountFmt: fmt(f.net),
+          name: f.name,
+          dirColor: color,
+          dirText: f.net > 0 ? "owes you" : "you owe",
+          avatarFill: f.color,
+          labelLeft: cxD + labelR * Math.cos(mid) - 26,
+          labelTop: cyD + labelR * Math.sin(mid) - 16,
+          onClick: () => onSel(f.id),
+        };
+      });
+    }
+
+    const owedSumD = owedFriendsD.reduce((s, f) => s + f.net, 0);
+    const oweSumD = oweFriendsD.reduce((s, f) => s + Math.abs(f.net), 0);
+    const segsOwed = buildSegs(owedFriendsD, owedSumD, -Math.PI / 2, Math.PI / 2, () => "#5F7A52", (id) => this.selectD(id));
+    const segsOwe = buildSegs(oweFriendsD, oweSumD, Math.PI / 2, (3 * Math.PI) / 2, () => "#A8503A", (id) => this.selectD(id));
+    const dialSegsD = [...segsOwed, ...segsOwe];
+
+    const rowsD = friendsD.map((f) => {
+      const owedToYou = f.net > 0;
+      const color = owedToYou ? "#5F7A52" : f.net < 0 ? "#A8503A" : "#7C7264";
+      return {
+        ...f,
+        initials: initialsOf(f.name),
+        fill: f.color,
+        dirColor: color,
+        amountFmt: f.net === 0 ? "settled" : fmt(f.net),
+        dirText: owedToYou ? "owes you" : f.net < 0 ? "you owe" : "settled",
+        avatarFill: f.color,
+        onClick: () => this.selectD(f.id),
+      };
+    });
+
+    const selFA = selectedA ? orbitNodesA.find((f) => f.id === selectedA) : null;
+    const selFB = selectedB ? rowsB.find((f) => f.id === selectedB) : null;
+    const selFC = selectedC ? hillsC.find((f) => f.id === selectedC) : null;
+    const selFD = selectedD ? rowsD.find((f) => f.id === selectedD) : null;
+
+    // ---- Option E: ledger (grouped, expandable) ----
+    const dirRow = (f, onClick) => {
+      const owedToYou = f.net > 0;
+      const color = owedToYou ? "#5F7A52" : f.net < 0 ? "#A8503A" : "#7C7264";
+      return {
+        ...f,
+        initials: initialsOf(f.name),
+        dirColor: color,
+        dirText: owedToYou ? "owes you" : f.net < 0 ? "you owe" : "settled",
+        amountFmt: f.net === 0 ? "settled" : fmt(f.net),
+        onClick: () => onClick({ ...f, initials: initialsOf(f.name), dirColor: color, dirText: owedToYou ? "owes you" : f.net < 0 ? "you owe" : "settled", amountFmt: f.net === 0 ? "settled" : fmt(f.net) }),
+      };
+    };
+    const directRowsE = directE.map((f) => dirRow(f, this.selectDirectE));
+
+    const groupsViewE = groupsE.map((g) => {
+      const net = g.members.reduce((s, m) => s + m.net, 0);
+      const owedToYou = net > 0;
+      const expanded = expandedGroupE === g.id;
+      const members = g.members.map((m, i) => {
+        const row = dirRow(m, this.selectDirectE);
+        return { ...row, stackMargin: i === 0 ? 0 : -10 };
+      });
+      return {
+        ...g,
+        members,
+        memberCountText: `${g.members.length} people`,
+        dirColor: owedToYou ? "#5F7A52" : net < 0 ? "#A8503A" : "#7C7264",
+        amountFmt: net === 0 ? "settled" : fmt(net),
+        expanded,
+        expandedBg: expanded ? "#F4ECE1" : "transparent",
+        chevronRotate: expanded ? "rotate(180deg)" : "rotate(0deg)",
+        onToggle: () => this.toggleGroupE(g.id),
+      };
+    });
+
+    const totalOwedE = directE.reduce((s, f) => s + Math.max(0, f.net), 0) + groupsE.reduce((s, g) => s + Math.max(0, g.members.reduce((a, m) => a + m.net, 0)), 0);
+    const totalOweE = directE.reduce((s, f) => s + Math.max(0, -f.net), 0) + groupsE.reduce((s, g) => s + Math.max(0, -g.members.reduce((a, m) => a + m.net, 0)), 0);
+    const netE = totalOwedE - totalOweE;
+    const denomE = totalOwedE + totalOweE || 1;
+
+    // ---- Option F: two lanes ----
+    const groupsViewF = groupsF.map((g) => {
+      const net = g.members.reduce((s, m) => s + m.net, 0);
+      const owedToYou = net > 0;
+      const members = g.members.map((m) => dirRow(m, () => {}));
+      const avatars = g.members.map((m, i) => ({ color: m.color, stackMargin: i === 0 ? 0 : -8 }));
+      const selfObj = {
+        id: g.id, name: g.name, isGroup: true, notGroup: false, color: "#B06A4F",
+        initials: g.name.slice(0, 2).toUpperCase(),
+        dirColor: owedToYou ? "#5F7A52" : "#A8503A",
+        dirText: owedToYou ? `${g.members.length} people \u00b7 owed to you` : `${g.members.length} people \u00b7 you owe`,
+        amountFmt: fmt(net),
+        members,
+      };
+      return { id: g.id, name: g.name, net, avatars, isGroup: true, notGroup: false, amountFmt: fmt(Math.abs(net)), onClick: () => this.selectF(selfObj) };
+    });
+    const directViewF = directF.map((f) => {
+      const owedToYou = f.net > 0;
+      const color = owedToYou ? "#5F7A52" : "#A8503A";
+      const selfObj = { ...f, initials: initialsOf(f.name), dirColor: color, dirText: owedToYou ? "owes you" : "you owe", amountFmt: fmt(f.net), isGroup: false };
+      return { id: f.id, name: f.name, net: f.net, color: f.color, initials: initialsOf(f.name), isGroup: false, notGroup: true, amountFmt: fmt(Math.abs(f.net)), onClick: () => this.selectF(selfObj) };
+    });
+    const allF = [...groupsViewF, ...directViewF];
+    const lanePosF = allF.filter((it) => it.net > 0).sort((a, b) => b.net - a.net);
+    const laneNegF = allF.filter((it) => it.net < 0).sort((a, b) => a.net - b.net);
+    const totalOwedF = lanePosF.reduce((s, it) => s + it.net, 0);
+    const totalOweF = laneNegF.reduce((s, it) => s - it.net, 0);
+
+    return {
+      totalOwedAFmt: fmt(totalOwedA),
+      totalOweAFmt: fmt(totalOweA),
+      orbitNodesA,
+      orbitLinesA,
+      selectedFriendA: selFA || null,
+      closeA: this.closeA,
+      settleA: this.settleA,
+
+      totalOwedBFmt: fmt(totalOwedB),
+      totalOweBFmt: fmt(totalOweB),
+      netFmtB: (netB >= 0 ? "+" : "\u2212") + fmt(Math.abs(netB)),
+      netColorB: netB >= 0 ? "#5F7A52" : "#A8503A",
+      owePctB: Math.round((totalOweB / denomB) * 100),
+      owedPctB: Math.round((totalOwedB / denomB) * 100),
+      rowsB,
+      selectedFriendB: selFB || null,
+      closeB: this.closeB,
+      settleB: this.settleB,
+
+      totalOwedCFmt: fmt(totalOwedC),
+      totalOweCFmt: fmt(totalOweC),
+      hillsC,
+      selectedFriendC: selFC || null,
+      closeC: this.closeC,
+      settleC: this.settleC,
+
+      netFmtD: (netD >= 0 ? "+" : "\u2212") + fmt(Math.abs(netD)),
+      netColorD: netD >= 0 ? "#5F7A52" : "#A8503A",
+      dialSegsD,
+      rowsD,
+      selectedFriendD: selFD || null,
+      closeD: this.closeD,
+      settleD: this.settleD,
+
+      netFmtE: (netE >= 0 ? "+" : "\u2212") + fmt(Math.abs(netE)),
+      netColorE: netE >= 0 ? "#5F7A52" : "#A8503A",
+      owePctE: Math.round((totalOweE / denomE) * 100),
+      owedPctE: Math.round((totalOwedE / denomE) * 100),
+      groupsE: groupsViewE,
+      directE: directRowsE,
+      selectedE,
+      closeE: this.closeE,
+      settleE: this.settleE,
+
+      totalOwedFFmt: fmt(totalOwedF),
+      totalOweFFmt: fmt(totalOweF),
+      lanePosF,
+      laneNegF,
+      selectedF,
+      closeF: this.closeF,
+      settleF: this.settleF,
+
+      stop: this.stop,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

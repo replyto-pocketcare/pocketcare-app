@@ -312,9 +312,15 @@ const holdings = new Table({
   avg_cost: column.integer, // per-unit cost / NAV in minor units
   currency: column.text,
   auto_fetch: column.integer,
-  instrument_type: column.text, // 'stock' | 'mf'
+  instrument_type: column.text, // 'stock' | 'mf' (legacy; superseded by asset_class)
   off_list: column.integer, // 1 = not in our fetched catalog → gains/losses untracked
   name: column.text, // display name for off-list holdings (symbol may be blank)
+  asset_class: column.text, // 'stock' | 'mf' | 'crypto' | 'fd' | 'sip' | 'other'
+  current_value: column.integer, // user-supplied current value (minor units) for unpriced assets
+  annual_rate: column.real, // FD / scheme interest rate % p.a.
+  maturity_date: column.text, // FD maturity date (ISO)
+  source_account_id: column.text, // savings/bank account that funded a NEW investment (null = tracking existing)
+  planned_id: column.text, // linked planned_cashflow saving row (for SIPs)
   created_at: column.text,
   updated_at: column.text,
   deleted_at: column.text,

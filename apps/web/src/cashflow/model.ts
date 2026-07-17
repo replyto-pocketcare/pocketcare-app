@@ -48,6 +48,7 @@ export const BUCKETS: Record<Direction, { key: string; label: string; icon: stri
     { key: "other", label: "Other", icon: "•" },
   ],
   saving: [
+    { key: "sip", label: "SIP", icon: "↻" },
     { key: "fd", label: "Fixed Deposit", icon: "▦" },
     { key: "emergency", label: "Emergency Fund", icon: "◈" },
     { key: "mutual_fund", label: "Mutual Fund", icon: "◱" },
