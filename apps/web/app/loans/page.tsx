@@ -10,6 +10,7 @@ import { insertRow } from "../../src/write";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { Modal } from "../../src/ui/Modal";
+import { Pill, Field, loanRange } from "../../src/loans/ui";
 
 interface Loan {
   id: string; lender: string; principal: number; currency: string;
@@ -72,22 +73,30 @@ export default function LoansPage() {
           {loans.map((l) => {
             const paid = paidCount(l);
             const tenure = l.tenure_months ?? 0;
+            const remaining = tenure ? Math.max(0, tenure - paid) : null;
+            const closed = tenure > 0 && remaining === 0;
+            const range = loanRange(l.start_date, tenure);
             return (
-              <Link key={l.id} href={`/loans/${l.id}`} className="card lift" style={{ padding: 16, display: "grid", gap: 6, color: "inherit" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                  <strong>{l.lender || "Loan"}</strong>
-                  <span style={{ fontWeight: 650 }}>{l.emi_amount ? fmt(conv(money(l.emi_amount, l.currency || base))) : (l.rate_type === "variable" ? "Varies" : "—")}<span className="muted" style={{ fontSize: 11, fontWeight: 400 }}> /mo</span></span>
-                </div>
-                <div className="muted" style={{ fontSize: 12 }}>Principal {fmt(conv(money(l.principal, l.currency || base)))}{l.interest_rate ? ` · ${l.interest_rate}% p.a.` : ""}</div>
-                {tenure > 0 && (
-                  <>
+              <Link key={l.id} href={`/loans/${l.id}`} className="card lift" style={{ padding: 0, overflow: "hidden", color: "inherit", display: "block" }}>
+                <div style={{ padding: "14px 16px", display: "grid", gap: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <strong style={{ fontSize: 15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.lender || "Loan"}</strong>
+                    <Pill tone={closed ? "muted" : "positive"}>{closed ? "Closed" : "Active"}</Pill>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                    <span className="muted" style={{ fontSize: 12 }}>{range || (l.interest_rate ? `${l.interest_rate}% p.a.` : "—")}</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 600 }}>{tenure ? `${paid}/${tenure} EMI Paid` : `${paid} paid`}</span>
+                  </div>
+                  {tenure > 0 && (
                     <div style={{ height: 6, borderRadius: 999, background: "var(--surface-2)", overflow: "hidden" }}>
-                      <div style={{ width: `${Math.min(100, (paid / tenure) * 100)}%`, height: "100%", background: "var(--accent)" }} />
+                      <div style={{ width: `${Math.min(100, (paid / tenure) * 100)}%`, height: "100%", background: closed ? "var(--positive)" : "var(--accent)" }} />
                     </div>
-                    <div className="muted" style={{ fontSize: 11 }}>{paid} / {tenure} EMIs paid · view schedule →</div>
-                  </>
-                )}
-                {tenure === 0 && <div className="muted" style={{ fontSize: 11 }}>view schedule →</div>}
+                  )}
+                </div>
+                <div style={{ borderTop: "1px solid var(--border)", padding: "10px 16px", display: "flex", justifyContent: "space-between", gap: 12 }}>
+                  <Field label="Loan Amount" value={fmt(conv(money(l.principal, l.currency || base)))} />
+                  <Field label="EMI Amount" align="right" value={l.emi_amount ? fmt(conv(money(l.emi_amount, l.currency || base))) : (l.rate_type === "variable" ? "Varies" : "—")} />
+                </div>
               </Link>
             );
           })}
