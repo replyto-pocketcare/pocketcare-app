@@ -7,14 +7,16 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { format, money, type Money } from "@pocketcare/money";
 import { useNetWorth, useAccountBalances, useAccountsLoading } from "../src/hooks";
-import { HeroSkeleton, CardsSkeleton } from "../src/ui/Skeleton";
+import { HeroSkeleton, Skeleton } from "../src/ui/Skeleton";
 import { useEntitlement } from "../src/entitlement";
+import { useInitialSyncPending } from "../src/sync";
 import { useAmountsHidden, setAmountsHidden } from "../src/prefs";
 import { colorForId } from "../src/colors";
 import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon } from "../src/ui/icons";
 import { Modal } from "../src/ui/Modal";
 import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSizes, setTileSize, W_COLS, H_ROWS, nextDim, type TileId, type TileSize } from "../src/dashboard";
 import { TILE_CATALOG, TileView, tileMeta, TILE_HREF } from "../src/dashboard/tiles";
+import { GettingStarted } from "../src/onboarding/GettingStarted";
 
 // Sensible default size per tile (content-heavy tiles start taller/wider).
 const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
@@ -64,6 +66,7 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const net = showAvailable ? available : total;
   const accountsLoading = useAccountsLoading();
+  const syncPending = useInitialSyncPending();
 
   const fmt = (m: Money) => (hidden ? "••••••" : format(m, "en-US"));
 
@@ -77,13 +80,23 @@ export default function Dashboard() {
   const visibleTiles = enabled.filter((id) => isPaid || !tileMeta(id).premium);
   const sizeOf = (id: TileId): TileSize => sizes[id] ?? defaultSize(id);
 
-  // While the local DB is still returning results, show placeholders rather
-  // than the misleading "create your first account" screen.
-  if (balances.length === 0 && accountsLoading) {
+  // While the local DB is still returning results OR the first sync from the
+  // server hasn't landed, show widget-shaped placeholders — never the misleading
+  // "create your first account" screen (which flashed during the initial sync).
+  if (balances.length === 0 && (accountsLoading || syncPending)) {
     return (
-      <div style={{ display: "grid", gap: 24 }}>
-        <HeroSkeleton height={110} />
-        <CardsSkeleton count={4} />
+      <div style={{ display: "grid", gap: 24 }} className="fade-up">
+        <HeroSkeleton height={132} />
+        <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>
+          <Skeleton h={18} w={120} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(112px,100%),1fr))", gap: 8 }}>
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} h={58} r={12} />)}
+          </div>
+        </section>
+        <Skeleton h={190} r={18} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px,100%),1fr))", gap: 16 }}>
+          {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} h={150} r={18} />)}
+        </div>
       </div>
     );
   }
@@ -131,6 +144,9 @@ export default function Dashboard() {
 
       {/* Net worth hero — rich green-gradient tile with trend sparkline */}
       <NetWorthHero net={net} base={base} fmt={fmt} showAvailable={showAvailable} onToggle={() => setShowAvailable((v) => !v)} />
+
+      {/* First-run hand-holding — auto-hides once done / dismissed / for Pro */}
+      <GettingStarted />
 
       {/* Accounts — compact colored chips inside one card; manage the rest via View all */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>

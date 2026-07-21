@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { money } from "@pocketcare/money";
 import { useAccountBalances, useAccountsLoading, useCurrencyBreakdown } from "../../src/hooks";
+import { useInitialSyncPending } from "../../src/sync";
 import { getDb } from "../../src/powersync";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { CardsSkeleton } from "../../src/ui/Skeleton";
@@ -16,6 +17,7 @@ export default function AccountsPage() {
   const balances = useAccountBalances(showArchived);
   const archivedCount = useAccountBalances(true).filter((b) => b.account.is_archived).length;
   const accountsLoading = useAccountsLoading();
+  const syncPending = useInitialSyncPending();
 
   async function toggleNw(id: string, current: boolean) {
     await getDb()?.execute("UPDATE accounts SET include_in_net_worth = ?, updated_at = ? WHERE id = ?", [current ? 0 : 1, new Date().toISOString(), id]);
@@ -38,7 +40,7 @@ export default function AccountsPage() {
         </div>
       </div>
       <MultiCurrencyCard />
-      {balances.length === 0 && accountsLoading ? (
+      {balances.length === 0 && (accountsLoading || syncPending) ? (
         <CardsSkeleton count={4} minWidth={260} />
       ) : (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 12 }}>

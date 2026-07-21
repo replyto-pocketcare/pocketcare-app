@@ -10,6 +10,7 @@ import { useConfirm } from "../../src/ui/Confirm";
 import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/summary";
 import { parseAssistantMessage, AssistantUiBlock, Markdown } from "../../src/assistant/richMessage";
 import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, isValidToolInput, loadMemory } from "../../src/assistant/tools";
+import { MicButton } from "../../src/assistant/MicButton";
 import { buyCredits } from "../../src/billing";
 import { useEntitlement } from "../../src/entitlement";
 import { CREDIT_PACKS } from "../../src/billing/plans";
@@ -567,7 +568,10 @@ export default function AssistantPage() {
           onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void send(); } }}
           disabled={busy}
         />
-        <button className="btn" style={{ flexShrink: 0, alignSelf: "flex-end" }} onClick={send} disabled={busy || !input.trim() || !!pending}>Send</button>
+        <div style={{ alignSelf: "flex-end", display: "flex", gap: 8 }}>
+          <MicButton getInput={() => input} setInput={(v) => { setInput(v); const el = taRef.current; if (el) { el.style.height = "auto"; el.style.height = `${Math.min(el.scrollHeight, 160)}px`; } }} disabled={busy} />
+          <button className="btn" style={{ flexShrink: 0 }} onClick={send} disabled={busy || !input.trim() || !!pending}>Send</button>
+        </div>
       </div>
     </div>
   );

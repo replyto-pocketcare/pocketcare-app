@@ -7,11 +7,13 @@ import { useQuery } from "@powersync/react";
 import type { Transaction } from "@pocketcare/types";
 import { TransactionRow } from "../../src/ui/TransactionRow";
 import { Skeleton } from "../../src/ui/Skeleton";
+import { useInitialSyncPending } from "../../src/sync";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
 export default function TransactionsPage() {
   const { t } = useTranslation();
+  const syncPending = useInitialSyncPending();
   const [q, setQ] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
 
@@ -56,7 +58,7 @@ export default function TransactionsPage() {
             <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} tile />
           ))}
         </div>
-      ) : rowsLoading ? (
+      ) : (rowsLoading || syncPending) ? (
         <div className="list-grid">
           {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} h={64} r={12} />)}
         </div>

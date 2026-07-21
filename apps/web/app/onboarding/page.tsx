@@ -9,11 +9,26 @@ import { Modal } from "../../src/ui/Modal";
 import { InstallGuide } from "../../src/ui/InstallGuide";
 import { DownloadIcon } from "../../src/ui/icons";
 
-const SLIDES = [
-  { title: "Every account, one calm view", body: "Savings, cash, cards, stocks and funds — see your true net worth in your own currency, with or without money you’ve set aside." },
-  { title: "Understand where it goes", body: "Log income, expenses and transfers with itemised breakdowns, budgets that alert you early, and beautiful insights." },
-  { title: "Build toward what matters", body: "Fund an emergency buffer first, then block savings toward goals and see exactly when you’ll get there." },
+/** Inshorts-style walkthrough: a graphic glyph + a plain-language summary. The
+ *  first cards say what to DO first; the rest say what you can achieve. */
+const SLIDES: { title: string; body: string; glyph: string; grad: [string, string] }[] = [
+  { glyph: "❤", grad: ["#b06a4f", "#8f533c"], title: "Meet PocketCare", body: "Your calm money companion — track spending, plan ahead, and reach your goals, all in one private place that works offline." },
+  { glyph: "⌂", grad: ["#3e4a38", "#2f6f6a"], title: "Start here: add your accounts", body: "Add your bank, cash and cards so PocketCare knows your starting balances. This one step powers everything else — your net worth, budgets and insights." },
+  { glyph: "⇅", grad: ["#7a4a6b", "#4f3a54"], title: "Log money in seconds", body: "Record what you spend or earn — type it, or just tap the mic and say it out loud. PocketCare even suggests the category for you." },
+  { glyph: "◔", grad: ["#c08a3e", "#a8503a"], title: "Know where it goes", body: "Set simple budgets that nudge you early, and see clear, beautiful insights into where your money actually goes each month." },
+  { glyph: "⇌", grad: ["#b06a4f", "#5f6647"], title: "Plan what’s coming", body: "Salary, rent, bills, EMIs and subscriptions in one view — so upcoming payments never take you by surprise." },
+  { glyph: "◎", grad: ["#2f6f6a", "#3e4a38"], title: "Reach your goals", body: "Build an emergency buffer first, then set money aside for what matters and see exactly when you’ll get there." },
+  { glyph: "✦", grad: ["#7c4a3a", "#b06a4f"], title: "Not sure? Just ask", body: "Ask PocketCare in plain words — “where did my money go?”, “can I afford this?” — and it’ll answer or take you right to the screen." },
 ];
+
+function Graphic({ glyph, grad }: { glyph: string; grad: [string, string] }) {
+  return (
+    <div style={{ width: "100%", maxWidth: 300, aspectRatio: "16 / 10", borderRadius: 24, display: "grid", placeItems: "center",
+      background: `linear-gradient(150deg, ${grad[0]}, ${grad[1]})`, boxShadow: `0 20px 44px -22px ${grad[0]}bb`, color: "#f6f0e7" }}>
+      <span style={{ fontSize: 68, lineHeight: 1, filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.25))" }}>{glyph}</span>
+    </div>
+  );
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -48,12 +63,18 @@ export default function OnboardingPage() {
         <AnimatePresence mode="wait">
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
-            style={{ display: "grid", gap: 16, justifyItems: "center" }}
+            initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.32, ease: [0.2, 0, 0, 1] }}
+            drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.18}
+            onDragEnd={(_, info) => {
+              if (info.offset.x < -60 && i < SLIDES.length - 1) setI(i + 1);
+              else if (info.offset.x > 60 && i > 0) setI(i - 1);
+            }}
+            style={{ display: "grid", gap: 18, justifyItems: "center", cursor: "grab", touchAction: "pan-y" }}
           >
-            <h1 style={{ fontSize: 30 }}>{SLIDES[i]!.title}</h1>
-            <p className="muted" style={{ fontSize: 17, lineHeight: 1.6, maxWidth: 440 }}>{SLIDES[i]!.body}</p>
+            <Graphic glyph={SLIDES[i]!.glyph} grad={SLIDES[i]!.grad} />
+            <h1 style={{ fontSize: 27, margin: 0 }}>{SLIDES[i]!.title}</h1>
+            <p className="muted" style={{ fontSize: 16, lineHeight: 1.6, maxWidth: 440, margin: 0 }}>{SLIDES[i]!.body}</p>
           </motion.div>
         </AnimatePresence>
 

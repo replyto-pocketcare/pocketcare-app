@@ -71,7 +71,19 @@ export function useSyncStatus(): SyncInfo {
   return info;
 }
 
-export interface SyncMessage { 
+/**
+ * True while the app is online but the FIRST sync from the server hasn't
+ * finished — i.e. the local DB may still be empty because data is downloading.
+ * Pages use this to show skeletons instead of a misleading "no data" / "add your
+ * first…" empty state during the initial sync. Offline → not pending (nothing to
+ * wait for; show whatever's local).
+ */
+export function useInitialSyncPending(): boolean {
+  const info = useSyncStatus();
+  return info.online && !info.hasSynced;
+}
+
+export interface SyncMessage {
   text: string; 
   tone: "info" | "warn";
   action?: "force-sync";
