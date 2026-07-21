@@ -175,7 +175,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
   const shown = showAll ? parsed.txns : parsed.txns.slice(0, 12);
 
   return (
-    <div style={{ display: "grid", gap: 20 }} className="fade-up">
+    <div style={{ display: "grid", gap: 20, minWidth: 0 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ margin: 0 }}>{parsed.label}</h1>
@@ -208,7 +208,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
       )}
 
       {/* Analysis charts */}
-      <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(min(300px,100%),1fr))" }}>
+      <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(min(280px,100%),1fr))", minWidth: 0 }}>
         <div className="card pc-glass" style={{ padding: 16, display: "grid", gap: 8 }}>
           <div className="eyebrow">Where it went</div>
           {donut.length ? (
@@ -283,7 +283,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
               <span><strong className="muted">{rec.onlyOnPlatform.length}</strong> recorded, not in statement</span>
             </div>
             {rec.missingOnPlatform.length > 0 && !imported && (
-              <button className="btn" style={{ justifySelf: "start" }} onClick={() => void importMissing()}>Import {rec.missingOnPlatform.length} missing into {accountName}</button>
+              <button className="btn" style={{ justifySelf: "start", whiteSpace: "normal", textAlign: "left", maxWidth: "100%", height: "auto", minHeight: 0, padding: "8px 14px" }} onClick={() => void importMissing()}>Import {rec.missingOnPlatform.length} missing into {accountName}</button>
             )}
             {imported && <div style={{ color: "var(--positive)", fontSize: 13 }}>✓ Imported. They now appear in your transactions.</div>}
           </>

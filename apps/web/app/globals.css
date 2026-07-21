@@ -83,7 +83,10 @@ button { font-family: inherit; }
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  min-width: 0; /* allow shrinking inside flex/grid so charts/long content never force the page wider */
 }
+/* Recharts sizes to its parent; keep it from forcing an intrinsic min-width on mobile. */
+.recharts-responsive-container, .recharts-wrapper { min-width: 0 !important; max-width: 100%; }
 
 .muted { color: var(--text-2); }
 
@@ -494,8 +497,10 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 /* Aggregate hero grid */
 .pc-hero {
   display: grid; gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  min-width: 0;
 }
+.pc-hero > * { min-width: 0; }
 
 /* Template quick-add pills */
 .pc-template {
