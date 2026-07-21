@@ -52,7 +52,10 @@ export default function StatementsPage() {
       <div className="no-print" style={{ display: "grid", gap: 14 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
           <h1>{t("pages.statements", "Statements")}</h1>
-          <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Link href="/statements/analyze" className="btn ghost">Analyze a statement</Link>
+            <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
+          </div>
         </div>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <label style={{ display: "grid", gap: 4, flex: "1 1 220px", minWidth: 0 }}>

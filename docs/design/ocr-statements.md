@@ -1,6 +1,6 @@
 # Design — Statement Upload & OCR Insights (proposal)
 
-> **Status: proposed / not built.** This documents the intended design for review. No code ships until this is approved, because it touches sensitive financial documents and the app's zero-trust privacy posture.
+> **Status: Phase 1 shipped (on-device, CSV + best-effort PDF).** Decision taken: **fully on-device** (nothing leaves the device — no edge OCR / LLM for now), CSV/Excel-export + digital-PDF input, bank + credit-card. Scanned-image OCR remains a later phase. See `/statements/analyze` and `src/statements/*`. The sections below remain the reference for the deferred phases (server OCR fallback, LLM plain-language layer).
 
 ## Goal
 
