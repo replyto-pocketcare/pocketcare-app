@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { parseStatementCsv, parseDate } from "./parseCsv.ts";
 import { summarize, byCategory, outliers, recurringCandidates, normalizeMerchant } from "./analysis.ts";
 import { reconcile } from "./reconcile.ts";
+import { parseStatementRows, type PdfRow } from "./parsePdf.ts";
 import type { StatementTxn } from "./types.ts";
 
 // --- date parsing ---
@@ -92,6 +93,24 @@ test("reconcile: matches by amount+date+desc, flags the missing one", () => {
   assert.equal(rec.missingOnPlatform.length, 1);
   assert.equal(rec.missingOnPlatform[0]!.description, "ATM");
   assert.equal(rec.onlyOnPlatform.length, 0);
+});
+
+// --- column-aware PDF parsing (ICICI-style Withdrawal/Deposit columns) ---
+test("parseStatementRows: assigns amounts to the correct column by x", () => {
+  // x-positions: Date=40, Remarks=110, Withdrawal=360, Deposit=440, Balance=520
+  const rows: PdfRow[] = [
+    [{ x: 40, str: "Date" }, { x: 110, str: "Transaction Remarks" }, { x: 360, str: "Withdrawal Amount" }, { x: 440, str: "Deposit Amount" }, { x: 520, str: "Balance" }],
+    // a CREDIT row: amount sits under Deposit (x≈440), not Withdrawal
+    [{ x: 40, str: "01/03/2026" }, { x: 110, str: "NEFT FROM ACME LTD" }, { x: 450, str: "50,000.00" }, { x: 525, str: "60,000.00" }],
+    // a DEBIT row: amount sits under Withdrawal (x≈360)
+    [{ x: 40, str: "03/03/2026" }, { x: 110, str: "UPI/SWIGGY" }, { x: 372, str: "450.00" }, { x: 525, str: "59,550.00" }],
+  ];
+  const s = parseStatementRows(rows, { currency: "INR", kind: "bank" })!;
+  assert.ok(s);
+  assert.equal(s.txns.length, 2);
+  assert.equal(s.txns[0]!.amount, 5000000);   // +50,000 credit (Deposit column)
+  assert.equal(s.txns[1]!.amount, -45000);     // −450 debit (Withdrawal column)
+  assert.equal(s.txns[0]!.balance, 6000000);
 });
 
 test("reconcile: same amount outside the date window stays unmatched", () => {

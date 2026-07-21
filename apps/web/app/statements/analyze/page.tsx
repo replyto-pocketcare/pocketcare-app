@@ -21,7 +21,7 @@ import { importTransactions } from "../../../src/data/importCsv";
 import { createRecurring } from "../../../src/cashflow/recurring";
 import type { CanonRow } from "../../../src/data/adapters";
 import { parseStatementCsv } from "../../../src/statements/parseCsv";
-import { extractPdfText, parseStatementText } from "../../../src/statements/parsePdf";
+import { parsePdfStatement } from "../../../src/statements/parsePdf";
 import { summarize, byCategory, byDay, outliers as findOutliers, recurringCandidates } from "../../../src/statements/analysis";
 import { reconcile, type RecordedTxn } from "../../../src/statements/reconcile";
 import type { ParsedStatement, StatementKind } from "../../../src/statements/types";
@@ -50,16 +50,14 @@ export default function AnalyzeStatementPage() {
       let ps: ParsedStatement;
       if (/\.pdf$/i.test(file.name)) {
         setBusy("Reading PDF…");
-        let text: string;
-        try { text = await extractPdfText(file); }
+        try { ps = await parsePdfStatement(file, { currency: base, kind }); }
         catch (e) {
           if (/password/i.test((e as Error).message)) {
             const pw = window.prompt("This PDF is password-protected. Enter its password:");
             if (!pw) { setBusy(null); return; }
-            text = await extractPdfText(file, pw);
+            ps = await parsePdfStatement(file, { currency: base, kind }, pw);
           } else throw e;
         }
-        ps = parseStatementText(text, { currency: base, kind });
       } else {
         setBusy("Parsing…");
         const text = await file.text();
