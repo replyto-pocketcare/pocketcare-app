@@ -182,6 +182,65 @@ export function useSplitOverview(): SplitOverview {
   }, [groups, members, parts, setts, me]);
 }
 
+export interface PersonLine {
+  id: string;
+  kind: "expense" | "settlement";
+  description: string;
+  date: string;
+  net: number; // + = adds to what they owe you; − = adds to what you owe
+}
+/**
+ * The itemised ledger between you and ONE other person across every group:
+ * each shared expense (your pairwise edge on it) plus any settlements, newest
+ * first, with a running `total` equal to your current balance vs that person.
+ */
+export function usePersonLedger(otherId: string): { lines: PersonLine[]; total: number } {
+  const me = useMyUserId();
+  const { data: parts = [] } = useQuery<{ expense_id: string; user_id: string; paid_amount: number; share_amount: number }>(
+    "SELECT expense_id, user_id, paid_amount, share_amount FROM expense_participants WHERE deleted_at IS NULL",
+  );
+  const { data: exps = [] } = useQuery<{ id: string; description: string | null; occurred_at: string }>(
+    "SELECT id, description, occurred_at FROM expenses WHERE deleted_at IS NULL",
+  );
+  const { data: setts = [] } = useQuery<{ id: string; from_user: string; to_user: string; amount: number; settled_at: string | null; created_at: string }>(
+    "SELECT id, from_user, to_user, amount, settled_at, created_at FROM settlements WHERE deleted_at IS NULL",
+  );
+
+  return useMemo(() => {
+    if (!otherId || !me) return { lines: [], total: 0 };
+    const byExpense = new Map<string, Party[]>();
+    for (const p of parts) {
+      const arr = byExpense.get(p.expense_id) ?? [];
+      arr.push({ userId: p.user_id, share: p.share_amount, paid: p.paid_amount });
+      byExpense.set(p.expense_id, arr);
+    }
+    const meta = new Map(exps.map((e) => [e.id, e]));
+    const lines: PersonLine[] = [];
+    let total = 0;
+
+    for (const [eid, parties] of byExpense) {
+      const ids = parties.map((p) => p.userId);
+      if (!ids.includes(me) || !ids.includes(otherId)) continue;
+      const edge = pairwiseEdges(parties, me).find((e) => e.userId === otherId);
+      if (!edge || edge.amount === 0) continue;
+      const m = meta.get(eid);
+      lines.push({ id: eid, kind: "expense", description: m?.description || "Expense", date: m?.occurred_at || "", net: edge.amount });
+      total += edge.amount;
+    }
+    for (const s of setts) {
+      let net = 0;
+      if (s.to_user === me && s.from_user === otherId) net = -s.amount;      // they paid you back
+      else if (s.from_user === me && s.to_user === otherId) net = s.amount;  // you paid them back
+      else continue;
+      lines.push({ id: s.id, kind: "settlement", description: net < 0 ? "They paid you back" : "You paid them back", date: s.settled_at || s.created_at || "", net });
+      total += net;
+    }
+
+    lines.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    return { lines, total };
+  }, [parts, exps, setts, me, otherId]);
+}
+
 /** Per-user balances within a single group. */
 export function useGroupBalances(groupId: string): FriendBalance[] {
   const me = useMyUserId();

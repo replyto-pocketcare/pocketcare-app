@@ -29,7 +29,13 @@ flowchart LR
 `split_groups`, `split_group_members`, `expenses`, `expense_participants`, `settlements`, `split_invitations`, `connections`, `expense_postings` (private per-user projection into personal budget). Shared visibility via the `split_shared` stream + membership RLS.
 
 ## Key files
-`app/friends/`, `app/groups/`, `app/groups/[id]`, `src/splits/hooks.ts`, `src/splits/write.ts` (`settleUp`), `@pocketcare/reconcile`.
+`app/friends/`, `app/groups/`, `app/groups/[id]`, `src/splits/hooks.ts` (`useSplitOverview`, `usePersonLedger`), `src/splits/write.ts` (`settleUp`), `@pocketcare/reconcile`.
+
+## Splits screen (`app/friends`) layout
+- **Compact header:** SPLITS eyebrow + "Your balance"; a small Net-position row (label left, coloured amount right) over a two-tone owe/owed bar.
+- **Groups & trips:** EMI/loan-style tiles — overlapping avatars (small, tight) top-left, expand chevron top-right; group name + "N people · trip/group" bottom-left; your net bottom-right. Tapping expands the tile (full-row) to the per-member breakdown.
+- **Who owes whom:** every 1:1 balance (group per-user edges + direct) aggregated into one net per person, split into **OWES YOU** and **YOU OWE** lists (`BalanceRow`).
+- **Person sheet:** tapping anyone opens a modal with the **total at top**, the **itemised transactions** behind it (`usePersonLedger` — each shared expense's pairwise edge + settlements, newest first, signed), and **Settle up** / **Remind** actions.
 
 ## Gating
 Free.

@@ -8,7 +8,7 @@ import { useBaseCurrency } from "../../src/hooks";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
 import { AmountInput } from "../../src/ui/AmountInput";
-import { useSplitOverview, useUserProfiles } from "../../src/splits/hooks";
+import { useSplitOverview, useUserProfiles, usePersonLedger } from "../../src/splits/hooks";
 import { settleUp } from "../../src/splits/write";
 import { ListSkeleton } from "../../src/ui/Skeleton";
 
@@ -33,6 +33,23 @@ function Avatar({ id, name, size = 30, ring = false }: { id: string; name: strin
       color: "#2b2723", display: "grid", placeItems: "center", fontWeight: 700, fontSize: size * 0.4,
       ...(ring ? { boxShadow: "0 0 0 2px var(--bg)" } : {}),
     }}>{initials(name)}</span>
+  );
+}
+
+function BalanceRow({ b, name, amt, onOpen }: { b: { userId: string; net: number }; name: (id: string) => string; amt: (n: number) => string; onOpen: (id: string, net: number) => void }) {
+  return (
+    <button
+      onClick={() => onOpen(b.userId, b.net)}
+      className="card lift"
+      style={{ width: "100%", cursor: "pointer", padding: "12px 14px", display: "flex", alignItems: "center", gap: 12, textAlign: "left" }}
+    >
+      <Avatar id={b.userId} name={name(b.userId)} size={38} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: 16, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(b.userId)}</div>
+        <div style={{ fontSize: 13, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{b.net > 0 ? "owes you" : "you owe"}</div>
+      </div>
+      <span style={{ fontWeight: 750, fontSize: 17, color: b.net > 0 ? "var(--positive)" : "var(--negative)", flexShrink: 0 }}>{amt(b.net)}</span>
+    </button>
   );
 }
 
@@ -105,24 +122,44 @@ export default function SplitsPage() {
 
   const amt = (n: number) => fmt(money(Math.abs(n), base));
 
+  // Aggregate every 1:1 balance (group per-user + direct) into one net per person
+  // so "who owes whom" is answered across the whole ledger, not per group.
+  const perPerson = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const g of groups) for (const b of g.perUser) m.set(b.userId, (m.get(b.userId) ?? 0) + b.net);
+    for (const d of direct) m.set(d.userId, (m.get(d.userId) ?? 0) + d.net);
+    return [...m.entries()].filter(([, n]) => n !== 0).map(([userId, net]) => ({ userId, net }));
+  }, [groups, direct]);
+  const owedList = perPerson.filter((p) => p.net > 0).sort((a, b) => b.net - a.net);   // they owe you
+  const oweList = perPerson.filter((p) => p.net < 0).sort((a, b) => a.net - b.net);     // you owe them
+
+  // Itemised transactions for whoever's detail sheet is open.
+  const ledger = usePersonLedger(person?.userId ?? "");
+  const fmtDate = (d: string) => {
+    const t = new Date(d);
+    return Number.isNaN(t.getTime()) ? "" : t.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "2-digit" });
+  };
+
   return (
     <div className="fade-up" style={{ display: "grid", gap: 20 }}>
-      <section className="card" style={{ padding: 24, display: "grid", gap: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: 12, letterSpacing: "0.08em" }}>SPLITS</div>
-            <h1 style={{ margin: "2px 0 0", fontSize: 30 }}>Your balance</h1>
+      <section className="card" style={{ padding: 18, display: "grid", gap: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em" }}>SPLITS</div>
+            <h1 style={{ margin: "1px 0 0", fontSize: 22 }}>Your balance</h1>
           </div>
           <Link href="/groups" className="btn ghost" style={{ flexShrink: 0 }}>Groups &amp; trips</Link>
         </div>
 
-        {/* Net position */}
-        <div style={{ background: "var(--accent-ghost, rgba(0,0,0,0.04))", borderRadius: 18, padding: "22px 24px", display: "grid", gap: 14, justifyItems: "center" }}>
-          <div className="muted" style={{ fontSize: 14 }}>Net position</div>
-          <div style={{ fontSize: 46, fontWeight: 750, lineHeight: 1, color: netColor }}>
-            {netPosition >= 0 ? "+" : "−"}{amt(netPosition)}
+        {/* Net position — compact */}
+        <div style={{ background: "var(--accent-ghost, rgba(0,0,0,0.04))", borderRadius: 14, padding: "14px 16px", display: "grid", gap: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
+            <span className="muted" style={{ fontSize: 12.5 }}>Net position</span>
+            <span style={{ fontSize: 26, fontWeight: 750, lineHeight: 1, color: netColor, whiteSpace: "nowrap" }}>
+              {netPosition >= 0 ? "+" : "−"}{amt(netPosition)}
+            </span>
           </div>
-          <div style={{ width: "100%", height: 12, borderRadius: 999, overflow: "hidden", display: "flex", background: "var(--border)" }}>
+          <div style={{ width: "100%", height: 8, borderRadius: 999, overflow: "hidden", display: "flex", background: "var(--border)" }}>
             <div style={{ width: `${owePct}%`, background: "var(--negative)" }} />
             <div style={{ width: `${owedPct}%`, background: "var(--positive)" }} />
           </div>
@@ -146,45 +183,53 @@ export default function SplitsPage() {
           <div className="list-grid">
             {groups.map((g) => {
               const isOpen = expanded.has(g.group.id);
-              const shown = g.memberIds.slice(0, 3);
+              const shown = g.memberIds.slice(0, 4);
               const extra = g.memberIds.length - shown.length;
+              const netTone = g.net > 0 ? "var(--positive)" : g.net < 0 ? "var(--negative)" : "var(--text-2)";
               return (
                 <div
                   key={g.group.id}
                   className={isOpen ? "card" : "card lift"}
                   style={{ padding: 0, overflow: "hidden", gridColumn: isOpen ? "1 / -1" : "auto", background: isOpen ? "var(--accent-ghost)" : "var(--surface)", transition: "background 0.15s" }}
                 >
+                  {/* EMI/loan-style tile: avatars top-left, arrow top-right,
+                      title + count bottom-left, amount bottom-right. */}
                   <button
                     onClick={() => toggle(g.group.id)}
-                    style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}
+                    style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: 16, display: "grid", gap: 14, textAlign: "left" }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                      {shown.map((uid, i) => (
-                        <span key={uid} style={{ marginLeft: i === 0 ? 0 : -12 }}><Avatar id={uid} name={name(uid)} size={44} ring /></span>
-                      ))}
-                      {extra > 0 && (
-                        <span style={{ marginLeft: -12, width: 44, height: 44, borderRadius: 999, background: "var(--border)", color: "var(--text-2)", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 14, boxShadow: "0 0 0 2px var(--bg)" }}>+{extra}</span>
-                      )}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+                        {shown.map((uid, i) => (
+                          <span key={uid} style={{ marginLeft: i === 0 ? 0 : -10 }}><Avatar id={uid} name={name(uid)} size={30} ring /></span>
+                        ))}
+                        {extra > 0 && (
+                          <span style={{ marginLeft: -10, width: 30, height: 30, borderRadius: 999, background: "var(--border)", color: "var(--text-2)", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 11, boxShadow: "0 0 0 2px var(--bg)", flexShrink: 0 }}>+{extra}</span>
+                        )}
+                      </div>
+                      <span className="muted" aria-hidden style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s", fontSize: 12, flexShrink: 0 }}>▾</span>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 18, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.group.name}</div>
-                      <div className="muted" style={{ fontSize: 13.5 }}>{g.peopleCount} {g.peopleCount === 1 ? "person" : "people"} · {g.group.kind === "trip" ? "trip" : "group"}</div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                      <span style={{ fontWeight: 750, fontSize: 18, color: g.net > 0 ? "var(--positive)" : g.net < 0 ? "var(--negative)" : "var(--text-2)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.group.name}</div>
+                        <div className="muted" style={{ fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.peopleCount} {g.peopleCount === 1 ? "person" : "people"} · {g.group.kind === "trip" ? "trip" : "group"}</div>
+                      </div>
+                      <span style={{ fontWeight: 750, fontSize: 19, whiteSpace: "nowrap", flexShrink: 0, color: netTone }}>
                         {g.net === 0 ? amt(0) : (g.net > 0 ? "" : "−") + amt(g.net)}
                       </span>
-                      <span className="muted" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s", fontSize: 12 }}>▾</span>
                     </div>
                   </button>
                   {isOpen && (
-                    <div style={{ padding: "0 16px 14px 74px", display: "grid", gap: 10, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+                    <div style={{ padding: "12px 16px 14px", display: "grid", gap: 10, borderTop: "1px solid var(--border)" }}>
                       {g.perUser.length === 0 && <div className="muted" style={{ fontSize: 13 }}>Everyone’s settled up.</div>}
                       {g.perUser.map((b) => (
-                        <button key={b.userId} onClick={() => openPerson(b.userId, b.net)}
-                          style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, textAlign: "left" }}>
-                          <span style={{ fontSize: 16 }}>{name(b.userId)}</span>
-                          <span style={{ fontWeight: 700, fontSize: 16, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(b.net)}</span>
+                        <button key={b.userId} className="tap-row" onClick={() => openPerson(b.userId, b.net)}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: "6px 8px", margin: "0 -8px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, textAlign: "left", color: "inherit" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                            <Avatar id={b.userId} name={name(b.userId)} size={28} />
+                            <span style={{ fontSize: 15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(b.userId)}</span>
+                          </span>
+                          <span style={{ fontWeight: 700, fontSize: 15, flexShrink: 0, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(b.net)}</span>
                         </button>
                       ))}
                     </div>
@@ -196,45 +241,63 @@ export default function SplitsPage() {
         </section>
       )}
 
-      {/* Direct balances — tiled. */}
-      {!empty && direct.length > 0 && (
-        <section style={{ display: "grid", gap: 12 }}>
-          <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>DIRECT</div>
-          <div className="list-grid">
-            {direct.map((b) => (
-              <button
-                key={b.userId}
-                onClick={() => openPerson(b.userId, b.net)}
-                className="card lift"
-                style={{ width: "100%", cursor: "pointer", padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}
-              >
-                <Avatar id={b.userId} name={name(b.userId)} size={44} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(b.userId)}</div>
-                  <div style={{ fontSize: 13.5, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{b.net > 0 ? "owes you" : "you owe"}</div>
-                </div>
-                <span style={{ fontWeight: 750, fontSize: 18, color: b.net > 0 ? "var(--positive)" : "var(--negative)", flexShrink: 0 }}>{amt(b.net)}</span>
-              </button>
-            ))}
-          </div>
+      {/* Who owes whom — every 1:1 balance aggregated across groups + direct. */}
+      {!empty && perPerson.length > 0 && (
+        <section style={{ display: "grid", gap: 16 }}>
+          {owedList.length > 0 && (
+            <div style={{ display: "grid", gap: 10 }}>
+              <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>OWES YOU</div>
+              <div className="list-grid">{owedList.map((b) => <BalanceRow key={b.userId} b={b} name={name} amt={amt} onOpen={openPerson} />)}</div>
+            </div>
+          )}
+          {oweList.length > 0 && (
+            <div style={{ display: "grid", gap: 10 }}>
+              <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>YOU OWE</div>
+              <div className="list-grid">{oweList.map((b) => <BalanceRow key={b.userId} b={b} name={name} amt={amt} onOpen={openPerson} />)}</div>
+            </div>
+          )}
         </section>
       )}
 
-      {/* Person detail sheet — opens when you tap a friend */}
+      {/* Person detail sheet — opens when you tap a friend. Shows the total,
+          the itemised transactions behind it, and settle/remind actions. */}
       <Modal open={!!person} onClose={() => setPerson(null)}>
         {person && (
-          <div style={{ display: "grid", gap: 20 }}>
+          <div style={{ display: "grid", gap: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <Avatar id={person.userId} name={person.name} size={56} />
+              <Avatar id={person.userId} name={person.name} size={52} />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 750, fontSize: 24, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{person.name}</div>
-                <div style={{ fontSize: 15, color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{person.net > 0 ? "owes you" : "you owe"}</div>
+                <div style={{ fontWeight: 750, fontSize: 22, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{person.name}</div>
+                <div style={{ fontSize: 14, color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{person.net > 0 ? "owes you" : "you owe"}</div>
               </div>
             </div>
-            <div style={{ fontSize: 44, fontWeight: 750, lineHeight: 1, color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(person.net)}</div>
+
+            {/* Total at top */}
+            <div style={{ background: "var(--surface-2)", borderRadius: 14, padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
+              <span className="muted" style={{ fontSize: 12.5 }}>Total {person.net > 0 ? "owed to you" : "you owe"}</span>
+              <span style={{ fontSize: 30, fontWeight: 750, lineHeight: 1, whiteSpace: "nowrap", color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(person.net)}</span>
+            </div>
+
+            {/* Itemised transactions */}
+            {ledger.lines.length > 0 && (
+              <div style={{ display: "grid", gap: 2, maxHeight: 260, overflowY: "auto", margin: "0 -4px", padding: "0 4px" }}>
+                {ledger.lines.map((l) => (
+                  <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid var(--border)" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.description}</div>
+                      {l.date && <div className="muted" style={{ fontSize: 11.5 }}>{fmtDate(l.date)}{l.kind === "settlement" ? " · settlement" : ""}</div>}
+                    </div>
+                    <span style={{ fontSize: 14, fontWeight: 650, whiteSpace: "nowrap", flexShrink: 0, color: l.net > 0 ? "var(--positive)" : "var(--negative)" }}>
+                      {l.net > 0 ? "+" : "−"}{amt(l.net)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div style={{ display: "flex", gap: 12 }}>
               <button className="btn" style={{ flex: 1 }} onClick={() => openSettle(person.userId, person.net)}>Settle up</button>
-              <button className="btn ghost" style={{ flex: "0 0 auto", minWidth: 120 }} onClick={() => void remind(person)}>{reminded ? "Copied!" : "Remind"}</button>
+              <button className="btn ghost" style={{ flex: "0 0 auto", minWidth: 110 }} onClick={() => void remind(person)}>{reminded ? "Copied!" : "Remind"}</button>
             </div>
           </div>
         )}
