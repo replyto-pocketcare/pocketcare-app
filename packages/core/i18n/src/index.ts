@@ -54,6 +54,66 @@ import loansEn from "./locales/loans/en.json";
 import loansHi from "./locales/loans/hi.json";
 import loansNl from "./locales/loans/nl.json";
 
+import investmentsEn from "./locales/investments/en.json";
+import investmentsHi from "./locales/investments/hi.json";
+import investmentsNl from "./locales/investments/nl.json";
+
+import insightsEn from "./locales/insights/en.json";
+import insightsHi from "./locales/insights/hi.json";
+import insightsNl from "./locales/insights/nl.json";
+
+import categoriesEn from "./locales/categories/en.json";
+import categoriesHi from "./locales/categories/hi.json";
+import categoriesNl from "./locales/categories/nl.json";
+
+import labelsEn from "./locales/labels/en.json";
+import labelsHi from "./locales/labels/hi.json";
+import labelsNl from "./locales/labels/nl.json";
+
+import searchEn from "./locales/search/en.json";
+import searchHi from "./locales/search/hi.json";
+import searchNl from "./locales/search/nl.json";
+
+import dataEn from "./locales/data/en.json";
+import dataHi from "./locales/data/hi.json";
+import dataNl from "./locales/data/nl.json";
+
+import groupsEn from "./locales/groups/en.json";
+import groupsHi from "./locales/groups/hi.json";
+import groupsNl from "./locales/groups/nl.json";
+
+import joinEn from "./locales/join/en.json";
+import joinHi from "./locales/join/hi.json";
+import joinNl from "./locales/join/nl.json";
+
+import helpEn from "./locales/help/en.json";
+import helpHi from "./locales/help/hi.json";
+import helpNl from "./locales/help/nl.json";
+
+import loginEn from "./locales/login/en.json";
+import loginHi from "./locales/login/hi.json";
+import loginNl from "./locales/login/nl.json";
+
+import settingsEn from "./locales/settings/en.json";
+import settingsHi from "./locales/settings/hi.json";
+import settingsNl from "./locales/settings/nl.json";
+
+import statementsEn from "./locales/statements/en.json";
+import statementsHi from "./locales/statements/hi.json";
+import statementsNl from "./locales/statements/nl.json";
+
+import statementsAnalyzeEn from "./locales/statementsAnalyze/en.json";
+import statementsAnalyzeHi from "./locales/statementsAnalyze/hi.json";
+import statementsAnalyzeNl from "./locales/statementsAnalyze/nl.json";
+
+import onboardingEn from "./locales/onboarding/en.json";
+import onboardingHi from "./locales/onboarding/hi.json";
+import onboardingNl from "./locales/onboarding/nl.json";
+
+import assistantEn from "./locales/assistant/en.json";
+import assistantHi from "./locales/assistant/hi.json";
+import assistantNl from "./locales/assistant/nl.json";
+
 export interface Language {
   code: string;
   label: string;
@@ -68,13 +128,13 @@ export const SUPPORTED_LANGUAGES: readonly Language[] = [
 ];
 
 export const resources = {
-  en: { translation: en, splits: splitsEn, accounts: accountsEn, transactions: transactionsEn, cards: cardsEn, budgets: budgetsEn, goals: goalsEn, templates: templatesEn, recurring: recurringEn, cashflow: cashflowEn, loans: loansEn },
-  hi: { translation: hi, splits: splitsHi, accounts: accountsHi, transactions: transactionsHi, cards: cardsHi, budgets: budgetsHi, goals: goalsHi, templates: templatesHi, recurring: recurringHi, cashflow: cashflowHi, loans: loansHi },
-  nl: { translation: nl, splits: splitsNl, accounts: accountsNl, transactions: transactionsNl, cards: cardsNl, budgets: budgetsNl, goals: goalsNl, templates: templatesNl, recurring: recurringNl, cashflow: cashflowNl, loans: loansNl },
+  en: { translation: en, splits: splitsEn, accounts: accountsEn, transactions: transactionsEn, cards: cardsEn, budgets: budgetsEn, goals: goalsEn, templates: templatesEn, recurring: recurringEn, cashflow: cashflowEn, loans: loansEn, investments: investmentsEn, insights: insightsEn, categories: categoriesEn, labels: labelsEn, search: searchEn, data: dataEn, groups: groupsEn, join: joinEn, help: helpEn, login: loginEn, settings: settingsEn, statements: statementsEn, statementsAnalyze: statementsAnalyzeEn, onboarding: onboardingEn, assistant: assistantEn },
+  hi: { translation: hi, splits: splitsHi, accounts: accountsHi, transactions: transactionsHi, cards: cardsHi, budgets: budgetsHi, goals: goalsHi, templates: templatesHi, recurring: recurringHi, cashflow: cashflowHi, loans: loansHi, investments: investmentsHi, insights: insightsHi, categories: categoriesHi, labels: labelsHi, search: searchHi, data: dataHi, groups: groupsHi, join: joinHi, help: helpHi, login: loginHi, settings: settingsHi, statements: statementsHi, statementsAnalyze: statementsAnalyzeHi, onboarding: onboardingHi, assistant: assistantHi },
+  nl: { translation: nl, splits: splitsNl, accounts: accountsNl, transactions: transactionsNl, cards: cardsNl, budgets: budgetsNl, goals: goalsNl, templates: templatesNl, recurring: recurringNl, cashflow: cashflowNl, loans: loansNl, investments: investmentsNl, insights: insightsNl, categories: categoriesNl, labels: labelsNl, search: searchNl, data: dataNl, groups: groupsNl, join: joinNl, help: helpNl, login: loginNl, settings: settingsNl, statements: statementsNl, statementsAnalyze: statementsAnalyzeNl, onboarding: onboardingNl, assistant: assistantNl },
 } as const;
 
 /** Registered namespaces. `translation` is the default; features add their own. */
-export const NAMESPACES = ["translation", "splits", "accounts", "transactions", "cards", "budgets", "goals", "templates", "recurring", "cashflow", "loans"] as const;
+export const NAMESPACES = ["translation", "splits", "accounts", "transactions", "cards", "budgets", "goals", "templates", "recurring", "cashflow", "loans", "investments", "insights", "categories", "labels", "search", "data", "groups", "join", "help", "login", "settings", "statements", "statementsAnalyze", "onboarding", "assistant"] as const;
 
 export function isRtl(languageCode: string): boolean {
   const base = languageCode.split("-")[0];

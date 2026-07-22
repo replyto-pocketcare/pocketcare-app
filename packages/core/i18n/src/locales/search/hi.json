@@ -1,0 +1,13 @@
+{
+  "title": "खोज",
+  "searchEverything": "सब कुछ खोजें — लेबल, नोट, श्रेणी…",
+  "filters": "फ़िल्टर",
+  "clear": "साफ़ करें",
+  "type": { "all": "सभी", "income": "आय", "expense": "व्यय", "transfer": "स्थानांतरण" },
+  "allAccounts": "सभी खाते",
+  "minAmount": "न्यूनतम राशि",
+  "maxAmount": "अधिकतम राशि",
+  "resultsCount_one": "{{count}} परिणाम",
+  "resultsCount_other": "{{count}} परिणाम",
+  "noMatching": "कोई मेल खाता लेनदेन नहीं।"
+}

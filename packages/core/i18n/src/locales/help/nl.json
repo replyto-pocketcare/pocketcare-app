@@ -1,0 +1,9 @@
+{
+  "title": "Help & FAQ",
+  "subtitlePre": "Alles wat PocketCare kan. Nog steeds vast? Vraag het ",
+  "subtitleLink": "Ask PocketCare",
+  "subtitlePost": ".",
+  "searchPlaceholder": "Zoek in help — bijv. “splitsen”, “budget”, “factuur”…",
+  "noMatch": "Geen help-onderwerpen komen overeen met “{{query}}”. Probeer een ander woord of vraag de assistent.",
+  "footer": "PocketCare · je geld, rustig geordend."
+}

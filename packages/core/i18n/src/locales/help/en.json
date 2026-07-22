@@ -1,0 +1,9 @@
+{
+  "title": "Help & FAQ",
+  "subtitlePre": "Everything PocketCare can do. Still stuck? Ask ",
+  "subtitleLink": "Ask PocketCare",
+  "subtitlePost": ".",
+  "searchPlaceholder": "Search help — e.g. “split”, “budget”, “invoice”…",
+  "noMatch": "No help topics match “{{query}}”. Try a different word, or ask the assistant.",
+  "footer": "PocketCare · your money, quietly organised."
+}

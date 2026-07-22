@@ -1,0 +1,18 @@
+{
+  "title": "Statements",
+  "premiumTitle": "Statements are a Premium feature",
+  "premiumBody": "Generate a clean statement for any period and save it as a PDF.",
+  "goPremium": "Go Premium",
+  "analyze": "Analyze a statement",
+  "print": "Print / Save PDF",
+  "fromDate": "From date",
+  "toDate": "To date",
+  "statementName": "PocketCare Statement",
+  "netForPeriod": "Net for period",
+  "income": "Income",
+  "expenses": "Expenses",
+  "transactions": "Transactions",
+  "noTransactions": "No transactions in this period.",
+  "today": "Today",
+  "yesterday": "Yesterday"
+}

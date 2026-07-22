@@ -2,6 +2,8 @@
 
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { useQuery } from "@powersync/react";
 import { getSupabase, getDb } from "../../src/powersync";
 import { insertRow, softDelete, nowIso } from "../../src/write";
@@ -30,18 +32,9 @@ const HISTORY_CAP = 16; // messages sent to the model per turn (memory carries t
 const MAX_TOKENS = 900; // headroom for the structured <ui> block
 const uid = () => Math.random().toString(36).slice(2);
 
-const GREETING =
-  "Hi! I'm your PocketCare companion. I can help you plan a purchase, set up goals and budgets, make sense of your spending, or split expenses with friends — all from your own data.\n\nHere are a few things you could try:";
-
-const SUGGESTIONS = [
-  "What can you help me with?",
-  "I want to buy an iPhone in the Diwali sale — help me plan for it.",
-  "Can I afford a ₹40,000 trip in 3 months?",
-  "Set up a monthly budget for eating out.",
-  "How do I split rent with my flatmates?",
-  "Who owes me money right now, and how much?",
-  "Create a Goa trip so I can split expenses with friends.",
-];
+// Greeting + starter suggestions are localised via the `assistant` namespace
+// (the greeting bubble and the suggestion chips). The PERSONA below is the
+// model's system prompt and intentionally stays English.
 
 // Stable persona/guardrails block — identical every call, so prompt-cacheable.
 const PERSONA = [
@@ -93,6 +86,8 @@ import { usePremiumStatus } from "../../src/premium";
 import { Modal } from "../../src/ui/Modal";
 
 export default function AssistantPage() {
+  const { t } = useTranslation("assistant");
+  const suggestions = t("suggestions", { returnObjects: true }) as string[];
   const { isPremiumUser, hasActiveTrial } = usePremiumStatus();
   const confirm = useConfirm();
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -199,7 +194,7 @@ export default function AssistantPage() {
     threadRef.current = null;
     setPending(null);
     // Local-only greeting bubble — not persisted, not sent to the model.
-    setUi([{ id: uid(), role: "assistant", text: GREETING }]);
+    setUi([{ id: uid(), role: "assistant", text: t("greeting") }]);
     setView("chat");
     window.scrollTo({ top: 0 });
   }
@@ -257,7 +252,7 @@ export default function AssistantPage() {
     setBusy(false);
 
     if (!data || data.error || !data.content) {
-      pushUi("assistant", friendly(data?.error));
+      pushUi("assistant", friendly(data?.error, t));
       return;
     }
     const content = data.content;
@@ -356,12 +351,12 @@ export default function AssistantPage() {
   if (!isPremiumUser && !hasActiveTrial) {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
-        <h1>Ask PocketCare</h1>
+        <h1>{t("title")}</h1>
         <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
-          <h2>The AI assistant is a Premium feature</h2>
-          <p className="muted">Plan purchases and savings in plain language, get concrete numeric plans from your own data, and let it set up goals and budgets for you.</p>
-          <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>
+          <h2>{t("premiumFeature")}</h2>
+          <p className="muted">{t("premiumBody")}</p>
+          <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>{t("goPremium")}</Link>
         </div>
       </div>
     );
@@ -373,34 +368,33 @@ export default function AssistantPage() {
       <div className="fade-up" style={{ display: "grid", gap: 20, maxWidth: 760, marginInline: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <h1>Ask PocketCare</h1>
+            <h1>{t("title")}</h1>
             {quota && (
               <div className="chip" style={{ fontSize: 11, cursor: "default", background: isOutOfQuota ? "var(--negative-ghost)" : "var(--surface-2)" }}>
-                {planLeft} / {quota.monthly_quota_total}{purchasedCredits > 0 ? ` +${purchasedCredits} credits` : ""} queries
+                {planLeft} / {quota.monthly_quota_total}{purchasedCredits > 0 ? t("creditsSuffix", { n: purchasedCredits }) : ""} {t("queries")}
               </div>
             )}
           </div>
-          <Link href="/help" className="chip">Help</Link>
+          <Link href="/help" className="chip">{t("help")}</Link>
         </div>
 
         <p className="muted" style={{ fontSize: 13, marginTop: -8 }}>
-          Plan a purchase or savings goal in plain language. Only an aggregated summary of your finances is shared — never individual transactions.
-          The assistant can make mistakes: it’s here to help you think, so double-check important numbers and use your own judgment.
+          {t("landingIntro")}
         </p>
 
         {quota && quota.quota_reset_date && (
           <div className="muted" style={{ fontSize: 12, marginTop: -10 }}>
-            Quota resets on {new Date(quota.quota_reset_date).toLocaleDateString()}
+            {t("quotaResets", { date: new Date(quota.quota_reset_date).toLocaleDateString() })}
           </div>
         )}
 
         <button className="btn" style={{ justifySelf: "start", padding: "12px 22px" }} onClick={newChat}>
-          ✦ Start a new chat
+          ✦ {t("startChat")}
         </button>
 
         <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
-          <span className="muted" style={{ fontSize: 12 }}>Continue a conversation</span>
-          {threads.length === 0 && <span className="muted" style={{ fontSize: 13 }}>No saved chats yet — start your first one above.</span>}
+          <span className="muted" style={{ fontSize: 12 }}>{t("continueConversation")}</span>
+          {threads.length === 0 && <span className="muted" style={{ fontSize: 13 }}>{t("noChats")}</span>}
           {threads.map((th) => (
             <div key={th.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
               <button
@@ -409,16 +403,16 @@ export default function AssistantPage() {
                 onClick={() => openThread(th.id)}
               >
                 <span style={{ display: "grid", gap: 2 }}>
-                  <span>{th.title || "Untitled chat"}</span>
+                  <span>{th.title || t("untitledChat")}</span>
                   <span className="muted" style={{ fontSize: 11 }}>{new Date(th.updated_at).toLocaleDateString()}</span>
                 </span>
               </button>
               <button
                 className="chip"
-                aria-label="Delete chat"
+                aria-label={t("deleteChatAria")}
                 style={{ padding: "4px 8px" }}
                 onClick={async () => {
-                  if (await confirm({ title: "Delete this chat?", message: "This conversation will be removed." })) {
+                  if (await confirm({ title: t("deleteChatTitle"), message: t("deleteChatMsg") })) {
                     void softDelete("assistant_threads", th.id);
                     if (threadRef.current === th.id) { threadRef.current = null; apiRef.current = []; setUi([]); }
                   }
@@ -437,33 +431,32 @@ export default function AssistantPage() {
       {!disclaimerAcked && (
         <Modal open onClose={ackDisclaimer}>
           <div style={{ padding: 24, display: "grid", gap: 16 }}>
-            <h2>Privacy & AI</h2>
+            <h2>{t("privacyTitle")}</h2>
             <p className="muted">
-              We never share PII or email. Anthropic is contractually bound to NOT use your data for model training.
-              However, please avoid typing personally identifiable information (PII) like account numbers or exact names in the chat.
+              {t("privacyBody")}
             </p>
-            <button className="btn" style={{ justifySelf: "end" }} onClick={ackDisclaimer}>I understand</button>
+            <button className="btn" style={{ justifySelf: "end" }} onClick={ackDisclaimer}>{t("understand")}</button>
           </div>
         </Modal>
       )}
 
       {/* Header stays visible while the thread below scrolls independently. */}
       <div className="assist-header">
-        <button className="chip" onClick={backToLanding}>‹ Chats</button>
+        <button className="chip" onClick={backToLanding}>{t("chats")}</button>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {quota && (
             <div className="chip" style={{ fontSize: 11, cursor: "default", background: isOutOfQuota ? "var(--negative-ghost)" : "var(--surface-2)" }}>
-              {planLeft} / {quota.monthly_quota_total}{purchasedCredits > 0 ? ` +${purchasedCredits} credits` : ""} queries
+              {planLeft} / {quota.monthly_quota_total}{purchasedCredits > 0 ? t("creditsSuffix", { n: purchasedCredits }) : ""} {t("queries")}
             </div>
           )}
-          <button className="chip" onClick={newChat}>New chat</button>
+          <button className="chip" onClick={newChat}>{t("newChat")}</button>
         </div>
       </div>
 
       <div className="assist-thread">
         {payloadData && (
           <details className="card" style={{ padding: "8px 14px", background: "var(--surface-1)" }}>
-            <summary className="muted" style={{ fontSize: 12, cursor: "pointer", userSelect: "none" }}>View data sent to AI</summary>
+            <summary className="muted" style={{ fontSize: 12, cursor: "pointer", userSelect: "none" }}>{t("viewData")}</summary>
             <pre style={{ marginTop: 8, fontSize: 11, whiteSpace: "pre-wrap", overflowX: "auto", color: "var(--text-2)" }}>{payloadData}</pre>
           </details>
         )}
@@ -498,7 +491,7 @@ export default function AssistantPage() {
         {/* Suggestion chips ride along with the greeting until the first user turn. */}
         {!hasUserTurn && (
           <div style={{ display: "grid", gap: 8, maxWidth: "85%" }}>
-            {SUGGESTIONS.map((ex) => (
+            {suggestions.map((ex) => (
               <button
                 key={ex}
                 className="chip"
@@ -510,27 +503,27 @@ export default function AssistantPage() {
           </div>
         )}
 
-        {busy && <div className="muted" style={{ fontSize: 13 }}>Thinking…</div>}
+        {busy && <div className="muted" style={{ fontSize: 13 }}>{t("thinking")}</div>}
 
         {isOutOfQuota && quota && (
           <div className="card" style={{ padding: 16, display: "grid", gap: 12, borderColor: "var(--warning)", background: "var(--accent-ghost)" }}>
             {isPaid ? (
               <>
-                <div style={{ fontSize: 14 }}><strong>You’ve used all your AI prompts for this cycle.</strong> Buy a credit top-up to keep going — credits never expire.</div>
+                <div style={{ fontSize: 14 }}><strong>{t("outPaidBold")}</strong>{t("outPaidRest")}</div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {CREDIT_PACKS.map((c) => (
                     <button key={c.id} className="chip" disabled={!!buyingCredits} onClick={async () => {
                       setBuyingCredits(c.id);
-                      try { await buyCredits(c.id); } catch (e) { pushUi("assistant", `Payment couldn't start: ${(e as Error).message}`); }
+                      try { await buyCredits(c.id); } catch (e) { pushUi("assistant", t("paymentFailed", { msg: (e as Error).message })); }
                       finally { setBuyingCredits(null); }
-                    }}>{buyingCredits === c.id ? "Opening…" : `₹${c.price} · +${c.credits}`}</button>
+                    }}>{buyingCredits === c.id ? t("opening") : `₹${c.price} · +${c.credits}`}</button>
                   ))}
                 </div>
               </>
             ) : (
               <>
-                <div style={{ fontSize: 14 }}><strong>You’ve used all your free AI prompts.</strong> AI credit top-ups are available on the Lite and Pro plans — upgrade to keep going, then you can buy credits anytime.</div>
-                <Link href="/settings" className="btn" style={{ justifySelf: "start" }}>See Lite &amp; Pro plans</Link>
+                <div style={{ fontSize: 14 }}><strong>{t("outFreeBold")}</strong>{t("outFreeRest")}</div>
+                <Link href="/settings" className="btn" style={{ justifySelf: "start" }}>{t("seePlans")}</Link>
               </>
             )}
           </div>
@@ -538,11 +531,11 @@ export default function AssistantPage() {
 
         {currentTool && (
           <div className="card" style={{ padding: 16, display: "grid", gap: 10, borderColor: "var(--accent-soft)", background: "var(--accent-ghost)" }}>
-            <div style={{ fontSize: 14 }}><strong>Confirm action</strong></div>
+            <div style={{ fontSize: 14 }}><strong>{t("confirmAction")}</strong></div>
             <div style={{ fontSize: 14 }}>{describeToolCall(currentTool.name, currentTool.input)}</div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn" onClick={() => resolvePending(true)}>Confirm</button>
-              <button className="chip" onClick={() => resolvePending(false)}>Skip</button>
+              <button className="btn" onClick={() => resolvePending(true)}>{t("confirm")}</button>
+              <button className="chip" onClick={() => resolvePending(false)}>{t("skip")}</button>
             </div>
           </div>
         )}
@@ -558,7 +551,7 @@ export default function AssistantPage() {
             ref={taRef}
             rows={1}
             style={{ flex: 1, minWidth: 0, resize: "none", maxHeight: 150, lineHeight: 1.5, border: "none", background: "transparent", outline: "none", font: "inherit", color: "var(--text)", padding: "9px 0" }}
-            placeholder="Ask anything, or tap the mic to speak…"
+            placeholder={t("composerPlaceholder")}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
@@ -571,7 +564,7 @@ export default function AssistantPage() {
           />
           <MicButton getInput={() => input} setInput={(v) => { setInput(v); const el = taRef.current; if (el) { el.style.height = "auto"; el.style.height = `${Math.min(el.scrollHeight, 150)}px`; } }} disabled={busy} />
           <button
-            type="button" aria-label="Send" onClick={send} disabled={busy || !input.trim() || !!pending}
+            type="button" aria-label={t("sendAria")} onClick={send} disabled={busy || !input.trim() || !!pending}
             style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 999, border: "none", display: "grid", placeItems: "center",
               cursor: input.trim() && !busy ? "pointer" : "default", transition: "background 0.16s, color 0.16s",
               background: input.trim() && !busy && !pending ? "var(--accent)" : "var(--surface-2)", color: input.trim() && !busy && !pending ? "#fff" : "var(--text-3)" }}
@@ -584,10 +577,10 @@ export default function AssistantPage() {
   );
 }
 
-function friendly(err?: string): string {
-  if (!err) return "Sorry — I couldn't get a response. Please try again.";
-  if (/not configured|ANTHROPIC/i.test(err)) return "The assistant isn't set up yet on this deployment (the AI key is missing).";
-  if (/^model:|not_found|model .* (not|isn)/i.test(err)) return "The configured AI model isn't available on your account. Set the ASSISTANT_MODEL secret to a valid Anthropic model id (e.g. claude-3-5-haiku-20241022).";
-  if (/network|fetch|Failed to send/i.test(err)) return "I couldn't reach the assistant — check your connection and try again.";
-  return `Sorry — something went wrong. (${err})`;
+function friendly(err: string | undefined, t: TFunction<"assistant">): string {
+  if (!err) return t("errDefault");
+  if (/not configured|ANTHROPIC/i.test(err)) return t("errNotConfigured");
+  if (/^model:|not_found|model .* (not|isn)/i.test(err)) return t("errModel");
+  if (/network|fetch|Failed to send/i.test(err)) return t("errNetwork");
+  return t("errGeneric", { err });
 }

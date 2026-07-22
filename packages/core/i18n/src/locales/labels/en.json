@@ -1,0 +1,14 @@
+{
+  "backToSettings": "← Settings",
+  "title": "Labels",
+  "searchPlaceholder": "Search labels…",
+  "noLabels": "No labels found.",
+  "newLabel": "New label",
+  "addLabel": "Add label",
+  "save": "Save",
+  "cancel": "Cancel",
+  "edit": "Edit",
+  "delete": "Delete",
+  "deleteTitle": "Delete this label?",
+  "deleteMsg": "“{{name}}” will be removed from transactions that use it."
+}

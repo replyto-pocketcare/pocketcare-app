@@ -1,0 +1,13 @@
+{
+  "title": "Search",
+  "searchEverything": "Search everything — label, note, category…",
+  "filters": "Filters",
+  "clear": "Clear",
+  "type": { "all": "All", "income": "Income", "expense": "Expense", "transfer": "Transfer" },
+  "allAccounts": "All accounts",
+  "minAmount": "Min amount",
+  "maxAmount": "Max amount",
+  "resultsCount_one": "{{count}} result",
+  "resultsCount_other": "{{count}} results",
+  "noMatching": "No matching transactions."
+}

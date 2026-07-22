@@ -1,0 +1,21 @@
+{
+  "slides": {
+    "0": { "title": "Maak kennis met PocketCare", "body": "Je rustige geldmaatje — houd uitgaven bij, plan vooruit en bereik je doelen, allemaal op één privéplek die offline werkt." },
+    "1": { "title": "Begin hier: voeg je rekeningen toe", "body": "Voeg je bank, contant geld en kaarten toe zodat PocketCare je beginsaldi kent. Deze ene stap voedt al het andere — je nettowaarde, budgetten en inzichten." },
+    "2": { "title": "Leg geld in seconden vast", "body": "Leg vast wat je uitgeeft of verdient — typ het, of tik gewoon op de microfoon en zeg het hardop. PocketCare stelt zelfs de categorie voor je voor." },
+    "3": { "title": "Weet waar het naartoe gaat", "body": "Stel eenvoudige budgetten in die je vroeg attent maken, en zie heldere, mooie inzichten in waar je geld elke maand echt naartoe gaat." },
+    "4": { "title": "Plan wat eraan komt", "body": "Salaris, huur, rekeningen, EMI's en abonnementen in één overzicht — zodat aankomende betalingen je nooit verrassen." },
+    "5": { "title": "Bereik je doelen", "body": "Bouw eerst een noodbuffer op, zet dan geld opzij voor wat belangrijk is en zie precies wanneer je er komt." },
+    "6": { "title": "Niet zeker? Vraag het gewoon", "body": "Vraag PocketCare in gewone taal — \"waar ging mijn geld heen?\", \"kan ik dit betalen?\" — en het antwoordt of brengt je meteen naar het scherm." }
+  },
+  "guestErr": "Kon geen gastsessie starten.",
+  "next": "Volgende",
+  "skip": "Overslaan",
+  "createAccount": "Account maken",
+  "signIn": "Aanmelden",
+  "tryGuest": "Als gast proberen",
+  "starting": "Starten…",
+  "footer": "Maak een account om op alle apparaten te synchroniseren. Gastgegevens blijven op dit apparaat en worden 3 dagen bewaard.",
+  "installApp": "App op je apparaat installeren",
+  "installTitle": "PocketCare installeren"
+}

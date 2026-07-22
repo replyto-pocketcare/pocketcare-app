@@ -1,0 +1,18 @@
+{
+  "title": "स्टेटमेंट",
+  "premiumTitle": "स्टेटमेंट एक प्रीमियम सुविधा है",
+  "premiumBody": "किसी भी अवधि के लिए एक साफ़ स्टेटमेंट बनाएं और इसे PDF के रूप में सहेजें।",
+  "goPremium": "प्रीमियम लें",
+  "analyze": "एक स्टेटमेंट विश्लेषण करें",
+  "print": "प्रिंट / PDF सहेजें",
+  "fromDate": "आरंभ तिथि",
+  "toDate": "समाप्ति तिथि",
+  "statementName": "PocketCare स्टेटमेंट",
+  "netForPeriod": "अवधि का शुद्ध",
+  "income": "आय",
+  "expenses": "व्यय",
+  "transactions": "लेनदेन",
+  "noTransactions": "इस अवधि में कोई लेनदेन नहीं।",
+  "today": "आज",
+  "yesterday": "कल"
+}

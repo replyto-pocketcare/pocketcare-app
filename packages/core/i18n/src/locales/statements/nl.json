@@ -1,0 +1,18 @@
+{
+  "title": "Afschriften",
+  "premiumTitle": "Afschriften zijn een Premium-functie",
+  "premiumBody": "Genereer een net afschrift voor elke periode en sla het op als PDF.",
+  "goPremium": "Ga Premium",
+  "analyze": "Een afschrift analyseren",
+  "print": "Afdrukken / PDF opslaan",
+  "fromDate": "Vanaf datum",
+  "toDate": "Tot datum",
+  "statementName": "PocketCare-afschrift",
+  "netForPeriod": "Netto voor periode",
+  "income": "Inkomsten",
+  "expenses": "Uitgaven",
+  "transactions": "Transacties",
+  "noTransactions": "Geen transacties in deze periode.",
+  "today": "Vandaag",
+  "yesterday": "Gisteren"
+}

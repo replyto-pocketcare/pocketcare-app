@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
 import { Logo } from "../../src/ui/Logo";
 import { getSupabase } from "../../src/powersync";
@@ -11,14 +12,15 @@ import { DownloadIcon } from "../../src/ui/icons";
 
 /** Inshorts-style walkthrough: a graphic glyph + a plain-language summary. The
  *  first cards say what to DO first; the rest say what you can achieve. */
-const SLIDES: { title: string; body: string; glyph: string; grad: [string, string] }[] = [
-  { glyph: "❤", grad: ["#b06a4f", "#8f533c"], title: "Meet PocketCare", body: "Your calm money companion — track spending, plan ahead, and reach your goals, all in one private place that works offline." },
-  { glyph: "⌂", grad: ["#3e4a38", "#2f6f6a"], title: "Start here: add your accounts", body: "Add your bank, cash and cards so PocketCare knows your starting balances. This one step powers everything else — your net worth, budgets and insights." },
-  { glyph: "⇅", grad: ["#7a4a6b", "#4f3a54"], title: "Log money in seconds", body: "Record what you spend or earn — type it, or just tap the mic and say it out loud. PocketCare even suggests the category for you." },
-  { glyph: "◔", grad: ["#c08a3e", "#a8503a"], title: "Know where it goes", body: "Set simple budgets that nudge you early, and see clear, beautiful insights into where your money actually goes each month." },
-  { glyph: "⇌", grad: ["#b06a4f", "#5f6647"], title: "Plan what’s coming", body: "Salary, rent, bills, EMIs and subscriptions in one view — so upcoming payments never take you by surprise." },
-  { glyph: "◎", grad: ["#2f6f6a", "#3e4a38"], title: "Reach your goals", body: "Build an emergency buffer first, then set money aside for what matters and see exactly when you’ll get there." },
-  { glyph: "✦", grad: ["#7c4a3a", "#b06a4f"], title: "Not sure? Just ask", body: "Ask PocketCare in plain words — “where did my money go?”, “can I afford this?” — and it’ll answer or take you right to the screen." },
+// Visual identity per slide; the title/body copy is localised via the `onboarding` namespace.
+const SLIDES: { glyph: string; grad: [string, string] }[] = [
+  { glyph: "❤", grad: ["#b06a4f", "#8f533c"] },
+  { glyph: "⌂", grad: ["#3e4a38", "#2f6f6a"] },
+  { glyph: "⇅", grad: ["#7a4a6b", "#4f3a54"] },
+  { glyph: "◔", grad: ["#c08a3e", "#a8503a"] },
+  { glyph: "⇌", grad: ["#b06a4f", "#5f6647"] },
+  { glyph: "◎", grad: ["#2f6f6a", "#3e4a38"] },
+  { glyph: "✦", grad: ["#7c4a3a", "#b06a4f"] },
 ];
 
 function Graphic({ glyph, grad }: { glyph: string; grad: [string, string] }) {
@@ -31,6 +33,7 @@ function Graphic({ glyph, grad }: { glyph: string; grad: [string, string] }) {
 }
 
 export default function OnboardingPage() {
+  const { t } = useTranslation("onboarding");
   const router = useRouter();
   const [i, setI] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -51,7 +54,7 @@ export default function OnboardingPage() {
       if (error) throw error;
       done("/");
     } catch (e) {
-      setErr((e as Error).message || "Couldn’t start a guest session.");
+      setErr((e as Error).message || t("guestErr"));
       setBusy(false);
     }
   }
@@ -73,8 +76,8 @@ export default function OnboardingPage() {
             style={{ display: "grid", gap: 18, justifyItems: "center", cursor: "grab", touchAction: "pan-y" }}
           >
             <Graphic glyph={SLIDES[i]!.glyph} grad={SLIDES[i]!.grad} />
-            <h1 style={{ fontSize: 27, margin: 0 }}>{SLIDES[i]!.title}</h1>
-            <p className="muted" style={{ fontSize: 16, lineHeight: 1.6, maxWidth: 440, margin: 0 }}>{SLIDES[i]!.body}</p>
+            <h1 style={{ fontSize: 27, margin: 0 }}>{t(`slides.${i}.title`)}</h1>
+            <p className="muted" style={{ fontSize: 16, lineHeight: 1.6, maxWidth: 440, margin: 0 }}>{t(`slides.${i}.body`)}</p>
           </motion.div>
         </AnimatePresence>
 
@@ -88,27 +91,27 @@ export default function OnboardingPage() {
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           {!last ? (
             <>
-              <button className="btn" onClick={() => setI(i + 1)}>Next</button>
-              <button className="btn ghost" onClick={() => setI(SLIDES.length - 1)}>Skip</button>
+              <button className="btn" onClick={() => setI(i + 1)}>{t("next")}</button>
+              <button className="btn ghost" onClick={() => setI(SLIDES.length - 1)}>{t("skip")}</button>
             </>
           ) : (
             <>
-              <button className="btn" onClick={() => done("/login")} disabled={busy}>Create account</button>
-              <button className="btn ghost" onClick={() => done("/login?mode=signin")} disabled={busy}>Sign in</button>
-              <button className="btn ghost" onClick={tryGuest} disabled={busy}>{busy ? "Starting…" : "Try as guest"}</button>
+              <button className="btn" onClick={() => done("/login")} disabled={busy}>{t("createAccount")}</button>
+              <button className="btn ghost" onClick={() => done("/login?mode=signin")} disabled={busy}>{t("signIn")}</button>
+              <button className="btn ghost" onClick={tryGuest} disabled={busy}>{busy ? t("starting") : t("tryGuest")}</button>
             </>
           )}
         </div>
         {err && <div className="card" style={{ padding: 12, fontSize: 13, borderColor: "var(--negative)", color: "var(--negative)" }}>{err}</div>}
-        <p className="muted" style={{ fontSize: 12 }}>Create an account to sync across devices. Guest data stays on this device and is kept for 3 days.</p>
+        <p className="muted" style={{ fontSize: 12 }}>{t("footer")}</p>
 
         <button className="chip" style={{ justifySelf: "center", display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => setShowInstall(true)}>
-          <DownloadIcon size={15} /> Install app on your device
+          <DownloadIcon size={15} /> {t("installApp")}
         </button>
       </div>
 
       <Modal open={showInstall} onClose={() => setShowInstall(false)}>
-        <h2 style={{ margin: "0 0 12px" }}>Install PocketCare</h2>
+        <h2 style={{ margin: "0 0 12px" }}>{t("installTitle")}</h2>
         <InstallGuide />
       </Modal>
     </div>

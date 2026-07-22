@@ -1,0 +1,20 @@
+{
+  "backToSettings": "← Settings",
+  "title": "Categories",
+  "searchPlaceholder": "Search categories…",
+  "collapse": "Collapse",
+  "expand": "Expand",
+  "newCategory": "New category",
+  "expense": "Expense",
+  "income": "Income",
+  "topLevel": "— top level —",
+  "under": "under {{name}}",
+  "add": "Add",
+  "name": "Name",
+  "save": "Save",
+  "cancel": "Cancel",
+  "edit": "Edit",
+  "kind": { "expense": "expense", "income": "income" },
+  "deleteTitle": "Delete this category?",
+  "deleteMsg": "“{{name}}” will be removed. Transactions keep their history but lose this category."
+}

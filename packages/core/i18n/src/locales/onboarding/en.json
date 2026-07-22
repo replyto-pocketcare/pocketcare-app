@@ -1,0 +1,21 @@
+{
+  "slides": {
+    "0": { "title": "Meet PocketCare", "body": "Your calm money companion — track spending, plan ahead, and reach your goals, all in one private place that works offline." },
+    "1": { "title": "Start here: add your accounts", "body": "Add your bank, cash and cards so PocketCare knows your starting balances. This one step powers everything else — your net worth, budgets and insights." },
+    "2": { "title": "Log money in seconds", "body": "Record what you spend or earn — type it, or just tap the mic and say it out loud. PocketCare even suggests the category for you." },
+    "3": { "title": "Know where it goes", "body": "Set simple budgets that nudge you early, and see clear, beautiful insights into where your money actually goes each month." },
+    "4": { "title": "Plan what's coming", "body": "Salary, rent, bills, EMIs and subscriptions in one view — so upcoming payments never take you by surprise." },
+    "5": { "title": "Reach your goals", "body": "Build an emergency buffer first, then set money aside for what matters and see exactly when you'll get there." },
+    "6": { "title": "Not sure? Just ask", "body": "Ask PocketCare in plain words — \"where did my money go?\", \"can I afford this?\" — and it'll answer or take you right to the screen." }
+  },
+  "guestErr": "Couldn't start a guest session.",
+  "next": "Next",
+  "skip": "Skip",
+  "createAccount": "Create account",
+  "signIn": "Sign in",
+  "tryGuest": "Try as guest",
+  "starting": "Starting…",
+  "footer": "Create an account to sync across devices. Guest data stays on this device and is kept for 3 days.",
+  "installApp": "Install app on your device",
+  "installTitle": "Install PocketCare"
+}

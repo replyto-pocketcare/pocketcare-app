@@ -1,0 +1,14 @@
+{
+  "backToSettings": "← Instellingen",
+  "title": "Labels",
+  "searchPlaceholder": "Labels zoeken…",
+  "noLabels": "Geen labels gevonden.",
+  "newLabel": "Nieuw label",
+  "addLabel": "Label toevoegen",
+  "save": "Opslaan",
+  "cancel": "Annuleren",
+  "edit": "Bewerken",
+  "delete": "Verwijderen",
+  "deleteTitle": "Dit label verwijderen?",
+  "deleteMsg": "“{{name}}” wordt verwijderd uit transacties die het gebruiken."
+}

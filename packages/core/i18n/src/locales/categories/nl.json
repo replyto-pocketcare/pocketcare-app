@@ -1,0 +1,20 @@
+{
+  "backToSettings": "← Instellingen",
+  "title": "Categorieën",
+  "searchPlaceholder": "Categorieën zoeken…",
+  "collapse": "Inklappen",
+  "expand": "Uitklappen",
+  "newCategory": "Nieuwe categorie",
+  "expense": "Uitgave",
+  "income": "Inkomsten",
+  "topLevel": "— hoofdniveau —",
+  "under": "onder {{name}}",
+  "add": "Toevoegen",
+  "name": "Naam",
+  "save": "Opslaan",
+  "cancel": "Annuleren",
+  "edit": "Bewerken",
+  "kind": { "expense": "uitgave", "income": "inkomsten" },
+  "deleteTitle": "Deze categorie verwijderen?",
+  "deleteMsg": "“{{name}}” wordt verwijderd. Transacties behouden hun geschiedenis maar verliezen deze categorie."
+}

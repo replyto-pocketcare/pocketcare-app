@@ -1,0 +1,7 @@
+{
+  "opening": "Opening your invite…",
+  "missingToken": "This invite link is missing its token.",
+  "needAuth": "Sign in or create an account, then open this link again to join.",
+  "title": "Join a split group",
+  "signInCreate": "Sign in / Create account"
+}
