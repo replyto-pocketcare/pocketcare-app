@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { money, fromMajor, toMajor } from "@pocketcare/money";
 import { amortizationSchedule, emiDueDate, effectivePaidEmis, emiFromPrincipal } from "@pocketcare/finance";
@@ -50,6 +51,7 @@ const fmtDate = (iso: string | null) => (iso ? new Date(iso + "T00:00:00").toLoc
 const fmtDateShort = (iso: string | null) => (iso ? new Date(iso + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short" }) : "—");
 
 export default function LoanDetailPage() {
+  const { t } = useTranslation("loans");
   const { id } = useParams<{ id: string }>();
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
@@ -59,8 +61,8 @@ export default function LoanDetailPage() {
   const [editing, setEditing] = useState(false);
   const [payFor, setPayFor] = useState<{ month: number; due: string | null } | null>(null);
 
-  if (isLoading) return <div className="muted">Loading…</div>;
-  if (!loan) return <div className="card" style={{ padding: 24 }}>This loan no longer exists.</div>;
+  if (isLoading) return <div className="muted">{t("loading")}</div>;
+  if (!loan) return <div className="card" style={{ padding: 24 }}>{t("notExist")}</div>;
 
   const cur = loan.currency || base;
   const tenure = loan.tenure_months ?? 0;
@@ -122,38 +124,38 @@ export default function LoanDetailPage() {
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0 }}>{loan.lender || "Loan"}</h1>
+        <h1 style={{ margin: 0 }}>{loan.lender || t("loanFallback")}</h1>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn ghost" onClick={() => setEditing(true)}>Edit</button>
-          <button className="chip" onClick={async () => { if (await confirm({ title: "Delete this loan?", message: `“${loan.lender || "Loan"}” will be removed.`, confirmLabel: "Delete" })) { softDelete("loans", loan.id); history.back(); } }}>Delete</button>
+          <button className="btn ghost" onClick={() => setEditing(true)}>{t("edit")}</button>
+          <button className="chip" onClick={async () => { if (await confirm({ title: t("deleteTitle"), message: t("deleteMsg", { name: loan.lender || t("loanFallback") }), confirmLabel: t("delete") })) { softDelete("loans", loan.id); history.back(); } }}>{t("delete")}</button>
         </div>
       </div>
 
       {/* Summary */}
       <div className="pc-hero">
-        <Card label="Principal" value={fmt(money(loan.principal, cur))} />
-        <Card label="Monthly EMI" value={isVariable ? "Varies" : emi ? fmt(money(emi, cur)) : "—"} />
-        <Card label={isVariable ? "Interest rate" : "Interest rate"} value={hasInterest ? `${loan.interest_rate}% p.a.${isVariable ? " · variable" : ""}` : (isVariable ? "Variable" : "—")} />
-        <Card label="EMIs paid" value={tenure ? `${emisPaid} / ${tenure}` : String(emisPaid)} />
+        <Card label={t("cardPrincipal")} value={fmt(money(loan.principal, cur))} />
+        <Card label={t("cardMonthlyEmi")} value={isVariable ? t("varies") : emi ? fmt(money(emi, cur)) : "—"} />
+        <Card label={t("cardInterestRate")} value={hasInterest ? `${t("perAnnum", { rate: loan.interest_rate })}${isVariable ? t("rateVariableSuffix") : ""}` : (isVariable ? t("variable") : "—")} />
+        <Card label={t("cardEmisPaid")} value={tenure ? `${emisPaid} / ${tenure}` : String(emisPaid)} />
       </div>
 
       <section className="card" style={{ padding: 18, display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <div className="muted" style={{ fontSize: 12 }}>Next EMI due</div>
+          <div className="muted" style={{ fontSize: 12 }}>{t("nextEmiDue")}</div>
           <div style={{ fontSize: 20, fontWeight: 700 }}>{nextEmiDue && remaining !== 0 ? fmtDate(nextEmiDue) : "—"}</div>
         </div>
         <div>
-          <div className="muted" style={{ fontSize: 12 }}>Remaining</div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>{remaining != null ? `${remaining} EMIs` : "—"}</div>
+          <div className="muted" style={{ fontSize: 12 }}>{t("remaining")}</div>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>{remaining != null ? t("remainingEmis", { count: remaining }) : "—"}</div>
         </div>
         {isVariable ? (
           <div>
-            <div className="muted" style={{ fontSize: 12 }}>Paid so far</div>
+            <div className="muted" style={{ fontSize: 12 }}>{t("paidSoFar")}</div>
             <div style={{ fontSize: 20, fontWeight: 700 }}>{fmt(money(variablePaidTotal, cur))}</div>
           </div>
         ) : hasInterest && (
           <div>
-            <div className="muted" style={{ fontSize: 12 }}>Total interest (schedule)</div>
+            <div className="muted" style={{ fontSize: 12 }}>{t("totalInterestSchedule")}</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: "var(--negative)" }}>{fmt(money(totalInterest, cur))}</div>
           </div>
         )}
@@ -170,16 +172,14 @@ export default function LoanDetailPage() {
       {(schedule.length > 0 || variableMonths.length > 0) && (
         <section className="card" style={{ padding: 16, display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ maxWidth: 460 }}>
-            <div style={{ fontWeight: 650 }}>Auto-mark past-due EMIs as paid</div>
+            <div style={{ fontWeight: 650 }}>{t("autoMarkTitle")}</div>
             <div className="muted" style={{ fontSize: 12 }}>
-              {autoMark
-                ? "EMIs are marked paid automatically once their due date passes. Turn off to mark each one yourself."
-                : "You mark each EMI paid yourself. Turn on to auto-mark any EMI whose due date has passed."}
-              {" "}Due on the {dueDay ? ordinal(dueDay) : (loan.start_date ? ordinal(new Date(loan.start_date + "T00:00:00").getDate()) : "—")} of each month.
+              {autoMark ? t("autoMarkOn") : t("autoMarkOff")}
+              {" "}{(() => { const d = dueDay ?? (loan.start_date ? new Date(loan.start_date + "T00:00:00").getDate() : null); return d ? t("dueOnEach", { ord: ordinal(d), n: d }) : ""; })()}
             </div>
           </div>
           <button className={`btn ${autoMark ? "" : "ghost"}`} onClick={toggleAutoMark} role="switch" aria-checked={autoMark}>
-            {autoMark ? "On" : "Off"}
+            {autoMark ? t("on") : t("off")}
           </button>
         </section>
       )}
@@ -187,7 +187,7 @@ export default function LoanDetailPage() {
       {/* Variable-rate: month-by-month EMIs entered by the user */}
       {isVariable && (
         <section style={{ display: "grid", gap: 10 }}>
-          <div className="eyebrow">Monthly EMIs · you enter each month’s amount</div>
+          <div className="eyebrow">{t("variableTitle")}</div>
           <div style={{ display: "grid", gap: 10 }}>
             {variableMonths.map((m) => {
               const rowPaid = isPaid(m);
@@ -200,30 +200,30 @@ export default function LoanDetailPage() {
                   <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", gap: 10, background: isNext ? "var(--accent-ghost)" : "transparent" }}>
                     <EmiIcon state={rowPaid ? "paid" : "due"} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="muted" style={{ fontSize: 11 }}>{ordinal(m)} EMI</div>
+                      <div className="muted" style={{ fontSize: 11 }}>{t("nthEmi", { ord: ordinal(m), n: m })}</div>
                       <div style={{ fontWeight: 700, fontSize: 15 }}>{amounts[m] ? fmt(money(amounts[m]!, cur)) : "—"}</div>
                     </div>
                     <div style={{ display: "grid", gap: 3, justifyItems: "end" }}>
                       <EmiStatusPill rowPaid={rowPaid} manualPaid={manualPaid} due={due} onMark={() => setPayFor({ month: m, due })} onUnmark={() => setManualPaid(m, null)} />
-                      <span className="muted" style={{ fontSize: 11 }}>{rowPaid ? `On ${fmtDateShort(paidOn || due)}` : `Due ${fmtDateShort(due)}`}</span>
+                      <span className="muted" style={{ fontSize: 11 }}>{rowPaid ? t("onDate", { date: fmtDateShort(paidOn || due) }) : t("dueDate", { date: fmtDateShort(due) })}</span>
                     </div>
                   </div>
                   <div style={{ borderTop: "1px solid var(--border)", padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-                    <span className="muted" style={{ fontSize: 11 }}>EMI this month</span>
+                    <span className="muted" style={{ fontSize: 11 }}>{t("emiThisMonth")}</span>
                     <VariableAmountCell key={`amt-${m}-${amounts[m] ?? 0}`} value={amounts[m] ?? null} currency={cur} onSave={(minor) => setAmount(m, minor)} />
                   </div>
                 </div>
               );
             })}
           </div>
-          <p className="muted" style={{ fontSize: 12, margin: 0 }}>Variable-rate loans re-price over time, so enter each month’s EMI as your bank sets it. {tenure ? "" : "Add a tenure (edit) to lay out the full schedule."}</p>
+          <p className="muted" style={{ fontSize: 12, margin: 0 }}>{t("variableNote")}{tenure ? "" : t("variableAddTenure")}</p>
         </section>
       )}
 
       {/* Amortization schedule (fixed-rate) — stacked cards, no horizontal scroll */}
       {!isVariable && (schedule.length > 0 ? (
         <section style={{ display: "grid", gap: 10 }}>
-          <div className="eyebrow">Amortization schedule {hasInterest ? "· principal vs interest" : "· principal only"}</div>
+          <div className="eyebrow">{t("amortTitle")}{hasInterest ? t("amortWithInterest") : t("amortPrincipalOnly")}</div>
           <div style={{ display: "grid", gap: 10 }}>
             {schedule.map((r) => {
               const rowPaid = isPaid(r.month);
@@ -236,29 +236,29 @@ export default function LoanDetailPage() {
                   <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", gap: 10, background: isNext ? "var(--accent-ghost)" : "transparent" }}>
                     <EmiIcon state={rowPaid ? "paid" : "due"} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="muted" style={{ fontSize: 11 }}>{ordinal(r.month)} EMI</div>
+                      <div className="muted" style={{ fontSize: 11 }}>{t("nthEmi", { ord: ordinal(r.month), n: r.month })}</div>
                       <div style={{ fontWeight: 700, fontSize: 15 }}>{fmt(money(r.emi, cur))}</div>
                     </div>
                     <div style={{ display: "grid", gap: 3, justifyItems: "end" }}>
                       <EmiStatusPill rowPaid={rowPaid} manualPaid={manualPaid} due={due} onMark={() => setPayFor({ month: r.month, due })} onUnmark={() => setManualPaid(r.month, null)} />
-                      <span className="muted" style={{ fontSize: 11 }}>{rowPaid ? `On ${fmtDateShort(paidOn || due)}` : `Due ${fmtDateShort(due)}`}</span>
+                      <span className="muted" style={{ fontSize: 11 }}>{rowPaid ? t("onDate", { date: fmtDateShort(paidOn || due) }) : t("dueDate", { date: fmtDateShort(due) })}</span>
                     </div>
                   </div>
                   <div style={{ borderTop: "1px solid var(--border)", padding: "10px 14px", display: "flex", justifyContent: "space-between", gap: 12 }}>
-                    <Field label="Principal Amount" value={fmt(money(r.principal, cur))} />
+                    <Field label={t("principalAmount")} value={fmt(money(r.principal, cur))} />
                     {hasInterest
-                      ? <Field label="Interest Amount" align="right" tone="var(--negative)" value={fmt(money(r.interest, cur))} />
-                      : <Field label="Balance" align="right" value={fmt(money(r.balance, cur))} />}
+                      ? <Field label={t("interestAmount")} align="right" tone="var(--negative)" value={fmt(money(r.interest, cur))} />
+                      : <Field label={t("balance")} align="right" value={fmt(money(r.balance, cur))} />}
                   </div>
                 </div>
               );
             })}
           </div>
-          {!hasInterest && <p className="muted" style={{ fontSize: 12, margin: 0 }}>Add an interest rate (edit) to see the principal-vs-interest split each month.</p>}
+          {!hasInterest && <p className="muted" style={{ fontSize: 12, margin: 0 }}>{t("addInterestHint")}</p>}
         </section>
       ) : (
         <div className="card" style={{ padding: 24, color: "var(--text-3)", fontSize: 13, textAlign: "center" }}>
-          Add a monthly EMI (and tenure) to generate the amortization schedule.
+          {t("addEmiHint")}
         </div>
       ))}
 
@@ -312,14 +312,16 @@ function Card({ label, value }: { label: string; value: string }) {
 function EmiStatusPill({ rowPaid, manualPaid, due, onMark, onUnmark }: {
   rowPaid: boolean; manualPaid: boolean; due: string | null; onMark: () => void; onUnmark: () => void;
 }) {
-  if (rowPaid && !manualPaid) return <Pill tone="positive" title={`Auto-marked — due ${fmtDate(due)}`}>Auto ✓</Pill>;
-  if (rowPaid) return <Pill tone="positive" onClick={onUnmark} title="Paid · tap to undo">Paid ✓</Pill>;
-  return <Pill tone="amber" onClick={onMark} title="Tap to mark paid">Mark paid</Pill>;
+  const { t } = useTranslation("loans");
+  if (rowPaid && !manualPaid) return <Pill tone="positive" title={t("autoMarkedTitle", { date: fmtDate(due) })}>{t("autoMarked")}</Pill>;
+  if (rowPaid) return <Pill tone="positive" onClick={onUnmark} title={t("paidTitle")}>{t("paidCheck")}</Pill>;
+  return <Pill tone="amber" onClick={onMark} title={t("markPaidTitle")}>{t("markPaid")}</Pill>;
 }
 
 /** Inline editable EMI amount for a variable-rate month; saves on blur.
  *  Keyed by its saved value in the parent, so it re-seeds when the value changes. */
 function VariableAmountCell({ value, currency, onSave }: { value: number | null; currency: string; onSave: (minor: number | null) => void }) {
+  const { t } = useTranslation("loans");
   const [raw, setRaw] = useState(value != null ? String(toMajor(money(value, currency))) : "");
   return (
     <AmountInput
@@ -327,7 +329,7 @@ function VariableAmountCell({ value, currency, onSave }: { value: number | null;
       currency={currency}
       placeholder="0"
       value={raw}
-      ariaLabel="EMI this month"
+      ariaLabel={t("emiThisMonth")}
       onChange={setRaw}
       onBlur={() => onSave(raw ? fromMajor(Number(raw), currency).amount : null)}
     />
@@ -340,6 +342,7 @@ function MarkPaidDialog({ loan, month, due, emiAmount, currency, onClose, onConf
   loan: Loan; month: number; due: string | null; emiAmount: number; currency: string;
   onClose: () => void; onConfirm: (paidOn: string, accountId: string | null) => Promise<void>;
 }) {
+  const { t } = useTranslation("loans");
   const fmt = useMoneyFmt();
   const accounts = useAccountBalances();
   const [paidOn, setPaidOn] = useState(due && due <= todayIso() ? due : todayIso());
@@ -351,27 +354,27 @@ function MarkPaidDialog({ loan, month, due, emiAmount, currency, onClose, onConf
     <Modal open onClose={onClose}>
       <div style={{ display: "grid", gap: 14 }}>
         <div>
-          <h2 style={{ margin: 0 }}>Mark EMI #{month} paid</h2>
-          {due && <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>Due {fmtDate(due)}{emiAmount > 0 ? ` · ${fmt(money(emiAmount, currency))}` : ""}</p>}
+          <h2 style={{ margin: 0 }}>{t("markEmiPaid", { n: month })}</h2>
+          {due && <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>{t("dueLine", { date: fmtDate(due) })}{emiAmount > 0 ? ` · ${fmt(money(emiAmount, currency))}` : ""}</p>}
         </div>
-        <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>Paid on
+        <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("paidOn")}
           <input className="input" type="date" max={todayIso()} value={paidOn} onChange={(e) => setPaidOn(e.target.value)} />
         </label>
         {canRecord && (
-          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>Also record a payment (optional)
+          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("alsoRecord")}
             <select className="input" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
-              <option value="">Don’t record a transaction</option>
+              <option value="">{t("dontRecord")}</option>
               {accounts.map(({ account, balance }) => (
                 <option key={account.id} value={account.id}>{account.name} · {fmt(balance)}</option>
               ))}
             </select>
           </label>
         )}
-        {accountId && <p className="muted" style={{ margin: 0, fontSize: 12 }}>Posts a {fmt(money(emiAmount, currency))} expense from the selected account on {fmtDate(paidOn)}.</p>}
+        {accountId && <p className="muted" style={{ margin: 0, fontSize: 12 }}>{t("postsExpense", { amount: fmt(money(emiAmount, currency)), date: fmtDate(paidOn) })}</p>}
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
-          <button className="btn ghost" onClick={onClose} disabled={saving}>Cancel</button>
+          <button className="btn ghost" onClick={onClose} disabled={saving}>{t("cancel")}</button>
           <button className="btn" disabled={saving || !paidOn} onClick={async () => { setSaving(true); try { await onConfirm(paidOn, accountId || null); } finally { setSaving(false); } }}>
-            {saving ? "Saving…" : accountId ? "Mark paid & record" : "Mark paid"}
+            {saving ? t("savingEllipsis") : accountId ? t("markPaidRecord") : t("markPaid")}
           </button>
         </div>
       </div>
@@ -380,6 +383,7 @@ function MarkPaidDialog({ loan, month, due, emiAmount, currency, onClose, onConf
 }
 
 function EditLoan({ loan, onDone }: { loan: Loan; onDone: () => void }) {
+  const { t } = useTranslation("loans");
   const fmt = useMoneyFmt();
   const cur = loan.currency;
   const [lender, setLender] = useState(loan.lender ?? "");
@@ -415,42 +419,42 @@ function EditLoan({ loan, onDone }: { loan: Loan; onDone: () => void }) {
 
   return (
     <div style={{ display: "grid", gap: 14, maxWidth: 520 }} className="fade-up">
-      <h1 style={{ margin: 0 }}>Edit loan</h1>
-      <FloatingInput label="Lender" value={lender} onChange={setLender} />
+      <h1 style={{ margin: 0 }}>{t("editTitle")}</h1>
+      <FloatingInput label={t("lender")} value={lender} onChange={setLender} />
       <div style={{ display: "grid", gap: 4 }}>
-        <span className="muted" style={{ fontSize: 12 }}>Interest type</span>
+        <span className="muted" style={{ fontSize: 12 }}>{t("interestType")}</span>
         <div style={{ display: "flex", gap: 6 }}>
-          <button className="chip" data-active={rateType === "fixed"} onClick={() => setRateType("fixed")}>Fixed</button>
-          <button className="chip" data-active={rateType === "variable"} onClick={() => setRateType("variable")}>Variable</button>
+          <button className="chip" data-active={rateType === "fixed"} onClick={() => setRateType("fixed")}>{t("fixed")}</button>
+          <button className="chip" data-active={rateType === "variable"} onClick={() => setRateType("variable")}>{t("variable")}</button>
         </div>
       </div>
       <div style={{ display: "flex", gap: 8 }}>
-        <FloatingInput label={`Principal (${cur})`} group currency={cur} value={principal} onChange={setPrincipal} style={{ flex: 1 }} />
-        <FloatingInput label="Tenure (months)" inputMode="numeric" value={tenure} onChange={(v) => setTenure(v.replace(/\D/g, ""))} style={{ flex: 1 }} />
+        <FloatingInput label={t("principal", { cur })} group currency={cur} value={principal} onChange={setPrincipal} style={{ flex: 1 }} />
+        <FloatingInput label={t("tenureMonths")} inputMode="numeric" value={tenure} onChange={(v) => setTenure(v.replace(/\D/g, ""))} style={{ flex: 1 }} />
       </div>
       <div style={{ display: "flex", gap: 8 }}>
-        <FloatingInput label={rateType === "variable" ? "Current interest % p.a." : "Interest % p.a."} inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+        <FloatingInput label={rateType === "variable" ? t("currentInterest") : t("interestPa")} inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
         {rateType === "fixed" && (
-          <FloatingInput label={`Monthly EMI (${cur})`} group currency={cur} value={emiValue} onChange={(v) => { setEmi(v); setEmiTouched(true); }} style={{ flex: 1 }} />
+          <FloatingInput label={t("monthlyEmi", { cur })} group currency={cur} value={emiValue} onChange={(v) => { setEmi(v); setEmiTouched(true); }} style={{ flex: 1 }} />
         )}
       </div>
       {rateType === "fixed" ? (
-        computedEmiMinor > 0 && <div className="muted" style={{ fontSize: 12, marginTop: -6 }}>Auto-calculated EMI: {fmt(money(computedEmiMinor, cur))}. <button className="chip" style={{ padding: "1px 8px", fontSize: 11 }} onClick={() => { setEmi(computedEmiMajor); setEmiTouched(true); }}>Use it</button></div>
+        computedEmiMinor > 0 && <div className="muted" style={{ fontSize: 12, marginTop: -6 }}>{t("autoCalcEdit", { amount: fmt(money(computedEmiMinor, cur)) })} <button className="chip" style={{ padding: "1px 8px", fontSize: 11 }} onClick={() => { setEmi(computedEmiMajor); setEmiTouched(true); }}>{t("useIt")}</button></div>
       ) : (
         <div style={{ padding: "9px 12px", borderRadius: 10, fontSize: 12, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", color: "var(--text-2)" }}>
-          Variable-rate loan — enter each month’s EMI on the loan’s schedule below. The single EMI field is disabled.
+          {t("variableEditNote")}
         </div>
       )}
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-        <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>Loan started on
+        <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>{t("startedOn")}
           <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
         </label>
-        <FloatingInput label="EMI due day (1–31)" inputMode="numeric" value={dueDay} onChange={(v) => setDueDay(v.replace(/\D/g, "").slice(0, 2))} style={{ width: 150 }} />
+        <FloatingInput label={t("dueDay")} inputMode="numeric" value={dueDay} onChange={(v) => setDueDay(v.replace(/\D/g, "").slice(0, 2))} style={{ width: 150 }} />
       </div>
-      <p className="muted" style={{ fontSize: 12, margin: 0 }}>Leave the due day blank to use the start date’s day. EMIs already paid can be marked individually in the schedule.</p>
+      <p className="muted" style={{ fontSize: 12, margin: 0 }}>{t("dueBlankHint")}</p>
       <div style={{ display: "flex", gap: 8 }}>
-        <button className="btn" onClick={save}>Save</button>
-        <button className="btn ghost" onClick={onDone}>Cancel</button>
+        <button className="btn" onClick={save}>{t("save")}</button>
+        <button className="btn ghost" onClick={onDone}>{t("cancel")}</button>
       </div>
     </div>
   );

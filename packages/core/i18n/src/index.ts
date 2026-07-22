@@ -30,6 +30,30 @@ import cardsEn from "./locales/cards/en.json";
 import cardsHi from "./locales/cards/hi.json";
 import cardsNl from "./locales/cards/nl.json";
 
+import budgetsEn from "./locales/budgets/en.json";
+import budgetsHi from "./locales/budgets/hi.json";
+import budgetsNl from "./locales/budgets/nl.json";
+
+import goalsEn from "./locales/goals/en.json";
+import goalsHi from "./locales/goals/hi.json";
+import goalsNl from "./locales/goals/nl.json";
+
+import templatesEn from "./locales/templates/en.json";
+import templatesHi from "./locales/templates/hi.json";
+import templatesNl from "./locales/templates/nl.json";
+
+import recurringEn from "./locales/recurring/en.json";
+import recurringHi from "./locales/recurring/hi.json";
+import recurringNl from "./locales/recurring/nl.json";
+
+import cashflowEn from "./locales/cashflow/en.json";
+import cashflowHi from "./locales/cashflow/hi.json";
+import cashflowNl from "./locales/cashflow/nl.json";
+
+import loansEn from "./locales/loans/en.json";
+import loansHi from "./locales/loans/hi.json";
+import loansNl from "./locales/loans/nl.json";
+
 export interface Language {
   code: string;
   label: string;
@@ -44,13 +68,13 @@ export const SUPPORTED_LANGUAGES: readonly Language[] = [
 ];
 
 export const resources = {
-  en: { translation: en, splits: splitsEn, accounts: accountsEn, transactions: transactionsEn, cards: cardsEn },
-  hi: { translation: hi, splits: splitsHi, accounts: accountsHi, transactions: transactionsHi, cards: cardsHi },
-  nl: { translation: nl, splits: splitsNl, accounts: accountsNl, transactions: transactionsNl, cards: cardsNl },
+  en: { translation: en, splits: splitsEn, accounts: accountsEn, transactions: transactionsEn, cards: cardsEn, budgets: budgetsEn, goals: goalsEn, templates: templatesEn, recurring: recurringEn, cashflow: cashflowEn, loans: loansEn },
+  hi: { translation: hi, splits: splitsHi, accounts: accountsHi, transactions: transactionsHi, cards: cardsHi, budgets: budgetsHi, goals: goalsHi, templates: templatesHi, recurring: recurringHi, cashflow: cashflowHi, loans: loansHi },
+  nl: { translation: nl, splits: splitsNl, accounts: accountsNl, transactions: transactionsNl, cards: cardsNl, budgets: budgetsNl, goals: goalsNl, templates: templatesNl, recurring: recurringNl, cashflow: cashflowNl, loans: loansNl },
 } as const;
 
 /** Registered namespaces. `translation` is the default; features add their own. */
-export const NAMESPACES = ["translation", "splits", "accounts", "transactions", "cards"] as const;
+export const NAMESPACES = ["translation", "splits", "accounts", "transactions", "cards", "budgets", "goals", "templates", "recurring", "cashflow", "loans"] as const;
 
 export function isRtl(languageCode: string): boolean {
   const base = languageCode.split("-")[0];
