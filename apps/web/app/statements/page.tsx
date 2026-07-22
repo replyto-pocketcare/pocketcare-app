@@ -50,9 +50,9 @@ export default function StatementsPage() {
   return (
     <div style={{ display: "grid", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <div className="no-print" style={{ display: "grid", gap: 14 }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
-          <h1>{t("pages.statements", "Statements")}</h1>
-          <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", minWidth: 0 }}>
+          <h1 style={{ minWidth: 0 }}>{t("pages.statements", "Statements")}</h1>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
             <Link href="/statements/analyze" className="btn ghost">Analyze a statement</Link>
             <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
           </div>
@@ -92,12 +92,12 @@ export default function StatementsPage() {
       {rows.length === 0 ? (
         <p className="muted card" style={{ padding: 16, margin: 0 }}>No transactions in this period.</p>
       ) : (
-        <div style={{ display: "grid", gap: 16 }}>
+        <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
           {groupByDay(rows).map(({ day, label, items, net }) => (
-            <section key={day} style={{ display: "grid", gap: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, padding: "0 4px" }}>
-                <span className="eyebrow">{label}</span>
-                <span className="muted" style={{ fontSize: 12, whiteSpace: "nowrap" }}>{net >= 0 ? "+" : "−"}{format(money(Math.abs(net), base), "en-US")}</span>
+            <section key={day} style={{ display: "grid", gap: 8, minWidth: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, padding: "0 4px", minWidth: 0 }}>
+                <span className="eyebrow" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
+                <span className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", flexShrink: 0 }}>{net >= 0 ? "+" : "−"}{format(money(Math.abs(net), base), "en-US")}</span>
               </div>
               <div className="card" style={{ padding: 0, overflow: "hidden" }}>
                 {items.map((r, i) => <TxnTile key={r.id} r={r} first={i === 0} category={catName(r.category_id)} />)}
