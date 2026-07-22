@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { fromMajor, sum, format, money, type Money } from "@pocketcare/money";
@@ -28,6 +29,7 @@ const newItem = () => ({ id: `i${++counter}`, description: "", value: "" });
 interface PayMethod { id: string; label: string }
 
 export default function NewTransactionPage() {
+  const { t } = useTranslation("transactions");
   const router = useRouter();
   const { data: accounts = [] } = useQuery<Account>(
     "SELECT * FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived, 0) = 0 AND IFNULL(kind,'real') = 'real' ORDER BY created_at",
@@ -73,7 +75,7 @@ export default function NewTransactionPage() {
   const [multiPayer, setMultiPayer] = useState(false);
   const [paidVals, setPaidVals] = useState<Record<string, string>>({});
   const membersOf = (gid: string) => groupMembers.filter((m) => m.group_id === gid).map((m) => m.user_id);
-  const memberName = (uid: string) => (uid === me ? "You" : profiles.get(uid)?.name ?? "Someone");
+  const memberName = (uid: string) => (uid === me ? t("you") : profiles.get(uid)?.name ?? t("someone"));
   const splitActive = type === "expense" && splitOn && !!splitGroupId && splitMembers.length >= 2;
 
   // Auto-split: date inside an auto-split trip/group → preselect it.
@@ -289,7 +291,7 @@ export default function NewTransactionPage() {
 
       router.push("/transactions");
     } catch (e) {
-      setSaveErr(e instanceof Error ? e.message : "Couldn't save this transaction.");
+      setSaveErr(e instanceof Error ? e.message : t("saveError"));
     } finally {
       setSaving(false);
     }
@@ -298,9 +300,9 @@ export default function NewTransactionPage() {
   if (accounts.length === 0) {
     return (
       <div className="fade-up">
-        <h1>Add transaction</h1>
-        <p className="muted">Create an account first.</p>
-        <a href="/accounts/new" className="btn" style={{ marginTop: 12 }}>＋ New account</a>
+        <h1>{t("addTitle")}</h1>
+        <p className="muted">{t("createAccountFirst")}</p>
+        <a href="/accounts/new" className="btn" style={{ marginTop: 12 }}>＋ {t("newAccountCta")}</a>
       </div>
     );
   }
@@ -310,11 +312,11 @@ export default function NewTransactionPage() {
   return (
     <div style={{ maxWidth: 620, display: "grid", gap: 16 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0 }}>Add transaction</h1>
+        <h1 style={{ margin: 0 }}>{t("addTitle")}</h1>
         {templates.length > 0 && (
-          <select className="input" style={{ maxWidth: 220 }} value="" onChange={(e) => { const t = templates.find((x) => x.id === e.target.value); if (t) applyTemplate(t); }}>
-            <option value="">Start from a template…</option>
-            {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          <select className="input" style={{ maxWidth: 220 }} value="" onChange={(e) => { const tpl = templates.find((x) => x.id === e.target.value); if (tpl) applyTemplate(tpl); }}>
+            <option value="">{t("startFromTemplate")}</option>
+            {templates.map((tpl) => <option key={tpl.id} value={tpl.id}>{tpl.name}</option>)}
           </select>
         )}
       </div>
@@ -324,21 +326,21 @@ export default function NewTransactionPage() {
           const blocked = isInvestment && tp !== "transfer";
           return (
             <button key={tp} className="chip" data-active={tp === type} disabled={blocked}
-              title={blocked ? "Investment accounts can only transfer to/from other accounts" : undefined}
-              style={{ flex: 1, textTransform: "capitalize", opacity: blocked ? 0.4 : 1 }}
+              title={blocked ? t("investmentBlocked") : undefined}
+              style={{ flex: 1, opacity: blocked ? 0.4 : 1 }}
               onClick={() => !blocked && setType(tp)}>
-              {tp}
+              {t(`type.${tp}`)}
             </button>
           );
         })}
       </div>
       {isInvestment && (
-        <p className="muted" style={{ fontSize: 12, marginTop: -8 }}>Investment accounts only support transfers to and from other accounts.</p>
+        <p className="muted" style={{ fontSize: 12, marginTop: -8 }}>{t("investmentTransferOnly")}</p>
       )}
 
       <div className="card" style={{ padding: 22, display: "grid", gap: 14 }}>
         <div>
-          <div className="muted" style={{ fontSize: 13 }}>Amount{items.length > 1 ? " · sum of items" : ""}</div>
+          <div className="muted" style={{ fontSize: 13 }}>{items.length > 1 ? t("amountWithItems") : t("amount")}</div>
           <div style={{ fontSize: 40, fontWeight: 750, color: accentFor[type], letterSpacing: "-0.02em" }}>{format(total, "en-US")}</div>
         </div>
 
@@ -351,23 +353,23 @@ export default function NewTransactionPage() {
           <div style={{ display: "grid", gap: 8 }}>
             {items.map((it, idx) => (
               <div key={it.id} style={{ display: "flex", gap: 8 }}>
-                <input className="input" placeholder={items.length > 1 ? `Item ${idx + 1}` : "What for? (optional)"} value={it.description}
+                <input className="input" placeholder={items.length > 1 ? t("item", { n: idx + 1 }) : t("whatFor")} value={it.description}
                   onChange={(e) => update(it.id, { description: e.target.value })} />
                 <AmountInput style={{ width: 140, textAlign: "right", fontWeight: 600 }} placeholder="0.00" currency={currency}
                   autoFocus={idx === 0} value={it.value}
                   onChange={(raw) => update(it.id, { value: raw })} />
                 {items.length > 1 && (
-                  <button className="chip" onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))} aria-label="Remove">×</button>
+                  <button className="chip" onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))} aria-label={t("remove")}>×</button>
                 )}
               </div>
             ))}
             <button className="chip" style={{ borderStyle: "dashed", color: "var(--accent)", justifySelf: "start" }}
-              onClick={() => setItems((p) => [...p, newItem()])}>＋ Add item / split</button>
+              onClick={() => setItems((p) => [...p, newItem()])}>＋ {t("addItemSplit")}</button>
           </div>
         )}
       </div>
 
-      <Field label={type === "transfer" ? "From account" : "Account"}>
+      <Field label={type === "transfer" ? t("fromAccount") : t("account")}>
         <div style={chips}>
           {accounts.map((a) => (
             <button key={a.id} className="chip" data-active={a.id === account?.id} onClick={() => setAccountId(a.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -379,7 +381,7 @@ export default function NewTransactionPage() {
       </Field>
 
       {type === "transfer" && (
-        <Field label="To account">
+        <Field label={t("toAccount")}>
           <div style={chips}>
             {accounts.filter((a) => a.id !== account?.id).map((a) => (
               <button key={a.id} className="chip" data-active={a.id === toAccount?.id} onClick={() => setToAccountId(a.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -392,23 +394,23 @@ export default function NewTransactionPage() {
       )}
 
       {crossCurrency && (
-        <Field label={`Amount received (${toAccount?.currency})`}>
+        <Field label={t("amountReceived", { currency: toAccount?.currency })}>
           <AmountInput placeholder="0.00" currency={toAccount?.currency} value={toValue} onChange={setToValue} />
         </Field>
       )}
 
       {type !== "transfer" && (
-        <Field label="Category">
+        <Field label={t("category")}>
           <div style={{ position: "relative" }}>
-            <SearchSelect 
-              value={categoryId} 
+            <SearchSelect
+              value={categoryId}
               onChange={(val) => {
                 setCategoryId(val);
                 setManualCategory(true);
                 setIsAutoApplied(false);
-              }} 
-              options={categoryOptions} 
-              placeholder="Search a category…" 
+              }}
+              options={categoryOptions}
+              placeholder={t("searchCategory")}
             />
             {(autoCatWorking || isAutoApplied) && (
               <div style={{
@@ -419,8 +421,8 @@ export default function NewTransactionPage() {
                 border: "1px solid var(--accent-soft)"
               }}>
                 {autoCatWorking
-                  ? <><span className="pc-spin" style={{ display: "inline-block" }}>✦</span> Finding category…</>
-                  : <>✦ Auto-categorised{categories.find((c) => c.id === categoryId)?.name ? ` · ${categories.find((c) => c.id === categoryId)!.name}` : ""}</>}
+                  ? <><span className="pc-spin" style={{ display: "inline-block" }}>✦</span> {t("findingCategory")}</>
+                  : <>✦ {t("autoCategorised")}{categories.find((c) => c.id === categoryId)?.name ? ` · ${categories.find((c) => c.id === categoryId)!.name}` : ""}</>}
               </div>
             )}
           </div>
@@ -428,7 +430,7 @@ export default function NewTransactionPage() {
       )}
 
       {type !== "transfer" && paymentMethods.length > 0 && (
-        <Field label="Payment method">
+        <Field label={t("paymentMethod")}>
           <div style={chips}>
             {paymentMethods.map((m) => (
               <button key={m.id} className="chip" data-active={m.id === paymentMethod} onClick={() => setPaymentMethod(m.id)}>{m.label}</button>
@@ -440,12 +442,12 @@ export default function NewTransactionPage() {
       {type === "expense" && (
         <div className="card" style={{ padding: 16, display: "grid", gap: 12 }}>
           <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
-            <span style={{ fontWeight: 600 }}>Split this expense</span>
+            <span style={{ fontWeight: 600 }}>{t("splitExpense")}</span>
             <input type="checkbox" checked={splitOn} onChange={(e) => { setSplitTouched(true); setSplitOn(e.target.checked); }} />
           </label>
           {splitOn && autoGroup && splitGroupId === autoGroup.id && (
             <div style={{ fontSize: 12, color: "var(--accent)", background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", borderRadius: 8, padding: "6px 10px" }}>
-              Auto-split with <strong>{autoGroup.name}</strong> (this date is in its range). Turn off to exclude this one.
+              {t("autoSplitWith", { name: autoGroup.name })}
             </div>
           )}
 
@@ -459,35 +461,35 @@ export default function NewTransactionPage() {
               <div style={{ display: "grid", gap: 12 }}>
                 {/* group / trip (required — participants are its members) */}
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span className="muted" style={{ fontSize: 12 }}>Group / trip</span>
+                  <span className="muted" style={{ fontSize: 12 }}>{t("groupTrip")}</span>
                   <select className="input" value={splitGroupId} onChange={(e) => {
                     const gid = e.target.value;
                     setSplitTouched(true);
                     setSplitGroupId(gid);
                     setSplitMembers(gid ? membersOf(gid) : []);
                   }}>
-                    <option value="">Choose a group…</option>
+                    <option value="">{t("chooseGroup")}</option>
                     {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
                   </select>
                 </label>
 
                 {!splitGroupId ? (
-                  <span className="muted" style={{ fontSize: 12 }}>Pick a group. Create one and invite friends from <Link href="/groups">Groups &amp; trips</Link>.</span>
+                  <span className="muted" style={{ fontSize: 12 }}>{t("pickGroupPre")}<Link href="/groups">{t("pickGroupLink")}</Link>.</span>
                 ) : groupMemberIds.length < 2 ? (
-                  <span className="muted" style={{ fontSize: 12 }}>This group has only you so far — invite someone from the group page first.</span>
+                  <span className="muted" style={{ fontSize: 12 }}>{t("onlyYou")}</span>
                 ) : (
                   <>
                     {/* mode */}
                     <div style={{ display: "flex", gap: 6 }}>
                       {(["equal", "exact", "percent"] as SplitMode[]).map((m) => (
                         <button key={m} type="button" className="chip" data-active={m === splitMode} onClick={() => setSplitMode(m)}>
-                          {m === "equal" ? "Equally" : m === "exact" ? "Exact" : "Percent"}
+                          {t(`mode.${m}`)}
                         </button>
                       ))}
                     </div>
 
                     {/* participants (group members) */}
-                    <span className="muted" style={{ fontSize: 12 }}>Split between:</span>
+                    <span className="muted" style={{ fontSize: 12 }}>{t("splitBetween")}</span>
                     <div style={chips}>
                       {groupMemberIds.map((uid) => {
                         const on = splitMembers.includes(uid);
@@ -519,44 +521,44 @@ export default function NewTransactionPage() {
                         ))}
                         <span className="muted" style={{ fontSize: 12 }}>
                           {splitMode === "exact"
-                            ? `Shares total ${format(money(splitPlan.sharesSum, currency), "en-US")} of ${format(total, "en-US")} ${splitPlan.sharesSum === total.amount ? "✓" : "— must match"}`
-                            : `Percent total ${Math.round(splitPlan.pctSum)}% ${Math.round(splitPlan.pctSum) === 100 ? "✓" : "— must be 100%"}`}
+                            ? t(splitPlan.sharesSum === total.amount ? "sharesMatch" : "sharesMismatch", { sum: format(money(splitPlan.sharesSum, currency), "en-US"), total: format(total, "en-US") })
+                            : t(Math.round(splitPlan.pctSum) === 100 ? "percentMatch" : "percentMismatch", { pct: Math.round(splitPlan.pctSum) })}
                         </span>
                       </div>
                     )}
 
                     {/* payers */}
                     <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
-                      <span style={{ fontSize: 14 }}>Multiple people paid</span>
+                      <span style={{ fontSize: 14 }}>{t("multiplePaid")}</span>
                       <input type="checkbox" checked={multiPayer} onChange={(e) => setMultiPayer(e.target.checked)} />
                     </label>
                     {multiPayer ? (
                       <div style={{ display: "grid", gap: 6 }}>
                         {splitPlan.partKeys.map((k) => (
                           <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontSize: 14 }}>{memberName(k)} paid</span>
+                            <span style={{ fontSize: 14 }}>{t("memberPaid", { name: memberName(k) })}</span>
                             <AmountInput style={{ width: 110, textAlign: "right" }} placeholder={currency} currency={currency}
                               value={paidVals[k] ?? ""} onChange={(raw) => setPaidVals((p) => ({ ...p, [k]: raw }))} />
                           </div>
                         ))}
                         <span className="muted" style={{ fontSize: 12 }}>
-                          Paid total {format(money(splitPlan.paidSum, currency), "en-US")} of {format(total, "en-US")} {splitPlan.paidSum === total.amount ? "✓" : "— must match"}
+                          {t(splitPlan.paidSum === total.amount ? "paidMatch" : "paidMismatch", { sum: format(money(splitPlan.paidSum, currency), "en-US"), total: format(total, "en-US") })}
                         </span>
-                        <span className="muted" style={{ fontSize: 11 }}>Only your payment uses {account?.name}; others’ payments just change who owes whom.</span>
+                        <span className="muted" style={{ fontSize: 11 }}>{t("onlyYourPayment", { account: account?.name })}</span>
                       </div>
                     ) : (
-                      <span className="muted" style={{ fontSize: 12 }}>You paid {format(total, "en-US")} from {account?.name}.</span>
+                      <span className="muted" style={{ fontSize: 12 }}>{t("youPaidFrom", { total: format(total, "en-US"), account: account?.name })}</span>
                     )}
 
                     {/* summary */}
                     {splitPlan.valid ? (
                       <div className="card" style={{ padding: 12, background: "var(--surface-2)", display: "grid", gap: 4, fontSize: 13 }}>
-                        <div>Your share: <strong>{format(money(myShare, currency), "en-US")}</strong> <span className="muted">(counts in your budget)</span></div>
-                        {net > 0 && <div style={{ color: "var(--positive)" }}>Others owe you {format(money(net, currency), "en-US")}</div>}
-                        {net < 0 && <div style={{ color: "var(--negative)" }}>You’ll owe {format(money(-net, currency), "en-US")}</div>}
+                        <div>{t("yourShare")} <strong>{format(money(myShare, currency), "en-US")}</strong> <span className="muted">{t("countsInBudget")}</span></div>
+                        {net > 0 && <div style={{ color: "var(--positive)" }}>{t("othersOweYou", { amount: format(money(net, currency), "en-US") })}</div>}
+                        {net < 0 && <div style={{ color: "var(--negative)" }}>{t("youllOwe", { amount: format(money(-net, currency), "en-US") })}</div>}
                       </div>
                     ) : (
-                      <span className="muted" style={{ fontSize: 12 }}>Pick at least two people and make the totals match.</span>
+                      <span className="muted" style={{ fontSize: 12 }}>{t("pickTwo")}</span>
                     )}
                   </>
                 )}
@@ -566,15 +568,15 @@ export default function NewTransactionPage() {
         </div>
       )}
 
-      <Field label="Labels (optional)">
+      <Field label={t("labelsOptional")}>
         <LabelPicker labels={labelList} selected={selectedLabels} onChange={setSelectedLabels} />
       </Field>
 
-      <Field label="Note (optional)">
-        <textarea className="input" rows={2} placeholder="Any extra notes?" value={note} onChange={(e) => setNote(e.target.value)} style={{ resize: "vertical" }} />
+      <Field label={t("noteOptional")}>
+        <textarea className="input" rows={2} placeholder={t("extraNotes")} value={note} onChange={(e) => setNote(e.target.value)} style={{ resize: "vertical" }} />
       </Field>
 
-      <Field label="Date">
+      <Field label={t("date")}>
         <input className="input" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} />
       </Field>
 
@@ -585,30 +587,31 @@ export default function NewTransactionPage() {
       )}
 
       <button className="btn" disabled={!canSave} onClick={save} style={{ justifyContent: "center", padding: 14 }}>
-        {saving ? "Saving…" : `Save · ${format(total, "en-US")}`}
+        {saving ? t("saving") : t("saveWithTotal", { total: format(total, "en-US") })}
       </button>
       {!!account && total.amount > 0 && (
         <button className="chip" style={{ justifySelf: "center" }} disabled={tplSaved} onClick={() => void saveAsTemplate()}>
-          {tplSaved ? "Saved as template ✓" : "Save as template"}
+          {tplSaved ? t("savedAsTemplate") : t("saveAsTemplate")}
         </button>
       )}
 
-      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} title="Template limit reached"
-        message={`Free plans can keep up to ${FREE_TEMPLATE_LIMIT} templates. Upgrade to Premium for unlimited templates.`} />
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} title={t("templateLimitTitle")}
+        message={t("templateLimitMsg", { limit: FREE_TEMPLATE_LIMIT })} />
     </div>
   );
 
   async function saveAsTemplate() {
     if (!account) return;
     if (!isPaid && templates.length >= FREE_TEMPLATE_LIMIT) { setShowUpgrade(true); return; }
-    const guess = items.map((i) => i.description.trim()).filter(Boolean).join(", ") || (type === "income" ? "Income" : type === "transfer" ? "Transfer" : "Expense");
-    const name = typeof window !== "undefined" ? window.prompt("Template name", guess) : guess;
+    const fallbackName = type === "income" ? t("defaultIncome") : type === "transfer" ? t("defaultTransfer") : t("defaultExpense");
+    const guess = items.map((i) => i.description.trim()).filter(Boolean).join(", ") || fallbackName;
+    const name = typeof window !== "undefined" ? window.prompt(t("templateNamePrompt"), guess) : guess;
     if (!name) return;
     await createTemplate({
       name, type: type === "transfer" ? "transfer" : type,
       amount: total.amount ? total.amount / 100 : null,
       accountId: account.id, toAccountId: type === "transfer" ? (toAccount?.id ?? null) : null,
-      categoryId, description: guess === "Income" || guess === "Expense" || guess === "Transfer" ? null : guess,
+      categoryId, description: guess === fallbackName ? null : guess,
       note: note.trim() || null, paymentMethod: paymentMethod || null, labels: selectedLabels,
       splitGroupId: splitActive ? splitGroupId : null, splitMode: splitActive ? splitMode : "equal",
     });

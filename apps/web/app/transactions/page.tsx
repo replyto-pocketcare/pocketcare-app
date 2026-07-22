@@ -12,7 +12,7 @@ import { useInitialSyncPending } from "../../src/sync";
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
 export default function TransactionsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("transactions");
   const syncPending = useInitialSyncPending();
   const [q, setQ] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
@@ -33,29 +33,29 @@ export default function TransactionsPage() {
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories");
   const { data: accts = [] } = useQuery<{ id: string; name: string; type: string; color: string | null }>("SELECT id, name, type, color FROM accounts WHERE deleted_at IS NULL");
-  const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? "Uncategorised";
+  const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? t("uncategorised");
   const acct = (id: string) => accts.find((a) => a.id === id);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-        <h1 style={{ margin: 0 }}>{t("pages.transactions", "Transactions")}</h1>
-        <Link href="/transactions/new" className="btn">＋ Add</Link>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
+        <Link href="/transactions/new" className="btn">＋ {t("add")}</Link>
       </div>
 
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", maxWidth: "100%" }}>
-        <input className="input" placeholder="Search label or note…" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: "1 1 200px", minWidth: 0 }} />
+        <input className="input" placeholder={t("searchPlaceholder")} value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: "1 1 200px", minWidth: 0 }} />
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {TYPES.map((t) => (
-            <button key={t} className="chip" data-active={t === type} style={{ textTransform: "capitalize" }} onClick={() => setType(t)}>{t}</button>
+          {TYPES.map((ty) => (
+            <button key={ty} className="chip" data-active={ty === type} onClick={() => setType(ty)}>{t(`filter.${ty}`)}</button>
           ))}
         </div>
       </div>
 
       {rows.length > 0 ? (
         <div className="list-grid">
-          {rows.map((t) => (
-            <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} tile />
+          {rows.map((tx) => (
+            <TransactionRow key={tx.id} tx={tx} account={acct(tx.account_id)} categoryName={catName(tx.category_id)} tile />
           ))}
         </div>
       ) : (rowsLoading || syncPending) ? (
@@ -63,7 +63,7 @@ export default function TransactionsPage() {
           {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} h={64} r={12} />)}
         </div>
       ) : (
-        <p className="muted card" style={{ padding: 16, margin: 0 }}>No matching transactions.</p>
+        <p className="muted card" style={{ padding: 16, margin: 0 }}>{t("noMatching")}</p>
       )}
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { fromMajor, toMajor, money, format, sum, type Money } from "@pocketcare/money";
 import type { Account, Transaction } from "@pocketcare/types";
@@ -22,6 +23,7 @@ import { getDek } from "../../../../src/crypto/session";
 type TxType = "expense" | "income" | "transfer" | "adjustment";
 
 export default function EditTransactionPage() {
+  const { t } = useTranslation("transactions");
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const confirm = useConfirm();
@@ -103,7 +105,7 @@ export default function EditTransactionPage() {
     }
   }, [tx, txItems, txItemsLoading, itemsReady]);
 
-  if (!tx) return <p className="muted">Loading…</p>;
+  if (!tx) return <p className="muted">{t("loading")}</p>;
   const currency = tx.currency;
   
   const itemMoneys = items.map((it) => fromMajor(Number.parseFloat(it.value) || 0, currency));
@@ -173,28 +175,28 @@ export default function EditTransactionPage() {
 
       router.push("/transactions");
     } catch (e) {
-      setSaveErr(e instanceof Error ? e.message : "Couldn't save changes.");
+      setSaveErr(e instanceof Error ? e.message : t("saveChangesError"));
     } finally { setSaving(false); }
   }
 
   return (
     <div style={{ maxWidth: 620, display: "grid", gap: 14 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-        <h1>Edit transaction</h1>
+        <h1>{t("editTitle")}</h1>
         {audit.length > 0 && (
-          <KebabMenu label="Transaction options" items={[
-            { label: "View edit history", onClick: () => setShowHistory(true) },
+          <KebabMenu label={t("txOptions")} items={[
+            { label: t("viewHistory"), onClick: () => setShowHistory(true) },
           ]} />
         )}
       </div>
 
       <div style={{ display: "flex", gap: 8 }}>
         {(["expense", "income", "transfer"] as TxType[]).map((tp) => (
-          <button key={tp} className="chip" data-active={tp === type} style={{ flex: 1, textTransform: "capitalize" }} onClick={() => setType(tp)}>{tp}</button>
+          <button key={tp} className="chip" data-active={tp === type} style={{ flex: 1 }} onClick={() => setType(tp)}>{t(`type.${tp}`)}</button>
         ))}
       </div>
 
-      <Field label="Account">
+      <Field label={t("account")}>
         <div style={chips}>
           {accounts.map((a) => (
             <button key={a.id} className="chip" data-active={a.id === accountId} onClick={() => setAccountId(a.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -205,13 +207,13 @@ export default function EditTransactionPage() {
       </Field>
 
       {type === "transfer" ? (
-        <Field label={`Amount (${currency})`}>
+        <Field label={t("amountCurrency", { currency })}>
           <input className="input" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} />
         </Field>
       ) : (
         <div className="card" style={{ padding: 22, display: "grid", gap: 14 }}>
           <div>
-            <div className="muted" style={{ fontSize: 13 }}>Amount{items.length > 1 ? " · sum of items" : ""}</div>
+            <div className="muted" style={{ fontSize: 13 }}>{items.length > 1 ? t("amountWithItems") : t("amount")}</div>
             <div style={{ fontSize: 40, fontWeight: 750, letterSpacing: "-0.02em", color: type === "expense" ? "var(--negative)" : "var(--positive)" }}>
               {format(total, "en-US")}
             </div>
@@ -219,30 +221,30 @@ export default function EditTransactionPage() {
           <div style={{ display: "grid", gap: 8 }}>
             {items.map((it, idx) => (
               <div key={it.id} style={{ display: "flex", gap: 8 }}>
-                <input className="input" placeholder={items.length > 1 ? `Item ${idx + 1}` : "What for? (optional)"} value={it.description}
+                <input className="input" placeholder={items.length > 1 ? t("item", { n: idx + 1 }) : t("whatFor")} value={it.description}
                   onChange={(e) => updateItem(it.id, { description: e.target.value })} />
                 <input className="input" style={{ width: 140, textAlign: "right", fontWeight: 600 }} inputMode="decimal" placeholder="0.00"
                   value={it.value}
                   onChange={(e) => updateItem(it.id, { value: e.target.value.replace(/[^0-9.]/g, "") })} />
                 {items.length > 1 && (
-                  <button className="chip" onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))} aria-label="Remove">×</button>
+                  <button className="chip" onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))} aria-label={t("remove")}>×</button>
                 )}
               </div>
             ))}
             <button className="chip" style={{ borderStyle: "dashed", color: "var(--accent)", justifySelf: "start" }}
-              onClick={() => setItems((p) => [...p, { id: `new_${Date.now()}`, description: "", value: "" }])}>＋ Add item / split</button>
+              onClick={() => setItems((p) => [...p, { id: `new_${Date.now()}`, description: "", value: "" }])}>＋ {t("addItemSplit")}</button>
           </div>
         </div>
       )}
 
       {type !== "transfer" && (
-        <Field label="Category">
-          <SearchSelect value={categoryId} onChange={setCategoryId} options={categoryOptions} placeholder="Search a category…" />
+        <Field label={t("category")}>
+          <SearchSelect value={categoryId} onChange={setCategoryId} options={categoryOptions} placeholder={t("searchCategory")} />
         </Field>
       )}
 
       {type !== "transfer" && payMethods.length > 0 && (
-        <Field label="Payment method">
+        <Field label={t("paymentMethod")}>
           <div style={chips}>
             {payMethods.map((m) => (
               <button key={m.id} className="chip" data-active={m.id === paymentMethod} onClick={() => setPaymentMethod(m.id)}>{m.label}</button>
@@ -251,12 +253,12 @@ export default function EditTransactionPage() {
         </Field>
       )}
 
-      <Field label="Labels">
+      <Field label={t("labels")}>
         <LabelPicker labels={labels} selected={selectedLabels} onChange={setSelectedLabels} />
       </Field>
 
-      <Field label="Note"><input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" /></Field>
-      <Field label="Date"><input className="input" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
+      <Field label={t("note")}><input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("optionalNote")} /></Field>
+      <Field label={t("date")}><input className="input" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
 
       {saveErr && (
         <div className="card" style={{ padding: "10px 14px", background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)", fontSize: 14 }}>
@@ -265,27 +267,27 @@ export default function EditTransactionPage() {
       )}
 
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <button className="btn" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</button>
-        <button className="btn ghost" onClick={() => router.push("/transactions")}>Cancel</button>
+        <button className="btn" onClick={save} disabled={saving}>{saving ? t("saving") : t("saveChanges")}</button>
+        <button className="btn ghost" onClick={() => router.push("/transactions")}>{t("cancel")}</button>
         <button
           className="btn ghost"
           style={{ marginLeft: "auto", color: "var(--negative)" }}
           disabled={saving}
           onClick={async () => {
-            if (!(await confirm({ title: "Delete this transaction?", message: "This can't be undone." }))) return;
+            if (!(await confirm({ title: t("deleteConfirmTitle"), message: t("deleteConfirmMsg") }))) return;
             setSaving(true);
             try { await getRepositories().transactions.remove(id); router.push("/transactions"); }
             finally { setSaving(false); }
           }}
-        >Delete</button>
+        >{t("delete")}</button>
       </div>
 
       {/* Edit history — behind the ⋯ menu, not shown by default */}
       <Modal open={showHistory} onClose={() => setShowHistory(false)}>
-        <h2 style={{ margin: "0 0 12px" }}>Edit history</h2>
+        <h2 style={{ margin: "0 0 12px" }}>{t("editHistory")}</h2>
         <div style={{ display: "grid", gap: 10, maxHeight: "60vh", overflowY: "auto" }}>
           {audit.length === 0 ? (
-            <p className="muted" style={{ margin: 0, fontSize: 13 }}>No edits yet.</p>
+            <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t("noEdits")}</p>
           ) : audit.map((a) => (
             <div key={a.id} style={{ fontSize: 13, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>
               <div className="muted" style={{ fontSize: 12 }}>{new Date(a.created_at).toLocaleString()} · {a.action}</div>
@@ -318,6 +320,7 @@ function AuditChanges({ changes, currency, catName, acctName, payName }: {
   changes: string | null; currency: string;
   catName: (id: string) => string; acctName: (id: string) => string; payName: (id: string) => string;
 }) {
+  const { t } = useTranslation("transactions");
   if (!changes) return null;
   let parsed: Record<string, { from: unknown; to: unknown }> = {};
   try { parsed = JSON.parse(changes); } catch { return null; }
@@ -340,12 +343,12 @@ function AuditChanges({ changes, currency, catName, acctName, payName }: {
 
   const entries = Object.entries(parsed).filter(([field]) => AUDIT_LABELS[field]);
   if (entries.length === 0) {
-    return <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>Minor update.</div>;
+    return <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{t("minorUpdate")}</div>;
   }
   return (
     <div style={{ display: "grid", gap: 2, marginTop: 4 }}>
       {entries.map(([field, { from, to }]) => (
-        <div key={field}><strong>{AUDIT_LABELS[field]}</strong>: <span className="muted">{show(field, from)}</span> → {show(field, to)}</div>
+        <div key={field}><strong>{t(`audit.${field}`)}</strong>: <span className="muted">{show(field, from)}</span> → {show(field, to)}</div>
       ))}
     </div>
   );

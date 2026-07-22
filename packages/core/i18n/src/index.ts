@@ -6,16 +6,29 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-import en from "./locales/en.json";
-import hi from "./locales/hi.json";
-import nl from "./locales/nl.json";
+// Layout: locales/<namespace>/<lng>.json. `translation` is the shared/default
+// namespace; each feature owns its own JSON per language so files stay small,
+// reviewable, independently loadable, and i18next-parser can extract keys into
+// one consistent output pattern (see i18next-parser.config.mjs).
+import en from "./locales/translation/en.json";
+import hi from "./locales/translation/hi.json";
+import nl from "./locales/translation/nl.json";
 
-// Per-feature namespaces. Each feature owns its own JSON per language so the
-// files stay small, reviewable, and independently loadable. `translation` is
-// the shared/default namespace; add new features as `./locales/<feature>/<lng>`.
 import splitsEn from "./locales/splits/en.json";
 import splitsHi from "./locales/splits/hi.json";
 import splitsNl from "./locales/splits/nl.json";
+
+import accountsEn from "./locales/accounts/en.json";
+import accountsHi from "./locales/accounts/hi.json";
+import accountsNl from "./locales/accounts/nl.json";
+
+import transactionsEn from "./locales/transactions/en.json";
+import transactionsHi from "./locales/transactions/hi.json";
+import transactionsNl from "./locales/transactions/nl.json";
+
+import cardsEn from "./locales/cards/en.json";
+import cardsHi from "./locales/cards/hi.json";
+import cardsNl from "./locales/cards/nl.json";
 
 export interface Language {
   code: string;
@@ -31,13 +44,13 @@ export const SUPPORTED_LANGUAGES: readonly Language[] = [
 ];
 
 export const resources = {
-  en: { translation: en, splits: splitsEn },
-  hi: { translation: hi, splits: splitsHi },
-  nl: { translation: nl, splits: splitsNl },
+  en: { translation: en, splits: splitsEn, accounts: accountsEn, transactions: transactionsEn, cards: cardsEn },
+  hi: { translation: hi, splits: splitsHi, accounts: accountsHi, transactions: transactionsHi, cards: cardsHi },
+  nl: { translation: nl, splits: splitsNl, accounts: accountsNl, transactions: transactionsNl, cards: cardsNl },
 } as const;
 
 /** Registered namespaces. `translation` is the default; features add their own. */
-export const NAMESPACES = ["translation", "splits"] as const;
+export const NAMESPACES = ["translation", "splits", "accounts", "transactions", "cards"] as const;
 
 export function isRtl(languageCode: string): boolean {
   const base = languageCode.split("-")[0];

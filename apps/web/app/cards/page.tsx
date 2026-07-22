@@ -20,10 +20,10 @@ const PALETTE = ["#3e4a38", "#b06a4f", "#5f6647", "#7c4a3a", "#2b2723"];
 interface CardDetail { account_id: string; statement_day: number; due_day: number; credit_limit: number | null; card_last4: string | null; pending_due: number | null; due_on: string | null; }
 
 export default function CardsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("cards");
   const balances = useAccountBalances();
   const session = useSession();
-  const holder = (session?.username || "").trim() || "Card Holder";
+  const holder = (session?.username || "").trim() || t("cardHolder");
   const cards = balances.filter((b) => b.account.type === "credit_card");
   const accountsLoading = useAccountsLoading();
   const { data: details = [] } = useQuery<CardDetail>("SELECT account_id, statement_day, due_day, credit_limit, card_last4, pending_due, due_on FROM credit_card_details");
@@ -32,7 +32,7 @@ export default function CardsPage() {
   if (cards.length === 0 && accountsLoading) {
     return (
       <div style={{ display: "grid", gap: 16 }}>
-        <h1>{t("pages.cards", "Cards")}</h1>
+        <h1>{t("title")}</h1>
         <Skeleton h={92} r={18} />
         <CardsSkeleton count={2} minWidth={300} />
       </div>
@@ -42,9 +42,9 @@ export default function CardsPage() {
   if (cards.length === 0) {
     return (
       <div className="fade-up">
-        <h1>{t("pages.cards", "Cards")}</h1>
-        <p className="muted">Add a Credit Card account to see your wallet come to life.</p>
-        <a href="/accounts/new" className="btn" style={{ marginTop: 12 }}>＋ New account</a>
+        <h1>{t("title")}</h1>
+        <p className="muted">{t("emptyBody")}</p>
+        <a href="/accounts/new" className="btn" style={{ marginTop: 12 }}>＋ {t("newAccount")}</a>
       </div>
     );
   }
@@ -52,10 +52,10 @@ export default function CardsPage() {
   return (
     <div className="fade-up" style={{ display: "grid", gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>{t("pages.cards", "Cards")}</h1>
-        <Link href="/accounts/new" className="btn">＋ Add card</Link>
+        <h1>{t("title")}</h1>
+        <Link href="/accounts/new" className="btn">＋ {t("addCard")}</Link>
       </div>
-      <p className="muted" style={{ marginBottom: 8 }}>Your cards, straight from the wallet.</p>
+      <p className="muted" style={{ marginBottom: 8 }}>{t("subtitle")}</p>
 
       {/* Wallet */}
       <div style={{ position: "relative", height: 92, marginBottom: 4 }}>
@@ -67,7 +67,7 @@ export default function CardsPage() {
           position: "absolute", left: 0, right: 0, top: 46, height: 46, borderRadius: "0 0 22px 22px",
           background: "linear-gradient(135deg,#7a5a44,#684d3a)", borderTop: "2px solid rgba(0,0,0,0.15)",
         }} />
-        <div style={{ position: "absolute", left: 22, top: 58, color: "#e8d4a8", fontSize: 13, fontWeight: 600, letterSpacing: "0.05em" }}>WALLET</div>
+        <div style={{ position: "absolute", left: 22, top: 58, color: "#e8d4a8", fontSize: 13, fontWeight: 600, letterSpacing: "0.05em" }}>{t("wallet")}</div>
       </div>
 
       {/* Cards spread as a list */}
@@ -109,6 +109,7 @@ function CardPanel({ account, owed, detail, sources }: {
   detail: CardDetail | undefined;
   sources: { id: string; name: string }[];
 }) {
+  const { t } = useTranslation("cards");
   const fmt = useMoneyFmt();
   const cycle = detail ? billingCycle(detail.statement_day, detail.due_day, new Date()) : null;
   const [stmt, setStmt] = useState(String(detail?.statement_day ?? 1));
@@ -149,11 +150,11 @@ function CardPanel({ account, owed, detail, sources }: {
     <details className="card" style={{ padding: 20 }}>
       <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", cursor: "pointer", userSelect: "none", outline: "none" }}>
         <div>
-          <div className="muted" style={{ fontSize: 12 }}>Spent this cycle</div>
+          <div className="muted" style={{ fontSize: 12 }}>{t("spentThisCycle")}</div>
           <div style={{ fontSize: 28, fontWeight: 750, color: "var(--negative)" }}>{fmt(owedMoney)}</div>
           {detail?.credit_limit ? (
             <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
-              of {fmt(money(detail.credit_limit, account.currency))} limit
+              {t("ofLimit", { limit: fmt(money(detail.credit_limit, account.currency)) })}
             </div>
           ) : null}
         </div>
@@ -165,16 +166,16 @@ function CardPanel({ account, owed, detail, sources }: {
             <div style={{ textAlign: "right" }}>
               {dueThisCycle != null && (
                 <>
-                  <div className="muted" style={{ fontSize: 12 }}>Due this cycle</div>
+                  <div className="muted" style={{ fontSize: 12 }}>{t("dueThisCycle")}</div>
                   <div style={{ fontWeight: 750, fontSize: 20, color: dueThisCycle > 0 ? "var(--negative)" : "var(--positive)" }}>{fmt(money(dueThisCycle, account.currency))}</div>
                 </>
               )}
-              <div className="muted" style={{ fontSize: 12, marginTop: dueThisCycle != null ? 4 : 0 }}>Pay by</div>
+              <div className="muted" style={{ fontSize: 12, marginTop: dueThisCycle != null ? 4 : 0 }}>{t("payBy")}</div>
               <div style={{ fontWeight: 650 }}>{dueOn.toLocaleDateString()}</div>
               {rolledToNext && detail?.pending_due ? (
-                <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>{fmt(money(detail.pending_due, account.currency))} due next cycle</div>
+                <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>{t("dueNextCycle", { amount: fmt(money(detail.pending_due, account.currency)) })}</div>
               ) : null}
-              <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>Click to manage ▾</div>
+              <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>{t("clickToManage")}</div>
             </div>
           );
         })()}
@@ -183,51 +184,51 @@ function CardPanel({ account, owed, detail, sources }: {
       <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
         {detail?.credit_limit ? (
           <div className="muted" style={{ fontSize: 12 }}>
-            <span style={{ color: "var(--positive)" }}>{fmt(money(Math.max(0, detail.credit_limit - Math.abs(owed)), account.currency))} available credit</span>
+            <span style={{ color: "var(--positive)" }}>{t("availableCredit", { amount: fmt(money(Math.max(0, detail.credit_limit - Math.abs(owed)), account.currency)) })}</span>
           </div>
         ) : null}
         {cycle && !editing && (
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div className="muted" style={{ fontSize: 11 }}>Statement {cycle.statementDate.toLocaleDateString()}</div>
-            <button className="chip" style={{ padding: "2px 8px", fontSize: 11 }} onClick={() => setEditing(true)}>Edit details</button>
+            <div className="muted" style={{ fontSize: 11 }}>{t("statement", { date: cycle.statementDate.toLocaleDateString() })}</div>
+            <button className="chip" style={{ padding: "2px 8px", fontSize: 11 }} onClick={() => setEditing(true)}>{t("editDetails")}</button>
           </div>
         )}
 
         {(!cycle || editing) && (
           <div style={{ display: "grid", gap: 8, marginTop: cycle ? 8 : 0 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
-              <label className="muted" style={{ fontSize: 12 }}>Statement day
+              <label className="muted" style={{ fontSize: 12 }}>{t("statementDay")}
                 <input className="input" style={{ width: 90 }} value={stmt} onChange={(e) => setStmt(e.target.value.replace(/\D/g, ""))} />
               </label>
-              <label className="muted" style={{ fontSize: 12 }}>Due day
+              <label className="muted" style={{ fontSize: 12 }}>{t("dueDay")}
                 <input className="input" style={{ width: 80 }} value={due} onChange={(e) => setDue(e.target.value.replace(/\D/g, ""))} />
               </label>
-              <label className="muted" style={{ fontSize: 12 }}>Credit limit
-                <AmountInput style={{ width: 120 }} currency={account.currency} value={creditLimit} onChange={setCreditLimit} ariaLabel="Credit limit" />
+              <label className="muted" style={{ fontSize: 12 }}>{t("creditLimit")}
+                <AmountInput style={{ width: 120 }} currency={account.currency} value={creditLimit} onChange={setCreditLimit} ariaLabel={t("creditLimit")} />
               </label>
-              <label className="muted" style={{ fontSize: 12 }}>Amount due
-                <AmountInput style={{ width: 120 }} currency={account.currency} value={dueAmt} onChange={setDueAmt} ariaLabel="Amount due" />
+              <label className="muted" style={{ fontSize: 12 }}>{t("amountDue")}
+                <AmountInput style={{ width: 120 }} currency={account.currency} value={dueAmt} onChange={setDueAmt} ariaLabel={t("amountDue")} />
               </label>
             </div>
-            <label className="muted" style={{ fontSize: 12 }}>Card number (optional — last 4 shown)
-              <input className="input" inputMode="numeric" placeholder="•••• (optional)" value={last4}
+            <label className="muted" style={{ fontSize: 12 }}>{t("cardNumber")}
+              <input className="input" inputMode="numeric" placeholder={t("cardNumberPlaceholder")} value={last4}
                 onChange={(e) => setLast4(e.target.value.replace(/\D/g, "").slice(0, 4))} />
             </label>
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn ghost" onClick={saveCycle}>Save</button>
-              {editing && <button className="chip" onClick={() => setEditing(false)}>Cancel</button>}
+              <button className="btn ghost" onClick={saveCycle}>{t("save")}</button>
+              {editing && <button className="chip" onClick={() => setEditing(false)}>{t("cancel")}</button>}
             </div>
           </div>
         )}
 
         <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-          <span className="muted" style={{ fontSize: 12 }}>Settle bill from</span>
+          <span className="muted" style={{ fontSize: 12 }}>{t("settleFrom")}</span>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {sources.map((s) => <button key={s.id} className="chip" data-active={(fromId ?? sources[0]?.id) === s.id} onClick={() => setFromId(s.id)}>{s.name}</button>)}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <AmountInput placeholder="Amount" currency={account.currency} value={amount} onChange={setAmount} ariaLabel="Settle amount" />
-            <button className="btn" onClick={settle} disabled={!amount || sources.length === 0}>Settle</button>
+            <AmountInput placeholder={t("amountPlaceholder")} currency={account.currency} value={amount} onChange={setAmount} ariaLabel={t("settle")} />
+            <button className="btn" onClick={settle} disabled={!amount || sources.length === 0}>{t("settle")}</button>
           </div>
         </div>
       </div>
