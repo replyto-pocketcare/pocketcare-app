@@ -99,8 +99,8 @@ export default function StatementsPage() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                <td style={{ padding: "8px 6px" }}>{new Date(r.occurred_at).toLocaleDateString()}</td>
-                <td>{r.labels || r.description || r.type}</td>
+                <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>{new Date(r.occurred_at).toLocaleDateString()}</td>
+                <td style={{ overflowWrap: "anywhere", wordBreak: "break-word", maxWidth: 180 }}>{r.labels || r.description || r.type}</td>
                 <td className="muted">{catName(r.category_id)}</td>
                 <td style={{ textAlign: "right", color: r.type === "income" ? "var(--positive)" : r.type === "expense" ? "var(--negative)" : "var(--text)" }}>
                   {r.type === "expense" ? "−" : r.type === "income" ? "+" : ""}{format(money(r.amount, r.currency), "en-US")}

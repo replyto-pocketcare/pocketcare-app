@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { MicIcon } from "../ui/icons";
 import {
   voiceSupported, recordingSupported, webSpeechSupported,
   startRecording, transcribeWhisper, startWebSpeech, type Recorder, type LiveSession,
@@ -73,13 +74,17 @@ export function MicButton({ getInput, setInput, disabled }: { getInput: () => st
       onClick={onClick}
       disabled={disabled || status === "transcribing"}
       style={{
-        flexShrink: 0, width: 38, height: 38, borderRadius: 999, border: "1px solid var(--border)",
-        display: "grid", placeItems: "center", cursor: "pointer", fontSize: 15,
-        background: active ? "var(--accent)" : "var(--surface-2)", color: active ? "#fff" : "var(--text-2)",
+        flexShrink: 0, width: 40, height: 40, borderRadius: 999, border: "none",
+        display: "grid", placeItems: "center", cursor: "pointer",
+        background: active ? "var(--accent)" : "transparent", color: active ? "#fff" : "var(--text-2)",
         animation: active ? "micPulse 1.4s ease-in-out infinite" : "none",
       }}
     >
-      {status === "transcribing" ? <span style={{ fontSize: 10, fontWeight: 700 }}>{pct > 0 && pct < 1 ? `${Math.round(pct * 100)}%` : "…"}</span> : "🎙"}
+      {status === "transcribing"
+        ? <span style={{ fontSize: 10, fontWeight: 700 }}>{pct > 0 && pct < 1 ? `${Math.round(pct * 100)}%` : "…"}</span>
+        : active
+        ? <span style={{ width: 12, height: 12, borderRadius: 3, background: "#fff" }} />
+        : <MicIcon size={19} />}
       <style>{`@keyframes micPulse { 0%,100%{ box-shadow: 0 0 0 0 var(--accent-soft) } 50%{ box-shadow: 0 0 0 6px transparent } }`}</style>
     </button>
   );

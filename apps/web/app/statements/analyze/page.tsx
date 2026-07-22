@@ -243,7 +243,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
           <div className="eyebrow">Outliers · unusually large</div>
           {outliers.slice(0, 5).map((o, i) => (
             <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 13 }}>
-              <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.txn.description} <span className="muted">· {o.txn.date}</span></span>
+              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.txn.description} <span className="muted">· {o.txn.date}</span></span>
               <strong style={{ color: "var(--negative)", flexShrink: 0 }}>{fmt(money(o.amount, cur))}</strong>
             </div>
           ))}
@@ -293,12 +293,12 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
         <div className="eyebrow">Transactions ({parsed.txns.length})</div>
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           {shown.map((t, i) => (
-            <div key={i} style={{ padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, borderTop: i === 0 ? "none" : "1px solid var(--border)" }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.description}</div>
+            <div key={i} style={{ padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, borderTop: i === 0 ? "none" : "1px solid var(--border)" }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, overflowWrap: "anywhere", wordBreak: "break-word", lineHeight: 1.4 }}>{t.description}</div>
                 <div className="muted" style={{ fontSize: 11.5 }}>{t.date}{t.category ? ` · ${t.category}` : ""}</div>
               </div>
-              <strong style={{ flexShrink: 0, color: t.amount >= 0 ? "var(--positive)" : "var(--text)" }}>{t.amount >= 0 ? "+" : "−"}{fmt(money(Math.abs(t.amount), cur))}</strong>
+              <strong style={{ flexShrink: 0, color: t.amount >= 0 ? "var(--positive)" : "var(--text)", whiteSpace: "nowrap" }}>{t.amount >= 0 ? "+" : "−"}{fmt(money(Math.abs(t.amount), cur))}</strong>
             </div>
           ))}
         </div>

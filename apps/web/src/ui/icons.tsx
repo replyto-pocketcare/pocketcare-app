@@ -4,6 +4,25 @@
 type P = { size?: number; strokeWidth?: number };
 const base = (size: number) => ({ width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeLinecap: "round" as const, strokeLinejoin: "round" as const });
 
+export function MicIcon({ size = 18, strokeWidth = 1.8 }: P) {
+  return (
+    <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
+      <rect x="9" y="2" width="6" height="12" rx="3" />
+      <path d="M5 10v1a7 7 0 0 0 14 0v-1" />
+      <line x1="12" y1="18" x2="12" y2="22" />
+    </svg>
+  );
+}
+
+export function ArrowUpIcon({ size = 18, strokeWidth = 2 }: P) {
+  return (
+    <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <path d="M5 12l7-7 7 7" />
+    </svg>
+  );
+}
+
 export function EyeIcon({ size = 18, strokeWidth = 1.8 }: P) {
   return (
     <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>

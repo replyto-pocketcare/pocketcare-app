@@ -9,12 +9,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
+import { useInitialSyncPending } from "../sync";
 
 const KEY = "gettingStartedDismissed";
 
 interface Step { done: boolean; title: string; why: string; href: string; cta: string }
 
 export function GettingStarted() {
+  const syncPending = useInitialSyncPending();
   const [dismissed, setDismissed] = useState(() => (typeof window !== "undefined" ? localStorage.getItem(KEY) === "1" : false));
 
   const { data: acc = [] } = useQuery<{ c: number }>("SELECT COUNT(*) AS c FROM accounts WHERE deleted_at IS NULL AND IFNULL(kind,'real')='real'");
@@ -32,8 +34,10 @@ export function GettingStarted() {
   ];
   const doneCount = steps.filter((s) => s.done).length;
 
-  // Keep it for everyone (it's a handy tracker); hide once dismissed or complete.
-  if (dismissed || doneCount === steps.length) return null;
+  // Wait for the first sync before judging — otherwise it flashes for existing
+  // users whose counts are momentarily 0 while data downloads. Keep it for
+  // everyone; hide once dismissed or all done.
+  if (syncPending || dismissed || doneCount === steps.length) return null;
 
   const next = steps.find((s) => !s.done);
   return (

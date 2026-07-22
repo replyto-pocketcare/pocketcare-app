@@ -11,6 +11,7 @@ import { buildFinancialSummary, summaryForPrompt } from "../../src/assistant/sum
 import { parseAssistantMessage, AssistantUiBlock, Markdown } from "../../src/assistant/richMessage";
 import { ASSISTANT_TOOLS, executeTool, describeToolCall, needsConfirm, isValidToolInput, loadMemory } from "../../src/assistant/tools";
 import { MicButton } from "../../src/assistant/MicButton";
+import { ArrowUpIcon } from "../../src/ui/icons";
 import { buyCredits } from "../../src/billing";
 import { useEntitlement } from "../../src/entitlement";
 import { CREDIT_PACKS } from "../../src/billing/plans";
@@ -552,25 +553,31 @@ export default function AssistantPage() {
       {/* Composer — pinned to the bottom of the chat frame (always above the keyboard);
           multiline auto-expanding; Enter = newline, ⌘/Ctrl+Enter or Send = send. */}
       <div className="assist-composer">
-        <textarea
-          ref={taRef}
-          className="input"
-          rows={1}
-          style={{ flex: 1, minWidth: 0, resize: "none", maxHeight: 160, lineHeight: 1.5, paddingTop: 10, paddingBottom: 10 }}
-          placeholder="Ask about a purchase, goal, or budget…"
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            const el = e.target;
-            el.style.height = "auto";
-            el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-          }}
-          onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void send(); } }}
-          disabled={busy}
-        />
-        <div style={{ alignSelf: "flex-end", display: "flex", gap: 8 }}>
-          <MicButton getInput={() => input} setInput={(v) => { setInput(v); const el = taRef.current; if (el) { el.style.height = "auto"; el.style.height = `${Math.min(el.scrollHeight, 160)}px`; } }} disabled={busy} />
-          <button className="btn" style={{ flexShrink: 0 }} onClick={send} disabled={busy || !input.trim() || !!pending}>Send</button>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-end", gap: 2, background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: 26, padding: "4px 6px 4px 16px", boxShadow: "var(--shadow)" }}>
+          <textarea
+            ref={taRef}
+            rows={1}
+            style={{ flex: 1, minWidth: 0, resize: "none", maxHeight: 150, lineHeight: 1.5, border: "none", background: "transparent", outline: "none", font: "inherit", color: "var(--text)", padding: "9px 0" }}
+            placeholder="Ask anything, or tap the mic to speak…"
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+              const el = e.target;
+              el.style.height = "auto";
+              el.style.height = `${Math.min(el.scrollHeight, 150)}px`;
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void send(); } }}
+            disabled={busy}
+          />
+          <MicButton getInput={() => input} setInput={(v) => { setInput(v); const el = taRef.current; if (el) { el.style.height = "auto"; el.style.height = `${Math.min(el.scrollHeight, 150)}px`; } }} disabled={busy} />
+          <button
+            type="button" aria-label="Send" onClick={send} disabled={busy || !input.trim() || !!pending}
+            style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 999, border: "none", display: "grid", placeItems: "center",
+              cursor: input.trim() && !busy ? "pointer" : "default", transition: "background 0.16s, color 0.16s",
+              background: input.trim() && !busy && !pending ? "var(--accent)" : "var(--surface-2)", color: input.trim() && !busy && !pending ? "#fff" : "var(--text-3)" }}
+          >
+            <ArrowUpIcon size={19} />
+          </button>
         </div>
       </div>
     </div>
