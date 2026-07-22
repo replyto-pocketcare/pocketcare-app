@@ -90,6 +90,13 @@ button { font-family: inherit; }
 
 .muted { color: var(--text-2); }
 
+/* Native <button>s do NOT inherit `color` — they fall back to the UA default
+ * (black), which ignores the theme. Any card/row/icon button that relied on
+ * inheritance (e.g. currentColor SVGs like the hamburger, or plain text inside
+ * a .card button) rendered black in dark mode. Inherit from the themed body;
+ * .btn / .chip[data-active] set their own colour and out-specify this. */
+button { color: inherit; }
+
 /* Micro-interactions from the design system. */
 .press { transition: transform 0.12s ease, filter 0.16s ease, background 0.16s ease, border-color 0.16s ease; }
 .press:active { transform: scale(0.97); }

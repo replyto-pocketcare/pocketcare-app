@@ -1,0 +1,41 @@
+{
+  "eyebrow": "DELEN",
+  "yourBalance": "Je saldo",
+  "groupsAndTrips": "Groepen & reizen",
+  "netPosition": "Nettopositie",
+  "empty": {
+    "title": "Nog geen splits",
+    "bodyPre": "Maak een groep en nodig mensen uit via ",
+    "bodyLink": "Groepen & reizen",
+    "bodyPost": ". Zodra ze meedoen, kun je hier splitsen en afrekenen."
+  },
+  "sections": {
+    "groupsAndTrips": "GROEPEN & REIZEN",
+    "owesYou": "IS JOU VERSCHULDIGD",
+    "youOwe": "JIJ BENT VERSCHULDIGD"
+  },
+  "kind": { "trip": "reis", "group": "groep" },
+  "membersLine_one": "{{count}} persoon · {{kind}}",
+  "membersLine_other": "{{count}} personen · {{kind}}",
+  "settledUp": "Iedereen is afgerekend.",
+  "owesYouInline": "is jou verschuldigd",
+  "youOweInline": "jij bent verschuldigd",
+  "totalOwedToYou": "Totaal aan jou verschuldigd",
+  "totalYouOwe": "Totaal dat jij verschuldigd bent",
+  "settlementTag": "afrekening",
+  "settleUp": "Afrekenen",
+  "remind": "Herinneren",
+  "copied": "Gekopieerd!",
+  "settleWith": "Afrekenen met {{name}}",
+  "theyPayYouBack": "{{name}} betaalt je terug.",
+  "youPayThemBack": "Jij betaalt {{name}} terug.",
+  "amountLabel": "Bedrag ({{currency}})",
+  "receivedInto": "Ontvangen op rekening",
+  "paidFrom": "Betaald van rekening",
+  "noneMarkSettled": "Geen — markeer alleen als afgerekend",
+  "cancel": "Annuleren",
+  "settle": "Afrekenen",
+  "settling": "Afrekenen…",
+  "remindOwed": "Hoi {{name}}, een vriendelijke herinnering aan de {{amount}} van onze split op PocketCare 🙂",
+  "remindOwe": "Hoi {{name}}, ik ben je nog {{amount}} schuldig van onze split — ik reken snel af!"
+}

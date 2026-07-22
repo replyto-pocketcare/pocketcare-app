@@ -1,0 +1,41 @@
+{
+  "eyebrow": "SPLITS",
+  "yourBalance": "Your balance",
+  "groupsAndTrips": "Groups & trips",
+  "netPosition": "Net position",
+  "empty": {
+    "title": "No splits yet",
+    "bodyPre": "Create a group and invite people from ",
+    "bodyLink": "Groups & trips",
+    "bodyPost": ". Once they join, you can split and settle here."
+  },
+  "sections": {
+    "groupsAndTrips": "GROUPS & TRIPS",
+    "owesYou": "OWES YOU",
+    "youOwe": "YOU OWE"
+  },
+  "kind": { "trip": "trip", "group": "group" },
+  "membersLine_one": "{{count}} person · {{kind}}",
+  "membersLine_other": "{{count}} people · {{kind}}",
+  "settledUp": "Everyone's settled up.",
+  "owesYouInline": "owes you",
+  "youOweInline": "you owe",
+  "totalOwedToYou": "Total owed to you",
+  "totalYouOwe": "Total you owe",
+  "settlementTag": "settlement",
+  "settleUp": "Settle up",
+  "remind": "Remind",
+  "copied": "Copied!",
+  "settleWith": "Settle with {{name}}",
+  "theyPayYouBack": "{{name}} pays you back.",
+  "youPayThemBack": "You pay {{name}} back.",
+  "amountLabel": "Amount ({{currency}})",
+  "receivedInto": "Received into account",
+  "paidFrom": "Paid from account",
+  "noneMarkSettled": "None — just mark settled",
+  "cancel": "Cancel",
+  "settle": "Settle",
+  "settling": "Settling…",
+  "remindOwed": "Hi {{name}}, friendly reminder about the {{amount}} from our split on PocketCare 🙂",
+  "remindOwe": "Hi {{name}}, I still owe you {{amount}} from our split — I’ll settle up soon!"
+}

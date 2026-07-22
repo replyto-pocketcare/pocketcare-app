@@ -10,6 +10,13 @@ import en from "./locales/en.json";
 import hi from "./locales/hi.json";
 import nl from "./locales/nl.json";
 
+// Per-feature namespaces. Each feature owns its own JSON per language so the
+// files stay small, reviewable, and independently loadable. `translation` is
+// the shared/default namespace; add new features as `./locales/<feature>/<lng>`.
+import splitsEn from "./locales/splits/en.json";
+import splitsHi from "./locales/splits/hi.json";
+import splitsNl from "./locales/splits/nl.json";
+
 export interface Language {
   code: string;
   label: string;
@@ -24,10 +31,13 @@ export const SUPPORTED_LANGUAGES: readonly Language[] = [
 ];
 
 export const resources = {
-  en: { translation: en },
-  hi: { translation: hi },
-  nl: { translation: nl },
+  en: { translation: en, splits: splitsEn },
+  hi: { translation: hi, splits: splitsHi },
+  nl: { translation: nl, splits: splitsNl },
 } as const;
+
+/** Registered namespaces. `translation` is the default; features add their own. */
+export const NAMESPACES = ["translation", "splits"] as const;
 
 export function isRtl(languageCode: string): boolean {
   const base = languageCode.split("-")[0];
@@ -45,6 +55,8 @@ export function initI18n(lng = "en") {
       lng,
       fallbackLng: "en",
       supportedLngs: SUPPORTED_LANGUAGES.map((l) => l.code),
+      ns: NAMESPACES,
+      defaultNS: "translation",
       interpolation: { escapeValue: false },
       returnNull: false,
     });

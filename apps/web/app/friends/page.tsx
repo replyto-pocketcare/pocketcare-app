@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { money } from "@pocketcare/money";
 import { useBaseCurrency } from "../../src/hooks";
@@ -37,6 +38,7 @@ function Avatar({ id, name, size = 30, ring = false }: { id: string; name: strin
 }
 
 function BalanceRow({ b, name, amt, onOpen }: { b: { userId: string; net: number }; name: (id: string) => string; amt: (n: number) => string; onOpen: (id: string, net: number) => void }) {
+  const { t } = useTranslation("splits");
   return (
     <button
       onClick={() => onOpen(b.userId, b.net)}
@@ -46,7 +48,7 @@ function BalanceRow({ b, name, amt, onOpen }: { b: { userId: string; net: number
       <Avatar id={b.userId} name={name(b.userId)} size={38} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 700, fontSize: 16, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(b.userId)}</div>
-        <div style={{ fontSize: 13, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{b.net > 0 ? "owes you" : "you owe"}</div>
+        <div style={{ fontSize: 13, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{b.net > 0 ? t("owesYouInline") : t("youOweInline")}</div>
       </div>
       <span style={{ fontWeight: 750, fontSize: 17, color: b.net > 0 ? "var(--positive)" : "var(--negative)", flexShrink: 0 }}>{amt(b.net)}</span>
     </button>
@@ -54,6 +56,7 @@ function BalanceRow({ b, name, amt, onOpen }: { b: { userId: string; net: number
 }
 
 export default function SplitsPage() {
+  const { t } = useTranslation("splits");
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
   const overview = useSplitOverview();
@@ -92,9 +95,10 @@ export default function SplitsPage() {
     setAccountId("");
   }
   async function remind(p: SettleTarget) {
+    const amtStr = fmt(money(Math.abs(p.net), base));
     const line = p.net > 0
-      ? `Hi ${p.name}, friendly reminder about the ${fmt(money(Math.abs(p.net), base))} from our split on PocketCare 🙂`
-      : `Hi ${p.name}, I still owe you ${fmt(money(Math.abs(p.net), base))} from our split — I’ll settle up soon!`;
+      ? t("remindOwed", { name: p.name, amount: amtStr })
+      : t("remindOwe", { name: p.name, amount: amtStr });
     try {
       if (typeof navigator !== "undefined" && navigator.share) await navigator.share({ text: line });
       else if (typeof navigator !== "undefined" && navigator.clipboard) { await navigator.clipboard.writeText(line); setReminded(true); }
@@ -145,16 +149,16 @@ export default function SplitsPage() {
       <section className="card" style={{ padding: 18, display: "grid", gap: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em" }}>SPLITS</div>
-            <h1 style={{ margin: "1px 0 0", fontSize: 22 }}>Your balance</h1>
+            <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em" }}>{t("eyebrow")}</div>
+            <h1 style={{ margin: "1px 0 0", fontSize: 22 }}>{t("yourBalance")}</h1>
           </div>
-          <Link href="/groups" className="btn ghost" style={{ flexShrink: 0 }}>Groups &amp; trips</Link>
+          <Link href="/groups" className="btn ghost" style={{ flexShrink: 0 }}>{t("groupsAndTrips")}</Link>
         </div>
 
         {/* Net position — compact */}
         <div style={{ background: "var(--accent-ghost, rgba(0,0,0,0.04))", borderRadius: 14, padding: "14px 16px", display: "grid", gap: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-            <span className="muted" style={{ fontSize: 12.5 }}>Net position</span>
+            <span className="muted" style={{ fontSize: 12.5 }}>{t("netPosition")}</span>
             <span style={{ fontSize: 26, fontWeight: 750, lineHeight: 1, color: netColor, whiteSpace: "nowrap" }}>
               {netPosition >= 0 ? "+" : "−"}{amt(netPosition)}
             </span>
@@ -170,8 +174,8 @@ export default function SplitsPage() {
         ) : empty ? (
           <div style={{ padding: "24px 8px", textAlign: "center", display: "grid", gap: 10, justifyItems: "center" }}>
             <div style={{ fontSize: 26 }}>◑</div>
-            <h2 style={{ margin: 0 }}>No splits yet</h2>
-            <p className="muted" style={{ margin: 0, maxWidth: 380 }}>Create a group and invite people from <Link href="/groups">Groups &amp; trips</Link>. Once they join, you can split and settle here.</p>
+            <h2 style={{ margin: 0 }}>{t("empty.title")}</h2>
+            <p className="muted" style={{ margin: 0, maxWidth: 380 }}>{t("empty.bodyPre")}<Link href="/groups">{t("empty.bodyLink")}</Link>{t("empty.bodyPost")}</p>
           </div>
         ) : null}
       </section>
@@ -179,7 +183,7 @@ export default function SplitsPage() {
       {/* Groups & trips — tiled; an expanded group spans the full row. */}
       {!empty && groups.length > 0 && (
         <section style={{ display: "grid", gap: 12 }}>
-          <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>GROUPS &amp; TRIPS</div>
+          <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.groupsAndTrips")}</div>
           <div className="list-grid">
             {groups.map((g) => {
               const isOpen = expanded.has(g.group.id);
@@ -212,7 +216,7 @@ export default function SplitsPage() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12 }}>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontWeight: 700, fontSize: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.group.name}</div>
-                        <div className="muted" style={{ fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.peopleCount} {g.peopleCount === 1 ? "person" : "people"} · {g.group.kind === "trip" ? "trip" : "group"}</div>
+                        <div className="muted" style={{ fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t("membersLine", { count: g.peopleCount, kind: t(g.group.kind === "trip" ? "kind.trip" : "kind.group") })}</div>
                       </div>
                       <span style={{ fontWeight: 750, fontSize: 19, whiteSpace: "nowrap", flexShrink: 0, color: netTone }}>
                         {g.net === 0 ? amt(0) : (g.net > 0 ? "" : "−") + amt(g.net)}
@@ -221,7 +225,7 @@ export default function SplitsPage() {
                   </button>
                   {isOpen && (
                     <div style={{ padding: "12px 16px 14px", display: "grid", gap: 10, borderTop: "1px solid var(--border)" }}>
-                      {g.perUser.length === 0 && <div className="muted" style={{ fontSize: 13 }}>Everyone’s settled up.</div>}
+                      {g.perUser.length === 0 && <div className="muted" style={{ fontSize: 13 }}>{t("settledUp")}</div>}
                       {g.perUser.map((b) => (
                         <button key={b.userId} className="tap-row" onClick={() => openPerson(b.userId, b.net)}
                           style={{ background: "none", border: "none", cursor: "pointer", padding: "6px 8px", margin: "0 -8px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, textAlign: "left", color: "inherit" }}>
@@ -246,13 +250,13 @@ export default function SplitsPage() {
         <section style={{ display: "grid", gap: 16 }}>
           {owedList.length > 0 && (
             <div style={{ display: "grid", gap: 10 }}>
-              <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>OWES YOU</div>
+              <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.owesYou")}</div>
               <div className="list-grid">{owedList.map((b) => <BalanceRow key={b.userId} b={b} name={name} amt={amt} onOpen={openPerson} />)}</div>
             </div>
           )}
           {oweList.length > 0 && (
             <div style={{ display: "grid", gap: 10 }}>
-              <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>YOU OWE</div>
+              <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.youOwe")}</div>
               <div className="list-grid">{oweList.map((b) => <BalanceRow key={b.userId} b={b} name={name} amt={amt} onOpen={openPerson} />)}</div>
             </div>
           )}
@@ -268,13 +272,13 @@ export default function SplitsPage() {
               <Avatar id={person.userId} name={person.name} size={52} />
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: 750, fontSize: 22, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{person.name}</div>
-                <div style={{ fontSize: 14, color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{person.net > 0 ? "owes you" : "you owe"}</div>
+                <div style={{ fontSize: 14, color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{person.net > 0 ? t("owesYouInline") : t("youOweInline")}</div>
               </div>
             </div>
 
             {/* Total at top */}
             <div style={{ background: "var(--surface-2)", borderRadius: 14, padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-              <span className="muted" style={{ fontSize: 12.5 }}>Total {person.net > 0 ? "owed to you" : "you owe"}</span>
+              <span className="muted" style={{ fontSize: 12.5 }}>{person.net > 0 ? t("totalOwedToYou") : t("totalYouOwe")}</span>
               <span style={{ fontSize: 30, fontWeight: 750, lineHeight: 1, whiteSpace: "nowrap", color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(person.net)}</span>
             </div>
 
@@ -285,7 +289,7 @@ export default function SplitsPage() {
                   <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid var(--border)" }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.description}</div>
-                      {l.date && <div className="muted" style={{ fontSize: 11.5 }}>{fmtDate(l.date)}{l.kind === "settlement" ? " · settlement" : ""}</div>}
+                      {l.date && <div className="muted" style={{ fontSize: 11.5 }}>{fmtDate(l.date)}{l.kind === "settlement" ? ` · ${t("settlementTag")}` : ""}</div>}
                     </div>
                     <span style={{ fontSize: 14, fontWeight: 650, whiteSpace: "nowrap", flexShrink: 0, color: l.net > 0 ? "var(--positive)" : "var(--negative)" }}>
                       {l.net > 0 ? "+" : "−"}{amt(l.net)}
@@ -296,8 +300,8 @@ export default function SplitsPage() {
             )}
 
             <div style={{ display: "flex", gap: 12 }}>
-              <button className="btn" style={{ flex: 1 }} onClick={() => openSettle(person.userId, person.net)}>Settle up</button>
-              <button className="btn ghost" style={{ flex: "0 0 auto", minWidth: 110 }} onClick={() => void remind(person)}>{reminded ? "Copied!" : "Remind"}</button>
+              <button className="btn" style={{ flex: 1 }} onClick={() => openSettle(person.userId, person.net)}>{t("settleUp")}</button>
+              <button className="btn ghost" style={{ flex: "0 0 auto", minWidth: 110 }} onClick={() => void remind(person)}>{reminded ? t("copied") : t("remind")}</button>
             </div>
           </div>
         )}
@@ -306,22 +310,22 @@ export default function SplitsPage() {
       <Modal open={!!target} onClose={() => setTarget(null)}>
         {target && (
           <div style={{ display: "grid", gap: 12 }}>
-            <h2 style={{ margin: 0 }}>Settle with {target.name}</h2>
-            <p className="muted" style={{ margin: 0, fontSize: 13 }}>{target.net >= 0 ? `${target.name} pays you back.` : `You pay ${target.name} back.`}</p>
+            <h2 style={{ margin: 0 }}>{t("settleWith", { name: target.name })}</h2>
+            <p className="muted" style={{ margin: 0, fontSize: 13 }}>{target.net >= 0 ? t("theyPayYouBack", { name: target.name }) : t("youPayThemBack", { name: target.name })}</p>
             <label style={{ display: "grid", gap: 4 }}>
-              <span className="muted" style={{ fontSize: 12 }}>Amount ({base})</span>
+              <span className="muted" style={{ fontSize: 12 }}>{t("amountLabel", { currency: base })}</span>
               <AmountInput currency={base} value={amount} onChange={setAmount} ariaLabel="Settle amount" />
             </label>
             <label style={{ display: "grid", gap: 4 }}>
-              <span className="muted" style={{ fontSize: 12 }}>{target.net >= 0 ? "Received into" : "Paid from"} account</span>
+              <span className="muted" style={{ fontSize: 12 }}>{target.net >= 0 ? t("receivedInto") : t("paidFrom")}</span>
               <select className="input" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
-                <option value="">None — just mark settled</option>
+                <option value="">{t("noneMarkSettled")}</option>
                 {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </label>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
-              <button className="btn ghost" onClick={() => setTarget(null)}>Cancel</button>
-              <button className="btn" onClick={() => void confirmSettle()} disabled={busy || !(Number(amount) > 0)}>{busy ? "Settling…" : "Settle"}</button>
+              <button className="btn ghost" onClick={() => setTarget(null)}>{t("cancel")}</button>
+              <button className="btn" onClick={() => void confirmSettle()} disabled={busy || !(Number(amount) > 0)}>{busy ? t("settling") : t("settle")}</button>
             </div>
           </div>
         )}

@@ -1,0 +1,41 @@
+{
+  "eyebrow": "साझा",
+  "yourBalance": "आपका बैलेंस",
+  "groupsAndTrips": "समूह और यात्राएँ",
+  "netPosition": "कुल स्थिति",
+  "empty": {
+    "title": "अभी कोई स्प्लिट नहीं",
+    "bodyPre": "एक समूह बनाएं और लोगों को यहाँ से आमंत्रित करें ",
+    "bodyLink": "समूह और यात्राएँ",
+    "bodyPost": "। उनके शामिल होने पर, आप यहाँ खर्च बाँट और निपटा सकते हैं।"
+  },
+  "sections": {
+    "groupsAndTrips": "समूह और यात्राएँ",
+    "owesYou": "आपको मिलना है",
+    "youOwe": "आपको देना है"
+  },
+  "kind": { "trip": "यात्रा", "group": "समूह" },
+  "membersLine_one": "{{count}} व्यक्ति · {{kind}}",
+  "membersLine_other": "{{count}} लोग · {{kind}}",
+  "settledUp": "सब हिसाब बराबर है।",
+  "owesYouInline": "आपको मिलना है",
+  "youOweInline": "आपको देना है",
+  "totalOwedToYou": "आपको कुल मिलना है",
+  "totalYouOwe": "आपको कुल देना है",
+  "settlementTag": "निपटान",
+  "settleUp": "निपटाएं",
+  "remind": "याद दिलाएं",
+  "copied": "कॉपी हो गया!",
+  "settleWith": "{{name}} के साथ निपटाएं",
+  "theyPayYouBack": "{{name}} आपको वापस देंगे।",
+  "youPayThemBack": "आप {{name}} को वापस देंगे।",
+  "amountLabel": "राशि ({{currency}})",
+  "receivedInto": "किस खाते में प्राप्त हुआ",
+  "paidFrom": "किस खाते से भुगतान",
+  "noneMarkSettled": "कोई नहीं — बस निपटा हुआ चिह्नित करें",
+  "cancel": "रद्द करें",
+  "settle": "निपटाएं",
+  "settling": "निपटा रहे हैं…",
+  "remindOwed": "नमस्ते {{name}}, PocketCare पर हमारे स्प्लिट के {{amount}} की एक दोस्ताना याद 🙂",
+  "remindOwe": "नमस्ते {{name}}, मुझ पर अब भी आपके {{amount}} बाकी हैं — मैं जल्द ही चुका दूँगा!"
+}
