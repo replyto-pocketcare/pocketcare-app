@@ -46,15 +46,30 @@ function SetupBox() {
       <div style={{ display: "grid", gap: 10 }}>
         <div className="card" style={{ padding: 14, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)" }}>
           <strong>Save your recovery code</strong>
-          <p className="muted" style={{ fontSize: 12, margin: "4px 0 8px" }}>This is the ONLY way to recover your data if you forget your passphrase. Store it somewhere safe — we can't show it again.</p>
+          <p className="muted" style={{ fontSize: 12, margin: "4px 0 8px" }}>Store it somewhere safe — a password manager or written down offline. We can’t show it again.</p>
           <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 16, letterSpacing: "0.06em", userSelect: "all", padding: "8px 10px", background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)" }}>{recovery}</div>
         </div>
-        <button className="btn" onClick={() => setRecovery(null)}>I've saved it</button>
+        <div className="card" style={{ padding: 14, background: "var(--negative-ghost, rgba(200,60,60,0.08))", border: "1px solid var(--negative)" }}>
+          <strong style={{ color: "var(--negative)" }}>⚠︎ There is no other way back in</strong>
+          <p style={{ fontSize: 12.5, lineHeight: 1.5, margin: "4px 0 0" }}>
+            Your passphrase and this recovery code are the <strong>only two keys</strong> to your
+            encrypted fields. If you <strong>forget the passphrase AND lose this code</strong>, that
+            data is <strong>permanently unrecoverable</strong> — not by you, and <strong>not by our
+            support team</strong>. We never see your passphrase or your keys, so there is nothing we
+            can reset or restore. Please save the code before continuing.
+          </p>
+        </div>
+        <button className="btn" onClick={() => setRecovery(null)}>I understand — I’ve saved it</button>
       </div>
     );
   }
   return (
     <div style={{ display: "grid", gap: 8, maxWidth: 380 }}>
+      <div className="card" style={{ padding: 12, background: "var(--surface-2)", fontSize: 12.5, lineHeight: 1.5 }}>
+        <strong>Choose a passphrase you won’t forget.</strong> It never leaves your device, so we
+        can’t reset or recover it. You’ll get a one-time recovery code as backup — if you lose
+        <strong> both</strong>, your encrypted data can’t be recovered by anyone, including support.
+      </div>
       <input className="input" type="password" placeholder="Create a passphrase (8+ chars)" value={pass} onChange={(e) => setPass(e.target.value)} />
       <input className="input" type="password" placeholder="Confirm passphrase" value={pass2} onChange={(e) => setPass2(e.target.value)} />
       {err && <span style={{ color: "var(--negative)", fontSize: 13 }}>{err}</span>}

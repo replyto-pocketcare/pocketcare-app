@@ -7,8 +7,8 @@ import { Logo } from "../../src/ui/Logo";
 import { PasswordInput } from "../../src/ui/PasswordInput";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 
-type Mode = "register" | "signin";
-type Step = "form" | "otp";
+type Mode = "register" | "signin" | "reset";
+type Step = "form" | "otp" | "setpw";
 
 function LoginContent() {
   const router = useRouter();
@@ -17,7 +17,7 @@ function LoginContent() {
     searchParams?.get("mode") === "signin" ? "signin" : "register"
   );
   const [step, setStep] = useState<Step>("form");
-  const [otpType, setOtpType] = useState<"email_change" | "signup">("signup");
+  const [otpType, setOtpType] = useState<"email_change" | "signup" | "recovery">("signup");
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -95,7 +95,24 @@ function LoginContent() {
     } finally { setBusy(false); }
   }
 
+  // Forgot password (step 1): send a recovery code to the account's email.
+  async function startReset() {
+    setErr(null); setMsg(null);
+    if (!validEmail) return setErr("Enter the email address for your account.");
+    setBusy(true);
+    try {
+      const { error } = await getSupabase().auth.resetPasswordForEmail(emailTrim);
+      if (error) throw error;
+      setOtpType("recovery");
+      setStep("otp");
+      setMsg(`If an account exists for ${emailTrim}, we sent it a 6-digit reset code. Enter it below.`);
+    } catch (e) {
+      setErr(friendly((e as Error).message));
+    } finally { setBusy(false); }
+  }
+
   // Step 2 (register): verify OTP, then set the password on the now-verified account.
+  // Also handles the password-reset (recovery) flow, which continues to "setpw".
   async function verifyAndFinish() {
     setErr(null);
     if (otp.trim().length < 6) return setErr("Enter the 6-digit code from your email.");
@@ -104,6 +121,12 @@ function LoginContent() {
       const supabase = getSupabase();
       const { error: vErr } = await supabase.auth.verifyOtp({ email: emailTrim, token: otp.trim(), type: otpType });
       if (vErr) throw vErr;
+      // Password reset: the code established a recovery session — now choose a new password.
+      if (otpType === "recovery") {
+        setStep("setpw");
+        setMsg("Email verified. Choose a new password.");
+        return;
+      }
       // Guest-upgrade path sets the password after the email is verified.
       // (A fresh signUp already set it, so only do this for email_change.)
       if (otpType === "email_change") {
@@ -117,10 +140,27 @@ function LoginContent() {
     } finally { setBusy(false); }
   }
 
+  // Step 3 (reset): set the new password on the recovered session.
+  async function setNewPassword() {
+    setErr(null); setMsg(null);
+    if (password.length < 8) return setErr("Password must be at least 8 characters.");
+    if (password !== confirm) return setErr("Passwords don’t match.");
+    setBusy(true);
+    try {
+      const { error } = await getSupabase().auth.updateUser({ password });
+      if (error) throw error;
+      setMsg("Password updated — taking you home…");
+      finishHome();
+    } catch (e) {
+      setErr(friendly((e as Error).message));
+    } finally { setBusy(false); }
+  }
+
   async function resend() {
     setErr(null); setBusy(true);
     try {
       if (otpType === "signup") await getSupabase().auth.resend({ type: "signup", email: emailTrim });
+      else if (otpType === "recovery") await getSupabase().auth.resetPasswordForEmail(emailTrim);
       else await getSupabase().auth.updateUser({ email: emailTrim });
       setMsg("New code sent.");
     } catch (e) { setErr(friendly((e as Error).message)); } finally { setBusy(false); }
@@ -146,25 +186,43 @@ function LoginContent() {
 
       {step === "otp" ? (
         <>
-          <h1>Verify your email</h1>
+          <h1>{otpType === "recovery" ? "Reset your password" : "Verify your email"}</h1>
           <p className="muted" style={{ marginTop: -6 }}>{msg}</p>
           <input className="input" inputMode="numeric" placeholder="6-digit code" value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} style={{ letterSpacing: "0.3em", textAlign: "center", fontSize: 20 }} />
           {err && <ErrorBox msg={err} />}
           <button className="btn" onClick={verifyAndFinish} disabled={busy} style={{ justifyContent: "center", padding: 13 }}>
-            {busy ? "Verifying…" : "Verify & create account"}
+            {busy ? "Verifying…" : otpType === "recovery" ? "Verify code" : "Verify & create account"}
           </button>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
             <button className="chip" onClick={resend} disabled={busy}>Resend code</button>
             <button className="chip" onClick={() => { setStep("form"); setErr(null); }}>← Back</button>
           </div>
         </>
+      ) : step === "setpw" ? (
+        <>
+          <h1>Choose a new password</h1>
+          <p className="muted" style={{ marginTop: -6 }}>{msg ?? "Set a new password for your account."}</p>
+          <PasswordInput value={password} onChange={setPassword} placeholder="New password" />
+          <PasswordInput value={confirm} onChange={setConfirm} placeholder="Confirm new password" />
+          <div className="card" style={{ padding: 12, fontSize: 12.5, background: "var(--surface-2)" }}>
+            Note: this resets your <strong>account sign-in</strong> password only. If you turned on
+            end-to-end encryption, your <strong>encryption passphrase</strong> is separate and is not
+            changed here.
+          </div>
+          {err && <ErrorBox msg={err} />}
+          <button className="btn" onClick={setNewPassword} disabled={busy} style={{ justifyContent: "center", padding: 13 }}>
+            {busy ? "Saving…" : "Update password"}
+          </button>
+        </>
       ) : (
         <>
-          <h1>{mode === "register" ? "Create your account" : "Welcome back"}</h1>
+          <h1>{mode === "register" ? "Create your account" : mode === "reset" ? "Reset your password" : "Welcome back"}</h1>
           <p className="muted" style={{ marginTop: -6 }}>
             {mode === "register"
               ? "Create your account to securely sync across all your devices. If you’ve been exploring as a guest, your data comes with you."
+              : mode === "reset"
+              ? "Enter your account email and we’ll send you a 6-digit code to set a new password."
               : "Sign in to sync your data to this device. You’ll stay signed in."}
           </p>
 
@@ -172,20 +230,29 @@ function LoginContent() {
             <FloatingInput label="Display name" value={username} onChange={setUsername} />
           )}
           <FloatingInput label="Email" type="email" inputMode="email" value={email} onChange={setEmail} />
-          <PasswordInput value={password} onChange={setPassword} placeholder="Password" />
+          {mode !== "reset" && (
+            <PasswordInput value={password} onChange={setPassword} placeholder="Password" />
+          )}
           {mode === "register" && (
             <PasswordInput value={confirm} onChange={setConfirm} placeholder="Confirm password" />
+          )}
+
+          {mode === "signin" && (
+            <button className="chip" style={{ justifySelf: "start", padding: "2px 4px", background: "none", border: "none" }}
+              onClick={() => { setMode("reset"); setErr(null); setMsg(null); }}>
+              Forgot password?
+            </button>
           )}
 
           {err && <ErrorBox msg={err} />}
           {msg && !err && <div className="card" style={{ padding: 12, fontSize: 14 }}>{msg}</div>}
 
-          <button className="btn" onClick={mode === "register" ? startRegister : signIn} disabled={busy} style={{ justifyContent: "center", padding: 13 }}>
-            {busy ? "…" : mode === "register" ? "Continue" : "Sign in"}
+          <button className="btn" onClick={mode === "register" ? startRegister : mode === "reset" ? startReset : signIn} disabled={busy} style={{ justifyContent: "center", padding: 13 }}>
+            {busy ? "…" : mode === "register" ? "Continue" : mode === "reset" ? "Send reset code" : "Sign in"}
           </button>
 
-          <button className="chip" style={{ justifySelf: "center" }} onClick={() => { setMode(mode === "register" ? "signin" : "register"); setErr(null); setMsg(null); }}>
-            {mode === "register" ? "Already have an account? Sign in" : "New here? Create an account"}
+          <button className="chip" style={{ justifySelf: "center" }} onClick={() => { setMode(mode === "register" ? "signin" : mode === "reset" ? "signin" : "register"); setErr(null); setMsg(null); }}>
+            {mode === "register" ? "Already have an account? Sign in" : mode === "reset" ? "← Back to sign in" : "New here? Create an account"}
           </button>
         </>
       )}
