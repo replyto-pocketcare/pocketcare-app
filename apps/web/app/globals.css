@@ -224,6 +224,62 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border
 }
 .input:focus { border-color: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-ghost); }
 
+/* Custom checkboxes & radios — accent (orange) fill + white indicator when
+ * checked. Applied globally to every native input, so all forms (settings,
+ * accounts, assistant, splits, loans…) get the same look. */
+input[type="checkbox"],
+input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  display: inline-grid;
+  place-content: center;
+  vertical-align: middle;
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+input[type="checkbox"] { border-radius: 6px; }   /* rounded-corner square */
+input[type="radio"]    { border-radius: 999px; }  /* circle */
+
+/* The indicator: a white check for checkboxes, a white dot for radios. */
+input[type="checkbox"]::before,
+input[type="radio"]::before {
+  content: "";
+  transform: scale(0);
+  transition: transform 0.13s cubic-bezier(0.2, 0, 0, 1);
+}
+input[type="checkbox"]::before {
+  width: 11px;
+  height: 11px;
+  background-color: #fff;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+}
+input[type="radio"]::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background-color: #fff;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+input[type="checkbox"]:checked::before,
+input[type="radio"]:checked::before { transform: scale(1); }
+
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 2px; }
+
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled { opacity: 0.5; cursor: default; }
+
 /* Floating-label field: the hint stays visible (shrinks to the top) after typing. */
 .floating { position: relative; }
 .floating > input,
