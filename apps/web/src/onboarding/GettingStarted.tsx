@@ -6,22 +6,29 @@
  * ticks itself off as the user completes it. Dismissible, auto-hides when done,
  * and skipped entirely for Pro users (who tend to know their way around).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import { useInitialSyncPending } from "../sync";
 
 const KEY = "gettingStartedDismissed";
+const DONE_KEY = "gettingStartedComplete";
+const read = (k: string) => (typeof window !== "undefined" ? localStorage.getItem(k) === "1" : false);
 
 interface Step { done: boolean; title: string; why: string; href: string; cta: string }
 
 export function GettingStarted() {
   const syncPending = useInitialSyncPending();
-  const [dismissed, setDismissed] = useState(() => (typeof window !== "undefined" ? localStorage.getItem(KEY) === "1" : false));
+  const [dismissed, setDismissed] = useState(() => read(KEY));
+  // Once the checklist has ever been completed we remember it, so on later
+  // visits we return null synchronously — before any query runs — and it can
+  // never flash in for a returning user.
+  const [completed, setCompleted] = useState(() => read(DONE_KEY));
 
-  const { data: acc = [] } = useQuery<{ c: number }>("SELECT COUNT(*) AS c FROM accounts WHERE deleted_at IS NULL AND IFNULL(kind,'real')='real'");
-  const { data: txn = [] } = useQuery<{ c: number }>("SELECT COUNT(*) AS c FROM transactions WHERE deleted_at IS NULL AND type IN ('income','expense')");
-  const { data: plan = [] } = useQuery<{ c: number }>("SELECT (SELECT COUNT(*) FROM budgets WHERE deleted_at IS NULL) + (SELECT COUNT(*) FROM goals WHERE deleted_at IS NULL) AS c");
+  const { data: acc = [], isLoading: accLoading } = useQuery<{ c: number }>("SELECT COUNT(*) AS c FROM accounts WHERE deleted_at IS NULL AND IFNULL(kind,'real')='real'");
+  const { data: txn = [], isLoading: txnLoading } = useQuery<{ c: number }>("SELECT COUNT(*) AS c FROM transactions WHERE deleted_at IS NULL AND type IN ('income','expense')");
+  const { data: plan = [], isLoading: planLoading } = useQuery<{ c: number }>("SELECT (SELECT COUNT(*) FROM budgets WHERE deleted_at IS NULL) + (SELECT COUNT(*) FROM goals WHERE deleted_at IS NULL) AS c");
+  const loading = accLoading || txnLoading || planLoading;
 
   const hasAccount = (acc[0]?.c ?? 0) > 0;
   const hasTxn = (txn[0]?.c ?? 0) > 0;
@@ -33,11 +40,19 @@ export function GettingStarted() {
     { done: hasPlan, title: "Set a budget or goal", why: "Give your money a plan — a monthly budget to stay on track, or a goal to save toward.", href: "/budgets", cta: "Create one" },
   ];
   const doneCount = steps.filter((s) => s.done).length;
+  const allDone = !loading && doneCount === steps.length;
 
-  // Wait for the first sync before judging — otherwise it flashes for existing
-  // users whose counts are momentarily 0 while data downloads. Keep it for
-  // everyone; hide once dismissed or all done.
-  if (syncPending || dismissed || doneCount === steps.length) return null;
+  // Persist the "completed" flag the moment everything's done, so future mounts
+  // skip straight to `return null` (no query round-trip, no flash).
+  useEffect(() => {
+    if (allDone && !completed) { try { localStorage.setItem(DONE_KEY, "1"); } catch { /* ignore */ } setCompleted(true); }
+  }, [allDone, completed]);
+
+  // Only ever render once we have a definitive answer. Hide immediately (no
+  // render → recompute → hide) if we already know it's dismissed/completed,
+  // while the first sync or the counts are still loading (don't judge on the
+  // momentary empty result), or once all steps are done.
+  if (dismissed || completed || syncPending || loading || allDone) return null;
 
   const next = steps.find((s) => !s.done);
   return (
