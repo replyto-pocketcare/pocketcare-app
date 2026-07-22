@@ -95,6 +95,15 @@ button { font-family: inherit; }
 .press:active { transform: scale(0.97); }
 .lift { transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease, border-color 0.2s ease; }
 .lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--border-strong); }
+
+/* Never paint the browser's default tap-highlight on a whole container — a tap
+ * inside a card was flashing the entire card blue. Interactive items get their
+ * OWN pressed feedback below, so you always see exactly what you tapped. */
+* { -webkit-tap-highlight-color: transparent; }
+.lift:active, a.card:active, .tx-tile:active { transform: scale(0.985); transition: transform 0.08s ease; }
+/* A tappable list row (e.g. a transaction inside a card): highlight just the row. */
+.tap-row { border-radius: 10px; transition: background 0.12s ease; }
+.tap-row:active { background: var(--surface-2); }
 @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .page-anim { animation: pageIn 0.34s cubic-bezier(0.2, 0, 0, 1) both; }
 /* Edit-mode wiggle for draggable dashboard tiles. */

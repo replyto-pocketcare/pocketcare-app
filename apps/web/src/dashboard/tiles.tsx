@@ -240,7 +240,7 @@ function RecentTile() {
     <TileCard title="Recent activity" action={<Link className="muted" style={{ fontSize: 13 }} href="/transactions">View all</Link>}>
       <div style={{ display: "grid", gap: 8 }}>
         {recent.map((t) => (
-          <Link key={t.id} href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
+          <Link key={t.id} className="tap-row" href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px", margin: "0 -8px", borderBottom: "1px solid var(--border)", color: "inherit" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
               <span style={{ width: 8, height: 8, borderRadius: 999, background: acctColor(t.account_id), flexShrink: 0 }} />
               <div style={{ minWidth: 0 }}>
