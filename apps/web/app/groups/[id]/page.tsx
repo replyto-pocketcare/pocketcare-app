@@ -11,8 +11,11 @@ import { updateRow, softDelete } from "../../../src/write";
 import { useConfirm } from "../../../src/ui/Confirm";
 import { Modal } from "../../../src/ui/Modal";
 import { KebabMenu } from "../../../src/ui/KebabMenu";
-import { useGroup, useGroupExpenses, useGroupBalances, useGroupMemberIds, useUserProfiles } from "../../../src/splits/hooks";
+import { useGroup, useGroupExpenses, useGroupBalances, useGroupMemberIds, useUserProfiles, useConnections } from "../../../src/splits/hooks";
 import { createInvite } from "../../../src/splits/write";
+
+interface Invitee { id: string | null; name: string; email: string }
+const looksLikeEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
 
 export default function GroupDetailPage() {
   const { t } = useTranslation("groups");
@@ -90,7 +93,8 @@ export default function GroupDetailPage() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button className="btn" onClick={() => { setInviteOpen(true); setInviteLink(null); setInviteMsg(null); }}>+ {t("invite")}</button>
+          <Link href={`/transactions/new?split=${group.id}`} className="btn">+ {t("addExpense", "Add expense")}</Link>
+          <button className="btn ghost" onClick={() => { setInviteOpen(true); setInviteLink(null); setInviteMsg(null); }}>+ {t("invite")}</button>
           <KebabMenu label={t("groupActions")} items={[
             { label: t("edit"), onClick: openEdit },
             { label: t("delete"), danger: true, onClick: () => void deleteGroup() },
@@ -128,7 +132,7 @@ export default function GroupDetailPage() {
       <section style={{ display: "grid", gap: 8 }}>
         <h2 style={{ margin: 0 }}>{t("expensesTitle")}</h2>
         {expenses.length === 0 ? (
-          <p className="muted" style={{ fontSize: 13 }}>{t("noExpensesPre")}<Link href="/transactions/new">{t("noExpensesLink")}</Link>{t("noExpensesPost", { kind: t(`kind.${group.kind}`) })}</p>
+          <p className="muted" style={{ fontSize: 13 }}>{t("noExpensesPre")}<Link href={`/transactions/new?split=${group.id}`}>{t("noExpensesLink")}</Link>{t("noExpensesPost", { kind: t(`kind.${group.kind}`) })}</p>
         ) : (
           <div className="card" style={{ padding: 8 }}>
             {expenses.map((e) => (

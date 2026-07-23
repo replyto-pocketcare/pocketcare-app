@@ -107,6 +107,24 @@ export default function NewTransactionPage() {
     }
   }, [autoGroup, type, splitTouched, splitGroupId, groupMembers]);
 
+  // Deep link from a group (?split=<groupId>): open as an expense with split on,
+  // that group selected and all its members added. Waits for members to sync.
+  const splitPrefilled = useRef(false);
+  useEffect(() => {
+    if (splitPrefilled.current) return;
+    const gid = search.get("split");
+    if (!gid) return;
+    const members = membersOf(gid);
+    if (members.length === 0) return; // not synced yet — retry on next render
+    splitPrefilled.current = true;
+    setType("expense");
+    setSplitTouched(true); // stop the auto-split effect from overriding this
+    setSplitOn(true);
+    setSplitGroupId(gid);
+    setSplitMembers(members);
+    setSplitMode("equal");
+  }, [search, groupMembers]);
+
   // Templates (Quick Apply).
   const templates = useTemplates();
   const { isPaid } = useEntitlement();
