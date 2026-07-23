@@ -13,7 +13,7 @@ import { TransactionRow } from "../../src/ui/TransactionRow";
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
 export default function SearchPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("search");
   const [q, setQ] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
   const [accountId, setAccountId] = useState("");
@@ -79,24 +79,24 @@ export default function SearchPage() {
 
   return (
     <div style={{ display: "grid", gap: 18, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
-      <h1>{t("pages.search", "Search")}</h1>
+      <h1>{t("title")}</h1>
 
-      <input className="input" placeholder="Search everything — label, note, category…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <input className="input" placeholder={t("searchEverything")} value={q} onChange={(e) => setQ(e.target.value)} />
 
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <button className="chip" onClick={() => setShowFilters((v) => !v)} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <SlidersIcon size={15} /> Filters{activeFilters > 0 ? ` · ${activeFilters}` : ""} <span style={{ opacity: 0.6 }}>{showFilters ? "▴" : "▾"}</span>
+          <SlidersIcon size={15} /> {t("filters")}{activeFilters > 0 ? ` · ${activeFilters}` : ""} <span style={{ opacity: 0.6 }}>{showFilters ? "▴" : "▾"}</span>
         </button>
-        {activeFilters > 0 && <button className="chip" onClick={clearFilters}>Clear</button>}
+        {activeFilters > 0 && <button className="chip" onClick={clearFilters}>{t("clear")}</button>}
       </div>
 
       {showFilters && (
         <div className="card" style={{ padding: 14, display: "grid", gap: 12 }}>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {TYPES.map((t) => <button key={t} className="chip" data-active={t === type} style={{ textTransform: "capitalize" }} onClick={() => setType(t)}>{t}</button>)}
+            {TYPES.map((ty) => <button key={ty} className="chip" data-active={ty === type} onClick={() => setType(ty)}>{t(`type.${ty}`)}</button>)}
           </div>
           <select className="input" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
-            <option value="">All accounts</option>
+            <option value="">{t("allAccounts")}</option>
             {accts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -104,22 +104,22 @@ export default function SearchPage() {
             <input className="input" type="date" style={{ flex: "1 1 140px" }} min={from || undefined} value={to} onChange={(e) => setTo(e.target.value)} />
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <FloatingInput label="Min amount" inputMode="decimal" style={{ flex: "1 1 120px" }} value={min} onChange={(v) => setMin(v.replace(/[^0-9.]/g, ""))} />
-            <FloatingInput label="Max amount" inputMode="decimal" style={{ flex: "1 1 120px" }} value={max} onChange={(v) => setMax(v.replace(/[^0-9.]/g, ""))} />
+            <FloatingInput label={t("minAmount")} inputMode="decimal" style={{ flex: "1 1 120px" }} value={min} onChange={(v) => setMin(v.replace(/[^0-9.]/g, ""))} />
+            <FloatingInput label={t("maxAmount")} inputMode="decimal" style={{ flex: "1 1 120px" }} value={max} onChange={(v) => setMax(v.replace(/[^0-9.]/g, ""))} />
           </div>
         </div>
       )}
 
-      <div className="muted" style={{ fontSize: 13 }}>{results.length} result{results.length === 1 ? "" : "s"}</div>
+      <div className="muted" style={{ fontSize: 13 }}>{t("resultsCount", { count: results.length })}</div>
 
       {results.length > 0 ? (
         <div className="list-grid">
-          {results.map((t) => (
-            <TransactionRow key={t.id} tx={t} account={acct(t.account_id)} categoryName={catName(t.category_id)} tile />
+          {results.map((tx) => (
+            <TransactionRow key={tx.id} tx={tx} account={acct(tx.account_id)} categoryName={catName(tx.category_id)} tile />
           ))}
         </div>
       ) : (
-        <p className="muted card" style={{ padding: 16, margin: 0 }}>No matching transactions.</p>
+        <p className="muted card" style={{ padding: 16, margin: 0 }}>{t("noMatching")}</p>
       )}
     </div>
   );

@@ -10,6 +10,7 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { useRouter, useSearchParams } from "next/navigation";
 import { money } from "@pocketcare/money";
 import { monthlyEquivalent } from "@pocketcare/finance";
@@ -28,6 +29,7 @@ interface ModalState { direction: RecurringDirection; edit?: RecurringItem; pref
 const isDir = (s: string | null): s is RecurringDirection => s === "income" || s === "payment" || s === "saving";
 
 export default function RecurringPage() {
+  const { t } = useTranslation("recurring");
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
   const router = useRouter();
@@ -68,35 +70,35 @@ export default function RecurringPage() {
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ margin: 0 }}>Recurring payments &amp; income</h1>
-          <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>Salary, rent, bills and other regular money — set once, posts on schedule. Feeds your <Link href="/cashflow">Planned Cashflow</Link>.</p>
+          <h1 style={{ margin: 0 }}>{t("title")}</h1>
+          <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>{t("subtitlePre")}<Link href="/cashflow">{t("subtitleLink")}</Link>.</p>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button className="btn ghost" onClick={() => setModal({ direction: "income" })}>+ Income</button>
-          <button className="btn" onClick={() => setModal({ direction: "payment" })}>+ Payment</button>
+          <button className="btn ghost" onClick={() => setModal({ direction: "income" })}>+ {t("income")}</button>
+          <button className="btn" onClick={() => setModal({ direction: "payment" })}>+ {t("payment")}</button>
         </div>
       </div>
 
       {due.length > 0 && (
         <section className="card" style={{ padding: 16, display: "grid", gap: 10, borderColor: "var(--accent-soft)", background: "var(--accent-ghost)" }}>
-          <strong style={{ fontSize: 14 }}>Due now — confirm to record</strong>
+          <strong style={{ fontSize: 14 }}>{t("dueNow")}</strong>
           {due.map((r) => (
             <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 14 }}>{r.template_name} <span className="muted" style={{ fontSize: 12 }}>· due {r.next_due}{r.amount != null ? ` · ${fmt(money(r.amount, r.currency ?? base))}` : ""}</span></span>
+              <span style={{ fontSize: 14 }}>{r.template_name} <span className="muted" style={{ fontSize: 12 }}>· {t("dueOn", { date: r.next_due })}{r.amount != null ? ` · ${fmt(money(r.amount, r.currency ?? base))}` : ""}</span></span>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="chip" onClick={() => void skipRuleOnce(r.id)}>Skip</button>
-                <button className="btn" style={{ padding: "4px 12px", fontSize: 13, minHeight: 0 }} onClick={() => void postRuleOnce(r.id)}>Record</button>
+                <button className="chip" onClick={() => void skipRuleOnce(r.id)}>{t("skip")}</button>
+                <button className="btn" style={{ padding: "4px 12px", fontSize: 13, minHeight: 0 }} onClick={() => void postRuleOnce(r.id)}>{t("record")}</button>
               </div>
             </div>
           ))}
         </section>
       )}
 
-      <RecurringSection title="Incomes" accent="var(--positive)" items={incomes} base={base} emptyLabel="No recurring income yet. Add your salary, rent received, or other regular inflow."
+      <RecurringSection title={t("incomes")} accent="var(--positive)" items={incomes} base={base} emptyLabel={t("emptyIncome")}
         onAdd={() => setModal({ direction: "income" })} onEdit={(it) => setModal({ direction: "income", edit: it })} />
-      <RecurringSection title="Payments" accent="var(--negative)" items={payments} base={base} emptyLabel="No recurring payments yet. Add rent, bills, EMIs, or subscriptions."
+      <RecurringSection title={t("payments")} accent="var(--negative)" items={payments} base={base} emptyLabel={t("emptyPayment")}
         onAdd={() => setModal({ direction: "payment" })} onEdit={(it) => setModal({ direction: "payment", edit: it })} />
-      <RecurringSection title="Savings" accent="var(--teal)" items={savings} base={base} emptyLabel="No recurring savings yet. Set up a transfer into an investment account."
+      <RecurringSection title={t("savings")} accent="var(--teal)" items={savings} base={base} emptyLabel={t("emptySaving")}
         onAdd={() => setModal({ direction: "saving" })} onEdit={(it) => setModal({ direction: "saving", edit: it })} />
 
       {modal && (
@@ -119,6 +121,7 @@ function RecurringSection({ title, accent, items, base, emptyLabel, onAdd, onEdi
   title: string; accent: string; items: RecurringItem[]; base: string; emptyLabel: string;
   onAdd: () => void; onEdit: (it: RecurringItem) => void;
 }) {
+  const { t } = useTranslation("recurring");
   return (
     <section style={{ display: "grid", gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -126,7 +129,7 @@ function RecurringSection({ title, accent, items, base, emptyLabel, onAdd, onEdi
           <span style={{ width: 8, height: 8, borderRadius: 999, background: accent }} />{title}
           <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}>{items.length}</span>
         </h2>
-        <button className="chip" onClick={onAdd}>+ Add</button>
+        <button className="chip" onClick={onAdd}>+ {t("add")}</button>
       </div>
       {items.length === 0 ? (
         <p className="muted" style={{ fontSize: 13, margin: 0 }}>{emptyLabel}</p>
@@ -140,6 +143,7 @@ function RecurringSection({ title, accent, items, base, emptyLabel, onAdd, onEdi
 }
 
 function RecurringRow({ item, base, onEdit }: { item: RecurringItem; base: string; onEdit: () => void }) {
+  const { t } = useTranslation("recurring");
   const fmt = useMoneyFmt();
   const conv = useConvert();
   const confirm = useConfirm();
@@ -150,17 +154,17 @@ function RecurringRow({ item, base, onEdit }: { item: RecurringItem; base: strin
     <div className="card lift" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px" }}>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
-        <div className="muted" style={{ fontSize: 12 }}>{item.frequency} · next {nextDue} · {item.auto_post ? "auto-posts" : "confirm"}</div>
+        <div className="muted" style={{ fontSize: 12 }}>{t(`freq.${item.frequency}`, item.frequency)} · {t("next", { date: nextDue })} · {item.auto_post ? t("autoPosts") : t("confirm")}</div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
         <div style={{ textAlign: "right" }}>
           <div style={{ fontWeight: 650, fontSize: 14 }}>{fmt(conv(money(item.amount, cur)))}</div>
-          <div className="muted" style={{ fontSize: 11 }}>{fmt(conv(money(monthly, cur)))}/mo</div>
+          <div className="muted" style={{ fontSize: 11 }}>{fmt(conv(money(monthly, cur)))}{t("perMonth")}</div>
         </div>
-        <KebabMenu label={`${item.name} actions`} items={[
-          { label: "Post now", onClick: () => void postRuleOnce(item.ruleId) },
-          { label: "Edit", onClick: onEdit },
-          { label: "Remove", danger: true, onClick: async () => { if (await confirm({ title: "Remove this recurring item?", message: `"${item.name}" will stop recurring.`, confirmLabel: "Remove" })) removeRecurring(item.ruleId, item.templateId); } },
+        <KebabMenu label={t("actions", { name: item.name })} items={[
+          { label: t("postNow"), onClick: () => void postRuleOnce(item.ruleId) },
+          { label: t("edit"), onClick: onEdit },
+          { label: t("remove"), danger: true, onClick: async () => { if (await confirm({ title: t("removeTitle"), message: t("removeMsg", { name: item.name }), confirmLabel: t("remove") })) removeRecurring(item.ruleId, item.templateId); } },
         ]} />
       </div>
     </div>

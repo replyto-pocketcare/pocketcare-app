@@ -40,30 +40,60 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
     const batch = await database.getCrudBatch();
     if (!batch) return;
 
-    for (const op of batch.crud as CrudEntry[]) {
-      const table = this.client.schema(this.schema).from(op.table);
-      let result;
-      switch (op.op) {
-        case UpdateType.PUT:
-          result = await table.upsert({ id: op.id, ...op.opData });
-          break;
-        case UpdateType.PATCH:
-          result = await table.update(op.opData ?? {}).eq("id", op.id);
-          break;
-        case UpdateType.DELETE:
-          result = await table.delete().eq("id", op.id);
-          break;
+    // Coalesce *consecutive* ops that share the same table + op type into a
+    // single PostgREST request (array upsert / `id IN (...)` delete). This turns
+    // a bulk import of N transactions — previously N HTTP round-trips — into a
+    // handful of requests, while preserving the queue's ordering (we never
+    // reorder across tables, so foreign-key ordering like account-before-txn is
+    // untouched). PATCH stays per-row because two updates to the same table can
+    // touch different columns and must not be merged into one payload.
+    const ops = batch.crud as CrudEntry[];
+    let i = 0;
+    while (i < ops.length) {
+      const op = ops[i]!;
+      const rel = this.client.schema(this.schema).from(op.table);
+
+      // Extend the run while the next op targets the same table + op type.
+      let j = i + 1;
+      while (
+        j < ops.length &&
+        ops[j]!.table === op.table &&
+        ops[j]!.op === op.op &&
+        op.op !== UpdateType.PATCH
+      ) {
+        j++;
       }
-      if (result?.error) {
+      const run = ops.slice(i, j);
+
+      let error: unknown = null;
+      switch (op.op) {
+        case UpdateType.PUT: {
+          const rows = run.map((o) => ({ id: o.id, ...o.opData }));
+          ({ error } = await rel.upsert(rows));
+          break;
+        }
+        case UpdateType.DELETE: {
+          const ids = run.map((o) => o.id);
+          ({ error } = await rel.delete().in("id", ids));
+          break;
+        }
+        case UpdateType.PATCH: {
+          ({ error } = await rel.update(op.opData ?? {}).eq("id", op.id));
+          break;
+        }
+      }
+
+      if (error) {
         // Surface the real cause (e.g. a PostgREST "schema must be exposed"
         // error, or an RLS violation) instead of failing silently. PowerSync
         // will retry, so we rethrow after logging.
         console.error(
-          `[PocketCare sync] upload failed for ${this.schema}.${op.table} (${op.op}):`,
-          result.error,
+          `[PocketCare sync] upload failed for ${this.schema}.${op.table} (${op.op}, ${run.length} row(s)):`,
+          error,
         );
-        throw result.error;
+        throw error;
       }
+      i = j;
     }
 
     await batch.complete();

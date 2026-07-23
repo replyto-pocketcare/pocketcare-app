@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 interface QA { q: string; a: string }
 interface Section { icon: string; color: string; title: string; items: QA[] }
@@ -98,6 +99,7 @@ const SECTIONS: Section[] = [
 ];
 
 export default function HelpPage() {
+  const { t } = useTranslation("help");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (k: string) => setOpen((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
@@ -111,13 +113,13 @@ export default function HelpPage() {
   return (
     <div style={{ display: "grid", gap: 20, maxWidth: 760 }} className="fade-up">
       <div>
-        <h1 style={{ margin: 0 }}>Help &amp; FAQ</h1>
-        <p className="muted" style={{ marginTop: 6 }}>Everything PocketCare can do. Still stuck? Ask <Link href="/assistant">Ask PocketCare</Link>.</p>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
+        <p className="muted" style={{ marginTop: 6 }}>{t("subtitlePre")}<Link href="/assistant">{t("subtitleLink")}</Link>{t("subtitlePost")}</p>
       </div>
 
-      <input className="input" placeholder="Search help — e.g. “split”, “budget”, “invoice”…" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <input className="input" placeholder={t("searchPlaceholder")} value={query} onChange={(e) => setQuery(e.target.value)} />
 
-      {sections.length === 0 && <p className="muted">No help topics match “{query}”. Try a different word, or ask the assistant.</p>}
+      {sections.length === 0 && <p className="muted">{t("noMatch", { query })}</p>}
 
       {sections.map((s) => (
         <section key={s.title} style={{ display: "grid", gap: 8 }}>
@@ -143,7 +145,7 @@ export default function HelpPage() {
         </section>
       ))}
 
-      <p className="muted" style={{ fontSize: 12, textAlign: "center", paddingTop: 8 }}>PocketCare · your money, quietly organised.</p>
+      <p className="muted" style={{ fontSize: 12, textAlign: "center", paddingTop: 8 }}>{t("footer")}</p>
     </div>
   );
 }

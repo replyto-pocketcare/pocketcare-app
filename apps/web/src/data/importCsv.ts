@@ -8,6 +8,9 @@ import type { CanonRow } from "./adapters";
 
 export interface ImportResult { created: number; skipped: number; failed: number; errors: string[] }
 
+import { getUserId } from "../powersync";
+import { uuid, nowIso } from "../write";
+
 function toIso(s: string): string {
   if (!s) return new Date().toISOString();
   const d = new Date(s);
@@ -24,6 +27,110 @@ function toIso(s: string): string {
 }
 
 const kindForType = (t: string): "income" | "expense" => (t === "income" ? "income" : "expense");
+
+/**
+ * BULK importer for statement rows. Where importTransactions() opens one write
+ * transaction per row AND runs an overdraft guard that re-reads the whole ledger
+ * each time (O(n²), and one PostgREST request per row on sync), this variant:
+ *   1. Pre-loads accounts + categories into maps once.
+ *   2. Creates any missing accounts/categories, then inserts EVERY transaction
+ *      inside a SINGLE writeTransaction — so the CRUD queue is one contiguous run
+ *      the connector uploads in a single batched request.
+ *   3. Skips the per-row overdraft guard: statement rows are historical facts,
+ *      not new spend to validate.
+ * Trade-off vs importTransactions: no transfer/label/item handling (statements
+ * are flat income/expense rows) and no balance validation — both intentional.
+ */
+export async function importTransactionsBulk(
+  rows: CanonRow[],
+  opts: { skipDuplicates: boolean } = { skipDuplicates: true },
+): Promise<ImportResult> {
+  const db = getDb();
+  if (!db) return { created: 0, skipped: 0, failed: rows.length, errors: ["Database not ready"] };
+  const base = getBaseCurrency();
+  const userId = getUserId();
+  const res: ImportResult = { created: 0, skipped: 0, failed: 0, errors: [] };
+
+  // Preload existing accounts + categories once.
+  const accountCache = new Map<string, string>();
+  for (const a of await db.getAll<{ id: string; name: string }>("SELECT id, name FROM accounts WHERE deleted_at IS NULL")) {
+    accountCache.set(a.name.trim().toLowerCase(), a.id);
+  }
+  const categoryCache = new Map<string, string>();
+  for (const c of await db.getAll<{ id: string; name: string; kind: string }>("SELECT id, name, kind FROM categories WHERE deleted_at IS NULL")) {
+    categoryCache.set(`${c.kind}:${c.name.trim().toLowerCase()}`, c.id);
+  }
+  // Existing (account_id|amount|type|occurredAt) keys for cheap in-memory dedupe.
+  const seen = new Set<string>();
+  if (opts.skipDuplicates) {
+    for (const r of await db.getAll<{ account_id: string; amount: number; type: string; occurred_at: string }>(
+      "SELECT account_id, amount, type, occurred_at FROM transactions WHERE deleted_at IS NULL",
+    )) seen.add(`${r.account_id}|${r.amount}|${r.type}|${r.occurred_at}`);
+  }
+
+  const ts = nowIso();
+
+  await db.writeTransaction(async (tx) => {
+    // Helper: find-or-create an account (creates persist inside this same tx).
+    const ensureAccount = async (name: string, currency: string): Promise<string> => {
+      const key = name.trim().toLowerCase();
+      const hit = accountCache.get(key);
+      if (hit) return hit;
+      const id = uuid();
+      await tx.execute(
+        `INSERT INTO accounts (id,user_id,name,type,currency,icon,color,is_archived,include_in_net_worth,created_at,updated_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        [id, userId, name.trim(), guessAccountType(name), currency || base, null, null, 0, 1, ts, ts],
+      );
+      accountCache.set(key, id);
+      return id;
+    };
+    const ensureCategory = async (name: string, kind: "income" | "expense"): Promise<string> => {
+      const key = `${kind}:${name.trim().toLowerCase()}`;
+      const hit = categoryCache.get(key);
+      if (hit) return hit;
+      const id = uuid();
+      await tx.execute(
+        `INSERT INTO categories (id,user_id,name,kind,is_system,parent_id,icon,color,created_at,updated_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        [id, userId, name.trim(), kind, 0, null, null, null, ts, ts],
+      );
+      categoryCache.set(key, id);
+      return id;
+    };
+
+    for (const row of rows) {
+      try {
+        const currency = row.currency || base;
+        const occurredAt = toIso(row.date);
+        const amountMinor = fromMajor(row.amount, currency).amount;
+        const accountId = await ensureAccount(row.account, currency);
+        const dupKey = `${accountId}|${amountMinor}|${row.type}|${occurredAt}`;
+        if (opts.skipDuplicates && seen.has(dupKey)) { res.skipped++; continue; }
+        seen.add(dupKey);
+
+        const catId = row.category && (row.type === "income" || row.type === "expense")
+          ? await ensureCategory(row.category, kindForType(row.type))
+          : null;
+
+        await tx.execute(
+          `INSERT INTO transactions
+             (id,user_id,account_id,type,amount,currency,category_id,note,description,payment_method,occurred_at,
+              transfer_group_id,to_account_id,to_amount,fx_rate,created_at,updated_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [uuid(), userId, accountId, row.type, amountMinor, currency, catId, row.note ?? null,
+            row.description ?? null, null, occurredAt, null, null, null, null, ts, ts],
+        );
+        res.created++;
+      } catch (e) {
+        res.failed++;
+        if (res.errors.length < 8) res.errors.push((e as Error).message);
+      }
+    }
+  });
+
+  return res;
+}
 
 /** Best-effort account type from its name (users can change it afterward). */
 function guessAccountType(name: string): string {

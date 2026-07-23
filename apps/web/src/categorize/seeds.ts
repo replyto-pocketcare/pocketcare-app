@@ -114,6 +114,104 @@ export const SEED_RULES: Record<string, string> = {
   "airtel": "Utilities",
   "jio": "Utilities",
 
+  // --- Extra Indian merchants (substring-matched against mangled UPI names) ---
+  // Food & delivery
+  "swiggyinstamart": "Groceries",
+  "eatfit": "Food & Dining",
+  "faasos": "Food & Dining",
+  "behrouz": "Food & Dining",
+  "chaayos": "Food & Dining",
+  "haldiram": "Food & Dining",
+  "barbeque": "Food & Dining",
+  "biryani": "Food & Dining",
+  // Transport / mobility
+  "rapido": "Transport",
+  "irctc": "Transport",
+  "redbus": "Transport",
+  "makemytrip": "Transport",
+  "goibibo": "Transport",
+  "ixigo": "Transport",
+  "fastag": "Transport",
+  "hpcl": "Transport",
+  "bpcl": "Transport",
+  "ioc": "Transport",
+  "indianoil": "Transport",
+  "uberride": "Transport",
+  "parking": "Transport",
+  "toll": "Transport",
+  // Groceries / quick-commerce
+  "bbnow": "Groceries",
+  "jiomart": "Groceries",
+  "reliancefresh": "Groceries",
+  "moreretail": "Groceries",
+  "naturebasket": "Groceries",
+  "licious": "Groceries",
+  // Shopping / marketplaces
+  "meesho": "Shopping",
+  "nykaa": "Shopping",
+  "tatacliq": "Shopping",
+  "snapdeal": "Shopping",
+  "croma": "Shopping",
+  "reliancedigital": "Shopping",
+  "decathlon": "Shopping",
+  "ikea": "Shopping",
+  "lenskart": "Shopping",
+  "firstcry": "Shopping",
+  "pharmeasy": "Health",
+  "netmeds": "Health",
+  "apollo": "Health",
+  "onemg": "Health",
+  "tata1mg": "Health",
+  "practo": "Health",
+  "cultfit": "Health",
+  // Subscriptions / entertainment
+  "hotstar": "Subscriptions",
+  "sonyliv": "Subscriptions",
+  "zee5": "Subscriptions",
+  "jiocinema": "Subscriptions",
+  "audible": "Subscriptions",
+  "youtubepremium": "Subscriptions",
+  "googleone": "Subscriptions",
+  "icloud": "Subscriptions",
+  "openai": "Subscriptions",
+  "chatgpt": "Subscriptions",
+  "bookmyshow": "Entertainment",
+  "pvr": "Entertainment",
+  "inox": "Entertainment",
+  // Bills / utilities / telecom
+  "vodafone": "Utilities",
+  "vi": "Utilities",
+  "bsnl": "Utilities",
+  "tataplay": "Utilities",
+  "actfibernet": "Utilities",
+  "adani": "Utilities",
+  "tatapower": "Utilities",
+  "bescom": "Utilities",
+  "mseb": "Utilities",
+  "gas": "Utilities",
+  "recharge": "Utilities",
+  "broadband": "Utilities",
+  // Finance / investing
+  "zerodha": "Investments",
+  "groww": "Investments",
+  "upstox": "Investments",
+  "coin": "Investments",
+  "kuvera": "Investments",
+  "indmoney": "Investments",
+  "lic": "Insurance",
+  "policybazaar": "Insurance",
+  "insurance": "Insurance",
+  "premium": "Insurance",
+  // Education
+  "udemy": "Education",
+  "coursera": "Education",
+  "unacademy": "Education",
+  "byjus": "Education",
+  "tuition": "Education",
+  "school": "Education",
+  "college": "Education",
+  "course": "Education",
+
   // Income
   "salary": "Salary",
   "paycheck": "Salary",
@@ -154,4 +252,16 @@ export function buildSeedMap(categories: CategoryData[]): Map<string, string> {
     if (id) map.set(keyword, id);
   }
   return map;
+}
+
+/**
+ * Same resolution as buildSeedMap, but as a flat list for substring matching
+ * against a merchant blob (e.g. "swiggylimited" contains "swiggy"). Longest
+ * keywords first so the most specific merchant wins ties.
+ */
+export function buildSeedList(categories: CategoryData[]): { keyword: string; categoryId: string }[] {
+  const map = buildSeedMap(categories);
+  return Array.from(map.entries())
+    .map(([keyword, categoryId]) => ({ keyword, categoryId }))
+    .sort((a, b) => b.keyword.length - a.keyword.length);
 }

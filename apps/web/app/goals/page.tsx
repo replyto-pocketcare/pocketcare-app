@@ -45,7 +45,7 @@ interface Goal {
 }
 
 export default function GoalsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("goals");
   const base = useBaseCurrency();
   const { data: goals = [], isLoading: goalsLoading } = useQuery<Goal>(
     "SELECT id, name, target_amount, currency, is_emergency_fund, priority FROM goals WHERE deleted_at IS NULL ORDER BY is_emergency_fund DESC, priority",
@@ -73,8 +73,8 @@ export default function GoalsPage() {
 
   async function addGoal() {
     setErr(null);
-    if (!name.trim()) { setErr("Give your goal a name."); return; }
-    if (!target || Number(target) <= 0) { setErr("Enter a target amount."); return; }
+    if (!name.trim()) { setErr(t("errName")); return; }
+    if (!target || Number(target) <= 0) { setErr(t("errTarget")); return; }
     await insertRow("goals", {
       name: name.trim(),
       target_amount: fromMajor(Number(target), currency).amount,
@@ -87,10 +87,10 @@ export default function GoalsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>{t("pages.goals", "Goals")}</h1>
+      <h1>{t("title")}</h1>
       {ef && !efFunded && (
         <div className="card" style={{ padding: 14, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)" }}>
-          Build your emergency fund first — other goals unlock once it’s fully funded.
+          {t("efFirst")}
         </div>
       )}
 
@@ -99,25 +99,25 @@ export default function GoalsPage() {
           <GoalCard key={g.id} goal={g} saved={saved(g.id)} savings={savings}
             locked={!g.is_emergency_fund && !efFunded} base={base} onAchieved={onAchieved} />
         ))}
-        {goals.length === 0 && (goalsLoading ? <ListSkeleton rows={3} /> : <p className="muted">No goals yet. Start with an emergency fund.</p>)}
+        {goals.length === 0 && (goalsLoading ? <ListSkeleton rows={3} /> : <p className="muted">{t("noGoals")}</p>)}
       </div>
 
       <div className="card" style={{ padding: 20, display: "grid", gap: 10, maxWidth: 460 }}>
-        <h2>New goal</h2>
-        <FloatingInput label="Goal name" value={name} onChange={setName} />
+        <h2>{t("newGoal")}</h2>
+        <FloatingInput label={t("goalName")} value={name} onChange={setName} />
         <div style={{ display: "flex", gap: 8 }}>
-          <FloatingInput label={`Target (${currency})`} group currency={currency} value={target} onChange={setTarget} style={{ flex: 1 }} />
+          <FloatingInput label={t("target", { currency })} group currency={currency} value={target} onChange={setTarget} style={{ flex: 1 }} />
           <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 96 }}>
             {GOAL_CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         {!hasEf && (
           <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
-            <input type="checkbox" checked={isEf} onChange={(e) => setIsEf(e.target.checked)} /> This is my emergency fund (kept liquid, filled first)
+            <input type="checkbox" checked={isEf} onChange={(e) => setIsEf(e.target.checked)} /> {t("efCheckbox")}
           </label>
         )}
         {err && <div className="card" style={{ padding: "8px 12px", background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)", fontSize: 13 }}>{err}</div>}
-        <button className="btn" onClick={addGoal}>Add goal</button>
+        <button className="btn" onClick={addGoal}>{t("addGoal")}</button>
       </div>
 
       {celebrate && <GoalCelebration name={celebrate} onClose={() => setCelebrate(null)} />}
@@ -129,6 +129,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
   goal: Goal; saved: number; savings: { id: string; name: string; currency: string }[]; locked: boolean; base: string;
   onAchieved: (name: string) => void;
 }) {
+  const { t } = useTranslation("goals");
   const confirm = useConfirm();
   const pct = goal.target_amount ? Math.min(100, (saved / goal.target_amount) * 100) : 0;
   const funded = goal.target_amount > 0 && saved >= goal.target_amount;
@@ -177,7 +178,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
     setShowAlloc(false);
   }
 
-  const allocLabel = goal.is_emergency_fund ? "Add funds" : "Block funds";
+  const allocLabel = goal.is_emergency_fund ? t("addFunds") : t("blockFunds");
 
   return (
     <div className="card" style={{
@@ -190,10 +191,10 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
     }}>
       {editing ? (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          <FloatingInput label="Goal name" value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
-          <FloatingInput label="Target" group currency={goal.currency} value={eTarget} onChange={setETarget} style={{ width: 140 }} />
-          <button className="btn" onClick={saveEdit}>Save</button>
-          <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
+          <FloatingInput label={t("goalName")} value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
+          <FloatingInput label={t("target", { currency: goal.currency })} group currency={goal.currency} value={eTarget} onChange={setETarget} style={{ width: 140 }} />
+          <button className="btn" onClick={saveEdit}>{t("save")}</button>
+          <button className="chip" onClick={() => setEditing(false)}>{t("cancel")}</button>
         </div>
       ) : (
         <div>
@@ -201,14 +202,14 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
             <div style={{ minWidth: 0 }}>
               <strong>{goal.name}</strong>
               {funded
-                ? <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}> · 🎉 Funded</span>
-                : goal.is_emergency_fund ? <span className="muted" style={{ fontSize: 12 }}> · emergency fund (liquid)</span> : null}
+                ? <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}> · 🎉 {t("funded")}</span>
+                : goal.is_emergency_fund ? <span className="muted" style={{ fontSize: 12 }}> · {t("efLiquid")}</span> : null}
             </div>
             <KebabMenu
-              label={`${goal.name} actions`}
+              label={t("goalActions", { name: goal.name })}
               items={[
-                { label: "Edit", onClick: () => { setEName(goal.name); setETarget(String(toMajor(money(goal.target_amount, goal.currency)))); setEditing(true); } },
-                { label: "Delete", danger: true, onClick: async () => { if (await confirm({ title: "Delete this goal?", message: `“${goal.name}” and its saved allocations will be removed.` })) softDelete("goals", goal.id); } },
+                { label: t("edit"), onClick: () => { setEName(goal.name); setETarget(String(toMajor(money(goal.target_amount, goal.currency)))); setEditing(true); } },
+                { label: t("delete"), danger: true, onClick: async () => { if (await confirm({ title: t("deleteTitle"), message: t("deleteMsg", { name: goal.name }) })) softDelete("goals", goal.id); } },
               ]}
             />
           </div>
@@ -219,9 +220,9 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
       )}
       <ProgressBar pct={pct} color={goal.is_emergency_fund ? "var(--sage)" : "var(--accent)"} height={8} />
       {locked ? (
-        <span className="muted" style={{ fontSize: 13 }}>Locked until the emergency fund is funded.</span>
+        <span className="muted" style={{ fontSize: 13 }}>{t("lockedUntil")}</span>
       ) : funded ? (
-        <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600 }}>Goal reached — nicely done! ✨</span>
+        <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600 }}>{t("goalReached")}</span>
       ) : (
         <button className="btn ghost" style={{ justifySelf: "start" }} onClick={() => setShowAlloc(true)} disabled={savings.length === 0}>
           + {allocLabel}
@@ -232,22 +233,22 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
         <div style={{ display: "grid", gap: 12 }}>
           <h2 style={{ margin: 0 }}>{allocLabel} · {goal.name}</h2>
           {savings.length === 0 ? (
-            <p className="muted" style={{ margin: 0 }}>Add a savings account first to allocate funds.</p>
+            <p className="muted" style={{ margin: 0 }}>{t("addSavingsFirst")}</p>
           ) : (
             <>
-              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>From account
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("fromAccount")}
                 <select className="input" value={srcId ?? savings[0]?.id ?? ""} onChange={(e) => setSrcId(e.target.value)}>
                   {savings.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </label>
-              <FloatingInput label={`Amount (${goal.currency})`} group currency={goal.currency} value={amount} onChange={setAmount} />
+              <FloatingInput label={t("amount", { currency: goal.currency })} group currency={goal.currency} value={amount} onChange={setAmount} />
               <div className="muted" style={{ fontSize: 12, marginTop: -4 }}>
-                {compactMoney(remaining, goal.currency)} left to reach your target.
-                {amount && fromMajor(Number(amount), goal.currency).amount > remaining ? " We’ll cap this at the remaining amount." : ""}
+                {t("leftToTarget", { amount: compactMoney(remaining, goal.currency) })}
+                {amount && fromMajor(Number(amount), goal.currency).amount > remaining ? t("willCap") : ""}
               </div>
               <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
-                <button className="btn ghost" onClick={() => setShowAlloc(false)}>Cancel</button>
-                <button className="btn" onClick={allocate} disabled={!amount || remaining <= 0}>{goal.is_emergency_fund ? "Add" : "Block"}</button>
+                <button className="btn ghost" onClick={() => setShowAlloc(false)}>{t("cancel")}</button>
+                <button className="btn" onClick={allocate} disabled={!amount || remaining <= 0}>{goal.is_emergency_fund ? t("add") : t("block")}</button>
               </div>
             </>
           )}

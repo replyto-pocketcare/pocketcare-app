@@ -9,6 +9,7 @@
  * account.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Period } from "@pocketcare/types";
 import { money, fromMajor } from "@pocketcare/money";
 import { Modal } from "../ui/Modal";
@@ -33,6 +34,7 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
   base: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("investments");
   const fmt = useMoneyFmt();
   const [cls, setCls] = useState<AssetClass>(ctx.assetClass ?? "stock");
   const [accId, setAccId] = useState(ctx.accountId ?? accounts[0]?.id ?? "");
@@ -114,7 +116,7 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
   return (
     <Modal open onClose={onClose}>
       <div style={{ display: "grid", gap: 12, maxWidth: 560 }}>
-        <h2 style={{ margin: 0 }}>Add investment</h2>
+        <h2 style={{ margin: 0 }}>{t("addInvestment")}</h2>
 
         {/* Type */}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -127,7 +129,7 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
 
         {/* Which investment account */}
         {accounts.length > 1 && (
-          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>Investment account
+          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("investmentAccount")}
             <select className="input" value={accId} onChange={(e) => setAccId(e.target.value)}>
               {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
@@ -137,8 +139,8 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
         {/* Instrument (listed stocks/MFs) or free-text name */}
         {classIsListed && (
           <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-            <button className="chip" data-active={listed} onClick={() => setListed(true)}>In our list</button>
-            <button className="chip" data-active={!listed} onClick={() => setListed(false)}>Not listed</button>
+            <button className="chip" data-active={listed} onClick={() => setListed(true)}>{t("inOurList")}</button>
+            <button className="chip" data-active={!listed} onClick={() => setListed(false)}>{t("notListed")}</button>
           </div>
         )}
         {useCatalogPicker ? (
@@ -152,24 +154,24 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
             </div>
           </>
         ) : (
-          <FloatingInput label={`${meta.label} name`} value={name} onChange={setName} />
+          <FloatingInput label={t("nameLabel", { type: meta.label })} value={name} onChange={setName} />
         )}
 
         {/* Amount / quantity */}
         {isLump ? (
-          <FloatingInput label={`Amount invested (${cur})`} group currency={cur} value={cost} onChange={setCost} />
+          <FloatingInput label={t("amountInvested", { cur })} group currency={cur} value={cost} onChange={setCost} />
         ) : (
           <div style={{ display: "flex", gap: 8 }}>
-            <FloatingInput label={cls === "mf" || cls === "sip" ? "Units" : meta.unitWord ? meta.unitWord.replace(/^./, (c) => c.toUpperCase()) : "Qty"} inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-            <FloatingInput label={`${cls === "mf" || cls === "sip" ? "NAV / avg cost" : "Avg cost"} (${cur})`} group currency={cur} value={cost} onChange={setCost} style={{ flex: 1 }} />
+            <FloatingInput label={cls === "mf" || cls === "sip" ? t("units") : meta.unitWord ? meta.unitWord.replace(/^./, (c) => c.toUpperCase()) : t("qty")} inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+            <FloatingInput label={cls === "mf" || cls === "sip" ? t("navAvgCost", { cur }) : t("avgCost", { cur })} group currency={cur} value={cost} onChange={setCost} style={{ flex: 1 }} />
           </div>
         )}
 
         {/* Type-specific extras */}
         {cls === "fd" && (
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <FloatingInput label="Interest % p.a." inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 120 }} />
-            <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>Maturity date
+            <FloatingInput label={t("interestPa")} inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 120 }} />
+            <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>{t("maturityDate")}
               <input className="input" type="date" value={maturity} onChange={(e) => setMaturity(e.target.value)} />
             </label>
           </div>
@@ -177,56 +179,56 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
         {isSip && (
           <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
-              <FloatingInput label={`SIP amount (${cur})`} group currency={cur} value={sipAmt} onChange={setSipAmt} style={{ flex: 1, minWidth: 140 }} />
-              <div style={{ display: "flex", gap: 6 }}>{SIP_CYCLES.map((c) => <button key={c} className="chip" data-active={c === sipFreq} onClick={() => setSipFreq(c)}>{c}</button>)}</div>
+              <FloatingInput label={t("sipAmount", { cur })} group currency={cur} value={sipAmt} onChange={setSipAmt} style={{ flex: 1, minWidth: 140 }} />
+              <div style={{ display: "flex", gap: 6 }}>{SIP_CYCLES.map((c) => <button key={c} className="chip" data-active={c === sipFreq} onClick={() => setSipFreq(c)}>{t(`sipFreq.${c}`)}</button>)}</div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>Next SIP date
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>{t("nextSipDate")}
                 <input className="input" type="date" value={sipDate} onChange={(e) => setSipDate(e.target.value)} />
               </label>
-              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 170 }}>Debits from
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 170 }}>{t("debitsFrom")}
                 {fundingAccounts.length === 0
-                  ? <span style={{ color: "var(--negative)" }}>Add a bank/savings account first.</span>
+                  ? <span style={{ color: "var(--negative)" }}>{t("addBankFirst")}</span>
                   : <select className="input" value={sipSource} onChange={(e) => setSipSource(e.target.value)}>
-                      <option value="" disabled>Select an account</option>
+                      <option value="" disabled>{t("selectAccount")}</option>
                       {fundingAccounts.map((f) => <option key={f.id} value={f.id}>{f.name} · {fmt(money(f.balance, f.currency))}</option>)}
                     </select>}
               </label>
             </div>
-            <div className="muted" style={{ fontSize: 11 }}>On each SIP date we record a transfer of {sipAmt ? fmt(money(fromMajor(Number(sipAmt), cur).amount, cur)) : "the amount"} from that account into {acc?.name ?? "this account"} — it shows under Recurring &amp; Planned Cashflow too.</div>
+            <div className="muted" style={{ fontSize: 11 }}>{t("sipNote", { amount: sipAmt ? fmt(money(fromMajor(Number(sipAmt), cur).amount, cur)) : t("theAmount"), account: acc?.name ?? t("thisAccount") })}</div>
           </div>
         )}
         {!classIsListed && cls !== "sip" && (
-          <FloatingInput label={`Current value (${cur}, optional)`} group currency={cur} value={curVal} onChange={setCurVal} />
+          <FloatingInput label={t("currentValueOptional", { cur })} group currency={cur} value={curVal} onChange={setCurVal} />
         )}
 
         {/* Existing vs new — not for SIPs (their money movement is the recurring transfer) */}
         {!isSip && (
         <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
-          <div className="muted" style={{ fontSize: 12 }}>Is this a new investment or one you already hold?</div>
+          <div className="muted" style={{ fontSize: 12 }}>{t("newOrHold")}</div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <button className="chip" data-active={funding === "existing"} onClick={() => setFunding("existing")}>I already hold it (track only)</button>
-            <button className="chip" data-active={funding === "new"} onClick={() => setFunding("new")} disabled={fundingAccounts.length === 0}>New — fund from account</button>
+            <button className="chip" data-active={funding === "existing"} onClick={() => setFunding("existing")}>{t("alreadyHold")}</button>
+            <button className="chip" data-active={funding === "new"} onClick={() => setFunding("new")} disabled={fundingAccounts.length === 0}>{t("newFund")}</button>
           </div>
           {funding === "new" && (
             fundingAccounts.length === 0 ? (
-              <div className="muted" style={{ fontSize: 12 }}>No savings/bank account to fund from — add one first, or track it as existing.</div>
+              <div className="muted" style={{ fontSize: 12 }}>{t("noFundAccount")}</div>
             ) : (
-              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>Deduct {costTotal > 0 ? fmt(money(costTotal, cur)) : "the amount"} from
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("deductFrom", { amount: costTotal > 0 ? fmt(money(costTotal, cur)) : t("theAmount") })}
                 <select className="input" value={sourceId} onChange={(e) => setSourceId(e.target.value)}>
                   {fundingAccounts.map((f) => <option key={f.id} value={f.id}>{f.name} · {fmt(money(f.balance, f.currency))}</option>)}
                 </select>
               </label>
             )
           )}
-          {overFunds && <div style={{ fontSize: 12, color: "var(--negative)" }}>That’s more than the balance in {source?.name}. Reduce the amount or pick another account.</div>}
-          {funding === "existing" && <div className="muted" style={{ fontSize: 11 }}>No money leaves your accounts — this only records an investment you already own.</div>}
+          {overFunds && <div style={{ fontSize: 12, color: "var(--negative)" }}>{t("overFunds", { account: source?.name })}</div>}
+          {funding === "existing" && <div className="muted" style={{ fontSize: 11 }}>{t("existingNote")}</div>}
         </div>
         )}
 
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 2 }}>
-          <button className="btn ghost" onClick={onClose} disabled={saving}>Cancel</button>
-          <button className="btn" onClick={submit} disabled={!canAdd || saving}>{saving ? "Adding…" : "Add investment"}</button>
+          <button className="btn ghost" onClick={onClose} disabled={saving}>{t("cancel")}</button>
+          <button className="btn" onClick={submit} disabled={!canAdd || saving}>{saving ? t("adding") : t("addInvestment")}</button>
         </div>
       </div>
     </Modal>

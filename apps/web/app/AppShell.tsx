@@ -17,6 +17,25 @@ import { useInstallPrompt } from "../src/pwa";
 import { InstallGuide } from "../src/ui/InstallGuide";
 import { Modal } from "../src/ui/Modal";
 import { BugReportModal } from "../src/ui/BugReport";
+import { useUnreadCount } from "../src/notifications/hooks";
+
+/** Bell + unread badge, links to the notification inbox. */
+function NotifBell({ onNavigate = () => {} }: { onNavigate?: () => void }) {
+  const unread = useUnreadCount();
+  return (
+    <Link href="/notifications" aria-label="Notifications" onClick={onNavigate}
+      style={{ position: "relative", width: 40, height: 40, display: "grid", placeItems: "center", color: "inherit" }}>
+      <span style={{ fontSize: 18, lineHeight: 1 }}>🔔</span>
+      {unread > 0 && (
+        <span style={{
+          position: "absolute", top: 4, right: 4, minWidth: 16, height: 16, padding: "0 4px",
+          borderRadius: 999, background: "var(--negative)", color: "#fff", fontSize: 10, fontWeight: 700,
+          display: "grid", placeItems: "center", lineHeight: 1,
+        }}>{unread > 9 ? "9+" : unread}</span>
+      )}
+    </Link>
+  );
+}
 
 const APP_VERSION = "0.1.0";
 
@@ -135,7 +154,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="topbar">
         <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}><MenuIcon /></button>
         <Logo size={26} />
-        <span style={{ width: 40 }} />
+        <NotifBell />
       </div>
 
       {menuOpen && <div className="scrim" onClick={() => setMenuOpen(false)} />}

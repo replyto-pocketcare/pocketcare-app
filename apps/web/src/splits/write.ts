@@ -197,7 +197,27 @@ export async function createInvite(groupId: string, email?: string): Promise<Inv
 /** Accept an invite by token (edge function). Returns the joined group id. */
 export async function acceptInvite(token: string): Promise<string> {
   const { data, error } = await getSupabase().functions.invoke("split-invite-accept", { body: { token } });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(await edgeFnMessage(error));
   if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
   return (data as { group_id: string }).group_id;
+}
+
+/**
+ * supabase-js collapses any non-2xx edge-function response into the opaque
+ * "Edge Function returned a non-2xx status code". The real reason ({ error })
+ * is in the response body, reachable via FunctionsHttpError.context (a Response).
+ * Pull it out so users (and we) see the actual cause instead of a dead end.
+ */
+async function edgeFnMessage(error: unknown): Promise<string> {
+  const ctx = (error as { context?: unknown }).context;
+  if (ctx instanceof Response) {
+    try {
+      const body = await ctx.clone().json();
+      if (body && typeof body.error === "string") return body.error;
+    } catch { /* body wasn't JSON */ }
+    if (ctx.status === 401) return "Please sign in to accept this invite.";
+    if (ctx.status === 404) return "This invite link is invalid or has been removed.";
+    if (ctx.status === 410) return "This invite has expired or was already used.";
+  }
+  return (error as Error).message || "Could not accept the invite.";
 }

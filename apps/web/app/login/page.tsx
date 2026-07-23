@@ -2,6 +2,8 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { getSupabase } from "../../src/powersync";
 import { Logo } from "../../src/ui/Logo";
 import { PasswordInput } from "../../src/ui/PasswordInput";
@@ -11,6 +13,7 @@ type Mode = "register" | "signin" | "reset";
 type Step = "form" | "otp" | "setpw";
 
 function LoginContent() {
+  const { t } = useTranslation("login");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>(
@@ -41,10 +44,10 @@ function LoginContent() {
   // Step 1 (register): validate, save username, start email verification (sends OTP).
   async function startRegister() {
     setErr(null); setMsg(null);
-    if (!username.trim()) return setErr("Please choose a display name.");
-    if (!validEmail) return setErr("Enter a valid email address.");
-    if (password.length < 8) return setErr("Password must be at least 8 characters.");
-    if (password !== confirm) return setErr("Passwords don’t match.");
+    if (!username.trim()) return setErr(t("errName"));
+    if (!validEmail) return setErr(t("errEmail"));
+    if (password.length < 8) return setErr(t("errPwLen"));
+    if (password !== confirm) return setErr(t("errPwMatch"));
     setBusy(true);
     try {
       const supabase = getSupabase();
@@ -65,13 +68,13 @@ function LoginContent() {
         const user = data.user as (typeof data.user & { is_anonymous?: boolean }) | null;
         if (user?.email && !user.is_anonymous) {
           await supabase.auth.updateUser({ password }).catch(() => {});
-          setMsg("Account created — taking you home…");
+          setMsg(t("accountCreated"));
           finishHome();
           return;
         }
         setOtpType("email_change");
         setStep("otp");
-        setMsg(`We sent a 6-digit code to ${emailTrim}. Enter it below to verify your email.`);
+        setMsg(t("sentCode", { email: emailTrim }));
         return;
       }
 
@@ -82,32 +85,32 @@ function LoginContent() {
       if (error) throw error;
       if (data.session) {
         // Confirmations OFF → signed in immediately.
-        setMsg("Account created — taking you home…");
+        setMsg(t("accountCreated"));
         finishHome();
         return;
       }
       // Confirmations ON → verify the emailed code.
       setOtpType("signup");
       setStep("otp");
-      setMsg(`We sent a 6-digit code to ${emailTrim}. Enter it below to verify your email.`);
+      setMsg(t("sentCode", { email: emailTrim }));
     } catch (e) {
-      setErr(friendly((e as Error).message));
+      setErr(friendly((e as Error).message, t));
     } finally { setBusy(false); }
   }
 
   // Forgot password (step 1): send a recovery code to the account's email.
   async function startReset() {
     setErr(null); setMsg(null);
-    if (!validEmail) return setErr("Enter the email address for your account.");
+    if (!validEmail) return setErr(t("errResetEmail"));
     setBusy(true);
     try {
       const { error } = await getSupabase().auth.resetPasswordForEmail(emailTrim);
       if (error) throw error;
       setOtpType("recovery");
       setStep("otp");
-      setMsg(`If an account exists for ${emailTrim}, we sent it a 6-digit reset code. Enter it below.`);
+      setMsg(t("sentReset", { email: emailTrim }));
     } catch (e) {
-      setErr(friendly((e as Error).message));
+      setErr(friendly((e as Error).message, t));
     } finally { setBusy(false); }
   }
 
@@ -115,7 +118,7 @@ function LoginContent() {
   // Also handles the password-reset (recovery) flow, which continues to "setpw".
   async function verifyAndFinish() {
     setErr(null);
-    if (otp.trim().length < 6) return setErr("Enter the 6-digit code from your email.");
+    if (otp.trim().length < 6) return setErr(t("errOtp"));
     setBusy(true);
     try {
       const supabase = getSupabase();
@@ -124,7 +127,7 @@ function LoginContent() {
       // Password reset: the code established a recovery session — now choose a new password.
       if (otpType === "recovery") {
         setStep("setpw");
-        setMsg("Email verified. Choose a new password.");
+        setMsg(t("emailVerified"));
         return;
       }
       // Guest-upgrade path sets the password after the email is verified.
@@ -133,26 +136,26 @@ function LoginContent() {
         const { error: pErr } = await supabase.auth.updateUser({ password });
         if (pErr) throw pErr;
       }
-      setMsg("Account created — taking you home…");
+      setMsg(t("accountCreated"));
       finishHome();
     } catch (e) {
-      setErr(friendly((e as Error).message));
+      setErr(friendly((e as Error).message, t));
     } finally { setBusy(false); }
   }
 
   // Step 3 (reset): set the new password on the recovered session.
   async function setNewPassword() {
     setErr(null); setMsg(null);
-    if (password.length < 8) return setErr("Password must be at least 8 characters.");
-    if (password !== confirm) return setErr("Passwords don’t match.");
+    if (password.length < 8) return setErr(t("errPwLen"));
+    if (password !== confirm) return setErr(t("errPwMatch"));
     setBusy(true);
     try {
       const { error } = await getSupabase().auth.updateUser({ password });
       if (error) throw error;
-      setMsg("Password updated — taking you home…");
+      setMsg(t("pwUpdated"));
       finishHome();
     } catch (e) {
-      setErr(friendly((e as Error).message));
+      setErr(friendly((e as Error).message, t));
     } finally { setBusy(false); }
   }
 
@@ -162,21 +165,21 @@ function LoginContent() {
       if (otpType === "signup") await getSupabase().auth.resend({ type: "signup", email: emailTrim });
       else if (otpType === "recovery") await getSupabase().auth.resetPasswordForEmail(emailTrim);
       else await getSupabase().auth.updateUser({ email: emailTrim });
-      setMsg("New code sent.");
-    } catch (e) { setErr(friendly((e as Error).message)); } finally { setBusy(false); }
+      setMsg(t("newCodeSent"));
+    } catch (e) { setErr(friendly((e as Error).message, t)); } finally { setBusy(false); }
   }
 
   async function signIn() {
     setErr(null); setMsg(null);
-    if (!validEmail || !password) return setErr("Enter your email and password.");
+    if (!validEmail || !password) return setErr(t("errSignin"));
     setBusy(true);
     try {
       const { error } = await getSupabase().auth.signInWithPassword({ email: emailTrim, password });
       if (error) throw error;
-      setMsg("Signed in — taking you home…");
+      setMsg(t("signedIn"));
       finishHome();
     } catch (e) {
-      setErr(friendly((e as Error).message));
+      setErr(friendly((e as Error).message, t));
     } finally { setBusy(false); }
   }
 
@@ -185,17 +188,23 @@ function LoginContent() {
   async function signInWithGoogle() {
     setErr(null); setMsg(null); setBusy(true);
     try {
-      const { error } = await getSupabase().auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: { access_type: "offline", prompt: "select_account" },
-        },
-      });
+      const supabase = getSupabase();
+      const options = {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { access_type: "offline", prompt: "select_account" },
+      };
+      // A guest keeps ALL their data by LINKING Google to the same anonymous
+      // user — the UID is unchanged, so nothing is re-keyed or cleared. Everyone
+      // else does a normal OAuth sign-in (a fresh identity).
+      const { data: sess } = await supabase.auth.getSession();
+      const isGuest = Boolean((sess.session?.user as { is_anonymous?: boolean } | undefined)?.is_anonymous);
+      const { error } = isGuest
+        ? await supabase.auth.linkIdentity({ provider: "google", options })
+        : await supabase.auth.signInWithOAuth({ provider: "google", options });
       if (error) throw error;
       // The browser is now navigating to Google — no further UI needed.
     } catch (e) {
-      setErr(friendly((e as Error).message));
+      setErr(friendly((e as Error).message, t));
       setBusy(false);
     }
   }
@@ -206,61 +215,55 @@ function LoginContent() {
 
       {step === "otp" ? (
         <>
-          <h1>{otpType === "recovery" ? "Reset your password" : "Verify your email"}</h1>
+          <h1>{otpType === "recovery" ? t("resetTitle") : t("verifyTitle")}</h1>
           <p className="muted" style={{ marginTop: -6 }}>{msg}</p>
-          <input className="input" inputMode="numeric" placeholder="6-digit code" value={otp}
+          <input className="input" inputMode="numeric" placeholder={t("codePlaceholder")} value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} style={{ letterSpacing: "0.3em", textAlign: "center", fontSize: 20 }} />
           {err && <ErrorBox msg={err} />}
           <button className="btn" onClick={verifyAndFinish} disabled={busy} style={{ justifyContent: "center", padding: 13 }}>
-            {busy ? "Verifying…" : otpType === "recovery" ? "Verify code" : "Verify & create account"}
+            {busy ? t("verifying") : otpType === "recovery" ? t("verifyCode") : t("verifyCreate")}
           </button>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <button className="chip" onClick={resend} disabled={busy}>Resend code</button>
-            <button className="chip" onClick={() => { setStep("form"); setErr(null); }}>← Back</button>
+            <button className="chip" onClick={resend} disabled={busy}>{t("resend")}</button>
+            <button className="chip" onClick={() => { setStep("form"); setErr(null); }}>{t("back")}</button>
           </div>
         </>
       ) : step === "setpw" ? (
         <>
-          <h1>Choose a new password</h1>
-          <p className="muted" style={{ marginTop: -6 }}>{msg ?? "Set a new password for your account."}</p>
-          <PasswordInput value={password} onChange={setPassword} placeholder="New password" />
-          <PasswordInput value={confirm} onChange={setConfirm} placeholder="Confirm new password" />
+          <h1>{t("newPwTitle")}</h1>
+          <p className="muted" style={{ marginTop: -6 }}>{msg ?? t("setNewPwDefault")}</p>
+          <PasswordInput value={password} onChange={setPassword} placeholder={t("newPw")} />
+          <PasswordInput value={confirm} onChange={setConfirm} placeholder={t("confirmNewPw")} />
           <div className="card" style={{ padding: 12, fontSize: 12.5, background: "var(--surface-2)" }}>
-            Note: this resets your <strong>account sign-in</strong> password only. If you turned on
-            end-to-end encryption, your <strong>encryption passphrase</strong> is separate and is not
-            changed here.
+            {t("encNote")}
           </div>
           {err && <ErrorBox msg={err} />}
           <button className="btn" onClick={setNewPassword} disabled={busy} style={{ justifyContent: "center", padding: 13 }}>
-            {busy ? "Saving…" : "Update password"}
+            {busy ? t("saving") : t("updatePw")}
           </button>
         </>
       ) : (
         <>
-          <h1>{mode === "register" ? "Create your account" : mode === "reset" ? "Reset your password" : "Welcome back"}</h1>
+          <h1>{mode === "register" ? t("registerTitle") : mode === "reset" ? t("resetTitle") : t("signinTitle")}</h1>
           <p className="muted" style={{ marginTop: -6 }}>
-            {mode === "register"
-              ? "Create your account to securely sync across all your devices. If you’ve been exploring as a guest, your data comes with you."
-              : mode === "reset"
-              ? "Enter your account email and we’ll send you a 6-digit code to set a new password."
-              : "Sign in to sync your data to this device. You’ll stay signed in."}
+            {mode === "register" ? t("registerSub") : mode === "reset" ? t("resetSub") : t("signinSub")}
           </p>
 
           {mode === "register" && (
-            <FloatingInput label="Display name" value={username} onChange={setUsername} />
+            <FloatingInput label={t("displayName")} value={username} onChange={setUsername} />
           )}
-          <FloatingInput label="Email" type="email" inputMode="email" value={email} onChange={setEmail} />
+          <FloatingInput label={t("emailLabel")} type="email" inputMode="email" value={email} onChange={setEmail} />
           {mode !== "reset" && (
-            <PasswordInput value={password} onChange={setPassword} placeholder="Password" />
+            <PasswordInput value={password} onChange={setPassword} placeholder={t("passwordPlaceholder")} />
           )}
           {mode === "register" && (
-            <PasswordInput value={confirm} onChange={setConfirm} placeholder="Confirm password" />
+            <PasswordInput value={confirm} onChange={setConfirm} placeholder={t("confirmPassword")} />
           )}
 
           {mode === "signin" && (
             <button className="chip" style={{ justifySelf: "start", padding: "2px 4px", background: "none", border: "none" }}
               onClick={() => { setMode("reset"); setErr(null); setMsg(null); }}>
-              Forgot password?
+              {t("forgotPassword")}
             </button>
           )}
 
@@ -268,26 +271,26 @@ function LoginContent() {
           {msg && !err && <div className="card" style={{ padding: 12, fontSize: 14 }}>{msg}</div>}
 
           <button className="btn" onClick={mode === "register" ? startRegister : mode === "reset" ? startReset : signIn} disabled={busy} style={{ justifyContent: "center", padding: 13 }}>
-            {busy ? "…" : mode === "register" ? "Continue" : mode === "reset" ? "Send reset code" : "Sign in"}
+            {busy ? "…" : mode === "register" ? t("continue") : mode === "reset" ? t("sendResetCode") : t("signInBtn")}
           </button>
 
           {mode !== "reset" && (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--text-2)", fontSize: 12 }}>
                 <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
-                or
+                {t("or")}
                 <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
               </div>
               <button className="btn ghost" onClick={signInWithGoogle} disabled={busy}
                 style={{ justifyContent: "center", gap: 10, padding: 13 }}>
                 <GoogleIcon />
-                {mode === "register" ? "Sign up with Google" : "Continue with Google"}
+                {mode === "register" ? t("signUpGoogle") : t("continueGoogle")}
               </button>
             </>
           )}
 
           <button className="chip" style={{ justifySelf: "center" }} onClick={() => { setMode(mode === "register" ? "signin" : mode === "reset" ? "signin" : "register"); setErr(null); setMsg(null); }}>
-            {mode === "register" ? "Already have an account? Sign in" : mode === "reset" ? "← Back to sign in" : "New here? Create an account"}
+            {mode === "register" ? t("switchToSignin") : mode === "reset" ? t("backToSignin") : t("switchToRegister")}
           </button>
         </>
       )}
@@ -311,14 +314,14 @@ function GoogleIcon() {
   );
 }
 
-/** Map common Supabase auth errors to friendlier copy. */
-function friendly(m: string): string {
+/** Map common Supabase auth errors to friendlier, localised copy. */
+function friendly(m: string, t: TFunction<"login">): string {
   const s = m.toLowerCase();
   if (s.includes("already been registered") || s.includes("already registered") || s.includes("already exists"))
-    return "That email already has an account. Switch to Sign in instead.";
-  if (s.includes("invalid login credentials")) return "Email or password is incorrect.";
-  if (s.includes("token has expired") || s.includes("invalid")) return "That code is invalid or expired. Try resending.";
-  if (s.includes("email not confirmed")) return "Please verify your email first (check for the code).";
+    return t("friendlyExists");
+  if (s.includes("invalid login credentials")) return t("friendlyInvalidCreds");
+  if (s.includes("token has expired") || s.includes("invalid")) return t("friendlyExpired");
+  if (s.includes("email not confirmed")) return t("friendlyNotConfirmed");
   return m;
 }
 

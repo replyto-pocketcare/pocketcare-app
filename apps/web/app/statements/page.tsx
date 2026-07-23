@@ -11,7 +11,7 @@ import { useEntitlement } from "../../src/entitlement";
 import { LockIcon } from "../../src/ui/icons";
 
 export default function StatementsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("statements");
   const { isPaid } = useEntitlement();
   const base = useBaseCurrency();
   const today = new Date();
@@ -36,12 +36,12 @@ export default function StatementsPage() {
   if (!isPaid) {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
-        <h1>{t("pages.statements", "Statements")}</h1>
+        <h1>{t("title")}</h1>
         <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
-          <h2>Statements are a Premium feature</h2>
-          <p className="muted">Generate a clean statement for any period and save it as a PDF.</p>
-          <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>Go Premium</Link>
+          <h2>{t("premiumTitle")}</h2>
+          <p className="muted">{t("premiumBody")}</p>
+          <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>{t("goPremium")}</Link>
         </div>
       </div>
     );
@@ -51,19 +51,19 @@ export default function StatementsPage() {
     <div style={{ display: "grid", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <div className="no-print" style={{ display: "grid", gap: 14 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", minWidth: 0 }}>
-          <h1 style={{ minWidth: 0 }}>{t("pages.statements", "Statements")}</h1>
+          <h1 style={{ minWidth: 0 }}>{t("title")}</h1>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
-            <Link href="/statements/analyze" className="btn ghost">Analyze a statement</Link>
-            <button className="btn" onClick={() => window.print()}>Print / Save PDF</button>
+            <Link href="/statements/analyze" className="btn ghost">{t("analyze")}</Link>
+            <button className="btn" onClick={() => window.print()}>{t("print")}</button>
           </div>
         </div>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <label style={{ display: "grid", gap: 4, flex: "1 1 220px", minWidth: 0 }}>
-            <span className="muted" style={{ fontSize: 12 }}>From date</span>
+            <span className="muted" style={{ fontSize: 12 }}>{t("fromDate")}</span>
             <input className="input" type="date" value={start} onChange={(e) => { setStart(e.target.value); if (e.target.value > end) setEnd(e.target.value); }} />
           </label>
           <label style={{ display: "grid", gap: 4, flex: "1 1 220px", minWidth: 0 }}>
-            <span className="muted" style={{ fontSize: 12 }}>To date</span>
+            <span className="muted" style={{ fontSize: 12 }}>{t("toDate")}</span>
             <input className="input" type="date" value={end} min={start || undefined} onChange={(e) => setEnd(e.target.value)} />
           </label>
         </div>
@@ -72,28 +72,28 @@ export default function StatementsPage() {
       {/* Summary header tile */}
       <section className="card statement-card pc-glass" style={{ padding: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden", boxSizing: "border-box", display: "grid", gap: 16 }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 650 }}>PocketCare Statement</div>
+          <div style={{ fontSize: 15, fontWeight: 650 }}>{t("statementName")}</div>
           <div className="muted" style={{ fontSize: 12.5 }}>{new Date(start).toLocaleDateString()} – {new Date(end).toLocaleDateString()}</div>
         </div>
         <div>
-          <div className="muted" style={{ fontSize: 12 }}>Net for period</div>
+          <div className="muted" style={{ fontSize: 12 }}>{t("netForPeriod")}</div>
           <div style={{ fontSize: 30, fontWeight: 780, letterSpacing: "-0.02em", whiteSpace: "nowrap", color: income - expense >= 0 ? "var(--positive)" : "var(--negative)" }}>
             {format(money(income - expense, base), "en-US")}
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-          <Summary label="Income" value={format(money(income, base), "en-US")} color="var(--positive)" />
-          <Summary label="Expenses" value={format(money(expense, base), "en-US")} color="var(--negative)" />
-          <Summary label="Transactions" value={String(rows.length)} />
+          <Summary label={t("income")} value={format(money(income, base), "en-US")} color="var(--positive)" />
+          <Summary label={t("expenses")} value={format(money(expense, base), "en-US")} color="var(--negative)" />
+          <Summary label={t("transactions")} value={String(rows.length)} />
         </div>
       </section>
 
       {/* Transaction tiles, grouped by day (newest first) */}
       {rows.length === 0 ? (
-        <p className="muted card" style={{ padding: 16, margin: 0 }}>No transactions in this period.</p>
+        <p className="muted card" style={{ padding: 16, margin: 0 }}>{t("noTransactions")}</p>
       ) : (
         <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
-          {groupByDay(rows).map(({ day, label, items, net }) => (
+          {groupByDay(rows, t).map(({ day, label, items, net }) => (
             <section key={day} style={{ display: "grid", gap: 8, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, padding: "0 4px", minWidth: 0 }}>
                 <span className="eyebrow" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
@@ -157,7 +157,7 @@ function TxnTile({ r, first, category }: { r: Row; first: boolean; category: str
 }
 
 /** Group rows by calendar day, newest first, with a friendly label + day net. */
-function groupByDay(rows: Row[]): { day: string; label: string; items: Row[]; net: number }[] {
+function groupByDay(rows: Row[], t: (k: string) => string): { day: string; label: string; items: Row[]; net: number }[] {
   const map = new Map<string, Row[]>();
   for (const r of rows) {
     const day = r.occurred_at.slice(0, 10);
@@ -170,7 +170,7 @@ function groupByDay(rows: Row[]): { day: string; label: string; items: Row[]; ne
     .map(([day, items]) => {
       const sorted = [...items].sort((a, b) => b.occurred_at.localeCompare(a.occurred_at));
       const net = sorted.reduce((s, r) => s + (r.type === "income" ? r.amount : r.type === "expense" ? -r.amount : 0), 0);
-      const label = day === todayStr ? "Today" : day === yStr ? "Yesterday"
+      const label = day === todayStr ? t("today") : day === yStr ? t("yesterday")
         : new Date(day + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "2-digit" });
       return { day, label, items: sorted, net };
     });

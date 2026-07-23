@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { AccountType } from "@pocketcare/types";
 import { money, format, fromMajor } from "@pocketcare/money";
@@ -18,6 +19,7 @@ const COLORS = ACCOUNT_COLORS;
 interface Row { id: string; name: string; type: string; color: string | null; include_in_net_worth: number; is_archived: number; allow_negative: number; }
 
 export default function EditAccountPage() {
+  const { t } = useTranslation("accounts");
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: rows = [] } = useQuery<Row>("SELECT id, name, type, color, include_in_net_worth, is_archived, IFNULL(allow_negative,0) AS allow_negative FROM accounts WHERE id = ?", [id]);
@@ -77,7 +79,7 @@ export default function EditAccountPage() {
     if (!acc || !current || targetBal === "") return;
     const target = fromMajor(Number(targetBal), current.currency);
     const delta = target.amount - current.amount;
-    if (delta === 0) { setBalMsg("Balance is already that amount."); return; }
+    if (delta === 0) { setBalMsg(t("balAlready")); return; }
     const repos = getRepositories();
     if (balMode === "direct") {
       // Silent correction: append an adjustment ledger entry (no category).
@@ -98,23 +100,23 @@ export default function EditAccountPage() {
         occurred_at: new Date().toISOString(),
       });
     }
-    setBalMsg(`Balance updated to ${format(target, "en-US")}.`);
+    setBalMsg(t("balUpdated", { amount: format(target, "en-US") }));
     setTargetBal("");
   }
 
-  if (!acc) return <p className="muted">Loading…</p>;
+  if (!acc) return <p className="muted">{t("loading")}</p>;
 
   return (
     <div style={{ maxWidth: 520, display: "grid", gap: 14 }} className="fade-up">
-      <h1>Edit account</h1>
-      <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Account name" />
+      <h1>{t("editTitle")}</h1>
+      <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("accountName")} />
 
-      <span className="muted" style={{ fontSize: 13 }}>Type</span>
+      <span className="muted" style={{ fontSize: 13 }}>{t("typeLabel")}</span>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {TYPES.map((tp) => <button key={tp} className="chip" data-active={tp === type} style={{ textTransform: "capitalize" }} onClick={() => setType(tp)}>{tp.replace("_", " ")}</button>)}
+        {TYPES.map((tp) => <button key={tp} className="chip" data-active={tp === type} onClick={() => setType(tp)}>{t(`type.${tp}`, tp.replace("_", " "))}</button>)}
       </div>
 
-      <span className="muted" style={{ fontSize: 13 }}>Colour</span>
+      <span className="muted" style={{ fontSize: 13 }}>{t("colour")}</span>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {COLORS.map((c) => (
           <button key={c} onClick={() => setColor(c)} aria-label={c}
@@ -123,55 +125,53 @@ export default function EditAccountPage() {
       </div>
 
       <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
-        <input type="checkbox" checked={include} onChange={(e) => setInclude(e.target.checked)} /> Include in net worth
+        <input type="checkbox" checked={include} onChange={(e) => setInclude(e.target.checked)} /> {t("includeShort")}
       </label>
 
       <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 14 }}>
         <input type="checkbox" checked={allowNeg} onChange={(e) => setAllowNeg(e.target.checked)} style={{ marginTop: 3 }} />
-        <span>Allow negative balance (overdraft)<br />
-          <span className="muted" style={{ fontSize: 12 }}>{allowNeg ? "Spending can take this account below zero." : "Transactions that would overdraw this account are blocked."}</span>
+        <span>{t("allowNeg")}<br />
+          <span className="muted" style={{ fontSize: 12 }}>{allowNeg ? t("allowNegOn") : t("allowNegOff")}</span>
         </span>
       </label>
 
       <div style={{ display: "flex", gap: 10 }}>
-        <button className="btn" onClick={save} disabled={!name.trim()}>Save changes</button>
-        <button className="btn ghost" onClick={() => router.push("/accounts")}>Cancel</button>
-        <button className="chip" style={{ marginLeft: "auto", color: "var(--negative)", borderColor: "var(--negative)" }} onClick={() => setConfirmDelete(true)}>Delete</button>
+        <button className="btn" onClick={save} disabled={!name.trim()}>{t("saveChanges")}</button>
+        <button className="btn ghost" onClick={() => router.push("/accounts")}>{t("cancel")}</button>
+        <button className="chip" style={{ marginLeft: "auto", color: "var(--negative)", borderColor: "var(--negative)" }} onClick={() => setConfirmDelete(true)}>{t("delete")}</button>
       </div>
 
       <Modal open={confirmDelete} onClose={() => !deleting && setConfirmDelete(false)}>
-        <h2 style={{ marginBottom: 8, color: "var(--negative)" }}>Delete account?</h2>
+        <h2 style={{ marginBottom: 8, color: "var(--negative)" }}>{t("deleteTitle")}</h2>
         <p className="muted" style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 12 }}>
-          You can delete this account and all its transactions, or keep the transactions (they will remain in your history but the account will be hidden).
+          {t("deleteBody")}
         </p>
         <div style={{ display: "grid", gap: 8 }}>
           <button className="btn" disabled={deleting} onClick={() => deleteAccount(true)}>
-            Delete account & all transactions
+            {t("deleteAll")}
           </button>
           <button className="btn ghost" disabled={deleting} onClick={() => deleteAccount(false)}>
-            Delete account but keep transactions
+            {t("deleteKeep")}
           </button>
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-          <button className="chip" disabled={deleting} onClick={() => setConfirmDelete(false)}>Cancel</button>
+          <button className="chip" disabled={deleting} onClick={() => setConfirmDelete(false)}>{t("cancel")}</button>
         </div>
       </Modal>
 
       <section className="card" style={{ padding: 20, display: "grid", gap: 12, marginTop: 8 }}>
-        <h2>Balance</h2>
-        <div className="muted" style={{ fontSize: 13 }}>Current balance: <strong style={{ color: "var(--text)" }}>{current ? format(current, "en-US") : "…"}</strong></div>
-        <input className="input" inputMode="decimal" placeholder="New balance" value={targetBal}
+        <h2>{t("balanceHeading")}</h2>
+        <div className="muted" style={{ fontSize: 13 }}>{t("currentBalance")} <strong style={{ color: "var(--text)" }}>{current ? format(current, "en-US") : "…"}</strong></div>
+        <input className="input" inputMode="decimal" placeholder={t("newBalance")} value={targetBal}
           onChange={(e) => { setTargetBal(e.target.value.replace(/[^0-9.-]/g, "")); setBalMsg(null); }} />
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="chip" data-active={balMode === "direct"} onClick={() => setBalMode("direct")}>Change directly</button>
-          <button className="chip" data-active={balMode === "transaction"} onClick={() => setBalMode("transaction")}>Record as a transaction</button>
+          <button className="chip" data-active={balMode === "direct"} onClick={() => setBalMode("direct")}>{t("changeDirectly")}</button>
+          <button className="chip" data-active={balMode === "transaction"} onClick={() => setBalMode("transaction")}>{t("recordAsTxn")}</button>
         </div>
         <p className="muted" style={{ fontSize: 12, marginTop: -4 }}>
-          {balMode === "direct"
-            ? "Adds a silent adjustment so the balance matches — not shown as income/expense."
-            : "Adds an income or expense for the difference, so it appears in history & insights."}
+          {balMode === "direct" ? t("directNote") : t("txnNote")}
         </p>
-        <button className="btn ghost" onClick={applyBalance} disabled={!current || targetBal === ""}>Update balance</button>
+        <button className="btn ghost" onClick={applyBalance} disabled={!current || targetBal === ""}>{t("updateBalance")}</button>
         {balMsg && <span className="muted" style={{ fontSize: 13 }}>{balMsg}</span>}
       </section>
     </div>

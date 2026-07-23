@@ -49,6 +49,9 @@ streams:
       - SELECT * FROM pocketcare.transaction_templates WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.recurring_rules WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.category_rules WHERE user_id = auth.user_id()
+      # --- notifications: inbox rows + per-user prefs (push_subscriptions is NOT synced) ---
+      - SELECT * FROM pocketcare.notifications WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.notification_prefs WHERE user_id = auth.user_id()
       # --- zero-trust encryption: wrapped keys, consent grants, audit (own rows) ---
       - SELECT *, user_id AS id FROM pocketcare.user_keys WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.support_grants WHERE user_id = auth.user_id()

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { downloadText } from "../../src/data/csv";
 import { exportTransactionsCsv } from "../../src/data/exportCsv";
 import { IMPORT_ADAPTERS, parseWithAdapter, type CanonRow } from "../../src/data/adapters";
@@ -9,6 +10,7 @@ import { importTransactions, type ImportResult } from "../../src/data/importCsv"
 import { usePremiumStatus } from "../../src/premium";
 
 export default function DataPage() {
+  const { t } = useTranslation("data");
   const { isPremiumUser, hasActiveTrial } = usePremiumStatus();
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState<string | null>(null);
@@ -25,11 +27,11 @@ export default function DataPage() {
     setExporting(true); setExportMsg(null);
     try {
       const { csv, count } = await exportTransactionsCsv();
-      if (count === 0) { setExportMsg("No transactions to export yet."); return; }
+      if (count === 0) { setExportMsg(t("noExport")); return; }
       downloadText(`pocketcare-transactions-${new Date().toISOString().slice(0, 10)}.csv`, csv);
-      setExportMsg(`Exported ${count} transaction${count === 1 ? "" : "s"}.`);
+      setExportMsg(t("exported", { count }));
     } catch (e) {
-      setExportMsg(`Export failed: ${(e as Error).message}`);
+      setExportMsg(t("exportFailed", { msg: (e as Error).message }));
     } finally { setExporting(false); }
   }
 
@@ -41,10 +43,10 @@ export default function DataPage() {
     try {
       const text = await file.text();
       const parsed = parseWithAdapter(adapterId, text);
-      if (parsed.length === 0) { setParseErr("No rows found — check the file and the selected format."); return; }
+      if (parsed.length === 0) { setParseErr(t("noRows")); return; }
       setRows(parsed);
     } catch (err) {
-      setParseErr(`Couldn't read the file: ${(err as Error).message}`);
+      setParseErr(t("readFail", { msg: (err as Error).message }));
     }
   }
 
@@ -63,59 +65,59 @@ export default function DataPage() {
   return (
     <div style={{ display: "grid", gap: 20, maxWidth: 760 }} className="fade-up">
       <div>
-        <h1>Import &amp; export</h1>
+        <h1>{t("title")}</h1>
         <p className="muted" style={{ fontSize: 14, marginTop: 4 }}>
-          Back up your transactions to a CSV file, or bring data in from a CSV. <Link href="/settings">Back to settings</Link>
+          {t("introPre")}<Link href="/settings">{t("backToSettings")}</Link>
         </p>
       </div>
 
       {/* Export */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-        <h2>Export</h2>
+        <h2>{t("export")}</h2>
         <p className="muted" style={{ fontSize: 13, marginTop: -4 }}>
-          Downloads all your transactions as a CSV in PocketCare’s own format — which you can re-import here anytime.
+          {t("exportNote")}
         </p>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <button className="btn" onClick={doExport} disabled={exporting}>{exporting ? "Preparing…" : "Export transactions (CSV)"}</button>
+          <button className="btn" onClick={doExport} disabled={exporting}>{exporting ? t("preparing") : t("exportBtn")}</button>
           {exportMsg && <span className="muted" style={{ fontSize: 13 }}>{exportMsg}</span>}
         </div>
       </section>
 
         {/* Import */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
-        <h2>Import</h2>
+        <h2>{t("import")}</h2>
         {hasActiveTrial && !isPremiumUser ? (
           <div className="card" style={{ padding: 12, fontSize: 14, background: "var(--accent-ghost)", borderColor: "var(--accent-soft)" }}>
-            Importing data is not available during the free trial. Please upgrade to Premium to import your historical data.
+            {t("trialNote")}
           </div>
         ) : (
           <>
             <label style={{ display: "grid", gap: 4 }}>
-              <span className="muted" style={{ fontSize: 13 }}>File format</span>
+              <span className="muted" style={{ fontSize: 13 }}>{t("fileFormat")}</span>
               <select className="input" value={adapterId} onChange={(e) => { setAdapterId(e.target.value); setRows(null); setResult(null); }}>
                 {IMPORT_ADAPTERS.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
               </select>
             </label>
 
             <label style={{ display: "grid", gap: 4 }}>
-              <span className="muted" style={{ fontSize: 13 }}>CSV file</span>
+              <span className="muted" style={{ fontSize: 13 }}>{t("csvFile")}</span>
               <input className="input" type="file" accept=".csv,text/csv,text/plain" onChange={onFile} />
             </label>
 
             <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
               <input type="checkbox" checked={skipDup} onChange={(e) => setSkipDup(e.target.checked)} />
-              Skip rows that already exist (same account, amount, type &amp; date)
+              {t("skipDup")}
             </label>
 
             {parseErr && <div className="card" style={{ padding: 12, fontSize: 13, borderColor: "var(--negative)", color: "var(--negative)" }}>{parseErr}</div>}
 
             {rows && (
               <div style={{ display: "grid", gap: 10 }}>
-                <div style={{ fontSize: 14 }}><strong>{rows.length}</strong> transaction{rows.length === 1 ? "" : "s"} found in {fileName}. Preview:</div>
+                <div style={{ fontSize: 14 }}>{t("foundPreview", { count: rows.length, file: fileName })}</div>
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 420 }}>
                     <thead><tr style={{ textAlign: "left", borderBottom: "2px solid var(--border)" }}>
-                      <th style={{ padding: "6px 8px" }}>Date</th><th>Type</th><th>Amount</th><th>Account</th><th>Category</th>
+                      <th style={{ padding: "6px 8px" }}>{t("thDate")}</th><th>{t("thType")}</th><th>{t("thAmount")}</th><th>{t("thAccount")}</th><th>{t("thCategory")}</th>
                     </tr></thead>
                     <tbody>
                       {rows.slice(0, 6).map((r, i) => (
@@ -130,19 +132,19 @@ export default function DataPage() {
                     </tbody>
                   </table>
                 </div>
-                <button className="btn" onClick={runImport} disabled={importing}>{importing ? "Importing…" : `Import ${rows.length} transaction${rows.length === 1 ? "" : "s"}`}</button>
+                <button className="btn" onClick={runImport} disabled={importing}>{importing ? t("importing") : t("importBtn", { count: rows.length })}</button>
               </div>
             )}
 
             {result && (
               <div className="card" style={{ padding: 12, fontSize: 14, display: "grid", gap: 4, background: "var(--surface-2)" }}>
-                <div><strong>{result.created}</strong> imported · {result.skipped} skipped · {result.failed} failed</div>
-                {result.errors.length > 0 && <div className="muted" style={{ fontSize: 12 }}>First issues: {result.errors.slice(0, 3).join("; ")}</div>}
+                <div>{t("resultLine", { created: result.created, skipped: result.skipped, failed: result.failed })}</div>
+                {result.errors.length > 0 && <div className="muted" style={{ fontSize: 12 }}>{t("firstIssues", { issues: result.errors.slice(0, 3).join("; ") })}</div>}
               </div>
             )}
 
             <p className="muted" style={{ fontSize: 12 }}>
-              New accounts and categories are created automatically (accounts default to “savings” — you can change the type afterward). Importing recomputes balances from your ledger. The Wallet by BudgetBakers importer is in beta — transfers may need a quick review.
+              {t("footerNote")}
             </p>
           </>
         )}

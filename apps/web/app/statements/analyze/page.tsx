@@ -17,8 +17,8 @@ import { money, fromMajor } from "@pocketcare/money";
 import { useBaseCurrency, useAccountBalances } from "../../../src/hooks";
 import { useMoneyFmt } from "../../../src/ui/Money";
 import { getDb, getUserId } from "../../../src/powersync";
-import { suggestCategory } from "../../../src/categorize/engine";
-import { importTransactions } from "../../../src/data/importCsv";
+import { buildClassifier } from "../../../src/categorize/engine";
+import { importTransactionsBulk } from "../../../src/data/importCsv";
 import { createRecurring } from "../../../src/cashflow/recurring";
 import type { CanonRow } from "../../../src/data/adapters";
 import { parseStatementCsv } from "../../../src/statements/parseCsv";
@@ -65,19 +65,21 @@ export default function AnalyzeStatementPage() {
         const text = await file.text();
         ps = parseStatementCsv(text, { currency: base, kind });
       }
-      // On-device categorisation of spends.
+      // On-device categorisation of spends. Build the classifier ONCE (loads all
+      // rules + seeds), then classify every row in memory — no per-row DB calls.
       setBusy(t("categorising"));
       const db = getDb();
       if (db && ps.txns.length) {
         const uid = getUserId();
         const catName = new Map(categories.map((c) => [c.id, c.name]));
-        for (const t of ps.txns) {
-          if (t.amount >= 0) continue;
-          try {
-            const id = await suggestCategory(t.description, db, uid, categories as never);
-            if (id) t.category = catName.get(id) ?? null;
-          } catch { /* categoriser optional */ }
-        }
+        try {
+          const classifier = await buildClassifier(db, uid, categories as never);
+          for (const tx of ps.txns) {
+            if (tx.amount >= 0) continue;
+            const id = classifier.classify(tx.description);
+            if (id) tx.category = catName.get(id) ?? null;
+          }
+        } catch { /* categoriser optional */ }
       }
       setParsed(ps);
     } catch (e) {
@@ -161,7 +163,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
       description: t.description,
       ...(t.category ? { category: t.category } : {}),
     }));
-    await importTransactions(rows, { skipDuplicates: false });
+    await importTransactionsBulk(rows, { skipDuplicates: false });
     setImported(true);
   }
 

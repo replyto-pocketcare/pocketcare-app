@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { AccountType } from "@pocketcare/types";
 import { fromMajor } from "@pocketcare/money";
 import { getRepositories, getDb } from "../../../src/powersync";
@@ -26,6 +27,7 @@ function cardDueDate(created: Date, statementDay: number, dueDay: number): { due
 }
 
 export default function NewAccountPage() {
+  const { t } = useTranslation("accounts");
   const router = useRouter();
   const [name, setName] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>(AccountType.Savings);
@@ -86,20 +88,20 @@ export default function NewAccountPage() {
 
   return (
     <div style={{ maxWidth: 520, display: "grid", gap: 14 }} className="fade-up">
-      <h1>New account</h1>
-      <FloatingInput label="Account name" value={name} onChange={setName} />
+      <h1>{t("newTitle")}</h1>
+      <FloatingInput label={t("accountName")} value={name} onChange={setName} />
 
-      <span className="muted" style={{ fontSize: 13 }}>Type</span>
+      <span className="muted" style={{ fontSize: 13 }}>{t("typeLabel")}</span>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {TYPES.map((tp) => <button key={tp} className="chip" data-active={tp === type} style={{ textTransform: "capitalize" }} onClick={() => setType(tp)}>{tp.replace("_", " ")}</button>)}
+        {TYPES.map((tp) => <button key={tp} className="chip" data-active={tp === type} onClick={() => setType(tp)}>{t(`type.${tp}`, tp.replace("_", " "))}</button>)}
       </div>
 
-      <span className="muted" style={{ fontSize: 13 }}>Currency</span>
+      <span className="muted" style={{ fontSize: 13 }}>{t("currency")}</span>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {CURRENCIES.map((c) => <button key={c} className="chip" data-active={c === currency} onClick={() => setCurrency(c)}>{c}</button>)}
       </div>
 
-      <span className="muted" style={{ fontSize: 13 }}>Colour</span>
+      <span className="muted" style={{ fontSize: 13 }}>{t("colour")}</span>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {COLORS.map((c) => (
           <button key={c} aria-label={c} onClick={() => setColor(c)}
@@ -110,46 +112,46 @@ export default function NewAccountPage() {
 
       <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
         <input type="checkbox" checked={includeNw} onChange={(e) => setIncludeNw(e.target.checked)} />
-        Include this account in net worth
+        {t("includeNw")}
       </label>
 
       <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 14 }}>
         <input type="checkbox" checked={allowNegEffective} onChange={(e) => setAllowNeg(e.target.checked)} style={{ marginTop: 3 }} />
-        <span>Allow negative balance (overdraft)<br />
-          <span className="muted" style={{ fontSize: 12 }}>{allowNegEffective ? "Spending can take this account below zero." : "Transactions that would overdraw this account are blocked."}</span>
+        <span>{t("allowNeg")}<br />
+          <span className="muted" style={{ fontSize: 12 }}>{allowNegEffective ? t("allowNegOn") : t("allowNegOff")}</span>
         </span>
       </label>
 
       {isCard ? (
         <>
-          <span className="muted" style={{ fontSize: 13 }}>Credit card details</span>
+          <span className="muted" style={{ fontSize: 13 }}>{t("creditCardDetails")}</span>
           <div style={{ display: "flex", gap: 8 }}>
-            <FloatingInput label={`Credit limit (${currency})`} group currency={currency} value={limit} onChange={setLimit} style={{ flex: 1 }} />
-            <FloatingInput label={`Amount due (${currency})`} group currency={currency} value={dueAmount} onChange={setDueAmount} style={{ flex: 1 }} />
+            <FloatingInput label={t("creditLimit", { currency })} group currency={currency} value={limit} onChange={setLimit} style={{ flex: 1 }} />
+            <FloatingInput label={t("amountDue", { currency })} group currency={currency} value={dueAmount} onChange={setDueAmount} style={{ flex: 1 }} />
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <FloatingInput label="Statement day (1–28)" inputMode="numeric" value={statementDay} onChange={(v) => setStatementDay(v.replace(/\D/g, "").slice(0, 2))} style={{ flex: 1 }} />
-            <FloatingInput label="Due day (1–28)" inputMode="numeric" value={dueDay} onChange={(v) => setDueDay(v.replace(/\D/g, "").slice(0, 2))} style={{ flex: 1 }} />
+            <FloatingInput label={t("statementDay")} inputMode="numeric" value={statementDay} onChange={(v) => setStatementDay(v.replace(/\D/g, "").slice(0, 2))} style={{ flex: 1 }} />
+            <FloatingInput label={t("dueDay")} inputMode="numeric" value={dueDay} onChange={(v) => setDueDay(v.replace(/\D/g, "").slice(0, 2))} style={{ flex: 1 }} />
           </div>
           {cardPreview && (
             <div style={{ padding: "9px 12px", borderRadius: 10, fontSize: 12.5, background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}>
               {cardPreview.thisCycle
-                ? <>Due <strong style={{ color: "var(--text)" }}>{currency} {dueAmount}</strong> on <strong style={{ color: "var(--text)" }}>{cardPreview.dueOn.toLocaleDateString()}</strong> (this cycle).</>
-                : <><strong style={{ color: "var(--text)" }}>0</strong> due this cycle — you created this card after the statement day, so <strong style={{ color: "var(--text)" }}>{currency} {dueAmount}</strong> is due next, on <strong style={{ color: "var(--text)" }}>{cardPreview.dueOn.toLocaleDateString()}</strong>.</>}
+                ? t("dueThisCycle", { amount: `${currency} ${dueAmount}`, date: cardPreview.dueOn.toLocaleDateString() })
+                : t("dueNextCycle", { amount: `${currency} ${dueAmount}`, date: cardPreview.dueOn.toLocaleDateString() })}
             </div>
           )}
         </>
       ) : isDemat ? (
         <>
-          <FloatingInput label={`Invested amount (${currency})`} group currency={currency} value={opening} onChange={setOpening} />
-          <span className="muted" style={{ fontSize: 12, marginTop: -4 }}>This is the total you've put into your demat account. Allocate it across stocks &amp; mutual funds in the Investments section.</span>
+          <FloatingInput label={t("invested", { currency })} group currency={currency} value={opening} onChange={setOpening} />
+          <span className="muted" style={{ fontSize: 12, marginTop: -4 }}>{t("dematNote")}</span>
         </>
       ) : (
-        <FloatingInput label={`Opening balance (${currency}, optional)`} group currency={currency} value={opening} onChange={setOpening} />
+        <FloatingInput label={t("openingBalance", { currency })} group currency={currency} value={opening} onChange={setOpening} />
       )}
 
       <button className="btn" onClick={save} disabled={!name.trim() || saving} style={{ justifyContent: "center", padding: 13 }}>
-        {saving ? "Saving…" : "Save"}
+        {saving ? t("saving") : t("save")}
       </button>
     </div>
   );

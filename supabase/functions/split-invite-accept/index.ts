@@ -30,9 +30,20 @@ Deno.serve(async (req: Request) => {
   if (!body.token) return json({ error: "token is required." }, 400);
 
   const { data: inv } = await supabase.from("split_invitations")
-    .select("id, group_id, inviter, status, expires_at").eq("token", body.token).maybeSingle();
+    .select("id, group_id, inviter, status, accepted_by, expires_at").eq("token", body.token).maybeSingle();
   if (!inv) return json({ error: "Invite not found." }, 404);
-  if (inv.status !== "pending") return json({ error: "This invite is no longer valid." }, 410);
+
+  // Idempotency: reopening an invite you already used (double-tap, refresh, or
+  // coming back to the link) must NOT error — just send you back into the group.
+  // Only a *different* user reusing a spent link is rejected.
+  if (inv.status !== "pending") {
+    const { data: mem } = await supabase.from("split_group_members")
+      .select("id").eq("group_id", inv.group_id).eq("user_id", user.id).is("deleted_at", null).maybeSingle();
+    if (mem || inv.accepted_by === user.id) return json({ group_id: inv.group_id });
+    if (inv.status === "expired") return json({ error: "This invite has expired." }, 410);
+    return json({ error: "This invite has already been used." }, 410);
+  }
+
   if (inv.expires_at && new Date(inv.expires_at).getTime() < Date.now()) {
     await supabase.from("split_invitations").update({ status: "expired" }).eq("id", inv.id);
     return json({ error: "This invite has expired." }, 410);

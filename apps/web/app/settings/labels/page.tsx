@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { insertRow, updateRow, softDelete } from "../../../src/write";
 import { FloatingInput } from "../../../src/ui/FloatingInput";
@@ -10,6 +11,7 @@ import { useConfirm } from "../../../src/ui/Confirm";
 interface Label { id: string; name: string; color: string | null }
 
 export default function ManageLabelsPage() {
+  const { t } = useTranslation("labels");
   const { data: labels = [] } = useQuery<Label>("SELECT id, name, color FROM labels WHERE deleted_at IS NULL ORDER BY name");
   const [search, setSearch] = useState("");
   const [name, setName] = useState("");
@@ -25,19 +27,19 @@ export default function ManageLabelsPage() {
 
   return (
     <div style={{ display: "grid", gap: 18, maxWidth: 720 }} className="fade-up">
-      <Link href="/settings" className="muted" style={{ fontSize: 13 }}>← Settings</Link>
-      <h1>Labels</h1>
+      <Link href="/settings" className="muted" style={{ fontSize: 13 }}>{t("backToSettings")}</Link>
+      <h1>{t("title")}</h1>
 
       <div className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
-        <FloatingInput label="Search labels…" value={search} onChange={setSearch} />
+        <FloatingInput label={t("searchPlaceholder")} value={search} onChange={setSearch} />
         <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
           {shown.map((l) => <LabelItem key={l.id} label={l} />)}
-          {shown.length === 0 && <span className="muted" style={{ fontSize: 13 }}>No labels found.</span>}
+          {shown.length === 0 && <span className="muted" style={{ fontSize: 13 }}>{t("noLabels")}</span>}
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-          <FloatingInput label="New label" value={name} onChange={setName} style={{ maxWidth: 220, flex: 1 }} />
+          <FloatingInput label={t("newLabel")} value={name} onChange={setName} style={{ maxWidth: 220, flex: 1 }} />
           <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ width: 44, height: 44, border: "1px solid var(--border)", borderRadius: 8, background: "var(--surface)" }} />
-          <button className="btn" onClick={add} disabled={!name.trim()}>Add label</button>
+          <button className="btn" onClick={add} disabled={!name.trim()}>{t("addLabel")}</button>
         </div>
       </div>
     </div>
@@ -52,6 +54,7 @@ const TrashIcon = () => (
 );
 
 function LabelItem({ label }: { label: Label }) {
+  const { t } = useTranslation("labels");
   const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(label.name);
@@ -64,8 +67,8 @@ function LabelItem({ label }: { label: Label }) {
       <div style={{ display: "flex", gap: 10, alignItems: "center", padding: "12px", border: "1px solid var(--border)", borderRadius: 8, background: "var(--surface-1)" }}>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} style={{ flex: 1, minWidth: 0 }} />
         <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ width: 36, height: 34, border: "1px solid var(--border)", borderRadius: 8, background: "var(--surface)" }} />
-        <button className="chip" onClick={save}>Save</button>
-        <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
+        <button className="chip" onClick={save}>{t("save")}</button>
+        <button className="chip" onClick={() => setEditing(false)}>{t("cancel")}</button>
       </div>
     );
   }
@@ -76,10 +79,10 @@ function LabelItem({ label }: { label: Label }) {
         <span style={{ fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label.name}</span>
       </div>
       <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-        <button className="chip" style={{ padding: "8px" }} onClick={() => { setName(label.name); setColor(label.color || "#b06a4f"); setEditing(true); }} aria-label="Edit">
+        <button className="chip" style={{ padding: "8px" }} onClick={() => { setName(label.name); setColor(label.color || "#b06a4f"); setEditing(true); }} aria-label={t("edit")}>
           <EditIcon />
         </button>
-        <button className="chip" style={{ padding: "8px", color: "var(--negative)" }} onClick={async () => { if (await confirm({ title: "Delete this label?", message: `“${label.name}” will be removed from transactions that use it.` })) softDelete("labels", label.id); }} aria-label="Delete">
+        <button className="chip" style={{ padding: "8px", color: "var(--negative)" }} onClick={async () => { if (await confirm({ title: t("deleteTitle"), message: t("deleteMsg", { name: label.name }) })) softDelete("labels", label.id); }} aria-label={t("delete")}>
           <TrashIcon />
         </button>
       </div>

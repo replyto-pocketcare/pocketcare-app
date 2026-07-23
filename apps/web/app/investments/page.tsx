@@ -23,7 +23,7 @@ import { AddInvestmentDialog } from "../../src/investments/AddDialog";
 const DEMAT_TYPES = ["demat", "stocks", "mutual_funds"];
 
 export default function InvestmentsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("investments");
   const fmt = useMoneyFmt();
   const base = useBaseCurrency();
   const convertAmount = useConvertAmount();
@@ -62,32 +62,32 @@ export default function InvestmentsPage() {
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0 }}>{t("pages.investments", "Investments & savings")}</h1>
-        {invAccounts.length > 0 && <button className="btn" onClick={() => setAddCtx({})}>+ Add investment</button>}
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
+        {invAccounts.length > 0 && <button className="btn" onClick={() => setAddCtx({})}>+ {t("addInvestment")}</button>}
       </div>
 
       {/* Grand total */}
       <section className="card pc-glass" style={{ padding: 20, display: "grid", gap: 12 }}>
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <Stat label="Current value" value={fmt(money(Math.round(totals.value), base))} big />
-          <Stat label="Invested" value={fmt(money(Math.round(totals.cost), base))} />
-          <Stat label="Total gain / loss"
+          <Stat label={t("currentValue")} value={fmt(money(Math.round(totals.value), base))} big />
+          <Stat label={t("invested")} value={fmt(money(Math.round(totals.cost), base))} />
+          <Stat label={t("totalGainLoss")}
             value={`${totals.gain >= 0 ? "+" : "−"}${fmt(money(Math.round(Math.abs(totals.gain)), base))} (${totals.gain >= 0 ? "+" : "−"}${Math.abs(totals.gainPct).toFixed(1)}%)`}
             color={totals.gain >= 0 ? "var(--positive)" : "var(--negative)"} />
         </div>
         <div className="muted" style={{ fontSize: 12 }}>
           {market.hasData
-            ? `Listed prices are end-of-day${market.latestAsOf ? `, as of ${market.latestAsOf}` : ""}. Unlisted schemes (crypto, FDs, off-list) use the current value you enter, else cost.`
-            : "Live prices appear once the daily market sync runs; unlisted schemes use the value you enter, else cost."}
+            ? t("eodNote", { asOf: market.latestAsOf ? t("asOf", { date: market.latestAsOf }) : "" })
+            : t("syncNote")}
         </div>
       </section>
 
       {invAccounts.length === 0 ? (
         <div className="card" style={{ padding: 24, textAlign: "center", display: "grid", gap: 8, justifyItems: "center" }}>
           <div style={{ fontSize: 26 }}>▲</div>
-          <h2 style={{ margin: 0 }}>No investment account yet</h2>
-          <p className="muted" style={{ margin: 0, maxWidth: 400 }}>Create a <strong>Demat</strong> (or stocks/mutual-funds) account, then add stocks, mutual funds, SIPs, crypto, FDs and other schemes here.</p>
-          <Link href="/accounts/new" className="btn">+ Add investment account</Link>
+          <h2 style={{ margin: 0 }}>{t("noInvAccountTitle")}</h2>
+          <p className="muted" style={{ margin: 0, maxWidth: 400 }}>{t("noInvAccountBodyPre")}<strong>{t("demat")}</strong>{t("noInvAccountBodyPost")}</p>
+          <Link href="/accounts/new" className="btn">+ {t("addInvAccount")}</Link>
         </div>
       ) : selected ? (
         <DrillIn
@@ -106,34 +106,34 @@ export default function InvestmentsPage() {
           {/* Group tiles */}
           {groups.length > 0 ? (
             <section style={{ display: "grid", gap: 12 }}>
-              <div className="eyebrow">By exchange &amp; scheme</div>
+              <div className="eyebrow">{t("byExchangeScheme")}</div>
               <div className="list-grid">
                 {groups.map((g) => <GroupTile key={g.key} g={g} base={base} onOpen={() => setSelectedKey(g.key)} />)}
               </div>
             </section>
           ) : isLoading ? <ListSkeleton rows={3} /> : (
-            <div className="card" style={{ padding: 24, textAlign: "center", color: "var(--text-2)" }}>No investments yet — add your first with the button above.</div>
+            <div className="card" style={{ padding: 24, textAlign: "center", color: "var(--text-2)" }}>{t("noInvestments")}</div>
           )}
 
           {/* Insights */}
           {groups.length > 0 && (
             <section style={{ display: "grid", gap: 12 }}>
-              <div className="eyebrow">Insights</div>
+              <div className="eyebrow">{t("insights")}</div>
               <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(min(320px,100%),1fr))" }}>
                 <div className="card pc-glass" style={{ padding: 18, display: "grid", gap: 8 }}>
-                  <div className="muted" style={{ fontSize: 12 }}>Dividends earned · {fyLabel()}</div>
+                  <div className="muted" style={{ fontSize: 12 }}>{t("dividendsEarned", { fy: fyLabel() })}</div>
                   <div style={{ fontSize: 28, fontWeight: 760, color: "var(--positive)" }}>{fmt(money(Math.round(dividendFY), base))}</div>
-                  <div className="muted" style={{ fontSize: 11 }}>Estimated from held quantities × declared dividends this financial year (Apr–Mar).</div>
+                  <div className="muted" style={{ fontSize: 11 }}>{t("dividendsNote")}</div>
                 </div>
                 <div className="card pc-glass" style={{ padding: 18, display: "grid", gap: 8 }}>
-                  <div className="eyebrow">Allocation</div>
+                  <div className="eyebrow">{t("allocation")}</div>
                   <AllocationDonut
                     data={groups.map((g) => ({ name: g.label, value: toMajor(money(Math.round(g.value), base)) }))}
-                    centerLabel="Total" centerValue={fmt(money(Math.round(totals.value), base))}
+                    centerLabel={t("total")} centerValue={fmt(money(Math.round(totals.value), base))}
                     fmt={(n) => fmt(money(fromMajor(n, base).amount, base))} />
                 </div>
                 <div className="card pc-glass" style={{ padding: 18, display: "grid", gap: 8 }}>
-                  <div className="eyebrow">Gain / loss by group</div>
+                  <div className="eyebrow">{t("gainLossByGroup")}</div>
                   <GainBars
                     data={groups.map((g) => ({ name: g.label, gain: toMajor(money(Math.round(g.gain), base)) }))}
                     fmt={(n) => fmt(money(fromMajor(n, base).amount, base))} />
@@ -168,17 +168,18 @@ function Stat({ label, value, color, big }: { label: string; value: string; colo
 }
 
 function GroupTile({ g, base, onOpen }: { g: Group; base: string; onOpen: () => void }) {
+  const { t } = useTranslation("investments");
   const fmt = useMoneyFmt();
   const up = g.gain >= 0;
   return (
     <button className="card lift" onClick={onOpen} style={{ padding: 16, display: "grid", gap: 8, textAlign: "left", color: "inherit", cursor: "pointer" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
         <strong style={{ fontSize: 15 }}>{g.label}</strong>
-        <span className="muted" style={{ fontSize: 11 }}>{g.holdings.length} holding{g.holdings.length === 1 ? "" : "s"} ›</span>
+        <span className="muted" style={{ fontSize: 11 }}>{t("holdingsCount", { count: g.holdings.length })}</span>
       </div>
       <div style={{ fontSize: 22, fontWeight: 740 }}>{fmt(money(Math.round(g.value), base))}</div>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-        <span className="muted">Invested {fmt(money(Math.round(g.cost), base))}</span>
+        <span className="muted">{t("investedLabel", { amount: fmt(money(Math.round(g.cost), base)) })}</span>
         <span style={{ color: up ? "var(--positive)" : "var(--negative)", fontWeight: 600 }}>
           {up ? "+" : "−"}{fmt(money(Math.round(Math.abs(g.gain)), base))} ({up ? "+" : "−"}{Math.abs(g.gainPct).toFixed(1)}%)
         </span>
@@ -190,16 +191,17 @@ function GroupTile({ g, base, onOpen }: { g: Group; base: string; onOpen: () => 
 function DrillIn({ group, quoteFor, onBack, onAdd }: {
   group: Group; quoteFor: (h: HoldingRow) => Quote | undefined; onBack: () => void; onAdd: () => void;
 }) {
+  const { t } = useTranslation("investments");
   const fmt = useMoneyFmt();
   const base = useBaseCurrency();
   const up = group.gain >= 0;
   return (
     <div style={{ display: "grid", gap: 14 }}>
-      <button className="chip" onClick={onBack} style={{ justifySelf: "start" }}>‹ All investments</button>
+      <button className="chip" onClick={onBack} style={{ justifySelf: "start" }}>‹ {t("allInvestments")}</button>
       <section className="card pc-glass" style={{ padding: 18, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
           <h2 style={{ margin: 0 }}>{group.label}</h2>
-          <div className="muted" style={{ fontSize: 12 }}>Invested {fmt(money(Math.round(group.cost), base))}</div>
+          <div className="muted" style={{ fontSize: 12 }}>{t("investedLabel", { amount: fmt(money(Math.round(group.cost), base)) })}</div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ fontSize: 24, fontWeight: 750 }}>{fmt(money(Math.round(group.value), base))}</div>
@@ -209,7 +211,7 @@ function DrillIn({ group, quoteFor, onBack, onAdd }: {
         </div>
       </section>
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <button className="btn" onClick={onAdd}>+ Add to {group.label}</button>
+        <button className="btn" onClick={onAdd}>+ {t("addTo", { name: group.label })}</button>
       </div>
       <div className="list-grid">
         {group.holdings.map((h) => <HoldingTile key={h.id} h={h} quote={h.off_list ? undefined : quoteFor(h)} />)}
@@ -220,6 +222,7 @@ function DrillIn({ group, quoteFor, onBack, onAdd }: {
 
 /** Zerodha-style tile: name, qty × avg + LTP on the left; value + gain on the right. */
 function HoldingTile({ h, quote }: { h: HoldingRow; quote: Quote | undefined }) {
+  const { t } = useTranslation("investments");
   const fmt = useMoneyFmt();
   const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
@@ -239,7 +242,7 @@ function HoldingTile({ h, quote }: { h: HoldingRow; quote: Quote | undefined }) 
         <div style={{ minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <strong style={{ fontSize: 15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</strong>
-            {h.off_list ? <span className="chip" style={{ padding: "0 6px", fontSize: 9.5, background: "var(--accent-ghost)", borderColor: "var(--accent-soft)", color: "var(--accent)" }}>untracked</span> : null}
+            {h.off_list ? <span className="chip" style={{ padding: "0 6px", fontSize: 9.5, background: "var(--accent-ghost)", borderColor: "var(--accent-soft)", color: "var(--accent)" }}>{t("untracked")}</span> : null}
           </div>
           <div className="muted" style={{ fontSize: 12 }}>
             {h.quantity}{meta.unitWord ? ` ${meta.unitWord}` : ""} × {h.avg_cost != null ? fmt(money(h.avg_cost, h.currency)) : "—"}
@@ -257,13 +260,13 @@ function HoldingTile({ h, quote }: { h: HoldingRow; quote: Quote | undefined }) 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 6 }}>
         <span className="muted" style={{ fontSize: 11.5 }}>
           {meta.label}{h.exchange ? ` · ${h.exchange}` : ""}
-          {cls === "fd" && h.annual_rate ? ` · ${h.annual_rate}% p.a.` : ""}
-          {cls === "fd" && h.maturity_date ? ` · matures ${new Date(h.maturity_date).toLocaleDateString(undefined, { month: "short", year: "numeric" })}` : ""}
-          {quote ? ` · LTP ${fmt(money(quote.price, quote.currency))}${quote.change_pct != null ? ` (${quote.change_pct >= 0 ? "+" : ""}${quote.change_pct.toFixed(1)}%)` : ""}` : ` · value ${fmt(money(Math.round(ltp), h.currency))}`}
+          {cls === "fd" && h.annual_rate ? ` · ${t("perAnnum", { rate: h.annual_rate })}` : ""}
+          {cls === "fd" && h.maturity_date ? ` · ${t("matures")} ${new Date(h.maturity_date).toLocaleDateString(undefined, { month: "short", year: "numeric" })}` : ""}
+          {quote ? ` · ${t("ltpLabel")} ${fmt(money(quote.price, quote.currency))}${quote.change_pct != null ? ` (${quote.change_pct >= 0 ? "+" : ""}${quote.change_pct.toFixed(1)}%)` : ""}` : ` · ${t("valueLabel")} ${fmt(money(Math.round(ltp), h.currency))}`}
         </span>
         <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-          <button className="chip" onClick={() => setEditing(true)} style={{ padding: "2px 8px", fontSize: 11 }}>Edit</button>
-          <button className="chip" onClick={async () => { if (await confirm({ title: "Remove this investment?", message: `“${label}” will be removed from your portfolio.`, confirmLabel: "Remove" })) softDelete("holdings", h.id); }} aria-label="Remove" style={{ padding: "2px 8px", fontSize: 11 }}>×</button>
+          <button className="chip" onClick={() => setEditing(true)} style={{ padding: "2px 8px", fontSize: 11 }}>{t("edit")}</button>
+          <button className="chip" onClick={async () => { if (await confirm({ title: t("removeTitle"), message: t("removeMsg", { label }), confirmLabel: t("remove") })) softDelete("holdings", h.id); }} aria-label={t("remove")} style={{ padding: "2px 8px", fontSize: 11 }}>×</button>
         </div>
       </div>
     </div>
@@ -271,6 +274,7 @@ function HoldingTile({ h, quote }: { h: HoldingRow; quote: Quote | undefined }) 
 }
 
 function EditHolding({ h, onDone }: { h: HoldingRow; onDone: () => void }) {
+  const { t } = useTranslation("investments");
   const cls = assetClassOf(h);
   const priced = isListed(cls) && !h.off_list;
   const [qty, setQty] = useState(String(h.quantity));
@@ -293,16 +297,16 @@ function EditHolding({ h, onDone }: { h: HoldingRow; onDone: () => void }) {
     <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
       <div className="muted" style={{ fontSize: 12 }}>{holdingLabel(h)}{h.exchange ? ` · ${h.exchange}` : ""}</div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <FloatingInput label={meta.unitWord ? meta.unitWord.replace(/^./, (c) => c.toUpperCase()) : "Quantity"} inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 110 }} />
-        <FloatingInput label={`${cls === "mf" ? "NAV / cost" : "Avg cost"} (${h.currency})`} group currency={h.currency} value={cost} onChange={setCost} style={{ flex: 1, minWidth: 130 }} />
+        <FloatingInput label={meta.unitWord ? meta.unitWord.replace(/^./, (c) => c.toUpperCase()) : t("quantity")} inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1, minWidth: 110 }} />
+        <FloatingInput label={cls === "mf" ? t("navCost", { cur: h.currency }) : t("avgCost", { cur: h.currency })} group currency={h.currency} value={cost} onChange={setCost} style={{ flex: 1, minWidth: 130 }} />
       </div>
       {!priced && (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <FloatingInput label={`Current value (${h.currency})`} group currency={h.currency} value={cur} onChange={setCur} style={{ flex: 1, minWidth: 130 }} />
-          {cls === "fd" && <FloatingInput label="Interest % p.a." inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ width: 120 }} />}
+          <FloatingInput label={t("currentValueCur", { cur: h.currency })} group currency={h.currency} value={cur} onChange={setCur} style={{ flex: 1, minWidth: 130 }} />
+          {cls === "fd" && <FloatingInput label={t("interestPa")} inputMode="decimal" value={rate} onChange={(v) => setRate(v.replace(/[^0-9.]/g, ""))} style={{ width: 120 }} />}
         </div>
       )}
-      <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={save}>Save</button><button className="chip" onClick={onDone}>Cancel</button></div>
+      <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={save}>{t("save")}</button><button className="chip" onClick={onDone}>{t("cancel")}</button></div>
     </div>
   );
 }

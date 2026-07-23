@@ -91,7 +91,7 @@ async function writeBudgetScope(budgetId: string, catIds: string[], labelNames: 
 }
 
 export default function BudgetsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("budgets");
   const base = useBaseCurrency();
   const { data: budgets = [], isLoading: budgetsLoading } = useQuery<BudgetLike>(
     "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
@@ -115,8 +115,8 @@ export default function BudgetsPage() {
 
   async function addBudget() {
     setErr(null);
-    if (!limit || Number(limit) <= 0) { setErr("Enter a spending limit."); return; }
-    if (timeMode === "custom" && (!start || !end)) { setErr("Pick a start and end date."); return; }
+    if (!limit || Number(limit) <= 0) { setErr(t("errLimit")); return; }
+    if (timeMode === "custom" && (!start || !end)) { setErr(t("errDates")); return; }
     const budgetId = await insertRow("budgets", {
       name: name.trim() || null,
       period,
@@ -135,8 +135,8 @@ export default function BudgetsPage() {
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0 }}>{t("pages.budgets", "Budgets")}</h1>
-        <button className="btn" onClick={() => setShowNew(true)}>+ New budget</button>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
+        <button className="btn" onClick={() => setShowNew(true)}>+ {t("newBudget")}</button>
       </div>
 
       {budgets.length > 0 ? (
@@ -148,42 +148,42 @@ export default function BudgetsPage() {
       ) : (
         <div className="card" style={{ padding: 32, textAlign: "center", display: "grid", gap: 10, justifyItems: "center" }}>
           <div style={{ fontSize: 26 }}>◔</div>
-          <h2 style={{ margin: 0 }}>No budgets yet</h2>
-          <p className="muted" style={{ margin: 0, maxWidth: 380 }}>Set a spending cap for a category, a label, or a whole trip — recurring or for custom dates.</p>
-          <button className="btn" onClick={() => setShowNew(true)}>+ Create your first budget</button>
+          <h2 style={{ margin: 0 }}>{t("noBudgetsTitle")}</h2>
+          <p className="muted" style={{ margin: 0, maxWidth: 380 }}>{t("noBudgetsBody")}</p>
+          <button className="btn" onClick={() => setShowNew(true)}>+ {t("createFirst")}</button>
         </div>
       )}
 
       <Modal open={showNew} onClose={() => setShowNew(false)}>
         <div style={{ display: "grid", gap: 12 }}>
-          <h2 style={{ margin: 0 }}>New budget</h2>
-          <FloatingInput label="Name (e.g. Japan Trip)" value={name} onChange={setName} />
+          <h2 style={{ margin: 0 }}>{t("newBudget")}</h2>
+          <FloatingInput label={t("namePlaceholder")} value={name} onChange={setName} />
           <div style={{ display: "flex", gap: 8 }}>
-            <FloatingInput label={`Limit (${currency})`} group currency={currency} value={limit} onChange={setLimit} style={{ flex: 1 }} />
+            <FloatingInput label={t("limit", { currency })} group currency={currency} value={limit} onChange={setLimit} style={{ flex: 1 }} />
             <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 96 }}>
               {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <label className="muted" style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
-            Alert me at
+            {t("alertMeAt")}
             <input className="input" style={{ width: 72 }} inputMode="numeric" value={threshold} onChange={(e) => setThreshold(e.target.value.replace(/\D/g, ""))} />
-            % of the limit
+            {t("percentOfLimit")}
           </label>
 
-          <span className="muted" style={{ fontSize: 13 }}>Categories (optional — leave empty for all spending)</span>
-          <MultiSelect options={catOptions} selected={selCats} onChange={setSelCats} placeholder="Add categories…" />
+          <span className="muted" style={{ fontSize: 13 }}>{t("categoriesOptional")}</span>
+          <MultiSelect options={catOptions} selected={selCats} onChange={setSelCats} placeholder={t("addCategories")} />
 
-          <span className="muted" style={{ fontSize: 13 }}>Labels (optional)</span>
+          <span className="muted" style={{ fontSize: 13 }}>{t("labelsOptional")}</span>
           <LabelPicker labels={labels} selected={selLabels} onChange={setSelLabels} />
 
-          <span className="muted" style={{ fontSize: 13 }}>Timeframe</span>
+          <span className="muted" style={{ fontSize: 13 }}>{t("timeframe")}</span>
           <div style={{ display: "flex", gap: 6 }}>
-            <button className="chip" data-active={timeMode === "recurring"} onClick={() => setTimeMode("recurring")}>Recurring</button>
-            <button className="chip" data-active={timeMode === "custom"} onClick={() => setTimeMode("custom")}>Custom dates</button>
+            <button className="chip" data-active={timeMode === "recurring"} onClick={() => setTimeMode("recurring")}>{t("recurring")}</button>
+            <button className="chip" data-active={timeMode === "custom"} onClick={() => setTimeMode("custom")}>{t("customDates")}</button>
           </div>
           {timeMode === "recurring" ? (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {PERIODS.map((p) => <button key={p} className="chip" data-active={p === period} onClick={() => setPeriod(p)}>{p}</button>)}
+              {PERIODS.map((p) => <button key={p} className="chip" data-active={p === period} onClick={() => setPeriod(p)}>{t(`period.${p}`)}</button>)}
             </div>
           ) : (
             <div style={{ display: "flex", gap: 8 }}>
@@ -194,8 +194,8 @@ export default function BudgetsPage() {
 
           {err && <div className="card" style={{ padding: "8px 12px", background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)", fontSize: 13 }}>{err}</div>}
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
-            <button className="btn ghost" onClick={() => setShowNew(false)}>Cancel</button>
-            <button className="btn" onClick={addBudget}>Add budget</button>
+            <button className="btn ghost" onClick={() => setShowNew(false)}>{t("cancel")}</button>
+            <button className="btn" onClick={addBudget}>{t("addBudget")}</button>
           </div>
         </div>
       </Modal>
@@ -209,6 +209,7 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
   labels: { id: string; name: string; color: string | null }[];
   catOptions: { value: string; label: string }[];
 }) {
+  const { t } = useTranslation("budgets");
   const [spent, setSpent] = useState<Money>(money(0, budget.currency));
   const fmt = useMoneyFmt();
   const confirm = useConfirm();
@@ -234,10 +235,10 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
   const remaining = money(Math.max(0, limit.amount - spent.amount), budget.currency);
 
   const catNames = catIds.map((id) => cats.find((c) => c.id === id)?.name).filter(Boolean) as string[];
-  const scopeLabel = [...catNames, ...labelNames].join(", ") || "All spending";
+  const scopeLabel = [...catNames, ...labelNames].join(", ") || t("allSpending");
   const title = budget.name || scopeLabel;
   const win = periodWindow(budget);
-  const timeframe = budget.start_date && budget.end_date ? win.label : `${budget.period} · ${win.label}`;
+  const timeframe = budget.start_date && budget.end_date ? win.label : `${t(`period.${budget.period}`)} · ${win.label}`;
 
   const [editing, setEditing] = useState(false);
   const [eName, setEName] = useState(budget.name ?? "");
@@ -273,20 +274,20 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
       {editing ? (
         <div style={{ display: "grid", gap: 8 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <FloatingInput label="Name (optional)" value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
-            <FloatingInput label="Limit" group currency={budget.currency} value={eLimit} onChange={setELimit} style={{ width: 130 }} />
+            <FloatingInput label={t("nameOptional")} value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
+            <FloatingInput label={t("limitShort")} group currency={budget.currency} value={eLimit} onChange={setELimit} style={{ width: 130 }} />
           </div>
-          <span className="muted" style={{ fontSize: 12 }}>Categories (empty = all spending)</span>
-          <MultiSelect options={catOptions} selected={eCats} onChange={setECats} placeholder="Add categories…" />
-          <span className="muted" style={{ fontSize: 12 }}>Labels</span>
+          <span className="muted" style={{ fontSize: 12 }}>{t("categoriesEmpty")}</span>
+          <MultiSelect options={catOptions} selected={eCats} onChange={setECats} placeholder={t("addCategories")} />
+          <span className="muted" style={{ fontSize: 12 }}>{t("labels")}</span>
           <LabelPicker labels={labels} selected={eLabels} onChange={setELabels} />
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            {!budget.start_date && <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{PERIODS.map((pp) => <button key={pp} className="chip" data-active={pp === ePeriod} onClick={() => setEPeriod(pp)}>{pp}</button>)}</div>}
-            <label className="muted" style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>Alert at
+            {!budget.start_date && <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{PERIODS.map((pp) => <button key={pp} className="chip" data-active={pp === ePeriod} onClick={() => setEPeriod(pp)}>{t(`period.${pp}`)}</button>)}</div>}
+            <label className="muted" style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>{t("alertAt")}
               <input className="input" style={{ width: 70 }} inputMode="numeric" value={eThreshold} onChange={(e) => setEThreshold(e.target.value.replace(/\D/g, ""))} />%
             </label>
-            <button className="btn" onClick={saveEdit}>Save</button>
-            <button className="chip" onClick={() => setEditing(false)}>Cancel</button>
+            <button className="btn" onClick={saveEdit}>{t("save")}</button>
+            <button className="chip" onClick={() => setEditing(false)}>{t("cancel")}</button>
           </div>
         </div>
       ) : (
@@ -297,16 +298,16 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span className="muted">{Number.isFinite(p.pct) ? `${Math.round(p.pct)}%` : "—"}</span>
-            <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={openEdit}>Edit</button>
-            <button className="chip" style={{ padding: "2px 8px" }} aria-label="Delete budget"
-              onClick={async () => { if (await confirm({ title: "Delete this budget?", message: `“${title}” will be removed. This can't be undone.` })) softDelete("budgets", budget.id); }}>×</button>
+            <button className="chip" style={{ padding: "2px 8px", fontSize: 12 }} onClick={openEdit}>{t("edit")}</button>
+            <button className="chip" style={{ padding: "2px 8px" }} aria-label={t("deleteBudgetAria")}
+              onClick={async () => { if (await confirm({ title: t("deleteTitle"), message: t("deleteMsg", { title }) })) softDelete("budgets", budget.id); }}>×</button>
           </div>
         </div>
       )}
       <ProgressBar pct={p.pct} color={color} />
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }} className="muted">
-        <span>{fmt(spent)} spent</span>
-        <span>{p.overLimit ? `${fmt(money(spent.amount - limit.amount, budget.currency))} over` : `${fmt(remaining)} left`}</span>
+        <span>{t("spent", { amount: fmt(spent) })}</span>
+        <span>{p.overLimit ? t("over", { amount: fmt(money(spent.amount - limit.amount, budget.currency)) }) : t("left", { amount: fmt(remaining) })}</span>
       </div>
       {!editing && <BudgetSpendChart budget={budget} catIds={catIds} labelNames={labelNames} win={win} limitMajor={toMajor(limit)} color={color} />}
     </div>

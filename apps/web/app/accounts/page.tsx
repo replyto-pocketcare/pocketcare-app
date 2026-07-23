@@ -12,7 +12,7 @@ import { CardsSkeleton } from "../../src/ui/Skeleton";
 
 export default function AccountsPage() {
   const [showArchived, setShowArchived] = useState(false);
-  const { t } = useTranslation();
+  const { t } = useTranslation("accounts");
   const fmt = useMoneyFmt();
   const balances = useAccountBalances(showArchived);
   const archivedCount = useAccountBalances(true).filter((b) => b.account.is_archived).length;
@@ -29,14 +29,14 @@ export default function AccountsPage() {
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1>{t("pages.accounts", "Accounts")}</h1>
+        <h1>{t("title")}</h1>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {archivedCount > 0 && (
             <button className="chip" data-active={showArchived} onClick={() => setShowArchived((v) => !v)}>
-              {showArchived ? "Hide archived" : `Show archived (${archivedCount})`}
+              {showArchived ? t("hideArchived") : t("showArchived", { count: archivedCount })}
             </button>
           )}
-          <Link href="/accounts/new" className="btn">＋ New account</Link>
+          <Link href="/accounts/new" className="btn">＋ {t("newAccount")}</Link>
         </div>
       </div>
       <MultiCurrencyCard />
@@ -51,26 +51,26 @@ export default function AccountsPage() {
             <div key={account.id} className="card" style={{ padding: 0, overflow: "hidden", display: "flex", opacity: archived ? 0.6 : 1 }}>
               <div style={{ width: 6, background: account.color || "var(--accent)" }} />
               <div style={{ padding: 18, display: "grid", gap: 4, flex: 1 }}>
-                <span className="muted" style={{ fontSize: 12, textTransform: "capitalize" }}>
-                  {account.type.replace("_", " ")} · {account.currency}{archived ? " · archived" : ""}
+                <span className="muted" style={{ fontSize: 12 }}>
+                  {t(`type.${account.type}`, account.type.replace("_", " "))} · {account.currency}{archived ? ` · ${t("archivedTag")}` : ""}
                 </span>
                 <span style={{ fontWeight: 600 }}>{account.name}</span>
                 <span style={{ fontSize: 22, fontWeight: 700 }}>{fmt(balance)}</span>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
                   {archived ? (
-                    <button className="chip" style={{ padding: "2px 10px", fontSize: 12 }} onClick={() => setArchived(account.id, false)}>Unarchive</button>
+                    <button className="chip" style={{ padding: "2px 10px", fontSize: 12 }} onClick={() => setArchived(account.id, false)}>{t("unarchive")}</button>
                   ) : (
                     <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12 }} className="muted">
-                      <input type="checkbox" checked={included} onChange={() => toggleNw(account.id, included)} /> in net worth
+                      <input type="checkbox" checked={included} onChange={() => toggleNw(account.id, included)} /> {t("inNetWorth")}
                     </label>
                   )}
-                  <Link href={`/accounts/${account.id}/edit`} className="chip" style={{ padding: "2px 10px", fontSize: 12 }}>Edit</Link>
+                  <Link href={`/accounts/${account.id}/edit`} className="chip" style={{ padding: "2px 10px", fontSize: 12 }}>{t("edit")}</Link>
                 </div>
               </div>
             </div>
           );
         })}
-        {balances.length === 0 && <p className="muted">No accounts yet.</p>}
+        {balances.length === 0 && <p className="muted">{t("noAccounts")}</p>}
       </div>
       )}
     </div>
@@ -81,14 +81,15 @@ const CCY_COLORS = ["var(--accent)", "var(--teal)", "var(--forest)", "var(--warn
 
 /** "Across currencies" — where your money is held, converted to base. */
 function MultiCurrencyCard() {
+  const { t } = useTranslation("accounts");
   const fmt = useMoneyFmt();
   const { base, slices, total } = useCurrencyBreakdown();
   if (slices.length < 2) return null; // single-currency users don't need this
   return (
     <section className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
-        <h2 style={{ margin: 0, fontSize: 17 }}>Across currencies</h2>
-        <span className="muted" style={{ fontSize: 13 }}>{fmt(money(total, base))} total · {slices.length} currencies</span>
+        <h2 style={{ margin: 0, fontSize: 17 }}>{t("acrossCurrencies")}</h2>
+        <span className="muted" style={{ fontSize: 13 }}>{t("totalCurrencies", { total: fmt(money(total, base)), count: slices.length })}</span>
       </div>
       {/* Stacked share bar */}
       <div style={{ display: "flex", height: 12, borderRadius: 999, overflow: "hidden", background: "var(--surface-2)" }}>
@@ -108,14 +109,14 @@ function MultiCurrencyCard() {
                 <span className="muted">{fmt(money(s.native, s.currency))}</span>
               </span>
               <span style={{ flexShrink: 0 }}>
-                {s.currency === base ? "" : <span className="muted" style={{ fontSize: 12 }}>≈ {fmt(money(s.base, base))} · </span>}
+                {s.currency === base ? "" : <span className="muted" style={{ fontSize: 12 }}>{t("approx", { amount: fmt(money(s.base, base)) })}</span>}
                 {pct.toFixed(0)}%
               </span>
             </div>
           );
         })}
       </div>
-      <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>Converted to {base} at the latest exchange rate. Accounts stay in their own currency.</p>
+      <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>{t("convertedNote", { base })}</p>
     </section>
   );
 }

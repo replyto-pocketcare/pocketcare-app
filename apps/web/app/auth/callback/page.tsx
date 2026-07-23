@@ -31,17 +31,15 @@ export default function AuthCallbackPage() {
 
     const finish = (user: User) => {
       const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
-      const name =
-        (meta.full_name as string | undefined) ||
-        (meta.name as string | undefined) ||
-        (meta.username as string | undefined) || "";
+      // Prefer a display name the user already set (e.g. a guest who linked
+      // Google) over Google's profile name; adopt Google's only if none exists.
+      const googleName = (meta.full_name as string | undefined) || (meta.name as string | undefined) || "";
+      const name = (meta.username as string | undefined) || googleName || "";
       const avatar = (meta.avatar_url as string | undefined) || (meta.picture as string | undefined);
       try {
-        if (name) {
-          localStorage.setItem("username", name);
-          // Backfill the app's canonical display-name field if Google didn't map it.
-          if (!meta.username) void getSupabase().auth.updateUser({ data: { username: name } }).catch(() => {});
-        }
+        if (name) localStorage.setItem("username", name);
+        // Backfill the app's canonical display-name field only when it's empty.
+        if (!meta.username && googleName) void getSupabase().auth.updateUser({ data: { username: googleName } }).catch(() => {});
         if (avatar) localStorage.setItem("avatarUrl", avatar);
         localStorage.setItem("onboardingSeen", "1");
       } catch { /* storage unavailable — non-fatal */ }
