@@ -118,6 +118,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (authStatus === "none" && !bare) router.replace("/onboarding");
   }, [authStatus, bare, router]);
 
+  // Resume a pending group invite: if someone opened an invite link while logged
+  // out, we stashed the token. The moment they have a session (email, Google, or
+  // guest), send them back to /join to finish joining and land on the group.
+  useEffect(() => {
+    if (authStatus !== "user" && authStatus !== "guest") return;
+    if (pathname === "/join") return;
+    let token: string | null = null;
+    try { token = localStorage.getItem("pendingInvite"); } catch { /* ignore */ }
+    if (token) router.replace(`/join?token=${encodeURIComponent(token)}`);
+  }, [authStatus, pathname, router]);
+
   // Materialise any due auto-post recurring transactions, once, on app open.
   const recurringRan = useRef(false);
   useEffect(() => {

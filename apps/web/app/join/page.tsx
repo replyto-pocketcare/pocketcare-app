@@ -18,9 +18,19 @@ export default function JoinPage() {
     const token = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("token") : null;
     if (!token) { setMsg(t("missingToken")); return; }
     if (auth === "loading") return;
-    if (auth === "none") { setNeedsAuth(true); setMsg(t("needAuth")); return; }
+    if (auth === "none") {
+      // Remember the invite so we can finish joining right after they sign in /
+      // create an account (survives the OAuth full-page redirect). AppShell
+      // routes back to /join once a session exists.
+      try { localStorage.setItem("pendingInvite", token); } catch { /* ignore */ }
+      setNeedsAuth(true); setMsg(t("needAuth"));
+      return;
+    }
     let active = true;
     (async () => {
+      // Clear the stash up front: we now have a session and are consuming the
+      // token, so it must not trigger another /join redirect on the next load.
+      try { localStorage.removeItem("pendingInvite"); } catch { /* ignore */ }
       try {
         const gid = await acceptInvite(token);
         if (active) router.replace(`/groups/${gid}`);

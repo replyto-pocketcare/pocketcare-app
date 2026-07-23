@@ -42,11 +42,25 @@ export default function GroupDetailPage() {
   const [eStart, setEStart] = useState("");
   const [eEnd, setEEnd] = useState("");
   const [eAuto, setEAuto] = useState(false);
-  const [email, setEmail] = useState("");
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Multi-select invite (search connections + typed emails → chips).
+  const connections = useConnections();
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<Invitee[]>([]);
+  const selectedKey = (i: Invitee) => i.id ?? i.email.toLowerCase();
+  const isPicked = (i: Invitee) => selected.some((s) => selectedKey(s) === selectedKey(i));
+  const suggestions = connections
+    .filter((c) => !!c.email && !memberIds.includes(c.id) && !isPicked({ id: c.id, name: c.name, email: c.email! }))
+    .filter((c) => { const q = query.trim().toLowerCase(); return !q || c.name.toLowerCase().includes(q) || (c.email ?? "").toLowerCase().includes(q); })
+    .slice(0, 6);
+  const canAddTypedEmail = looksLikeEmail(query) &&
+    !connections.some((c) => (c.email ?? "").toLowerCase() === query.trim().toLowerCase()) &&
+    !selected.some((s) => s.email.toLowerCase() === query.trim().toLowerCase());
+  const addInvitee = (i: Invitee) => { setSelected((prev) => [...prev, i]); setQuery(""); };
+  const removeInvitee = (key: string) => setSelected((prev) => prev.filter((s) => selectedKey(s) !== key));
 
   function openEdit() {
     if (!group) return;
@@ -68,12 +82,32 @@ export default function GroupDetailPage() {
     router.replace("/groups");
   }
 
-  async function invite(withEmail: boolean) {
+  /** Invite everyone currently in the chips (connections + typed emails). */
+  async function inviteSelected() {
+    if (selected.length === 0) return;
+    setInviting(true); setInviteMsg(null); setInviteLink(null);
+    let added = 0, links = 0; const failed: string[] = [];
+    for (const p of selected) {
+      try {
+        const r = await createInvite(id, p.email || undefined);
+        if (r.added) added++; else links++;
+      } catch { failed.push(p.name || p.email); }
+    }
+    setInviting(false);
+    setSelected([]); setQuery("");
+    const parts: string[] = [];
+    if (added) parts.push(t("invitedAdded", { count: added, defaultValue: "{{count}} added" }));
+    if (links) parts.push(t("invitedLinks", { count: links, defaultValue: "{{count}} invite link(s) created" }));
+    if (failed.length) parts.push(t("invitedFailed", { names: failed.join(", "), defaultValue: "Failed: {{names}}" }));
+    setInviteMsg(parts.join(" · ") || null);
+  }
+
+  /** Generate a general share link (no specific recipient). */
+  async function shareLink() {
     setInviting(true); setInviteMsg(null); setInviteLink(null);
     try {
-      const r = await createInvite(id, withEmail ? email.trim() : undefined);
-      if (r.added) { setInviteMsg(r.already ? t("alreadyIn", { name: r.name }) : t("added", { name: r.name })); setEmail(""); }
-      else { setInviteLink(r.link ?? null); setCopied(false); }
+      const r = await createInvite(id, undefined);
+      setInviteLink(r.link ?? null); setCopied(false);
     } catch (e) { setInviteMsg(t("error", { msg: (e as Error).message })); }
     finally { setInviting(false); }
   }
@@ -169,11 +203,48 @@ export default function GroupDetailPage() {
         <div style={{ display: "grid", gap: 12 }}>
           <h2 style={{ margin: 0 }}>{t("inviteTo", { name: group.name })}</h2>
           <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t("inviteBody")}</p>
-          <div style={{ display: "flex", gap: 8 }}>
-            <input className="input" type="email" inputMode="email" placeholder={t("emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} />
-            <button className="btn" onClick={() => void invite(true)} disabled={inviting || !email.trim()}>{inviting ? "…" : t("invite")}</button>
+
+          {/* Selected people as chips */}
+          {selected.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {selected.map((s) => (
+                <span key={selectedKey(s)} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", borderRadius: 999, padding: "3px 6px 3px 10px", fontSize: 13 }}>
+                  {s.name || s.email}
+                  <button aria-label={t("remove", "Remove")} onClick={() => removeInvitee(selectedKey(s))}
+                    style={{ border: "none", background: "var(--surface-2)", borderRadius: 999, width: 18, height: 18, cursor: "pointer", color: "var(--text-2)", lineHeight: 1 }}>×</button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Search box + suggestions dropdown */}
+          <div style={{ position: "relative" }}>
+            <input className="input" placeholder={t("invitePlaceholder", "Search people or type an email")} value={query} onChange={(e) => setQuery(e.target.value)} />
+            {(suggestions.length > 0 || canAddTypedEmail) && (
+              <div className="card" style={{ marginTop: 6, padding: 4, display: "grid", gap: 2, maxHeight: 220, overflowY: "auto" }}>
+                {suggestions.map((c) => (
+                  <button key={c.id} className="tap-row" onClick={() => addInvitee({ id: c.id, name: c.name, email: c.email! })}
+                    style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "8px 10px", borderRadius: 8, background: "transparent", border: "none", cursor: "pointer", textAlign: "left", color: "inherit" }}>
+                    <span style={{ fontWeight: 500 }}>{c.name}</span>
+                    <span className="muted" style={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.email}</span>
+                  </button>
+                ))}
+                {canAddTypedEmail && (
+                  <button className="tap-row" onClick={() => addInvitee({ id: null, name: query.trim(), email: query.trim() })}
+                    style={{ display: "flex", gap: 8, padding: "8px 10px", borderRadius: 8, background: "transparent", border: "none", cursor: "pointer", textAlign: "left", color: "var(--accent)" }}>
+                    {t("inviteAddEmail", { email: query.trim(), defaultValue: "Invite {{email}}" })}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-          <button className="chip" style={{ justifySelf: "start" }} onClick={() => void invite(false)} disabled={inviting}>{t("orShareLink")}</button>
+
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <button className="btn" onClick={() => void inviteSelected()} disabled={inviting || selected.length === 0}>
+              {inviting ? "…" : t("inviteCount", { count: selected.length, defaultValue: selected.length ? "Invite {{count}}" : "Invite" })}
+            </button>
+            <button className="chip" onClick={() => void shareLink()} disabled={inviting}>{t("orShareLink")}</button>
+          </div>
           {inviteMsg && <div className="card" style={{ padding: 10, fontSize: 13, background: "var(--surface-2)" }}>{inviteMsg}</div>}
           {inviteLink && (
             <div style={{ display: "grid", gap: 6 }}>
