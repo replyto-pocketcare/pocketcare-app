@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useNotifications, useUnreadCount, markRead, markAllRead, dismiss } from "../../src/notifications/hooks";
+import { BellIcon } from "../../src/ui/icons";
 
 const SEV_COLOR: Record<string, string> = {
   info: "var(--accent)",
@@ -40,8 +41,8 @@ export default function NotificationsPage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="card" style={{ padding: 40, textAlign: "center", display: "grid", gap: 8 }}>
-          <div style={{ fontSize: 26 }}>🔔</div>
+        <div className="card" style={{ padding: 40, textAlign: "center", display: "grid", gap: 8, justifyItems: "center" }}>
+          <span style={{ color: "var(--text-3)" }}><BellIcon size={30} /></span>
           <strong>You're all caught up</strong>
           <span className="muted" style={{ fontSize: 13 }}>Alerts about bills, budgets, low balances and unusual spend will show up here.</span>
           <Link href="/settings" className="btn ghost" style={{ justifySelf: "center", marginTop: 6 }}>Enable notifications</Link>

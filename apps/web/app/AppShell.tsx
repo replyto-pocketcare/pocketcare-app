@@ -9,7 +9,7 @@ import { useSession, useAuthStatus } from "../src/account";
 import { useSyncStatus, syncMessage } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
-import { MenuIcon, PlusIcon, DownloadIcon } from "../src/ui/icons";
+import { MenuIcon, PlusIcon, DownloadIcon, BellIcon } from "../src/ui/icons";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
 import { TrialNotice } from "../src/ui/TrialNotice";
 import { runRecurring } from "../src/templates/write";
@@ -19,17 +19,36 @@ import { Modal } from "../src/ui/Modal";
 import { BugReportModal } from "../src/ui/BugReport";
 import { useUnreadCount } from "../src/notifications/hooks";
 
-/** Bell + unread badge, links to the notification inbox. */
+/** Bell + unread badge (top-bar icon button), links to the notification inbox. */
 function NotifBell({ onNavigate = () => {} }: { onNavigate?: () => void }) {
   const unread = useUnreadCount();
   return (
-    <Link href="/notifications" aria-label="Notifications" onClick={onNavigate}
+    <Link href="/notifications" aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`} onClick={onNavigate}
       style={{ position: "relative", width: 40, height: 40, display: "grid", placeItems: "center", color: "inherit" }}>
-      <span style={{ fontSize: 18, lineHeight: 1 }}>🔔</span>
+      <BellIcon size={20} />
       {unread > 0 && (
         <span style={{
-          position: "absolute", top: 4, right: 4, minWidth: 16, height: 16, padding: "0 4px",
-          borderRadius: 999, background: "var(--negative)", color: "#fff", fontSize: 10, fontWeight: 700,
+          position: "absolute", top: 5, right: 5, minWidth: 15, height: 15, padding: "0 3px",
+          borderRadius: 999, background: "var(--negative)", color: "#fff", fontSize: 9.5, fontWeight: 700,
+          display: "grid", placeItems: "center", lineHeight: 1,
+        }}>{unread > 9 ? "9+" : unread}</span>
+      )}
+    </Link>
+  );
+}
+
+/** Full-width sidebar row (desktop nav): bell + label + unread pill. */
+function NotifNavItem({ active, onNavigate }: { active: boolean; onNavigate: () => void }) {
+  const unread = useUnreadCount();
+  const { t } = useTranslation();
+  return (
+    <Link href="/notifications" onClick={onNavigate} style={navItem(active)}>
+      <span style={{ width: 20, display: "grid", placeItems: "center", opacity: 0.75 }}><BellIcon size={18} /></span>
+      {t("nav.notifications", "Notifications")}
+      {unread > 0 && (
+        <span style={{
+          marginLeft: "auto", minWidth: 18, height: 18, padding: "0 5px", borderRadius: 999,
+          background: "var(--negative)", color: "#fff", fontSize: 10.5, fontWeight: 700,
           display: "grid", placeItems: "center", lineHeight: 1,
         }}>{unread > 9 ? "9+" : unread}</span>
       )}
@@ -164,6 +183,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo size={30} />
         </div>
         <nav style={{ display: "grid", gap: 4 }}>
+          <NotifNavItem active={isActive("/notifications")} onNavigate={() => setMenuOpen(false)} />
           {NAV_GROUPS.map((g, gi) => (
             <div key={gi} style={{ display: "grid", gap: 2, marginTop: gi ? 10 : 0 }}>
               {g.title && (

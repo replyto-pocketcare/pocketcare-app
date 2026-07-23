@@ -112,6 +112,15 @@ export function DownloadIcon({ size = 18, strokeWidth = 1.8 }: P) {
   );
 }
 
+export function BellIcon({ size = 18, strokeWidth = 1.8 }: P) {
+  return (
+    <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
+      <path d="M6 9a6 6 0 0 1 12 0c0 5 2.2 6.5 2.2 6.5H3.8S6 14 6 9Z" />
+      <path d="M10 21a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}
+
 /** Balance scale — clearer than an eye for "counts toward net worth". */
 export function ScaleIcon({ size = 18, strokeWidth = 1.8 }: P) {
   return (

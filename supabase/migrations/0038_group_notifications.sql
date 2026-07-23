@@ -58,12 +58,13 @@ begin
     and coalesce(p.group_invite, true)
   on conflict (user_id, dedupe_key) where dedupe_key is not null and deleted_at is null do nothing;
 
-  -- Tell the joiner they're now in the group.
+  -- Tell the added member they're now in the group (from their point of view
+  -- they were *added* — whether by a direct add or by accepting an invite).
   if coalesce((select group_invite from pocketcare.notification_prefs
                where user_id = NEW.user_id and deleted_at is null limit 1), true) then
     insert into pocketcare.notifications (user_id, kind, title, body, severity, href, dedupe_key)
-    values (NEW.user_id, 'group_invite', 'You joined ' || coalesce(gname, 'a group'),
-            null, 'info', '/groups/' || NEW.group_id, 'gjoined:' || NEW.id)
+    values (NEW.user_id, 'group_invite', 'You were added to ' || coalesce(gname, 'a group'),
+            'Tap to open the group', 'info', '/groups/' || NEW.group_id, 'gjoined:' || NEW.id)
     on conflict (user_id, dedupe_key) where dedupe_key is not null and deleted_at is null do nothing;
   end if;
 

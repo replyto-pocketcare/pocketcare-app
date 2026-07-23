@@ -67,7 +67,7 @@ delivers Web Push for them via the shared `pushed_at` flag (see below).
 
 | Kind | Trigger | Recipients | Dedupe key |
 |------|---------|-----------|-----------|
-| `group_invite` | `AFTER INSERT ON split_group_members` | existing members ("X joined") + the joiner ("You joined"); silent for solo group creation | `gjoin:<memberId>` / `gjoined:<memberId>` |
+| `group_invite` | `AFTER INSERT ON split_group_members` | existing members ("X joined") + the added member ("You were added to …"), covering both direct adds and invite acceptance; silent for solo group creation | `gjoin:<memberId>` / `gjoined:<memberId>` |
 | `group_expense` | `AFTER INSERT ON expenses` | every group member except the payer | `gexp:<expenseId>` |
 
 ### Unified push via `pushed_at`
