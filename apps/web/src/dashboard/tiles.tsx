@@ -76,10 +76,10 @@ export const TILE_HREF: Record<TileId, string> = {
 
 function TileCard({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="card" style={{ padding: 20, display: "grid", gap: 12, alignContent: "start" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-        <h2 style={{ margin: 0 }}>{title}</h2>
-        {action}
+    <section className="card" style={{ padding: 20, display: "grid", gap: 12, alignContent: "start", minWidth: 0, maxWidth: "100%", overflowX: "hidden" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, minWidth: 0 }}>
+        <h2 style={{ margin: 0, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{title}</h2>
+        <span style={{ flexShrink: 0 }}>{action}</span>
       </div>
       {children}
     </section>

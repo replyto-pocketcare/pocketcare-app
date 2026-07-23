@@ -8,6 +8,7 @@
  */
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -30,6 +31,7 @@ const EARTH = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#7c4a3a", "#2f6f6a",
 const AXIS = { fontSize: 11, fill: "var(--text-2)" } as const;
 
 export default function AnalyzeStatementPage() {
+  const { t } = useTranslation("statementsAnalyze");
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
   const accounts = useAccountBalances();
@@ -49,22 +51,22 @@ export default function AnalyzeStatementPage() {
     try {
       let ps: ParsedStatement;
       if (/\.pdf$/i.test(file.name)) {
-        setBusy("Reading PDF…");
+        setBusy(t("readingPdf"));
         try { ps = await parsePdfStatement(file, { currency: base, kind }); }
         catch (e) {
           if (/password/i.test((e as Error).message)) {
-            const pw = window.prompt("This PDF is password-protected. Enter its password:");
+            const pw = window.prompt(t("pdfPassword"));
             if (!pw) { setBusy(null); return; }
             ps = await parsePdfStatement(file, { currency: base, kind }, pw);
           } else throw e;
         }
       } else {
-        setBusy("Parsing…");
+        setBusy(t("parsing"));
         const text = await file.text();
         ps = parseStatementCsv(text, { currency: base, kind });
       }
       // On-device categorisation of spends.
-      setBusy("Categorising…");
+      setBusy(t("categorising"));
       const db = getDb();
       if (db && ps.txns.length) {
         const uid = getUserId();
@@ -79,7 +81,7 @@ export default function AnalyzeStatementPage() {
       }
       setParsed(ps);
     } catch (e) {
-      setError((e as Error).message || "Couldn't read that file.");
+      setError((e as Error).message || t("readFail"));
     } finally {
       setBusy(null);
     }
@@ -89,30 +91,30 @@ export default function AnalyzeStatementPage() {
     return (
       <div style={{ display: "grid", gap: 20, maxWidth: 640 }} className="fade-up">
         <div>
-          <h1 style={{ margin: 0 }}>Analyze a statement</h1>
-          <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>Upload a bank or credit-card statement — it's parsed <strong>entirely on your device</strong> and never uploaded. <Link href="/statements">Back to statements</Link>.</p>
+          <h1 style={{ margin: 0 }}>{t("title")}</h1>
+          <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>{t("introPre")}<strong>{t("introBold")}</strong>{t("introMid")}<Link href="/statements">{t("introLink")}</Link>{t("introPost")}</p>
         </div>
         <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>
           <div style={{ display: "grid", gap: 4 }}>
-            <span className="muted" style={{ fontSize: 12 }}>Statement type</span>
+            <span className="muted" style={{ fontSize: 12 }}>{t("statementType")}</span>
             <div style={{ display: "flex", gap: 6 }}>
-              <button className="chip" data-active={kind === "bank"} onClick={() => setKind("bank")}>Bank</button>
-              <button className="chip" data-active={kind === "card"} onClick={() => setKind("card")}>Credit card</button>
+              <button className="chip" data-active={kind === "bank"} onClick={() => setKind("bank")}>{t("bank")}</button>
+              <button className="chip" data-active={kind === "card"} onClick={() => setKind("card")}>{t("card")}</button>
             </div>
           </div>
-          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>Account to reconcile / import into
+          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("accountToReconcile")}
             <select className="input" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
-              <option value="">Choose later</option>
+              <option value="">{t("chooseLater")}</option>
               {accounts.map((a) => <option key={a.account.id} value={a.account.id}>{a.account.name}</option>)}
             </select>
           </label>
           <label className="btn" style={{ justifySelf: "start", cursor: "pointer" }}>
-            {busy ?? "Choose file (CSV or PDF)"}
+            {busy ?? t("chooseFile")}
             <input type="file" accept=".csv,.txt,.pdf" hidden disabled={!!busy}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = ""; }} />
           </label>
           {error && <div style={{ color: "var(--negative)", fontSize: 13 }}>{error}</div>}
-          <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>Tip: most banks let you download a <strong>CSV/Excel</strong> statement — that parses most reliably. PDF works for digital (non-scanned) statements.</p>
+          <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>{t("tipPre")}<strong>{t("tipBold")}</strong>{t("tipPost")}</p>
         </section>
       </div>
     );
@@ -125,6 +127,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
   parsed: ParsedStatement; base: string; cur: string; fmt: (m: import("@pocketcare/money").Money) => string;
   accountId: string; accountName: string; onReset: () => void;
 }) {
+  const { t } = useTranslation("statementsAnalyze");
   const [showAll, setShowAll] = useState(false);
   const [imported, setImported] = useState(false);
   const [addedRecurring, setAddedRecurring] = useState<Set<string>>(new Set());
@@ -177,9 +180,9 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ margin: 0 }}>{parsed.label}</h1>
-          <p className="muted" style={{ margin: "2px 0 0", fontSize: 13 }}>{parsed.period.from && parsed.period.to ? `${parsed.period.from} → ${parsed.period.to} · ` : ""}{parsed.txns.length} transactions{accountName ? ` · ${accountName}` : ""}</p>
+          <p className="muted" style={{ margin: "2px 0 0", fontSize: 13 }}>{parsed.period.from && parsed.period.to ? `${parsed.period.from} → ${parsed.period.to} · ` : ""}{t("transactions", { count: parsed.txns.length })}{accountName ? ` · ${accountName}` : ""}</p>
         </div>
-        <button className="btn ghost" onClick={onReset}>New statement</button>
+        <button className="btn ghost" onClick={onReset}>{t("newStatement")}</button>
       </div>
 
       {parsed.warnings.length > 0 && (
@@ -190,25 +193,25 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
 
       {/* Summary stats */}
       <div className="pc-hero">
-        <Stat label="Money in" value={fmt(money(s.credits, cur))} color="var(--positive)" />
-        <Stat label="Money out" value={fmt(money(s.debits, cur))} color="var(--negative)" />
-        <Stat label="Net" value={`${s.net >= 0 ? "+" : "−"}${fmt(money(Math.abs(s.net), cur))}`} color={s.net >= 0 ? "var(--positive)" : "var(--negative)"} />
-        {parsed.closingBalance != null && <Stat label="Closing balance" value={fmt(money(parsed.closingBalance, cur))} />}
+        <Stat label={t("moneyIn")} value={fmt(money(s.credits, cur))} color="var(--positive)" />
+        <Stat label={t("moneyOut")} value={fmt(money(s.debits, cur))} color="var(--negative)" />
+        <Stat label={t("net")} value={`${s.net >= 0 ? "+" : "−"}${fmt(money(Math.abs(s.net), cur))}`} color={s.net >= 0 ? "var(--positive)" : "var(--negative)"} />
+        {parsed.closingBalance != null && <Stat label={t("closingBalance")} value={fmt(money(parsed.closingBalance, cur))} />}
       </div>
 
       {/* Credit-card specifics */}
       {parsed.kind === "card" && (parsed.card?.totalDue != null || parsed.card?.dueDate) && (
         <section className="card pc-glass" style={{ padding: 18, display: "flex", gap: 24, flexWrap: "wrap" }}>
-          {parsed.card?.totalDue != null && <Stat label="Total due" value={fmt(money(parsed.card.totalDue, cur))} />}
-          {parsed.card?.minDue != null && <Stat label="Minimum due" value={fmt(money(parsed.card.minDue, cur))} />}
-          {parsed.card?.dueDate && <Stat label="Pay by" value={new Date(parsed.card.dueDate).toLocaleDateString()} color="var(--negative)" />}
+          {parsed.card?.totalDue != null && <Stat label={t("totalDue")} value={fmt(money(parsed.card.totalDue, cur))} />}
+          {parsed.card?.minDue != null && <Stat label={t("minimumDue")} value={fmt(money(parsed.card.minDue, cur))} />}
+          {parsed.card?.dueDate && <Stat label={t("payBy")} value={new Date(parsed.card.dueDate).toLocaleDateString()} color="var(--negative)" />}
         </section>
       )}
 
       {/* Analysis charts */}
       <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(min(280px,100%),1fr))", minWidth: 0 }}>
         <div className="card pc-glass" style={{ padding: 16, display: "grid", gap: 8 }}>
-          <div className="eyebrow">Where it went</div>
+          <div className="eyebrow">{t("whereItWent")}</div>
           {donut.length ? (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -221,7 +224,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
           ) : <Empty />}
         </div>
         <div className="card pc-glass" style={{ padding: 16, display: "grid", gap: 8 }}>
-          <div className="eyebrow">Daily spend</div>
+          <div className="eyebrow">{t("dailySpend")}</div>
           {trend.length ? (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={trend} margin={{ top: 8, right: 6, bottom: 0, left: -12 }}>
@@ -240,9 +243,9 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
       {/* Outliers */}
       {outliers.length > 0 && (
         <section className="card" style={{ padding: 16, display: "grid", gap: 8 }}>
-          <div className="eyebrow">Outliers · unusually large</div>
+          <div className="eyebrow">{t("outliersTitle")}</div>
           {outliers.slice(0, 5).map((o, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 13 }}>
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 13, minWidth: 0 }}>
               <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.txn.description} <span className="muted">· {o.txn.date}</span></span>
               <strong style={{ color: "var(--negative)", flexShrink: 0 }}>{fmt(money(o.amount, cur))}</strong>
             </div>
@@ -253,16 +256,16 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
       {/* Recurring detection */}
       {recurring.length > 0 && (
         <section className="card" style={{ padding: 16, display: "grid", gap: 10 }}>
-          <div className="eyebrow">Looks recurring</div>
+          <div className="eyebrow">{t("looksRecurring")}</div>
           {recurring.map((r) => (
             <div key={r.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</div>
-                <div className="muted" style={{ fontSize: 11.5 }}>{fmt(money(r.amount, cur))} · {r.cadence} · seen {r.count}×</div>
+                <div className="muted" style={{ fontSize: 11.5 }}>{t("recurringMeta", { amount: fmt(money(r.amount, cur)), cadence: t(`cadence.${r.cadence}`, r.cadence), count: r.count })}</div>
               </div>
               {addedRecurring.has(r.key)
-                ? <span className="chip" style={{ color: "var(--positive)" }}>Added ✓</span>
-                : <button className="chip" onClick={() => void addRecurring(r.key, r.label, r.amount, r.cadence)}>Add as recurring</button>}
+                ? <span className="chip" style={{ color: "var(--positive)" }}>{t("added")}</span>
+                : <button className="chip" onClick={() => void addRecurring(r.key, r.label, r.amount, r.cadence)}>{t("addAsRecurring")}</button>}
             </div>
           ))}
         </section>
@@ -270,27 +273,27 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
 
       {/* Reconciliation */}
       <section className="card" style={{ padding: 16, display: "grid", gap: 10 }}>
-        <div className="eyebrow">Reconcile with your records</div>
+        <div className="eyebrow">{t("reconcileTitle")}</div>
         {!accountId ? (
-          <p className="muted" style={{ fontSize: 13, margin: 0 }}>Pick an account when uploading to match these against your recorded transactions.</p>
+          <p className="muted" style={{ fontSize: 13, margin: 0 }}>{t("pickAccountReconcile")}</p>
         ) : (
           <>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 13 }}>
-              <span><strong style={{ color: "var(--positive)" }}>{rec.matched.length}</strong> matched</span>
-              <span><strong style={{ color: "var(--accent)" }}>{rec.missingOnPlatform.length}</strong> in statement, not recorded</span>
-              <span><strong className="muted">{rec.onlyOnPlatform.length}</strong> recorded, not in statement</span>
+              <span><strong style={{ color: "var(--positive)" }}>{rec.matched.length}</strong> {t("matchedLabel")}</span>
+              <span><strong style={{ color: "var(--accent)" }}>{rec.missingOnPlatform.length}</strong> {t("missingLabel")}</span>
+              <span><strong className="muted">{rec.onlyOnPlatform.length}</strong> {t("onlyPlatformLabel")}</span>
             </div>
             {rec.missingOnPlatform.length > 0 && !imported && (
-              <button className="btn" style={{ justifySelf: "start", whiteSpace: "normal", textAlign: "left", maxWidth: "100%", height: "auto", minHeight: 0, padding: "8px 14px" }} onClick={() => void importMissing()}>Import {rec.missingOnPlatform.length} missing into {accountName}</button>
+              <button className="btn" style={{ justifySelf: "start", whiteSpace: "normal", textAlign: "left", maxWidth: "100%", height: "auto", minHeight: 0, padding: "8px 14px" }} onClick={() => void importMissing()}>{t("importMissing", { count: rec.missingOnPlatform.length, account: accountName })}</button>
             )}
-            {imported && <div style={{ color: "var(--positive)", fontSize: 13 }}>✓ Imported. They now appear in your transactions.</div>}
+            {imported && <div style={{ color: "var(--positive)", fontSize: 13 }}>{t("importedDone")}</div>}
           </>
         )}
       </section>
 
       {/* Full transaction list (collapsible) */}
       <section style={{ display: "grid", gap: 8 }}>
-        <div className="eyebrow">Transactions ({parsed.txns.length})</div>
+        <div className="eyebrow">{t("transactionsTitle", { count: parsed.txns.length })}</div>
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           {shown.map((t, i) => (
             <div key={i} style={{ padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, borderTop: i === 0 ? "none" : "1px solid var(--border)" }}>
@@ -302,7 +305,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
             </div>
           ))}
         </div>
-        {parsed.txns.length > 12 && <button className="chip" style={{ justifySelf: "start" }} onClick={() => setShowAll((v) => !v)}>{showAll ? "Show less" : `Show all ${parsed.txns.length}`}</button>}
+        {parsed.txns.length > 12 && <button className="chip" style={{ justifySelf: "start" }} onClick={() => setShowAll((v) => !v)}>{showAll ? t("showLess") : t("showAll", { count: parsed.txns.length })}</button>}
       </section>
     </div>
   );
@@ -319,6 +322,6 @@ function Stat({ label, value, color }: { label: string; value: string; color?: s
 function Tip({ label, value }: { label: string; value: string }) {
   return <div style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: 10, padding: "6px 10px", boxShadow: "var(--shadow)", fontSize: 12 }}><span className="muted">{label}</span> <strong>{value}</strong></div>;
 }
-function Empty() { return <div style={{ height: 220, display: "grid", placeItems: "center", color: "var(--text-3)", fontSize: 13 }}>No spends to chart</div>; }
+function Empty() { const { t } = useTranslation("statementsAnalyze"); return <div style={{ height: 220, display: "grid", placeItems: "center", color: "var(--text-3)", fontSize: 13 }}>{t("noSpends")}</div>; }
 
 const addDays = (iso: string, n: number) => { const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };

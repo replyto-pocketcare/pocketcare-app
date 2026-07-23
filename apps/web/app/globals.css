@@ -165,8 +165,10 @@ body[data-assist-chat="true"] { overflow: hidden; }
   .assist-page { height: calc(100dvh - 150px); }  /* topbar + main padding (JS refines) */
 }
 
-/* Hide the Add-transaction FAB while the dashboard is in edit mode. */
-body[data-dash-edit="true"] .add-fab { display: none !important; }
+/* Hide the Add-transaction FAB while the dashboard is in edit mode, and when the
+ * dashboard is empty (no accounts yet — there's nothing to add a txn against). */
+body[data-dash-edit="true"] .add-fab,
+body[data-dash-empty="true"] .add-fab { display: none !important; }
 
 /* Loading placeholders (skeletons). */
 .skeleton { position: relative; overflow: hidden; background: var(--surface-2); }
@@ -365,7 +367,7 @@ input[type="radio"]:disabled { opacity: 0.5; cursor: default; }
 /* Each tile fills its allotted cell; content scrolls if it overflows the box. */
 .dash-tile { min-width: 0; min-height: 0; border-radius: 24px; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .dash-tile-body { height: 100%; min-height: 0; border-radius: 24px; overflow: hidden; }
-.dash-tile-body > section { height: 100%; box-sizing: border-box; overflow: auto; overscroll-behavior: contain; }
+.dash-tile-body > section { height: 100%; box-sizing: border-box; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
 
 /* Subscriptions: list + add/simulator side column. Single column on narrow. */
 .subs-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
@@ -402,7 +404,7 @@ input[type="radio"]:disabled { opacity: 0.5; cursor: default; }
   .dash-grid { grid-template-columns: 1fr !important; grid-auto-rows: auto !important; }
   .dash-grid .dash-tile { grid-column: auto !important; grid-row: auto !important; }
   .dash-tile-body { overflow: visible; }
-  .dash-tile-body > section { height: auto; overflow: visible; }
+  .dash-tile-body > section { height: auto; overflow-y: visible; overflow-x: hidden; }
   h1 { font-size: 22px; }
 }
 

@@ -76,6 +76,14 @@ export default function Dashboard() {
     return () => { delete document.body.dataset.dashEdit; };
   }, [editing]);
 
+  // Hide the FAB on the empty dashboard — there's no account to add a txn against
+  // yet, so the "add your first account" screen shouldn't show it.
+  const isEmpty = balances.length === 0 && !accountsLoading && !syncPending;
+  useEffect(() => {
+    document.body.dataset.dashEmpty = isEmpty ? "true" : "false";
+    return () => { delete document.body.dataset.dashEmpty; };
+  }, [isEmpty]);
+
   // Only show tiles the user enabled; premium tiles need a paid plan.
   const visibleTiles = enabled.filter((id) => isPaid || !tileMeta(id).premium);
   const sizeOf = (id: TileId): TileSize => sizes[id] ?? defaultSize(id);
