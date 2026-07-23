@@ -84,6 +84,34 @@ export async function enablePush(): Promise<{ ok: true } | { ok: false; reason: 
   }
 }
 
+/**
+ * Fire a notification straight from the service worker — no server, no push
+ * service. Proves that permission + the SW registration + showNotification all
+ * work on this device. If this shows but real alerts don't, the gap is the
+ * server dispatch (function not deployed/scheduled or VAPID secret missing),
+ * not the browser.
+ */
+export async function sendTestNotification(): Promise<{ ok: true } | { ok: false; reason: string }> {
+  if (!pushSupported()) return { ok: false, reason: "unsupported" };
+  if (Notification.permission !== "granted") {
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") return { ok: false, reason: "denied" };
+  }
+  try {
+    const reg = await readyRegistration();
+    await reg.showNotification("PocketCare", {
+      body: "Test notification — you're all set to receive alerts.",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      tag: "pocketcare-test",
+      data: { href: "/notifications" },
+    });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: (e as Error).message };
+  }
+}
+
 /** Unsubscribe locally and remove the stored endpoint. */
 export async function disablePush(): Promise<void> {
   if (!pushSupported()) return;

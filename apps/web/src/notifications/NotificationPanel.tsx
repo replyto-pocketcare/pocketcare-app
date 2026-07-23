@@ -8,7 +8,7 @@
  */
 import { useState } from "react";
 import { useNotifPrefs, updatePrefs } from "./hooks";
-import { enablePush, disablePush, pushSupported, pushPermission } from "./push";
+import { enablePush, disablePush, pushSupported, pushPermission, sendTestNotification } from "./push";
 
 function Toggle({ on, onChange, label, hint }: { on: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
   return (
@@ -63,6 +63,17 @@ export function NotificationPanel() {
 
   const set = (patch: Record<string, number>) => void updatePrefs(patch);
 
+  const [testMsg, setTestMsg] = useState<string | null>(null);
+  async function test() {
+    setTestMsg(null);
+    const r = await sendTestNotification();
+    setTestMsg(r.ok
+      ? "Sent — check your device notifications."
+      : r.reason === "denied" ? "Allow notifications for this site first."
+      : r.reason === "unsupported" ? "This browser can't show notifications."
+      : r.reason);
+  }
+
   return (
     <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>
       <div style={{ display: "grid", gap: 2 }}>
@@ -81,6 +92,13 @@ export function NotificationPanel() {
           hint={perm === "denied" ? "Blocked in browser settings" : "Deliver alerts to this device"} />
       )}
       {err && <div style={{ color: "var(--negative)", fontSize: 12.5 }}>{err}</div>}
+
+      {supported && (
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <button className="btn ghost" style={{ padding: "6px 12px", minHeight: 0, height: 32, fontSize: 13 }} onClick={() => void test()}>Send test notification</button>
+          {testMsg && <span className="muted" style={{ fontSize: 12 }}>{testMsg}</span>}
+        </div>
+      )}
 
       <div style={{ height: 1, background: "var(--border)" }} />
 

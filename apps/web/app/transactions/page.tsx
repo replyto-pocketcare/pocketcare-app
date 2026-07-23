@@ -8,6 +8,7 @@ import type { Transaction } from "@pocketcare/types";
 import { TransactionRow } from "../../src/ui/TransactionRow";
 import { Skeleton } from "../../src/ui/Skeleton";
 import { useInitialSyncPending } from "../../src/sync";
+import { useSplitInfo, collapseSplitRows } from "../../src/splits/collapse";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
@@ -35,6 +36,8 @@ export default function TransactionsPage() {
   const { data: accts = [] } = useQuery<{ id: string; name: string; type: string; color: string | null }>("SELECT id, name, type, color FROM accounts WHERE deleted_at IS NULL");
   const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? t("uncategorised");
   const acct = (id: string) => accts.find((a) => a.id === id);
+  const splitInfo = useSplitInfo();
+  const collapsed = collapseSplitRows(rows, splitInfo);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
@@ -54,8 +57,8 @@ export default function TransactionsPage() {
 
       {rows.length > 0 ? (
         <div className="list-grid">
-          {rows.map((tx) => (
-            <TransactionRow key={tx.id} tx={tx} account={acct(tx.account_id)} categoryName={catName(tx.category_id)} tile />
+          {collapsed.map(({ row: tx, split }) => (
+            <TransactionRow key={tx.id} tx={tx} account={acct(tx.account_id)} categoryName={catName(tx.category_id)} tile split={split} />
           ))}
         </div>
       ) : (rowsLoading || syncPending) ? (

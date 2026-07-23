@@ -17,6 +17,8 @@ import { useAccountBalances, useBaseCurrency, useCurrencyBreakdown, useConvertAm
 import { useAmountsHidden } from "../prefs";
 import { colorForId } from "../colors";
 import { useFriendBalances, useUserProfiles } from "../splits/hooks";
+import { useSplitInfo, collapseSplitRows } from "../splits/collapse";
+import { SplitChip } from "../ui/TransactionRow";
 import { bucketLabel, bucketIcon } from "../cashflow/model";
 import type { TileId } from "../dashboard";
 
@@ -229,31 +231,37 @@ function RecentTile() {
   const { data: recent = [] } = useQuery<Transaction & { labels: string | null }>(
     `SELECT t.*,
        (SELECT GROUP_CONCAT(l.name, ', ') FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS labels
-     FROM transactions t WHERE t.deleted_at IS NULL AND t.type != 'opening_balance' ORDER BY t.occurred_at DESC LIMIT 8`,
+     FROM transactions t WHERE t.deleted_at IS NULL AND t.type != 'opening_balance' ORDER BY t.occurred_at DESC LIMIT 16`,
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL");
   const catName = (cid: string | null) => cats.find((c) => c.id === cid)?.name ?? "Uncategorised";
   const acctColor = (aid: string) => balances.find((b) => b.account.id === aid)?.account.color || colorForId(aid);
   const fmt = (m: Money) => (hidden ? "••••" : format(m, "en-US"));
+  const splitInfo = useSplitInfo();
+  // Collapse split postings, then keep the 6 most-recent tiles.
+  const collapsed = collapseSplitRows(recent, splitInfo).slice(0, 6);
 
   return (
     <TileCard title="Recent activity" action={<Link className="muted" style={{ fontSize: 13 }} href="/transactions">View all</Link>}>
       <div style={{ display: "grid", gap: 8 }}>
-        {recent.map((t) => (
+        {collapsed.map(({ row: t, split }) => (
           <Link key={t.id} className="tap-row" href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px", margin: "0 -8px", borderBottom: "1px solid var(--border)", color: "inherit" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
               <span style={{ width: 8, height: 8, borderRadius: 999, background: acctColor(t.account_id), flexShrink: 0 }} />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 550, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.labels || catName(t.category_id)}</div>
-                <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleDateString()} · {t.type}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                  <span style={{ fontWeight: 550, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.description || t.labels || catName(t.category_id)}</span>
+                  {split && <SplitChip />}
+                </div>
+                <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleDateString()} · {split ? "split" : t.type}</div>
               </div>
             </div>
-            <div style={{ flexShrink: 0, whiteSpace: "nowrap", fontWeight: 650, color: t.type === "income" ? "var(--positive)" : t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
-              {t.type === "expense" ? "−" : t.type === "income" ? "+" : ""}{fmt(money(t.amount, t.currency))}
+            <div style={{ flexShrink: 0, whiteSpace: "nowrap", fontWeight: 650, color: !split && t.type === "income" ? "var(--positive)" : split || t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
+              {split ? "−" : t.type === "expense" ? "−" : t.type === "income" ? "+" : ""}{fmt(money(split ? split.displayPaid : t.amount, split ? split.currency : t.currency))}
             </div>
           </Link>
         ))}
-        {recent.length === 0 && <p className="muted">No transactions yet.</p>}
+        {collapsed.length === 0 && <p className="muted">No transactions yet.</p>}
       </div>
     </TileCard>
   );

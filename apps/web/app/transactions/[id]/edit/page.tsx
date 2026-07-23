@@ -16,6 +16,10 @@ import { Modal } from "../../../../src/ui/Modal";
 import { KebabMenu } from "../../../../src/ui/KebabMenu";
 import { useEntitlement } from "../../../../src/entitlement";
 import { useLearnCategory } from "../../../../src/categorize/hooks";
+import { useMoneyFmt } from "../../../../src/ui/Money";
+import { useUserProfiles } from "../../../../src/splits/hooks";
+import { getUserId } from "../../../../src/powersync";
+import Link from "next/link";
 import { encryptForWrite } from "../../../../src/crypto/fields";
 import { decryptField, isEncrypted } from "@pocketcare/crypto";
 import { getDek } from "../../../../src/crypto/session";
@@ -190,6 +194,8 @@ export default function EditTransactionPage() {
         )}
       </div>
 
+      <SplitBanner txId={id} />
+
       <div style={{ display: "flex", gap: 8 }}>
         {(["expense", "income", "transfer"] as TxType[]).map((tp) => (
           <button key={tp} className="chip" data-active={tp === type} style={{ flex: 1 }} onClick={() => setType(tp)}>{t(`type.${tp}`)}</button>
@@ -358,3 +364,73 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <label style={{ display: "grid", gap: 8 }}><span className="muted" style={{ fontSize: 13 }}>{label}</span>{children}</label>;
 }
 const chips: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: 8 };
+
+/**
+ * Shown when this transaction is one leg of a split expense. Explains that it's
+ * part of a shared bill and shows the breakdown (total, your share, who paid,
+ * what's owed) with a link into the group — so users find the split detail here
+ * instead of seeing three cryptic ledger rows in their list.
+ */
+function SplitBanner({ txId }: { txId: string }) {
+  const fmt = useMoneyFmt();
+  const profiles = useUserProfiles();
+  const me = (() => { try { return getUserId(); } catch { return ""; } })();
+
+  const { data: post = [] } = useQuery<{ expense_id: string }>(
+    "SELECT expense_id FROM expense_postings WHERE transaction_id = ? AND expense_id IS NOT NULL AND deleted_at IS NULL LIMIT 1",
+    [txId],
+  );
+  const expenseId = post[0]?.expense_id ?? "";
+  const { data: exp = [] } = useQuery<{ id: string; group_id: string; description: string | null; amount: number; currency: string; occurred_at: string; created_by: string }>(
+    expenseId ? "SELECT id, group_id, description, amount, currency, occurred_at, created_by FROM expenses WHERE id = ? AND deleted_at IS NULL" : "SELECT NULL WHERE 0",
+    expenseId ? [expenseId] : [],
+  );
+  const { data: parts = [] } = useQuery<{ user_id: string; paid_amount: number; share_amount: number }>(
+    expenseId ? "SELECT user_id, paid_amount, share_amount FROM expense_participants WHERE expense_id = ? AND deleted_at IS NULL" : "SELECT NULL WHERE 0",
+    expenseId ? [expenseId] : [],
+  );
+  const { data: grp = [] } = useQuery<{ name: string }>(
+    exp[0]?.group_id ? "SELECT name FROM split_groups WHERE id = ?" : "SELECT NULL WHERE 0",
+    exp[0]?.group_id ? [exp[0].group_id] : [],
+  );
+
+  const e = exp[0];
+  if (!e) return null;
+  const cur = e.currency;
+  const mine = parts.find((p) => p.user_id === me);
+  const myShare = mine?.share_amount ?? 0;
+  const myPaid = mine?.paid_amount ?? 0;
+  const net = myPaid - myShare; // >0 you're owed, <0 you owe
+
+  return (
+    <div className="card" style={{ padding: 16, display: "grid", gap: 10, border: "1px solid var(--accent-soft)", background: "var(--accent-ghost)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        <strong style={{ fontSize: 15 }}>Split expense</strong>
+        {e.group_id && <Link href={`/groups/${e.group_id}`} className="chip">{grp[0]?.name ? `Open ${grp[0].name}` : "Open group"}</Link>}
+      </div>
+      <div style={{ display: "flex", gap: 18, flexWrap: "wrap", fontSize: 13 }}>
+        <span><span className="muted">Total bill</span><br /><strong>{fmt(money(e.amount, cur))}</strong></span>
+        <span><span className="muted">Your share</span><br /><strong>{fmt(money(myShare, cur))}</strong></span>
+        <span><span className="muted">You paid</span><br /><strong>{fmt(money(myPaid, cur))}</strong></span>
+        <span><span className="muted">{net >= 0 ? "Owed to you" : "You owe"}</span><br />
+          <strong style={{ color: net >= 0 ? "var(--positive)" : "var(--negative)" }}>{fmt(money(Math.abs(net), cur))}</strong></span>
+      </div>
+      {parts.length > 0 && (
+        <div style={{ display: "grid", gap: 4, fontSize: 12.5 }}>
+          <div className="muted">Participants</div>
+          {parts.map((p) => (
+            <div key={p.user_id} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {p.user_id === me ? "You" : profiles.get(p.user_id)?.name ?? "Someone"}
+              </span>
+              <span className="muted" style={{ flexShrink: 0 }}>share {fmt(money(p.share_amount, cur))} · paid {fmt(money(p.paid_amount, cur))}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="muted" style={{ fontSize: 11.5 }}>
+        This is your private ledger entry for the split. To change the split itself, open the group.
+      </div>
+    </div>
+  );
+}

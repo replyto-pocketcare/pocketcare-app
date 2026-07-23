@@ -9,6 +9,7 @@ import type { Transaction } from "@pocketcare/types";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { SlidersIcon } from "../../src/ui/icons";
 import { TransactionRow } from "../../src/ui/TransactionRow";
+import { useSplitInfo, collapseSplitRows } from "../../src/splits/collapse";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
@@ -51,6 +52,7 @@ export default function SearchPage() {
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL");
   const { data: accts = [] } = useQuery<{ id: string; name: string; type: string; color: string | null }>("SELECT id, name, type, color FROM accounts WHERE deleted_at IS NULL");
   const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? "";
+  const splitInfo = useSplitInfo();
   const acct = (id: string) => accts.find((a) => a.id === id);
 
   const results = useMemo(() => {
@@ -114,8 +116,8 @@ export default function SearchPage() {
 
       {results.length > 0 ? (
         <div className="list-grid">
-          {results.map((tx) => (
-            <TransactionRow key={tx.id} tx={tx} account={acct(tx.account_id)} categoryName={catName(tx.category_id)} tile />
+          {collapseSplitRows(results, splitInfo).map(({ row: tx, split }) => (
+            <TransactionRow key={tx.id} tx={tx} account={acct(tx.account_id)} categoryName={catName(tx.category_id)} tile split={split} />
           ))}
         </div>
       ) : (
