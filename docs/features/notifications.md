@@ -57,15 +57,35 @@ sequenceDiagram
 Dedupe keys make dispatch idempotent — re-running the cron never double-alerts
 the same event.
 
+### Event-driven triggers (Postgres, not cron)
+
+Group activity can't be computed from one user's data — it's caused by *another*
+user's action — so these are fanned out by `SECURITY DEFINER` triggers that fire
+when the synced row lands in Postgres, inserting notification rows for the other
+members (respecting each recipient's prefs + dedupe). The cron dispatcher then
+delivers Web Push for them via the shared `pushed_at` flag (see below).
+
+| Kind | Trigger | Recipients | Dedupe key |
+|------|---------|-----------|-----------|
+| `group_invite` | `AFTER INSERT ON split_group_members` | existing members ("X joined") + the joiner ("You joined"); silent for solo group creation | `gjoin:<memberId>` / `gjoined:<memberId>` |
+| `group_expense` | `AFTER INSERT ON expenses` | every group member except the payer | `gexp:<expenseId>` |
+
+### Unified push via `pushed_at`
+
+Rows created by *either* the cron or the triggers start with `pushed_at IS NULL`.
+Each dispatch run pushes every recent unread, un-pushed row for the user and
+stamps `pushed_at`, so trigger-created group notifications get delivered on the
+next tick without the dispatcher needing to know how they were created.
+
 ## Data touched
 
 - **`notifications`** (synced) — inbox rows: `kind, title, body, severity, href, data, dedupe_key, read_at`. Unique `(user_id, dedupe_key)` where not deleted.
-- **`notification_prefs`** (synced) — one row/user: `push_enabled` + per-trigger toggles + `low_balance_threshold` + `emi_lead_days`.
+- **`notification_prefs`** (synced) — one row/user: `push_enabled` + per-trigger toggles (`emi_due`, `budget`, `low_balance`, `outlier`, `group_invite`, `group_expense`) + `low_balance_threshold` + `emi_lead_days`.
 - **`push_subscriptions`** (server-only, **not** synced) — `endpoint` (unique), `p256dh`, `auth`, `user_agent`. Written directly by the client, read by the edge function; pruned on 404/410.
 
 ## Key files
 
-- Migration: `supabase/migrations/0037_notifications.sql`
+- Migrations: `supabase/migrations/0037_notifications.sql`, `0038_group_notifications.sql` (group triggers + prefs + `pushed_at`)
 - Schema: `packages/db/src/index.ts` (`notifications`, `notification_prefs`), `packages/db/sync-streams.yaml`
 - Client: `apps/web/src/notifications/{push.ts,hooks.ts,NotificationPanel.tsx}`, `apps/web/app/notifications/page.tsx`, bell in `apps/web/app/AppShell.tsx`
 - Service worker: `apps/web/public/sw.js` (`push`, `notificationclick`)

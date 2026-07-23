@@ -84,28 +84,47 @@ async function processUser(db: ReturnType<typeof createClient>, userId: string):
       }
     : DEFAULT_PREFS;
 
+  // 1. Compute cron-style triggers and insert them (deduped).
   const out: Notif[] = [];
   if (prefs.emi_due) out.push(...await emiDue(db, userId, prefs.emi_lead_days));
   if (prefs.budget) out.push(...await budgetAlerts(db, userId));
   if (prefs.low_balance) out.push(...await lowBalance(db, userId, prefs.low_balance_threshold));
   if (prefs.outlier) out.push(...await outliers(db, userId));
-  if (out.length === 0) return { created: 0, pushed: 0 };
 
-  // Insert deduped: onConflict (user_id, dedupe_key) ignores repeats, and
-  // .select() returns ONLY the rows that were newly inserted — those are the
-  // ones worth pushing.
-  const now = new Date().toISOString();
-  const rows = out.map((n) => ({ ...n, user_id: userId, created_at: now, updated_at: now }));
-  const { data: inserted, error } = await db.from("notifications")
-    .upsert(rows, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true })
-    .select("title, body, href, dedupe_key");
-  if (error) { console.error("[notify-dispatch] insert:", error.message); return { created: 0, pushed: 0 }; }
-  const fresh = inserted ?? [];
-  if (fresh.length === 0) return { created: 0, pushed: 0 };
+  let created = 0;
+  if (out.length) {
+    const now = new Date().toISOString();
+    const rows = out.map((n) => ({ ...n, user_id: userId, created_at: now, updated_at: now }));
+    const { data: inserted, error } = await db.from("notifications")
+      .upsert(rows, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true })
+      .select("id");
+    if (error) console.error("[notify-dispatch] insert:", error.message);
+    else created = (inserted ?? []).length;
+  }
 
-  let pushed = 0;
-  if (prefs.push_enabled) pushed = await sendPush(db, userId, fresh);
-  return { created: fresh.length, pushed };
+  // 2. Push EVERY unpushed recent notification — covers both the rows we just
+  // inserted AND event-driven rows created by DB triggers (group joins/expenses)
+  // since the last run. This unifies delivery so trigger rows aren't missed.
+  const pushed = prefs.push_enabled ? await pushUnpushed(db, userId) : 0;
+  return { created, pushed };
+}
+
+/** Deliver Web Push for any recent, unread, not-yet-pushed rows; mark them pushed. */
+async function pushUnpushed(db: ReturnType<typeof createClient>, userId: string): Promise<number> {
+  const since = new Date(Date.now() - 2 * DAY).toISOString();
+  const { data: rows } = await db.from("notifications")
+    .select("id, title, body, href, dedupe_key")
+    .eq("user_id", userId).is("pushed_at", null).is("read_at", null).is("deleted_at", null)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false }).limit(20);
+  if (!rows || rows.length === 0) return 0;
+
+  const sent = await sendPush(db, userId, rows);
+  // Mark attempted rows pushed regardless of per-device success, so we don't
+  // re-push on every tick (404/410 subscriptions are pruned inside sendPush).
+  await db.from("notifications").update({ pushed_at: new Date().toISOString() })
+    .in("id", rows.map((r: { id: string }) => r.id));
+  return sent;
 }
 
 // --- Triggers ---------------------------------------------------------------

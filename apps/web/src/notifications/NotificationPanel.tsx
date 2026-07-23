@@ -92,6 +92,14 @@ export function NotificationPanel() {
         label="Low balance" hint="When an account drops below your floor" />
       <Toggle on={!!prefs?.outlier} onChange={(v) => set({ outlier: v ? 1 : 0 })}
         label="Unusual transactions" hint="Large or out-of-pattern spends" />
+
+      <div style={{ height: 1, background: "var(--border)" }} />
+      <div className="muted" style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Groups & trips</div>
+
+      <Toggle on={prefs ? !!prefs.group_invite : true} onChange={(v) => set({ group_invite: v ? 1 : 0 })}
+        label="Group activity" hint="When someone joins a group or trip you're in" />
+      <Toggle on={prefs ? !!prefs.group_expense : true} onChange={(v) => set({ group_expense: v ? 1 : 0 })}
+        label="Shared expenses" hint="When someone adds an expense to split" />
     </section>
   );
 }

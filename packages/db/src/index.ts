@@ -537,7 +537,8 @@ const notifications = new Table(
   {
     user_id: column.text, kind: column.text, title: column.text, body: column.text,
     severity: column.text, href: column.text, data: column.text, dedupe_key: column.text,
-    read_at: column.text, created_at: column.text, updated_at: column.text, deleted_at: column.text,
+    read_at: column.text, pushed_at: column.text,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
   },
   { indexes: { by_user_read: ["user_id", "read_at"] } }
 );
@@ -549,6 +550,8 @@ const notification_prefs = new Table({
   budget: column.integer,
   low_balance: column.integer,
   outlier: column.integer,
+  group_invite: column.integer,
+  group_expense: column.integer,
   low_balance_threshold: column.integer,
   emi_lead_days: column.integer,
   created_at: column.text,

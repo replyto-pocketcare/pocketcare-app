@@ -65,13 +65,15 @@ export interface NotifPrefs {
   budget: number;
   low_balance: number;
   outlier: number;
+  group_invite: number;
+  group_expense: number;
   low_balance_threshold: number;
   emi_lead_days: number;
 }
 
 export function useNotifPrefs(): NotifPrefs | null {
   const { data = [] } = useQuery<NotifPrefs>(
-    `SELECT id, push_enabled, emi_due, budget, low_balance, outlier, low_balance_threshold, emi_lead_days
+    `SELECT id, push_enabled, emi_due, budget, low_balance, outlier, group_invite, group_expense, low_balance_threshold, emi_lead_days
      FROM notification_prefs WHERE deleted_at IS NULL LIMIT 1`,
   );
   return data[0] ?? null;
@@ -88,6 +90,7 @@ export async function ensurePrefs(): Promise<string | null> {
   return insertRow("notification_prefs", {
     user_id: getUserId(),
     push_enabled: 0, emi_due: 1, budget: 1, low_balance: 1, outlier: 1,
+    group_invite: 1, group_expense: 1,
     low_balance_threshold: 0, emi_lead_days: 3,
   });
 }
