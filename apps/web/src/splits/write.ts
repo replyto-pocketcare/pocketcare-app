@@ -131,8 +131,11 @@ async function projectPersonal(o: {
     await post(tx.id, "borrow");
   }
   if (overpay > 0 && o.myAccountId) {
-    const receivable = await ensureVirtualAccount("receivable", o.currency);
-    const tx = await o.repos.transactions.create({ account_id: o.myAccountId, type: "transfer", amount: money(overpay, o.cur), to_account_id: receivable, note: "Split — lent to friends", occurred_at: o.occurredAt });
+    // The part you covered for others. Booked as an EXPENSE on your account (not
+    // a transfer to a hidden receivable) so a split reads as one clean expense.
+    // Net worth over the settle-up lifecycle is unchanged (the repayment lands as
+    // an inflow); who-owes-whom is tracked from expense_participants, not here.
+    const tx = await o.repos.transactions.create({ account_id: o.myAccountId, type: "expense", amount: money(overpay, o.cur), category_id: o.categoryId, note: o.note, description: o.description, occurred_at: o.occurredAt });
     await post(tx.id, "lend");
   }
 }

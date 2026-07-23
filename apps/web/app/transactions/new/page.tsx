@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
@@ -58,6 +58,21 @@ export default function NewTransactionPage() {
   const [date, setDate] = useState(new Date().toLocaleString("sv-SE", { timeZoneName: "short" }).substring(0, 16)); // YYYY-MM-DDTHH:mm
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
+
+  // Prefill from a deep link (e.g. the "record this settlement" notification):
+  // ?type=income|expense&amount=123.00&desc=Settlement%20with%20Alex
+  const search = useSearchParams();
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (prefilled.current) return;
+    const pType = search.get("type");
+    const pAmount = search.get("amount");
+    const pDesc = search.get("desc");
+    if (!pType && !pAmount && !pDesc) return;
+    prefilled.current = true;
+    if (pType === "income" || pType === "expense" || pType === "transfer") setType(pType);
+    if (pAmount || pDesc) setItems([{ id: `i${++counter}`, description: pDesc ? decodeURIComponent(pDesc) : "", value: pAmount ?? "" }]);
+  }, [search]);
 
   // Split (multi-user: participants are members of a chosen group).
   const groups = useGroups();
