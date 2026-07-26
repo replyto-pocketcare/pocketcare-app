@@ -65,18 +65,54 @@ export function useSession(): SessionInfo | null {
 /** Auth gate state: still loading, no session, guest (anonymous), or a real user. */
 export type AuthStatus = "loading" | "none" | "guest" | "user";
 
+/**
+ * Offline-first login marker. Supabase access tokens are short-lived and, when
+ * they expire while the device is offline, `getSession()` can't refresh and
+ * reports *no session* — which would bounce a logged-in user to onboarding
+ * mid-tunnel. We persist a tiny "who is logged in" flag on every real session
+ * and, while offline, trust it instead of downgrading to "none". The app runs on
+ * local SQLite regardless; the JWT only matters for network sync, which resumes
+ * (and refreshes the token) once back online.
+ */
+const AUTH_FLAG = "pc_auth"; // "user" | "guest"
+const readAuthFlag = (): "user" | "guest" | null => {
+  try { const v = localStorage.getItem(AUTH_FLAG); return v === "user" || v === "guest" ? v : null; } catch { return null; }
+};
+const writeAuthFlag = (s: "user" | "guest") => { try { localStorage.setItem(AUTH_FLAG, s); } catch { /* ignore */ } };
+export const clearAuthFlag = () => { try { localStorage.removeItem(AUTH_FLAG); } catch { /* ignore */ } };
+const isOffline = () => typeof navigator !== "undefined" && navigator.onLine === false;
+
 export function useAuthStatus(): AuthStatus {
-  const [status, setStatus] = useState<AuthStatus>("loading");
+  // Seed synchronously from the persisted marker so an offline reload/reopen
+  // shows the app immediately instead of flashing the logged-out state.
+  const [status, setStatus] = useState<AuthStatus>(() => readAuthFlag() ?? "loading");
 
   useEffect(() => {
     let active = true;
     const resolve = (user: { is_anonymous?: boolean } | null | undefined): AuthStatus =>
       !user ? "none" : user.is_anonymous ? "guest" : "user";
-    void getSupabase().auth.getSession().then(({ data }) => {
-      if (active) setStatus(resolve(data.session?.user));
-    });
-    const { data: sub } = getSupabase().auth.onAuthStateChange((_e, session) => {
-      if (active) setStatus(resolve(session?.user));
+
+    const applyLive = (s: AuthStatus, event?: string) => {
+      if (!active) return;
+      if (s === "none") {
+        // No live session. Offline with a saved marker → stay logged in.
+        if (isOffline() && readAuthFlag()) return;
+        // Otherwise only a genuine sign-out (or a confirmed online null) logs out.
+        if (event && event !== "SIGNED_OUT" && readAuthFlag()) return;
+        clearAuthFlag();
+        setStatus("none");
+      } else {
+        writeAuthFlag(s as "user" | "guest");
+        setStatus(s);
+      }
+    };
+
+    void getSupabase().auth.getSession()
+      .then(({ data }) => applyLive(resolve(data.session?.user)))
+      .catch(() => { if (active) setStatus(readAuthFlag() ?? "none"); }); // offline throw → trust marker
+
+    const { data: sub } = getSupabase().auth.onAuthStateChange((event, session) => {
+      applyLive(resolve(session?.user), event);
     });
     return () => {
       active = false;
@@ -97,6 +133,7 @@ export async function updateUsername(name: string): Promise<void> {
 }
 
 export async function signOut(): Promise<void> {
+  clearAuthFlag(); // explicit sign-out: don't let the offline marker resurrect the session
   try {
     await getSupabase().auth.signOut();
   } finally {

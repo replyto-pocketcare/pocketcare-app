@@ -19,6 +19,29 @@ import { Modal } from "../src/ui/Modal";
 import { BugReportModal } from "../src/ui/BugReport";
 import { useUnreadCount } from "../src/notifications/hooks";
 
+/** Persistent banner shown whenever the device is offline. */
+function OfflineBanner() {
+  const [offline, setOffline] = useState(false);
+  useEffect(() => {
+    const sync = () => setOffline(typeof navigator !== "undefined" && navigator.onLine === false);
+    sync();
+    window.addEventListener("online", sync);
+    window.addEventListener("offline", sync);
+    return () => { window.removeEventListener("online", sync); window.removeEventListener("offline", sync); };
+  }, []);
+  if (!offline) return null;
+  return (
+    <div role="status" style={{
+      position: "sticky", top: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center",
+      gap: 8, padding: "7px 14px", fontSize: 12.5, fontWeight: 600, textAlign: "center",
+      background: "var(--warning, #c08a3e)", color: "#fff",
+    }}>
+      <span style={{ width: 7, height: 7, borderRadius: 999, background: "#fff", opacity: 0.9 }} />
+      You’re offline — changes are saved on this device and will sync when you’re back online.
+    </div>
+  );
+}
+
 /** Bell + unread badge (top-bar icon button), links to the notification inbox. */
 function NotifBell({ onNavigate = () => {} }: { onNavigate?: () => void }) {
   const unread = useUnreadCount();
@@ -170,7 +193,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const showBack = pathname.split("/").filter(Boolean).length >= 2;
 
   // Onboarding / login render full-screen without the sidebar.
-  if (bare) return <div style={{ minHeight: "100vh" }}>{children}</div>;
+  if (bare) return <div style={{ minHeight: "100vh" }}><OfflineBanner />{children}</div>;
 
   // While resolving auth / redirecting to onboarding, show a spinner (no app flash).
   if (authStatus === "loading" || authStatus === "none") {
@@ -180,6 +203,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="shell">
       <GlobalLoader />
+      <OfflineBanner />
       {/* Mobile top bar */}
       <div className="topbar">
         <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}><MenuIcon /></button>
