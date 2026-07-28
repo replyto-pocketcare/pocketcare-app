@@ -135,6 +135,9 @@ erDiagram
     split_groups ||--o{ settlements : contains
     split_groups ||--o{ split_invitations : invites
     expenses ||--o{ expense_participants : "split among"
+    expenses ||--o{ expense_items : "itemized into"
+    expense_items ||--o{ expense_item_shares : "shared by"
+    profiles ||--o{ receipt_scans : "scanned"
     profiles ||--o{ split_group_members : "member of"
     profiles ||--o{ connections : "connected to"
     profiles ||--o{ expense_postings : "private projection"
@@ -158,7 +161,35 @@ erDiagram
         uuid to_user FK
         int  amount
     }
+    expense_items {
+        uuid id PK
+        uuid expense_id FK
+        text kind "item|tax|service_charge|tip|discount"
+        int  quantity "MILLI-units (1000 = 1)"
+        int  unit_price
+        int  amount "minor units; negative for discount"
+        text split_mode "equal|quantity|percent|exact|proportional"
+    }
+    expense_item_shares {
+        uuid id PK
+        uuid item_id FK
+        uuid user_id FK "auth.users (CASCADE)"
+        int  weight "mode-dependent input"
+        int  share_amount "resolved minor units"
+    }
+    receipt_scans {
+        uuid id PK
+        uuid user_id FK
+        text engine "tesseract|claude|pdf_text|manual"
+        text parsed_json "the ReceiptDraft"
+        int  confidence
+        text image_path "ALWAYS NULL - no images stored"
+    }
 ```
+
+> **Itemized bills (0040).** `expense_items` / `expense_item_shares` are a **breakdown, not a second balance model**: per-item shares are rolled up by the client into `expense_participants`, which stays the single source of truth for every balance and settle-up query. `expenses.has_items` flags that a breakdown exists. A deferred constraint trigger enforces `Σ expense_items.amount = expenses.amount`.
+>
+> **`receipt_scans` holds no image bytes.** `image_path` is a forward-compatible seam for a possible future private Storage bucket and is always written as NULL. See [receipt-scanning](../features/receipt-scanning.md).
 
 > ⚠️ **Deletion caveat:** `split_groups.created_by`, `expenses.created_by`, `expense_participants.user_id`, `settlements.{from_user,to_user,created_by}`, and `split_invitations.inviter` reference `auth.users` **without** `ON DELETE CASCADE`. Account deletion (`delete_user_account`, migration 0031) explicitly clears these before removing the user. See [04 — Security & Privacy](04-security-and-privacy.md#account-deletion).
 

@@ -1,18 +1,11 @@
 // Pure split math (minor units). Keyed by user id in the multi-user model.
-
-/** Distribute `total` minor units across `weights` via largest-remainder. */
-export function splitByWeights(total: number, weights: number[]): number[] {
-  const W = weights.reduce((s, w) => s + Math.max(0, w), 0);
-  if (W <= 0) return weights.map(() => 0);
-  const raw = weights.map((w) => (total * Math.max(0, w)) / W);
-  const out = raw.map((x) => Math.floor(x));
-  const rem = total - out.reduce((s, x) => s + x, 0);
-  const order = raw.map((x, i) => ({ i, frac: x - Math.floor(x) })).sort((a, b) => b.frac - a.frac || a.i - b.i);
-  for (let k = 0; k < rem && k < order.length; k++) out[order[k]!.i]! += 1;
-  return out;
-}
-
-export const splitEqual = (total: number, n: number): number[] => splitByWeights(total, Array.from({ length: n }, () => 1));
+//
+// The largest-remainder primitive now lives in @pocketcare/receipts (it is
+// shared with itemized receipt splitting and is covered by that package's
+// tests). Re-exported here so every existing import site keeps working and
+// there is exactly ONE implementation of the money-preserving allocation.
+export { splitByWeights, splitEqual } from "@pocketcare/receipts";
+import { splitByWeights } from "@pocketcare/receipts";
 
 export interface Party {
   userId: string;

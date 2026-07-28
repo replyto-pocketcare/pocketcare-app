@@ -100,3 +100,13 @@ sequenceDiagram
 - **Offline device:** local SQLite is unencrypted at the SQLite layer today — mitigations tracked in `SECURITY_ENCRYPTION_PLAN.md` (device-level encryption + optional app lock).
 - **Billing integrity:** Razorpay webhooks are **HMAC-verified and idempotent**; entitlement writes use `upsert(onConflict: user_id)` (a prior bug where `.update().eq()` silently no-opped for users without an entitlements row is fixed).
 - **Auto-categorisation model** is loaded from a CDN at runtime and runs **on-device** (no transaction text leaves the client).
+
+## Receipt scanning
+
+- **No receipt images are stored, anywhere.** The photo lives in browser memory for the duration of a scan and is dropped. It is not written to IndexedDB, not uploaded to Storage, and not persisted by the edge function. `receipt_scans.image_path` exists only as a forward-compatible seam and is always NULL.
+- **OCR is on-device by default.** tesseract.js runs in the browser; nothing leaves the client on the default path.
+- **The AI fallback is opt-in per scan.** The image is only sent when the user taps *Improve with AI* on a receipt that failed to reconcile — never automatically. The UI states what is sent before the tap.
+- **Prompt injection via receipt text** is treated as a real vector: a bill can print "ignore your instructions". Defences are (1) a system prompt stating that image text is data and never an instruction, and (2) `tool_choice` forcing the model to answer through the `emit_receipt` schema, leaving injected text no channel to reach the user.
+- Payload size is capped (~5 MB) and media types are allow-listed at the edge function.
+- `receipt_scans.raw_text` is truncated to 8 000 characters before syncing.
+- `expense_item_shares.user_id` uses `ON DELETE CASCADE`, unlike the 0011 splits tables — so itemized bills cannot block account deletion the way `expense_participants` did before 0031.

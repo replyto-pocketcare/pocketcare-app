@@ -26,7 +26,7 @@ flowchart TB
 ```
 
 - `user_data` — one subscription covering **all owner-scoped tables** (accounts, transactions, budgets, goals, subscriptions, loans, `planned_cashflow`, holdings, templates, assistant, entitlements, encryption keys, feedback, …).
-- `split_shared` — the shared ledger, resolved by JOINing `split_group_members` so each member sees exactly the groups/expenses/settlements they belong to (no duplicates).
+- `split_shared` — the shared ledger, resolved by JOINing `split_group_members` so each member sees exactly the groups/expenses/settlements they belong to (no duplicates). **Itemized bills (`expense_items`, `expense_item_shares`) belong here, not in `user_data`**: every member needs to see every line, not only the ones they are on. `receipt_scans` is the opposite — private to the scanner, so it sits in `user_data`.
 - `reference_data`, `market_data`, `exchange_rates` — global read-only data everyone receives.
 
 ## Offline write & upload
@@ -111,6 +111,7 @@ Some actions cannot be expressed as owner-scoped row writes and run server-side:
 | `redeem-coupon` | Validate + apply earned coupons / shared promo codes |
 | guest purge | Delete expired guest accounts after the 3-day TTL |
 | assistant | LLM calls with per-user quota enforcement |
+| `receipt-scan` | Opt-in AI receipt reading (vision + forced `emit_receipt` tool). Shares the assistant's quota pool; the image is forwarded and discarded, never stored |
 
 ## Deploy checklist for a new synced table
 

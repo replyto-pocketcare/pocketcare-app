@@ -165,10 +165,23 @@ body[data-assist-chat="true"] { overflow: hidden; }
   .assist-page { height: calc(100dvh - 150px); }  /* topbar + main padding (JS refines) */
 }
 
-/* Hide the Add-transaction FAB while the dashboard is in edit mode, and when the
- * dashboard is empty (no accounts yet — there's nothing to add a txn against). */
+/* Hide the Add FAB (and its whole speed dial) while the dashboard is in edit
+ * mode, and when the dashboard is empty (no accounts yet — there's nothing to
+ * add a txn against). Targets the wrapper so an open menu can't survive either. */
 body[data-dash-edit="true"] .add-fab,
-body[data-dash-empty="true"] .add-fab { display: none !important; }
+body[data-dash-empty="true"] .add-fab,
+body[data-dash-edit="true"] .add-fab-wrap,
+body[data-dash-empty="true"] .add-fab-wrap { display: none !important; }
+
+/* Speed-dial mini actions. */
+.add-fab-item:hover { background: var(--surface-2); }
+.add-fab-item:focus-visible,
+.add-fab:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* On narrow screens the pill can crowd the edge; tighten it up. */
+@media (max-width: 420px) {
+  .add-fab-wrap { right: 14px !important; bottom: 14px !important; }
+  .add-fab-item { padding: 11px 15px !important; font-size: 14px !important; }
+}
 
 /* Loading placeholders (skeletons). */
 .skeleton { position: relative; overflow: hidden; background: var(--surface-2); }

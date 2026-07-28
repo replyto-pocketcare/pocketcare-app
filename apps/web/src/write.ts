@@ -16,7 +16,9 @@ export async function insertRow(table: string, values: Record<string, unknown>):
   const id = uuid();
   const ts = nowIso();
   const row: Record<string, unknown> = { id, created_at: ts, updated_at: ts, ...values };
-  if (!("user_id" in values) && !["split_groups", "expenses", "settlements", "split_invitations", "connections", "profiles"].includes(table)) {
+  // Shared-ledger tables are scoped by group_id, not user_id, and have no
+  // user_id column at all — adding one would make the INSERT fail.
+  if (!("user_id" in values) && !["split_groups", "expenses", "expense_items", "settlements", "split_invitations", "connections", "profiles"].includes(table)) {
     row.user_id = getUserId();
   }
   const keys = Object.keys(row);

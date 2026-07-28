@@ -11,11 +11,58 @@ import { updateRow, softDelete } from "../../../src/write";
 import { useConfirm } from "../../../src/ui/Confirm";
 import { Modal } from "../../../src/ui/Modal";
 import { KebabMenu } from "../../../src/ui/KebabMenu";
-import { useGroup, useGroupExpenses, useGroupBalances, useGroupMemberIds, useUserProfiles, useConnections } from "../../../src/splits/hooks";
+import { useGroup, useGroupExpenses, useGroupBalances, useGroupMemberIds, useUserProfiles, useConnections, type GroupExpense } from "../../../src/splits/hooks";
 import { createInvite } from "../../../src/splits/write";
+import { ItemBreakdown } from "../../../src/splits/ItemBreakdown";
 
 interface Invitee { id: string | null; name: string; email: string }
 const looksLikeEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
+
+/**
+ * One expense in the group list. An itemized bill (from a receipt scan) can be
+ * expanded in place to show who had what — the answer to "why do I owe this?"
+ * belongs next to the number, not on another screen.
+ */
+function ExpenseRow({ expense, base, fmt, fallback }: {
+  expense: GroupExpense;
+  base: string;
+  fmt: (m: import("@pocketcare/money").Money) => string;
+  fallback: string;
+}) {
+  const { t } = useTranslation("receipts");
+  const [open, setOpen] = useState(false);
+  const itemized = !!expense.has_items;
+
+  return (
+    <div style={{ borderBottom: "1px solid var(--border)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", fontSize: 14, gap: 8, alignItems: "center" }}>
+        <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {expense.description || fallback}{" "}
+          <span className="muted" style={{ fontSize: 12 }}>· {new Date(expense.occurred_at).toLocaleDateString()}</span>
+        </span>
+        <span style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+          {itemized && (
+            <button
+              type="button"
+              className="chip"
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              style={{ fontSize: 11 }}
+            >
+              {open ? t("breakdown.hide", "Hide items") : t("breakdown.show", "View items")}
+            </button>
+          )}
+          <span style={{ fontWeight: 600 }}>{fmt(money(expense.amount, base))}</span>
+        </span>
+      </div>
+      {itemized && open && (
+        <div style={{ padding: "0 14px 12px" }}>
+          <ItemBreakdown expenseId={expense.id} currency={expense.currency || base} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function GroupDetailPage() {
   const { t } = useTranslation("groups");
@@ -170,10 +217,7 @@ export default function GroupDetailPage() {
         ) : (
           <div className="card" style={{ padding: 8 }}>
             {expenses.map((e) => (
-              <div key={e.id} style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid var(--border)", fontSize: 14, gap: 8 }}>
-                <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.description || t("expenseFallback")} <span className="muted" style={{ fontSize: 12 }}>· {new Date(e.occurred_at).toLocaleDateString()}</span></span>
-                <span style={{ flexShrink: 0, fontWeight: 600 }}>{fmt(money(e.amount, base))}</span>
-              </div>
+              <ExpenseRow key={e.id} expense={e} base={base} fmt={fmt} fallback={t("expenseFallback")} />
             ))}
           </div>
         )}

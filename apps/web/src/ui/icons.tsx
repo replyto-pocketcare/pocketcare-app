@@ -121,6 +121,35 @@ export function BellIcon({ size = 18, strokeWidth = 1.8 }: P) {
   );
 }
 
+/** Receipt with a torn bottom edge — reads as "paper bill" at 20px. */
+export function ReceiptIcon({ size = 18, strokeWidth = 1.8 }: P) {
+  return (
+    <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
+      <path d="M5 3h14v18l-2.3-1.6L14.4 21l-2.4-1.6L9.6 21l-2.3-1.6L5 21V3Z" />
+      <path d="M9 8h6M9 12h6" />
+    </svg>
+  );
+}
+
+/** Camera — the "take a photo" affordance on the capture screen. */
+export function CameraIcon({ size = 18, strokeWidth = 1.8 }: P) {
+  return (
+    <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
+      <path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.3-2h8l1.3 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z" />
+      <circle cx="12" cy="13" r="3.2" />
+    </svg>
+  );
+}
+
+/** Close / dismiss. Used by the speed dial when it flips from +. */
+export function CloseIcon({ size = 18, strokeWidth = 1.9 }: P) {
+  return (
+    <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
+      <path d="m6 6 12 12M18 6 6 18" />
+    </svg>
+  );
+}
+
 /** Balance scale — clearer than an eye for "counts toward net worth". */
 export function ScaleIcon({ size = 18, strokeWidth = 1.8 }: P) {
   return (

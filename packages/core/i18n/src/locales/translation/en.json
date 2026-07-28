@@ -81,5 +81,11 @@
   "onboarding": {
     "guestBanner": "You're exploring as a guest. Register within {{days}} days to keep your data.",
     "getStarted": "Get started"
+  },
+  "fab": {
+    "add": "Add",
+    "close": "Close",
+    "addTransaction": "Add transaction",
+    "scanReceipt": "Scan bill / receipt"
   }
 }

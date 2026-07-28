@@ -9,7 +9,8 @@ import { useSession, useAuthStatus } from "../src/account";
 import { useSyncStatus, syncMessage } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
-import { MenuIcon, PlusIcon, DownloadIcon, BellIcon } from "../src/ui/icons";
+import { MenuIcon, PlusIcon, DownloadIcon, BellIcon, ReceiptIcon } from "../src/ui/icons";
+import { AddSpeedDial } from "../src/ui/AddSpeedDial";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
 import { TrialNotice } from "../src/ui/TrialNotice";
 import { runRecurring } from "../src/templates/write";
@@ -305,18 +306,28 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      {/* Quick add-transaction — only on the dashboard (other pages have their
-          own contextual add buttons). Pill-shaped with a label for clarity. */}
+      {/* Quick add — only on the dashboard (other pages have their own
+          contextual add buttons). A speed dial: tapping the pill reveals
+          "Add transaction" and "Scan bill / receipt" stacked above it. */}
       {pathname === "/" && (
-        <Link href="/transactions/new" aria-label="Add transaction" className="add-fab"
-          style={{ position: "fixed", right: 20, bottom: 20, zIndex: 40, borderRadius: 999,
-            padding: "14px 20px", gap: 8, background: "var(--accent)", color: "#fff", fontWeight: 600,
-            display: "inline-flex", alignItems: "center",
-            boxShadow: "var(--shadow-lg)", transition: "transform 0.15s" }}
-          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.96)")}
-          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}>
-          <PlusIcon size={20} /> Add transaction
-        </Link>
+        <AddSpeedDial
+          label={t("fab.add", "Add")}
+          closeLabel={t("fab.close", "Close")}
+          actions={[
+            {
+              key: "transaction",
+              label: t("fab.addTransaction", "Add transaction"),
+              href: "/transactions/new",
+              icon: <PlusIcon size={18} />,
+            },
+            {
+              key: "receipt",
+              label: t("fab.scanReceipt", "Scan bill / receipt"),
+              href: "/receipts/new",
+              icon: <ReceiptIcon size={18} />,
+            },
+          ]}
+        />
       )}
     </div>
   );

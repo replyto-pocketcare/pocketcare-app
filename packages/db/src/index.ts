@@ -498,6 +498,41 @@ const expense_postings = new Table(
   { user_id: column.text, expense_id: column.text, settlement_id: column.text, transaction_id: column.text, role: column.text, created_at: column.text, updated_at: column.text, deleted_at: column.text },
   { indexes: { by_expense: ["expense_id"] } },
 );
+// Itemized bills (0040). `expense_items` are the lines of a shared expense and
+// `expense_item_shares` say who is on each line. Per-item shares are rolled up
+// into `expense_participants` by the client, which remains the source of truth
+// for balances — these two tables are the breakdown, not the ledger.
+const expense_items = new Table(
+  {
+    expense_id: column.text, group_id: column.text, kind: column.text, description: column.text,
+    quantity: column.integer, unit: column.text, unit_price: column.integer, amount: column.integer,
+    split_mode: column.text, sort: column.integer,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
+  },
+  { indexes: { by_expense: ["expense_id", "sort"], by_group: ["group_id"] } },
+);
+const expense_item_shares = new Table(
+  {
+    item_id: column.text, expense_id: column.text, group_id: column.text, user_id: column.text,
+    weight: column.integer, share_amount: column.integer,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
+  },
+  { indexes: { by_item: ["item_id"], by_expense: ["expense_id"], by_user: ["user_id"] } },
+);
+// A scan is private to the user who took it. Deliberately holds NO image bytes —
+// `image_path` is a forward-compatible seam and is always null today.
+const receipt_scans = new Table(
+  {
+    user_id: column.text, source: column.text, engine: column.text, merchant: column.text,
+    occurred_at: column.text, currency: column.text,
+    subtotal: column.integer, tax: column.integer, service_charge: column.integer,
+    tip: column.integer, discount: column.integer, total: column.integer,
+    confidence: column.integer, raw_text: column.text, parsed_json: column.text,
+    transaction_id: column.text, expense_id: column.text, image_path: column.text,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
+  },
+  { indexes: { by_created: ["created_at"], by_txn: ["transaction_id"] } },
+);
 const split_invitations = new Table({
   group_id: column.text, inviter: column.text, invitee_email: column.text, token: column.text,
   status: column.text, accepted_by: column.text, created_at: column.text, updated_at: column.text, expires_at: column.text,
@@ -601,10 +636,14 @@ export const AppSchema = new Schema({
   split_group_members,
   expenses,
   expense_participants,
+  expense_items,
+  expense_item_shares,
   settlements,
   expense_postings,
   split_invitations,
   connections,
+  // Receipt / bill scanning
+  receipt_scans,
   transaction_templates,
   recurring_rules,
   category_rules,

@@ -27,6 +27,7 @@
     "@pocketcare/data": "workspace:*",
     "@pocketcare/crypto": "workspace:*",
     "@pocketcare/reconcile": "workspace:*",
+    "@pocketcare/receipts": "workspace:*",
     "@powersync/web": "^1.20.0",
     "@powersync/react": "^1.5.0",
     "@supabase/supabase-js": "^2.45.0",

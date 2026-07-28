@@ -22,6 +22,17 @@ export function SplitChip() {
   );
 }
 
+/** Small "Scanned" pill for transactions created from a receipt photo. */
+export function ScannedChip() {
+  return (
+    <span style={{
+      flexShrink: 0, fontSize: 10.5, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase",
+      color: "var(--text-2)", background: "var(--surface-2)", border: "1px solid var(--border)",
+      borderRadius: 999, padding: "1px 7px", lineHeight: 1.5,
+    }}>Scanned</span>
+  );
+}
+
 /**
  * Shared transaction list row — one consistent look across Transactions, Search,
  * and anywhere else we list transactions. Truncates long labels, respects the
@@ -29,9 +40,10 @@ export function SplitChip() {
  *
  * When `split` is provided the row represents a collapsed split expense: it
  * shows a "Split" chip and the **total you paid** (from SplitInfo) instead of
- * the single underlying posting's amount.
+ * the single underlying posting's amount. `scanned` badges rows that came from
+ * a receipt photo.
  */
-export function TransactionRow({ tx, account, categoryName, tile = false, split }: { tx: TxRow; account: Acct; categoryName: string; tile?: boolean; split?: SplitInfo | undefined }) {
+export function TransactionRow({ tx, account, categoryName, tile = false, split, scanned = false }: { tx: TxRow; account: Acct; categoryName: string; tile?: boolean; split?: SplitInfo | undefined; scanned?: boolean }) {
   const fmt = useMoneyFmt();
   const primary = tx.description || tx.labels || categoryName || "Uncategorised";
   const sign = split ? "−" : tx.type === "expense" ? "−" : tx.type === "income" ? "+" : "⇄ ";
@@ -53,6 +65,7 @@ export function TransactionRow({ tx, account, categoryName, tile = false, split 
               {primary}
             </span>
             {split && <SplitChip />}
+            {scanned && <ScannedChip />}
           </div>
           <div className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 2 }}>
             {new Date(tx.occurred_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}

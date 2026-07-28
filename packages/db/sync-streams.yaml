@@ -60,6 +60,8 @@ streams:
       - SELECT * FROM pocketcare.bug_reports WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.coupons WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.promo_redemptions WHERE user_id = auth.user_id()
+      # --- receipt scans: private to the user who scanned (no image bytes stored) ---
+      - SELECT * FROM pocketcare.receipt_scans WHERE user_id = auth.user_id()
 
   # Splits: the SHARED ledger, visible by group membership (one copy, no dupes).
   # Uses JOINs to traverse relationships and evaluate auth.user_id() safely.
@@ -81,6 +83,16 @@ streams:
       - >
         SELECT pocketcare.expense_participants.* FROM pocketcare.expense_participants
         JOIN pocketcare.split_group_members ON pocketcare.expense_participants.group_id = pocketcare.split_group_members.group_id
+        WHERE pocketcare.split_group_members.user_id = auth.user_id() AND pocketcare.split_group_members.deleted_at IS NULL
+      # Itemized bills (0040). These MUST sit in this stream, not user_data:
+      # every member needs to see every line, not just the ones they are on.
+      - >
+        SELECT pocketcare.expense_items.* FROM pocketcare.expense_items
+        JOIN pocketcare.split_group_members ON pocketcare.expense_items.group_id = pocketcare.split_group_members.group_id
+        WHERE pocketcare.split_group_members.user_id = auth.user_id() AND pocketcare.split_group_members.deleted_at IS NULL
+      - >
+        SELECT pocketcare.expense_item_shares.* FROM pocketcare.expense_item_shares
+        JOIN pocketcare.split_group_members ON pocketcare.expense_item_shares.group_id = pocketcare.split_group_members.group_id
         WHERE pocketcare.split_group_members.user_id = auth.user_id() AND pocketcare.split_group_members.deleted_at IS NULL
       - >
         SELECT pocketcare.settlements.* FROM pocketcare.settlements

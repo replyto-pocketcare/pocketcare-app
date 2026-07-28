@@ -63,13 +63,66 @@ export function useGroupMemberIds(groupId: string): string[] {
   return data.map((r) => r.user_id);
 }
 
-export interface GroupExpense { id: string; description: string | null; amount: number; currency: string; occurred_at: string }
+export interface GroupExpense { id: string; description: string | null; amount: number; currency: string; occurred_at: string; has_items: number | null }
 export function useGroupExpenses(groupId: string): GroupExpense[] {
   const { data = [] } = useQuery<GroupExpense>(
-    "SELECT id, description, amount, currency, occurred_at FROM expenses WHERE group_id = ? AND deleted_at IS NULL ORDER BY occurred_at DESC",
+    "SELECT id, description, amount, currency, occurred_at, has_items FROM expenses WHERE group_id = ? AND deleted_at IS NULL ORDER BY occurred_at DESC",
     [groupId],
   );
   return data;
+}
+
+// ---- Itemized bills (0040) ----
+// The breakdown behind an itemized expense. Balances still come from
+// `expense_participants`; these are purely for explaining a split.
+
+export interface ExpenseItem {
+  id: string;
+  kind: string;
+  description: string | null;
+  quantity: number | null;
+  unit: string | null;
+  unit_price: number | null;
+  amount: number;
+  split_mode: string;
+  sort: number;
+}
+export function useExpenseItems(expenseId: string): ExpenseItem[] {
+  const { data = [] } = useQuery<ExpenseItem>(
+    `SELECT id, kind, description, quantity, unit, unit_price, amount, split_mode, sort
+     FROM expense_items WHERE expense_id = ? AND deleted_at IS NULL ORDER BY sort`,
+    [expenseId],
+  );
+  return data;
+}
+
+export interface ExpenseItemShare { item_id: string; user_id: string; share_amount: number }
+export function useExpenseItemShares(expenseId: string): ExpenseItemShare[] {
+  const { data = [] } = useQuery<ExpenseItemShare>(
+    "SELECT item_id, user_id, share_amount FROM expense_item_shares WHERE expense_id = ? AND deleted_at IS NULL",
+    [expenseId],
+  );
+  return data;
+}
+
+/** item_id -> (user_id -> minor units). Convenient shape for the breakdown UI. */
+export function useItemShareMap(expenseId: string): Map<string, Map<string, number>> {
+  const rows = useExpenseItemShares(expenseId);
+  const out = new Map<string, Map<string, number>>();
+  for (const r of rows) {
+    const inner = out.get(r.item_id) ?? new Map<string, number>();
+    inner.set(r.user_id, r.share_amount);
+    out.set(r.item_id, inner);
+  }
+  return out;
+}
+
+/** Was this transaction created from a scanned receipt? Drives the "Scanned" chip. */
+export function useScannedTransactionIds(): Set<string> {
+  const { data = [] } = useQuery<{ transaction_id: string }>(
+    "SELECT transaction_id FROM receipt_scans WHERE transaction_id IS NOT NULL AND deleted_at IS NULL",
+  );
+  return new Set(data.map((r) => r.transaction_id));
 }
 
 export interface FriendBalance { userId: string; net: number } // + = they owe you

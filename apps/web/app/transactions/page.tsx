@@ -9,6 +9,7 @@ import { TransactionRow } from "../../src/ui/TransactionRow";
 import { Skeleton } from "../../src/ui/Skeleton";
 import { useInitialSyncPending } from "../../src/sync";
 import { useSplitInfo, collapseSplitRows } from "../../src/splits/collapse";
+import { useScannedTransactionIds } from "../../src/splits/hooks";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
 
@@ -38,6 +39,7 @@ export default function TransactionsPage() {
   const acct = (id: string) => accts.find((a) => a.id === id);
   const splitInfo = useSplitInfo();
   const collapsed = collapseSplitRows(rows, splitInfo);
+  const scannedIds = useScannedTransactionIds();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
@@ -58,7 +60,7 @@ export default function TransactionsPage() {
       {rows.length > 0 ? (
         <div className="list-grid">
           {collapsed.map(({ row: tx, split }) => (
-            <TransactionRow key={tx.id} tx={tx} account={acct(tx.account_id)} categoryName={catName(tx.category_id)} tile split={split} />
+            <TransactionRow key={tx.id} tx={tx} account={acct(tx.account_id)} categoryName={catName(tx.category_id)} tile split={split} scanned={scannedIds.has(tx.id)} />
           ))}
         </div>
       ) : (rowsLoading || syncPending) ? (

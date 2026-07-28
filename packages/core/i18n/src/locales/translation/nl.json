@@ -81,5 +81,11 @@
   "onboarding": {
     "guestBanner": "Je verkent als gast. Registreer binnen {{days}} dagen om je gegevens te behouden.",
     "getStarted": "Aan de slag"
+  },
+  "fab": {
+    "add": "Toevoegen",
+    "close": "Sluiten",
+    "addTransaction": "Transactie toevoegen",
+    "scanReceipt": "Bon / rekening scannen"
   }
 }
