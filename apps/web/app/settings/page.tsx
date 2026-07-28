@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { Billing } from "../../src/ui/Billing";
 import { PaymentHandlePanel } from "../../src/payments/PaymentHandlePanel";
+import { DiagnosticsPanel } from "../../src/diagnostics/DiagnosticsPanel";
 import { useTheme, setTheme } from "../../src/theme";
 import { useBaseCurrency } from "../../src/hooks";
 import { setBaseCurrency, useAmountsHidden, setAmountsHidden } from "../../src/prefs";
@@ -217,6 +218,8 @@ export default function SettingsPage() {
       </section>
 
       <PaymentHandlePanel />
+
+      <DiagnosticsPanel />
 
       <Billing />
 

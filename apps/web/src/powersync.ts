@@ -9,7 +9,14 @@
 import type { AbstractPowerSyncDatabase } from "@powersync/common";
 import { PowerSyncDatabase } from "@powersync/web";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { AppSchema, SupabaseConnector, createSupabaseClient } from "@pocketcare/db";
+import { AppSchema, SupabaseConnector, createSupabaseClient, setSyncDiagnosticSink } from "@pocketcare/db";
+import { logEvent } from "./diagnostics/log";
+
+// Route structured upload failures into the on-device support log, so a user
+// on a phone can tell us WHY sync is failing instead of just that it is.
+setSyncDiagnosticSink((d) =>
+  logEvent("error", "sync", `upload failed: ${d.table} (${d.op})`, { ...d }),
+);
 import {
   PowerSyncAccountRepository,
   PowerSyncTransactionRepository,

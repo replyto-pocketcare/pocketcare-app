@@ -19,6 +19,37 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 /** Postgres schema that holds all PocketCare tables (see 0001_init.sql). */
 export const DB_SCHEMA = "pocketcare";
 
+/**
+ * Optional sink for structured sync failures.
+ *
+ * A plain module-level hook rather than a constructor option, so `packages/db`
+ * stays free of any dependency on the app's diagnostics layer — the app opts in
+ * by calling `setSyncDiagnosticSink` at startup, and this file neither knows nor
+ * cares whether anything is listening.
+ */
+export type SyncDiagnostic = {
+  table: string;
+  op: string;
+  rows: number;
+  code?: string | undefined;
+  message?: string | undefined;
+  hint?: string | undefined;
+};
+
+let diagnosticSink: ((d: SyncDiagnostic) => void) | null = null;
+
+export function setSyncDiagnosticSink(fn: ((d: SyncDiagnostic) => void) | null): void {
+  diagnosticSink = fn;
+}
+
+function reportSyncDiagnostic(d: SyncDiagnostic): void {
+  try {
+    diagnosticSink?.(d);
+  } catch {
+    // Diagnostics must never make a sync failure worse than it already is.
+  }
+}
+
 export class SupabaseConnector implements PowerSyncBackendConnector {
   constructor(
     private readonly client: SupabaseClient,
@@ -91,6 +122,18 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
           `[PocketCare sync] upload failed for ${this.schema}.${op.table} (${op.op}, ${run.length} row(s)):`,
           error,
         );
+        // Also emit it structurally. The console line is captured as free text
+        // by the diagnostics log, where the number-scrubber can't tell a
+        // PostgREST code from an amount and redacts it — but the code is the
+        // most diagnostic field there is, so pass it as its own key.
+        reportSyncDiagnostic({
+          table: `${this.schema}.${op.table}`,
+          op: String(op.op),
+          rows: run.length,
+          code: (error as { code?: string }).code,
+          message: (error as { message?: string }).message,
+          hint: (error as { hint?: string }).hint,
+        });
         throw error;
       }
       i = j;

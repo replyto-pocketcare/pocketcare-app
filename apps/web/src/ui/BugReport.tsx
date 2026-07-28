@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Modal } from "./Modal";
 import { insertRow } from "../write";
+import { exportLog } from "../diagnostics/log";
 
 const SEVERITIES: { id: "fatal" | "high" | "medium" | "low"; label: string; color: string }[] = [
   { id: "fatal", label: "Fatal", color: "var(--negative)" },
@@ -45,6 +46,9 @@ export function BugReportModal({ open, onClose }: { open: boolean; onClose: () =
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
+  // Default ON: the whole point is that the diagnosis arrives without the user
+  // having to do anything. It's redacted, and the checkbox says so.
+  const [includeLog, setIncludeLog] = useState(true);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -52,6 +56,7 @@ export function BugReportModal({ open, onClose }: { open: boolean; onClose: () =
 
   function reset() {
     setKind("bug"); setSeverity("medium"); setArea(""); setTitle(""); setDescription(""); setDone(false); setErr(null);
+    setIncludeLog(true);
   }
 
   async function submit() {
@@ -62,6 +67,8 @@ export function BugReportModal({ open, onClose }: { open: boolean; onClose: () =
       await insertRow("bug_reports", {
         kind, severity: isBug ? severity : null, area: area || null, title: title.trim() || null,
         description: description.trim(), status: "open",
+        // Capped: a report is for diagnosing, not archiving a whole session.
+        diagnostics: includeLog ? exportLog({ version: APP_VERSION }).slice(0, 20000) : null,
         ...captureContext(pathname),
       });
       setDone(true);
@@ -126,6 +133,22 @@ export function BugReportModal({ open, onClose }: { open: boolean; onClose: () =
           <textarea className="input" rows={4}
             placeholder={isBug ? "What went wrong? What did you expect to happen?" : "What would make PocketCare better?"}
             value={description} onChange={(e) => setDescription(e.target.value)} style={{ resize: "vertical" }} />
+
+          <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13 }}>
+            <input
+              type="checkbox"
+              checked={includeLog}
+              onChange={(e) => setIncludeLog(e.target.checked)}
+              style={{ marginTop: 2, flexShrink: 0 }}
+            />
+            <span>
+              Include a recent error log
+              <span className="muted" style={{ display: "block", fontSize: 11, marginTop: 2 }}>
+                Amounts, names and contact details are removed. Without this we often
+                can&apos;t tell what went wrong on a phone.
+              </span>
+            </span>
+          </label>
 
           <p className="muted" style={{ fontSize: 11, margin: 0 }}>Automatically included: app version, current page, device, and connection status.</p>
           {err && <div style={{ color: "var(--negative)", fontSize: 13 }}>{err}</div>}

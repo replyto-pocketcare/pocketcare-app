@@ -418,6 +418,9 @@ const security_audit = new Table({
 // Beta bug reports + reward coupons.
 const bug_reports = new Table({
   user_id: column.text,
+  // Redacted device log (0043). Mirrored here because PowerSync's local SQLite
+  // only has the columns declared in this schema.
+  diagnostics: column.text,
   kind: column.text, // 'bug' | 'suggestion'
   severity: column.text,
   area: column.text,
@@ -694,7 +697,7 @@ export const AppSchema = new Schema({
 
 export type Database = (typeof AppSchema)["types"];
 
-export { SupabaseConnector } from "./connector.ts";
+export { SupabaseConnector, setSyncDiagnosticSink, type SyncDiagnostic } from "./connector.ts";
 export {
   createSupabaseClient,
   ensureUser,

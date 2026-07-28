@@ -19,6 +19,7 @@ import { InstallGuide } from "../src/ui/InstallGuide";
 import { Modal } from "../src/ui/Modal";
 import { BugReportModal } from "../src/ui/BugReport";
 import { useUnreadCount } from "../src/notifications/hooks";
+import { installDiagnostics, setDiagnosticsRoute } from "../src/diagnostics/log";
 
 /** Persistent banner shown whenever the device is offline. */
 function OfflineBanner() {
@@ -131,10 +132,16 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     applySavedTheme();
+    // Start capturing errors immediately — the failures worth diagnosing often
+    // happen during boot, before anyone thinks to open Diagnostics.
+    installDiagnostics();
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
   }, []);
+
+  // Tag each captured entry with the page it happened on.
+  useEffect(() => { setDiagnosticsRoute(pathname); }, [pathname]);
 
   // Gate on the session, not a "seen" flag: an unauthenticated visitor must
   // pick a path on onboarding (create account / sign in / try as guest).
