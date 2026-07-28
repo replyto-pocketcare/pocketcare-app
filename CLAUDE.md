@@ -16,6 +16,11 @@ Offline-first, multi-currency personal expense & wealth manager. **Web-only** (N
 - **Make migrations re-runnable.** `create table`/`create index` take `if not exists`, but `create policy` and `create constraint trigger` do **not** — precede each with `drop policy if exists` / `drop trigger if exists`. A migration that fails halfway (as 0040 first did) otherwise can't be retried, because the statements before the failure already applied.
 - Validate before shipping: `pip install pglast --break-system-packages`, then parse the file.
 
+## Adding a COLUMN to a synced table (easy to forget — 2 steps)
+PowerSync's local SQLite only has the columns declared in `AppSchema`. A column added in a migration but **not** mirrored there fails at runtime with `table <x> has no column named <y>` on both reads and writes — Postgres is fine, the device is not.
+1. Add it to the table's `new Table({...})` in `packages/db/src/index.ts`.
+2. `supabase db push` **and** redeploy sync rules (a `SELECT *` stream picks it up automatically; an explicit column list does not).
+
 ## Adding a synced table (all four steps or it won't sync)
 1. Add to `AppSchema` (`packages/db/src/index.ts`).
 2. Add a migration `supabase/migrations/00xx_*.sql` (RLS owner policy + grants).

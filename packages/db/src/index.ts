@@ -482,8 +482,17 @@ const split_group_members = new Table(
   { group_id: column.text, user_id: column.text, role: column.text, created_at: column.text, updated_at: column.text, deleted_at: column.text },
   { indexes: { by_group: ["group_id"], by_user: ["user_id"] } },
 );
+// `has_items` (0040) flags that this expense has an `expense_items` breakdown.
+// PowerSync's local SQLite only has the columns declared here, so a column
+// added to Postgres MUST be mirrored here or every read and write of it fails
+// with "table expenses has no column named has_items".
 const expenses = new Table(
-  { group_id: column.text, created_by: column.text, description: column.text, amount: column.integer, currency: column.text, occurred_at: column.text, split_mode: column.text, version: column.integer, created_at: column.text, updated_at: column.text, deleted_at: column.text },
+  {
+    group_id: column.text, created_by: column.text, description: column.text, amount: column.integer,
+    currency: column.text, occurred_at: column.text, split_mode: column.text, version: column.integer,
+    has_items: column.integer,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
+  },
   { indexes: { by_group: ["group_id", "occurred_at"] } },
 );
 const expense_participants = new Table(
