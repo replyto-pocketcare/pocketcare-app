@@ -240,23 +240,35 @@ function SplitInner() {
           <section key={line.id} className="card" style={{ padding: 16, display: "grid", gap: 12, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline", flexWrap: "wrap" }}>
               <div style={{ minWidth: 0 }}>
-                {/* display:block + an explicit line-height: as a bare inline
-                    element the line box is too short for tall glyphs and the
-                    heading gets visibly clipped at the top of the card. */}
                 <strong style={{ fontSize: 15, display: "block", lineHeight: 1.4 }}>
                   {line.description || t(`kind.${line.kind}`, line.kind)}
                 </strong>
-                <div className="muted" style={{ fontSize: 12, lineHeight: 1.8 }}>
-                  {isCharge(line.kind) && <span className="chip" style={{ marginRight: 6, fontSize: 11 }}>{t(`kind.${line.kind}`, line.kind)}</span>}
-                  {line.quantity !== null && (
-                    <span>
-                      {t("split.qtyLabel", "{{qty}}{{unit}}", {
-                        qty: qtyToMajor(line.quantity),
-                        unit: line.unit ? ` ${line.unit}` : "",
-                      })}
-                    </span>
-                  )}
-                </div>
+                {/* The kind used to be a `.chip`, which was wrong twice over:
+                    a chip reads as tappable when this is a static label, and an
+                    inline element's vertical padding does NOT grow its line
+                    box, so it bled upward and clipped the heading above.
+                    A plain uppercase caption fixes both. */}
+                {(isCharge(line.kind) || line.quantity !== null) && (
+                  <div
+                    className="muted"
+                    style={{ display: "flex", gap: 6, flexWrap: "wrap", fontSize: 11.5, lineHeight: 1.5, marginTop: 2 }}
+                  >
+                    {isCharge(line.kind) && (
+                      <span style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>
+                        {t(`kind.${line.kind}`, line.kind)}
+                      </span>
+                    )}
+                    {isCharge(line.kind) && line.quantity !== null && <span aria-hidden>·</span>}
+                    {line.quantity !== null && (
+                      <span>
+                        {t("split.qtyLabel", "{{qty}}{{unit}}", {
+                          qty: qtyToMajor(line.quantity),
+                          unit: line.unit ? ` ${line.unit}` : "",
+                        })}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               <strong style={{ fontVariantNumeric: "tabular-nums" }}>{fmt(money(line.amount, cur))}</strong>
             </div>

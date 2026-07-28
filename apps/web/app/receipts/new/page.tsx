@@ -237,9 +237,11 @@ export default function NewReceiptPage() {
               <button className="btn" type="button" onClick={() => void improveWithAi()} disabled={aiBusy || ent.quotaLeft <= 0}>
                 {aiBusy ? <Spinner /> : null}
                 {t("capture.improveWithAi", "Improve with AI")}
+                {/* Plain text, not a nested `.chip` — a chip inside a button
+                    reads as a second, separately-pressable control. */}
                 {ent.quotaLeft > 0 && (
-                  <span className="chip" style={{ marginLeft: 6, fontSize: 11 }}>
-                    {t("capture.creditsLeft", "{{count}} left", { count: ent.quotaLeft })}
+                  <span style={{ marginLeft: 6, fontSize: 11.5, opacity: 0.75 }}>
+                    · {t("capture.creditsLeft", "{{count}} left", { count: ent.quotaLeft })}
                   </span>
                 )}
               </button>

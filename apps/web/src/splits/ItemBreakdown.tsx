@@ -72,10 +72,18 @@ export function ItemBreakdown({
               return (
                 <tr key={item.id} style={{ borderTop: "1px solid var(--border)" }}>
                   <td style={{ padding: "8px 4px", minWidth: 0 }}>
+                    {/* Plain captions, not chips: these are labels, and a chip
+                        implies a control you can press. (See the matching note
+                        in app/receipts/split/page.tsx.) */}
                     <div style={{ display: "flex", gap: 6, alignItems: "baseline", flexWrap: "wrap" }}>
                       <span>{item.description || t(`kind.${item.kind}`, item.kind)}</span>
                       {item.kind !== "item" && (
-                        <span className="chip" style={{ fontSize: 10.5 }}>{t(`kind.${item.kind}`, item.kind)}</span>
+                        <span
+                          className="muted"
+                          style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}
+                        >
+                          {t(`kind.${item.kind}`, item.kind)}
+                        </span>
                       )}
                       {item.quantity !== null && (
                         <span className="muted" style={{ fontSize: 11.5 }}>
