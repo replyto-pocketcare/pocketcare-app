@@ -12,7 +12,12 @@
     "markPaid": "I've paid — tell them",
     "noCallbackNote": "We can't see UPI payments, so we'll ask {{name}} to confirm it arrived.",
     "noHandle": "{{name}} hasn't added a UPI ID yet.",
-    "back": "Back"
+    "back": "Back",
+    "didntOpen": "Didn't open? Pay another way",
+    "manualTitle": "Pay it manually",
+    "copyAmount": "Copy amount",
+    "copied": "Copied",
+    "qrHintMobile": "Save this image, then use “scan from gallery” in your UPI app — or scan it from another device."
   },
   "confirm": {
     "title": "Confirm a payment",

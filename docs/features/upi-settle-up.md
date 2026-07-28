@@ -14,7 +14,10 @@ flowchart TD
     Build --> M{Device?}
     M -- mobile --> App[Hand off to their UPI app]
     M -- desktop --> QR[Show QR to scan]
-    App --> Back[User returns — no callback exists]
+    App --> Opened{Did the app open?}
+    Opened -- no / silent --> Manual[Manual fallback:<br/>copy UPI ID + amount, saveable QR]
+    Opened -- yes --> Back[User returns — no callback exists]
+    Manual --> Back
     QR --> Back
     Back --> Claim["I've paid" → settlement status = pending]
     Claim --> Notify[Priya is notified]
@@ -61,6 +64,16 @@ Money genuinely left the payer's bank the moment they completed the transfer. Bu
 - **Only `disputed` is excluded**, and disputing writes no reversal: per golden rules #2/#5 the ledger is append-only. The payer's transfer stands (their money really did leave); what changes is that it no longer settles the debt.
 
 **Every `settlements` query must carry `AND status <> 'disputed'`.** There are five: four in `src/splits/hooks.ts` and one in `src/assistant/summary.ts`. Missing one produces a *silently wrong balance*.
+
+## Deep links are not guaranteed — there is always a manual path
+`upi://` handling varies by OS, browser and installed apps, and iOS/Safari can no-op **silently**. A payment must never dead-end because a URL scheme changed, so:
+
+- **Failure is detected, not assumed to be impossible.** After navigating we start a 1.5s timer; if the page is *still visible* when it fires, nothing handled the scheme and the manual fallback opens itself. A `visibilitychange` listener cancels the timer when the app really did take over, so a successful hand-off never shows the fallback.
+- **The fallback is always reachable**, not only after a failure — a "Didn't open? Pay another way" chip sits under the button.
+- **On mobile the fallback is copy-first.** A QR on the same screen you'd scan with is useless, so the primary manual route is copy-the-UPI-ID and copy-the-amount, pasted into any UPI app by hand. The QR is still rendered, because every major UPI app supports *scan from gallery* — the user saves the image and picks it there, or scans it from a second device. The hint text says exactly that.
+- **On desktop the QR is the primary path**, shown immediately; there is no app to hand off to.
+
+The QR library is CDN-loaded only when the fallback becomes visible, so the mobile happy path never pays for it.
 
 ## No payment confirmation exists
 This is structural, not a gap to close later. UPI Intent hands control to a third-party app and returns nothing to a web page — especially a PWA. Anyone describing automatic UPI reconciliation is describing a PSP integration, which is the regulated path this design exists to avoid.
@@ -130,6 +143,8 @@ Migration: `0041_payment_handles.sql`.
 | Guest tries to save | Blocked in the UI and by a DB trigger (the edge function runs as service_role and would otherwise bypass a client check). |
 | Offline | Pay is unavailable — you need a connection to pay anyway. |
 | Desktop | QR of the identical payload; one code path, so a bug can't affect only one surface. |
+| Deep link silently fails (iOS/Safari) | Detected via a 1.5s visibility check; the manual fallback (copy UPI ID + amount, saveable QR) opens automatically. |
+| User is on mobile with one device | QR can't be self-scanned — copy-to-clipboard is the primary manual route, with "scan from gallery" as the QR path. |
 | Payee never responds | Nudge at 3 days, auto-confirm at 14. |
 | Note contains `&` or `=` | Stripped before encoding — an injected note cannot forge `am=` or `pa=` (covered by tests). |
 | Non-INR balance | Pay button hidden; `buildIntentUrl` throws if called anyway. |

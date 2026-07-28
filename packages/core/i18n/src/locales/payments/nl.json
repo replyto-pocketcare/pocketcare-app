@@ -12,7 +12,12 @@
     "markPaid": "Ik heb betaald — laat het weten",
     "noCallbackNote": "Wij kunnen UPI-betalingen niet zien, dus we vragen {{name}} om te bevestigen dat het is aangekomen.",
     "noHandle": "{{name}} heeft nog geen UPI-ID toegevoegd.",
-    "back": "Terug"
+    "back": "Terug",
+    "didntOpen": "Niet geopend? Betaal op een andere manier",
+    "manualTitle": "Handmatig betalen",
+    "copyAmount": "Bedrag kopiëren",
+    "copied": "Gekopieerd",
+    "qrHintMobile": "Sla deze afbeelding op en gebruik “scannen vanuit galerij” in je UPI-app — of scan hem met een ander apparaat."
   },
   "confirm": {
     "title": "Bevestig een betaling",
