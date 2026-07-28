@@ -158,7 +158,11 @@ export function explainForUser(input: FailureInput): string {
     case "P0001":
       return "Some of the numbers didn't add up, so the server wouldn't accept it.";
     case "42501":
-      return "You don't have permission to save this — you may have been removed from the group.";
+      // Deliberately does NOT assert "you were removed from the group": the
+      // same code is raised when the parent row (e.g. the group itself) never
+      // reached the server, in which case the user is still very much a member
+      // and telling them otherwise sends them looking in the wrong place.
+      return "You don't have permission to save this yet. If it belongs to a group, try Settings → Check for unsynced data — the group itself may not have uploaded.";
     case "23502":
       return "Something required was missing from it.";
     default:

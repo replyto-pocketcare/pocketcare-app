@@ -152,6 +152,16 @@ test("an RLS denial is explained as a permission problem", () => {
   assert.match(explainForUser({ code: "42501" }), /permission/i);
 });
 
+// 42501 is raised both when the user genuinely lost access AND when the parent
+// row (e.g. the group) never reached the server — in the second case the user
+// is still a member, so asserting they were removed sends them looking in the
+// wrong place. Point at the recovery path instead.
+test("an RLS denial does not claim the user was removed from the group", () => {
+  const text = explainForUser({ code: "42501" });
+  assert.equal(/removed/i.test(text), false, `claims removal: ${text}`);
+  assert.match(text, /unsynced data/i);
+});
+
 test("a still-retrying failure reassures rather than alarms", () => {
   assert.match(explainForUser({ status: 503 }), /keep trying/i);
 });
