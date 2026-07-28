@@ -16,6 +16,7 @@ import { Spinner } from "../ui/Spinner";
 import { getDb } from "../powersync";
 import { clearEntries, exportLog, getEntries, getServerEntries, subscribe } from "./log";
 import { discardOps, failingTableFrom, inspectQueue, summarizeQueue, type QueuedOp } from "./queue";
+import { downloadExport, exportStranded } from "../sync/repair";
 
 const APP_VERSION = "0.1.0";
 
@@ -97,9 +98,20 @@ export function DiagnosticsPanel() {
 
   const stuck = queueOps.filter((o) => o.orphaned);
 
+  /**
+   * Discarding removes the UPLOAD INSTRUCTION, not the row — the data stays on
+   * the device and "Check for unsynced data" can re-upload it. But an earlier
+   * version of this button offered no export and no explanation, and a user
+   * lost expenses they could no longer identify. So: always export first, and
+   * always point at the recovery path.
+   */
   async function discardStuck() {
     setDiscarding(true);
     try {
+      // Export BEFORE deleting. Never the last copy.
+      downloadExport(exportStranded(
+        stuck.map((o) => ({ table: o.table, id: o.rowId, label: `${o.op} ${o.table}`, row: {} })),
+      ));
       await discardOps(stuck.map((o) => o.id));
       refreshQueue();
     } finally {
@@ -192,7 +204,9 @@ export function DiagnosticsPanel() {
           <span className="muted" style={{ fontSize: 12 }}>
             These refer to something that no longer exists, so they&apos;ll never upload —
             and they&apos;re blocking everything queued behind them. Discarding them lets
-            the rest of your data sync.
+            the rest of your data sync. <strong>Your data stays on this device</strong>:
+            a copy is saved first, and &ldquo;Check for unsynced data&rdquo; above can
+            upload it once the underlying problem is fixed.
           </span>
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11.5 }} className="muted">
             {[...new Set(stuck.map((o) => `${o.table} — ${o.reason}`))].map((line) => (
@@ -207,7 +221,7 @@ export function DiagnosticsPanel() {
             style={{ justifySelf: "start" }}
           >
             {discarding ? <Spinner /> : null}
-            Discard {stuck.length} stuck change{stuck.length === 1 ? "" : "s"}
+            Save a copy &amp; discard {stuck.length}
           </button>
         </div>
       )}
