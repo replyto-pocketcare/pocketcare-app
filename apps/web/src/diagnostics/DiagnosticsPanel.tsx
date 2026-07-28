@@ -15,7 +15,7 @@ import { useSyncStatus } from "../sync";
 import { Spinner } from "../ui/Spinner";
 import { getDb } from "../powersync";
 import { clearEntries, exportLog, getEntries, getServerEntries, subscribe } from "./log";
-import { discardOps, inspectQueue, summarizeQueue, type QueuedOp } from "./queue";
+import { discardOps, failingTableFrom, inspectQueue, summarizeQueue, type QueuedOp } from "./queue";
 
 const APP_VERSION = "0.1.0";
 
@@ -26,7 +26,7 @@ const APP_VERSION = "0.1.0";
  * row blocks everything behind it — so this has to be visible ON THE DEVICE,
  * not in a console the user doesn't have.
  */
-function useUploadQueue(): { ops: QueuedOp[]; depth: number | null; refresh: () => void } {
+function useUploadQueue(failingTable: string | undefined): { ops: QueuedOp[]; depth: number | null; refresh: () => void } {
   const [ops, setOps] = useState<QueuedOp[]>([]);
   const [depth, setDepth] = useState<number | null>(null);
 
@@ -43,14 +43,14 @@ function useUploadQueue(): { ops: QueuedOp[]; depth: number | null; refresh: () 
         if (alive) setDepth(null);
       }
       try {
-        const list = await inspectQueue();
+        const list = await inspectQueue(failingTable);
         if (alive) setOps(list);
       } catch {
         if (alive) setOps([]);
       }
     })();
     return () => { alive = false; };
-  }, []);
+  }, [failingTable]);
 
   useEffect(() => {
     refresh();
@@ -63,7 +63,6 @@ function useUploadQueue(): { ops: QueuedOp[]; depth: number | null; refresh: () 
 
 export function DiagnosticsPanel() {
   const sync = useSyncStatus();
-  const { ops: queueOps, depth: queued, refresh: refreshQueue } = useUploadQueue();
   const [discarding, setDiscarding] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -72,6 +71,12 @@ export function DiagnosticsPanel() {
   // polling. Both snapshot functions MUST return a stable reference — an
   // inline `() => []` allocates a new array per call and loops React forever.
   const entries = useSyncExternalStore(subscribe, getEntries, getServerEntries);
+
+  // Which table the server is rejecting. This is what identifies the blocking
+  // ops — a client can't see that a parent row is missing SERVER-side, so the
+  // failure itself is the only reliable signal.
+  const failingTable = failingTableFrom(entries);
+  const { ops: queueOps, depth: queued, refresh: refreshQueue } = useUploadQueue(failingTable);
 
   const { data: pendingBug = [] } = useQuery<{ n: number }>(
     "SELECT COUNT(*) AS n FROM bug_reports WHERE deleted_at IS NULL",
@@ -207,11 +212,13 @@ export function DiagnosticsPanel() {
         </div>
       )}
 
-      {/* Pending queue, so a stuck sync is legible without a console. */}
+      {/* Pending queue, so a stuck sync is legible without a console. Shown
+          whenever anything is queued, not only when we've flagged a blocker —
+          a panel that says nothing is worse than one that says "12 pending". */}
       {queueOps.length > 0 && (
-        <details>
+        <details open={stuck.length > 0}>
           <summary className="muted" style={{ cursor: "pointer", fontSize: 12 }}>
-            Pending changes ({queueOps.length})
+            Pending changes ({queueOps.length}){failingTable ? ` · failing on ${failingTable}` : ""}
           </summary>
           <pre
             style={{

@@ -17,6 +17,21 @@
 import { getDb } from "../powersync";
 import { logEvent } from "./log";
 
+/**
+ * NOTE ON DETECTION — the first version of this was wrong.
+ *
+ * It flagged an op as stuck when its parent row was missing from the LOCAL
+ * database. That never fires: the parent exists locally, because that's where
+ * the user created it. What's missing is the parent ON THE SERVER, and a
+ * client can't see server state for a row that never uploaded.
+ *
+ * So the reliable signal is the failure itself: PowerSync retries in order and
+ * reports which table it's failing on. Every queued op for THAT table is a
+ * blocker, by definition — it's the thing that isn't going through. The local
+ * foreign-key check is kept as a secondary signal, since it does catch rows
+ * orphaned by a local delete.
+ */
+
 /** Parent lookups for the tables that can strand a child row. */
 const FOREIGN_KEYS: Record<string, { column: string; parentTable: string }> = {
   split_group_members: { column: "group_id", parentTable: "split_groups" },
@@ -35,7 +50,7 @@ export interface QueuedOp {
   readonly table: string;
   readonly op: string;
   readonly rowId: string;
-  /** True when this op references a parent row that doesn't exist locally. */
+  /** True when this op cannot upload: it's the one the server keeps rejecting. */
   readonly orphaned: boolean;
   readonly reason?: string | undefined;
 }
@@ -51,7 +66,11 @@ interface PsCrudRow {
  * Reads `ps_crud` directly — PowerSync's own `getCrudBatch()` caps at a batch
  * size and gives no row ids to delete, so it can't drive a repair UI.
  */
-export async function inspectQueue(limit = 200): Promise<QueuedOp[]> {
+export async function inspectQueue(
+  /** Table the sync layer is currently failing on, if known. */
+  failingTable?: string | undefined,
+  limit = 200,
+): Promise<QueuedOp[]> {
   const db = getDb();
   if (!db) return [];
 
@@ -78,6 +97,13 @@ export async function inspectQueue(limit = 200): Promise<QueuedOp[]> {
 
     let orphaned = false;
     let reason: string | undefined;
+
+    // Primary signal: the server is actively rejecting writes to this table.
+    // Everything queued for it is blocked, and blocks everything behind it.
+    if (failingTable && table === stripSchema(failingTable)) {
+      orphaned = true;
+      reason = "the server keeps rejecting this";
+    }
 
     const fk = FOREIGN_KEYS[table];
     // Only PUT/INSERT can be orphaned — a delete of a missing parent is fine.
@@ -130,4 +156,30 @@ export function summarizeQueue(ops: readonly QueuedOp[]): string {
   return orphans.length > 0
     ? `${ops.length} pending (${parts}) — ${orphans.length} STUCK: ${[...new Set(orphans.map((o) => `${o.table} (${o.reason})`))].join("; ")}`
     : `${ops.length} pending (${parts})`;
+}
+
+/** `pocketcare.split_group_members` -> `split_group_members`. */
+export function stripSchema(table: string): string {
+  const dot = table.lastIndexOf(".");
+  return dot >= 0 ? table.slice(dot + 1) : table;
+}
+
+/**
+ * Pull the failing table out of the most recent sync error.
+ *
+ * Prefers the structured `detail.table` the connector emits; falls back to
+ * parsing the console message, which is all we have on an older build.
+ */
+export function failingTableFrom(
+  entries: readonly { scope: string; message: string; detail?: Record<string, unknown> | undefined }[],
+): string | undefined {
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const e = entries[i]!;
+    if (e.scope !== "sync" && e.scope !== "console") continue;
+    const structured = e.detail?.["table"];
+    if (typeof structured === "string" && structured) return stripSchema(structured);
+    const m = e.message.match(/upload failed for ([\w.]+)/i);
+    if (m?.[1]) return stripSchema(m[1]);
+  }
+  return undefined;
 }
