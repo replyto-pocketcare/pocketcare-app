@@ -121,6 +121,16 @@ export function BellIcon({ size = 18, strokeWidth = 1.8 }: P) {
   );
 }
 
+/** Arrow up out of a tray. The mirror of DownloadIcon — don't confuse the two. */
+export function UploadIcon({ size = 18, strokeWidth = 1.8 }: P) {
+  return (
+    <svg {...base(size)} strokeWidth={strokeWidth} aria-hidden>
+      <path d="M12 16V4m0 0 4 4m-4-4-4 4" />
+      <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+    </svg>
+  );
+}
+
 /** Receipt with a torn bottom edge — reads as "paper bill" at 20px. */
 export function ReceiptIcon({ size = 18, strokeWidth = 1.8 }: P) {
   return (

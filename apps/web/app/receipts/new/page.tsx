@@ -18,7 +18,7 @@ import type { ReceiptDraft } from "@pocketcare/receipts";
 
 import { useBaseCurrency } from "../../../src/hooks";
 import { useEntitlement } from "../../../src/entitlement";
-import { CameraIcon, ReceiptIcon, DownloadIcon } from "../../../src/ui/icons";
+import { CameraIcon, ReceiptIcon, UploadIcon } from "../../../src/ui/icons";
 import { Spinner } from "../../../src/ui/Spinner";
 import {
   escalateToAi,
@@ -178,7 +178,7 @@ export default function NewReceiptPage() {
                   <CameraIcon size={18} /> {t("capture.takePhoto", "Take photo")}
                 </button>
                 <button className="btn ghost" type="button" onClick={() => uploadRef.current?.click()}>
-                  <DownloadIcon size={18} /> {t("capture.upload", "Upload a file")}
+                  <UploadIcon size={18} /> {t("capture.upload", "Upload a file")}
                 </button>
               </div>
               <p className="muted" style={{ fontSize: 12, margin: 0, maxWidth: 380 }}>
