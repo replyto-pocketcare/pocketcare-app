@@ -8,21 +8,31 @@
  * over WhatsApp in one message, which is usually faster than any round-trip
  * through a bug tracker.
  */
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useQuery } from "@powersync/react";
 
 import { useSyncStatus } from "../sync";
+import { Spinner } from "../ui/Spinner";
 import { getDb } from "../powersync";
 import { clearEntries, exportLog, getEntries, getServerEntries, subscribe } from "./log";
+import { discardOps, inspectQueue, summarizeQueue, type QueuedOp } from "./queue";
 
 const APP_VERSION = "0.1.0";
 
-/** Rows still waiting to reach the server — the number that explains "not syncing". */
-function useUploadQueueDepth(): number | null {
+/**
+ * What's waiting to reach the server, and whether any of it can never succeed.
+ *
+ * A stuck queue is the usual cause of "syncing isn't working", and one orphaned
+ * row blocks everything behind it — so this has to be visible ON THE DEVICE,
+ * not in a console the user doesn't have.
+ */
+function useUploadQueue(): { ops: QueuedOp[]; depth: number | null; refresh: () => void } {
+  const [ops, setOps] = useState<QueuedOp[]>([]);
   const [depth, setDepth] = useState<number | null>(null);
-  useEffect(() => {
+
+  const refresh = useCallback(() => {
     let alive = true;
-    const read = async () => {
+    void (async () => {
       try {
         const db = getDb();
         const stats = await (db as unknown as {
@@ -32,17 +42,29 @@ function useUploadQueueDepth(): number | null {
       } catch {
         if (alive) setDepth(null);
       }
-    };
-    void read();
-    const t = setInterval(read, 4000);
-    return () => { alive = false; clearInterval(t); };
+      try {
+        const list = await inspectQueue();
+        if (alive) setOps(list);
+      } catch {
+        if (alive) setOps([]);
+      }
+    })();
+    return () => { alive = false; };
   }, []);
-  return depth;
+
+  useEffect(() => {
+    refresh();
+    const t = setInterval(refresh, 5000);
+    return () => clearInterval(t);
+  }, [refresh]);
+
+  return { ops, depth, refresh };
 }
 
 export function DiagnosticsPanel() {
   const sync = useSyncStatus();
-  const queued = useUploadQueueDepth();
+  const { ops: queueOps, depth: queued, refresh: refreshQueue } = useUploadQueue();
+  const [discarding, setDiscarding] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -63,8 +85,22 @@ export function DiagnosticsPanel() {
     lastSyncedAt: sync.lastSyncedAt?.toISOString() ?? "never",
     queuedWrites: queued ?? "unknown",
     syncError: sync.error ?? "none",
+    // The queue summary is the single most diagnostic line in the whole log.
+    queue: summarizeQueue(queueOps),
     reportsFiled: pendingBug[0]?.n ?? 0,
   };
+
+  const stuck = queueOps.filter((o) => o.orphaned);
+
+  async function discardStuck() {
+    setDiscarding(true);
+    try {
+      await discardOps(stuck.map((o) => o.id));
+      refreshQueue();
+    } finally {
+      setDiscarding(false);
+    }
+  }
 
   async function share() {
     const text = exportLog(context);
@@ -129,6 +165,65 @@ export function DiagnosticsPanel() {
         >
           {sync.error}
         </div>
+      )}
+
+      {/* The repair path. Only offered for ops we've PROVEN can never succeed —
+          discarding a good op silently loses the user's data, so there is
+          deliberately no "clear everything" button. */}
+      {stuck.length > 0 && (
+        <div
+          style={{
+            display: "grid",
+            gap: 8,
+            padding: 12,
+            borderRadius: 10,
+            background: "color-mix(in srgb, var(--negative) 10%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--negative) 35%, transparent)",
+          }}
+        >
+          <strong style={{ fontSize: 13.5 }}>
+            {stuck.length} change{stuck.length === 1 ? "" : "s"} can&apos;t be saved
+          </strong>
+          <span className="muted" style={{ fontSize: 12 }}>
+            These refer to something that no longer exists, so they&apos;ll never upload —
+            and they&apos;re blocking everything queued behind them. Discarding them lets
+            the rest of your data sync.
+          </span>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11.5 }} className="muted">
+            {[...new Set(stuck.map((o) => `${o.table} — ${o.reason}`))].map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <button
+            className="btn"
+            type="button"
+            disabled={discarding}
+            onClick={() => void discardStuck()}
+            style={{ justifySelf: "start" }}
+          >
+            {discarding ? <Spinner /> : null}
+            Discard {stuck.length} stuck change{stuck.length === 1 ? "" : "s"}
+          </button>
+        </div>
+      )}
+
+      {/* Pending queue, so a stuck sync is legible without a console. */}
+      {queueOps.length > 0 && (
+        <details>
+          <summary className="muted" style={{ cursor: "pointer", fontSize: 12 }}>
+            Pending changes ({queueOps.length})
+          </summary>
+          <pre
+            style={{
+              margin: "8px 0 0", padding: 10, borderRadius: 8, background: "var(--surface-2)",
+              fontSize: 11, lineHeight: 1.5, maxHeight: 200, overflow: "auto", whiteSpace: "pre-wrap",
+            }}
+          >
+            {queueOps
+              .map((o) => `${o.op.padEnd(6)} ${o.table}${o.orphaned ? `  ⚠ ${o.reason}` : ""}`)
+              .join("\n")}
+          </pre>
+        </details>
       )}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

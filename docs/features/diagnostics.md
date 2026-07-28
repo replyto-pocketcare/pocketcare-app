@@ -76,6 +76,16 @@ flowchart TD
     Where -- nothing --> AdminE
 ```
 
+## The stuck-queue repair
+The most common cause of "syncing isn't working" is a **queued row that can never upload**. PowerSync retries the queue in order, forever — so if one row references a parent that never reached the server (FK violation, or an RLS check that depends on that parent existing), it fails permanently and **every write behind it is blocked**.
+
+Until this existed, seeing that required a browser console. On a phone there isn't one. That is the exact gap this whole feature is meant to close, so the queue is now legible *in the app*:
+
+- **Pending changes** — an expandable list of queued ops with table and operation.
+- **Stuck detection** — each `PUT` is checked against a small foreign-key map; if the parent row is missing locally it's flagged with the reason.
+- **Discard** — offered **only** for ops proven to be orphaned. There is deliberately **no "clear everything" button**: discarding a good op silently loses a user's data.
+- The queue summary rides along in the shared log and in auto-reports, so it reaches `/admin/errors` without anyone being asked to look.
+
 ## The Diagnostics panel
 Lives in Settings. Shows, at a glance and without reading a log:
 
