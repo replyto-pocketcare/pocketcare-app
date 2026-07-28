@@ -697,7 +697,14 @@ export const AppSchema = new Schema({
 
 export type Database = (typeof AppSchema)["types"];
 
-export { SupabaseConnector, setSyncDiagnosticSink, type SyncDiagnostic } from "./connector.ts";
+export {
+  SupabaseConnector,
+  setSyncDiagnosticSink,
+  setFaultInjection,
+  getFaultInjection,
+  type SyncDiagnostic,
+  type FaultInjection,
+} from "./connector.ts";
 export {
   createSupabaseClient,
   ensureUser,

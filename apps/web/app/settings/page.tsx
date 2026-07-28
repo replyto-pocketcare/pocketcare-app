@@ -9,6 +9,7 @@ import { Billing } from "../../src/ui/Billing";
 import { PaymentHandlePanel } from "../../src/payments/PaymentHandlePanel";
 import { DiagnosticsPanel } from "../../src/diagnostics/DiagnosticsPanel";
 import { RepairPanel } from "../../src/sync/RepairPanel";
+import { FaultInjectionPanel } from "../../src/diagnostics/FaultInjectionPanel";
 import { useTheme, setTheme } from "../../src/theme";
 import { useBaseCurrency } from "../../src/hooks";
 import { setBaseCurrency, useAmountsHidden, setAmountsHidden } from "../../src/prefs";
@@ -223,6 +224,8 @@ export default function SettingsPage() {
       <RepairPanel />
 
       <DiagnosticsPanel />
+
+      <FaultInjectionPanel />
 
       <Billing />
 

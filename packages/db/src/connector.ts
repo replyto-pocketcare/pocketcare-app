@@ -42,6 +42,50 @@ export function setSyncDiagnosticSink(fn: ((d: SyncDiagnostic) => void) | null):
   diagnosticSink = fn;
 }
 
+/**
+ * FAULT INJECTION — dev only.
+ *
+ * Every bug in this area has been one that reasoning missed and only running
+ * the code would have caught: a deferred constraint that could never hold, a
+ * getSnapshot that looped React, a stuck-op detector that could never fire.
+ * Those paths are unreachable in normal use — you cannot casually produce an
+ * RLS denial on demand — so they went untested.
+ *
+ * This makes them reachable: force uploads to a chosen table to fail with a
+ * chosen SQLSTATE, and exercise the whole classify → retry → quarantine →
+ * recover path deliberately.
+ */
+export interface FaultInjection {
+  /** Unqualified table name, or "*" for everything. */
+  table: string;
+  /** SQLSTATE to report, e.g. "42501" (RLS) or "23503" (foreign key). */
+  code: string;
+  message?: string | undefined;
+  status?: number | undefined;
+}
+
+let fault: FaultInjection | null = null;
+
+/** Install (or clear) a fault. No-op in production builds — see the app's gate. */
+export function setFaultInjection(f: FaultInjection | null): void {
+  fault = f;
+}
+
+export function getFaultInjection(): FaultInjection | null {
+  return fault;
+}
+
+function injectedErrorFor(table: string): { code: string; message: string; status?: number } | null {
+  if (!fault) return null;
+  const bare = table.includes(".") ? table.slice(table.lastIndexOf(".") + 1) : table;
+  if (fault.table !== "*" && fault.table !== bare) return null;
+  return {
+    code: fault.code,
+    message: fault.message ?? `injected fault (${fault.code}) for ${bare}`,
+    ...(fault.status !== undefined ? { status: fault.status } : {}),
+  };
+}
+
 function reportSyncDiagnostic(d: SyncDiagnostic): void {
   try {
     diagnosticSink?.(d);
@@ -96,8 +140,10 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
       }
       const run = ops.slice(i, j);
 
-      let error: unknown = null;
-      switch (op.op) {
+      // Fault injection short-circuits the request entirely, so a forced
+      // failure costs nothing and can't accidentally write.
+      let error: unknown = injectedErrorFor(`${this.schema}.${op.table}`);
+      if (!error) switch (op.op) {
         case UpdateType.PUT: {
           const rows = run.map((o) => ({ id: o.id, ...o.opData }));
           ({ error } = await rel.upsert(rows));
