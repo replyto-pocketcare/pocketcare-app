@@ -240,8 +240,13 @@ function SplitInner() {
           <section key={line.id} className="card" style={{ padding: 16, display: "grid", gap: 12, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline", flexWrap: "wrap" }}>
               <div style={{ minWidth: 0 }}>
-                <strong style={{ fontSize: 15 }}>{line.description || t(`kind.${line.kind}`, line.kind)}</strong>
-                <div className="muted" style={{ fontSize: 12 }}>
+                {/* display:block + an explicit line-height: as a bare inline
+                    element the line box is too short for tall glyphs and the
+                    heading gets visibly clipped at the top of the card. */}
+                <strong style={{ fontSize: 15, display: "block", lineHeight: 1.4 }}>
+                  {line.description || t(`kind.${line.kind}`, line.kind)}
+                </strong>
+                <div className="muted" style={{ fontSize: 12, lineHeight: 1.8 }}>
                   {isCharge(line.kind) && <span className="chip" style={{ marginRight: 6, fontSize: 11 }}>{t(`kind.${line.kind}`, line.kind)}</span>}
                   {line.quantity !== null && (
                     <span>
@@ -335,46 +340,106 @@ function SplitInner() {
         );
       })}
 
-      {/* ---- sticky per-person summary ---- */}
+      {/* ---- sticky summary ----
+          Sits on the page background (not the surface colour) so the card
+          inside reads as a card, matching the line cards above rather than
+          looking like a cut-off strip. */}
       <div
         style={{
           position: "sticky",
           bottom: 0,
-          background: "var(--surface)",
-          borderTop: "1px solid var(--border)",
-          padding: "12px 0",
-          display: "grid",
-          gap: 10,
           zIndex: 5,
+          paddingTop: 8,
+          paddingBottom: 8,
+          background: "linear-gradient(to top, var(--bg) 72%, transparent)",
         }}
       >
-        {allocation?.ok ? (
-          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: 14 }}>
-            {memberIds.map((uid) => (
-              <span key={uid} style={{ fontWeight: uid === me ? 700 : 400 }}>
-                {nameOf(uid)}: {fmt(money(allocation.value.byUser.get(uid) ?? 0, cur))}
-              </span>
-            ))}
-            <span className="muted" style={{ marginLeft: "auto" }}>
-              {t("split.total", "Total")}: {fmt(money(allocation.value.total, cur))}
-            </span>
-          </div>
-        ) : (
-          <div style={{ fontSize: 13, color: "var(--negative)" }}>
-            {firstProblem
-              ? t("split.fixLines", "Fix the highlighted lines to continue.")
-              : allocation?.message}
-          </div>
-        )}
+        <section
+          className="card"
+          style={{ padding: 16, display: "grid", gap: 12, boxShadow: "var(--shadow-lg)" }}
+        >
+          {allocation?.ok ? (
+            <>
+              {/* Per-person tiles. A row of "Name: ₹x" runs together at a glance;
+                  stacking the label over the amount makes each person scannable. */}
+              <div
+                style={{
+                  display: "grid",
+                  gap: 8,
+                  gridTemplateColumns: "repeat(auto-fit, minmax(min(120px, 100%), 1fr))",
+                }}
+              >
+                {memberIds.map((uid) => {
+                  const isMe = uid === me;
+                  return (
+                    <div
+                      key={uid}
+                      style={{
+                        display: "grid",
+                        gap: 2,
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        minWidth: 0,
+                        background: isMe ? "var(--accent-ghost)" : "var(--surface-2)",
+                        border: `1px solid ${isMe ? "var(--accent-soft)" : "transparent"}`,
+                      }}
+                    >
+                      <span
+                        className="muted"
+                        style={{
+                          fontSize: 11.5,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {nameOf(uid)}
+                      </span>
+                      <strong style={{ fontSize: 15, fontVariantNumeric: "tabular-nums" }}>
+                        {fmt(money(allocation.value.byUser.get(uid) ?? 0, cur))}
+                      </strong>
+                    </div>
+                  );
+                })}
+              </div>
 
-        {error && <div style={{ color: "var(--negative)", fontSize: 13 }}>{error}</div>}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  gap: 12,
+                  paddingTop: 10,
+                  borderTop: "1px solid var(--border)",
+                }}
+              >
+                <span className="muted" style={{ fontSize: 13 }}>{t("split.total", "Total")}</span>
+                <strong style={{ fontSize: 17, fontVariantNumeric: "tabular-nums" }}>
+                  {fmt(money(allocation.value.total, cur))}
+                </strong>
+              </div>
+            </>
+          ) : (
+            <div style={{ fontSize: 13, color: "var(--negative)" }}>
+              {firstProblem
+                ? t("split.fixLines", "Fix the highlighted lines to continue.")
+                : allocation?.message}
+            </div>
+          )}
 
-        <div>
-          <button className="btn" type="button" disabled={!canSave} onClick={() => void save()}>
+          {error && <div style={{ color: "var(--negative)", fontSize: 13 }}>{error}</div>}
+
+          <button
+            className="btn"
+            type="button"
+            disabled={!canSave}
+            onClick={() => void save()}
+            style={{ width: "100%", justifyContent: "center" }}
+          >
             {saving ? <Spinner /> : null}
             {t("split.save", "Save split")}
           </button>
-        </div>
+        </section>
       </div>
     </div>
   );
