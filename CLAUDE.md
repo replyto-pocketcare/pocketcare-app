@@ -11,6 +11,11 @@ Offline-first, multi-currency personal expense & wealth manager. **Web-only** (N
 3. All tables + RPCs live in the **`pocketcare`** Postgres schema → direct calls must be schema-qualified (`supabase.schema('pocketcare').rpc(...)`) or PostgREST 404s.
 4. Server is authoritative; the client is an offline cache reconciled via sync.
 
+## Writing migrations
+- **Schema-qualify every function call** — `pocketcare.is_group_member(...)`, not bare. Older migrations (0011) get away with a bare call only because they `set search_path` at the top of the file; copying their policy shape without that fails with `function is_group_member(uuid, uuid) does not exist`.
+- **Make migrations re-runnable.** `create table`/`create index` take `if not exists`, but `create policy` and `create constraint trigger` do **not** — precede each with `drop policy if exists` / `drop trigger if exists`. A migration that fails halfway (as 0040 first did) otherwise can't be retried, because the statements before the failure already applied.
+- Validate before shipping: `pip install pglast --break-system-packages`, then parse the file.
+
 ## Adding a synced table (all four steps or it won't sync)
 1. Add to `AppSchema` (`packages/db/src/index.ts`).
 2. Add a migration `supabase/migrations/00xx_*.sql` (RLS owner policy + grants).

@@ -53,6 +53,7 @@ create index if not exists receipt_scans_user_idx on pocketcare.receipt_scans(us
 create index if not exists receipt_scans_txn_idx  on pocketcare.receipt_scans(transaction_id);
 
 alter table pocketcare.receipt_scans enable row level security;
+drop policy if exists receipt_scans_owner on pocketcare.receipt_scans;
 create policy receipt_scans_owner on pocketcare.receipt_scans for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 grant all on table pocketcare.receipt_scans to anon, authenticated, service_role;
@@ -88,9 +89,13 @@ create index if not exists expense_items_expense_idx on pocketcare.expense_items
 create index if not exists expense_items_group_idx   on pocketcare.expense_items(group_id);
 
 alter table pocketcare.expense_items enable row level security;
+-- Schema-qualified on purpose: 0011 could call this bare because it set a
+-- top-level `search_path`, but relying on session state here fails with
+-- "function is_group_member(uuid, uuid) does not exist".
+drop policy if exists ei_all on pocketcare.expense_items;
 create policy ei_all on pocketcare.expense_items for all
-  using (is_group_member(group_id, auth.uid()))
-  with check (is_group_member(group_id, auth.uid()));
+  using (pocketcare.is_group_member(group_id, auth.uid()))
+  with check (pocketcare.is_group_member(group_id, auth.uid()));
 grant all on table pocketcare.expense_items to anon, authenticated, service_role;
 
 -- ---------------------------------------------------------------------------
@@ -122,9 +127,10 @@ create index if not exists eis_group_idx   on pocketcare.expense_item_shares(gro
 create index if not exists eis_user_idx    on pocketcare.expense_item_shares(user_id);
 
 alter table pocketcare.expense_item_shares enable row level security;
+drop policy if exists eis_all on pocketcare.expense_item_shares;
 create policy eis_all on pocketcare.expense_item_shares for all
-  using (is_group_member(group_id, auth.uid()))
-  with check (is_group_member(group_id, auth.uid()));
+  using (pocketcare.is_group_member(group_id, auth.uid()))
+  with check (pocketcare.is_group_member(group_id, auth.uid()));
 grant all on table pocketcare.expense_item_shares to anon, authenticated, service_role;
 
 -- ---------------------------------------------------------------------------
@@ -174,6 +180,7 @@ begin
 end;
 $$;
 
+drop trigger if exists expense_items_sum_check on pocketcare.expense_items;
 create constraint trigger expense_items_sum_check
   after insert or update or delete on pocketcare.expense_items
   deferrable initially deferred
