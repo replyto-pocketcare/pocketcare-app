@@ -1,16 +1,29 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { useEntitlement } from "../../src/entitlement";
 import { LockIcon } from "../../src/ui/icons";
 import { InsightFeed } from "../../src/ui/feed/InsightFeed";
-import { DividendPanel } from "../../src/market/DividendPanel";
-import { ProjectionPanel } from "../../src/market/ProjectionPanel";
 
+/**
+ * Insights is the card feed and nothing else — no page title, no side panels.
+ * The dividend and projection panels that used to live here are now generated
+ * as insight cards (see src/insights/generators.ts); their interactive controls
+ * moved to /investments, where the holdings they describe already are.
+ */
 export default function InsightsPage() {
   const { t } = useTranslation("insights");
   const { isPaid } = useEntitlement();
+
+  // Drop the shell's padding/width cap so the feed is genuinely full-bleed.
+  // Only for the paid feed — the upgrade prompt below is normal page content.
+  useEffect(() => {
+    if (!isPaid) return;
+    document.body.dataset.fullbleed = "true";
+    return () => { delete document.body.dataset.fullbleed; };
+  }, [isPaid]);
 
   if (!isPaid) {
     return (
@@ -30,15 +43,5 @@ export default function InsightsPage() {
     );
   }
 
-  return (
-    <div style={{ display: "grid", gap: 14 }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0 }}>{t("title")}</h1>
-        <Link href="/statements" className="muted" style={{ fontSize: 13 }}>{t("statements")}</Link>
-      </div>
-      <DividendPanel />
-      <ProjectionPanel />
-      <InsightFeed />
-    </div>
-  );
+  return <InsightFeed />;
 }

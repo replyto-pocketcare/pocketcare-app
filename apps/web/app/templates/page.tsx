@@ -14,7 +14,7 @@ import { KebabMenu } from "../../src/ui/KebabMenu";
 import { useConfirm } from "../../src/ui/Confirm";
 import { softDelete } from "../../src/write";
 import { useTemplates, type Template } from "../../src/templates/hooks";
-import { createTemplate, updateTemplate, reorderTemplates, FREE_TEMPLATE_LIMIT } from "../../src/templates/write";
+import { createTemplate, updateTemplate, FREE_TEMPLATE_LIMIT } from "../../src/templates/write";
 
 export default function TemplatesPage() {
   const { t } = useTranslation("templates");
@@ -66,14 +66,6 @@ export default function TemplatesPage() {
     } finally { setBusy(false); }
   }
 
-  async function move(i: number, dir: -1 | 1) {
-    const j = i + dir;
-    if (j < 0 || j >= templates.length) return;
-    const ids = templates.map((t) => t.id);
-    [ids[i], ids[j]] = [ids[j]!, ids[i]!];
-    await reorderTemplates(ids);
-  }
-
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -95,17 +87,11 @@ export default function TemplatesPage() {
           <p className="muted" style={{ fontSize: 13 }}>{t("noTemplates")}</p>
         ) : (
           <div className="list-grid">
-            {templates.map((tpl, i) => (
+            {templates.map((tpl) => (
               <div key={tpl.id} className="card lift" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                  <div style={{ display: "grid" }}>
-                    <button className="chip" style={{ padding: "0 6px", fontSize: 11, lineHeight: 1.2, opacity: i === 0 ? 0.3 : 1 }} disabled={i === 0} onClick={() => void move(i, -1)} aria-label={t("moveUp")}>▲</button>
-                    <button className="chip" style={{ padding: "0 6px", fontSize: 11, lineHeight: 1.2, opacity: i === templates.length - 1 ? 0.3 : 1 }} disabled={i === templates.length - 1} onClick={() => void move(i, 1)} aria-label={t("moveDown")}>▼</button>
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tpl.name}</div>
-                    <div className="muted" style={{ fontSize: 12 }}>{t(`type.${tpl.type === "income" ? "income" : "expense"}`)}{tpl.amount != null ? ` · ${fmt(money(tpl.amount, tpl.currency ?? base))}` : ""}{tpl.split_group_id ? ` · ${t("split")}` : ""}</div>
-                  </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tpl.name}</div>
+                  <div className="muted" style={{ fontSize: 12 }}>{t(`type.${tpl.type === "income" ? "income" : "expense"}`)}{tpl.amount != null ? ` · ${fmt(money(tpl.amount, tpl.currency ?? base))}` : ""}{tpl.split_group_id ? ` · ${t("split")}` : ""}</div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                   <Link href={`/transactions/new?template=${tpl.id}`} className="chip">{t("use")}</Link>

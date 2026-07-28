@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useInsightStack } from "../../insights/useInsightStack";
 import { InsightCard } from "./InsightCard";
 import { ProgressRail } from "./ProgressRail";
+import { MaterialIcon } from "../MaterialIcon";
 import type { InsightCard as Card } from "../../insights/types";
 
 // ---- responsive helpers ----
@@ -175,10 +176,13 @@ function DeckButton({ side, onClick }: { side: "left" | "right"; onClick: () => 
       style={{
         position: "absolute", top: "50%", transform: "translateY(-50%)", [side]: 8, zIndex: 30,
         width: 42, height: 42, borderRadius: 999, border: "1px solid var(--border)",
-        background: "var(--surface)", boxShadow: "var(--shadow)", cursor: "pointer", fontSize: 18, color: "var(--text)",
+        background: "var(--surface)", boxShadow: "var(--shadow)", cursor: "pointer", color: "var(--text)",
+        display: "grid", placeItems: "center",
       } as React.CSSProperties}
     >
-      {side === "left" ? "‹" : "›"}
+      <span style={{ transform: side === "left" ? "rotate(180deg)" : undefined, display: "grid" }}>
+        <MaterialIcon name="chevron_right" size={20} />
+      </span>
     </button>
   );
 }
@@ -190,8 +194,8 @@ export function InsightFeed() {
 
   if (total === 0) {
     return (
-      <div className="card fade-up" style={{ padding: 32, textAlign: "center", display: "grid", gap: 8, maxWidth: 460 }}>
-        <div style={{ fontSize: 28 }}>✦</div>
+      <div className="card fade-up" style={{ padding: 32, textAlign: "center", display: "grid", gap: 8, maxWidth: 460, margin: "24px auto" }}>
+        <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><MaterialIcon name="insights" size={30} /></div>
         <h2>Your stack is empty for now</h2>
         <p className="muted">Add a few transactions and PocketCare will start surfacing weekly recaps, budget alerts and savings wins here.</p>
       </div>
@@ -199,9 +203,9 @@ export function InsightFeed() {
   }
 
   return (
-    // Negative bottom margin cancels the shell's bottom padding (FAB space) so
-    // the page itself doesn't add a second scrollbar next to the feed's swipe.
-    <div ref={ref} className="fade-up" style={{ position: "relative", marginBottom: -88 }}>
+    // The page is full-bleed (body[data-fullbleed]), so there's no shell padding
+    // left to cancel — useFillHeight sizes the feed to the viewport directly.
+    <div ref={ref} className="fade-up" style={{ position: "relative" }}>
       <div style={{ height }}>
         <div style={{ position: "relative", height: "100%" }}>
           <ProgressRail total={total} activeIndex={activeIndex} layout={isDesktop ? "desktop" : "mobile"} onJump={setActiveIndex} />

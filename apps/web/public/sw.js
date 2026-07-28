@@ -6,7 +6,12 @@
 // and (previously) falling back to the HTML shell on any failure caused the
 // installed PWA to hang: the DB worker/WASM would be served the wrong response
 // and PowerSync never finished initializing.
-const CACHE = "pocketcare-v3";
+const CACHE = "pocketcare-v4";
+
+// Static assets that must survive going offline. The icon font is the important
+// one: it's self-hosted precisely so the navigation still renders icons with no
+// network, and the fetch handler below serves it cache-first.
+const ASSETS = ["/fonts/pocketcare-icons.woff2"];
 
 // Top-level app routes precached so they load (offline) as their OWN page
 // instead of bouncing to the dashboard. Dynamic routes (e.g. /transactions/[id])
@@ -21,7 +26,7 @@ self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE).then((c) =>
       Promise.all(
-        ROUTES.map((r) => fetch(r, { credentials: "same-origin" })
+        [...ROUTES, ...ASSETS].map((r) => fetch(r, { credentials: "same-origin" })
           .then((res) => { if (res.ok) return c.put(r, res); })
           .catch(() => {})),
       ),
@@ -73,10 +78,25 @@ self.addEventListener("notificationclick", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const { request } = e;
-  // Only handle same-origin top-level navigations. Let the browser natively
-  // handle scripts, wasm, workers, images, and every cross-origin request.
-  if (request.method !== "GET" || request.mode !== "navigate") return;
+  if (request.method !== "GET") return;
   if (new URL(request.url).origin !== self.location.origin) return;
+
+  // The self-hosted icon font: cache-first, so the nav renders icons offline.
+  // Scoped tightly to /fonts/ — scripts, wasm and the DB worker must NOT be
+  // intercepted (doing so previously hung the installed PWA).
+  if (new URL(request.url).pathname.startsWith("/fonts/")) {
+    e.respondWith(
+      caches.match(request).then((hit) => hit || fetch(request).then((res) => {
+        if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(request, copy)).catch(() => {}); }
+        return res;
+      })),
+    );
+    return;
+  }
+
+  // Otherwise only handle top-level navigations. Let the browser natively
+  // handle scripts, wasm, workers, images, and every cross-origin request.
+  if (request.mode !== "navigate") return;
 
   e.respondWith(
     fetch(request)

@@ -10,6 +10,7 @@ import { useSyncStatus, syncMessage } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
 import { MenuIcon, PlusIcon, DownloadIcon, BellIcon, ReceiptIcon } from "../src/ui/icons";
+import { MaterialIcon, type MaterialIconName } from "../src/ui/MaterialIcon";
 import { AddSpeedDial } from "../src/ui/AddSpeedDial";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
 import { TrialNotice } from "../src/ui/TrialNotice";
@@ -116,7 +117,7 @@ function NotifNavItem({ active, onNavigate }: { active: boolean; onNavigate: () 
   const { t } = useTranslation();
   return (
     <Link href="/notifications" onClick={onNavigate} style={navItem(active)}>
-      <span style={{ width: 20, display: "grid", placeItems: "center", opacity: 0.75 }}><BellIcon size={18} /></span>
+      <MaterialIcon name="notifications" size={20} />
       {t("nav.notifications", "Notifications")}
       {unread > 0 && (
         <span style={{
@@ -131,35 +132,35 @@ function NotifNavItem({ active, onNavigate }: { active: boolean; onNavigate: () 
 
 const APP_VERSION = "0.1.0";
 
-const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: string; icon: string; beta?: boolean }[] }[] = [
+const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: string; icon: MaterialIconName; beta?: boolean }[] }[] = [
   { title: "", items: [
-    { href: "/", tkey: "nav.home", label: "Dashboard", icon: "◧" },
-    { href: "/assistant", tkey: "nav.assistant", label: "Ask PocketCare", icon: "✦" },
+    { href: "/", tkey: "nav.home", label: "Dashboard", icon: "space_dashboard" },
+    { href: "/assistant", tkey: "nav.assistant", label: "Ask PocketCare", icon: "auto_awesome" },
   ] },
   { title: "Money", items: [
-    { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "▤" },
-    { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "⇅" },
-    { href: "/templates", tkey: "nav.templates", label: "Templates", icon: "▧" },
-    { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "▭" },
-    { href: "/friends", tkey: "nav.friends", label: "Splits", icon: "◑" },
-    { href: "/groups", tkey: "nav.groups", label: "Groups & trips", icon: "◇" },
-    { href: "/search", tkey: "nav.search", label: "Search", icon: "⌕" },
+    { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "account_balance" },
+    { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "swap_horiz" },
+    { href: "/templates", tkey: "nav.templates", label: "Templates", icon: "bookmarks" },
+    { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "credit_card" },
+    { href: "/friends", tkey: "nav.friends", label: "Splits", icon: "call_split" },
+    { href: "/groups", tkey: "nav.groups", label: "Groups & trips", icon: "groups" },
+    { href: "/search", tkey: "nav.search", label: "Search", icon: "search" },
   ] },
   { title: "Planning", items: [
-    { href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "◔" },
-    { href: "/goals", tkey: "nav.goals", label: "Goals", icon: "◎" },
-    { href: "/cashflow", tkey: "nav.cashflow", label: "Planned Cashflow", icon: "⇌", beta: true },
-    { href: "/recurring", tkey: "nav.recurring", label: "Recurring", icon: "↻" },
-    { href: "/loans", tkey: "nav.loans", label: "Loans", icon: "≈" },
+    { href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "donut_small" },
+    { href: "/goals", tkey: "nav.goals", label: "Goals", icon: "flag" },
+    { href: "/cashflow", tkey: "nav.cashflow", label: "Planned Cashflow", icon: "waterfall_chart", beta: true },
+    { href: "/recurring", tkey: "nav.recurring", label: "Recurring", icon: "autorenew" },
+    { href: "/loans", tkey: "nav.loans", label: "Loans", icon: "request_quote" },
   ] },
   { title: "Growth", items: [
-    { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "▲" },
-    { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "◱" },
-    { href: "/statements", tkey: "nav.statements", label: "Statements", icon: "▦" },
+    { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "trending_up" },
+    { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "insights" },
+    { href: "/statements", tkey: "nav.statements", label: "Statements", icon: "description" },
   ] },
   { title: "", items: [
-    { href: "/settings", tkey: "nav.settings", label: "Settings", icon: "◇" },
-    { href: "/help", tkey: "nav.help", label: "Help & FAQ", icon: "?" },
+    { href: "/settings", tkey: "nav.settings", label: "Settings", icon: "settings" },
+    { href: "/help", tkey: "nav.help", label: "Help & FAQ", icon: "help" },
   ] },
 ];
 
@@ -260,10 +261,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="shell">
-      <GlobalLoader />
+    <>
+      {/* App-wide banners must NOT be children of `.shell`.
+          `.shell` is `display: grid; grid-template-columns: 248px 1fr`, and both
+          banners are `position: sticky` — which, unlike `fixed`, still
+          participates in grid flow. So a rendered banner claimed the first grid
+          cell and pushed the sidebar into column 2 and `<main>` off-screen
+          entirely. It only reproduced when a banner was actually visible (a
+          sync problem, or simply going offline), which is why it survived this
+          long. Rendering them above the grid also reads better: a global
+          message should span the full width, not sit beside the nav. */}
       <OfflineBanner />
       <SyncProblemsBanner />
+      <div className="shell">
+        {/* Safe inside the grid: `position: fixed` children are taken out of
+            flow and never form a grid area. */}
+        <GlobalLoader />
       {/* Mobile top bar */}
       <div className="topbar">
         <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}><MenuIcon /></button>
@@ -286,7 +299,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               )}
               {g.items.map((n) => (
                 <Link key={n.href} href={n.href} style={navItem(isActive(n.href))} onClick={() => setMenuOpen(false)}>
-                  <span style={{ width: 20, textAlign: "center", opacity: 0.75 }}>{n.icon}</span>
+                  <MaterialIcon name={n.icon} size={20} />
                   {t(n.tkey, n.label)}
                   {n.beta && <span className="beta-badge sm" style={{ marginLeft: "auto" }}>BETA</span>}
                 </Link>
@@ -302,7 +315,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           )}
           <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => { setShowBug(true); setMenuOpen(false); }}>
-            💬 Feedback
+            <MaterialIcon name="chat_bubble" size={16} /> Feedback
           </button>
           {!standalone && (
             <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => setShowInstall(true)}>
@@ -329,7 +342,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="chip"
             style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16 }}
           >
-            <span style={{ fontSize: 16, lineHeight: 1 }}>‹</span> Back
+            <MaterialIcon name="arrow_back" size={16} /> Back
           </button>
         )}
         {(() => {
@@ -388,7 +401,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           ]}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

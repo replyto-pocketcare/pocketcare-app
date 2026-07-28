@@ -85,8 +85,54 @@ button { font-family: inherit; }
   box-shadow: var(--shadow);
   min-width: 0; /* allow shrinking inside flex/grid so charts/long content never force the page wider */
 }
-/* Recharts sizes to its parent; keep it from forcing an intrinsic min-width on mobile. */
-.recharts-responsive-container, .recharts-wrapper { min-width: 0 !important; max-width: 100%; }
+/* Recharts sizes to its parent; keep it from forcing an intrinsic min-width on
+   mobile, or an intrinsic min-HEIGHT inside a flex tile (which would push the
+   tile past its grid cell and reintroduce a scrollbar — see .dash-tile-body). */
+.recharts-responsive-container, .recharts-wrapper { min-width: 0 !important; max-width: 100%; min-height: 0 !important; }
+
+/* ---- Material Symbols Rounded (self-hosted 4 KB subset) ----------------------
+   Rendered by codepoint, not ligature — see src/ui/MaterialIcon.tsx for why.
+   `font-display: block` rather than `swap`: a brief blank is better than
+   flashing fallback glyphs where an icon belongs. */
+@font-face {
+  font-family: "PocketCare Icons";
+  src: url("/fonts/pocketcare-icons.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+.msym {
+  font-family: "PocketCare Icons";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: currentColor;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Separated row tiles (replaces hairline list dividers) -------------------
+   Rows are separated by space and a recessed surface rather than a 1px rule,
+   which reads cleaner at list length and matches modern iOS/Material lists. */
+.row-stack { display: grid; gap: 6px; }
+.row-tile {
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 11px 14px;
+  transition: background 0.15s;
+}
+.row-tile.is-interactive { cursor: pointer; }
+.row-tile.is-interactive:hover { background: var(--accent-ghost); }
+.row-tile.is-open { background: var(--accent-ghost); }
 
 .muted { color: var(--text-2); }
 
@@ -145,7 +191,9 @@ body[data-assist-chat="true"] { overflow: hidden; }
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  /* No `overscroll-behavior: contain` — the assistant page is a full-height
+     flex column where the page itself doesn't scroll, so containment buys
+     nothing here and it's the property that trapped scrolling elsewhere. */
   -webkit-overflow-scrolling: touch;
   display: grid;
   gap: 14px;
@@ -357,7 +405,16 @@ input[type="radio"]:disabled { opacity: 0.5; cursor: default; }
 /* Grid children must be allowed to shrink, or wide content (charts, tables,
    long strings) forces the whole page to scroll horizontally. */
 .shell > * { min-width: 0; }
+/* Defensive: only the sidebar and main are meant to occupy columns. Anything
+   else that ends up as a direct child spans the full width rather than
+   stealing a column — a `position: sticky` banner placed here once claimed
+   cell 1 and pushed <main> off-screen entirely. */
+.shell > :not(.sidebar):not(.shell-main) { grid-column: 1 / -1; }
 .shell-main { min-width: 0; }
+/* Full-bleed routes (e.g. /insights): the page IS the content, so drop the
+   shell's padding and width cap. Set via document.body.dataset.fullbleed —
+   same pattern as data-dash-edit / data-dash-empty. */
+body[data-fullbleed="true"] .shell-main { padding: 0 !important; max-width: none !important; }
 .sidebar {
   position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
   padding: 18px 14px; border-right: 1px solid var(--border-strong); background: var(--sidebar);
@@ -377,10 +434,21 @@ input[type="radio"]:disabled { opacity: 0.5; cursor: default; }
   grid-auto-flow: row dense;
   gap: 20px;
 }
-/* Each tile fills its allotted cell; content scrolls if it overflows the box. */
+/* Each tile fills its allotted cell and CLIPS — it never scrolls, in either
+   axis, at any width. A tile that scrolls captures the wheel/swipe and (with
+   `overscroll-behavior: contain`, which this used to set) refuses to chain it
+   back to the page, so scrolling over a tile froze the page. Content that
+   doesn't fit is designed out instead: lists cap at `useFitRows()` + a
+   "+N more" link, and charts flex to the remaining space. */
 .dash-tile { min-width: 0; min-height: 0; border-radius: 24px; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .dash-tile-body { height: 100%; min-height: 0; border-radius: 24px; overflow: hidden; }
-.dash-tile-body > section { height: 100%; box-sizing: border-box; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+.dash-tile-body > section {
+  height: 100%; box-sizing: border-box; min-height: 0;
+  display: flex; flex-direction: column;   /* lets the chart area flex + shrink */
+  overflow: hidden;
+}
+/* The flex child that holds a chart: must be allowed to shrink below content. */
+.tile-flex { flex: 1 1 auto; min-height: 0; }
 
 /* Subscriptions: list + add/simulator side column. Single column on narrow. */
 .subs-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
@@ -413,11 +481,16 @@ input[type="radio"]:disabled { opacity: 0.5; cursor: default; }
   .shell-main { padding: 16px 16px 96px !important; } /* bottom room for the FAB */
   .scrim { display: block; position: fixed; inset: 0; background: rgba(43, 39, 35, 0.42); z-index: 55; }
   .dash-cols { grid-template-columns: 1fr !important; }
-  /* On phones: single column, natural content heights (no fixed grid / clipping). */
+  /* On phones: single column, natural content heights (no fixed grid).
+     NOTE: the tile body deliberately keeps `overflow: hidden` from the base
+     rule — it is NOT overridden back to `visible` here. Two behaviours meant
+     the scroll-trapping bug could return on one form factor only, and the
+     860px breakpoint is not "mobile": a landscape phone or any tablet is above
+     it and took the desktop path. One code path, all widths. */
   .dash-grid { grid-template-columns: 1fr !important; grid-auto-rows: auto !important; }
   .dash-grid .dash-tile { grid-column: auto !important; grid-row: auto !important; }
-  .dash-tile-body { overflow: visible; }
-  .dash-tile-body > section { height: auto; overflow-y: visible; overflow-x: hidden; }
+  .dash-tile-body { height: auto; }
+  .dash-tile-body > section { height: auto; }
   h1 { font-size: 22px; }
 }
 

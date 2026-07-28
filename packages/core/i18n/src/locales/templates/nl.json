@@ -6,9 +6,10 @@
   "introPre": "Sjablonen zijn snelkoppelingen met één tik voor transacties die je vaak vastlegt. Voor salaris, huur en andere automatische schema's gebruik je ",
   "introLink": "Terugkerende betalingen & inkomsten",
   "noTemplates": "Nog geen sjablonen. Maak er een voor dingen die je vaak vastlegt — huur, salaris, boodschappen.",
-  "moveUp": "Omhoog",
-  "moveDown": "Omlaag",
-  "type": { "expense": "uitgave", "income": "inkomsten" },
+  "type": {
+    "expense": "uitgave",
+    "income": "inkomsten"
+  },
   "split": "gesplitst",
   "use": "Gebruiken",
   "actions": "Acties voor {{name}}",

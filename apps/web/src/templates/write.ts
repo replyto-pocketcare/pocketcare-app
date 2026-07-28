@@ -29,8 +29,6 @@ export interface TemplateInput {
 
 export async function createTemplate(t: TemplateInput): Promise<string> {
   const cur = getBaseCurrency();
-  const db = getDb();
-  const max = await db?.getOptional<{ s: number }>("SELECT MAX(IFNULL(sort,0)) AS s FROM transaction_templates WHERE deleted_at IS NULL");
   return insertRow("transaction_templates", {
     name: t.name.trim(), type: t.type,
     amount: t.amount != null ? fromMajor(t.amount, cur as CurrencyCode).amount : null,
@@ -38,7 +36,6 @@ export async function createTemplate(t: TemplateInput): Promise<string> {
     category_id: t.categoryId ?? null, description: t.description ?? null, note: t.note ?? null,
     payment_method: t.paymentMethod ?? null, labels: t.labels?.length ? t.labels.join(", ") : null,
     split_group_id: t.splitGroupId ?? null, split_mode: t.splitMode ?? "equal",
-    sort: (max?.s ?? 0) + 1,
   });
 }
 
@@ -55,10 +52,10 @@ export async function updateTemplate(id: string, t: TemplateInput): Promise<void
   });
 }
 
-/** Persist a new order (writes sort = position for each id). */
-export async function reorderTemplates(orderedIds: string[]): Promise<void> {
-  for (let i = 0; i < orderedIds.length; i++) await updateRow("transaction_templates", orderedIds[i]!, { sort: i });
-}
+// Manual template ordering was removed — templates now sort alphabetically
+// (see useTemplates). The `sort` column is left in place: dropping it would
+// need a migration plus an AppSchema change for no user-visible gain, and an
+// unused column costs nothing.
 
 export interface TemplateRow {
   id: string; name: string; type: string; amount: number | null; currency: string | null;
