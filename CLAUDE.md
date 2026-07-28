@@ -35,5 +35,31 @@ Diagrams are **Mermaid** (GitHub-native, maintainable). Keep them accurate — a
 - Gate premium behind `useEntitlement`.
 - Verify with `pnpm --filter @pocketcare/web typecheck` and core tests (`node --test packages/core/**/src/*.test.ts`).
 
-## Environment note
-The workspace mount disallows file deletion, so git commits made by the agent can leave stale `.git/*.lock` files that jam follow-up commits. Prefer handing the user a ready-to-paste `git add && git commit` command; if it jams, `rm -f .git/*.lock`.
+## Environment notes (agent sandbox)
+
+### Git — enable deletion FIRST, then commit normally
+The workspace mount starts read-only for deletes. **Ask for delete permission before touching git** (`allow_cowork_file_delete` on any path in the repo — approval applies to the whole folder). With it enabled, `git add`/`commit` work exactly as normal and leave nothing behind.
+
+Without it, the failure is **silent and it jams the repo**:
+- `git add -A` prints `warning: unable to unlink '.git/objects/../tmp_obj_*'` but **exits 0 while staging nothing** — `git diff --cached` is empty.
+- It leaves a zero-byte `.git/index.lock` plus dozens of stray `tmp_obj_*` files, which block every later git command.
+- You then **cannot `rm` them either**, so the repo is stuck until deletion is enabled.
+
+Recovery, once deletion is enabled:
+```bash
+rm -f .git/*.lock && find .git/objects -name "tmp_obj_*" -delete
+```
+
+### Push is always the user's job
+There are no git credentials in the sandbox — `git push` fails with `could not read Username for 'https://github.com'`. Commit locally, then hand the user a `git push origin <branch>`.
+
+### pnpm is NOT installed in the sandbox
+Only `node` and `npm`, and there is no network for a global install. Consequences:
+- **`pnpm-lock.yaml` cannot be regenerated.** CI runs `pnpm install --frozen-lockfile`, so if a change adds a dependency or a new workspace package, the commit **will fail CI** until the user runs `pnpm install` and amends. Always say so explicitly.
+- To typecheck a new workspace package, hand-link it: `ln -s ../../../../packages/core/<name> apps/web/node_modules/@pocketcare/<name>` (and add its own `node_modules/@pocketcare/*` links for its deps).
+- Run tsc directly: `cd apps/web && ../../node_modules/.bin/tsc --noEmit`.
+- Run core tests directly: `node --test --experimental-strip-types packages/core/*/src/*.test.ts`.
+
+### Misc
+- `mcp__workspace__bash` caps `timeout_ms` at 45000. Wrap slow commands in `timeout 40 …`.
+- `pglast` (for validating migrations) installs fine: `pip install pglast --break-system-packages`.

@@ -51,6 +51,9 @@ importers:
       '@pocketcare/money':
         specifier: workspace:*
         version: link:../../packages/core/money
+      '@pocketcare/receipts':
+        specifier: workspace:*
+        version: link:../../packages/core/receipts
       '@pocketcare/reconcile':
         specifier: workspace:*
         version: link:../../packages/core/reconcile
@@ -161,6 +164,15 @@ importers:
 
   packages/core/money:
     dependencies:
+      '@pocketcare/types':
+        specifier: workspace:*
+        version: link:../../types
+
+  packages/core/receipts:
+    dependencies:
+      '@pocketcare/money':
+        specifier: workspace:*
+        version: link:../money
       '@pocketcare/types':
         specifier: workspace:*
         version: link:../../types
