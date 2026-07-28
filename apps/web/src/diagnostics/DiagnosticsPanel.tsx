@@ -13,7 +13,7 @@ import { useQuery } from "@powersync/react";
 
 import { useSyncStatus } from "../sync";
 import { getDb } from "../powersync";
-import { clearEntries, exportLog, getEntries, subscribe } from "./log";
+import { clearEntries, exportLog, getEntries, getServerEntries, subscribe } from "./log";
 
 const APP_VERSION = "0.1.0";
 
@@ -47,8 +47,9 @@ export function DiagnosticsPanel() {
   const [expanded, setExpanded] = useState(false);
 
   // useSyncExternalStore keeps this in step with the ring buffer without
-  // polling — entries can arrive at any moment from anywhere in the app.
-  const entries = useSyncExternalStore(subscribe, getEntries, () => []);
+  // polling. Both snapshot functions MUST return a stable reference — an
+  // inline `() => []` allocates a new array per call and loops React forever.
+  const entries = useSyncExternalStore(subscribe, getEntries, getServerEntries);
 
   const { data: pendingBug = [] } = useQuery<{ n: number }>(
     "SELECT COUNT(*) AS n FROM bug_reports WHERE deleted_at IS NULL",

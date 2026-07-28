@@ -56,7 +56,10 @@ async function send(entry: LogEntry): Promise<void> {
 
   const ctx = captureContext() as { platform?: string; userAgent?: string };
   try {
-    await getSupabase().rpc("report_client_error", {
+    // Schema-qualified: every PocketCare RPC lives in the `pocketcare` schema
+    // and the browser client has no default schema set, so a bare .rpc() call
+    // resolves to public.* and 404s (golden rule #3).
+    await getSupabase().schema("pocketcare").rpc("report_client_error", {
       p_fingerprint: fp,
       p_message: entry.message,
       p_level: entry.level,

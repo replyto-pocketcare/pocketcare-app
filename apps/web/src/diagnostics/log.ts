@@ -21,8 +21,22 @@ import { formatLog, makeEntry, type LogEntry, type LogLevel } from "@pocketcare/
 /** Enough to cover a session's worth of trouble without bloating localStorage. */
 const MAX_ENTRIES = 150;
 const STORAGE_KEY = "pc_diag_log";
+/** Identical consecutive entries inside this window are dropped. */
+const STORM_WINDOW_MS = 1000;
 
 let buffer: LogEntry[] = [];
+/**
+ * Immutable snapshot handed to `useSyncExternalStore`.
+ *
+ * MUST be a stable reference between mutations. Returning `[...buffer]` from
+ * getSnapshot looks harmless but is a new array every call, so React sees the
+ * store as changed on every render and loops until it throws "maximum update
+ * depth exceeded" (minified error #185). Rebuild it only when the buffer
+ * actually changes.
+ */
+let snapshot: readonly LogEntry[] = [];
+/** Shared empty array, so the server snapshot is stable too. */
+const EMPTY: readonly LogEntry[] = [];
 let installed = false;
 let currentRoute: string | undefined;
 const listeners = new Set<() => void>();
@@ -35,7 +49,9 @@ function persist(): void {
   }
 }
 
-function emit(): void {
+function commit(): void {
+  snapshot = [...buffer];
+  persist();
   for (const fn of listeners) fn();
 }
 
@@ -51,10 +67,24 @@ export function logEvent(
       route: currentRoute,
       ...(detail ? { detail } : {}),
     });
+
+    // Collapse a storm. A React render loop or a retrying sync can emit the
+    // same line hundreds of times a second; without this it evicts every other
+    // entry from a 150-slot buffer and notifies listeners just as often.
+    const last = buffer[buffer.length - 1];
+    if (
+      last &&
+      last.level === entry.level &&
+      last.scope === entry.scope &&
+      last.message === entry.message &&
+      entry.at - last.at < STORM_WINDOW_MS
+    ) {
+      return;
+    }
+
     buffer.push(entry);
     if (buffer.length > MAX_ENTRIES) buffer = buffer.slice(-MAX_ENTRIES);
-    persist();
-    emit();
+    commit();
   } catch {
     // Logging must never be the thing that breaks the app.
   }
@@ -65,14 +95,19 @@ export function setDiagnosticsRoute(route: string): void {
   currentRoute = route;
 }
 
-export function getEntries(): LogEntry[] {
-  return [...buffer];
+/** Stable snapshot — safe as a `useSyncExternalStore` getSnapshot. */
+export function getEntries(): readonly LogEntry[] {
+  return snapshot;
+}
+
+/** Server/SSR snapshot. Stable by construction. */
+export function getServerEntries(): readonly LogEntry[] {
+  return EMPTY;
 }
 
 export function clearEntries(): void {
   buffer = [];
-  persist();
-  emit();
+  commit();
 }
 
 export function subscribe(fn: () => void): () => void {
@@ -117,7 +152,10 @@ export function installDiagnostics(): void {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored) as LogEntry[];
-      if (Array.isArray(parsed)) buffer = parsed.slice(-MAX_ENTRIES);
+      if (Array.isArray(parsed)) {
+        buffer = parsed.slice(-MAX_ENTRIES);
+        snapshot = [...buffer];
+      }
     }
   } catch {
     /* corrupt or unavailable — start fresh */

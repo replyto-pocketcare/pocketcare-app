@@ -119,6 +119,7 @@ Lives in Settings. Shows, at a glance and without reading a log:
 | Sync completely wedged | Auto-reports still arrive — they bypass PowerSync and go straight over HTTP. |
 | Runaway error loop | One report per fingerprint per session, 20/session, 50/hour/user server-side. |
 | User deletes their account | Error rows survive with `user_id` nulled; they hold no personal data. |
+| An error storm (render loop, retrying sync) | Identical consecutive entries within 1s are collapsed, so one runaway error can't evict the whole buffer or thrash subscribers. |
 
 ## Deliberate non-goals
 - **No `console.log` capture.** A chatty log buries the signal and burns a 150-entry buffer in seconds.

@@ -39,6 +39,7 @@ When you add or materially change a feature, **update the docs in the same chang
 Diagrams are **Mermaid** (GitHub-native, maintainable). Keep them accurate — a wrong diagram is worse than none.
 
 ## Conventions
+- **`useSyncExternalStore` getSnapshot must return a STABLE reference.** `() => [...buffer]` or an inline `() => []` allocates a new value per call, so React sees the store as changed every render and loops until it throws minified error #185 ("maximum update depth exceeded"). Cache the snapshot and rebuild it only on mutation; use a module-level constant for the server snapshot.
 - Read with `useQuery` (PowerSync react); write with `write.ts` helpers (`insertRow`/`updateRow`/`softDelete`) — they auto-fill id/user_id/timestamps.
 - Soft-delete via `deleted_at`; filter `WHERE deleted_at IS NULL`.
 - Format money via `useMoneyFmt()` (respects the hide-amounts toggle).
