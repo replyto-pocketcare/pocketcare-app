@@ -115,13 +115,22 @@ export function redactText(input: string): string {
   if (!input) return "";
   return preservingUuids(redactSecrets(input), (s) => {
     let out = s;
+    // Protect SQLSTATE / error codes before the money passes run. A serialised
+    // PostgREST error arrives here as free text (`{"code":"42501",...}`) where
+    // the 5-digit code is shape-identical to an amount — and it is the single
+    // most useful field in the whole message.
+    const codes: string[] = [];
+    out = out.replace(/((?:"|')?\bcode(?:"|')?\s*[:=]\s*(?:"|')?)([A-Za-z0-9]{2,10})/gi, (_m, lead: string, code: string) => {
+      codes.push(code);
+      return `${lead} CODE${codes.length - 1} `;
+    });
     // Symbol-prefixed, or a bare number with a decimal or thousands group.
     out = out.replace(/(?:₹|Rs\.?|INR|\$|€|£)\s*-?[\d,]+(?:\.\d{1,2})?/gi, REDACTED.amount);
     out = out.replace(/\b-?\d{1,3}(?:,\d{2,3})+(?:\.\d{1,2})?\b/g, REDACTED.amount);
     out = out.replace(/\b-?\d+\.\d{1,2}\b/g, REDACTED.amount);
     // Long bare integers are minor-unit amounts (1258784 = ₹12,587.84).
     out = out.replace(/\b\d{4,}\b/g, REDACTED.amount);
-    return out;
+    return out.replace(/ CODE(\d+) /g, (_, i) => codes[Number(i)] ?? "");
   });
 }
 

@@ -191,3 +191,66 @@ export async function resolveAdminClientError(fingerprint: string, note?: string
     return fail(e);
   }
 }
+
+export interface AdminErrorUser {
+  user_id: string | null;
+  name: string;
+  email: string | null;
+  count: number;
+  first_seen: string;
+  last_seen: string;
+  platform: string | null;
+  route: string | null;
+  app_version: string | null;
+}
+
+/**
+ * Who is hitting one specific error.
+ *
+ * The grouped list answers "how bad is it"; this answers "who do I contact"
+ * and "what do they have in common" — the platform/version columns are usually
+ * where the pattern shows up.
+ */
+export async function getAdminClientErrorUsers(fingerprint: string): Promise<AdminResult<AdminErrorUser[]>> {
+  try {
+    const supabase = getAdminClient();
+    const { data, error } = await supabase
+      .from("client_errors")
+      .select("user_id, count, first_seen, last_seen, platform, route, app_version")
+      .eq("fingerprint", fingerprint)
+      .order("last_seen", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const rows = data ?? [];
+    const ids = [...new Set(rows.map((r) => r.user_id).filter(Boolean))] as string[];
+    const byId = new Map<string, { display_name?: string; email?: string }>();
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, email")
+        .in("id", ids);
+      for (const p of profs ?? []) byId.set(p.id as string, p);
+    }
+
+    return {
+      ok: true,
+      data: rows.map((r) => {
+        const prof = r.user_id ? byId.get(r.user_id as string) : undefined;
+        return {
+          user_id: (r.user_id as string) ?? null,
+          // Deleted accounts keep their error rows with a null user_id (0044).
+          name: prof?.display_name || prof?.email?.split("@")[0] || (r.user_id ? "Unknown user" : "Deleted account"),
+          email: prof?.email ?? null,
+          count: Number(r.count) || 0,
+          first_seen: String(r.first_seen),
+          last_seen: String(r.last_seen),
+          platform: (r.platform as string) ?? null,
+          route: (r.route as string) ?? null,
+          app_version: (r.app_version as string) ?? null,
+        };
+      }),
+    };
+  } catch (e) {
+    return fail(e);
+  }
+}

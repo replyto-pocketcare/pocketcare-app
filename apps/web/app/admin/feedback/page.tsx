@@ -307,7 +307,10 @@ export default function AdminFeedback() {
                         </summary>
                         <pre
                           style={{
-                            margin: "8px 0 0", padding: 10, borderRadius: 8, background: "var(--surface-2, #f3ebdd)",
+                            // Dark console: the admin surface is #111/#222 with
+                            // hardcoded hex, NOT the app's light CSS variables.
+                            margin: "8px 0 0", padding: 10, borderRadius: 8,
+                            background: "#000", color: "#8fd", border: "1px solid #333",
                             fontSize: 11, lineHeight: 1.5, maxHeight: 360, overflow: "auto",
                             whiteSpace: "pre-wrap", wordBreak: "break-word",
                           }}
