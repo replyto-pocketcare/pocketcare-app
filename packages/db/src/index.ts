@@ -628,6 +628,55 @@ const notification_prefs = new Table({
   deleted_at: column.text,
 });
 
+/**
+ * DEAD-LETTER QUEUE (sync fault tolerance, layer 3).
+ *
+ * LOCAL-ONLY, deliberately. A write that the server refuses is quarantined
+ * here so the upload queue can move on — and if this table itself synced, the
+ * quarantine record would join the very queue it was created to unblock, and a
+ * failure to upload it would be quarantined again. Recovery is a device-local
+ * concern; the row content already lives in local SQLite anyway.
+ *
+ * `id` is the ps_crud row id as text, so re-quarantining the same op upserts
+ * rather than duplicating.
+ */
+const failed_writes = new Table(
+  {
+    /** Unqualified table the write targeted. */
+    table_name: column.text,
+    /** PUT / PATCH / DELETE. */
+    op: column.text,
+    /** id of the row that failed — how it's matched back to local data. */
+    row_id: column.text,
+    /** Full JSON payload. This is the user's data; it must not be lost. */
+    payload: column.text,
+    /** SQLSTATE, when PostgREST gave one. */
+    code: column.text,
+    message: column.text,
+    /** "permanent" — transient failures are never quarantined. */
+    cls: column.text,
+    reason: column.text,
+    attempts: column.integer,
+    failed_at: column.text,
+    /** Set once the user has retried or discarded it, so it leaves the list. */
+    resolved_at: column.text,
+    resolution: column.text,
+  },
+  { localOnly: true, indexes: { by_failed: ["failed_at"] } },
+);
+
+/**
+ * Per-op retry counter, local-only.
+ *
+ * In memory would be lost on reload, and a permanent failure that reloads
+ * before it reaches the attempt threshold would retry forever — exactly the
+ * head-of-line block this is meant to end.
+ */
+const sync_attempts = new Table(
+  { attempts: column.integer, last_code: column.text, updated_at: column.text },
+  { localOnly: true },
+);
+
 export const AppSchema = new Schema({
   profiles,
   notifications,
@@ -693,6 +742,9 @@ export const AppSchema = new Schema({
   rate_modes,
   payment_methods,
   account_type_payment_methods,
+  // Sync fault tolerance (local-only; never uploaded)
+  failed_writes,
+  sync_attempts,
 });
 
 export type Database = (typeof AppSchema)["types"];
@@ -705,6 +757,7 @@ export {
   type SyncDiagnostic,
   type FaultInjection,
 } from "./connector.ts";
+export { opKey, quarantineOps, clearAttempts } from "./quarantine.ts";
 export {
   createSupabaseClient,
   ensureUser,

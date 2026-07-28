@@ -21,6 +21,7 @@ import { BugReportModal } from "../src/ui/BugReport";
 import { useUnreadCount } from "../src/notifications/hooks";
 import { installDiagnostics, setDiagnosticsRoute } from "../src/diagnostics/log";
 import { startErrorReporting } from "../src/diagnostics/report";
+import { listFailedWrites } from "../src/sync/deadletter";
 
 /** Persistent banner shown whenever the device is offline. */
 function OfflineBanner() {
@@ -42,6 +43,52 @@ function OfflineBanner() {
       <span style={{ width: 7, height: 7, borderRadius: 999, background: "#fff", opacity: 0.9 }} />
       You’re offline — changes are saved on this device and will sync when you’re back online.
     </div>
+  );
+}
+
+/**
+ * Banner shown when writes have been quarantined.
+ *
+ * Discoverability is the whole point. A recovery screen buried in Settings is
+ * only found by someone who already suspects something is wrong — but the
+ * failure this handles is silent by design: the queue unblocks, everything
+ * else syncs, and the app looks perfectly healthy while a few of the user's
+ * expenses sit in limbo. That is precisely the situation that lost data
+ * before. So the app says so, unprompted, until it's dealt with.
+ *
+ * Polled rather than reactive: `failed_writes` is local-only, so there's no
+ * sync event to hang off, and quarantining is rare enough that a 30s poll
+ * costs nothing.
+ */
+function SyncProblemsBanner() {
+  const [count, setCount] = useState(0);
+  const router = useRouter();
+
+  useEffect(() => {
+    let alive = true;
+    const check = async () => {
+      const items = await listFailedWrites(50);
+      if (alive) setCount(items.length);
+    };
+    void check();
+    const t = setInterval(() => void check(), 30_000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
+
+  if (count === 0) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => router.push("/settings#problems")}
+      style={{
+        position: "sticky", top: 0, zIndex: 61, width: "100%", border: "none", cursor: "pointer",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        padding: "7px 14px", fontSize: 12.5, fontWeight: 600, textAlign: "center",
+        background: "var(--negative)", color: "#fff",
+      }}
+    >
+      {count} change{count === 1 ? "" : "s"} couldn’t be saved — tap to review
+    </button>
   );
 }
 
@@ -216,6 +263,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="shell">
       <GlobalLoader />
       <OfflineBanner />
+      <SyncProblemsBanner />
       {/* Mobile top bar */}
       <div className="topbar">
         <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}><MenuIcon /></button>

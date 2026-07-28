@@ -18,7 +18,7 @@
  */
 import { useEffect, useState } from "react";
 import { getFaultInjection, setFaultInjection, type FaultInjection } from "@pocketcare/db";
-import { classifyFailure, explainForUser } from "@pocketcare/sync-policy";
+import { classifyFailure, explainForUser, MAX_PERMANENT_ATTEMPTS } from "@pocketcare/sync-policy";
 
 /** The failures that have actually bitten us, plus the common transient ones. */
 const PRESETS: { label: string; code: string; status: number; note: string }[] = [
@@ -133,6 +133,11 @@ export function FaultInjectionPanel() {
           </span>
           <span className="muted">
             User would see: “{explainForUser({ code: active.code, status: active.status })}”
+          </span>
+          <span className="muted">
+            {classification?.cls === "permanent"
+              ? `After ${MAX_PERMANENT_ATTEMPTS} attempts it moves to “Problems syncing” and the queue unblocks.`
+              : "Retries forever — it must never be quarantined."}
           </span>
           <button className="btn" type="button" onClick={clear} style={{ justifySelf: "start" }}>
             Stop injecting

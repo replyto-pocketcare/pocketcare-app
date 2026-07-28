@@ -9,6 +9,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@pocketcare/sync-policy": "workspace:*",
     "@powersync/common": "^1.20.0",
     "@supabase/supabase-js": "^2.45.0"
   },

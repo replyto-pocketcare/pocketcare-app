@@ -9,6 +9,7 @@ import { Billing } from "../../src/ui/Billing";
 import { PaymentHandlePanel } from "../../src/payments/PaymentHandlePanel";
 import { DiagnosticsPanel } from "../../src/diagnostics/DiagnosticsPanel";
 import { RepairPanel } from "../../src/sync/RepairPanel";
+import { ProblemsPanel } from "../../src/sync/ProblemsPanel";
 import { FaultInjectionPanel } from "../../src/diagnostics/FaultInjectionPanel";
 import { useTheme, setTheme } from "../../src/theme";
 import { useBaseCurrency } from "../../src/hooks";
@@ -220,6 +221,10 @@ export default function SettingsPage() {
       </section>
 
       <PaymentHandlePanel />
+
+      {/* Renders nothing unless something is actually stuck, so it sits above
+          the general-purpose panels — when it appears, it's the thing to read. */}
+      <ProblemsPanel />
 
       <RepairPanel />
 

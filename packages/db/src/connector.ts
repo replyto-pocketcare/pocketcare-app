@@ -15,6 +15,7 @@ import type {
 } from "@powersync/common";
 import { UpdateType } from "@powersync/common";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { handleUploadFailure, clearAttempts, opKey } from "./quarantine.ts";
 
 /** Postgres schema that holds all PocketCare tables (see 0001_init.sql). */
 export const DB_SCHEMA = "pocketcare";
@@ -34,6 +35,10 @@ export type SyncDiagnostic = {
   code?: string | undefined;
   message?: string | undefined;
   hint?: string | undefined;
+  /** How the retry policy judged it, and whether it was dead-lettered. */
+  cls?: string | undefined;
+  attempts?: number | undefined;
+  quarantined?: boolean | undefined;
 };
 
 let diagnosticSink: ((d: SyncDiagnostic) => void) | null = null;
@@ -84,6 +89,26 @@ function injectedErrorFor(table: string): { code: string; message: string; statu
     message: fault.message ?? `injected fault (${fault.code}) for ${bare}`,
     ...(fault.status !== undefined ? { status: fault.status } : {}),
   };
+}
+
+/**
+ * Keys we've recorded a failure for this session.
+ *
+ * Success clears the persisted retry counter, but doing a DELETE after every
+ * successful run would add a write per op to bulk imports for no reason. Only
+ * ops we know have failed can have a counter, so only those are cleared.
+ */
+const bumped = new Set<string>();
+
+async function clearAttemptsFor(
+  database: AbstractPowerSyncDatabase,
+  run: readonly CrudEntry[],
+): Promise<void> {
+  for (const o of run) {
+    const key = opKey(o.table, String(o.op), o.id);
+    if (!bumped.delete(key)) continue;
+    await clearAttempts(database, key);
+  }
 }
 
 function reportSyncDiagnostic(d: SyncDiagnostic): void {
@@ -161,11 +186,15 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
       }
 
       if (error) {
+        // Classify before reacting. A transient failure must keep retrying
+        // forever; a permanent one must NOT, because retrying it forever is
+        // what freezes every write queued behind it.
+        const verdict = await handleUploadFailure(database, run, error, (k) => bumped.add(k));
+
         // Surface the real cause (e.g. a PostgREST "schema must be exposed"
-        // error, or an RLS violation) instead of failing silently. PowerSync
-        // will retry, so we rethrow after logging.
+        // error, or an RLS violation) instead of failing silently.
         console.error(
-          `[PocketCare sync] upload failed for ${this.schema}.${op.table} (${op.op}, ${run.length} row(s)):`,
+          `[PocketCare sync] upload failed for ${this.schema}.${op.table} (${op.op}, ${run.length} row(s), attempt ${verdict.attempts}, ${verdict.classification.cls})${verdict.quarantined ? " — moved to Problems syncing" : ""}:`,
           error,
         );
         // Also emit it structurally. The console line is captured as free text
@@ -179,9 +208,23 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
           code: (error as { code?: string }).code,
           message: (error as { message?: string }).message,
           hint: (error as { hint?: string }).hint,
+          cls: verdict.classification.cls,
+          attempts: verdict.attempts,
+          quarantined: verdict.quarantined,
         });
+
+        // Quarantined: the op is out of ps_crud and preserved in full, so the
+        // queue can move on to everything that was stuck behind it.
+        if (verdict.quarantined) {
+          i = j;
+          continue;
+        }
         throw error;
       }
+
+      // Succeeded — drop any retry counter so a later, unrelated failure on the
+      // same row starts from zero rather than inheriting a stale count.
+      await clearAttemptsFor(database, run);
       i = j;
     }
 

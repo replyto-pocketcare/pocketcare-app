@@ -69,6 +69,17 @@ const DESCRIBERS: Record<string, (r: Record<string, unknown>) => string> = {
   labels: (r) => `Label “${r.name}”`,
 };
 
+/**
+ * Render a row the way its owner would recognise it.
+ *
+ * Shared with the dead-letter screen: whether a row is stranded or quarantined,
+ * the user is answering the same question — "which of my things is this?"
+ */
+export function describeRow(table: string, row: Record<string, unknown>): string {
+  const d = DESCRIBERS[table];
+  return d ? d(row) : `${table.replace(/_/g, " ")} entry`;
+}
+
 const money = (amount: unknown, currency: unknown): string => {
   const n = Number(amount);
   if (!Number.isFinite(n)) return "—";
