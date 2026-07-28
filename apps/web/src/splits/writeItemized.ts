@@ -96,6 +96,14 @@ export async function createSplitExpenseItemized(input: ItemizedSplitInput): Pro
   });
 
   const byLineId = new Map(input.assignments.map((a) => [a.lineId, a]));
+
+  // Write ALL items first, then all shares — never interleaved.
+  //
+  // The sync connector coalesces only *consecutive* same-table ops into one
+  // request (see packages/db/src/connector.ts). Interleaving item/share inserts
+  // defeats that entirely and turns a 40-row bill into ~40 round-trips. Grouping
+  // them keeps it to two.
+  const itemIdByLine = new Map<string, string>();
   let sort = 0;
   for (const line of draft.lines) {
     const assignment = byLineId.get(line.id);
@@ -108,17 +116,22 @@ export async function createSplitExpenseItemized(input: ItemizedSplitInput): Pro
       unit: line.unit,
       unit_price: line.unitPrice,
       amount: line.amount,
-      // Guard the DB constraint: only charges may be proportional.
+      // Only charges may be proportional (DB check constraint).
       split_mode:
         assignment?.mode === "proportional" && !isCharge(line.kind) ? "equal" : assignment?.mode ?? "equal",
       sort: sort++,
     });
+    itemIdByLine.set(line.id, itemId);
+  }
 
-    const shares = allocation.perLine.get(line.id) ?? [];
+  for (const line of draft.lines) {
+    const itemId = itemIdByLine.get(line.id);
+    if (!itemId) continue;
+    const assignment = byLineId.get(line.id);
     const weightByUser = new Map(
       (assignment?.shares ?? []).map((s) => [s.userId, Math.round(s.weight ?? 0)]),
     );
-    for (const share of shares) {
+    for (const share of allocation.perLine.get(line.id) ?? []) {
       await insertRow("expense_item_shares", {
         item_id: itemId,
         expense_id: expenseId,

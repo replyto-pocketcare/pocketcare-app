@@ -101,7 +101,11 @@ All allocation goes through `splitByWeights` (largest remainder), so the parts a
 | `expenses`, `expense_participants`, `expense_postings` | Unchanged roles — the roll-up target and the private ledger projection. |
 | `entitlements` | AI credit quota, shared with the assistant. |
 
-Migration: `supabase/migrations/0040_receipts_and_expense_items.sql`. Integrity is enforced by a **deferred constraint trigger** (`expense_items_sum_check`) so the client can insert an expense and its items in any order within one transaction and only be judged at commit.
+Migrations: `0040_receipts_and_expense_items.sql`, `0042_drop_expense_items_sum_trigger.sql`.
+
+**Why there is no server-side sum constraint.** 0040 shipped a deferred constraint trigger enforcing `Σ expense_items.amount = expenses.amount`. It had to be removed: PowerSync uploads the write queue as a series of HTTP requests, each its own Postgres transaction, so rows arrive **incrementally** and every transaction contains a partial set of items. `DEFERRABLE INITIALLY DEFERRED` defers only to the end of its own transaction, so the check fired against 1-of-N items and wedged the upload queue permanently. A cross-row sum is not expressible as a synchronous constraint against an incremental sync engine.
+
+Integrity is enforced **at write time on the client**, where the whole set is known at once — `reconcile()` gates the review screen, `allocateReceipt()` throws on any unallocated line, and `createSplitExpenseItemized()` re-checks before writing anything. All three are covered by tests. Server-side the invariant is *observable* via `pocketcare.audit_expense_item_sums()`, which returns any drifting expense; run it as an audit, not a gate (a fresh drift may just be a sync in flight).
 
 Sync: `receipt_scans` → `user_data`; `expense_items` + `expense_item_shares` → **`split_shared`** (every member must see every line, not just their own).
 
