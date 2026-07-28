@@ -105,3 +105,89 @@ export async function getAdminFeedback(): Promise<AdminResult<Record<string, unk
     return fail(e);
   }
 }
+
+export interface AdminClientError {
+  id: string;
+  fingerprint: string;
+  level: string;
+  scope: string | null;
+  message: string;
+  detail: Record<string, unknown> | null;
+  route: string | null;
+  app_version: string | null;
+  platform: string | null;
+  count: number;
+  first_seen: string;
+  last_seen: string;
+  resolved_at: string | null;
+  /** How many distinct users hit this — the number that says "how bad is it". */
+  affected_users: number;
+}
+
+/**
+ * Auto-reported client errors, grouped by fingerprint.
+ *
+ * Rows are per (fingerprint, user); this collapses them so one bug is one line
+ * with a total count and an affected-user count, which is what you triage on.
+ */
+export async function getAdminClientErrors(includeResolved = false): Promise<AdminResult<AdminClientError[]>> {
+  try {
+    const supabase = getAdminClient();
+    let q = supabase
+      .from("client_errors")
+      .select("*")
+      .order("last_seen", { ascending: false })
+      .limit(500);
+    if (!includeResolved) q = q.is("resolved_at", null);
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+
+    const grouped = new Map<string, AdminClientError>();
+    for (const r of data ?? []) {
+      const row = r as Record<string, unknown>;
+      const fp = String(row.fingerprint);
+      const existing = grouped.get(fp);
+      if (existing) {
+        existing.count += Number(row.count) || 0;
+        existing.affected_users += 1;
+        if (String(row.last_seen) > existing.last_seen) existing.last_seen = String(row.last_seen);
+        if (String(row.first_seen) < existing.first_seen) existing.first_seen = String(row.first_seen);
+      } else {
+        grouped.set(fp, {
+          id: String(row.id),
+          fingerprint: fp,
+          level: String(row.level ?? "error"),
+          scope: (row.scope as string) ?? null,
+          message: String(row.message ?? ""),
+          detail: (row.detail as Record<string, unknown>) ?? null,
+          route: (row.route as string) ?? null,
+          app_version: (row.app_version as string) ?? null,
+          platform: (row.platform as string) ?? null,
+          count: Number(row.count) || 0,
+          first_seen: String(row.first_seen),
+          last_seen: String(row.last_seen),
+          resolved_at: (row.resolved_at as string) ?? null,
+          affected_users: 1,
+        });
+      }
+    }
+    return { ok: true, data: [...grouped.values()].sort((a, b) => (a.last_seen < b.last_seen ? 1 : -1)) };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Mark every row of a fingerprint resolved. It re-opens automatically if it recurs. */
+export async function resolveAdminClientError(fingerprint: string, note?: string): Promise<AdminResult<true>> {
+  try {
+    const supabase = getAdminClient();
+    const { error } = await supabase
+      .from("client_errors")
+      .update({ resolved_at: new Date().toISOString(), resolved_note: note ?? null })
+      .eq("fingerprint", fingerprint);
+    if (error) throw new Error(error.message);
+    return { ok: true, data: true };
+  } catch (e) {
+    return fail(e);
+  }
+}

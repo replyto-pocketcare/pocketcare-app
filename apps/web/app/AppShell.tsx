@@ -20,6 +20,7 @@ import { Modal } from "../src/ui/Modal";
 import { BugReportModal } from "../src/ui/BugReport";
 import { useUnreadCount } from "../src/notifications/hooks";
 import { installDiagnostics, setDiagnosticsRoute } from "../src/diagnostics/log";
+import { startErrorReporting } from "../src/diagnostics/report";
 
 /** Persistent banner shown whenever the device is offline. */
 function OfflineBanner() {
@@ -135,6 +136,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     // Start capturing errors immediately — the failures worth diagnosing often
     // happen during boot, before anyone thinks to open Diagnostics.
     installDiagnostics();
+    // Errors report themselves to the admin panel — most users never file a
+    // bug report, they just stop using the app.
+    startErrorReporting();
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }

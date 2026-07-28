@@ -74,6 +74,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <Link href="/admin">Dashboard</Link>
           <Link href="/admin/users">Users &amp; Support</Link>
           <Link href="/admin/feedback">Feedback</Link>
+          <Link href="/admin/errors">Errors</Link>
           <Link href="/admin/notifications">Notifications</Link>
           <Link href="/admin/jobs">Jobs</Link>
           <Link href="/" className="admin-nav-back">← Back to App</Link>

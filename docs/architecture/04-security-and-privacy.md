@@ -110,6 +110,15 @@ sequenceDiagram
 - **We never verify handle ownership.** That requires a penny-drop through a PSP, i.e. becoming a regulated payment entity. The payer's own UPI app resolves and shows the real account name before they confirm, which is the actual verification.
 - **PocketCare never holds funds.** UPI Intent moves money bank-to-bank between two individuals; we are not a party to the transfer and cannot reverse, refund or recover a mistaken payment.
 
+## Diagnostics and error reporting
+
+- **Errors are uploaded automatically** (`client_errors`, 0044) so failures reach the admin panel without the user filing anything. This is deliberate and should be stated plainly rather than buried — see `docs/features/diagnostics.md`.
+- **Everything is redacted on the device before it is sent.** Amounts (every notation, including bare minor units), descriptions, merchant names, labels, emails and UPI IDs are stripped; table names, operations, error codes, row UUIDs and routes are kept. A support log must never become a record of someone's spending.
+- **Reports bypass PowerSync**, going straight to the `report_client_error` RPC over HTTP — the failure most worth capturing is the sync queue being stuck.
+- **Rate limited** per fingerprint per session, 20 per session client-side, and 50 per hour per user in the RPC.
+- **Scope is failures, not behaviour.** No performance or usage analytics; widening this into product analytics is a separate decision requiring a separate consent conversation.
+- `client_errors.user_id` is `ON DELETE SET NULL` — deleting an account does not erase evidence of a bug it hit, and the rows carry no personal data.
+
 ## Receipt scanning
 
 - **No receipt images are stored, anywhere.** The photo lives in browser memory for the duration of a scan and is dropped. It is not written to IndexedDB, not uploaded to Storage, and not persisted by the edge function. `receipt_scans.image_path` exists only as a forward-compatible seam and is always NULL.

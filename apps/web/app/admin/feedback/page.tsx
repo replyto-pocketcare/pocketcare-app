@@ -297,6 +297,25 @@ export default function AdminFeedback() {
                         {f.status && <span>status: {f.status}</span>}
                       </div>
                     )}
+                    {/* The redacted device log the reporter attached. This is
+                        usually the only record of what actually failed on a
+                        phone, so it's shown in full rather than summarised. */}
+                    {isOpen && typeof f.diagnostics === "string" && f.diagnostics.length > 0 && (
+                      <details style={{ marginTop: 10 }}>
+                        <summary style={{ cursor: "pointer", fontSize: 12, color: "#888" }}>
+                          Device log ({String(f.diagnostics).split("\n").length} lines)
+                        </summary>
+                        <pre
+                          style={{
+                            margin: "8px 0 0", padding: 10, borderRadius: 8, background: "var(--surface-2, #f3ebdd)",
+                            fontSize: 11, lineHeight: 1.5, maxHeight: 360, overflow: "auto",
+                            whiteSpace: "pre-wrap", wordBreak: "break-word",
+                          }}
+                        >
+                          {String(f.diagnostics)}
+                        </pre>
+                      </details>
+                    )}
                   </td>
                 </tr>
               );
