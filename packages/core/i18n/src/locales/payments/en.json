@@ -1,0 +1,43 @@
+{
+  "someone": "Someone",
+  "pay": {
+    "button": "Pay via UPI",
+    "preparing": "Preparing the payment…",
+    "payingTo": "Paying",
+    "copyId": "Copy UPI ID",
+    "openApp": "Open UPI app",
+    "qrAlt": "QR code to pay via UPI",
+    "scanHint": "Scan this with any UPI app on your phone to pay.",
+    "afterPaying": "Once you've paid:",
+    "markPaid": "I've paid — tell them",
+    "noCallbackNote": "We can't see UPI payments, so we'll ask {{name}} to confirm it arrived.",
+    "noHandle": "{{name}} hasn't added a UPI ID yet.",
+    "back": "Back"
+  },
+  "confirm": {
+    "title": "Confirm a payment",
+    "intro": "We can't see UPI transfers, so please check your bank before confirming.",
+    "claim": "{{name}} says they paid you",
+    "reference": "Reference {{ref}} — look for this in your bank statement",
+    "receivedInto": "Received into",
+    "noAccount": "Don't record a deposit",
+    "yes": "Yes, it arrived",
+    "no": "Didn't arrive",
+    "pendingChip": "Awaiting"
+  },
+  "settings": {
+    "title": "Your UPI ID",
+    "intro": "Add your UPI ID so friends can pay you back from inside PocketCare. Money goes straight to your bank — we never hold it.",
+    "guestBlocked": "Create an account to add a UPI ID. Guest sessions can't save payment details.",
+    "label": "UPI ID",
+    "replace": "Replace with a different UPI ID",
+    "invalid": "That doesn't look right — a UPI ID looks like name@bank.",
+    "willShow": "Others will see {{masked}}",
+    "save": "Save UPI ID",
+    "remove": "Remove",
+    "privacy": "Shared only with people you're in a group with and have a balance with — and only when they go to pay you. Unlike your passphrase-protected data, our server can read this, because it has to hand it to the payer.",
+    "showLog": "Who's seen this ({{count}})",
+    "hideLog": "Hide access log",
+    "someone": "Someone"
+  }
+}

@@ -148,7 +148,7 @@ export async function buildFinancialSummary(): Promise<FinancialSummary> {
     "SELECT expense_id, user_id, paid_amount, share_amount FROM expense_participants WHERE deleted_at IS NULL",
   );
   const settRows = await db.getAll<{ from_user: string; to_user: string; amount: number }>(
-    "SELECT from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL",
+    "SELECT from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL AND status <> 'disputed'",
   );
   const byExpense = new Map<string, Party[]>();
   for (const p of partRows) {

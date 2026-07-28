@@ -62,6 +62,12 @@ streams:
       - SELECT * FROM pocketcare.promo_redemptions WHERE user_id = auth.user_id()
       # --- receipt scans: private to the user who scanned (no image bytes stored) ---
       - SELECT * FROM pocketcare.receipt_scans WHERE user_id = auth.user_id()
+      # --- payments (0041): your own audit of who fetched your UPI ID ---
+      # NOTE: `payment_handles` itself is SERVER-ONLY and intentionally NOT
+      # synced — a UPI ID must never be copied onto co-members' devices. It is
+      # released just-in-time by the `payment-handle` edge function. Only this
+      # audit trail (which holds no secret) syncs. Do not add payment_handles.
+      - SELECT * FROM pocketcare.payment_handle_disclosures WHERE owner_user_id = auth.user_id()
 
   # Splits: the SHARED ledger, visible by group membership (one copy, no dupes).
   # Uses JOINs to traverse relationships and evaluate auth.user_id() safely.

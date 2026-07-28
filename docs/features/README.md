@@ -22,6 +22,7 @@ Each feature has a dedicated doc with: **Overview**, **User flow** (Mermaid), **
 | Investments | [investments](investments.md) | `/investments` |
 | Splits (friends, groups & trips) | [splits](splits.md) | `/friends`, `/groups` |
 | Receipt & bill scanning | [receipt-scanning](receipt-scanning.md) | `/receipts/new`, `/receipts/review`, `/receipts/split` |
+| Pay friends via UPI | [upi-settle-up](upi-settle-up.md) | `/friends`, `/settings` |
 | Search | [search](search.md) | `/search` |
 | Insights | [insights](insights.md) | `/insights` |
 | Statements | [statements](statements.md) | `/statements` |

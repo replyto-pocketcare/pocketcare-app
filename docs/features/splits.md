@@ -28,6 +28,8 @@ flowchart LR
 ## Data touched
 `split_groups`, `split_group_members`, `expenses`, `expense_participants`, `settlements`, `split_invitations`, `connections`, `expense_postings` (private per-user projection into personal budget). Shared visibility via the `split_shared` stream + membership RLS.
 
+**Settling via UPI (0041).** A balance can be settled by paying over UPI from inside the app — see [upi-settle-up](upi-settle-up.md). `settlements` gained a `status` (confirmed / pending / disputed); it defaults to `confirmed`, so the manual "mark settled" flow is unchanged. **Every settlements query must filter `status <> 'disputed'`** or balances go silently wrong.
+
 **Itemized splits (0040).** A bill scanned from a receipt can be split **per line item** — see [receipt-scanning](receipt-scanning.md). `expense_items` + `expense_item_shares` hold the breakdown and `expenses.has_items` flags it, but per-item shares are **rolled up into `expense_participants`**, so everything on this page (balances, `pairwiseEdges`, settle-up, `collapse.ts`) works identically for itemized and flat expenses. `createSplitExpenseItemized` (`src/splits/writeItemized.ts`) mirrors `createSplitExpense`'s contract exactly and reuses the same `own_share` / `lend` / `borrow` projection roles.
 
 ## Key files

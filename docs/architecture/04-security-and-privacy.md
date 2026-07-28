@@ -101,6 +101,15 @@ sequenceDiagram
 - **Billing integrity:** Razorpay webhooks are **HMAC-verified and idempotent**; entitlement writes use `upsert(onConflict: user_id)` (a prior bug where `.update().eq()` silently no-opped for users without an entitlements row is fixed).
 - **Auto-categorisation model** is loaded from a CDN at runtime and runs **on-device** (no transaction text leaves the client).
 
+## Payment handles (UPI IDs) — a deliberately weaker tier
+
+- **`payment_handles` is server-only.** It is in no sync stream and never reaches a device. The VPA is encrypted at rest with `pgp_sym_encrypt` under `PAYMENT_HANDLE_KEY`, held only in the edge function's secrets; plaintext exists solely inside the RPC bodies.
+- **This is NOT zero-trust, and that is unavoidable.** The existing scheme wraps a DEK with a passphrase-derived KEK owned by one user, so a co-member could never decrypt it — but the whole purpose of a payment handle is to hand it to someone else. The server can therefore read these values. Passphrase-protected personal fields it still cannot. The settings UI states this plainly rather than implying uniform protection.
+- **Disclosure gate.** Release requires a shared live group, existing financial activity between the two users, and a per-caller rate limit (20/hour). Without all three the endpoint is a UPI-ID directory. Every release writes a `payment_handle_disclosures` row the owner can read.
+- **Guests cannot save a handle**, enforced by a trigger on `auth.users.is_anonymous` — checked there rather than via `guest_sessions`, because guest→registered is an in-place UID upgrade that leaves the guest row behind.
+- **We never verify handle ownership.** That requires a penny-drop through a PSP, i.e. becoming a regulated payment entity. The payer's own UPI app resolves and shows the real account name before they confirm, which is the actual verification.
+- **PocketCare never holds funds.** UPI Intent moves money bank-to-bank between two individuals; we are not a party to the transfer and cannot reverse, refund or recover a mistaken payment.
+
 ## Receipt scanning
 
 - **No receipt images are stored, anywhere.** The photo lives in browser memory for the duration of a scan and is dropped. It is not written to IndexedDB, not uploaded to Storage, and not persisted by the edge function. `receipt_scans.image_path` exists only as a forward-compatible seam and is always NULL.

@@ -1,0 +1,43 @@
+{
+  "someone": "Iemand",
+  "pay": {
+    "button": "Betalen via UPI",
+    "preparing": "Betaling voorbereiden…",
+    "payingTo": "Betalen aan",
+    "copyId": "UPI-ID kopiëren",
+    "openApp": "UPI-app openen",
+    "qrAlt": "QR-code om via UPI te betalen",
+    "scanHint": "Scan dit met een UPI-app op je telefoon om te betalen.",
+    "afterPaying": "Zodra je hebt betaald:",
+    "markPaid": "Ik heb betaald — laat het weten",
+    "noCallbackNote": "Wij kunnen UPI-betalingen niet zien, dus we vragen {{name}} om te bevestigen dat het is aangekomen.",
+    "noHandle": "{{name}} heeft nog geen UPI-ID toegevoegd.",
+    "back": "Terug"
+  },
+  "confirm": {
+    "title": "Bevestig een betaling",
+    "intro": "Wij kunnen UPI-overboekingen niet zien, dus controleer je bank voordat je bevestigt.",
+    "claim": "{{name}} zegt je te hebben betaald",
+    "reference": "Kenmerk {{ref}} — zoek hierop in je bankafschrift",
+    "receivedInto": "Ontvangen op",
+    "noAccount": "Geen storting vastleggen",
+    "yes": "Ja, het is aangekomen",
+    "no": "Niet aangekomen",
+    "pendingChip": "In afwachting"
+  },
+  "settings": {
+    "title": "Je UPI-ID",
+    "intro": "Voeg je UPI-ID toe zodat vrienden je vanuit PocketCare kunnen terugbetalen. Het geld gaat rechtstreeks naar je bank — wij houden het nooit vast.",
+    "guestBlocked": "Maak een account aan om een UPI-ID toe te voegen. In een gastsessie kunnen geen betaalgegevens worden opgeslagen.",
+    "label": "UPI-ID",
+    "replace": "Vervangen door een andere UPI-ID",
+    "invalid": "Dat ziet er niet goed uit — een UPI-ID ziet eruit als naam@bank.",
+    "willShow": "Anderen zien {{masked}}",
+    "save": "UPI-ID opslaan",
+    "remove": "Verwijderen",
+    "privacy": "Wordt alleen gedeeld met mensen met wie je in een groep zit én een openstaand saldo hebt — en alleen wanneer zij je gaan betalen. Anders dan je met een wachtwoordzin beschermde gegevens kan onze server dit lezen, omdat hij het aan de betaler moet doorgeven.",
+    "showLog": "Wie dit heeft gezien ({{count}})",
+    "hideLog": "Toegangslog verbergen",
+    "someone": "Iemand"
+  }
+}

@@ -6,6 +6,7 @@ import i18n, { SUPPORTED_LANGUAGES } from "@pocketcare/i18n";
 import { useTranslation } from "react-i18next";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { Billing } from "../../src/ui/Billing";
+import { PaymentHandlePanel } from "../../src/payments/PaymentHandlePanel";
 import { useTheme, setTheme } from "../../src/theme";
 import { useBaseCurrency } from "../../src/hooks";
 import { setBaseCurrency, useAmountsHidden, setAmountsHidden } from "../../src/prefs";
@@ -214,6 +215,8 @@ export default function SettingsPage() {
           <Link href="/data" className="btn ghost">{t("importExportBtn")}</Link>
         </div>
       </section>
+
+      <PaymentHandlePanel />
 
       <Billing />
 

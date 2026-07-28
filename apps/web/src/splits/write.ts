@@ -3,7 +3,7 @@
 import { money, type Money } from "@pocketcare/money";
 import type { CurrencyCode } from "@pocketcare/types";
 import { getRepositories, getUserId, getDb, getSupabase } from "../powersync";
-import { insertRow, nowIso } from "../write";
+import { insertRow, updateRow, nowIso } from "../write";
 import { ensureVirtualAccount } from "./accounts";
 import { splitEqual, splitByWeights } from "./math";
 
@@ -142,35 +142,113 @@ async function projectPersonal(o: {
 
 // ---------------- Settlements ----------------
 
+/** confirmed = both sides agree · pending = claimed, awaiting the payee · disputed = didn't arrive. */
+export type SettlementStatus = "confirmed" | "pending" | "disputed";
+
+/**
+ * Record a settlement.
+ *
+ * `status` defaults to `confirmed`, which is the pre-0041 behaviour: the manual
+ * "mark settled" flow is two people agreeing in person, so there is nothing to
+ * confirm. The UPI pay flow passes `pending` instead, because we hand the
+ * payment off to a third-party app and get NO callback — the payee is the only
+ * one who can actually verify it arrived.
+ *
+ * Either way, the ACTING party's ledger leg posts immediately: their cash
+ * genuinely moved, and that fact doesn't depend on the other side agreeing.
+ */
 export async function settleUp(opts: {
   otherUserId: string; groupId: string; amount: number; direction: "received" | "paid";
   accountId: string | null; currency: string; note?: string;
-}): Promise<void> {
+  status?: SettlementStatus;
+  method?: string;
+  upiRef?: string | null;
+}): Promise<string> {
   const me = getUserId();
-  const cur = opts.currency as CurrencyCode;
+  const status = opts.status ?? "confirmed";
   const fromUser = opts.direction === "received" ? opts.otherUserId : me;
   const toUser = opts.direction === "received" ? me : opts.otherUserId;
 
   const settlementId = await insertRow("settlements", {
     group_id: opts.groupId, from_user: fromUser, to_user: toUser, amount: opts.amount,
-    currency: opts.currency, method: opts.accountId ? "account" : "none", note: opts.note ?? null,
+    currency: opts.currency,
+    method: opts.method ?? (opts.accountId ? "account" : "none"),
+    note: opts.note ?? null,
     settled_at: nowIso(), created_by: me,
+    status,
+    confirmed_at: status === "confirmed" ? nowIso() : null,
+    confirmed_by: status === "confirmed" ? me : null,
+    upi_ref: opts.upiRef ?? null,
   });
 
-  if (opts.accountId && opts.amount > 0) {
-    const repos = getRepositories();
-    let txId: string;
-    if (opts.direction === "received") {
-      const recv = await ensureVirtualAccount("receivable", opts.currency);
-      const tx = await repos.transactions.create({ account_id: recv, type: "transfer", amount: money(opts.amount, cur), to_account_id: opts.accountId, note: "Settlement received", occurred_at: nowIso() });
-      txId = tx.id;
-    } else {
-      const pay = await ensureVirtualAccount("payable", opts.currency);
-      const tx = await repos.transactions.create({ account_id: opts.accountId, type: "transfer", amount: money(opts.amount, cur), to_account_id: pay, note: "Settlement paid", occurred_at: nowIso() });
-      txId = tx.id;
-    }
-    await insertRow("expense_postings", { settlement_id: settlementId, transaction_id: txId, role: "settlement" });
+  await postSettlementLeg(settlementId, opts);
+  return settlementId;
+}
+
+/** The ledger transfer for whichever side is acting. Shared by settle and confirm. */
+async function postSettlementLeg(
+  settlementId: string,
+  opts: { amount: number; direction: "received" | "paid"; accountId: string | null; currency: string },
+): Promise<void> {
+  if (!opts.accountId || opts.amount <= 0) return;
+  const cur = opts.currency as CurrencyCode;
+  const repos = getRepositories();
+  let txId: string;
+  if (opts.direction === "received") {
+    const recv = await ensureVirtualAccount("receivable", opts.currency);
+    const tx = await repos.transactions.create({ account_id: recv, type: "transfer", amount: money(opts.amount, cur), to_account_id: opts.accountId, note: "Settlement received", occurred_at: nowIso() });
+    txId = tx.id;
+  } else {
+    const pay = await ensureVirtualAccount("payable", opts.currency);
+    const tx = await repos.transactions.create({ account_id: opts.accountId, type: "transfer", amount: money(opts.amount, cur), to_account_id: pay, note: "Settlement paid", occurred_at: nowIso() });
+    txId = tx.id;
   }
+  await insertRow("expense_postings", { settlement_id: settlementId, transaction_id: txId, role: "settlement" });
+}
+
+export interface PendingSettlement {
+  id: string; from_user: string; to_user: string; amount: number; currency: string;
+  group_id: string; status: string; upi_ref: string | null; created_at: string;
+}
+
+/**
+ * The payee confirms the money arrived: flip to `confirmed` and post THEIR leg
+ * (the payer's already posted when they paid).
+ */
+export async function confirmSettlement(
+  settlement: PendingSettlement,
+  accountId: string | null,
+): Promise<void> {
+  const me = getUserId();
+  await updateRow("settlements", settlement.id, {
+    status: "confirmed",
+    confirmed_at: nowIso(),
+    confirmed_by: me,
+  });
+  await postSettlementLeg(settlement.id, {
+    amount: settlement.amount,
+    direction: "received",
+    accountId,
+    currency: settlement.currency,
+  });
+}
+
+/**
+ * The payee says it never arrived.
+ *
+ * The ledger is append-only (golden rules #2/#5), so we do NOT unwind the
+ * payer's original transfer — we mark the settlement `disputed`, which removes
+ * it from balance netting, and leave the posted cash movement standing. If the
+ * payer's money really did leave their account, that transfer is still true;
+ * what's no longer true is that it settled the debt.
+ */
+export async function disputeSettlement(settlementId: string, note?: string): Promise<void> {
+  await updateRow("settlements", settlementId, {
+    status: "disputed",
+    confirmed_at: nowIso(),
+    confirmed_by: getUserId(),
+    note: note ?? "Recipient reported it didn't arrive",
+  });
 }
 
 // ---------------- Invites ----------------

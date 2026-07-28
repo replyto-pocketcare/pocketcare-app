@@ -63,6 +63,9 @@ importers:
       '@pocketcare/ui-tokens':
         specifier: workspace:*
         version: link:../../packages/ui-tokens
+      '@pocketcare/upi':
+        specifier: workspace:*
+        version: link:../../packages/core/upi
       '@powersync/react':
         specifier: ^1.5.0
         version: 1.10.0(@powersync/common@1.57.0)(react@18.3.1)
@@ -178,6 +181,8 @@ importers:
         version: link:../../types
 
   packages/core/reconcile: {}
+
+  packages/core/upi: {}
 
   packages/data:
     dependencies:

@@ -53,6 +53,15 @@ Deno.serve(async (req: Request) => {
   let onlyUser: string | undefined;
   try { onlyUser = (await req.json())?.user_id; } catch { /* no body — run for everyone */ }
 
+  // Pending UPI settlements (0041): nudge the payee at 3 days, auto-confirm at
+  // 14. Without this a payer who really did send money is left looking like
+  // they still owe it, indefinitely, because we get no payment callback.
+  // Runs once per dispatch, not per user — it's a global sweep.
+  if (!onlyUser) {
+    const { error: sweepErr } = await db.rpc("sweep_pending_settlements");
+    if (sweepErr) console.error("[notify-dispatch] settlement sweep failed:", sweepErr.message);
+  }
+
   // Which users to process: the requested one, or everyone with a profile.
   const { data: profiles, error: pErr } = onlyUser
     ? await db.from("profiles").select("id").eq("id", onlyUser)

@@ -138,6 +138,8 @@ erDiagram
     expenses ||--o{ expense_items : "itemized into"
     expense_items ||--o{ expense_item_shares : "shared by"
     profiles ||--o{ receipt_scans : "scanned"
+    profiles ||--o| payment_handles : "pays via"
+    profiles ||--o{ payment_handle_disclosures : "audits"
     profiles ||--o{ split_group_members : "member of"
     profiles ||--o{ connections : "connected to"
     profiles ||--o{ expense_postings : "private projection"
@@ -177,6 +179,17 @@ erDiagram
         int  weight "mode-dependent input"
         int  share_amount "resolved minor units"
     }
+    payment_handles {
+        uuid id PK
+        uuid user_id FK
+        text handle_enc "ENCRYPTED VPA - server-only, never synced"
+        text handle_hint "masked, e.g. akh****@okhdfcbank"
+        text verified_at "reserved - we do NOT verify ownership"
+    }
+    settlements_status {
+        text status "confirmed|pending|disputed"
+        text upi_ref "our tr= reference"
+    }
     receipt_scans {
         uuid id PK
         uuid user_id FK
@@ -188,6 +201,8 @@ erDiagram
 ```
 
 > **Itemized bills (0040).** `expense_items` / `expense_item_shares` are a **breakdown, not a second balance model**: per-item shares are rolled up by the client into `expense_participants`, which stays the single source of truth for every balance and settle-up query. `expenses.has_items` flags that a breakdown exists. A deferred constraint trigger enforces `Σ expense_items.amount = expenses.amount`.
+>
+> **Payment handles (0041) are server-only.** `payment_handles` is deliberately absent from `sync-streams.yaml` and from `AppSchema` — a UPI ID must never be copied onto co-members' devices. It is released just-in-time by the `payment-handle` edge function. Only `payment_handle_disclosures` (the owner's audit trail, which holds no secret) syncs. `settlements.status` defaults to `confirmed` so every pre-existing row keeps its meaning; **every settlements query must filter `status <> 'disputed'`**.
 >
 > **`receipt_scans` holds no image bytes.** `image_path` is a forward-compatible seam for a possible future private Storage bucket and is always written as NULL. See [receipt-scanning](../features/receipt-scanning.md).
 

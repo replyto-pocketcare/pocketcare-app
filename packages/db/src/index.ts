@@ -490,14 +490,36 @@ const expense_participants = new Table(
   { expense_id: column.text, group_id: column.text, user_id: column.text, paid_amount: column.integer, share_amount: column.integer, created_at: column.text, updated_at: column.text, deleted_at: column.text },
   { indexes: { by_group: ["group_id"], by_expense: ["expense_id"] } },
 );
+// `status` (0041) is confirmed | pending | disputed. It defaults to 'confirmed'
+// server-side so every pre-existing row and the manual "mark settled" flow keep
+// their original meaning; only the UPI pay flow writes 'pending'.
+// NOTE: payment_handles and payment_handle_disclosures are DELIBERATELY absent
+// from this schema — they are server-only and must never sync to a device.
 const settlements = new Table(
-  { group_id: column.text, from_user: column.text, to_user: column.text, amount: column.integer, currency: column.text, method: column.text, note: column.text, settled_at: column.text, created_by: column.text, created_at: column.text, updated_at: column.text, deleted_at: column.text },
-  { indexes: { by_group: ["group_id"] } },
+  {
+    group_id: column.text, from_user: column.text, to_user: column.text, amount: column.integer,
+    currency: column.text, method: column.text, note: column.text, settled_at: column.text,
+    created_by: column.text, status: column.text, confirmed_at: column.text,
+    confirmed_by: column.text, upi_ref: column.text,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
+  },
+  { indexes: { by_group: ["group_id"], by_status: ["status"] } },
 );
 const expense_postings = new Table(
   { user_id: column.text, expense_id: column.text, settlement_id: column.text, transaction_id: column.text, role: column.text, created_at: column.text, updated_at: column.text, deleted_at: column.text },
   { indexes: { by_expense: ["expense_id"] } },
 );
+// Your audit trail of who fetched your UPI ID (0041). Holds no secret — the
+// encrypted handle itself lives in `payment_handles`, which is server-only and
+// deliberately NOT in this schema.
+const payment_handle_disclosures = new Table(
+  {
+    owner_user_id: column.text, viewer_user_id: column.text, group_id: column.text,
+    created_at: column.text,
+  },
+  { indexes: { by_created: ["created_at"] } },
+);
+
 // Itemized bills (0040). `expense_items` are the lines of a shared expense and
 // `expense_item_shares` say who is on each line. Per-item shares are rolled up
 // into `expense_participants` by the client, which remains the source of truth
@@ -644,6 +666,8 @@ export const AppSchema = new Schema({
   connections,
   // Receipt / bill scanning
   receipt_scans,
+  // Payments (0041) — the audit trail only; payment_handles is server-only.
+  payment_handle_disclosures,
   transaction_templates,
   recurring_rules,
   category_rules,

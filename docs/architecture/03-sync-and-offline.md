@@ -111,6 +111,7 @@ Some actions cannot be expressed as owner-scoped row writes and run server-side:
 | `redeem-coupon` | Validate + apply earned coupons / shared promo codes |
 | guest purge | Delete expired guest accounts after the 3-day TTL |
 | assistant | LLM calls with per-user quota enforcement |
+| `payment-handle` | Store a user's UPI ID (encrypted, server-only) and release it just-in-time behind a shared-group + activity + rate-limit gate, with an audit row per disclosure |
 | `receipt-scan` | Opt-in AI receipt reading (vision + forced `emit_receipt` tool). Shares the assistant's quota pool; the image is forwarded and discarded, never stored |
 
 ## Deploy checklist for a new synced table

@@ -156,7 +156,7 @@ export function useFriendBalances(): FriendBalance[] {
     "SELECT expense_id, user_id, paid_amount, share_amount FROM expense_participants WHERE deleted_at IS NULL AND expense_id IN (SELECT id FROM expenses WHERE deleted_at IS NULL)",
   );
   const { data: setts = [] } = useQuery<{ from_user: string; to_user: string; amount: number }>(
-    "SELECT from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL",
+    "SELECT from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL AND status <> 'disputed'",
   );
   return useMemo(() => computeBalances(parts, setts, me), [parts, setts, me]);
 }
@@ -190,7 +190,7 @@ export function useSplitOverview(): SplitOverview {
     "SELECT group_id, expense_id, user_id, paid_amount, share_amount FROM expense_participants WHERE deleted_at IS NULL",
   );
   const { data: setts = [] } = useQuery<{ group_id: string; from_user: string; to_user: string; amount: number }>(
-    "SELECT group_id, from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL",
+    "SELECT group_id, from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL AND status <> 'disputed'",
   );
 
   return useMemo(() => {
@@ -256,7 +256,7 @@ export function usePersonLedger(otherId: string): { lines: PersonLine[]; total: 
     "SELECT id, description, occurred_at FROM expenses WHERE deleted_at IS NULL",
   );
   const { data: setts = [] } = useQuery<{ id: string; from_user: string; to_user: string; amount: number; settled_at: string | null; created_at: string }>(
-    "SELECT id, from_user, to_user, amount, settled_at, created_at FROM settlements WHERE deleted_at IS NULL",
+    "SELECT id, from_user, to_user, amount, settled_at, created_at, status, upi_ref FROM settlements WHERE deleted_at IS NULL AND status <> 'disputed'",
   );
 
   return useMemo(() => {
@@ -302,7 +302,7 @@ export function useGroupBalances(groupId: string): FriendBalance[] {
     [groupId],
   );
   const { data: setts = [] } = useQuery<{ from_user: string; to_user: string; amount: number }>(
-    "SELECT from_user, to_user, amount FROM settlements WHERE group_id = ? AND deleted_at IS NULL",
+    "SELECT from_user, to_user, amount FROM settlements WHERE group_id = ? AND deleted_at IS NULL AND status <> 'disputed'",
     [groupId],
   );
   return useMemo(() => computeBalances(parts, setts, me), [parts, setts, me]);

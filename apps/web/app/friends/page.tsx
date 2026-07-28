@@ -10,7 +10,9 @@ import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
 import { AmountInput } from "../../src/ui/AmountInput";
 import { useSplitOverview, useUserProfiles, usePersonLedger } from "../../src/splits/hooks";
-import { settleUp } from "../../src/splits/write";
+import { settleUp, type SettlementStatus } from "../../src/splits/write";
+import { PayViaUpi } from "../../src/payments/PayViaUpi";
+import { PendingSettlements } from "../../src/payments/PendingSettlements";
 import { ListSkeleton } from "../../src/ui/Skeleton";
 
 interface SettleTarget { userId: string; name: string; net: number }
@@ -104,7 +106,14 @@ export default function SplitsPage() {
       else if (typeof navigator !== "undefined" && navigator.clipboard) { await navigator.clipboard.writeText(line); setReminded(true); }
     } catch { /* user dismissed share sheet */ }
   }
-  async function confirmSettle() {
+  /**
+   * Record the settlement.
+   *
+   * `status` is "confirmed" for the manual mark-settled path (two people
+   * agreeing in person — nothing to verify) and "pending" when it came from a
+   * UPI hand-off, where only the payee can confirm the money actually arrived.
+   */
+  async function confirmSettle(status: SettlementStatus = "confirmed", upiRef?: string) {
     if (!target) return;
     const minor = Math.round((Number(amount) || 0) * 100);
     if (minor <= 0) return;
@@ -112,7 +121,13 @@ export default function SplitsPage() {
     if (!gid) { setBusy(false); setTarget(null); return; }
     setBusy(true);
     try {
-      await settleUp({ otherUserId: target.userId, groupId: gid, amount: minor, direction: target.net >= 0 ? "received" : "paid", accountId: accountId || null, currency: base });
+      await settleUp({
+        otherUserId: target.userId, groupId: gid, amount: minor,
+        direction: target.net >= 0 ? "received" : "paid",
+        accountId: accountId || null, currency: base,
+        status,
+        ...(upiRef ? { method: "upi_intent", upiRef } : {}),
+      });
       setTarget(null);
     } finally { setBusy(false); }
   }
@@ -146,6 +161,10 @@ export default function SplitsPage() {
 
   return (
     <div className="fade-up" style={{ display: "grid", gap: 20 }}>
+      {/* Payments claimed by others, waiting on you — top of the page because
+          an unconfirmed payment blocks someone else's balance from clearing. */}
+      <PendingSettlements />
+
       <section className="card" style={{ padding: 18, display: "grid", gap: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <div style={{ minWidth: 0 }}>
@@ -323,6 +342,19 @@ export default function SplitsPage() {
                 {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </label>
+            {/* Pay via UPI — only when YOU owe THEM, in INR. Their handle is
+                fetched just-in-time; nothing about it is stored on this device. */}
+            {target.net < 0 && base === "INR" && Number(amount) > 0 && (
+              <div style={{ borderTop: "1px solid var(--border)", paddingTop: 12, display: "grid", gap: 8 }}>
+                <PayViaUpi
+                  counterpartyId={target.userId}
+                  counterpartyName={target.name}
+                  amountMinor={Math.round((Number(amount) || 0) * 100)}
+                  onPaid={(ref) => void confirmSettle("pending", ref)}
+                />
+              </div>
+            )}
+
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
               <button className="btn ghost" onClick={() => setTarget(null)}>{t("cancel")}</button>
               <button className="btn" onClick={() => void confirmSettle()} disabled={busy || !(Number(amount) > 0)}>{busy ? t("settling") : t("settle")}</button>
