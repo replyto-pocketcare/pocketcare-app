@@ -184,7 +184,10 @@ export function TransactionTile({
     borderTop: divided ? "1px solid var(--border)" : "none",
     color: "inherit", width: "100%", boxSizing: "border-box", minWidth: 0,
   };
-  const cls = card ? "card tx-tile" : "tap-row";
+  // `.tx-tile` already supplies surface, border, radius and the hover lift —
+  // and its `padding: !important` would beat the inline padding above, so it is
+  // used alone rather than alongside `.card`.
+  const cls = card ? "tx-tile" : "tap-row";
 
   return href
     ? <Link href={href} className={cls} style={style}>{body}</Link>

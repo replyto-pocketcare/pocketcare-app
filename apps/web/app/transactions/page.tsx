@@ -72,6 +72,7 @@ export default function TransactionsPage() {
               href={`/transactions/${tx.id}/edit`}
               split={!!split}
               scanned={scannedIds.has(tx.id)}
+              card
             />
           ))}
         </div>

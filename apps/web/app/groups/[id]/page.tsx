@@ -35,7 +35,9 @@ function ExpenseRow({ expense, base, fmt, fallback }: {
   const itemized = !!expense.has_items;
 
   return (
-    <div className="card tx-tile" style={{ padding: 0, overflow: "hidden" }}>
+    // `.card` only — `.tx-tile`'s `padding: !important` would beat this
+    // `padding: 0` and double up with the tile's own padding inside.
+    <div className="card" style={{ padding: 0, overflow: "hidden" }}>
       <TransactionTile
         raw={expense.description || fallback}
         amountMinor={expense.amount}

@@ -128,6 +128,7 @@ export default function SearchPage() {
               detail={split ? undefined : (acct(tx.account_id)?.name ?? undefined)}
               href={`/transactions/${tx.id}/edit`}
               split={!!split}
+              card
             />
           ))}
         </div>
