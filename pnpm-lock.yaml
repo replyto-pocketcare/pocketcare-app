@@ -36,6 +36,9 @@ importers:
       '@pocketcare/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@pocketcare/diagnostics':
+        specifier: workspace:*
+        version: link:../../packages/core/diagnostics
       '@pocketcare/entitlements':
         specifier: workspace:*
         version: link:../../packages/core/entitlements
@@ -57,6 +60,9 @@ importers:
       '@pocketcare/reconcile':
         specifier: workspace:*
         version: link:../../packages/core/reconcile
+      '@pocketcare/sync-policy':
+        specifier: workspace:*
+        version: link:../../packages/core/sync-policy
       '@pocketcare/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -133,6 +139,8 @@ importers:
 
   packages/core/crypto: {}
 
+  packages/core/diagnostics: {}
+
   packages/core/entitlements:
     dependencies:
       '@pocketcare/types':
@@ -182,6 +190,8 @@ importers:
 
   packages/core/reconcile: {}
 
+  packages/core/sync-policy: {}
+
   packages/core/upi: {}
 
   packages/data:
@@ -204,6 +214,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@pocketcare/sync-policy':
+        specifier: workspace:*
+        version: link:../core/sync-policy
       '@powersync/common':
         specifier: ^1.20.0
         version: 1.57.0
