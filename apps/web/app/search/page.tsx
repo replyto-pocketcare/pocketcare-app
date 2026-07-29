@@ -8,7 +8,7 @@ import { money, toMajor } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { SlidersIcon } from "../../src/ui/icons";
-import { TransactionTile } from "../../src/ui/TransactionTile";
+import { TransactionTile, txTags } from "../../src/ui/TransactionTile";
 import { useSplitInfo, collapseSplitRows } from "../../src/splits/collapse";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
@@ -124,8 +124,8 @@ export default function SearchPage() {
               currency={split ? split.currency : tx.currency}
               type={tx.type}
               meta={new Date(tx.occurred_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-              fallbackSubtitle={catName(tx.category_id)}
-              detail={split ? undefined : (acct(tx.account_id)?.name ?? undefined)}
+              tags={txTags(catName(tx.category_id), tx.labels)}
+              account={split ? undefined : (acct(tx.account_id)?.name ?? undefined)}
               href={`/transactions/${tx.id}/edit`}
               split={!!split}
               card

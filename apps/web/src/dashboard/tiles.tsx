@@ -17,7 +17,7 @@ import { useBaseCurrency, useCurrencyBreakdown, useConvertAmount } from "../hook
 import { useAmountsHidden } from "../prefs";
 import { useFriendBalances, useUserProfiles } from "../splits/hooks";
 import { useSplitInfo, collapseSplitRows } from "../splits/collapse";
-import { SplitChip, TransactionTile } from "../ui/TransactionTile";
+import { SplitChip, TransactionTile, txTags } from "../ui/TransactionTile";
 import { bucketLabel, bucketIcon } from "../cashflow/model";
 import { MaterialIcon } from "../ui/MaterialIcon";
 import { useFitRows } from "./useFitRows";
@@ -265,7 +265,7 @@ function RecentTile() {
             currency={split ? split.currency : t.currency}
             type={t.type}
             meta={new Date(t.occurred_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-            fallbackSubtitle={catName(t.category_id)}
+            tags={txTags(catName(t.category_id), t.labels).slice(0, 1)}
             href={`/transactions/${t.id}/edit`}
             split={!!split}
             dense

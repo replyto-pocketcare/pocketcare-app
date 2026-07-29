@@ -73,6 +73,38 @@ export function merchantTitle(desc: string): string {
   return desc.slice(0, 40);
 }
 
+/** A small icon + text pair shown under the title (category, label, …). */
+export interface MetaTag {
+  icon: MaterialIconName;
+  text: string;
+}
+
+/**
+ * Build the standard tag row for a transaction: its category, then each label.
+ * `labels` is the comma-joined GROUP_CONCAT string the list queries produce.
+ * Skips a category of "Uncategorised" only when there are labels to show, so a
+ * bare transaction still says something rather than nothing.
+ */
+export function txTags(categoryName: string | null | undefined, labels?: string | null): MetaTag[] {
+  const out: MetaTag[] = [];
+  const names = (labels ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (categoryName && !(names.length && /^uncategorised$/i.test(categoryName))) {
+    out.push({ icon: "category", text: categoryName });
+  }
+  for (const n of names) out.push({ icon: "label", text: n });
+  return out;
+}
+
+/** Icon + text, sized to sit inline with muted 11.5px copy. */
+function MetaBit({ icon, text, size = 13 }: { icon: MaterialIconName; text: string; size?: number }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, minWidth: 0, maxWidth: "100%" }}>
+      <MaterialIcon name={icon} size={size} style={{ opacity: 0.75 }} />
+      <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{text}</span>
+    </span>
+  );
+}
+
 export interface TransactionTileProps {
   /** Raw source text — narration, description, or labels. Drives title + avatar. */
   raw: string;
@@ -84,8 +116,18 @@ export interface TransactionTileProps {
   meta?: string;
   /** Shown under the title when the narration adds nothing (i.e. equals title). */
   fallbackSubtitle?: string;
-  /** Appended to the subtitle — account name, payment method, "your share …". */
-  detail?: string | undefined;
+  /**
+   * Category / label chips, each with its own glyph so the kind of thing is
+   * readable at a glance instead of everything being one run of dot-separated
+   * grey text. Wraps onto as many lines as it needs.
+   */
+  tags?: MetaTag[];
+  /**
+   * The account, on its OWN line below the tags. It's a different kind of fact
+   * from a category or a label — "where the money moved" rather than "what it
+   * was" — and inlining it made the busiest rows read as one grey smear.
+   */
+  account?: string | undefined;
   href?: string | undefined;
   split?: boolean;
   scanned?: boolean;
@@ -112,7 +154,7 @@ export interface TransactionTileProps {
 }
 
 export function TransactionTile({
-  raw, amountMinor, currency, type, meta, fallbackSubtitle, detail,
+  raw, amountMinor, currency, type, meta, fallbackSubtitle, tags, account,
   href, split = false, scanned = false, dense = false, divided = false,
   card = false, avatarIcon, avatarSeed, amountText, amountColor, trailing,
 }: TransactionTileProps) {
@@ -121,8 +163,7 @@ export function TransactionTile({
   const title = merchantTitle(text);
   // Show the full narration when it says more than the title; otherwise fall
   // back to the category so the second line is never empty.
-  const subtitleBase = text !== title ? text : (fallbackSubtitle ?? "");
-  const subtitle = [subtitleBase, detail].filter(Boolean).join(" · ");
+  const subtitle = text !== title ? text : (tags?.length ? "" : (fallbackSubtitle ?? ""));
 
   const sign = split || type === "expense" ? "−" : type === "income" ? "+" : "";
   const color = amountColor ?? (type === "income" && !split ? "var(--positive)" : "var(--text)");
@@ -164,6 +205,20 @@ export function TransactionTile({
             }
           >
             {subtitle}
+          </div>
+        )}
+
+        {/* Category + labels, each glyph-tagged, wrapping as needed. */}
+        {!!tags?.length && (
+          <div className="muted" style={{ display: "flex", flexWrap: dense ? "nowrap" : "wrap", gap: dense ? 8 : "3px 10px", fontSize: 11.5, marginTop: 2, minWidth: 0, overflow: dense ? "hidden" : undefined }}>
+            {tags.map((tg) => <MetaBit key={`${tg.icon}:${tg.text}`} icon={tg.icon} text={tg.text} />)}
+          </div>
+        )}
+
+        {/* The account gets its own line — see the prop docs for why. */}
+        {account && !dense && (
+          <div className="muted" style={{ fontSize: 11.5, marginTop: 2, minWidth: 0 }}>
+            <MetaBit icon="account_balance" text={account} />
           </div>
         )}
       </div>

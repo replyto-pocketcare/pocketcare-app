@@ -10,7 +10,7 @@ import { useBaseCurrency } from "../../src/hooks";
 import { useEntitlement } from "../../src/entitlement";
 import { LockIcon } from "../../src/ui/icons";
 import { useMoneyFmt } from "../../src/ui/Money";
-import { TransactionTile, groupTxnsByDay } from "../../src/ui/TransactionTile";
+import { TransactionTile, groupTxnsByDay, txTags } from "../../src/ui/TransactionTile";
 
 export default function StatementsPage() {
   const { t } = useTranslation("statements");
@@ -116,7 +116,7 @@ export default function StatementsPage() {
                     currency={r.currency}
                     type={r.type}
                     meta={new Date(r.occurred_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
-                    fallbackSubtitle={catName(r.category_id)}
+                    tags={txTags(catName(r.category_id), r.labels)}
                     href={`/transactions/${r.id}/edit`}
                     divided={i > 0}
                   />

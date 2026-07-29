@@ -5,7 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import type { Transaction } from "@pocketcare/types";
-import { TransactionTile } from "../../src/ui/TransactionTile";
+import { TransactionTile, txTags } from "../../src/ui/TransactionTile";
 import { Skeleton } from "../../src/ui/Skeleton";
 import { useInitialSyncPending } from "../../src/sync";
 import { useSplitInfo, collapseSplitRows } from "../../src/splits/collapse";
@@ -67,8 +67,8 @@ export default function TransactionsPage() {
               currency={split ? split.currency : tx.currency}
               type={tx.type}
               meta={new Date(tx.occurred_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-              fallbackSubtitle={catName(tx.category_id)}
-              detail={split ? undefined : (acct(tx.account_id)?.name ?? undefined)}
+              tags={txTags(catName(tx.category_id), tx.labels)}
+              account={split ? undefined : (acct(tx.account_id)?.name ?? undefined)}
               href={`/transactions/${tx.id}/edit`}
               split={!!split}
               scanned={scannedIds.has(tx.id)}
