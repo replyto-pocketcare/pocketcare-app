@@ -4,11 +4,13 @@ import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
-import { money, format } from "@pocketcare/money";
+import { money } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
 import { useBaseCurrency } from "../../src/hooks";
 import { useEntitlement } from "../../src/entitlement";
 import { LockIcon } from "../../src/ui/icons";
+import { useMoneyFmt } from "../../src/ui/Money";
+import { TransactionTile, groupTxnsByDay } from "../../src/ui/TransactionTile";
 
 export default function StatementsPage() {
   const { t } = useTranslation("statements");
@@ -29,6 +31,9 @@ export default function StatementsPage() {
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories");
   const catName = (id: string | null) => cats.find((c) => c.id === id)?.name ?? "Uncategorised";
+  // Every amount on this page goes through fmt, so the hide-amounts privacy
+  // toggle applies here too — it previously called format() directly and leaked.
+  const fmt = useMoneyFmt();
 
   const income = rows.filter((r) => r.type === "income").reduce((s, r) => s + r.amount, 0);
   const expense = rows.filter((r) => r.type === "expense").reduce((s, r) => s + r.amount, 0);
@@ -77,14 +82,17 @@ export default function StatementsPage() {
         </div>
         <div>
           <div className="muted" style={{ fontSize: 12 }}>{t("netForPeriod")}</div>
-          <div style={{ fontSize: 30, fontWeight: 780, letterSpacing: "-0.02em", whiteSpace: "nowrap", color: income - expense >= 0 ? "var(--positive)" : "var(--negative)" }}>
-            {format(money(income - expense, base), "en-US")}
+          <div style={{ fontSize: 30, fontWeight: 780, letterSpacing: "-0.02em", overflowWrap: "anywhere", color: income - expense >= 0 ? "var(--positive)" : "var(--negative)" }}>
+            {fmt(money(income - expense, base))}
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-          <Summary label={t("income")} value={format(money(income, base), "en-US")} color="var(--positive)" />
-          <Summary label={t("expenses")} value={format(money(expense, base), "en-US")} color="var(--negative)" />
-          <Summary label={t("transactions")} value={String(rows.length)} />
+        {/* One row per figure. These were three columns of a 1fr grid, which is
+            far too narrow for Indian-format amounts — anything from a lakh up
+            ellipsised to "₹1,2…", i.e. exactly the digits that matter. */}
+        <div className="row-stack">
+          <SummaryRow label={t("income")} value={fmt(money(income, base))} color="var(--positive)" />
+          <SummaryRow label={t("expenses")} value={fmt(money(expense, base))} color="var(--negative)" />
+          <SummaryRow label={t("transactions")} value={String(rows.length)} />
         </div>
       </section>
 
@@ -93,14 +101,26 @@ export default function StatementsPage() {
         <p className="muted card" style={{ padding: 16, margin: 0 }}>{t("noTransactions")}</p>
       ) : (
         <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
-          {groupByDay(rows, t).map(({ day, label, items, net }) => (
+          {groupTxnsByDay(rows, { today: t("today"), yesterday: t("yesterday") }).map(({ day, label, items, net }) => (
             <section key={day} style={{ display: "grid", gap: 8, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, padding: "0 4px", minWidth: 0 }}>
                 <span className="eyebrow" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
-                <span className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", flexShrink: 0 }}>{net >= 0 ? "+" : "−"}{format(money(Math.abs(net), base), "en-US")}</span>
+                <span className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", flexShrink: 0 }}>{net >= 0 ? "+" : "−"}{fmt(money(Math.abs(net), base))}</span>
               </div>
               <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-                {items.map((r, i) => <TxnTile key={r.id} r={r} first={i === 0} category={catName(r.category_id)} />)}
+                {items.map((r, i) => (
+                  <TransactionTile
+                    key={r.id}
+                    raw={(r.labels || r.description || r.type).trim()}
+                    amountMinor={r.amount}
+                    currency={r.currency}
+                    type={r.type}
+                    meta={new Date(r.occurred_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                    fallbackSubtitle={catName(r.category_id)}
+                    href={`/transactions/${r.id}/edit`}
+                    divided={i > 0}
+                  />
+                ))}
               </div>
             </section>
           ))}
@@ -110,68 +130,16 @@ export default function StatementsPage() {
   );
 }
 
-function Summary({ label, value, color }: { label: string; value: string; color?: string }) {
+/**
+ * Label left, value right, on its own line. The value gets the whole remaining
+ * width and wraps rather than truncating — an amount is the one thing on this
+ * page that must never be cut off.
+ */
+function SummaryRow({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <div style={{ minWidth: 0 }}>
-      <div className="muted" style={{ fontSize: 11.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</div>
-      <div style={{ fontWeight: 700, fontSize: 15.5, color, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+    <div className="row-tile" style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+      <span className="muted" style={{ fontSize: 12.5, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontWeight: 700, fontSize: 16, color, textAlign: "right", minWidth: 0, overflowWrap: "anywhere" }}>{value}</span>
     </div>
   );
-}
-
-type Row = Transaction & { labels: string | null };
-
-const AV = ["#b06a4f", "#5f7a52", "#c08a3e", "#7a4a6b", "#2f6f6a", "#7c4a3a", "#9cae8e"];
-const avColor = (s: string) => AV[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % AV.length]!;
-
-/** Pull a readable name out of a bank/UPI narration ("UPI/ASHISH ALA/…" → "ASHISH ALA"). */
-function merchantTitle(desc: string): string {
-  const parts = desc.split("/").map((s) => s.trim()).filter(Boolean);
-  if (parts.length >= 2 && /^(upi|imps|neft|ach|bil|inft|rtgs|nach|pos)$/i.test(parts[0]!)) {
-    const name = parts.slice(1).find((p) => /[a-z]{3,}/i.test(p) && !/^\d+$/.test(p));
-    return (name || parts[1]!).slice(0, 34);
-  }
-  return desc.slice(0, 40);
-}
-
-function TxnTile({ r, first, category }: { r: Row; first: boolean; category: string }) {
-  const base = useBaseCurrency();
-  const raw = (r.labels || r.description || r.type).trim();
-  const title = merchantTitle(raw);
-  const time = new Date(r.occurred_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-  const sign = r.type === "expense" ? "−" : r.type === "income" ? "+" : "";
-  const color = r.type === "income" ? "var(--positive)" : r.type === "expense" ? "var(--text)" : "var(--text)";
-  return (
-    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", borderTop: first ? "none" : "1px solid var(--border)" }}>
-      <span aria-hidden style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 999, background: avColor(title), color: "#fff", display: "grid", placeItems: "center", fontSize: 14, fontWeight: 700 }}>{(title[0] || "•").toUpperCase()}</span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
-        <div className="muted" style={{ fontSize: 11.5, lineHeight: 1.45, overflowWrap: "anywhere", wordBreak: "break-word" }}>{raw !== title ? raw : category}</div>
-      </div>
-      <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: 14.5, fontWeight: 700, whiteSpace: "nowrap", color }}>{sign}{format(money(r.amount, r.currency), "en-US")}</div>
-        <div className="muted" style={{ fontSize: 11, whiteSpace: "nowrap" }}>{time}</div>
-      </div>
-    </div>
-  );
-}
-
-/** Group rows by calendar day, newest first, with a friendly label + day net. */
-function groupByDay(rows: Row[], t: (k: string) => string): { day: string; label: string; items: Row[]; net: number }[] {
-  const map = new Map<string, Row[]>();
-  for (const r of rows) {
-    const day = r.occurred_at.slice(0, 10);
-    (map.get(day) ?? map.set(day, []).get(day)!).push(r);
-  }
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const yStr = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
-  return [...map.entries()]
-    .sort((a, b) => b[0].localeCompare(a[0]))
-    .map(([day, items]) => {
-      const sorted = [...items].sort((a, b) => b.occurred_at.localeCompare(a.occurred_at));
-      const net = sorted.reduce((s, r) => s + (r.type === "income" ? r.amount : r.type === "expense" ? -r.amount : 0), 0);
-      const label = day === todayStr ? t("today") : day === yStr ? t("yesterday")
-        : new Date(day + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "2-digit" });
-      return { day, label, items: sorted, net };
-    });
 }

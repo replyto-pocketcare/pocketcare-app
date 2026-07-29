@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import {
-  ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell, Tooltip, CartesianGrid,
   BarChart, Bar, AreaChart, Area, XAxis, YAxis, LabelList,
 } from "recharts";
 import { money, format, toMajor, type Money } from "@pocketcare/money";
@@ -13,12 +13,11 @@ import { monthlyEquivalent, emiDueDate } from "@pocketcare/finance";
 import type { BudgetLike } from "@pocketcare/data";
 import type { Transaction, Period } from "@pocketcare/types";
 import { getRepositories } from "../powersync";
-import { useAccountBalances, useBaseCurrency, useCurrencyBreakdown, useConvertAmount } from "../hooks";
+import { useBaseCurrency, useCurrencyBreakdown, useConvertAmount } from "../hooks";
 import { useAmountsHidden } from "../prefs";
-import { colorForId } from "../colors";
 import { useFriendBalances, useUserProfiles } from "../splits/hooks";
 import { useSplitInfo, collapseSplitRows } from "../splits/collapse";
-import { SplitChip } from "../ui/TransactionRow";
+import { SplitChip, TransactionTile } from "../ui/TransactionTile";
 import { bucketLabel, bucketIcon } from "../cashflow/model";
 import { MaterialIcon } from "../ui/MaterialIcon";
 import { useFitRows } from "./useFitRows";
@@ -173,16 +172,20 @@ function SplitsTile() {
   const name = (id: string) => profiles.get(id)?.name ?? "Someone";
   const owed = balances.reduce((s, b) => s + Math.max(0, b.net), 0);
   const owe = balances.reduce((s, b) => s + Math.max(0, -b.net), 0);
-  const top = [...balances].filter((b) => b.net !== 0).sort((a, b) => Math.abs(b.net) - Math.abs(a.net)).slice(0, 3);
+  const ranked = [...balances].filter((b) => b.net !== 0).sort((a, b) => Math.abs(b.net) - Math.abs(a.net));
   const fmt = (m: number) => (hidden ? "••••" : format(money(m, base), "en-US"));
+  // The tile clips rather than scrolls, so show exactly as many balances as fit.
+  const { ref, fit } = useFitRows<HTMLDivElement>(19, { gap: 6, max: 8 });
+  const top = ranked.slice(0, fit);
+  const extra = ranked.length - top.length;
   return (
     <TileCard title="Friends & splits" action={<Link href="/friends" className="muted" style={{ fontSize: 13 }}>Open →</Link>}>
-      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap", flexShrink: 0 }}>
         <div><div className="muted" style={{ fontSize: 12 }}>You’re owed</div><div style={{ fontSize: 22, fontWeight: 750, color: "var(--positive)" }}>{fmt(owed)}</div></div>
         <div><div className="muted" style={{ fontSize: 12 }}>You owe</div><div style={{ fontSize: 22, fontWeight: 750, color: "var(--negative)" }}>{fmt(owe)}</div></div>
       </div>
-      {top.length > 0 ? (
-        <div style={{ display: "grid", gap: 6 }}>
+      {ranked.length > 0 ? (
+        <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 6, alignContent: "start", overflow: "hidden" }}>
           {top.map((b) => (
             <div key={b.userId} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name(b.userId)}</span>
@@ -193,6 +196,7 @@ function SplitsTile() {
       ) : (
         <p className="muted" style={{ fontSize: 13, margin: 0 }}>No open balances yet. Split an expense from <Link href="/transactions/new">Add transaction</Link>.</p>
       )}
+      {extra > 0 && <Link href="/friends" className="muted" style={{ fontSize: 12, flexShrink: 0 }}>+{extra} more →</Link>}
     </TileCard>
   );
 }
@@ -234,8 +238,6 @@ function CurrenciesTile() {
 }
 
 function RecentTile() {
-  const hidden = useAmountsHidden();
-  const balances = useAccountBalances();
   const { data: recent = [] } = useQuery<Transaction & { labels: string | null }>(
     `SELECT t.*,
        (SELECT GROUP_CONCAT(l.name, ', ') FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS labels
@@ -243,34 +245,31 @@ function RecentTile() {
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL");
   const catName = (cid: string | null) => cats.find((c) => c.id === cid)?.name ?? "Uncategorised";
-  const acctColor = (aid: string) => balances.find((b) => b.account.id === aid)?.account.color || colorForId(aid);
-  const fmt = (m: Money) => (hidden ? "••••" : format(m, "en-US"));
   const splitInfo = useSplitInfo();
   const all = collapseSplitRows(recent, splitInfo);
-  // How many rows actually fit this tile at its current size (it clips, never scrolls).
-  const { ref, fit } = useFitRows<HTMLDivElement>(44, { gap: 8, max: 16 });
+  // How many rows actually fit this tile at its current size (it clips, never
+  // scrolls). 46px = the dense TransactionTile: a 28px avatar + 8px padding
+  // top and bottom, whichever of avatar/text is taller.
+  const { ref, fit } = useFitRows<HTMLDivElement>(46, { gap: 6, max: 16 });
   const collapsed = all.slice(0, fit);
   const extra = all.length - collapsed.length;
 
   return (
     <TileCard title="Recent activity" action={<Link className="muted" style={{ fontSize: 13 }} href="/transactions">View all</Link>}>
-      <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 8, alignContent: "start", overflow: "hidden" }}>
+      <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 6, alignContent: "start", overflow: "hidden" }}>
         {collapsed.map(({ row: t, split }) => (
-          <Link key={t.id} className="tap-row" href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px", margin: "0 -8px", color: "inherit" }}>
-            <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 999, background: acctColor(t.account_id), flexShrink: 0 }} />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                  <span style={{ fontWeight: 550, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.description || t.labels || catName(t.category_id)}</span>
-                  {split && <SplitChip />}
-                </div>
-                <div className="muted" style={{ fontSize: 12 }}>{new Date(t.occurred_at).toLocaleDateString()} · {split ? "split" : t.type}</div>
-              </div>
-            </div>
-            <div style={{ flexShrink: 0, whiteSpace: "nowrap", fontWeight: 650, color: !split && t.type === "income" ? "var(--positive)" : split || t.type === "expense" ? "var(--negative)" : "var(--text)" }}>
-              {split ? "−" : t.type === "expense" ? "−" : t.type === "income" ? "+" : ""}{fmt(money(split ? split.displayPaid : t.amount, split ? split.currency : t.currency))}
-            </div>
-          </Link>
+          <TransactionTile
+            key={t.id}
+            raw={(t.description || t.labels || catName(t.category_id)).trim()}
+            amountMinor={split ? split.displayPaid : t.amount}
+            currency={split ? split.currency : t.currency}
+            type={t.type}
+            meta={new Date(t.occurred_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+            fallbackSubtitle={catName(t.category_id)}
+            href={`/transactions/${t.id}/edit`}
+            split={!!split}
+            dense
+          />
         ))}
         {all.length === 0 && <p className="muted">No transactions yet.</p>}
       </div>
@@ -338,19 +337,22 @@ function BudgetsTile() {
   const { data: budgets = [] } = useQuery<BudgetLike>(
     "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 6",
   );
-  // Cap what we render to what fits the default tile height (~3 rows); surface
-  // the rest via a "+N more" link so the tile never overflows its gradient card.
-  const shown = budgets.slice(0, 4);
+  // Show exactly as many rows as the tile's current height allows — it clips, so
+  // a hand-picked "4" was wrong at every size but one. The rest go behind "+N more".
+  const { ref, fit } = useFitRows<HTMLDivElement>(40, { gap: 12, max: 6 });
+  const shown = budgets.slice(0, fit);
   const extra = budgets.length - shown.length;
   return (
     <HeroTile title="Budgets" grad={HERO.budgets.grad} glow={HERO.budgets.glow} action={heroLink("/budgets", "Manage")}>
       {budgets.length ? (
-        <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
-          {shown.map((b) => <BudgetMini key={b.id} budget={b} />)}
+        <>
+          <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 12, alignContent: "start", minWidth: 0, overflow: "hidden" }}>
+            {shown.map((b) => <BudgetMini key={b.id} budget={b} />)}
+          </div>
           {extra > 0 && (
-            <Link href="/budgets" style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)" }}>+{extra} more →</Link>
+            <Link href="/budgets" style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)", flexShrink: 0 }}>+{extra} more →</Link>
           )}
-        </div>
+        </>
       ) : (
         <p style={{ margin: 0, color: HERO_MUTED }}>No budgets yet. <Link href="/budgets" style={{ color: "#fff", textDecoration: "underline" }}>Create one</Link>.</p>
       )}
@@ -391,12 +393,16 @@ function GoalsTile() {
   const hidden = useAmountsHidden();
   const saved = (gid: string) => allocs.filter((a) => a.goal_id === gid).reduce((s, a) => s + a.amount_blocked, 0);
   const fmt = (m: Money) => (hidden ? "••••" : format(m, "en-US"));
+  const { ref, fit } = useFitRows<HTMLDivElement>(40, { gap: 14, max: 6 });
+  const shown = goals.slice(0, fit);
+  const extra = goals.length - shown.length;
 
   return (
     <HeroTile title="Goals" grad={HERO.goals.grad} glow={HERO.goals.glow} action={heroLink("/goals", "Manage")}>
       {goals.length ? (
-        <div style={{ display: "grid", gap: 14 }}>
-          {goals.map((g) => {
+        <>
+        <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 14, alignContent: "start", overflow: "hidden" }}>
+          {shown.map((g) => {
             const s = saved(g.id);
             const pct = g.target_amount ? Math.min(100, (s / g.target_amount) * 100) : 0;
             return (
@@ -410,6 +416,10 @@ function GoalsTile() {
             );
           })}
         </div>
+        {extra > 0 && (
+          <Link href="/goals" style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)", flexShrink: 0 }}>+{extra} more →</Link>
+        )}
+        </>
       ) : (
         <p style={{ margin: 0, color: HERO_MUTED }}>No goals yet. <Link href="/goals" style={{ color: "#fff", textDecoration: "underline" }}>Add one</Link>.</p>
       )}
@@ -425,25 +435,35 @@ function SubscriptionsTile() {
   );
   const monthly = subs.reduce((s, x) => s + monthlyEquivalent(x.amount, x.billing_cycle as Period), 0);
   const fmt = (m: number, c: string = base) => (hidden ? "••••" : format(money(Math.round(m), c), "en-US"));
-  const upcoming = subs.filter((x) => x.next_renewal).slice(0, 3);
+  const renewing = subs.filter((x) => x.next_renewal);
+  const { ref, fit } = useFitRows<HTMLDivElement>(20, { gap: 8, max: 8 });
+  const upcoming = renewing.slice(0, fit);
+  const extra = renewing.length - upcoming.length;
   return (
     <HeroTile title="Subscriptions" grad={HERO.subs.grad} glow={HERO.subs.glow} action={heroLink("/cashflow#payments", "Manage")}>
       {subs.length === 0 ? (
         <p style={{ margin: 0, color: HERO_MUTED }}>No active subscriptions. <Link href="/subscriptions" style={{ color: "#fff", textDecoration: "underline" }}>Add one</Link>.</p>
       ) : (
         <>
-          <div>
+          <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize: 32, fontWeight: 750 }}>{fmt(monthly)}<span style={{ fontSize: 15, fontWeight: 600, color: HERO_MUTED }}> /mo</span></div>
             <div style={{ fontSize: 13, color: HERO_MUTED, marginTop: 4 }}>{subs.length} active {subs.length === 1 ? "subscription" : "subscriptions"}</div>
           </div>
-          {upcoming.length > 0 && (
-            <div style={{ display: "grid", gap: 8, borderTop: "1px solid rgba(255,255,255,0.16)", paddingTop: 12 }}>
+          {/* The border/padding live on the outer box so the measured element's
+              clientHeight is pure row space (clientHeight includes padding). */}
+          {renewing.length > 0 && (
+            <div className="tile-flex" style={{ display: "flex", flexDirection: "column", borderTop: "1px solid rgba(255,255,255,0.16)", paddingTop: 12 }}>
+            <div ref={ref} style={{ flex: 1, minHeight: 0, display: "grid", gap: 8, alignContent: "start", overflow: "hidden" }}>
               {upcoming.map((x, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13 }}>
                   <span style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.name}</span>
                   <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(x.amount, x.currency)}{x.next_renewal ? ` · ${new Date(x.next_renewal).toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : ""}</span>
                 </div>
               ))}
+            </div>
+            {extra > 0 && (
+              <Link href="/cashflow#payments" style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)", flexShrink: 0, paddingTop: 6 }}>+{extra} more →</Link>
+            )}
             </div>
           )}
         </>
@@ -570,7 +590,8 @@ function UpcomingTile() {
 
   const horizon = new Date(today); horizon.setDate(horizon.getDate() + 30);
   const due30 = items.filter((x) => x.date <= horizon).reduce((s, x) => s + x.amountBase, 0);
-  const shown = items.slice(0, 6);
+  const { ref, fit } = useFitRows<HTMLDivElement>(34, { gap: 8, max: 12 });
+  const shown = items.slice(0, fit);
 
   return (
     <TileCard title="Upcoming payments" action={<Link href="/cashflow#payments" className="muted" style={{ fontSize: 13 }}>Manage →</Link>}>
@@ -580,11 +601,14 @@ function UpcomingTile() {
         </p>
       ) : (
         <>
-          <div>
+          <div style={{ flexShrink: 0 }}>
             <div className="muted" style={{ fontSize: 12 }}>Due in the next 30 days</div>
             <div style={{ fontSize: 26, fontWeight: 750 }}>{fmt(due30)}</div>
           </div>
-          <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+          {/* Border/padding on the outer box: the measured element's clientHeight
+              must be pure row space, since clientHeight includes padding. */}
+          <div className="tile-flex" style={{ display: "flex", flexDirection: "column", borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+          <div ref={ref} style={{ flex: 1, minHeight: 0, display: "grid", gap: 8, alignContent: "start", overflow: "hidden" }}>
             {shown.map((x) => {
               const overdue = x.date < today;
               return (
@@ -599,7 +623,10 @@ function UpcomingTile() {
               );
             })}
           </div>
-          {items.length > shown.length && <div className="muted" style={{ fontSize: 12 }}>+{items.length - shown.length} more · <Link href="/cashflow#payments">view all</Link></div>}
+          {items.length > shown.length && (
+            <Link href="/cashflow#payments" className="muted" style={{ fontSize: 12, flexShrink: 0, paddingTop: 6 }}>+{items.length - shown.length} more →</Link>
+          )}
+          </div>
         </>
       )}
     </TileCard>
@@ -739,6 +766,7 @@ function TrendsTile() {
   const totalMinor = rows.reduce((s, r) => s + r.total, 0);
   const base = useBaseCurrency();
   const hidden = useAmountsHidden();
+  const cfmt = chartMoney(hidden, base);
 
   const label = period === "3d" ? "last 3 days" : period === "1w" ? "last week" : period === "1m" ? "last month" : "last year";
   return (
@@ -750,18 +778,20 @@ function TrendsTile() {
         <option value="1y">Last year</option>
       </select>
     }>
-      <div className="muted" style={{ fontSize: 13, marginTop: -4 }}>
+      <div className="muted" style={{ fontSize: 13, marginTop: -4, flexShrink: 0 }}>
         Spent {hidden ? "••••" : format(money(totalMinor, base), "en-US")} <span style={{ opacity: 0.7 }}>· {label}</span>
       </div>
-      <ResponsiveContainer width="100%" height={230}>
-        <AreaChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
-          {gradientDefs()}
-          <XAxis dataKey="label" {...axisX} interval="preserveStartEnd" />
-          <YAxis {...axisY} />
-          <Tooltip cursor={{ stroke: "var(--border)" }} formatter={(v: number) => (hidden ? "••••" : v.toLocaleString())} />
-          <Area type="monotone" dataKey="value" stroke="#b06a4f" strokeWidth={2.5} fill="url(#gTrend)" dot={false} activeDot={{ r: 5, fill: "#b06a4f", stroke: "var(--surface)", strokeWidth: 2 }} />
-        </AreaChart>
-      </ResponsiveContainer>
+      <div className="tile-flex">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
+            {gradientDefs()}
+            <XAxis dataKey="label" {...axisX} interval="preserveStartEnd" />
+            <YAxis {...axisY} tickFormatter={maskedTick(hidden)} />
+            {chartTooltip(cfmt)}
+            <Area type="monotone" dataKey="value" name="Spent" stroke="#b06a4f" strokeWidth={2.5} fill="url(#gTrend)" dot={false} activeDot={{ r: 5, fill: "#b06a4f", stroke: "var(--surface)", strokeWidth: 2 }} {...ANIM} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </TileCard>
   );
 }
@@ -819,33 +849,63 @@ function CashflowTile() {
 
 function NetTrendTile() {
   const { cashflow } = useCashflow();
+  const hidden = useAmountsHidden();
+  const cfmt = useChartMoney();
+  const spanYears = cashflow.length > 0 && cashflow[0]!.month.slice(0, 4) !== cashflow[cashflow.length - 1]!.month.slice(0, 4);
   return (
     <TileCard title="Net cashflow trend">
-      <ResponsiveContainer width="100%" height={240}>
-        <AreaChart data={cashflow} margin={{ top: 10, right: 12, bottom: 0, left: 6 }}>
-          {gradientDefs()}
-          <XAxis dataKey="month" {...axisX} /><Tooltip />
-          <Area type="monotone" dataKey="net" stroke="#3e4a38" strokeWidth={2.5} fill="url(#gNet)" dot={false} activeDot={{ r: 5, fill: "#3e4a38", stroke: "var(--surface)", strokeWidth: 2 }} />
-        </AreaChart>
-      </ResponsiveContainer>
+      <div className="tile-flex">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={cashflow} margin={{ top: 10, right: 12, bottom: 0, left: 6 }}>
+            {gradientDefs()}
+            <XAxis dataKey="month" {...axisX} tickFormatter={(ym: string) => monthLabel(ym, spanYears)} />
+            <YAxis {...axisY} tickFormatter={maskedTick(hidden)} />
+            {chartTooltip(cfmt)}
+            <Area type="monotone" dataKey="net" name="Net" stroke="#3e4a38" strokeWidth={2.5} fill="url(#gNet)" dot={false} activeDot={{ r: 5, fill: "#3e4a38", stroke: "var(--surface)", strokeWidth: 2 }} {...ANIM} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </TileCard>
   );
 }
 
-function HBarTile({ title, data, empty }: { title: string; data: { name: string; value: number }[]; empty: string }) {
+/** Long category / label names would otherwise be clipped mid-word by the axis. */
+const ellipsisTick = (v: string, n = 14) => (v.length > n ? `${v.slice(0, n - 1)}…` : v);
+
+/**
+ * Horizontal bar tile. It used to size itself from its data
+ * (`height={Math.max(180, data.length * 34)}`), which grew to 272px inside a cell
+ * whose row unit is `clamp(80px, 10.5vh, 118px)` — the overflow that made the old
+ * nested scrollbar necessary. Now the chart fills the tile and the *bar count*
+ * comes from `useFitRows`, so it shrinks with the tile instead of pushing past it.
+ */
+function HBarTile({ title, data, empty, href = "/insights" }: { title: string; data: { name: string; value: number }[]; empty: string; href?: string }) {
+  const cfmt = useChartMoney();
+  const { ref, fit } = useFitRows<HTMLDivElement>(30, { gap: 4, max: 8 });
+  const shown = data.slice(0, fit);
+  const extra = data.length - shown.length;
+  // Keep bars proportionate: fewer rows in the same box means thicker bars.
+  const barSize = fit <= 3 ? 22 : fit <= 5 ? 18 : 14;
   return (
     <TileCard title={title}>
       {data.length ? (
-        <ResponsiveContainer width="100%" height={Math.max(180, data.length * 34)}>
-          <BarChart layout="vertical" data={data} margin={{ top: 4, right: 40, bottom: 4, left: 6 }}>
-            {gradientDefs()}
-            <XAxis type="number" hide />
-            <YAxis type="category" dataKey="name" width={96} tick={{ fontSize: 12, fill: "var(--text)" }} axisLine={false} tickLine={false} />
-            <Bar dataKey="value" radius={[0, 8, 8, 0]} fill="url(#gBar)" barSize={16}>
-              <LabelList dataKey="value" position="right" formatter={(v: number) => v.toLocaleString()} style={{ fontSize: 11, fill: "var(--text-2)" }} />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <>
+          <div ref={ref} className="tile-flex">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart layout="vertical" data={shown} margin={{ top: 4, right: 56, bottom: 4, left: 6 }}>
+                {gradientDefs()}
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="name" width={96} tickFormatter={(v: string) => ellipsisTick(v)}
+                  tick={{ fontSize: 12, fill: "var(--text)" }} axisLine={false} tickLine={false} />
+                {chartTooltip(cfmt, { fill: "var(--surface-2)" })}
+                <Bar dataKey="value" name="Spent" radius={[0, 6, 6, 0]} fill="url(#gBar)" barSize={barSize} {...ANIM}>
+                  <LabelList dataKey="value" position="right" formatter={cfmt} style={{ fontSize: 11, fill: "var(--text-2)" }} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          {extra > 0 && <Link href={href} className="muted" style={{ fontSize: 12, flexShrink: 0 }}>+{extra} more →</Link>}
+        </>
       ) : <p className="muted">{empty}</p>}
     </TileCard>
   );
@@ -878,16 +938,42 @@ function MonthCompareTile() {
     { period: "Last month", income: t(lastM, "income"), expense: t(lastM, "expense") },
     { period: "This month", income: t(thisM, "income"), expense: t(thisM, "expense") },
   ];
+  const hidden = useAmountsHidden();
+  const cfmt = useChartMoney();
+  const labelStyle = { fontSize: 10.5, fill: "var(--text-2)" } as const;
   return (
-    <TileCard title="This month vs last">
-      <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={comparison} margin={{ top: 10, right: 8, bottom: 0, left: 0 }} barGap={4}>
-          {gradientDefs()}
-          <XAxis dataKey="period" {...axisX} /><YAxis hide /><Tooltip cursor={{ fill: "var(--surface-2)" }} />
-          <Bar dataKey="income" fill="url(#gInc)" radius={[6, 6, 0, 0]} maxBarSize={40} />
-          <Bar dataKey="expense" fill="url(#gExp)" radius={[6, 6, 0, 0]} maxBarSize={40} />
-        </BarChart>
-      </ResponsiveContainer>
+    <TileCard title="This month vs last" action={<ChartLegend items={[{ label: "Income", color: "#5f7a52" }, { label: "Expense", color: "#b06a4f" }]} />}>
+      <div className="tile-flex">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={comparison} margin={{ top: 18, right: 8, bottom: 0, left: 0 }} barGap={6}>
+            {gradientDefs()}
+            {/* Horizontal-only grid, so this reads with the same weight as the area charts. */}
+            <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
+            <XAxis dataKey="period" {...axisX} />
+            <YAxis {...axisY} tickFormatter={maskedTick(hidden)} />
+            {chartTooltip(cfmt, { fill: "var(--surface-2)" })}
+            <Bar dataKey="income" name="Income" fill="url(#gInc)" radius={[6, 6, 0, 0]} maxBarSize={40} {...ANIM}>
+              <LabelList dataKey="income" position="top" formatter={cfmt} style={labelStyle} />
+            </Bar>
+            <Bar dataKey="expense" name="Expense" fill="url(#gExp)" radius={[6, 6, 0, 0]} maxBarSize={40} {...ANIM}>
+              <LabelList dataKey="expense" position="top" formatter={cfmt} style={labelStyle} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </TileCard>
+  );
+}
+
+/** Small swatch legend — recharts' own `<Legend>` doesn't inherit the design tokens. */
+function ChartLegend({ items }: { items: { label: string; color: string }[] }) {
+  return (
+    <span style={{ display: "inline-flex", gap: 12, alignItems: "center" }}>
+      {items.map((i) => (
+        <span key={i.label} className="muted" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12 }}>
+          <span aria-hidden style={{ width: 9, height: 9, borderRadius: 3, background: i.color }} />{i.label}
+        </span>
+      ))}
+    </span>
   );
 }

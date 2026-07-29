@@ -14,6 +14,7 @@ import { KebabMenu } from "../../../src/ui/KebabMenu";
 import { useGroup, useGroupExpenses, useGroupBalances, useGroupMemberIds, useUserProfiles, useConnections, type GroupExpense } from "../../../src/splits/hooks";
 import { createInvite } from "../../../src/splits/write";
 import { ItemBreakdown } from "../../../src/splits/ItemBreakdown";
+import { TransactionTile } from "../../../src/ui/TransactionTile";
 
 interface Invitee { id: string | null; name: string; email: string }
 const looksLikeEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
@@ -34,29 +35,28 @@ function ExpenseRow({ expense, base, fmt, fallback }: {
   const itemized = !!expense.has_items;
 
   return (
-    <div className={`row-tile${itemized && open ? " is-open" : ""}`} style={{ padding: itemized && open ? "11px 14px" : undefined }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, gap: 8, alignItems: "center" }}>
-        <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {expense.description || fallback}{" "}
-          <span className="muted" style={{ fontSize: 12 }}>· {new Date(expense.occurred_at).toLocaleDateString()}</span>
-        </span>
-        <span style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-          {itemized && (
-            <button
-              type="button"
-              className="chip"
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-              style={{ fontSize: 11 }}
-            >
-              {open ? t("breakdown.hide", "Hide items") : t("breakdown.show", "View items")}
-            </button>
-          )}
-          <span style={{ fontWeight: 600 }}>{fmt(money(expense.amount, base))}</span>
-        </span>
-      </div>
+    <div className="card tx-tile" style={{ padding: 0, overflow: "hidden" }}>
+      <TransactionTile
+        raw={expense.description || fallback}
+        amountMinor={expense.amount}
+        currency={base}
+        type="expense"
+        amountColor="var(--text)"
+        meta={new Date(expense.occurred_at).toLocaleDateString()}
+        trailing={itemized ? (
+          <button
+            type="button"
+            className="chip"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            style={{ fontSize: 11, flexShrink: 0, alignSelf: "center" }}
+          >
+            {open ? t("breakdown.hide", "Hide items") : t("breakdown.show", "View items")}
+          </button>
+        ) : undefined}
+      />
       {itemized && open && (
-        <div style={{ paddingTop: 10 }}>
+        <div style={{ padding: "0 14px 12px" }}>
           <ItemBreakdown expenseId={expense.id} currency={expense.currency || base} />
         </div>
       )}
@@ -204,15 +204,28 @@ export default function GroupDetailPage() {
 
       <section style={{ display: "grid", gap: 8 }}>
         <h2 style={{ margin: 0 }}>{t("membersTitle")}</h2>
-        <div className="card row-stack" style={{ padding: 8 }}>
-          {memberIds.map((uid) => (
-            <div key={uid} className="row-tile" style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 14 }}>
-              <span>{name(uid)}</span>
-              <span style={{ color: (balances.find((b) => b.userId === uid)?.net ?? 0) > 0 ? "var(--positive)" : (balances.find((b) => b.userId === uid)?.net ?? 0) < 0 ? "var(--negative)" : "var(--text-2)" }}>
-                {(() => { const n = balances.find((b) => b.userId === uid)?.net ?? 0; return n > 0 ? t("owesYouAmt", { amount: fmt(money(n, base)) }) : n < 0 ? t("youOweAmt", { amount: fmt(money(-n, base)) }) : t("settledTag"); })()}
-              </span>
-            </div>
-          ))}
+        {/* No wrapping card: a card full of card-like rows reads as a box
+            inside a box. The tiles carry their own surface instead. */}
+        <div className="list-grid">
+          {memberIds.map((uid) => {
+            const net = balances.find((b) => b.userId === uid)?.net ?? 0;
+            return (
+              <TransactionTile
+                key={uid}
+                raw={name(uid)}
+                avatarIcon="person"
+                avatarSeed={uid}
+                amountMinor={Math.abs(net)}
+                currency={base}
+                type={net > 0 ? "income" : "expense"}
+                amountText={net > 0 ? t("owesYouAmt", { amount: fmt(money(net, base)) })
+                  : net < 0 ? t("youOweAmt", { amount: fmt(money(-net, base)) })
+                  : t("settledTag")}
+                amountColor={net > 0 ? "var(--positive)" : net < 0 ? "var(--negative)" : "var(--text-2)"}
+                card
+              />
+            );
+          })}
         </div>
       </section>
 
@@ -221,7 +234,7 @@ export default function GroupDetailPage() {
         {expenses.length === 0 ? (
           <p className="muted" style={{ fontSize: 13 }}>{t("noExpensesPre")}<Link href={`/transactions/new?split=${group.id}`}>{t("noExpensesLink")}</Link>{t("noExpensesPost", { kind: t(`kind.${group.kind}`) })}</p>
         ) : (
-          <div className="card row-stack" style={{ padding: 8 }}>
+          <div className="list-grid">
             {expenses.map((e) => (
               <ExpenseRow key={e.id} expense={e} base={base} fmt={fmt} fallback={t("expenseFallback")} />
             ))}

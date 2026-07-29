@@ -8,7 +8,7 @@ import { money, toMajor } from "@pocketcare/money";
 import type { Transaction } from "@pocketcare/types";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { SlidersIcon } from "../../src/ui/icons";
-import { TransactionRow } from "../../src/ui/TransactionRow";
+import { TransactionTile } from "../../src/ui/TransactionTile";
 import { useSplitInfo, collapseSplitRows } from "../../src/splits/collapse";
 
 const TYPES = ["all", "income", "expense", "transfer"] as const;
@@ -117,7 +117,18 @@ export default function SearchPage() {
       {results.length > 0 ? (
         <div className="list-grid">
           {collapseSplitRows(results, splitInfo).map(({ row: tx, split }) => (
-            <TransactionRow key={tx.id} tx={tx} account={acct(tx.account_id)} categoryName={catName(tx.category_id)} tile split={split} />
+            <TransactionTile
+              key={tx.id}
+              raw={(tx.description || tx.labels || catName(tx.category_id)).trim()}
+              amountMinor={split ? split.displayPaid : tx.amount}
+              currency={split ? split.currency : tx.currency}
+              type={tx.type}
+              meta={new Date(tx.occurred_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+              fallbackSubtitle={catName(tx.category_id)}
+              detail={split ? undefined : (acct(tx.account_id)?.name ?? undefined)}
+              href={`/transactions/${tx.id}/edit`}
+              split={!!split}
+            />
           ))}
         </div>
       ) : (
