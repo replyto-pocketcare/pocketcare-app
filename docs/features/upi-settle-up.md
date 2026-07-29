@@ -1,5 +1,35 @@
 # Pay friends via UPI (settle-up)
 
+## Pay anyone: typed UPI ID or scanned QR (2026-07-29)
+Beyond settling a split, you can pay **any** UPI ID from Splits → "Pay someone"
+(`src/payments/PayAnyone.tsx`). Same posture as settle-up: **no money touches
+PocketCare** — we build a UPI Intent deep link and the payer's own app moves it.
+
+**A scanned QR is attacker-controlled input**, and the design says so out loud.
+A sticker on a shop counter can be swapped, and the code decides the payee, the
+displayed name and the amount. So:
+- the **VPA is always shown in full**, and the code's `pn` is labelled as what
+  the *code claims* — the payer's own UPI app showing the real registered
+  account name is the actual verification (we do not, and cannot, verify VPA
+  ownership without a penny-drop through a PSP);
+- a scanned amount is a **suggestion in an editable field**; nothing is ever
+  auto-submitted, opening the UPI app is always a deliberate tap;
+- **nothing is recorded as a transaction** — UPI Intent returns nothing to a web
+  page, so we can't know it went through. Offering to log it afterwards is a
+  reasonable follow-up; logging it silently is not.
+
+Parsing lives in `@pocketcare/upi` → `parseUpiTarget`, unit-tested against a
+**duplicated `pa=` param** (an appended second payee must not win), hostile
+amounts (`-5`, `1e9`, `10.999`, `0` — all dropped, payee still parsed),
+non-UPI URLs (`https:`, `javascript:`, `mailto:`), and EMVCo/Bharat QR payloads
+(detected by name so the user is told to use their UPI app, rather than shown
+"invalid").
+
+**Scanning** (`src/payments/scanQr.ts`) prefers the native `BarcodeDetector`
+(Chrome/Android — where UPI actually happens) and lazily loads a vendored
+`jsQR` only on Safari/iOS and Firefox. The camera is always released on unmount
+or mode change.
+
 ## QR library is vendored, not CDN-loaded (2026-07-29)
 The desktop QR **never rendered for anyone**. `src/payments/qr.ts` loaded
 `cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js`, but `qrcode` stopped

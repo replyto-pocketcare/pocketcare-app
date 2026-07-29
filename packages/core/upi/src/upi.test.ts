@@ -11,6 +11,7 @@ import {
   maskVpa,
   newPaymentRef,
   normalizeVpa,
+  parseUpiTarget,
   UpiError,
 } from "./index.ts";
 
@@ -248,4 +249,90 @@ test("canPayViaUpi: only for INR, a real amount, and a saved handle", () => {
   assert.equal(canPayViaUpi({ currency: "EUR", amountMinor: 100, hasHandle: true }), false);
   assert.equal(canPayViaUpi({ currency: "INR", amountMinor: 0, hasHandle: true }), false);
   assert.equal(canPayViaUpi({ currency: "INR", amountMinor: 100, hasHandle: false }), false);
+});
+
+// ---------------------------------------------------------------------------
+// parseUpiTarget — a scanned QR is attacker-controlled input
+// ---------------------------------------------------------------------------
+
+test("a bare typed VPA is a valid target", () => {
+  const r = parseUpiTarget("  Someone@OKHDFCBANK ");
+  assert.equal(r.ok, true);
+  assert.equal(r.ok && r.target.vpa, "someone@okhdfcbank");
+});
+
+test("a standard payment QR yields payee, name, amount and note", () => {
+  const r = parseUpiTarget("upi://pay?pa=shop@ybl&pn=Chai%20Point&am=125.50&cu=INR&tn=Two%20chai");
+  assert.equal(r.ok, true);
+  if (!r.ok) return;
+  assert.equal(r.target.vpa, "shop@ybl");
+  assert.equal(r.target.name, "Chai Point");
+  assert.equal(r.target.amountMinor, 12550); // minor units, never a float
+  assert.equal(r.target.note, "Two chai");
+});
+
+test("app-specific schemes carry the same intent params", () => {
+  for (const url of ["tez://upi/pay?pa=a@ybl", "phonepe://pay?pa=a@ybl", "paytmmp://pay?pa=a@ybl"]) {
+    const r = parseUpiTarget(url);
+    assert.equal(r.ok, true, `rejected ${url}`);
+  }
+});
+
+test("an amount is optional — open-amount QRs are normal", () => {
+  const r = parseUpiTarget("upi://pay?pa=shop@ybl&pn=Shop");
+  assert.equal(r.ok, true);
+  assert.equal(r.ok && r.target.amountMinor, undefined);
+});
+
+test("a duplicated payee parameter cannot override the first", () => {
+  // Appending `&pa=attacker@x` must not redirect the payment.
+  const r = parseUpiTarget("upi://pay?pa=real@ybl&am=10.00&pa=attacker@evil");
+  assert.equal(r.ok && r.target.vpa, "real@ybl");
+});
+
+test("hostile or malformed amounts are dropped, not pre-filled", () => {
+  for (const am of ["-5.00", "1e9", "10.999", "abc", "", " ", "0", "0.00"]) {
+    const r = parseUpiTarget(`upi://pay?pa=a@ybl&am=${encodeURIComponent(am)}`);
+    assert.equal(r.ok, true, `am=${am} should still parse the payee`);
+    assert.equal(r.ok && r.target.amountMinor, undefined, `am=${am} leaked an amount`);
+  }
+});
+
+test("a malformed payee is refused rather than coerced", () => {
+  for (const pa of ["not-a-vpa", "a@@b", "a..b@ybl", "@ybl", "a@"]) {
+    const r = parseUpiTarget(`upi://pay?pa=${encodeURIComponent(pa)}`);
+    assert.equal(r.ok, false, `${pa} was accepted`);
+    assert.equal(!r.ok && r.reason, "bad_vpa");
+  }
+});
+
+test("non-INR is refused — UPI settles in rupees", () => {
+  const r = parseUpiTarget("upi://pay?pa=a@ybl&am=10.00&cu=USD");
+  assert.equal(!r.ok && r.reason, "unsupported_currency");
+});
+
+test("a Bharat QR / EMVCo code is identified, not reported as garbage", () => {
+  const r = parseUpiTarget("00020101021226280011in.gov.upi0114shop@ybl5204");
+  assert.equal(!r.ok && r.reason, "emvco");
+});
+
+test("an arbitrary URL is never treated as a payment", () => {
+  for (const s of ["https://evil.example/pay?pa=a@ybl", "javascript:alert(1)", "mailto:a@b.com?pa=x@ybl"]) {
+    const r = parseUpiTarget(s);
+    assert.equal(r.ok, false, `${s} was accepted as payable`);
+  }
+});
+
+test("empty input reports empty, not a parse failure", () => {
+  assert.equal(parseUpiTarget("").ok, false);
+  assert.equal((parseUpiTarget("   ") as { reason: string }).reason, "empty");
+});
+
+test("a parsed target round-trips through buildIntentUrl", () => {
+  const r = parseUpiTarget("upi://pay?pa=shop@ybl&pn=Shop&am=99.00");
+  assert.equal(r.ok, true);
+  if (!r.ok) return;
+  const built = buildIntentUrl({ vpa: r.target.vpa, name: "Shop", amountMinor: r.target.amountMinor!, note: "x" });
+  assert.match(built.url, /^upi:\/\/pay\?pa=shop%40ybl/);
+  assert.match(built.url, /am=99\.00/);
 });

@@ -46,5 +46,28 @@
     "hideLog": "Hide access log",
     "someone": "Someone",
     "update": "Update UPI ID"
+  },
+  "payAnyone": {
+    "title": "Pay someone",
+    "subtitle": "Opens your own UPI app. PocketCare never holds or moves the money.",
+    "upiId": "UPI ID",
+    "scanCta": "Scan a QR code",
+    "scanHint": "Point the camera at a UPI QR code",
+    "cancelScan": "Cancel",
+    "amount": "Amount",
+    "notePlaceholder": "Note (optional)",
+    "claimsName": "Code says: {{name}} — your UPI app will show the real account name",
+    "footnote": "Check the account name in your UPI app before you confirm. PocketCare can't verify who owns a UPI ID.",
+    "pay": "Open UPI app",
+    "payAmount": "Open UPI app",
+    "close": "Close",
+    "err": {
+      "empty": "Enter a UPI ID first.",
+      "not_upi": "That code isn't a UPI payment code.",
+      "emvco": "That's a Bharat QR. Scan it with your UPI app directly — this reader only understands UPI codes.",
+      "bad_vpa": "That doesn't look like a valid UPI ID.",
+      "unsupported_currency": "UPI only supports payments in rupees.",
+      "other": "Couldn't start the camera."
+    }
   }
 }

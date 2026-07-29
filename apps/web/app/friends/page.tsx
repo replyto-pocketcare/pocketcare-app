@@ -17,6 +17,7 @@ import { MaterialIcon, type MaterialIconName } from "../../src/ui/MaterialIcon";
 import { PayViaUpi } from "../../src/payments/PayViaUpi";
 import { PendingSettlements } from "../../src/payments/PendingSettlements";
 import { NewGroupModal } from "../../src/splits/NewGroupModal";
+import { PayAnyone } from "../../src/payments/PayAnyone";
 import { ListSkeleton } from "../../src/ui/Skeleton";
 
 interface SettleTarget { userId: string; name: string; net: number }
@@ -99,6 +100,7 @@ export default function SplitsPage() {
       docs/plans/ui-redesign-2026-07.md). The modal overlay already scrolls. */
   const [showAllLines, setShowAllLines] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
+  const [payAnyone, setPayAnyone] = useState(false);
 
   function openPerson(userId: string, net: number) {
     setReminded(false);
@@ -200,9 +202,14 @@ export default function SplitsPage() {
             <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em" }}>{t("eyebrow")}</div>
             <h1 style={{ margin: "1px 0 0", fontSize: 22 }}>{t("yourBalance")}</h1>
           </div>
-          <button className="btn" style={{ flexShrink: 0, gap: 6 }} onClick={() => setNewGroup(true)}>
-            <MaterialIcon name="add" size={16} /> {t("newGroupCta")}
-          </button>
+          <div style={{ display: "flex", gap: 8, flexShrink: 0, flexWrap: "wrap" }}>
+            <button className="btn ghost" style={{ gap: 6 }} onClick={() => setPayAnyone(true)}>
+              <MaterialIcon name="payments" size={16} /> {t("payAnyoneCta")}
+            </button>
+            <button className="btn" style={{ gap: 6 }} onClick={() => setNewGroup(true)}>
+              <MaterialIcon name="add" size={16} /> {t("newGroupCta")}
+            </button>
+          </div>
         </div>
 
         {/* Net position — compact */}
@@ -369,6 +376,8 @@ export default function SplitsPage() {
       {/* Behavioural insights — only what the ledger actually supports. */}
       <FriendInsights nameOf={name} amt={amt} />
 
+
+      <PayAnyone open={payAnyone} onClose={() => setPayAnyone(false)} />
 
       <NewGroupModal open={newGroup} onClose={(id) => { setNewGroup(false); if (id) router.push(`/groups/${id}`); }} />
 

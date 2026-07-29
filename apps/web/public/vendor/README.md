@@ -33,3 +33,18 @@ megabyte-scale and genuinely don't belong in the bundle; this is 55 KB.
 If a future release restores a browser build, re-vendor it and confirm it still
 exposes `window.QRCode` with a `toDataURL(text, opts)` promise API — that's the
 whole surface `src/payments/qr.ts` uses.
+
+## `jsQR.min.js`
+
+[jsQR](https://github.com/cozmo/jsQR) **1.4.0**, Apache-2.0 — a QR *decoder*,
+used to read a UPI QR from the camera. Minified with terser (252 KB → 128 KB);
+upstream ships only an unminified UMD build. Sets `window.jsQR`.
+
+**Fallback only.** `src/payments/scanQr.ts` uses the browser's native
+`BarcodeDetector` where it exists — which includes Chrome on Android, where UPI
+actually happens — and only loads this on Safari/iOS and Firefox.
+
+**Deliberately NOT precached by the service worker**, unlike the icon font and
+the QR encoder: it's 128 KB most users never fetch, and scanning needs a camera
+plus a deliberate tap, so there's no cold-start cost to pay for. The browser
+caches it after first use.
