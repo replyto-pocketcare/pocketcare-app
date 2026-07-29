@@ -204,6 +204,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@pocketcare/sync-policy':
+        specifier: workspace:*
+        version: link:../core/sync-policy
       '@powersync/common':
         specifier: ^1.20.0
         version: 1.57.0
