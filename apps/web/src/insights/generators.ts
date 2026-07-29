@@ -15,6 +15,30 @@ export interface TopExpense { label: string; amount: number }
 export interface SubAgg { name: string; monthly: number }
 export interface GoalAgg { name: string; target: number; saved: number; emergency: boolean }
 
+/**
+ * Investment aggregates. Both are **optional** and both carry their own
+ * `holdings` count, because the guard matters: a user with no holdings must get
+ * no dividend card and no projection card — not two empty ones. The count lives
+ * inside the payload (rather than on `GenContext`) so the generator can't be
+ * called with data but no way to check whether it's meaningful.
+ */
+export interface DividendAgg {
+  holdings: number;
+  trailing12: number;   // minor units, base currency
+  upcoming12: number;   // minor units
+  total: number;        // minor units
+  buckets: SeriesPoint[]; // major units, ascending by period
+}
+export interface ProjectionAgg {
+  holdings: number;
+  currentValue: number; // minor units
+  endValue: number;     // minor units
+  contributed: number;  // minor units
+  years: number;
+  growthPct: number;
+  series: SeriesPoint[]; // major units
+}
+
 export interface GenContext {
   currency: string;
   locale?: string;
@@ -36,6 +60,9 @@ export interface GenContext {
   noSpend: { noSpendDays: number; daysElapsed: number; spendDays: number };
   avgDaily: { thisAvg: number; lastAvg: number };
   catSpike: { name: string; thisMonth: number; avgPrior: number } | null;
+  /** Absent (or `holdings: 0`) for anyone who doesn't invest — see the interfaces above. */
+  dividends?: DividendAgg | undefined;
+  projection?: ProjectionAgg | undefined;
 }
 
 const fmt = (minor: number, ctx: GenContext) => format(money(Math.round(minor), ctx.currency as CurrencyCode), ctx.locale);
@@ -290,10 +317,71 @@ export function genAvgDaily(ctx: GenContext): InsightCard[] {
   }];
 }
 
+// ---- dividend_income ----
+/**
+ * Dividend income by period. Returns `[]` unless the user actually holds
+ * something *and* there is dividend history to show — an investor card in a
+ * non-investor's stack is just dead space.
+ */
+export function genDividends(ctx: GenContext): InsightCard[] {
+  const d = ctx.dividends;
+  if (!d || d.holdings === 0) return [];      // no holdings → no card, ever
+  if (d.total <= 0) return [];                // holdings, but no dividend history yet
+  const series = d.buckets.filter((b) => b.value !== 0).slice(-8);
+  if (series.length === 0) return [];
+  const headlineAmt = d.trailing12 > 0 ? d.trailing12 : d.total;
+  return [{
+    id: `dividends:${ctx.now.toISOString().slice(0, 7)}`, type: "dividend_income", theme: "positive",
+    // Ranks above the ambient pattern cards (weekday 50 / no-spend 48): portfolio
+    // income is both rarer and more actionable than "you spend most on Fridays".
+    generatedAt: ctx.now.toISOString(), period: { start: "", end: "" }, priority: 66,
+    headline: d.trailing12 > 0 ? `${fmt(d.trailing12, ctx)} in dividends this year` : `${fmt(d.total, ctx)} in dividends so far`,
+    subhead: `From ${d.holdings} holding${d.holdings === 1 ? "" : "s"}`,
+    bullets: [
+      `Last 12 months: ${fmt(d.trailing12, ctx)}`,
+      d.upcoming12 > 0 ? `Next 12 months (est.): ${fmt(d.upcoming12, ctx)}` : `All-time: ${fmt(d.total, ctx)}`,
+    ],
+    metric: { display: fmt(headlineAmt, ctx), raw: major(headlineAmt) },
+    visual: { kind: "bars", series },
+    cta: { label: "See dividends", target: "/investments" },
+    cadence: { key: "dividend_income", frequency: "monthly" },
+  }];
+}
+
+// ---- portfolio_projection ----
+/**
+ * Where the portfolio lands on **fixed default assumptions**. The interactive
+ * version (adjustable growth/contribution/horizon) lives on /investments — a
+ * card is a static visual, so the CTA points at the controls rather than
+ * pretending to be them.
+ */
+export function genProjection(ctx: GenContext): InsightCard[] {
+  const p = ctx.projection;
+  if (!p || p.holdings === 0) return [];      // no holdings → no card, ever
+  if (p.currentValue <= 0) return [];         // nothing to compound
+  const growthPortion = Math.max(0, p.endValue - p.contributed);
+  return [{
+    id: `projection:${ctx.now.toISOString().slice(0, 7)}`, type: "portfolio_projection", theme: "neutral",
+    generatedAt: ctx.now.toISOString(), period: { start: "", end: "" }, priority: 59,
+    headline: `Your portfolio could reach ${fmt(p.endValue, ctx)}`,
+    subhead: `In ${p.years} years at ${p.growthPct}% a year`,
+    bullets: [
+      `${fmt(p.currentValue, ctx)} invested today`,
+      `About ${fmt(growthPortion, ctx)} of that would be growth`,
+      "A projection on default assumptions, not a forecast",
+    ],
+    metric: { display: fmt(p.endValue, ctx), raw: major(p.endValue), direction: "up" },
+    visual: { kind: "area", series: p.series },
+    cta: { label: "Adjust assumptions", target: "/investments" },
+    cadence: { key: "portfolio_projection", frequency: "monthly" },
+  }];
+}
+
 const GENERATORS = [
   genBudgetWarnings, genCategorySpike, genMonthPace, genWeeklySummary, genSpendingTrend,
   genBiggestExpense, genSubscriptions, genCategoryBreakdown, genGoalProgress, genSavingsAchievement,
   genStreak, genLabelBreakdown, genAvgDaily, genWeekdayPattern, genNoSpendDays,
+  genDividends, genProjection,
 ];
 
 /** Run every generator, then rank + dedupe by cadence key, capped to `limit`. */

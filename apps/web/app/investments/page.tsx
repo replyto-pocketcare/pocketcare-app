@@ -19,6 +19,8 @@ import {
 } from "../../src/investments/model";
 import { AllocationDonut, GainBars } from "../../src/investments/Charts";
 import { AddInvestmentDialog } from "../../src/investments/AddDialog";
+import { DividendPanel } from "../../src/market/DividendPanel";
+import { ProjectionPanel } from "../../src/market/ProjectionPanel";
 
 const DEMAT_TYPES = ["demat", "stocks", "mutual_funds"];
 
@@ -141,6 +143,13 @@ export default function InvestmentsPage() {
               </div>
             </section>
           )}
+
+          {/* The interactive dividend + projection controls. /insights renders the
+              same data as static cards; the sliders and period chips live here,
+              next to the holdings they describe. Both panels self-hide when the
+              user has no holdings. */}
+          <DividendPanel />
+          <ProjectionPanel />
         </>
       )}
 

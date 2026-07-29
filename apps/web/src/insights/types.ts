@@ -20,7 +20,9 @@ export type InsightType =
   | "no_spend_days"
   | "goal_progress"
   | "category_spike"
-  | "avg_daily_spend";
+  | "avg_daily_spend"
+  | "dividend_income"
+  | "portfolio_projection";
 
 /** A single labelled datum shared by the chart visuals. */
 export interface SeriesPoint {

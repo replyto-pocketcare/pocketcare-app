@@ -22,6 +22,8 @@ const TYPE_LABEL: Record<InsightType, string> = {
   goal_progress: "Goal progress",
   category_spike: "Category spike",
   avg_daily_spend: "Daily average",
+  dividend_income: "Dividend income",
+  portfolio_projection: "Projected wealth",
 };
 
 function VisualHost({ card }: { card: Card }) {

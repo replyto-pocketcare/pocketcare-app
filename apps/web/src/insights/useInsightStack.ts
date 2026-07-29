@@ -2,9 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@powersync/react";
+import type { CurrencyCode } from "@pocketcare/types";
 import { useBaseCurrency } from "../prefs";
-import { composeStack, type GenContext, type DayAgg, type MonthAgg, type CatAgg, type BudgetAgg, type TopExpense, type SubAgg, type GoalAgg } from "./generators";
+import { useRates } from "../hooks";
+import { computeDividendEvents, bucketize, dividendSummary, type HoldingLite, type DivRow } from "../market/dividends";
+import { composeStack, type GenContext, type DayAgg, type MonthAgg, type CatAgg, type BudgetAgg, type TopExpense, type SubAgg, type GoalAgg, type DividendAgg, type ProjectionAgg } from "./generators";
 import type { InsightCard, SeriesPoint } from "./types";
+
+/** Fixed assumptions for the (static) projection card; /investments has the sliders. */
+const PROJ_GROWTH_PCT = 7;
+const PROJ_YEARS = 15;
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const ymOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -18,6 +25,7 @@ interface TypeRow { key: string; type: string; total: number }
  */
 export function useInsightStack() {
   const currency = useBaseCurrency();
+  const getRate = useRates();
   const now = useMemo(() => new Date(), []);
   const thisM = ymOf(now);
 
@@ -60,6 +68,71 @@ export function useInsightStack() {
   const { data: catMonthRows = [] } = useQuery<{ name: string | null; cid: string | null; ym: string; total: number }>(
     "SELECT c.name as name, t.category_id as cid, strftime('%Y-%m', t.occurred_at) as ym, SUM(t.amount) as total FROM transactions t LEFT JOIN categories c ON c.id = t.category_id WHERE t.deleted_at IS NULL AND t.type='expense' AND t.occurred_at >= date('now','-4 months') GROUP BY t.category_id, ym",
   );
+
+  // ---- investments: holdings + dividend history + latest quotes ----
+  const { data: holdRows = [] } = useQuery<HoldingLite & { avg_cost: number | null }>(
+    "SELECT symbol, exchange, quantity, currency, avg_cost FROM holdings WHERE deleted_at IS NULL",
+  );
+  const { data: divRows = [] } = useQuery<DivRow>(
+    "SELECT symbol, exchange, ex_date, pay_date, amount, currency FROM market_dividends",
+  );
+  const { data: quoteRows = [] } = useQuery<{ symbol: string; exchange: string | null; price: number; currency: string }>(
+    "SELECT symbol, exchange, price, currency FROM market_quotes",
+  );
+
+  /**
+   * Dividend + projection aggregates, in their own memo so the (much bigger)
+   * card memo below doesn't recompute on every rate-map identity change.
+   * `getRate` is a fresh closure each render, hence the dep-list omission —
+   * the same precedent as app/investments/page.tsx.
+   */
+  const invest = useMemo(() => {
+    if (holdRows.length === 0) return { dividends: undefined, projection: undefined };
+
+    const lite: HoldingLite[] = holdRows.map((h) => ({ symbol: h.symbol, exchange: h.exchange, quantity: h.quantity, currency: h.currency }));
+    const events = computeDividendEvents(lite, divRows, getRate, currency as CurrencyCode);
+    const summary = dividendSummary(events);
+    const dividends: DividendAgg = {
+      holdings: holdRows.length,
+      ...summary,
+      buckets: bucketize(events, "month").map((b) => ({ label: b.label, value: Math.round(b.value) / 100 })),
+    };
+
+    // Current market value in base currency; fall back to average cost when the
+    // daily market sync hasn't produced a quote for that symbol yet.
+    const qKey = (s: string, e: string | null) => `${s.toUpperCase()}|${(e ?? "").toUpperCase()}`;
+    const bySymEx = new Map<string, { price: number; currency: string }>();
+    const bySym = new Map<string, { price: number; currency: string }>();
+    for (const q of quoteRows) {
+      bySymEx.set(qKey(q.symbol, q.exchange), { price: q.price, currency: q.currency });
+      if (!bySym.has(q.symbol.toUpperCase())) bySym.set(q.symbol.toUpperCase(), { price: q.price, currency: q.currency });
+    }
+    const currentValue = holdRows.reduce((s, h) => {
+      const q = bySymEx.get(qKey(h.symbol, h.exchange)) ?? bySym.get(h.symbol.toUpperCase());
+      const perShare = q ? q.price : (h.avg_cost ?? 0);
+      const ccy = q ? q.currency : h.currency;
+      const rate = ccy === currency ? 1 : getRate(ccy as CurrencyCode, currency as CurrencyCode);
+      return s + perShare * h.quantity * rate;
+    }, 0);
+
+    // Same maths as ProjectionPanel, with the sliders pinned to their defaults
+    // and no monthly contribution (the card can't ask for one).
+    const yieldRate = currentValue > 0 ? (summary.trailing12 > 0 ? summary.trailing12 : summary.upcoming12) / currentValue : 0;
+    const mGrowth = Math.pow(1 + PROJ_GROWTH_PCT / 100, 1 / 12) - 1;
+    let value = currentValue;
+    const series: SeriesPoint[] = [{ label: "Now", value: Math.round(currentValue) / 100 }];
+    for (let m = 1; m <= PROJ_YEARS * 12; m++) {
+      value = value * (1 + mGrowth);
+      value += (value * yieldRate) / 12;
+      if (m % 12 === 0 && (m / 12) % 3 === 0) series.push({ label: `${m / 12}y`, value: Math.round(value) / 100 });
+    }
+    const projection: ProjectionAgg = {
+      holdings: holdRows.length,
+      currentValue, endValue: value, contributed: currentValue,
+      years: PROJ_YEARS, growthPct: PROJ_GROWTH_PCT, series,
+    };
+    return { dividends, projection };
+  }, [holdRows, divRows, quoteRows, currency]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cards: InsightCard[] = useMemo(() => {
     // ---- continuous 14-day series ----
@@ -183,9 +256,10 @@ export function useInsightStack() {
     const ctx: GenContext = {
       currency, now, days, months, cats, labels, budgets, streak, txnDays7,
       topExpenses, weekday, weekdayTop, subs, subsTotal, goals, pace, noSpend, avgDaily, catSpike,
+      dividends: invest.dividends, projection: invest.projection,
     };
     return composeStack(ctx);
-  }, [dayRows, monthRows, catRows, labelRows, budgetRows, budgetCatRows, activeDayRows, expDayRows, topExpRows, subRows, goalRows, catMonthRows, currency, now, thisM]);
+  }, [dayRows, monthRows, catRows, labelRows, budgetRows, budgetCatRows, activeDayRows, expDayRows, topExpRows, subRows, goalRows, catMonthRows, invest, currency, now, thisM]);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const total = cards.length;
