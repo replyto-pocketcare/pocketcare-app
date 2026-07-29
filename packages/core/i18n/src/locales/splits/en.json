@@ -62,5 +62,8 @@
   },
   "addExpense": "Add expense",
   "openGroup": "Open group",
-  "payAnyoneCta": "Pay someone"
+  "payAnyoneCta": "Pay someone",
+  "viewLines_one": "View {{count}} transaction",
+  "viewLines_other": "View {{count}} transactions",
+  "hideLines": "Hide transactions"
 }

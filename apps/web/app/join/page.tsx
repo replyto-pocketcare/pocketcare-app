@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useAuthStatus } from "../../src/account";
 import { acceptInvite } from "../../src/splits/write";
+import { MaterialIcon } from "../../src/ui/MaterialIcon";
 
 export default function JoinPage() {
   const { t } = useTranslation("join");
@@ -42,7 +43,7 @@ export default function JoinPage() {
   return (
     <div className="fade-up" style={{ minHeight: "70vh", display: "grid", placeItems: "center" }}>
       <div className="card" style={{ maxWidth: 420, padding: 32, textAlign: "center", display: "grid", gap: 12 }}>
-        <div style={{ fontSize: 28 }}>◑</div>
+        <div style={{ display: "flex", justifyContent: "center", color: "var(--accent)" }}><MaterialIcon name="groups" size={28} /></div>
         <h1 style={{ margin: 0 }}>{t("title")}</h1>
         <p className="muted" style={{ margin: 0 }}>{msg}</p>
         {needsAuth && <Link href="/onboarding" className="btn" style={{ justifySelf: "center" }}>{t("signInCreate")}</Link>}

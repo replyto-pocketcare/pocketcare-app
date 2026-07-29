@@ -22,9 +22,6 @@ import { ListSkeleton } from "../../src/ui/Skeleton";
 
 interface SettleTarget { userId: string; name: string; net: number }
 
-/** How many ledger lines the person sheet shows before "+N more". */
-const PERSON_LINES = 8;
-
 const AVATAR_COLORS = ["#7c9a6d", "#c9b48f", "#cb9b7a", "#b9855f", "#c06a4f", "#8a9b7a", "#d0a98b"];
 function colorFor(id: string): string {
   let h = 0;
@@ -94,10 +91,11 @@ export default function SplitsPage() {
   const [accountId, setAccountId] = useState("");
   const [busy, setBusy] = useState(false);
   const [reminded, setReminded] = useState(false);
-  /** The person sheet lists the first PERSON_LINES rows and expands in place.
-      It must NOT get its own scroller: a nested scroll area inside page/modal
-      content captures a touch swipe for its whole duration (see §7e of
-      docs/plans/ui-redesign-2026-07.md). The modal overlay already scrolls. */
+  /** The person sheet's ledger is collapsed by default and revealed by a
+      button. When open it renders in full and must NOT get its own scroller: a
+      nested scroll area inside page/modal content captures a touch swipe for
+      its whole duration (see §7e of docs/plans/ui-redesign-2026-07.md). The
+      modal overlay already scrolls. */
   const [showAllLines, setShowAllLines] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
   const [payAnyone, setPayAnyone] = useState(false);
@@ -197,12 +195,18 @@ export default function SplitsPage() {
       <PendingSettlements />
 
       <section className="card" style={{ padding: 18, display: "grid", gap: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <div style={{ minWidth: 0 }}>
+        {/* The row WRAPS. Two non-shrinking buttons plus a `minWidth: 0` title
+            is the recipe for the title collapsing to one character per line:
+            the buttons refuse to give up width, so the only flexible item
+            absorbs all of the shortfall. `flex: 1 1 <basis>` on the title gives
+            it a real width to defend, and wrapping drops the buttons onto their
+            own line once they no longer fit beside it. */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 160px", minWidth: 0 }}>
             <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em" }}>{t("eyebrow")}</div>
             <h1 style={{ margin: "1px 0 0", fontSize: 22 }}>{t("yourBalance")}</h1>
           </div>
-          <div style={{ display: "flex", gap: 8, flexShrink: 0, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button className="btn ghost" style={{ gap: 6 }} onClick={() => setPayAnyone(true)}>
               <MaterialIcon name="payments" size={16} /> {t("payAnyoneCta")}
             </button>
@@ -400,10 +404,19 @@ export default function SplitsPage() {
               <span style={{ fontSize: 30, fontWeight: 750, lineHeight: 1, whiteSpace: "nowrap", color: person.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(person.net)}</span>
             </div>
 
-            {/* Itemised transactions */}
-            {ledger.lines.length > 0 && (
+            {/* The itemised ledger is behind a button, not shown by default.
+                This sheet's job is "how much, and settle it" — a wall of line
+                items pushed the two actions below the fold and made the sheet
+                read as a statement. It's one tap away when you want to check. */}
+            {ledger.lines.length > 0 && !showAllLines && (
+              <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => setShowAllLines(true)}>
+                <MaterialIcon name="receipt_long" size={16} />
+                {t("viewLines", { count: ledger.lines.length, defaultValue: "View {{count}} transactions" })}
+              </button>
+            )}
+            {ledger.lines.length > 0 && showAllLines && (
               <div className="row-stack" style={{ margin: "0 -4px", padding: "0 4px" }}>
-                {(showAllLines ? ledger.lines : ledger.lines.slice(0, PERSON_LINES)).map((l) => (
+                {ledger.lines.map((l) => (
                   <div key={l.id} className="row-tile" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.description}</div>
@@ -414,11 +427,9 @@ export default function SplitsPage() {
                     </span>
                   </div>
                 ))}
-                {!showAllLines && ledger.lines.length > PERSON_LINES && (
-                  <button className="chip" style={{ justifySelf: "start" }} onClick={() => setShowAllLines(true)}>
-                    {t("viewAllLines", { count: ledger.lines.length - PERSON_LINES })}
-                  </button>
-                )}
+                <button className="chip" style={{ justifySelf: "start" }} onClick={() => setShowAllLines(false)}>
+                  {t("hideLines", { defaultValue: "Hide transactions" })}
+                </button>
               </div>
             )}
 

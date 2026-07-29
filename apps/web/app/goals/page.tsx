@@ -14,6 +14,7 @@ import { Modal } from "../../src/ui/Modal";
 import { useConfirm } from "../../src/ui/Confirm";
 import { ListSkeleton } from "../../src/ui/Skeleton";
 import { GoalCelebration } from "../../src/goals/GoalCelebration";
+import { MaterialIcon } from "../../src/ui/MaterialIcon";
 
 // Remember which goals we've already celebrated so completing one is a one-time
 // moment (survives reloads), while a goal that dips below target can re-earn it.
@@ -202,7 +203,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
             <div style={{ minWidth: 0 }}>
               <strong>{goal.name}</strong>
               {funded
-                ? <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}> · 🎉 {t("funded")}</span>
+                ? <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}> · <MaterialIcon name="check" size={13} /> {t("funded")}</span>
                 : goal.is_emergency_fund ? <span className="muted" style={{ fontSize: 12 }}> · {t("efLiquid")}</span> : null}
             </div>
             <KebabMenu

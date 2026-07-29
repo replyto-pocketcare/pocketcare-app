@@ -84,6 +84,7 @@ const PERSONA = [
 import { usePremiumStatus } from "../../src/premium";
 
 import { Modal } from "../../src/ui/Modal";
+import { MaterialIcon } from "../../src/ui/MaterialIcon";
 
 export default function AssistantPage() {
   const { t } = useTranslation("assistant");
@@ -389,7 +390,7 @@ export default function AssistantPage() {
         )}
 
         <button className="btn" style={{ justifySelf: "start", padding: "12px 22px" }} onClick={newChat}>
-          ✦ {t("startChat")}
+          <MaterialIcon name="auto_awesome" size={16} /> {t("startChat")}
         </button>
 
         <div className="card" style={{ padding: 16, display: "grid", gap: 8 }}>

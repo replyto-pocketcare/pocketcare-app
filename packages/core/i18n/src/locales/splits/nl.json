@@ -62,5 +62,8 @@
   },
   "addExpense": "Uitgave toevoegen",
   "openGroup": "Groep openen",
-  "payAnyoneCta": "Iemand betalen"
+  "payAnyoneCta": "Iemand betalen",
+  "viewLines_one": "Bekijk {{count}} transactie",
+  "viewLines_other": "Bekijk {{count}} transacties",
+  "hideLines": "Transacties verbergen"
 }

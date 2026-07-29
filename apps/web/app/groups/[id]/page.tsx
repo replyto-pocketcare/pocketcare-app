@@ -178,7 +178,7 @@ export default function GroupDetailPage() {
           <Link href="/friends" className="muted" style={{ fontSize: 13 }}>{t("backToGroups")}</Link>
           <h1 style={{ margin: "6px 0 0" }}>{group.name} <span className="muted" style={{ fontSize: 14 }}>· {t(`kind.${group.kind}`, group.kind)}</span></h1>
           <div className="muted" style={{ fontSize: 13, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 2 }}>
-            {group.start_date ? <span>📅 {group.start_date}{group.end_date ? ` – ${group.end_date}` : ""}</span> : <span>{t("noDates")}</span>}
+            {group.start_date ? <span>{group.start_date}{group.end_date ? ` – ${group.end_date}` : ""}</span> : <span>{t("noDates")}</span>}
             <span>· {t("members", { count: memberIds.length })}</span>
             {group.auto_split === 1 && <span style={{ color: "var(--accent)" }}>· {t("autoSplitOn")}</span>}
           </div>

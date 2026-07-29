@@ -62,5 +62,8 @@
   },
   "addExpense": "खर्च जोड़ें",
   "openGroup": "समूह खोलें",
-  "payAnyoneCta": "किसी को भुगतान करें"
+  "payAnyoneCta": "किसी को भुगतान करें",
+  "viewLines_one": "{{count}} लेनदेन देखें",
+  "viewLines_other": "{{count}} लेनदेन देखें",
+  "hideLines": "लेनदेन छिपाएँ"
 }
