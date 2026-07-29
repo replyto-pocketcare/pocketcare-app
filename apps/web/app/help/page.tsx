@@ -3,13 +3,14 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { MaterialIcon, type MaterialIconName } from "../../src/ui/MaterialIcon";
 
 interface QA { q: string; a: string }
-interface Section { icon: string; color: string; title: string; items: QA[] }
+interface Section { icon: MaterialIconName; color: string; title: string; items: QA[] }
 
 const SECTIONS: Section[] = [
   {
-    icon: "◧", color: "#b06a4f", title: "Getting started",
+    icon: "space_dashboard", color: "#b06a4f", title: "Getting started",
     items: [
       { q: "What is PocketCare?", a: "An offline-first personal expense & wealth manager. Your data lives on your device and syncs securely — you can use most of the app with no connection." },
       { q: "How do I begin?", a: "Add your first account (bank, cash, card, or investments) from the Dashboard or Accounts page. Then start logging transactions. Set your base currency in Settings." },
@@ -18,7 +19,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    icon: "⇅", color: "#5f7a52", title: "Transactions",
+    icon: "swap_horiz", color: "#5f7a52", title: "Transactions",
     items: [
       { q: "How do I add a transaction?", a: "Tap Add transaction, choose Expense / Income / Transfer, enter the amount, pick an account and (optionally) a category, labels and a note." },
       { q: "Can one transaction have multiple items?", a: "Yes — on an expense, use “Add item / split” to break a bill into named items; the total is their sum." },
@@ -27,28 +28,28 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    icon: "◔", color: "#c08a3e", title: "Budgets",
+    icon: "donut_small", color: "#c08a3e", title: "Budgets",
     items: [
       { q: "How do budgets work?", a: "Create a spending cap for a period (weekly/monthly/etc.) or for custom dates. Scope it to specific categories or labels, or leave it open for all spending." },
       { q: "Will it warn me before I overspend?", a: "Budgets flag at ~80% used and when you go over — and you'll see it surfaced in the Insights feed too." },
     ],
   },
   {
-    icon: "◎", color: "#3e4a38", title: "Goals & emergency fund",
+    icon: "flag", color: "#3e4a38", title: "Goals & emergency fund",
     items: [
       { q: "How do savings goals work?", a: "Create a goal with a target (e.g. a trip or a phone), then “Add funds” to reserve money from a savings account toward it. The reserved amount is blocked from your available balance." },
       { q: "What's the emergency fund for?", a: "Mark one goal as your emergency fund — it's kept liquid and filled first, and your other goals unlock once it's funded." },
     ],
   },
   {
-    icon: "↻", color: "#7c4a3a", title: "Subscriptions",
+    icon: "autorenew", color: "#7c4a3a", title: "Subscriptions",
     items: [
       { q: "How do I track subscriptions?", a: "Subscriptions page → Add subscription. See your total monthly and yearly load at a glance." },
       { q: "What is “Before you subscribe…”?", a: "A simulator (Premium) that shows a new subscription's true long-term cost versus investing that money instead — before you commit." },
     ],
   },
   {
-    icon: "◑", color: "#b06a4f", title: "Splits & friends",
+    icon: "call_split", color: "#b06a4f", title: "Splits & friends",
     items: [
       { q: "How do I split a bill?", a: "Open Add transaction → turn on “Split this expense” → pick a group/trip → choose who's in and how to split (equally, exact amounts, or percentages) → mark who paid. Only your own share counts in your budget; the rest is tracked as owed or lent." },
       { q: "How do I add friends?", a: "Everyone in a split must be in a shared group. Go to Groups & trips → open a group → Invite by email (they're added instantly if they're on PocketCare) or share an invite link. They join, then you can split with them." },
@@ -59,7 +60,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    icon: "▤", color: "#5f6647", title: "Cards & accounts",
+    icon: "credit_card", color: "#5f6647", title: "Cards & accounts",
     items: [
       { q: "Can I track credit cards?", a: "Yes — add a Credit Card account and its details on the Cards page. Balances and spending are tracked like any other account." },
       { q: "What about investments?", a: "Stocks and mutual-fund accounts are supported; money moves in and out via transfers, and holdings are tracked separately." },
@@ -67,14 +68,14 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    icon: "◱", color: "#4f46e5", title: "Insights & statements",
+    icon: "insights", color: "#4f46e5", title: "Insights & statements",
     items: [
       { q: "What is the Insights feed?", a: "A swipeable, TikTok-style stack of bite-sized cards — weekly recaps, budget alerts, spending patterns, savings wins and more, drawn from your own data. It's a Premium feature." },
       { q: "How do statements work?", a: "Statements (Premium) generates a clean summary for any date range that you can print or save as a PDF." },
     ],
   },
   {
-    icon: "✦", color: "#b06a4f", title: "Ask PocketCare (AI)",
+    icon: "auto_awesome", color: "#b06a4f", title: "Ask PocketCare (AI)",
     items: [
       { q: "What can the assistant do?", a: "It helps you use the app and think through your own money — and can create goals, budgets, subscriptions and groups, reserve money to a goal, and log a transaction (always asking you to confirm first)." },
       { q: "What data does it see?", a: "Only an aggregated on-device snapshot (balances, average income/expense, goals, upcoming bills, split totals) — never your individual transactions. It won't write or explain code or give tax/legal/investment advice." },
@@ -82,7 +83,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    icon: "◇", color: "#a8503a", title: "Premium & billing",
+    icon: "redeem", color: "#a8503a", title: "Premium & billing",
     items: [
       { q: "What are the plans?", a: "Free (all core money tracking), Lite (₹49/mo or ₹499/yr) and Pro (₹99/mo or ₹999/yr). Lite and Pro unlock Insights, Statements, Ask PocketCare, auto-categorisation and more; Pro has a larger AI quota." },
       { q: "Is there a trial?", a: "New accounts get a 14-day free trial with full access. You'll see a countdown and can upgrade anytime from Settings." },
@@ -90,7 +91,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    icon: "◐", color: "#7c7264", title: "Privacy & sync",
+    icon: "health_and_safety", color: "#7c7264", title: "Privacy & sync",
     items: [
       { q: "Where is my data stored?", a: "Locally on your device first, then synced to your private account. Each person only ever syncs their own rows (plus the shared split facts of groups they're in)." },
       { q: "Is splitting safe for privacy?", a: "Yes — shared split tables carry no private data. Your accounts, categories and personal transactions stay entirely yours." },
@@ -124,20 +125,20 @@ export default function HelpPage() {
       {sections.map((s) => (
         <section key={s.title} style={{ display: "grid", gap: 8 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ width: 30, height: 30, borderRadius: 9, background: s.color, color: "#fff", display: "grid", placeItems: "center", fontSize: 16, flexShrink: 0 }}>{s.icon}</span>
+            <span style={{ width: 30, height: 30, borderRadius: 9, background: s.color, color: "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}><MaterialIcon name={s.icon} size={17} /></span>
             <h2 style={{ margin: 0, fontSize: 17 }}>{s.title}</h2>
           </div>
-          <div className="card" style={{ padding: 4, overflow: "hidden" }}>
+          <div className="card row-stack" style={{ padding: 6, overflow: "hidden" }}>
             {s.items.map((it) => {
               const key = s.title + it.q;
               const isOpen = open.has(key) || !!q;
               return (
-                <div key={it.q} style={{ borderBottom: "1px solid var(--border)" }}>
-                  <button onClick={() => toggle(key)} style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", cursor: "pointer", padding: "13px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, color: "var(--text)", fontSize: 14.5, fontWeight: 550 }}>
+                <div key={it.q} className={`row-tile${isOpen ? " is-open" : ""}`} style={{ padding: 0 }}>
+                  <button onClick={() => toggle(key)} aria-expanded={isOpen} style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", cursor: "pointer", padding: "11px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, color: "var(--text)", fontSize: 14.5, fontWeight: 550 }}>
                     <span>{it.q}</span>
-                    <span style={{ color: "var(--text-2)", flexShrink: 0, transition: "transform 0.15s", transform: isOpen ? "rotate(90deg)" : "none" }}>›</span>
+                    <MaterialIcon name="chevron_right" size={18} style={{ color: "var(--text-2)", flexShrink: 0, transition: "transform 0.15s", transform: isOpen ? "rotate(90deg)" : "none" }} />
                   </button>
-                  {isOpen && <div className="muted" style={{ padding: "0 14px 14px", fontSize: 14, lineHeight: 1.55 }}>{it.a}</div>}
+                  {isOpen && <div className="muted" style={{ padding: "0 14px 13px", fontSize: 14, lineHeight: 1.55 }}>{it.a}</div>}
                 </div>
               );
             })}

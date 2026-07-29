@@ -10,6 +10,8 @@
  * the navigation, whereas a codepoint paints nothing.
  */
 
+import type { CSSProperties } from "react";
+
 /** name → PUA codepoint in `pocketcare-icons.woff2`. Keep in sync with the subset. */
 export const MATERIAL_ICON = {
   account_balance: "\ue84f",
@@ -71,15 +73,17 @@ export type MaterialIconName = keyof typeof MATERIAL_ICON;
  * `aria-hidden` by default: these sit next to a text label in the nav, so
  * announcing them would double up. Pass `label` for a standalone icon button.
  */
-export function MaterialIcon({ name, size = 20, label }: {
+export function MaterialIcon({ name, size = 20, label, style }: {
   name: MaterialIconName;
   size?: number;
   label?: string;
+  /** Extra styles (colour, transform, …). Merged after the size defaults. */
+  style?: CSSProperties;
 }) {
   return (
     <span
       className="msym"
-      style={{ fontSize: size, width: size, height: size }}
+      style={{ fontSize: size, width: size, height: size, ...style }}
       {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
     >
       {MATERIAL_ICON[name]}

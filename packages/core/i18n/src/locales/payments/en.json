@@ -35,6 +35,7 @@
     "intro": "Add your UPI ID so friends can pay you back from inside PocketCare. Money goes straight to your bank — we never hold it.",
     "guestBlocked": "Create an account to add a UPI ID. Guest sessions can't save payment details.",
     "label": "UPI ID",
+    "current": "Your UPI ID",
     "replace": "Replace with a different UPI ID",
     "invalid": "That doesn't look right — a UPI ID looks like name@bank.",
     "willShow": "Others will see {{masked}}",
@@ -43,6 +44,7 @@
     "privacy": "Shared only with people you're in a group with and have a balance with — and only when they go to pay you. Unlike your passphrase-protected data, our server can read this, because it has to hand it to the payer.",
     "showLog": "Who's seen this ({{count}})",
     "hideLog": "Hide access log",
-    "someone": "Someone"
+    "someone": "Someone",
+    "update": "Update UPI ID"
   }
 }

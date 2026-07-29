@@ -17,6 +17,9 @@ import { ListSkeleton } from "../../src/ui/Skeleton";
 
 interface SettleTarget { userId: string; name: string; net: number }
 
+/** How many ledger lines the person sheet shows before "+N more". */
+const PERSON_LINES = 8;
+
 const AVATAR_COLORS = ["#7c9a6d", "#c9b48f", "#cb9b7a", "#b9855f", "#c06a4f", "#8a9b7a", "#d0a98b"];
 function colorFor(id: string): string {
   let h = 0;
@@ -85,9 +88,15 @@ export default function SplitsPage() {
   const [accountId, setAccountId] = useState("");
   const [busy, setBusy] = useState(false);
   const [reminded, setReminded] = useState(false);
+  /** The person sheet lists the first PERSON_LINES rows and expands in place.
+      It must NOT get its own scroller: a nested scroll area inside page/modal
+      content captures a touch swipe for its whole duration (see §7e of
+      docs/plans/ui-redesign-2026-07.md). The modal overlay already scrolls. */
+  const [showAllLines, setShowAllLines] = useState(false);
 
   function openPerson(userId: string, net: number) {
     setReminded(false);
+    setShowAllLines(false);
     setPerson({ userId, name: name(userId), net });
   }
   function openSettle(userId: string, net: number) {
@@ -303,9 +312,9 @@ export default function SplitsPage() {
 
             {/* Itemised transactions */}
             {ledger.lines.length > 0 && (
-              <div style={{ display: "grid", gap: 2, maxHeight: 260, overflowY: "auto", margin: "0 -4px", padding: "0 4px" }}>
-                {ledger.lines.map((l) => (
-                  <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid var(--border)" }}>
+              <div className="row-stack" style={{ margin: "0 -4px", padding: "0 4px" }}>
+                {(showAllLines ? ledger.lines : ledger.lines.slice(0, PERSON_LINES)).map((l) => (
+                  <div key={l.id} className="row-tile" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.description}</div>
                       {l.date && <div className="muted" style={{ fontSize: 11.5 }}>{fmtDate(l.date)}{l.kind === "settlement" ? ` · ${t("settlementTag")}` : ""}</div>}
@@ -315,6 +324,11 @@ export default function SplitsPage() {
                     </span>
                   </div>
                 ))}
+                {!showAllLines && ledger.lines.length > PERSON_LINES && (
+                  <button className="chip" style={{ justifySelf: "start" }} onClick={() => setShowAllLines(true)}>
+                    {t("viewAllLines", { count: ledger.lines.length - PERSON_LINES })}
+                  </button>
+                )}
               </div>
             )}
 

@@ -34,8 +34,8 @@ function ExpenseRow({ expense, base, fmt, fallback }: {
   const itemized = !!expense.has_items;
 
   return (
-    <div style={{ borderBottom: "1px solid var(--border)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", fontSize: 14, gap: 8, alignItems: "center" }}>
+    <div className={`row-tile${itemized && open ? " is-open" : ""}`} style={{ padding: itemized && open ? "11px 14px" : undefined }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, gap: 8, alignItems: "center" }}>
         <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {expense.description || fallback}{" "}
           <span className="muted" style={{ fontSize: 12 }}>· {new Date(expense.occurred_at).toLocaleDateString()}</span>
@@ -56,7 +56,7 @@ function ExpenseRow({ expense, base, fmt, fallback }: {
         </span>
       </div>
       {itemized && open && (
-        <div style={{ padding: "0 14px 12px" }}>
+        <div style={{ paddingTop: 10 }}>
           <ItemBreakdown expenseId={expense.id} currency={expense.currency || base} />
         </div>
       )}
@@ -99,10 +99,16 @@ export default function GroupDetailPage() {
   const [selected, setSelected] = useState<Invitee[]>([]);
   const selectedKey = (i: Invitee) => i.id ?? i.email.toLowerCase();
   const isPicked = (i: Invitee) => selected.some((s) => selectedKey(s) === selectedKey(i));
-  const suggestions = connections
+  // Matches are capped at 6 and rendered in full — this list is an inline card
+  // inside the modal body, not an absolutely-positioned popover, so giving it
+  // its own scroller would trap a swipe that belongs to the modal (see §7e of
+  // docs/plans/ui-redesign-2026-07.md). Narrowing is done by typing instead.
+  const SUGGEST_MAX = 6;
+  const matches = connections
     .filter((c) => !!c.email && !memberIds.includes(c.id) && !isPicked({ id: c.id, name: c.name, email: c.email! }))
-    .filter((c) => { const q = query.trim().toLowerCase(); return !q || c.name.toLowerCase().includes(q) || (c.email ?? "").toLowerCase().includes(q); })
-    .slice(0, 6);
+    .filter((c) => { const q = query.trim().toLowerCase(); return !q || c.name.toLowerCase().includes(q) || (c.email ?? "").toLowerCase().includes(q); });
+  const suggestions = matches.slice(0, SUGGEST_MAX);
+  const moreMatches = matches.length - suggestions.length;
   const canAddTypedEmail = looksLikeEmail(query) &&
     !connections.some((c) => (c.email ?? "").toLowerCase() === query.trim().toLowerCase()) &&
     !selected.some((s) => s.email.toLowerCase() === query.trim().toLowerCase());
@@ -198,9 +204,9 @@ export default function GroupDetailPage() {
 
       <section style={{ display: "grid", gap: 8 }}>
         <h2 style={{ margin: 0 }}>{t("membersTitle")}</h2>
-        <div className="card" style={{ padding: 8 }}>
+        <div className="card row-stack" style={{ padding: 8 }}>
           {memberIds.map((uid) => (
-            <div key={uid} style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid var(--border)", fontSize: 14 }}>
+            <div key={uid} className="row-tile" style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 14 }}>
               <span>{name(uid)}</span>
               <span style={{ color: (balances.find((b) => b.userId === uid)?.net ?? 0) > 0 ? "var(--positive)" : (balances.find((b) => b.userId === uid)?.net ?? 0) < 0 ? "var(--negative)" : "var(--text-2)" }}>
                 {(() => { const n = balances.find((b) => b.userId === uid)?.net ?? 0; return n > 0 ? t("owesYouAmt", { amount: fmt(money(n, base)) }) : n < 0 ? t("youOweAmt", { amount: fmt(money(-n, base)) }) : t("settledTag"); })()}
@@ -215,7 +221,7 @@ export default function GroupDetailPage() {
         {expenses.length === 0 ? (
           <p className="muted" style={{ fontSize: 13 }}>{t("noExpensesPre")}<Link href={`/transactions/new?split=${group.id}`}>{t("noExpensesLink")}</Link>{t("noExpensesPost", { kind: t(`kind.${group.kind}`) })}</p>
         ) : (
-          <div className="card" style={{ padding: 8 }}>
+          <div className="card row-stack" style={{ padding: 8 }}>
             {expenses.map((e) => (
               <ExpenseRow key={e.id} expense={e} base={base} fmt={fmt} fallback={t("expenseFallback")} />
             ))}
@@ -265,7 +271,7 @@ export default function GroupDetailPage() {
           <div style={{ position: "relative" }}>
             <input className="input" placeholder={t("invitePlaceholder", "Search people or type an email")} value={query} onChange={(e) => setQuery(e.target.value)} />
             {(suggestions.length > 0 || canAddTypedEmail) && (
-              <div className="card" style={{ marginTop: 6, padding: 4, display: "grid", gap: 2, maxHeight: 220, overflowY: "auto" }}>
+              <div className="card" style={{ marginTop: 6, padding: 4, display: "grid", gap: 2 }}>
                 {suggestions.map((c) => (
                   <button key={c.id} className="tap-row" onClick={() => addInvitee({ id: c.id, name: c.name, email: c.email! })}
                     style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "8px 10px", borderRadius: 8, background: "transparent", border: "none", cursor: "pointer", textAlign: "left", color: "inherit" }}>
@@ -278,6 +284,9 @@ export default function GroupDetailPage() {
                     style={{ display: "flex", gap: 8, padding: "8px 10px", borderRadius: 8, background: "transparent", border: "none", cursor: "pointer", textAlign: "left", color: "var(--accent)" }}>
                     {t("inviteAddEmail", { email: query.trim(), defaultValue: "Invite {{email}}" })}
                   </button>
+                )}
+                {moreMatches > 0 && (
+                  <div className="muted" style={{ padding: "6px 10px", fontSize: 12 }}>{t("inviteNarrow", { count: moreMatches })}</div>
                 )}
               </div>
             )}

@@ -8,14 +8,14 @@
  * the whole point is handing it to someone who owes you money. The copy says
  * so, and the disclosure list shows exactly who has fetched it.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isValidVpa, maskVpa, normalizeVpa } from "@pocketcare/upi";
 
 import { useSession } from "../account";
 import { useUserProfiles } from "../splits/hooks";
 import { Spinner } from "../ui/Spinner";
-import { forgetPaymentHandle, savePaymentHandle } from "./handles";
+import { forgetPaymentHandle, getMyPaymentHandle, savePaymentHandle } from "./handles";
 import { useCanSavePaymentHandle, useHandleDisclosures } from "./hooks";
 
 export function PaymentHandlePanel() {
@@ -30,6 +30,22 @@ export function PaymentHandlePanel() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showLog, setShowLog] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Load the existing handle. Without this the panel only ever knew about a
+  // handle saved in the same session, so every reload showed a bare "add" form
+  // to someone who already had one — as if their UPI ID had been forgotten.
+  useEffect(() => {
+    if (!canSave) {
+      setLoading(false);
+      return;
+    }
+    let alive = true;
+    void getMyPaymentHandle()
+      .then((h) => { if (alive) setHint(h); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [canSave]);
 
   const normalized = normalizeVpa(value);
   const looksValid = normalized.length === 0 || isValidVpa(normalized);
@@ -78,14 +94,25 @@ export function PaymentHandlePanel() {
         <div className="muted" style={{ fontSize: 13 }}>
           {t("settings.guestBlocked", "Create an account to add a UPI ID. Guest sessions can't save payment details.")}
         </div>
+      ) : loading ? (
+        // Never render the empty form before we know — flashing "add a UPI ID"
+        // at someone who has one reads as though it was lost.
+        <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
+          <Spinner />
+        </div>
       ) : (
         <>
           {hint && (
-            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-              <code style={{ fontSize: 13 }}>{hint}</code>
-              <button className="chip" type="button" onClick={() => void forget()} disabled={busy}>
-                {t("settings.remove", "Remove")}
-              </button>
+            <div style={{ display: "grid", gap: 4 }}>
+              <span className="muted" style={{ fontSize: 12 }}>
+                {t("settings.current", "Your UPI ID")}
+              </span>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <code style={{ fontSize: 13 }}>{hint}</code>
+                <button className="chip" type="button" onClick={() => void forget()} disabled={busy}>
+                  {t("settings.remove", "Remove")}
+                </button>
+              </div>
             </div>
           )}
 
@@ -121,7 +148,7 @@ export function PaymentHandlePanel() {
           <div>
             <button className="btn" type="button" onClick={() => void save()} disabled={!canSubmit}>
               {busy ? <Spinner /> : null}
-              {t("settings.save", "Save UPI ID")}
+              {hint ? t("settings.update", "Update UPI ID") : t("settings.save", "Save UPI ID")}
             </button>
           </div>
 

@@ -10,7 +10,7 @@
  */
 import { maskVpa } from "@pocketcare/upi";
 
-import { getSupabase } from "../powersync";
+import { getSupabase, getUserId } from "../powersync";
 
 export class HandleError extends Error {
   /** Machine-readable reason, so the UI can offer the right next step. */
@@ -39,15 +39,83 @@ async function callFn(body: Record<string, unknown>): Promise<FnResult> {
   return res;
 }
 
+/**
+ * The masked hint for your OWN handle, or null if you haven't added one.
+ *
+ * Read directly from the table rather than via the edge function: the owner RLS
+ * policy already permits it, and `handle_hint` is masked by construction —
+ * `akh••••@okhdfcbank` — so nothing secret crosses the wire. The ciphertext in
+ * `handle_enc` stays useless to the client either way, since only the function
+ * holds the key.
+ *
+ * Schema-qualified, per golden rule #3 — a bare `.from()` resolves to `public`
+ * and 404s.
+ */
+export async function getMyPaymentHandle(): Promise<string | null> {
+  let userId: string;
+  try {
+    userId = getUserId();
+  } catch {
+    return cachedHint();
+  }
+
+  const { data, error } = await getSupabase()
+    .schema("pocketcare")
+    .from("payment_handles")
+    .select("handle_hint")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  // Offline, or the 0041 migration isn't applied yet. Fall back to the cached
+  // hint rather than claiming they have no UPI ID — telling someone their saved
+  // details are gone because the network blinked is worse than showing a stale
+  // mask.
+  if (error) return cachedHint();
+
+  const hint = (data as { handle_hint?: string } | null)?.handle_hint ?? null;
+  rememberHint(hint);
+  return hint;
+}
+
+/**
+ * Locally cached copy of the masked hint.
+ *
+ * Only ever the mask, never the VPA — the real handle is deliberately never
+ * persisted on a device. This exists so the Settings panel can show "you have
+ * one" while offline instead of an empty form.
+ */
+const HINT_KEY = "pc_upi_hint";
+
+function cachedHint(): string | null {
+  try {
+    return localStorage.getItem(HINT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function rememberHint(hint: string | null): void {
+  try {
+    if (hint) localStorage.setItem(HINT_KEY, hint);
+    else localStorage.removeItem(HINT_KEY);
+  } catch {
+    /* private mode — the panel just refetches next time */
+  }
+}
+
 /** Save (or replace) your own UPI ID. Rejected for guests, server-side too. */
 export async function savePaymentHandle(vpa: string, displayName?: string): Promise<string> {
   const res = await callFn({ action: "set", vpa, displayName });
-  return res.hint ?? maskVpa(vpa);
+  const hint = res.hint ?? maskVpa(vpa);
+  rememberHint(hint);
+  return hint;
 }
 
 /** Remove your UPI ID. Existing disclosures stay in the audit trail. */
 export async function forgetPaymentHandle(): Promise<void> {
   await callFn({ action: "forget" });
+  rememberHint(null);
 }
 
 export interface CounterpartyHandle {

@@ -20,6 +20,8 @@ import { useFriendBalances, useUserProfiles } from "../splits/hooks";
 import { useSplitInfo, collapseSplitRows } from "../splits/collapse";
 import { SplitChip } from "../ui/TransactionRow";
 import { bucketLabel, bucketIcon } from "../cashflow/model";
+import { MaterialIcon } from "../ui/MaterialIcon";
+import { useFitRows } from "./useFitRows";
 import type { TileId } from "../dashboard";
 
 const PIE = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#4f46e5", "#7c7264"];
@@ -76,10 +78,16 @@ export const TILE_HREF: Record<TileId, string> = {
   currencies: "/accounts",
 };
 
+/**
+ * The tile shell is a **flex column**, not a grid: `.dash-tile-body > section`
+ * clips rather than scrolls, so exactly one child (`.tile-flex`) must be able to
+ * absorb the leftover height and shrink below its content — which is what lets a
+ * chart size itself to the tile and a list measure how many rows fit.
+ */
 function TileCard({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="card" style={{ padding: 20, display: "grid", gap: 12, alignContent: "start", minWidth: 0, maxWidth: "100%", overflowX: "hidden" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, minWidth: 0 }}>
+    <section className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, minWidth: 0, flexShrink: 0 }}>
         <h2 style={{ margin: 0, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{title}</h2>
         <span style={{ flexShrink: 0 }}>{action}</span>
       </div>
@@ -99,8 +107,8 @@ const HERO_MUTED = "rgba(246,240,231,0.82)";
 
 function HeroTile({ title, action, grad, glow, children }: { title: string; action?: React.ReactNode; grad: string; glow: string; children: React.ReactNode }) {
   return (
-    <section style={{ position: "relative", borderRadius: 24, padding: "22px 24px", color: "#f6f0e7", background: grad, boxShadow: glow, display: "grid", gap: 14, alignContent: "start" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+    <section style={{ position: "relative", borderRadius: 24, padding: "22px 24px", color: "#f6f0e7", background: grad, boxShadow: glow, display: "flex", flexDirection: "column", gap: 14, minWidth: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(246,240,231,0.72)" }}>{title}</div>
         {action}
       </div>
@@ -238,14 +246,17 @@ function RecentTile() {
   const acctColor = (aid: string) => balances.find((b) => b.account.id === aid)?.account.color || colorForId(aid);
   const fmt = (m: Money) => (hidden ? "••••" : format(m, "en-US"));
   const splitInfo = useSplitInfo();
-  // Collapse split postings, then keep the 6 most-recent tiles.
-  const collapsed = collapseSplitRows(recent, splitInfo).slice(0, 6);
+  const all = collapseSplitRows(recent, splitInfo);
+  // How many rows actually fit this tile at its current size (it clips, never scrolls).
+  const { ref, fit } = useFitRows<HTMLDivElement>(44, { gap: 8, max: 16 });
+  const collapsed = all.slice(0, fit);
+  const extra = all.length - collapsed.length;
 
   return (
     <TileCard title="Recent activity" action={<Link className="muted" style={{ fontSize: 13 }} href="/transactions">View all</Link>}>
-      <div style={{ display: "grid", gap: 8 }}>
+      <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 8, alignContent: "start", overflow: "hidden" }}>
         {collapsed.map(({ row: t, split }) => (
-          <Link key={t.id} className="tap-row" href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px", margin: "0 -8px", borderBottom: "1px solid var(--border)", color: "inherit" }}>
+          <Link key={t.id} className="tap-row" href={`/transactions/${t.id}/edit`} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px", margin: "0 -8px", color: "inherit" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
               <span style={{ width: 8, height: 8, borderRadius: 999, background: acctColor(t.account_id), flexShrink: 0 }} />
               <div style={{ minWidth: 0 }}>
@@ -261,8 +272,9 @@ function RecentTile() {
             </div>
           </Link>
         ))}
-        {collapsed.length === 0 && <p className="muted">No transactions yet.</p>}
+        {all.length === 0 && <p className="muted">No transactions yet.</p>}
       </div>
+      {extra > 0 && <Link href="/transactions" className="muted" style={{ fontSize: 12, flexShrink: 0 }}>+{extra} more →</Link>}
     </TileCard>
   );
 }
@@ -278,33 +290,46 @@ function SpendingTile() {
      WHERE deleted_at IS NULL AND type='expense' AND occurred_at >= ? GROUP BY category_id ORDER BY total DESC`,
     [monthStart],
   );
-  const pieData = spend.slice(0, 7).map((s) => ({ name: catName(s.category_id), value: s.total }));
+  // Pie values are MAJOR units so the shared chartMoney formatter applies.
+  const pieData = spend.slice(0, 7).map((s) => ({ name: catName(s.category_id), value: major(s.total) }));
   const total = pieData.reduce((s, d) => s + d.value, 0);
   const pct = (v: number) => (total > 0 ? (v / total) * 100 : 0);
+  const cfmt = chartMoney(hidden, base);
+  // Chart and legend each take a fixed share of the tile so neither depends on
+  // the other's content height — that's what makes the legend fit measurable.
+  const { ref, fit } = useFitRows<HTMLDivElement>(19, { gap: 4, max: 7 });
+  const legend = pieData.slice(0, fit);
 
   return (
     <TileCard title="Spending this month">
       {pieData.length ? (
-        <ResponsiveContainer width="100%" height={220}>
-          <PieChart>
-            {/* minAngle guarantees even tiny categories get a visible slice next to a big one */}
-            <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2} minAngle={6}>
-              {pieData.map((_, i) => <Cell key={i} fill={PIE[i % PIE.length]} />)}
-            </Pie>
-            {!hidden && <Tooltip formatter={(v: number) => `${(v / 100).toFixed(2)} · ${pct(v).toFixed(1)}%`} />}
-          </PieChart>
-        </ResponsiveContainer>
+        <>
+          <div style={{ flex: "1 1 58%", minHeight: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                {/* minAngle guarantees even tiny categories get a visible slice next to a big one */}
+                <Pie data={pieData} dataKey="value" nameKey="name" innerRadius="55%" outerRadius="88%" paddingAngle={2} minAngle={6} {...ANIM}>
+                  {pieData.map((_, i) => <Cell key={i} fill={PIE[i % PIE.length]} />)}
+                </Pie>
+                {chartTooltip((v) => `${cfmt(v)} · ${pct(v).toFixed(1)}%`, false)}
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div ref={ref} style={{ flex: "1 1 42%", minHeight: 0, display: "grid", gap: 4, alignContent: "start", overflow: "hidden" }}>
+            {legend.map((d, i) => (
+              <div key={d.name} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
+                <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><span style={{ color: PIE[i % PIE.length] }}>●</span> {d.name}</span>
+                <span className="muted" style={{ flexShrink: 0 }}>{pct(d.value).toFixed(1)}%{hidden ? "" : ` · ${toMajor(money(Math.round(d.value * 100), base)).toFixed(2)}`}</span>
+              </div>
+            ))}
+            {pieData.length > legend.length && (
+              <Link href="/insights" className="muted" style={{ fontSize: 12 }}>+{pieData.length - legend.length} more →</Link>
+            )}
+          </div>
+        </>
       ) : (
         <p className="muted">No spending recorded this month.</p>
       )}
-      <div style={{ display: "grid", gap: 4 }}>
-        {pieData.map((d, i) => (
-          <div key={d.name} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
-            <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><span style={{ color: PIE[i % PIE.length] }}>●</span> {d.name}</span>
-            <span className="muted" style={{ flexShrink: 0 }}>{pct(d.value).toFixed(1)}%{hidden ? "" : ` · ${toMajor(money(d.value, base)).toFixed(2)}`}</span>
-          </div>
-        ))}
-      </div>
     </TileCard>
   );
 }
@@ -603,11 +628,67 @@ function gradientDefs() {
       <linearGradient id="gInc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#5f7a52" stopOpacity={0.95} /><stop offset="100%" stopColor="#5f7a52" stopOpacity={0.55} /></linearGradient>
       <linearGradient id="gExp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#b06a4f" stopOpacity={0.95} /><stop offset="100%" stopColor="#b06a4f" stopOpacity={0.55} /></linearGradient>
       <linearGradient id="gNet" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3e4a38" stopOpacity={0.5} /><stop offset="100%" stopColor="#3e4a38" stopOpacity={0.03} /></linearGradient>
-      <linearGradient id="gBar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#b06a4f" stopOpacity={0.55} /><stop offset="100%" stopColor="#b06a4f" stopOpacity={1} /></linearGradient>
+      {/* Horizontal ramp, matched to gTrend's 0.5 → 0.03 opacity so the bar
+          charts read with the same visual weight as the area charts (it used to
+          run 0.55 → 1, which was much heavier than anything around it). */}
+      <linearGradient id="gBar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#b06a4f" stopOpacity={0.5} /><stop offset="100%" stopColor="#b06a4f" stopOpacity={0.88} /></linearGradient>
       <linearGradient id="gTrend" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#b06a4f" stopOpacity={0.5} /><stop offset="100%" stopColor="#b06a4f" stopOpacity={0.03} /></linearGradient>
     </defs>
   );
 }
+
+/* ---- Shared chart formatting -------------------------------------------------
+   Every chart in this file formats money through `chartMoney` and renders its
+   tooltip through `chartTooltip`. That is deliberate: the bar tiles used to call
+   `v.toLocaleString()` (unitless) and ignore `useAmountsHidden()` entirely, which
+   leaked real figures straight through a privacy toggle. One formatter means
+   currency and masking cannot drift apart again. */
+
+/** Chart series in this file are MAJOR units (everything is pre-divided by 100). */
+export function chartMoney(hidden: boolean, base: string): (v: number) => string {
+  return (v: number) => (hidden ? "••••" : format(money(Math.round(v * 100), base), "en-US"));
+}
+function useChartMoney(): (v: number) => string {
+  const hidden = useAmountsHidden();
+  const base = useBaseCurrency();
+  return chartMoney(hidden, base);
+}
+/** Compact + masked axis ticks (`12.5k`, or `••••` when amounts are hidden). */
+const maskedTick = (hidden: boolean) => (v: number) => (hidden ? "••" : compactTick(v));
+
+interface TooltipEntry { name?: string | number; value?: number | string; color?: string }
+
+function TooltipBody({ active, payload, label, fmt }: {
+  active?: boolean; payload?: TooltipEntry[]; label?: string | number; fmt: (v: number) => string;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div className="card" style={{ padding: "8px 10px", fontSize: 12, display: "grid", gap: 4 }}>
+      {label !== undefined && label !== "" && <div className="muted" style={{ fontSize: 11 }}>{String(label)}</div>}
+      {payload.map((p, i) => (
+        <div key={i} style={{ display: "flex", gap: 16, justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, textTransform: "capitalize" }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: p.color || "var(--accent)" }} />
+            {String(p.name ?? "")}
+          </span>
+          <strong>{fmt(Number(p.value ?? 0))}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Returns the `<Tooltip>` **element**, rather than being a wrapper component:
+ * recharts finds its tooltip by scanning its children for that exact component
+ * type, so a `<ChartTooltip>` wrapper would simply never be detected.
+ */
+function chartTooltip(fmt: (v: number) => string, cursor?: object | false) {
+  return <Tooltip cursor={cursor ?? { stroke: "var(--border)" }} content={<TooltipBody fmt={fmt} />} />;
+}
+
+/** Same animation feel on bars as on areas. */
+const ANIM = { isAnimationActive: true, animationDuration: 600, animationEasing: "ease-out" } as const;
 
 type TrendPeriod = "3d" | "1w" | "1m" | "1y";
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
