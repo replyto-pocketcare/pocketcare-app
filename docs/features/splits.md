@@ -41,6 +41,18 @@ kept so existing links, bookmarks and notification deep links don't break).
 group creation moved into `src/splits/NewGroupModal.tsx`, which still uses the
 `groups` i18n namespace so no copy was duplicated.
 
+## Group detail: expenses AND settlements
+The group page lists **Expenses** and, separately, **Settled up**
+(`useGroupSettlements`). They're separate sections on purpose: a settlement
+moves money between two members without adding to what the group spent, so
+interleaving them would imply it counts toward the group total. The query
+excludes `disputed`, like every other settlements read — missing that filter
+silently corrupts a balance.
+
+An expanded group tile on `/friends` offers **Add expense**
+(`/transactions/new?split=<id>`) and **Open group**, so recording a shared
+expense doesn't require navigating to the group first.
+
 ## Key files
 `app/friends/` (the merged screen), `app/groups/` (redirect), `app/groups/[id]`,
 `src/splits/hooks.ts` (`useSplitOverview`, `usePersonLedger`, `useFriendInsights`),

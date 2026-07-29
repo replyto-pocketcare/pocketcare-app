@@ -78,6 +78,33 @@ export function useGroupExpenses(groupId: string): GroupExpense[] {
   return data;
 }
 
+/** A settled-up payment inside a group. */
+export interface GroupSettlement {
+  id: string; from_user: string; to_user: string; amount: number;
+  currency: string | null; at: string; status: string | null;
+}
+/**
+ * Settlements in a group, newest first — the "past settled transactions" half
+ * of a group's history. Kept as its own hook rather than folded into
+ * `useGroupExpenses` because a settlement is not an expense: it moves money
+ * between two members without adding to what the group spent, and the group
+ * total must not include it.
+ *
+ * Disputed settlements are excluded, matching every other settlements query —
+ * missing that filter silently corrupts a balance.
+ */
+export function useGroupSettlements(groupId: string): GroupSettlement[] {
+  const { data = [] } = useQuery<GroupSettlement>(
+    `SELECT id, from_user, to_user, amount, currency,
+            COALESCE(settled_at, created_at) AS at, status
+       FROM settlements
+      WHERE group_id = ? AND deleted_at IS NULL AND IFNULL(status,'confirmed') <> 'disputed'
+      ORDER BY at DESC`,
+    [groupId],
+  );
+  return data;
+}
+
 // ---- Itemized bills (0040) ----
 // The breakdown behind an itemized expense. Balances still come from
 // `expense_participants`; these are purely for explaining a split.

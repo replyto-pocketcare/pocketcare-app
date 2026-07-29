@@ -1,5 +1,21 @@
 # Pay friends via UPI (settle-up)
 
+## QR library is vendored, not CDN-loaded (2026-07-29)
+The desktop QR **never rendered for anyone**. `src/payments/qr.ts` loaded
+`cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js`, but `qrcode` stopped
+publishing its `build/` directory in 1.5.x — `package.json` still lists `build`
+under `files`, yet the directory isn't in the tarball, so the request 404'd and
+`script.onerror` fired every time. Verify with
+`npm pack qrcode@1.5.4 && tar -tzf qrcode-1.5.4.tgz | grep build/`.
+
+Now vendored at `public/vendor/qrcode.min.js` (qrcode **1.4.4**, the last
+release with the UMD browser bundle that sets `window.QRCode`; MIT). Self-hosted
+rather than pinned-on-CDN because a payment QR is exactly what you need in a
+restaurant with one bar of signal: the UPI payload is built locally, so with the
+script precached by the service worker the flow works fully offline. QR encoding
+is a frozen spec, so an older encoder isn't a liability. See
+`public/vendor/README.md`.
+
 ## Overview
 Settle a split balance by paying the other person over UPI, from inside PocketCare. **No money touches PocketCare's accounts** — we build a UPI Intent deep link, the payer's own UPI app moves the money bank-to-bank, and we record the outcome.
 

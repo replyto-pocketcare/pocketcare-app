@@ -294,6 +294,16 @@ export default function SplitsPage() {
                   </button>
                   {isOpen && (
                     <div style={{ padding: "12px 16px 14px", display: "grid", gap: 10, borderTop: "1px solid var(--border)" }}>
+                      {/* The two things you actually want from an open group:
+                          record a shared expense in it, or go to the group. */}
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <Link href={`/transactions/new?split=${g.group.id}`} className="btn" style={{ gap: 6, padding: "7px 14px", minHeight: 0 }}>
+                          <MaterialIcon name="add" size={15} /> {t("addExpense")}
+                        </Link>
+                        <Link href={`/groups/${g.group.id}`} className="btn ghost" style={{ gap: 6, padding: "7px 14px", minHeight: 0 }}>
+                          <MaterialIcon name="chevron_right" size={15} /> {t("openGroup")}
+                        </Link>
+                      </div>
                       {g.perUser.length === 0 && <div className="muted" style={{ fontSize: 13 }}>{t("settledUp")}</div>}
                       {g.perUser.map((b) => (
                         <button key={b.userId} className="tap-row" onClick={() => openPerson(b.userId, b.net)}

@@ -11,7 +11,7 @@ import { updateRow, softDelete } from "../../../src/write";
 import { useConfirm } from "../../../src/ui/Confirm";
 import { Modal } from "../../../src/ui/Modal";
 import { KebabMenu } from "../../../src/ui/KebabMenu";
-import { useGroup, useGroupExpenses, useGroupBalances, useGroupMemberIds, useUserProfiles, useConnections, type GroupExpense } from "../../../src/splits/hooks";
+import { useGroup, useGroupExpenses, useGroupSettlements, useGroupBalances, useGroupMemberIds, useUserProfiles, useConnections, useMyUserId, type GroupExpense } from "../../../src/splits/hooks";
 import { createInvite } from "../../../src/splits/write";
 import { ItemBreakdown } from "../../../src/splits/ItemBreakdown";
 import { TransactionTile } from "../../../src/ui/TransactionTile";
@@ -76,6 +76,8 @@ export default function GroupDetailPage() {
   const fmt = useMoneyFmt();
   const group = useGroup(id);
   const expenses = useGroupExpenses(id);
+  const settlements = useGroupSettlements(id);
+  const me = useMyUserId();
   const balances = useGroupBalances(id);
   const memberIds = useGroupMemberIds(id);
   const profiles = useUserProfiles();
@@ -243,6 +245,42 @@ export default function GroupDetailPage() {
           </div>
         )}
       </section>
+
+      {/* Settled up — the other half of the group's history. Kept in its own
+          section rather than mixed into Expenses: a settlement moves money
+          between two members without adding to what the group spent, so
+          interleaving them would imply it counts toward the total. */}
+      {settlements.length > 0 && (
+        <section style={{ display: "grid", gap: 8 }}>
+          <h2 style={{ margin: 0 }}>{t("settledTitle", "Settled up")}</h2>
+          <div className="list-grid">
+            {settlements.map((s) => {
+              const iPaid = s.from_user === me;
+              const other = iPaid ? s.to_user : s.from_user;
+              const label = iPaid
+                ? t("settledYouPaid", { name: name(other), defaultValue: "You paid {{name}}" })
+                : s.to_user === me
+                  ? t("settledPaidYou", { name: name(other), defaultValue: "{{name}} paid you" })
+                  : t("settledBetween", { from: name(s.from_user), to: name(s.to_user), defaultValue: "{{from}} paid {{to}}" });
+              return (
+                <TransactionTile
+                  key={s.id}
+                  raw={label}
+                  avatarIcon="check"
+                  avatarSeed={other}
+                  amountMinor={s.amount}
+                  currency={s.currency || base}
+                  type="transfer"
+                  amountColor="var(--text-2)"
+                  meta={new Date(s.at).toLocaleDateString()}
+                  fallbackSubtitle={s.status === "pending" ? t("settledPending", "Waiting to be confirmed") : undefined}
+                  card
+                />
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <Modal open={editOpen} onClose={() => setEditOpen(false)}>
         <div style={{ display: "grid", gap: 12 }}>

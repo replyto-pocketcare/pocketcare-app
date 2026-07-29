@@ -7,7 +7,10 @@
   "createFirst": "Maak je eerste",
   "autoSplitTag": "auto-splitsen",
   "newGroupTrip": "Nieuwe groep / reis",
-  "kind": { "trip": "reis", "group": "groep" },
+  "kind": {
+    "trip": "reis",
+    "group": "groep"
+  },
   "tripNamePlaceholder": "Reisnaam (bijv. Goa)",
   "groupNamePlaceholder": "Groepsnaam",
   "addExistingFriends": "Bestaande vrienden toevoegen (anderen nodig je daarna via link uit)",
@@ -16,7 +19,6 @@
   "cancel": "Annuleren",
   "creating": "Aanmaken…",
   "create": "Aanmaken",
-
   "someone": "Iemand",
   "backToGroups": "← Groepen",
   "noDates": "Geen datums ingesteld",
@@ -57,5 +59,10 @@
   "copyLink": "Link kopiëren",
   "copied": "Gekopieerd ✓",
   "groupNotFound": "Groep niet gevonden. ",
-  "backToGroupsLink": "Terug naar groepen"
+  "backToGroupsLink": "Terug naar groepen",
+  "settledTitle": "Afgerekend",
+  "settledYouPaid": "Jij betaalde {{name}}",
+  "settledPaidYou": "{{name}} betaalde jou",
+  "settledBetween": "{{from}} betaalde {{to}}",
+  "settledPending": "Wacht op bevestiging"
 }

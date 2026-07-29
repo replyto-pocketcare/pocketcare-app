@@ -3,17 +3,30 @@
 /**
  * QR rendering for the desktop pay flow.
  *
- * Lazy-loaded from a CDN at runtime, mirroring how `statements/parsePdf.ts`
- * pulls in pdf.js and `receipts/ocr.ts` pulls in tesseract: nothing is added to
- * the app bundle, and the asset is browser-cached after first use.
+ * Lazy-loaded at runtime so nothing is added to the app bundle, mirroring how
+ * `statements/parsePdf.ts` pulls in pdf.js and `receipts/ocr.ts` pulls in
+ * tesseract. Hand-rolling a QR encoder was the alternative and is a genuinely
+ * bad idea — Reed-Solomon error correction and mask-pattern selection are
+ * exactly the kind of thing that "works on my test string" then fails on a real
+ * payload.
  *
- * Hand-rolling a QR encoder was the alternative and is a genuinely bad idea —
- * Reed-Solomon error correction and mask-pattern selection are exactly the kind
- * of thing that "works on my test string" and then fails on a real payload.
+ * SELF-HOSTED, not CDN, for two reasons:
+ *
+ *  1. It was broken. This pointed at `qrcode@1.5.4/build/qrcode.min.js`, but
+ *     the package STOPPED SHIPPING `build/` in 1.5.x — `files` still lists it,
+ *     the directory isn't in the tarball. The request 404'd, `script.onerror`
+ *     fired, and the QR never rendered for anyone. 1.4.4 is the last version
+ *     with the UMD browser bundle that sets `window.QRCode`.
+ *  2. A payment QR is exactly the thing you need in a restaurant with one bar
+ *     of signal. The payload is built locally, so with the script self-hosted
+ *     and precached by the service worker the whole flow works offline. The
+ *     other CDN loads are megabyte-scale ML/PDF libraries where bundling isn't
+ *     reasonable; this is 55 KB.
+ *
+ * Vendored file: `public/vendor/qrcode.min.js` (qrcode 1.4.4, MIT).
  */
 
-const QR_VERSION = "1.5.4";
-const QR_URL = `https://cdn.jsdelivr.net/npm/qrcode@${QR_VERSION}/build/qrcode.min.js`;
+const QR_URL = "/vendor/qrcode.min.js";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type AnyRec = Record<string, any>;

@@ -115,7 +115,7 @@ export interface TransactionTileProps {
   /** Right-hand meta under the amount — a time on Statements, a date elsewhere. */
   meta?: string | undefined;
   /** Shown under the title when the narration adds nothing (i.e. equals title). */
-  fallbackSubtitle?: string;
+  fallbackSubtitle?: string | undefined;
   /**
    * Category / label chips, each with its own glyph so the kind of thing is
    * readable at a glance instead of everything being one run of dot-separated

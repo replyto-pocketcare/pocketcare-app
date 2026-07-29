@@ -59,5 +59,7 @@
     "groups_one": "in {{count}} groep",
     "groups_other": "in {{count}} groepen",
     "footnote": "Alleen op basis van gedeelde groepen. Patronen verschijnen zodra er genoeg historie is."
-  }
+  },
+  "addExpense": "Uitgave toevoegen",
+  "openGroup": "Groep openen"
 }

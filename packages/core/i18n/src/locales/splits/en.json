@@ -59,5 +59,7 @@
     "groups_one": "across {{count}} group",
     "groups_other": "across {{count}} groups",
     "footnote": "Based only on the groups you share. Patterns appear once there's enough history to be fair."
-  }
+  },
+  "addExpense": "Add expense",
+  "openGroup": "Open group"
 }

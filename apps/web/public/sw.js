@@ -6,12 +6,12 @@
 // and (previously) falling back to the HTML shell on any failure caused the
 // installed PWA to hang: the DB worker/WASM would be served the wrong response
 // and PowerSync never finished initializing.
-const CACHE = "pocketcare-v4";
+const CACHE = "pocketcare-v5";
 
 // Static assets that must survive going offline. The icon font is the important
 // one: it's self-hosted precisely so the navigation still renders icons with no
 // network, and the fetch handler below serves it cache-first.
-const ASSETS = ["/fonts/pocketcare-icons.woff2"];
+const ASSETS = ["/fonts/pocketcare-icons.woff2", "/vendor/qrcode.min.js"];
 
 // Top-level app routes precached so they load (offline) as their OWN page
 // instead of bouncing to the dashboard. Dynamic routes (e.g. /transactions/[id])
@@ -81,10 +81,12 @@ self.addEventListener("fetch", (e) => {
   if (request.method !== "GET") return;
   if (new URL(request.url).origin !== self.location.origin) return;
 
-  // The self-hosted icon font: cache-first, so the nav renders icons offline.
+  // Self-hosted static assets (icon font, QR encoder): cache-first, so the
+  // nav renders icons and a payment QR can be drawn with no network.
   // Scoped tightly to /fonts/ — scripts, wasm and the DB worker must NOT be
   // intercepted (doing so previously hung the installed PWA).
-  if (new URL(request.url).pathname.startsWith("/fonts/")) {
+  const path = new URL(request.url).pathname;
+  if (path.startsWith("/fonts/") || path.startsWith("/vendor/")) {
     e.respondWith(
       caches.match(request).then((hit) => hit || fetch(request).then((res) => {
         if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(request, copy)).catch(() => {}); }
