@@ -491,6 +491,15 @@ body[data-fullbleed="true"] .shell-main { padding: 0 !important; max-width: none
   .dash-grid .dash-tile { grid-column: auto !important; grid-row: auto !important; }
   .dash-tile-body { height: auto; }
   .dash-tile-body > section { height: auto; }
+  /* Charts are `<ResponsiveContainer height="100%">`, which needs a parent with
+     a DEFINITE height to resolve against. On desktop the grid row supplies one;
+     here the tile is `height: auto`, so 100% resolved against nothing, the
+     container measured 0, and every chart silently vanished. `.tile-chart` is
+     only on the wrappers that actually hold a chart, so list tiles keep sizing
+     to their content. */
+  /* `!important` because one chart wrapper sets `minHeight: 0` inline (it needs
+     to shrink inside the desktop grid), and a non-important rule loses to it. */
+  .tile-chart { min-height: 220px !important; }
   h1 { font-size: 22px; }
 }
 

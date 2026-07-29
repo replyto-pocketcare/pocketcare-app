@@ -60,6 +60,9 @@ importers:
       '@pocketcare/reconcile':
         specifier: workspace:*
         version: link:../../packages/core/reconcile
+      '@pocketcare/splits-insights':
+        specifier: workspace:*
+        version: link:../../packages/core/splits-insights
       '@pocketcare/sync-policy':
         specifier: workspace:*
         version: link:../../packages/core/sync-policy
@@ -189,6 +192,8 @@ importers:
         version: link:../../types
 
   packages/core/reconcile: {}
+
+  packages/core/splits-insights: {}
 
   packages/core/sync-policy: {}
 

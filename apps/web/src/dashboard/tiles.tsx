@@ -303,7 +303,7 @@ function SpendingTile() {
     <TileCard title="Spending this month">
       {pieData.length ? (
         <>
-          <div style={{ flex: "1 1 58%", minHeight: 0 }}>
+          <div className="tile-chart" style={{ flex: "1 1 58%", minHeight: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 {/* minAngle guarantees even tiny categories get a visible slice next to a big one */}
@@ -781,7 +781,7 @@ function TrendsTile() {
       <div className="muted" style={{ fontSize: 13, marginTop: -4, flexShrink: 0 }}>
         Spent {hidden ? "••••" : format(money(totalMinor, base), "en-US")} <span style={{ opacity: 0.7 }}>· {label}</span>
       </div>
-      <div className="tile-flex">
+      <div className="tile-flex tile-chart">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
             {gradientDefs()}
@@ -854,7 +854,7 @@ function NetTrendTile() {
   const spanYears = cashflow.length > 0 && cashflow[0]!.month.slice(0, 4) !== cashflow[cashflow.length - 1]!.month.slice(0, 4);
   return (
     <TileCard title="Net cashflow trend">
-      <div className="tile-flex">
+      <div className="tile-flex tile-chart">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={cashflow} margin={{ top: 10, right: 12, bottom: 0, left: 6 }}>
             {gradientDefs()}
@@ -890,7 +890,7 @@ function HBarTile({ title, data, empty, href = "/insights" }: { title: string; d
     <TileCard title={title}>
       {data.length ? (
         <>
-          <div ref={ref} className="tile-flex">
+          <div ref={ref} className="tile-flex tile-chart">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart layout="vertical" data={shown} margin={{ top: 4, right: 56, bottom: 4, left: 6 }}>
                 {gradientDefs()}
@@ -943,7 +943,7 @@ function MonthCompareTile() {
   const labelStyle = { fontSize: 10.5, fill: "var(--text-2)" } as const;
   return (
     <TileCard title="This month vs last" action={<ChartLegend items={[{ label: "Income", color: "#5f7a52" }, { label: "Expense", color: "#b06a4f" }]} />}>
-      <div className="tile-flex">
+      <div className="tile-flex tile-chart">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={comparison} margin={{ top: 18, right: 8, bottom: 0, left: 0 }} barGap={6}>
             {gradientDefs()}
