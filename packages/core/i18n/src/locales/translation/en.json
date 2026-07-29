@@ -27,7 +27,8 @@
     "loans": "Loans",
     "investments": "Investments",
     "settings": "Settings",
-    "assistant": "Ask PocketCare"
+    "assistant": "Ask PocketCare",
+    "friends": "Splits & groups"
   },
   "pages": {
     "dashboard": "Dashboard",

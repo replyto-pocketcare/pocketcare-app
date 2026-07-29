@@ -2,8 +2,14 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@powersync/react";
+import {
+  computeFriendStats, pickFriendInsights,
+  type Contribution, type FriendEdge, type FriendInsight, type FriendSettlement, type FriendStats,
+} from "@pocketcare/splits-insights";
 import { getUserId } from "../powersync";
 import { pairwiseEdges, type Party } from "./math";
+
+export type { FriendInsight, FriendStats } from "@pocketcare/splits-insights";
 
 export function useMyUserId(): string {
   try { return getUserId(); } catch { return ""; }
@@ -233,6 +239,62 @@ export function useSplitOverview(): SplitOverview {
 
     return { netPosition: owed - owe, owed, owe, groups: groupViews, direct: directList };
   }, [groups, members, parts, setts, me]);
+}
+
+/**
+ * Per-friend rollup + headline insights across every group you share.
+ *
+ * The pairwise edges are built here (the balance maths lives in `math.ts` and
+ * must stay the single implementation); the behavioural analysis is delegated
+ * to `@pocketcare/splits-insights`, which is pure and unit-tested.
+ */
+export function useFriendInsights(): { stats: FriendStats[]; insights: FriendInsight[] } {
+  const me = useMyUserId();
+  const { data: parts = [] } = useQuery<{ group_id: string; expense_id: string; user_id: string; paid_amount: number; share_amount: number }>(
+    "SELECT group_id, expense_id, user_id, paid_amount, share_amount FROM expense_participants WHERE deleted_at IS NULL",
+  );
+  const { data: exps = [] } = useQuery<{ id: string; occurred_at: string }>(
+    "SELECT id, occurred_at FROM expenses WHERE deleted_at IS NULL",
+  );
+  const { data: setts = [] } = useQuery<{ from_user: string; to_user: string; amount: number; settled_at: string | null; created_at: string }>(
+    "SELECT from_user, to_user, amount, settled_at, created_at FROM settlements WHERE deleted_at IS NULL AND status <> 'disputed'",
+  );
+
+  return useMemo(() => {
+    const whenOf = new Map(exps.map((e) => [e.id, e.occurred_at] as const));
+
+    const byExpense = new Map<string, { groupId: string; parties: Party[] }>();
+    const contributions = new Map<string, Contribution[]>();
+    for (const p of parts) {
+      const slot = byExpense.get(p.expense_id) ?? { groupId: p.group_id, parties: [] };
+      slot.parties.push({ userId: p.user_id, share: p.share_amount, paid: p.paid_amount });
+      byExpense.set(p.expense_id, slot);
+      if (p.user_id !== me) {
+        const c = contributions.get(p.user_id) ?? [];
+        c.push({ userId: p.user_id, paid: p.paid_amount, share: p.share_amount });
+        contributions.set(p.user_id, c);
+      }
+    }
+
+    const edges: FriendEdge[] = [];
+    for (const [expenseId, { groupId, parties }] of byExpense) {
+      const at = whenOf.get(expenseId);
+      if (!at) continue;
+      for (const e of pairwiseEdges(parties, me)) {
+        if (e.amount !== 0) edges.push({ friendId: e.userId, groupId, at, amount: e.amount });
+      }
+    }
+
+    const settlements: FriendSettlement[] = [];
+    for (const s of setts) {
+      const at = s.settled_at || s.created_at;
+      if (s.to_user === me) settlements.push({ friendId: s.from_user, at, amount: s.amount });
+      else if (s.from_user === me) settlements.push({ friendId: s.to_user, at, amount: -s.amount });
+    }
+
+    const stats = computeFriendStats({ edges, settlements, contributions });
+    return { stats, insights: pickFriendInsights(stats) };
+  }, [parts, exps, setts, me]);
 }
 
 export interface PersonLine {

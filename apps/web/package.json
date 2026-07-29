@@ -42,7 +42,8 @@
     "react-i18next": "^14.1.0",
     "@pocketcare/upi": "workspace:*",
     "@pocketcare/diagnostics": "workspace:*",
-    "@pocketcare/sync-policy": "workspace:*"
+    "@pocketcare/sync-policy": "workspace:*",
+    "@pocketcare/splits-insights": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

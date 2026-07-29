@@ -142,8 +142,9 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
     { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "swap_horiz" },
     { href: "/templates", tkey: "nav.templates", label: "Templates", icon: "bookmarks" },
     { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "credit_card" },
-    { href: "/friends", tkey: "nav.friends", label: "Splits", icon: "call_split" },
-    { href: "/groups", tkey: "nav.groups", label: "Groups & trips", icon: "groups" },
+    // Splits and Groups & trips were one screen's worth of information split
+    // across two; /groups now redirects to /friends, so the nav has one entry.
+    { href: "/friends", tkey: "nav.friends", label: "Splits & groups", icon: "groups" },
     { href: "/search", tkey: "nav.search", label: "Search", icon: "search" },
   ] },
   { title: "Planning", items: [

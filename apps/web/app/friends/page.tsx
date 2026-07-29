@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
@@ -9,10 +10,13 @@ import { useBaseCurrency } from "../../src/hooks";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
 import { AmountInput } from "../../src/ui/AmountInput";
-import { useSplitOverview, useUserProfiles, usePersonLedger } from "../../src/splits/hooks";
+import { useSplitOverview, useUserProfiles, usePersonLedger, useFriendInsights, type FriendInsight } from "../../src/splits/hooks";
 import { settleUp, type SettlementStatus } from "../../src/splits/write";
+import { TransactionTile } from "../../src/ui/TransactionTile";
+import { MaterialIcon, type MaterialIconName } from "../../src/ui/MaterialIcon";
 import { PayViaUpi } from "../../src/payments/PayViaUpi";
 import { PendingSettlements } from "../../src/payments/PendingSettlements";
+import { NewGroupModal } from "../../src/splits/NewGroupModal";
 import { ListSkeleton } from "../../src/ui/Skeleton";
 
 interface SettleTarget { userId: string; name: string; net: number }
@@ -62,6 +66,7 @@ function BalanceRow({ b, name, amt, onOpen }: { b: { userId: string; net: number
 
 export default function SplitsPage() {
   const { t } = useTranslation("splits");
+  const router = useRouter();
   const base = useBaseCurrency();
   const fmt = useMoneyFmt();
   const overview = useSplitOverview();
@@ -93,6 +98,7 @@ export default function SplitsPage() {
       content captures a touch swipe for its whole duration (see §7e of
       docs/plans/ui-redesign-2026-07.md). The modal overlay already scrolls. */
   const [showAllLines, setShowAllLines] = useState(false);
+  const [newGroup, setNewGroup] = useState(false);
 
   function openPerson(userId: string, net: number) {
     setReminded(false);
@@ -161,6 +167,20 @@ export default function SplitsPage() {
   const owedList = perPerson.filter((p) => p.net > 0).sort((a, b) => b.net - a.net);   // they owe you
   const oweList = perPerson.filter((p) => p.net < 0).sort((a, b) => a.net - b.net);     // you owe them
 
+  // Everyone you share a group with — including people you're square with, who
+  // the owes/owed lists drop by construction. Settled friends still belong in a
+  // "Friends" directory; that's what makes it a directory rather than a debt list.
+  const everyone = useMemo(() => {
+    const nets = new Map(perPerson.map((p) => [p.userId, p.net] as const));
+    const ids = new Set<string>();
+    for (const g of groups) for (const uid of g.memberIds) ids.add(uid);
+    for (const d of direct) ids.add(d.userId);
+    return [...ids]
+      .map((userId) => ({ userId, net: nets.get(userId) ?? 0 }))
+      .sort((a, b) => Math.abs(b.net) - Math.abs(a.net) || name(a.userId).localeCompare(name(b.userId)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groups, direct, perPerson, profiles]);
+
   // Itemised transactions for whoever's detail sheet is open.
   const ledger = usePersonLedger(person?.userId ?? "");
   const fmtDate = (d: string) => {
@@ -180,7 +200,9 @@ export default function SplitsPage() {
             <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: 11, letterSpacing: "0.08em" }}>{t("eyebrow")}</div>
             <h1 style={{ margin: "1px 0 0", fontSize: 22 }}>{t("yourBalance")}</h1>
           </div>
-          <Link href="/groups" className="btn ghost" style={{ flexShrink: 0 }}>{t("groupsAndTrips")}</Link>
+          <button className="btn" style={{ flexShrink: 0, gap: 6 }} onClick={() => setNewGroup(true)}>
+            <MaterialIcon name="add" size={16} /> {t("newGroupCta")}
+          </button>
         </div>
 
         {/* Net position — compact */}
@@ -203,7 +225,7 @@ export default function SplitsPage() {
           <div style={{ padding: "24px 8px", textAlign: "center", display: "grid", gap: 10, justifyItems: "center" }}>
             <div style={{ fontSize: 26 }}>◑</div>
             <h2 style={{ margin: 0 }}>{t("empty.title")}</h2>
-            <p className="muted" style={{ margin: 0, maxWidth: 380 }}>{t("empty.bodyPre")}<Link href="/groups">{t("empty.bodyLink")}</Link>{t("empty.bodyPost")}</p>
+            <p className="muted" style={{ margin: 0, maxWidth: 380 }}>{t("empty.bodyPre")}<button onClick={() => setNewGroup(true)} style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "var(--accent)", cursor: "pointer" }}>{t("empty.bodyLink")}</button>{t("empty.bodyPost")}</p>
           </div>
         ) : null}
       </section>
@@ -218,6 +240,8 @@ export default function SplitsPage() {
               const shown = g.memberIds.slice(0, 4);
               const extra = g.memberIds.length - shown.length;
               const netTone = g.net > 0 ? "var(--positive)" : g.net < 0 ? "var(--negative)" : "var(--text-2)";
+              const gOwed = g.perUser.reduce((s, b) => s + Math.max(0, b.net), 0);
+              const gOwe = g.perUser.reduce((s, b) => s + Math.max(0, -b.net), 0);
               return (
                 <div
                   key={g.group.id}
@@ -250,6 +274,23 @@ export default function SplitsPage() {
                         {g.net === 0 ? amt(0) : (g.net > 0 ? "" : "−") + amt(g.net)}
                       </span>
                     </div>
+                    {/* Both directions, not just the net: inside one trip you can
+                        be owed by two people and owe a third, and a single net
+                        figure hides that entirely. */}
+                    {(gOwed > 0 || gOwe > 0) && (
+                      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: 12.5 }}>
+                        {gOwed > 0 && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "var(--positive)" }}>
+                            <MaterialIcon name="trending_up" size={14} />{t("owedInGroup", { amount: amt(gOwed) })}
+                          </span>
+                        )}
+                        {gOwe > 0 && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "var(--negative)" }}>
+                            <MaterialIcon name="payments" size={14} />{t("oweInGroup", { amount: amt(gOwe) })}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </button>
                   {isOpen && (
                     <div style={{ padding: "12px 16px 14px", display: "grid", gap: 10, borderTop: "1px solid var(--border)" }}>
@@ -290,6 +331,36 @@ export default function SplitsPage() {
           )}
         </section>
       )}
+
+      {/* Friends — everyone you share a group with, settled or not. */}
+      {everyone.length > 0 && (
+        <section style={{ display: "grid", gap: 10 }}>
+          <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.friends")}</div>
+          <div className="list-grid">
+            {everyone.map((b) => (
+              <TransactionTile
+                key={b.userId}
+                raw={name(b.userId)}
+                avatarIcon="person"
+                avatarSeed={b.userId}
+                amountMinor={Math.abs(b.net)}
+                currency={base}
+                type={b.net > 0 ? "income" : "expense"}
+                amountText={b.net === 0 ? t("settledUp") : amt(b.net)}
+                amountColor={b.net > 0 ? "var(--positive)" : b.net < 0 ? "var(--negative)" : "var(--text-2)"}
+                meta={b.net === 0 ? undefined : b.net > 0 ? t("owesYouInline") : t("youOweInline")}
+                card
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Behavioural insights — only what the ledger actually supports. */}
+      <FriendInsights nameOf={name} amt={amt} />
+
+
+      <NewGroupModal open={newGroup} onClose={(id) => { setNewGroup(false); if (id) router.push(`/groups/${id}`); }} />
 
       {/* Person detail sheet — opens when you tap a friend. Shows the total,
           the itemised transactions behind it, and settle/remind actions. */}
@@ -377,5 +448,60 @@ export default function SplitsPage() {
         )}
       </Modal>
     </div>
+  );
+}
+
+/**
+ * Headline patterns across every group you share. The ranking logic lives in
+ * `@pocketcare/splits-insights` (pure + unit-tested); this only renders it.
+ *
+ * Renders NOTHING when there isn't enough history — a section that says
+ * "biggest lender: someone, ₹0" on a two-expense ledger teaches people to
+ * distrust the whole page.
+ */
+function FriendInsights({ nameOf, amt }: { nameOf: (id: string) => string; amt: (n: number) => string }) {
+  const { t } = useTranslation("splits");
+  const { insights } = useFriendInsights();
+  if (insights.length === 0) return null;
+
+  const META: Record<FriendInsight["key"], { icon: MaterialIconName; tone: string }> = {
+    biggest_lender: { icon: "volunteer_activism", tone: "var(--positive)" },
+    owes_you_most: { icon: "trending_up", tone: "var(--positive)" },
+    you_owe_most: { icon: "payments", tone: "var(--negative)" },
+    always_owes: { icon: "autorenew", tone: "var(--text)" },
+    always_owed: { icon: "autorenew", tone: "var(--text)" },
+    fastest_settler: { icon: "bolt", tone: "var(--positive)" },
+    slowest_settler: { icon: "more_horiz", tone: "var(--warning)" },
+  };
+
+  const valueFor = (i: FriendInsight): string => {
+    if (i.key === "fastest_settler" || i.key === "slowest_settler") return t("insights.days", { count: Math.round(i.value) });
+    if (i.key === "always_owes" || i.key === "always_owed") return t("insights.groups", { count: i.value });
+    return amt(i.value);
+  };
+
+  return (
+    <section style={{ display: "grid", gap: 10 }}>
+      <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.insights")}</div>
+      <div className="list-grid">
+        {insights.map((i) => (
+          <div key={i.key} className="card" style={{ padding: 14, display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <span style={{ color: META[i.key].tone, flexShrink: 0, marginTop: 1 }}>
+              <MaterialIcon name={META[i.key].icon} size={20} />
+            </span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="muted" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                {t(`insights.${i.key}`)}
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {nameOf(i.friendId)}
+              </div>
+              <div style={{ fontSize: 13, color: META[i.key].tone, marginTop: 1 }}>{valueFor(i)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>{t("insights.footnote")}</p>
+    </section>
   );
 }

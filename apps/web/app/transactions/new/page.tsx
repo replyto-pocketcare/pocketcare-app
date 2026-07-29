@@ -507,7 +507,7 @@ export default function NewTransactionPage() {
                 </label>
 
                 {!splitGroupId ? (
-                  <span className="muted" style={{ fontSize: 12 }}>{t("pickGroupPre")}<Link href="/groups">{t("pickGroupLink")}</Link>.</span>
+                  <span className="muted" style={{ fontSize: 12 }}>{t("pickGroupPre")}<Link href="/friends">{t("pickGroupLink")}</Link>.</span>
                 ) : groupMemberIds.length < 2 ? (
                   <span className="muted" style={{ fontSize: 12 }}>{t("onlyYou")}</span>
                 ) : (

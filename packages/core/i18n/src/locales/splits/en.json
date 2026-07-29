@@ -12,9 +12,14 @@
   "sections": {
     "groupsAndTrips": "GROUPS & TRIPS",
     "owesYou": "OWES YOU",
-    "youOwe": "YOU OWE"
+    "youOwe": "YOU OWE",
+    "friends": "FRIENDS",
+    "insights": "PATTERNS"
   },
-  "kind": { "trip": "trip", "group": "group" },
+  "kind": {
+    "trip": "trip",
+    "group": "group"
+  },
   "membersLine_one": "{{count}} person · {{kind}}",
   "membersLine_other": "{{count}} people · {{kind}}",
   "settledUp": "Everyone's settled up.",
@@ -37,5 +42,22 @@
   "settle": "Settle",
   "settling": "Settling…",
   "remindOwed": "Hi {{name}}, friendly reminder about the {{amount}} from our split on PocketCare 🙂",
-  "remindOwe": "Hi {{name}}, I still owe you {{amount}} from our split — I’ll settle up soon!"
+  "remindOwe": "Hi {{name}}, I still owe you {{amount}} from our split — I’ll settle up soon!",
+  "newGroupCta": "New group",
+  "owedInGroup": "{{amount}} owed to you",
+  "oweInGroup": "you owe {{amount}}",
+  "insights": {
+    "biggest_lender": "Covers the most",
+    "owes_you_most": "Owes you the most",
+    "you_owe_most": "You owe the most",
+    "always_owes": "Always ends up owing",
+    "always_owed": "Always ends up owed",
+    "fastest_settler": "Settles up quickest",
+    "slowest_settler": "Slowest to settle",
+    "days_one": "{{count}} day on average",
+    "days_other": "{{count}} days on average",
+    "groups_one": "across {{count}} group",
+    "groups_other": "across {{count}} groups",
+    "footnote": "Based only on the groups you share. Patterns appear once there's enough history to be fair."
+  }
 }

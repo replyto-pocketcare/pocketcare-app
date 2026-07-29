@@ -12,9 +12,14 @@
   "sections": {
     "groupsAndTrips": "समूह और यात्राएँ",
     "owesYou": "आपको मिलना है",
-    "youOwe": "आपको देना है"
+    "youOwe": "आपको देना है",
+    "friends": "मित्र",
+    "insights": "रुझान"
   },
-  "kind": { "trip": "यात्रा", "group": "समूह" },
+  "kind": {
+    "trip": "यात्रा",
+    "group": "समूह"
+  },
   "membersLine_one": "{{count}} व्यक्ति · {{kind}}",
   "membersLine_other": "{{count}} लोग · {{kind}}",
   "settledUp": "सब हिसाब बराबर है।",
@@ -37,5 +42,22 @@
   "settle": "निपटाएं",
   "settling": "निपटा रहे हैं…",
   "remindOwed": "नमस्ते {{name}}, PocketCare पर हमारे स्प्लिट के {{amount}} की एक दोस्ताना याद 🙂",
-  "remindOwe": "नमस्ते {{name}}, मुझ पर अब भी आपके {{amount}} बाकी हैं — मैं जल्द ही चुका दूँगा!"
+  "remindOwe": "नमस्ते {{name}}, मुझ पर अब भी आपके {{amount}} बाकी हैं — मैं जल्द ही चुका दूँगा!",
+  "newGroupCta": "नया समूह",
+  "owedInGroup": "आपको {{amount}} मिलने हैं",
+  "oweInGroup": "आप पर {{amount}} बाकी",
+  "insights": {
+    "biggest_lender": "सबसे ज़्यादा भुगतान करते हैं",
+    "owes_you_most": "आपको सबसे ज़्यादा देना है",
+    "you_owe_most": "आप पर सबसे ज़्यादा बाकी",
+    "always_owes": "हमेशा देनदार रहते हैं",
+    "always_owed": "हमेशा लेनदार रहते हैं",
+    "fastest_settler": "सबसे जल्दी हिसाब चुकाते हैं",
+    "slowest_settler": "हिसाब चुकाने में सबसे धीमे",
+    "days_one": "औसतन {{count}} दिन",
+    "days_other": "औसतन {{count}} दिन",
+    "groups_one": "{{count}} समूह में",
+    "groups_other": "{{count}} समूहों में",
+    "footnote": "केवल आपके साझा समूहों के आधार पर। पर्याप्त इतिहास होने पर ही रुझान दिखते हैं।"
+  }
 }

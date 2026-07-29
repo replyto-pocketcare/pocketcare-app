@@ -113,7 +113,7 @@ export interface TransactionTileProps {
   /** Drives the sign and the amount colour. */
   type: "income" | "expense" | "transfer" | string;
   /** Right-hand meta under the amount — a time on Statements, a date elsewhere. */
-  meta?: string;
+  meta?: string | undefined;
   /** Shown under the title when the narration adds nothing (i.e. equals title). */
   fallbackSubtitle?: string;
   /**

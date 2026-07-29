@@ -134,7 +134,7 @@ export default function GroupDetailPage() {
     if (!group) return;
     if (!(await confirm({ title: t("deleteTitle"), message: t("deleteMsg", { name: group.name }) }))) return;
     await softDelete("split_groups", group.id);
-    router.replace("/groups");
+    router.replace("/friends");
   }
 
   /** Invite everyone currently in the chips (connections + typed emails). */
@@ -167,13 +167,13 @@ export default function GroupDetailPage() {
     finally { setInviting(false); }
   }
 
-  if (!group) return <div className="fade-up"><p className="muted">{t("groupNotFound")}<Link href="/groups">{t("backToGroupsLink")}</Link></p></div>;
+  if (!group) return <div className="fade-up"><p className="muted">{t("groupNotFound")}<Link href="/friends">{t("backToGroupsLink")}</Link></p></div>;
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <Link href="/groups" className="muted" style={{ fontSize: 13 }}>{t("backToGroups")}</Link>
+          <Link href="/friends" className="muted" style={{ fontSize: 13 }}>{t("backToGroups")}</Link>
           <h1 style={{ margin: "6px 0 0" }}>{group.name} <span className="muted" style={{ fontSize: 14 }}>· {t(`kind.${group.kind}`, group.kind)}</span></h1>
           <div className="muted" style={{ fontSize: 13, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 2 }}>
             {group.start_date ? <span>📅 {group.start_date}{group.end_date ? ` – ${group.end_date}` : ""}</span> : <span>{t("noDates")}</span>}

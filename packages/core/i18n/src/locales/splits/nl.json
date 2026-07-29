@@ -12,9 +12,14 @@
   "sections": {
     "groupsAndTrips": "GROEPEN & REIZEN",
     "owesYou": "IS JOU VERSCHULDIGD",
-    "youOwe": "JIJ BENT VERSCHULDIGD"
+    "youOwe": "JIJ BENT VERSCHULDIGD",
+    "friends": "VRIENDEN",
+    "insights": "PATRONEN"
   },
-  "kind": { "trip": "reis", "group": "groep" },
+  "kind": {
+    "trip": "reis",
+    "group": "groep"
+  },
   "membersLine_one": "{{count}} persoon · {{kind}}",
   "membersLine_other": "{{count}} personen · {{kind}}",
   "settledUp": "Iedereen is afgerekend.",
@@ -37,5 +42,22 @@
   "settle": "Afrekenen",
   "settling": "Afrekenen…",
   "remindOwed": "Hoi {{name}}, een vriendelijke herinnering aan de {{amount}} van onze split op PocketCare 🙂",
-  "remindOwe": "Hoi {{name}}, ik ben je nog {{amount}} schuldig van onze split — ik reken snel af!"
+  "remindOwe": "Hoi {{name}}, ik ben je nog {{amount}} schuldig van onze split — ik reken snel af!",
+  "newGroupCta": "Nieuwe groep",
+  "owedInGroup": "{{amount}} aan jou verschuldigd",
+  "oweInGroup": "jij bent {{amount}} verschuldigd",
+  "insights": {
+    "biggest_lender": "Schiet het meeste voor",
+    "owes_you_most": "Is jou het meest schuldig",
+    "you_owe_most": "Jij bent het meest schuldig",
+    "always_owes": "Staat altijd in het krijt",
+    "always_owed": "Krijgt altijd geld terug",
+    "fastest_settler": "Betaalt het snelst terug",
+    "slowest_settler": "Traagst met terugbetalen",
+    "days_one": "gemiddeld {{count}} dag",
+    "days_other": "gemiddeld {{count}} dagen",
+    "groups_one": "in {{count}} groep",
+    "groups_other": "in {{count}} groepen",
+    "footnote": "Alleen op basis van gedeelde groepen. Patronen verschijnen zodra er genoeg historie is."
+  }
 }
