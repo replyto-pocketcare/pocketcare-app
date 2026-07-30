@@ -89,6 +89,13 @@ export default function NewAccountPage() {
   return (
     <div style={{ maxWidth: 520, display: "grid", gap: 14 }} className="fade-up">
       <h1>{t("newTitle")}</h1>
+      {/* The walkthrough covers the FIRST account; anyone adding a second one
+          arrives straight here, where "Savings / Current / Credit card" reads
+          as bank onboarding. Say what this isn't, permanently, at the point the
+          misreading actually happens. */}
+      <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.5, margin: "-4px 0 0", maxWidth: 480 }}>
+        {t("noBankLink", "Nothing here connects to your bank. You're naming a place your money sits and typing in the amount yourself.")}
+      </p>
       <FloatingInput label={t("accountName")} value={name} onChange={setName} />
 
       <span className="muted" style={{ fontSize: 13 }}>{t("typeLabel")}</span>

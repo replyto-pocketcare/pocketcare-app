@@ -12,7 +12,6 @@
   "totalCurrencies": "{{total}} total · {{count}} currencies",
   "approx": "≈ {{amount}} · ",
   "convertedNote": "Converted to {{base}} at the latest exchange rate. Accounts stay in their own currency.",
-
   "newTitle": "New account",
   "accountName": "Account name",
   "typeLabel": "Type",
@@ -35,7 +34,6 @@
   "openingBalance": "Opening balance ({{currency}}, optional)",
   "saving": "Saving…",
   "save": "Save",
-
   "editTitle": "Edit account",
   "saveChanges": "Save changes",
   "cancel": "Cancel",
@@ -55,7 +53,6 @@
   "updateBalance": "Update balance",
   "balAlready": "Balance is already that amount.",
   "balUpdated": "Balance updated to {{amount}}.",
-
   "type": {
     "savings": "Savings",
     "current": "Current",
@@ -64,5 +61,6 @@
     "mutual_funds": "Mutual funds",
     "stocks": "Stocks",
     "demat": "Demat"
-  }
+  },
+  "noBankLink": "Nothing here connects to your bank. You're naming a place your money sits and typing in the amount yourself."
 }

@@ -16,7 +16,7 @@ import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon } from "../src/ui/
 import { Modal } from "../src/ui/Modal";
 import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSizes, setTileSize, W_COLS, H_ROWS, nextDim, type TileId, type TileSize } from "../src/dashboard";
 import { TILE_CATALOG, TileView, tileMeta, TILE_HREF } from "../src/dashboard/tiles";
-import { GettingStarted } from "../src/onboarding/GettingStarted";
+import { Walkthrough } from "../src/onboarding/Walkthrough";
 
 // Sensible default size per tile (content-heavy tiles start taller/wider).
 const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
@@ -111,13 +111,25 @@ export default function Dashboard() {
 
   if (balances.length === 0) {
     return (
-      <div className="fade-up" style={{ minHeight: "70vh", display: "grid", placeItems: "center" }}>
-        <div className="card" style={{ maxWidth: 460, padding: 36, textAlign: "center", display: "grid", gap: 14, background: "radial-gradient(120% 120% at 50% 0%, var(--accent-ghost), var(--surface) 70%)" }}>
-          <h1 style={{ fontSize: 26 }}>Welcome to PocketCare</h1>
-          <p className="muted" style={{ lineHeight: 1.6 }}>Start by adding your first account — a bank, cash, a card, or investments.</p>
-          <Link href="/accounts/new" className="btn" style={{ justifySelf: "center", padding: "12px 20px", gap: 6 }}><PlusIcon size={16} /> Add your first account</Link>
+      <>
+        {/* The walkthrough MUST be mounted in this branch too. A brand-new user
+            has zero accounts, so this early return is the only thing they ever
+            see — mounting it further down (in the tiles branch) would make it
+            unreachable for exactly the person it was written for. */}
+        <Walkthrough />
+        <div className="fade-up" style={{ minHeight: "70vh", display: "grid", placeItems: "center" }}>
+          <div className="card" style={{ maxWidth: 460, padding: 36, textAlign: "center", display: "grid", gap: 14, background: "radial-gradient(120% 120% at 50% 0%, var(--accent-ghost), var(--surface) 70%)" }}>
+            <h1 style={{ fontSize: 26 }}>Welcome to PocketCare</h1>
+            {/* This is the screen the 60+ user actually landed on, and "a bank,
+                cash, a card" read as "link your bank". Say what it isn't. */}
+            <p className="muted" style={{ lineHeight: 1.6 }}>
+              Start by adding your first account — just your own note of somewhere your money sits.
+              Nothing here connects to your bank; you type the amounts in yourself.
+            </p>
+            <Link href="/accounts/new" className="btn" style={{ justifySelf: "center", padding: "12px 20px", gap: 6 }}><PlusIcon size={16} /> Add your first account</Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -154,7 +166,7 @@ export default function Dashboard() {
       <NetWorthHero net={net} base={base} fmt={fmt} showAvailable={showAvailable} onToggle={() => setShowAvailable((v) => !v)} />
 
       {/* First-run hand-holding — auto-hides once done / dismissed / for Pro */}
-      <GettingStarted />
+      <Walkthrough />
 
       {/* Accounts — compact colored chips inside one card; manage the rest via View all */}
       <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>

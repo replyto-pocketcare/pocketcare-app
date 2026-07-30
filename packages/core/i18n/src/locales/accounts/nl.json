@@ -12,7 +12,6 @@
   "totalCurrencies": "{{total}} totaal · {{count}} valuta's",
   "approx": "≈ {{amount}} · ",
   "convertedNote": "Omgerekend naar {{base}} tegen de meest recente wisselkoers. Rekeningen blijven in hun eigen valuta.",
-
   "newTitle": "Nieuwe rekening",
   "accountName": "Rekeningnaam",
   "typeLabel": "Type",
@@ -35,7 +34,6 @@
   "openingBalance": "Beginsaldo ({{currency}}, optioneel)",
   "saving": "Opslaan…",
   "save": "Opslaan",
-
   "editTitle": "Rekening bewerken",
   "saveChanges": "Wijzigingen opslaan",
   "cancel": "Annuleren",
@@ -55,7 +53,6 @@
   "updateBalance": "Saldo bijwerken",
   "balAlready": "Het saldo is al dat bedrag.",
   "balUpdated": "Saldo bijgewerkt naar {{amount}}.",
-
   "type": {
     "savings": "Spaarrekening",
     "current": "Betaalrekening",
@@ -64,5 +61,6 @@
     "mutual_funds": "Beleggingsfondsen",
     "stocks": "Aandelen",
     "demat": "Demat"
-  }
+  },
+  "noBankLink": "Niets hier wordt aan je bank gekoppeld. Je geeft alleen een naam aan een plek waar je geld staat en typt het bedrag zelf in."
 }

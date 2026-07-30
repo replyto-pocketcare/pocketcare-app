@@ -1,12 +1,33 @@
 {
   "slides": {
-    "0": { "title": "Maak kennis met PocketCare", "body": "Je rustige geldmaatje — houd uitgaven bij, plan vooruit en bereik je doelen, allemaal op één privéplek die offline werkt." },
-    "1": { "title": "Begin hier: voeg je rekeningen toe", "body": "Voeg je bank, contant geld en kaarten toe zodat PocketCare je beginsaldi kent. Deze ene stap voedt al het andere — je nettowaarde, budgetten en inzichten." },
-    "2": { "title": "Leg geld in seconden vast", "body": "Leg vast wat je uitgeeft of verdient — typ het, of tik gewoon op de microfoon en zeg het hardop. PocketCare stelt zelfs de categorie voor je voor." },
-    "3": { "title": "Weet waar het naartoe gaat", "body": "Stel eenvoudige budgetten in die je vroeg attent maken, en zie heldere, mooie inzichten in waar je geld elke maand echt naartoe gaat." },
-    "4": { "title": "Plan wat eraan komt", "body": "Salaris, huur, rekeningen, EMI's en abonnementen in één overzicht — zodat aankomende betalingen je nooit verrassen." },
-    "5": { "title": "Bereik je doelen", "body": "Bouw eerst een noodbuffer op, zet dan geld opzij voor wat belangrijk is en zie precies wanneer je er komt." },
-    "6": { "title": "Niet zeker? Vraag het gewoon", "body": "Vraag PocketCare in gewone taal — \"waar ging mijn geld heen?\", \"kan ik dit betalen?\" — en het antwoordt of brengt je meteen naar het scherm." }
+    "0": {
+      "title": "Maak kennis met PocketCare",
+      "body": "Je rustige geldmaatje — houd uitgaven bij, plan vooruit en bereik je doelen, allemaal op één privéplek die offline werkt."
+    },
+    "1": {
+      "title": "Begin hier: voeg je rekeningen toe",
+      "body": "Voeg je bank, contant geld en kaarten toe zodat PocketCare je beginsaldi kent. Deze ene stap voedt al het andere — je nettowaarde, budgetten en inzichten."
+    },
+    "2": {
+      "title": "Leg geld in seconden vast",
+      "body": "Leg vast wat je uitgeeft of verdient — typ het, of tik gewoon op de microfoon en zeg het hardop. PocketCare stelt zelfs de categorie voor je voor."
+    },
+    "3": {
+      "title": "Weet waar het naartoe gaat",
+      "body": "Stel eenvoudige budgetten in die je vroeg attent maken, en zie heldere, mooie inzichten in waar je geld elke maand echt naartoe gaat."
+    },
+    "4": {
+      "title": "Plan wat eraan komt",
+      "body": "Salaris, huur, rekeningen, EMI's en abonnementen in één overzicht — zodat aankomende betalingen je nooit verrassen."
+    },
+    "5": {
+      "title": "Bereik je doelen",
+      "body": "Bouw eerst een noodbuffer op, zet dan geld opzij voor wat belangrijk is en zie precies wanneer je er komt."
+    },
+    "6": {
+      "title": "Niet zeker? Vraag het gewoon",
+      "body": "Vraag PocketCare in gewone taal — \"waar ging mijn geld heen?\", \"kan ik dit betalen?\" — en het antwoordt of brengt je meteen naar het scherm."
+    }
   },
   "guestErr": "Kon geen gastsessie starten.",
   "next": "Volgende",
@@ -17,5 +38,82 @@
   "starting": "Starten…",
   "footer": "Maak een account om op alle apparaten te synchroniseren. Gastgegevens blijven op dit apparaat en worden 3 dagen bewaard.",
   "installApp": "App op je apparaat installeren",
-  "installTitle": "PocketCare installeren"
+  "installTitle": "PocketCare installeren",
+  "wt": {
+    "dialogLabel": "Aan de slag met PocketCare",
+    "progress": "Stap {{step}} van {{of}}",
+    "next": "Volgende",
+    "saving": "Opslaan…",
+    "skip": "Ik kijk zelf rond",
+    "later": "Nu even niet",
+    "intro": {
+      "title": "Welkom bij PocketCare",
+      "p1": "PocketCare is je persoonlijke geld-dagboek. Je schrijft op wat je uitgeeft en verdient, en het laat zien waar je geld werkelijk heen gaat.",
+      "p2": "Het is niet gekoppeld aan je bank.",
+      "p3": "We vragen nooit om je bankinlog, kaartnummer of OTP, en we kunnen je bank helemaal niet zien.",
+      "p4": "Er wordt niets automatisch bijgehouden — je typt je uitgaven zelf in. Dat is met opzet: juist die paar seconden zorgen ervoor dat je merkt waar je geld heen gaat, en dat merken is het hele punt.",
+      "cta": "Laat maar zien"
+    },
+    "acc": {
+      "title": "Waar bewaar je je geld?",
+      "p1": "Een \"rekening\" is hier gewoon je eigen aantekening van waar geld staat — je bank, het contant in je portemonnee, een creditcard. Het is een naam en een bedrag dat jij typt. Er wordt niets aan de echte bank gekoppeld.",
+      "p2": "Begin met degene die je het meest gebruikt. De rest kun je later toevoegen.",
+      "nameLabel": "Geef het een naam",
+      "eg1": "HDFC spaarrekening",
+      "eg2": "Contant in portemonnee",
+      "balLabel": "Hoeveel staat er ongeveer op?",
+      "balHelp": "Een schatting is prima — je kunt het altijd corrigeren.",
+      "cta": "Opslaan"
+    },
+    "spend": {
+      "title": "Schrijf nu één uitgave op",
+      "p1": "Denk aan het laatste waarvoor je betaalde — thee, boodschappen, een rekening.",
+      "p2": "Als je een uitgave vastlegt, trekt PocketCare die van die rekening af, zodat het bedrag klopt met de werkelijkheid.",
+      "p3": "Dit is de gewoonte die telt — al het andere in de app is hierop gebouwd.",
+      "whatLabel": "Waarvoor was het?",
+      "whatEg": "Boodschappen",
+      "amountLabel": "Hoeveel?",
+      "cta": "Opslaan"
+    },
+    "done": {
+      "title": "Klaar — je bent ingesteld",
+      "dashTitle": "Dashboard",
+      "dashBody": "Je geld in één oogopslag.",
+      "txnTitle": "Transacties",
+      "txnBody": "Alles wat je hebt opgeschreven.",
+      "budgetTitle": "Budgetten",
+      "budgetBody": "Stel een maandlimiet in en PocketCare zegt wanneer je moet afremmen.",
+      "privacy": "Je gegevens zijn van jou. Ze blijven op je apparaat en in je eigen account — we delen ze niet, en niemand anders kan ze zien.",
+      "cta": "Afronden",
+      "more": "Bekijk wat het nog meer doet →"
+    },
+    "insights": {
+      "title": "PocketCare leest je eigen aantekeningen terug",
+      "p1": "Zodra je een paar dingen hebt opgeschreven, begint PocketCare zelf dingen aan te wijzen: welke categorie het meest opslokt, een maand die harder loopt dan de vorige, een abonnement dat je misschien vergeten was.",
+      "eg": "\"Je hebt deze maand 32% meer aan uit eten gegeven dan vorige maand.\"",
+      "p2": "Je hoeft geen enkele grafiek of spreadsheet te maken. Hoe meer je opschrijft, hoe meer het je kan vertellen."
+    },
+    "ask": {
+      "title": "Of vraag het gewoon, in je eigen woorden",
+      "p1": "Typ of zeg dingen als \"hoeveel gaf ik vorige maand uit aan boodschappen?\" of \"kan ik deze week ₹15.000 missen?\" — en het antwoordt op basis van je eigen aantekeningen.",
+      "p2": "Geen menu's om te leren. Als je liever een vraag stelt dan een scherm zoekt, is dit de kortere weg.",
+      "privacy": "Het leest alleen je eigen aantekeningen, en er wordt niets verstuurd totdat jij iets vraagt."
+    },
+    "plan": {
+      "titleTrial": "Alles staat al 14 dagen open",
+      "title": "Wat gratis is, en wat niet",
+      "trial": "Insights, Ask PocketCare en Statements staan nu aan — geen kaart, niets in te stellen. Gebruik ze en kijk of ze het je waard zijn.",
+      "free": "De basis blijft voor altijd gratis: je rekeningen, transacties, budgetten en zoeken.",
+      "perMonth": "₹{{amount}}/maand",
+      "quota": "{{count}} Ask PocketCare-vragen per maand · al het andere ontgrendeld",
+      "cta": "Klaar",
+      "see": "Bekijk abonnementen"
+    },
+    "guest": {
+      "title": "Je gebruikt PocketCare als gast",
+      "p1": "Je aantekeningen staan alleen op dit apparaat, en gastgegevens worden na een paar dagen verwijderd. Maak een gratis account om ze te bewaren — en je krijgt 14 dagen met alles ontgrendeld.",
+      "cta": "Gratis account maken",
+      "later": "Later"
+    }
+  }
 }

@@ -14,7 +14,14 @@ const LOSE_ON_FREE = [
   "CSV import",
 ];
 
-const seenKey = (email: string | null) => `pocketcare:trial-welcome:${email ?? "anon"}`;
+/**
+ * Key for the one-time trial welcome dialog. Exported so the first-run
+ * walkthrough can mark it seen — otherwise a new user gets the walkthrough AND
+ * this dialog, stacked, saying overlapping things. The walkthrough's last step
+ * explains the trial instead.
+ */
+export const trialWelcomeSeenKey = (email: string | null) => `pocketcare:trial-welcome:${email ?? "anon"}`;
+const seenKey = trialWelcomeSeenKey;
 
 /**
  * Trial onboarding: a one-time welcome dialog right after registration, plus a
