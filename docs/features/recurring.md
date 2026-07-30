@@ -57,7 +57,7 @@ and quarantined).
 `src/cashflow/RecurringModal.tsx`, migration `0046_recurring_groups.sql`.
 
 ### Deploy
-`supabase db push`, then **redeploy `sync-streams.yaml`** — `recurring_groups` is
+`supabase db push`, then **deploy `sync-streams.yaml` (Sync Streams)** — `recurring_groups` is
 a new stream entry; `transaction_templates` is already `SELECT *` so `group_id`
 comes along automatically.
 

@@ -62,7 +62,7 @@ Writes never block on the network. Rows carry client-generated UUIDs so they hav
 
 **Sync streams** (`packages/db/sync-streams.yaml`) decide which rows each user receives: `user_data` (all owner-scoped tables), `split_shared` (the shared ledger, resolved by group membership), and read-only `reference_data` / `market_data` / `exchange_rates`.
 
-> Adding a synced table requires four steps or it will not sync: (1) `AppSchema`, (2) a migration with RLS + grants, (3) the sync stream, (4) `supabase db push` **and** redeploy sync rules.
+> Adding a synced table requires four steps or it will not sync: (1) `AppSchema`, (2) a migration with RLS + grants, (3) the sync stream, (4) `supabase db push` **and** deploy the Sync Streams config.
 
 # 5. Data model
 

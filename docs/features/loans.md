@@ -38,7 +38,7 @@ the account row it references when both are created offline, and a 23503 there
 would retry 3× and quarantine the loan — the head-of-line block 0040 caused and
 0042 removed. A dangling id degrades to "not linked" instead.
 
-**Deploy:** `supabase db push` + redeploy sync rules (`loans` is `SELECT *`, so
+**Deploy:** `supabase db push` + deploy the Sync Streams config (`loans` is `SELECT *`, so
 the column follows automatically).
 
 ## Overview

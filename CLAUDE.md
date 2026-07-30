@@ -20,13 +20,13 @@ Offline-first, multi-currency personal expense & wealth manager. **Web-only** (N
 ## Adding a COLUMN to a synced table (easy to forget — 2 steps)
 PowerSync's local SQLite only has the columns declared in `AppSchema`. A column added in a migration but **not** mirrored there fails at runtime with `table <x> has no column named <y>` on both reads and writes — Postgres is fine, the device is not.
 1. Add it to the table's `new Table({...})` in `packages/db/src/index.ts`.
-2. `supabase db push` **and** redeploy sync rules (a `SELECT *` stream picks it up automatically; an explicit column list does not).
+2. `supabase db push` **and** deploy the Sync Streams config (a `SELECT *` stream picks it up automatically; an explicit column list does not).
 
 ## Adding a synced table (all four steps or it won't sync)
 1. Add to `AppSchema` (`packages/db/src/index.ts`).
 2. Add a migration `supabase/migrations/00xx_*.sql` (RLS owner policy + grants).
 3. Add to `packages/db/sync-streams.yaml` (`user_data` or the right stream).
-4. `supabase db push` **and** redeploy sync rules to the PowerSync dashboard.
+4. `supabase db push` **and** deploy the Sync Streams config in the PowerSync dashboard.
 
 ## 📚 Documentation maintenance rule (MANDATORY on every feature change)
 When you add or materially change a feature, **update the docs in the same change set**:

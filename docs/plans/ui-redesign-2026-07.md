@@ -136,7 +136,7 @@ wedge anything.
    `SELECT * FROM pocketcare.recurring_groups WHERE user_id = auth.user_id()`
    to `user_data`. The templates query is already `SELECT *`, so the new column
    comes along automatically.
-4. `supabase db push` **and** redeploy sync rules in the PowerSync dashboard.
+4. `supabase db push` **and** deploy the Sync Streams config in the PowerSync dashboard.
 
 ### 3c. Seeded defaults
 
@@ -541,7 +541,7 @@ or a popover. Worth keeping as a dev-only check.
 
 ## Deploy notes
 
-- `supabase db push`, then **redeploy `sync-streams.yaml`** in the PowerSync
+- `supabase db push`, then **deploy `sync-streams.yaml` (Sync Streams)** in the PowerSync
   dashboard. Skipping the redeploy means groups never sync.
 - No new npm dependency, so `pnpm-lock.yaml` is untouched and CI stays green.
   (`pnpm` isn't available in the agent sandbox, so this was a deliberate

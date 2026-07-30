@@ -119,6 +119,6 @@ Some actions cannot be expressed as owner-scoped row writes and run server-side:
 1. Add the table to `AppSchema` (`packages/db/src/index.ts`).
 2. Add a Supabase migration (`supabase/migrations/00xx_*.sql`) with RLS + grants.
 3. Add the table to `sync-streams.yaml` under `user_data` (or the right stream).
-4. `supabase db push` **and** redeploy sync rules to the PowerSync dashboard.
+4. `supabase db push` **and** deploy the Sync Streams config in the PowerSync dashboard.
 
 > Skipping step 3/4 is the classic "it saves locally but never syncs" bug.
