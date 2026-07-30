@@ -25,5 +25,6 @@
   "cancel": "रद्द करें",
   "settleFrom": "किस खाते से बिल चुकाएं",
   "amountPlaceholder": "राशि",
-  "settle": "चुकाएं"
+  "settle": "चुकाएं",
+  "newSpendThisCycle": "पिछले स्टेटमेंट के बाद +{{amount}} नया खर्च"
 }

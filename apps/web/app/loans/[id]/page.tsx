@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { money, fromMajor, toMajor } from "@pocketcare/money";
 import { amortizationSchedule, emiDueDate, effectivePaidEmis, emiFromPrincipal } from "@pocketcare/finance";
+import { emiDescription, getLoanFundingAccount, setLoanFundingAccount } from "../../../src/loans/funding";
 import { AmountInput } from "../../../src/ui/AmountInput";
 import { useBaseCurrency, useAccountBalances } from "../../../src/hooks";
 import { getRepositories } from "../../../src/powersync";
@@ -279,9 +280,13 @@ export default function LoanDetailPage() {
                   account_id: accountId,
                   type: "expense",
                   amount: money(payAmount, cur),
-                  description: `EMI #${payFor.month}${loan.lender ? ` — ${loan.lender}` : ""}`,
+                  description: emiDescription(payFor.month, loan.lender),
                   occurred_at: new Date(paidOn + "T12:00:00").toISOString(),
                 });
+                // Remember it, so the next EMI is one tap — and so auto-mark can
+                // post on its own. A credit card here means the EMI shows up
+                // against that card, and in its billing cycle.
+                setLoanFundingAccount(loan.id, accountId);
               }
               setPayFor(null);
             }}
@@ -346,9 +351,10 @@ function MarkPaidDialog({ loan, month, due, emiAmount, currency, onClose, onConf
   const fmt = useMoneyFmt();
   const accounts = useAccountBalances();
   const [paidOn, setPaidOn] = useState(due && due <= todayIso() ? due : todayIso());
-  const [accountId, setAccountId] = useState<string>("");
+  const [accountId, setAccountId] = useState<string>(() => getLoanFundingAccount(loan.id) ?? "");
   const [saving, setSaving] = useState(false);
   const canRecord = emiAmount > 0;
+  const isCard = accounts.find(({ account }) => account.id === accountId)?.account.type === "credit_card";
 
   return (
     <Modal open onClose={onClose}>
@@ -370,7 +376,17 @@ function MarkPaidDialog({ loan, month, due, emiAmount, currency, onClose, onConf
             </select>
           </label>
         )}
-        {accountId && <p className="muted" style={{ margin: 0, fontSize: 12 }}>{t("postsExpense", { amount: fmt(money(emiAmount, currency)), date: fmtDate(paidOn) })}</p>}
+        {accountId && (
+          <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+            {t("postsExpense", { amount: fmt(money(emiAmount, currency)), date: fmtDate(paidOn) })}
+            {/* Say the card part out loud: charging an EMI to a card is the
+                whole point of picking one here, and it behaves differently
+                from a bank account (it adds to the card, not subtracts). */}
+            {isCard && ` ${t("postsToCard", { defaultValue: "It'll show against this card and count toward its billing cycle." })}`}
+            {" "}
+            {t("remembersAccount", { defaultValue: "This account is remembered for the next EMI." })}
+          </p>
+        )}
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
           <button className="btn ghost" onClick={onClose} disabled={saving}>{t("cancel")}</button>
           <button className="btn" disabled={saving || !paidOn} onClick={async () => { setSaving(true); try { await onConfirm(paidOn, accountId || null); } finally { setSaving(false); } }}>

@@ -3,11 +3,18 @@
   "searchEverything": "Zoek in alles — label, notitie, categorie…",
   "filters": "Filters",
   "clear": "Wissen",
-  "type": { "all": "Alle", "income": "Inkomsten", "expense": "Uitgaven", "transfer": "Overboeking" },
+  "type": {
+    "all": "Alle",
+    "income": "Inkomsten",
+    "expense": "Uitgaven",
+    "transfer": "Overboeking"
+  },
   "allAccounts": "Alle rekeningen",
   "minAmount": "Min. bedrag",
   "maxAmount": "Max. bedrag",
   "resultsCount_one": "{{count}} resultaat",
   "resultsCount_other": "{{count}} resultaten",
-  "noMatching": "Geen overeenkomende transacties."
+  "noMatching": "Geen overeenkomende transacties.",
+  "fromDate": "Vanaf datum",
+  "toDate": "Tot datum"
 }

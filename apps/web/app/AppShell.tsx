@@ -218,7 +218,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (recurringRan.current || (authStatus !== "user" && authStatus !== "guest")) return;
     recurringRan.current = true;
-    const t = setTimeout(() => { void runRecurring().catch(() => {}); }, 2500); // let sync settle first
+    const t = setTimeout(() => {
+      void runRecurring().catch(() => {});
+      // Auto-marked EMIs post their ledger entry too, so an EMI charged to a
+      // credit card actually shows against that card. Runs after sync has
+      // settled: the dedupe check reads the synced ledger, and firing it too
+      // early could miss a row another device already posted.
+      void import("../src/loans/autoPost").then((m) => m.runLoanAutoPost()).catch(() => {});
+    }, 2500);
     return () => clearTimeout(t);
   }, [authStatus]);
 

@@ -112,6 +112,24 @@ function CardPanel({ account, owed, detail, sources }: {
   const { t } = useTranslation("cards");
   const fmt = useMoneyFmt();
   const cycle = detail ? billingCycle(detail.statement_day, detail.due_day, new Date()) : null;
+
+  /**
+   * Spend posted to this card SINCE the last statement closed — an EMI charged
+   * to the card, a purchase, anything.
+   *
+   * Deliberately separate from `pending_due`, which is the statement amount the
+   * user types in. On a real card a spend made today lands on the NEXT
+   * statement; folding it into "due this cycle" would overstate what's actually
+   * payable by the due date. Shown as its own line so a charge is visible
+   * immediately without misstating the bill.
+   */
+  const { data: cycleRows = [] } = useQuery<{ total: number }>(
+    `SELECT COALESCE(SUM(amount), 0) AS total FROM transactions
+      WHERE account_id = ? AND deleted_at IS NULL AND type = 'expense' AND occurred_at >= ?`,
+    [account.id, cycle ? cycle.cycleStart.toISOString() : new Date().toISOString()],
+  );
+  const newSpend = cycleRows[0]?.total ?? 0;
+
   const [stmt, setStmt] = useState(String(detail?.statement_day ?? 1));
   const [due, setDue] = useState(String(detail?.due_day ?? 20));
   const [creditLimit, setCreditLimit] = useState(detail?.credit_limit ? String(toMajor(money(detail.credit_limit, account.currency))) : "");
@@ -175,6 +193,11 @@ function CardPanel({ account, owed, detail, sources }: {
               {rolledToNext && detail?.pending_due ? (
                 <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>{t("dueNextCycle", { amount: fmt(money(detail.pending_due, account.currency)) })}</div>
               ) : null}
+              {newSpend > 0 && (
+                <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>
+                  {t("newSpendThisCycle", { amount: fmt(money(newSpend, account.currency)), defaultValue: "+{{amount}} new spend since the last statement" })}
+                </div>
+              )}
               <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>{t("clickToManage")}</div>
             </div>
           );

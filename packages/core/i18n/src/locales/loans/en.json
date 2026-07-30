@@ -16,7 +16,6 @@
   "loanAmount": "Loan Amount",
   "emiAmount": "EMI Amount",
   "varies": "Varies",
-
   "lender": "Lender",
   "interestType": "Interest type",
   "fixed": "Fixed",
@@ -38,7 +37,6 @@
   "autoMarkHint": "Otherwise you mark each EMI paid yourself. You can change this later.",
   "cancel": "Cancel",
   "add": "Add",
-
   "loading": "Loading…",
   "notExist": "This loan no longer exists.",
   "edit": "Edit",
@@ -94,5 +92,7 @@
   "autoCalcEdit": "Auto-calculated EMI: {{amount}}.",
   "variableEditNote": "Variable-rate loan — enter each month's EMI on the loan's schedule below. The single EMI field is disabled.",
   "dueBlankHint": "Leave the due day blank to use the start date's day. EMIs already paid can be marked individually in the schedule.",
-  "save": "Save"
+  "save": "Save",
+  "postsToCard": "It'll show against this card and count toward its billing cycle.",
+  "remembersAccount": "This account is remembered for the next EMI."
 }

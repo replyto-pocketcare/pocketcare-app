@@ -18,6 +18,12 @@ const COLORS = ACCOUNT_COLORS;
 
 interface Row { id: string; name: string; type: string; color: string | null; include_in_net_worth: number; is_archived: number; allow_negative: number; }
 
+/**
+ * Persisted ledger text stays English by design — it's data, not UI chrome, and
+ * it must read the same when exported or viewed by support.
+ */
+const ADJUSTMENT_TITLE = "Account Balance Adjustment record";
+
 export default function EditAccountPage() {
   const { t } = useTranslation("accounts");
   const { id } = useParams<{ id: string }>();
@@ -87,6 +93,9 @@ export default function EditAccountPage() {
         account_id: id,
         type: "adjustment",
         amount: money(delta, current.currency),
+        // Titled, not just noted: transaction lists read `description` first, so
+        // without this an adjustment showed up as "Uncategorised".
+        description: ADJUSTMENT_TITLE,
         note: "Balance adjustment",
         occurred_at: new Date().toISOString(),
       });
@@ -96,6 +105,7 @@ export default function EditAccountPage() {
         account_id: id,
         type: delta > 0 ? "income" : "expense",
         amount: money(Math.abs(delta), current.currency),
+        description: ADJUSTMENT_TITLE,
         note: "Balance adjustment",
         occurred_at: new Date().toISOString(),
       });

@@ -101,9 +101,17 @@ export default function SearchPage() {
             <option value="">{t("allAccounts")}</option>
             {accts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
+          {/* An empty <input type="date"> renders as blank (or a bare dd/mm/yyyy)
+              with no indication of which end of the range it is. Label both. */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input className="input" type="date" style={{ flex: "1 1 140px" }} value={from} onChange={(e) => { setFrom(e.target.value); if (to && e.target.value > to) setTo(e.target.value); }} />
-            <input className="input" type="date" style={{ flex: "1 1 140px" }} min={from || undefined} value={to} onChange={(e) => setTo(e.target.value)} />
+            <label style={{ display: "grid", gap: 4, flex: "1 1 140px", minWidth: 0 }}>
+              <span className="muted" style={{ fontSize: 12 }}>{t("fromDate", "From date")}</span>
+              <input className="input" type="date" value={from} onChange={(e) => { setFrom(e.target.value); if (to && e.target.value > to) setTo(e.target.value); }} />
+            </label>
+            <label style={{ display: "grid", gap: 4, flex: "1 1 140px", minWidth: 0 }}>
+              <span className="muted" style={{ fontSize: 12 }}>{t("toDate", "To date")}</span>
+              <input className="input" type="date" min={from || undefined} value={to} onChange={(e) => setTo(e.target.value)} />
+            </label>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <FloatingInput label={t("minAmount")} inputMode="decimal" style={{ flex: "1 1 120px" }} value={min} onChange={(v) => setMin(v.replace(/[^0-9.]/g, ""))} />

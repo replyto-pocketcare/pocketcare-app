@@ -16,7 +16,6 @@
   "loanAmount": "Leningbedrag",
   "emiAmount": "EMI-bedrag",
   "varies": "Wisselt",
-
   "lender": "Geldverstrekker",
   "interestType": "Rentetype",
   "fixed": "Vast",
@@ -38,7 +37,6 @@
   "autoMarkHint": "Anders markeer je elke EMI zelf als betaald. Je kunt dit later wijzigen.",
   "cancel": "Annuleren",
   "add": "Toevoegen",
-
   "loading": "Laden…",
   "notExist": "Deze lening bestaat niet meer.",
   "edit": "Bewerken",
@@ -94,5 +92,7 @@
   "autoCalcEdit": "Automatisch berekende EMI: {{amount}}.",
   "variableEditNote": "Lening met variabele rente — voer elke maand de EMI in in het schema hieronder. Het enkele EMI-veld is uitgeschakeld.",
   "dueBlankHint": "Laat de vervaldag leeg om de dag van de startdatum te gebruiken. Reeds betaalde EMI's kunnen afzonderlijk in het schema worden gemarkeerd.",
-  "save": "Opslaan"
+  "save": "Opslaan",
+  "postsToCard": "Het verschijnt op deze kaart en telt mee in de factuurperiode.",
+  "remembersAccount": "Deze rekening wordt onthouden voor de volgende termijn."
 }

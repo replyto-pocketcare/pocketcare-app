@@ -25,5 +25,6 @@
   "cancel": "Cancel",
   "settleFrom": "Settle bill from",
   "amountPlaceholder": "Amount",
-  "settle": "Settle"
+  "settle": "Settle",
+  "newSpendThisCycle": "+{{amount}} new spend since the last statement"
 }
