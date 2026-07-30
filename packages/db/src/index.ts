@@ -271,6 +271,9 @@ const loans = new Table({
   emi_due_day: column.integer, // day-of-month (1–31) each EMI is due; combined with start_date to derive due dates
   auto_mark_paid: column.integer, // 0/1 — when on, past-due EMIs are treated as paid (derived at read time)
   rate_type: column.text, // 'fixed' (compute EMI + schedule) | 'variable' (user enters each month's EMI)
+  // Account the EMI is charged to (usually a credit card). NULL = not linked.
+  // Drives posting a due EMI onto the card, so it must sync — see 0047.
+  funding_account_id: column.text,
   emi_amounts: column.text, // JSON map { "<emiNo>": <amountMinor> } — per-month EMI for variable loans
   created_at: column.text,
   updated_at: column.text,

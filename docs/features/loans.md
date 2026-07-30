@@ -1,5 +1,46 @@
 # Loans (EMI schedule & tracking)
 
+## EMIs charged to a credit card (2026-07-29)
+A loan can name the account its EMI is charged to — `loans.funding_account_id`,
+migration **0047**. Asked when adding the loan, with "Not linked" as a
+first-class choice (plenty of EMIs are a standing instruction on an account the
+user doesn't track here, and guessing would put money where it doesn't belong).
+
+**CHARGED and PAID are separate events**, and conflating them is what made the
+earlier behaviour wrong:
+
+| | When | Where |
+|---|---|---|
+| **Charged** | the EMI's due date passes | `src/loans/autoPost.ts` posts an expense on the linked account |
+| **Paid** | you settle the bill containing it | `src/loans/settleEmis.ts`, on confirmation |
+
+So a due EMI lands on the card exactly as a bank adds an instalment to your
+statement, and therefore appears in the card's total due. `auto_mark_paid` does
+NOT gate the charge — an instalment is owed whether or not you've told the app
+you paid it.
+
+**Settling the card asks before marking anything.** `findCoveredEmis` walks the
+due, unmarked EMIs on that card oldest-first and stops when the settled amount
+runs out; the Cards page shows them and the user confirms. This is inferred
+money state — a partial payment must not silently clear an instalment. The
+FIFO walk *stops* at an EMI too large for the remaining headroom rather than
+skipping it, since clearing a later instalment while an older one stays open
+would misrepresent the order things were paid.
+
+**Never posts twice:** dedupe is a lookup in the synced ledger for the exact
+`EMI #n — lender` description, so a second device running the same catch-up
+finds the first device's row. `markEmisPaid` re-reads `emi_payments` before
+writing, because it's a whole-column JSON blob and a stale copy would silently
+drop another device's change.
+
+**Why `funding_account_id` has no FK:** a loan row can reach the server before
+the account row it references when both are created offline, and a 23503 there
+would retry 3× and quarantine the loan — the head-of-line block 0040 caused and
+0042 removed. A dangling id degrades to "not linked" instead.
+
+**Deploy:** `supabase db push` + redeploy sync rules (`loans` is `SELECT *`, so
+the column follows automatically).
+
 ## Overview
 A dedicated `/loans` list + `/loans/[id]` detail page for tracking loans: principal, monthly EMI, tenure, interest rate, and a reducing-balance **amortization schedule** (principal vs interest per month via `amortizationSchedule()` in `@pocketcare/finance`). The **monthly EMI is auto-calculated** from principal + rate + tenure (`emiFromPrincipal()`), editable to override. Loans are **fixed** or **variable** rate: fixed loans get the computed EMI + amortization schedule; variable loans (which re-price over time and can't be modelled) instead show a **month-by-month list where the user enters each month's actual EMI**. Each EMI has a **due date** derived from the loan's start date + a configurable **due day of the month**, and can be marked paid either **manually** or **automatically on the due date**.
 

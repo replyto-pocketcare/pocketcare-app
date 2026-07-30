@@ -94,5 +94,10 @@
   "dueBlankHint": "Laat de vervaldag leeg om de dag van de startdatum te gebruiken. Reeds betaalde EMI's kunnen afzonderlijk in het schema worden gemarkeerd.",
   "save": "Opslaan",
   "postsToCard": "Het verschijnt op deze kaart en telt mee in de factuurperiode.",
-  "remembersAccount": "Deze rekening wordt onthouden voor de volgende termijn."
+  "remembersAccount": "Deze rekening wordt onthouden voor de volgende termijn.",
+  "chargedTo": "Waar wordt deze termijn afgeschreven?",
+  "notLinked": "Niet gekoppeld — ik markeer elke termijn zelf",
+  "cardSuffix": "creditcard",
+  "chargedToCardHint": "Elke termijn wordt op deze kaart bijgeschreven zodra hij vervalt, en telt mee in het totaal te betalen bedrag.",
+  "chargedToHint": "Zodra een termijn vervalt wordt hij automatisch op deze rekening geboekt."
 }

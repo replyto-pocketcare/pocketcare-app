@@ -94,5 +94,10 @@
   "dueBlankHint": "Leave the due day blank to use the start date's day. EMIs already paid can be marked individually in the schedule.",
   "save": "Save",
   "postsToCard": "It'll show against this card and count toward its billing cycle.",
-  "remembersAccount": "This account is remembered for the next EMI."
+  "remembersAccount": "This account is remembered for the next EMI.",
+  "chargedTo": "Where is this EMI charged?",
+  "notLinked": "Not linked — I'll mark each EMI paid myself",
+  "cardSuffix": "credit card",
+  "chargedToCardHint": "Each EMI will be added to this card when it falls due, and counted in the card's total due.",
+  "chargedToHint": "When an EMI falls due it'll be recorded against this account automatically."
 }

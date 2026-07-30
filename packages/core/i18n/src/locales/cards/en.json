@@ -26,5 +26,11 @@
   "settleFrom": "Settle bill from",
   "amountPlaceholder": "Amount",
   "settle": "Settle",
-  "newSpendThisCycle": "+{{amount}} new spend since the last statement"
+  "newSpendThisCycle": "+{{amount}} new spend since the last statement",
+  "emiCoveredTitle": "Mark EMIs paid?",
+  "emiCoveredBody_one": "This payment covers {{count}} instalment charged to this card. Mark it paid?",
+  "emiCoveredBody_other": "This payment covers {{count}} instalments charged to this card. Mark them paid?",
+  "emiNo": "EMI #{{n}}",
+  "emiCoveredSkip": "Not now",
+  "emiCoveredConfirm": "Mark paid"
 }

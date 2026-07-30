@@ -14,6 +14,8 @@ import { getRepositories, getDb } from "../../src/powersync";
 import { CreditCard } from "../../src/cards/CreditCard";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { AmountInput } from "../../src/ui/AmountInput";
+import { findCoveredEmis, markEmisPaid, type CoveredEmi } from "../../src/loans/settleEmis";
+import { Modal } from "../../src/ui/Modal";
 
 const PALETTE = ["#3e4a38", "#b06a4f", "#5f6647", "#7c4a3a", "#2b2723"];
 
@@ -157,11 +159,25 @@ function CardPanel({ account, owed, detail, sources }: {
     );
     setEditing(false);
   }
+  /**
+   * Settle the bill, then ASK whether the EMIs it covers should be marked paid.
+   *
+   * Deliberately a question, not an action: this infers loan state from a
+   * payment amount, and a partial payment would otherwise silently clear an
+   * instalment the user hasn't actually cleared.
+   */
+  const [coveredEmis, setCoveredEmis] = useState<CoveredEmi[]>([]);
+  const [settledAt, setSettledAt] = useState<string>("");
+
   async function settle() {
     const from = fromId ?? sources[0]?.id;
     if (!from || !amount) return;
-    await getRepositories().creditCards.settle({ fromAccountId: from, cardAccountId: account.id, amount: fromMajor(Number(amount), account.currency), occurredAt: new Date().toISOString() });
+    const when = new Date().toISOString();
+    const minor = fromMajor(Number(amount), account.currency).amount;
+    await getRepositories().creditCards.settle({ fromAccountId: from, cardAccountId: account.id, amount: fromMajor(Number(amount), account.currency), occurredAt: when });
     setAmount("");
+    const covered = await findCoveredEmis(account.id, minor);
+    if (covered.length > 0) { setSettledAt(when); setCoveredEmis(covered); }
   }
 
   return (
@@ -255,6 +271,35 @@ function CardPanel({ account, owed, detail, sources }: {
           </div>
         </div>
       </div>
+
+      {/* EMIs charged to this card that the payment just covered. Asked, never
+          assumed — see src/loans/settleEmis.ts. */}
+      <Modal open={coveredEmis.length > 0} onClose={() => setCoveredEmis([])} label={t("emiCoveredTitle", "Mark EMIs paid?")}>
+        <div style={{ display: "grid", gap: 14 }}>
+          <h2 style={{ margin: 0 }}>{t("emiCoveredTitle", "Mark EMIs paid?")}</h2>
+          <p className="muted" style={{ margin: 0, fontSize: 13.5 }}>
+            {t("emiCoveredBody", { count: coveredEmis.length, defaultValue: "This payment covers {{count}} instalment(s) charged to this card. Mark them paid?" })}
+          </p>
+          <div className="row-stack">
+            {coveredEmis.map((c) => (
+              <div key={`${c.loanId}:${c.emiNo}`} className="row-tile" style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                <span style={{ minWidth: 0 }}>
+                  <strong style={{ fontSize: 14 }}>{t("emiNo", { n: c.emiNo, defaultValue: "EMI #{{n}}" })}</strong>
+                  {c.lender ? <span className="muted" style={{ fontSize: 12 }}> · {c.lender}</span> : null}
+                  <div className="muted" style={{ fontSize: 11.5 }}>{new Date(c.dueDate + "T00:00:00").toLocaleDateString()}</div>
+                </span>
+                <span style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{fmt(money(c.amount, account.currency))}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <button className="btn ghost" onClick={() => setCoveredEmis([])}>{t("emiCoveredSkip", "Not now")}</button>
+            <button className="btn" onClick={async () => { await markEmisPaid(coveredEmis, settledAt); setCoveredEmis([]); }}>
+              {t("emiCoveredConfirm", "Mark paid")}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </details>
   );
 }

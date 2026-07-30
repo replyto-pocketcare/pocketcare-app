@@ -26,5 +26,11 @@
   "settleFrom": "किस खाते से बिल चुकाएं",
   "amountPlaceholder": "राशि",
   "settle": "चुकाएं",
-  "newSpendThisCycle": "पिछले स्टेटमेंट के बाद +{{amount}} नया खर्च"
+  "newSpendThisCycle": "पिछले स्टेटमेंट के बाद +{{amount}} नया खर्च",
+  "emiCoveredTitle": "EMI चुकता चिह्नित करें?",
+  "emiCoveredBody_one": "यह भुगतान इस कार्ड की {{count}} किस्त को कवर करता है। इसे चुकता चिह्नित करें?",
+  "emiCoveredBody_other": "यह भुगतान इस कार्ड की {{count}} किस्तों को कवर करता है। इन्हें चुकता चिह्नित करें?",
+  "emiNo": "EMI #{{n}}",
+  "emiCoveredSkip": "अभी नहीं",
+  "emiCoveredConfirm": "चुकता चिह्नित करें"
 }

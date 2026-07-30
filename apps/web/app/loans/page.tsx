@@ -124,6 +124,21 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
   const [dueDay, setDueDay] = useState("");
   const [autoMark, setAutoMark] = useState(false);
 
+  /**
+   * Where the EMI is charged. A credit card is the interesting case: a due EMI
+   * is posted onto the card, so it lands in the card's total due exactly as a
+   * bank would add it to your statement. "Not linked" is a first-class choice —
+   * plenty of EMIs are a standing instruction on an account the user doesn't
+   * track here, and guessing an account would put money where it doesn't belong.
+   */
+  const { data: fundingAccounts = [] } = useQuery<{ id: string; name: string; type: string }>(
+    `SELECT id, name, type FROM accounts
+      WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real'
+        AND type NOT IN ('stocks','mutual_funds','demat')
+      ORDER BY (type = 'credit_card') DESC, created_at`,
+  );
+  const [fundingId, setFundingId] = useState("");
+
   // Fixed loans: derive the EMI from principal/rate/tenure (user can override).
   const principalMinor = principal ? fromMajor(Number(principal), base).amount : 0;
   const computedEmiMinor = rateType === "fixed" ? emiFromPrincipal(principalMinor, Number(rate) || 0, Number(tenure) || 0) : 0;
@@ -144,6 +159,7 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
       emi_due_day: dd,
       auto_mark_paid: autoMark ? 1 : 0,
       rate_type: rateType,
+      funding_account_id: fundingId || null,
       emis_paid: 0,
     });
     onClose();
@@ -191,6 +207,23 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
           </label>
           <FloatingInput label={t("dueDay")} inputMode="numeric" value={dueDay} onChange={(v) => setDueDay(v.replace(/\D/g, "").slice(0, 2))} style={{ width: 150 }} />
         </div>
+        {/* Charged to what? A card here means the EMI lands in that card's due. */}
+        <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("chargedTo", "Where is this EMI charged?")}
+          <select className="input" value={fundingId} onChange={(e) => setFundingId(e.target.value)}>
+            <option value="">{t("notLinked", "Not linked — I'll mark each EMI paid myself")}</option>
+            {fundingAccounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}{a.type === "credit_card" ? ` · ${t("cardSuffix", "credit card")}` : ""}
+              </option>
+            ))}
+          </select>
+          <span className="muted" style={{ fontSize: 11.5 }}>
+            {fundingAccounts.find((a) => a.id === fundingId)?.type === "credit_card"
+              ? t("chargedToCardHint", "Each EMI will be added to this card when it falls due, and counted in the card's total due.")
+              : t("chargedToHint", "When an EMI falls due it'll be recorded against this account automatically.")}
+          </span>
+        </label>
+
         <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, cursor: "pointer" }}>
           <input type="checkbox" checked={autoMark} onChange={(e) => setAutoMark(e.target.checked)} style={{ marginTop: 3 }} />
           <span>{t("autoMarkLabel")}<br /><span className="muted" style={{ fontSize: 12 }}>{t("autoMarkHint")}</span></span>

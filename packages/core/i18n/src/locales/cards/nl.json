@@ -26,5 +26,11 @@
   "settleFrom": "Rekening afrekenen vanaf",
   "amountPlaceholder": "Bedrag",
   "settle": "Afrekenen",
-  "newSpendThisCycle": "+{{amount}} nieuwe uitgaven sinds het laatste overzicht"
+  "newSpendThisCycle": "+{{amount}} nieuwe uitgaven sinds het laatste overzicht",
+  "emiCoveredTitle": "Termijnen als betaald markeren?",
+  "emiCoveredBody_one": "Deze betaling dekt {{count}} termijn op deze kaart. Als betaald markeren?",
+  "emiCoveredBody_other": "Deze betaling dekt {{count}} termijnen op deze kaart. Als betaald markeren?",
+  "emiNo": "Termijn #{{n}}",
+  "emiCoveredSkip": "Nu niet",
+  "emiCoveredConfirm": "Markeren"
 }

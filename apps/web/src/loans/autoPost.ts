@@ -1,27 +1,31 @@
 "use client";
 
 /**
- * Post ledger transactions for EMIs that auto-mark already treats as paid.
+ * Charge due EMIs to the account they're linked to.
  *
- * `auto_mark_paid` used to be **display only**: past-due EMIs flipped to "paid"
- * on the schedule, but no money left any account. So the funding account never
- * moved and — when the EMI is charged to a credit card — the card showed no
- * charge. The EMI looked settled while the ledger disagreed.
+ * A loan can name the account its EMI is charged to — usually a credit card
+ * (`loans.funding_account_id`, migration 0047). When an EMI's due date passes,
+ * this posts it as an expense on that account, exactly as a bank adds the
+ * instalment to your statement. That is what makes the EMI appear in the card's
+ * total due.
  *
- * This closes that gap for loans where a funding account is known (the last one
- * used to mark an EMI paid on this device — see `funding.ts`). Loans without
- * one keep the old display-only behaviour rather than guessing which account to
- * take money from.
+ * CHARGED and PAID are separate, and this only does the first:
+ *   - charged  → the instalment is on the card (this file, on the due date);
+ *   - paid     → you settled it. Marking paid happens when the card bill is
+ *                settled (with confirmation) or by hand in the EMI dialog.
+ * `auto_mark_paid` therefore does NOT gate this — an EMI is owed whether or not
+ * you've told the app you paid it.
  *
  * SAFETY — never post an EMI twice:
  *  - dedupe is a lookup in the **synced ledger** for a transaction with the
- *    exact `emiDescription(...)`, not a local flag, so a second device that
- *    runs the same catch-up finds the first device's row and skips;
+ *    exact `emiDescription(...)`, not a local flag, so a second device running
+ *    the same catch-up finds the first device's row and skips;
  *  - a module-level guard stops concurrent runs within a tab;
  *  - only EMIs whose due date has actually passed are considered, and each is
- *    posted at its own due date, not today.
+ *    posted at its own due date so it lands in the right billing cycle;
+ *  - manually-marked EMIs are skipped: that dialog already made the posting
+ *    decision (the user picked an account there, or chose not to record).
  */
-
 import { effectivePaidEmis, emiDueDate } from "@pocketcare/finance";
 import { money } from "@pocketcare/money";
 import type { CurrencyCode } from "@pocketcare/types";
@@ -33,6 +37,7 @@ interface LoanRow {
   emi_amount: number | null; tenure_months: number | null;
   start_date: string | null; emis_paid: number | null; emi_payments: string | null;
   emi_amounts: string | null; emi_due_day: number | null; auto_mark_paid: number | null;
+  funding_account_id: string | null;
 }
 
 /** Catching up more than a year of missed EMIs at once is a bug, not a feature. */
@@ -53,16 +58,23 @@ export async function runLoanAutoPost(): Promise<number> {
 
   try {
     const loans = await db.getAll<LoanRow>(
+      // NOT gated on auto_mark_paid any more. A loan linked to an account (a
+      // credit card, typically) posts its EMI when the EMI falls due — that is
+      // what makes the charge appear in the card's total due, which is the
+      // whole point of linking. auto_mark_paid remains a separate thing: it
+      // decides whether the EMI shows as PAID, not whether it's CHARGED.
       `SELECT id, lender, currency, emi_amount, tenure_months, start_date, emis_paid,
-              emi_payments, emi_amounts, emi_due_day, auto_mark_paid
+              emi_payments, emi_amounts, emi_due_day, auto_mark_paid, funding_account_id
          FROM loans
-        WHERE deleted_at IS NULL AND IFNULL(auto_mark_paid, 0) = 1`,
+        WHERE deleted_at IS NULL AND funding_account_id IS NOT NULL`,
     );
 
     let posted = 0;
     for (const loan of loans) {
-      const accountId = getLoanFundingAccount(loan.id);
-      if (!accountId) continue; // no known funding account → stay display-only
+      // Persisted link first; the per-device memory is only a fallback for
+      // loans created before 0047.
+      const accountId = loan.funding_account_id || getLoanFundingAccount(loan.id);
+      if (!accountId) continue;
 
       // The account may have been deleted or archived since it was last used.
       const acct = await db.getOptional<{ id: string }>(
@@ -76,7 +88,10 @@ export async function runLoanAutoPost(): Promise<number> {
 
       const manualMap = parseMap(loan.emi_payments);
       const manual = Object.keys(manualMap).map(Number).filter(Number.isFinite);
-      const paid = effectivePaidEmis(manual, total, {
+      // Every EMI whose due date has passed is CHARGED, regardless of
+      // auto_mark_paid — a bank adds the instalment to your card when it falls
+      // due, whether or not you've settled the bill.
+      const due = effectivePaidEmis(manual, total, {
         autoMark: true,
         startIso: loan.start_date,
         dueDay: loan.emi_due_day,
@@ -89,7 +104,7 @@ export async function runLoanAutoPost(): Promise<number> {
       const cur = (loan.currency || "INR") as CurrencyCode;
 
       let done = 0;
-      for (const n of [...paid].sort((a, b) => a - b)) {
+      for (const n of [...due].sort((a, b) => a - b)) {
         if (done >= MAX_PER_LOAN) break;
         if (manualSet.has(n)) continue;
 
@@ -103,7 +118,7 @@ export async function runLoanAutoPost(): Promise<number> {
         );
         if (existing) continue;
 
-        const due = emiDueDate(loan.start_date, loan.emi_due_day, n);
+        const dueDate = emiDueDate(loan.start_date, loan.emi_due_day, n);
         try {
           await getRepositories().transactions.create({
             account_id: accountId,
@@ -112,7 +127,7 @@ export async function runLoanAutoPost(): Promise<number> {
             description,
             // Dated at the EMI's own due date, so it lands in the right month
             // and the right credit-card billing cycle.
-            occurred_at: new Date(`${due}T12:00:00`).toISOString(),
+            occurred_at: new Date(`${dueDate}T12:00:00`).toISOString(),
           });
           posted++; done++;
         } catch {
