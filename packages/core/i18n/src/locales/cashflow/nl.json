@@ -6,7 +6,12 @@
   "netDifference": "Nettoverschil",
   "intoSavings": "Naar sparen",
   "per": "per {{unit}}",
-  "timeframeNoun": { "daily": "dag", "weekly": "week", "monthly": "maand", "yearly": "jaar" },
+  "timeframeNoun": {
+    "daily": "dag",
+    "weekly": "week",
+    "monthly": "maand",
+    "yearly": "jaar"
+  },
   "commitments": "{{count}} verplichtingen",
   "incomeMinusPayments": "inkomsten − betalingen",
   "plans": "{{count}} plannen",
@@ -60,7 +65,12 @@
   "portfolioTitle": "Belegde portefeuille",
   "portfolioMeta_one": "{{count}} positie · belegd {{amount}} · bekijken →",
   "portfolioMeta_other": "{{count}} posities · belegd {{amount}} · bekijken →",
-  "freq": { "daily": "dagelijks", "weekly": "wekelijks", "monthly": "maandelijks", "yearly": "jaarlijks" },
+  "freq": {
+    "daily": "dagelijks",
+    "weekly": "wekelijks",
+    "monthly": "maandelijks",
+    "yearly": "jaarlijks"
+  },
   "name": "Naam",
   "amount": "Bedrag",
   "returnPct": "Rendement %",
@@ -78,8 +88,11 @@
   "startedRenewal": "Gestart / volgende verlenging",
   "nextDue": "Volgende vervaldatum",
   "add": "Toevoegen",
-
-  "dirLabel": { "income": "terugkerende inkomsten", "payment": "terugkerende betaling", "saving": "terugkerend sparen" },
+  "dirLabel": {
+    "income": "terugkerende inkomsten",
+    "payment": "terugkerende betaling",
+    "saving": "terugkerend sparen"
+  },
   "modalEdit": "{{what}} bewerken",
   "modalAdd": "{{what}} toevoegen",
   "depositInto": "Storten op",
@@ -93,5 +106,8 @@
   "firstDue": "Eerste vervaldatum",
   "postAuto": "Automatisch boeken op de vervaldatum",
   "postAutoOff": "Uit = we vragen je elke keer om bevestiging bij vervaldatum.",
-  "savingEllipsis": "Opslaan…"
+  "savingEllipsis": "Opslaan…",
+  "groupLabel": "Groep",
+  "groupNew": "Naam nieuwe groep",
+  "groupNewEg": "bijv. Abonnementen"
 }

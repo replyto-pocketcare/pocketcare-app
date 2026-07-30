@@ -25,6 +25,8 @@ export interface TemplateInput {
   labels?: string[];
   splitGroupId?: string | null;
   splitMode?: "equal" | "exact" | "percent";
+  /** Recurring group. Only recurring items set this; plain templates leave it null. */
+  groupId?: string | null;
 }
 
 export async function createTemplate(t: TemplateInput): Promise<string> {
@@ -36,6 +38,7 @@ export async function createTemplate(t: TemplateInput): Promise<string> {
     category_id: t.categoryId ?? null, description: t.description ?? null, note: t.note ?? null,
     payment_method: t.paymentMethod ?? null, labels: t.labels?.length ? t.labels.join(", ") : null,
     split_group_id: t.splitGroupId ?? null, split_mode: t.splitMode ?? "equal",
+    group_id: t.groupId ?? null,
   });
 }
 
@@ -49,6 +52,7 @@ export async function updateTemplate(id: string, t: TemplateInput): Promise<void
     category_id: t.categoryId ?? null, description: t.description ?? null, note: t.note ?? null,
     payment_method: t.paymentMethod ?? null, labels: t.labels?.length ? t.labels.join(", ") : null,
     split_group_id: t.splitGroupId ?? null, split_mode: t.splitMode ?? "equal",
+    ...(t.groupId !== undefined ? { group_id: t.groupId } : {}),
   });
 }
 

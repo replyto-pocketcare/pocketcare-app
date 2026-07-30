@@ -6,7 +6,12 @@
   "netDifference": "शुद्ध अंतर",
   "intoSavings": "बचत में",
   "per": "प्रति {{unit}}",
-  "timeframeNoun": { "daily": "दिन", "weekly": "सप्ताह", "monthly": "माह", "yearly": "वर्ष" },
+  "timeframeNoun": {
+    "daily": "दिन",
+    "weekly": "सप्ताह",
+    "monthly": "माह",
+    "yearly": "वर्ष"
+  },
   "commitments": "{{count}} प्रतिबद्धताएँ",
   "incomeMinusPayments": "आय − भुगतान",
   "plans": "{{count}} योजनाएँ",
@@ -60,7 +65,12 @@
   "portfolioTitle": "निवेशित पोर्टफोलियो",
   "portfolioMeta_one": "{{count}} होल्डिंग · निवेशित {{amount}} · देखें →",
   "portfolioMeta_other": "{{count}} होल्डिंग्स · निवेशित {{amount}} · देखें →",
-  "freq": { "daily": "दैनिक", "weekly": "साप्ताहिक", "monthly": "मासिक", "yearly": "वार्षिक" },
+  "freq": {
+    "daily": "दैनिक",
+    "weekly": "साप्ताहिक",
+    "monthly": "मासिक",
+    "yearly": "वार्षिक"
+  },
   "name": "नाम",
   "amount": "राशि",
   "returnPct": "रिटर्न %",
@@ -78,8 +88,11 @@
   "startedRenewal": "आरंभ / अगला नवीनीकरण",
   "nextDue": "अगली देय",
   "add": "जोड़ें",
-
-  "dirLabel": { "income": "आवर्ती आय", "payment": "आवर्ती भुगतान", "saving": "आवर्ती बचत" },
+  "dirLabel": {
+    "income": "आवर्ती आय",
+    "payment": "आवर्ती भुगतान",
+    "saving": "आवर्ती बचत"
+  },
   "modalEdit": "{{what}} संपादित करें",
   "modalAdd": "{{what}} जोड़ें",
   "depositInto": "किसमें जमा करें",
@@ -93,5 +106,8 @@
   "firstDue": "पहली देय",
   "postAuto": "देय तिथि पर स्वचालित रूप से पोस्ट करें",
   "postAutoOff": "बंद = हर बार देय होने पर हम आपसे पुष्टि माँगेंगे।",
-  "savingEllipsis": "सहेजा जा रहा है…"
+  "savingEllipsis": "सहेजा जा रहा है…",
+  "groupLabel": "समूह",
+  "groupNew": "नए समूह का नाम",
+  "groupNewEg": "जैसे सदस्यताएँ"
 }

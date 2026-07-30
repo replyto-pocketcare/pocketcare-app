@@ -8,19 +8,18 @@
  * params: ?add=income|payment|saving [&name=&amount=<minor>&freq=&convertFrom=<plannedId>]
  * or ?edit=<ruleId>.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter, useSearchParams } from "next/navigation";
 import { money } from "@pocketcare/money";
-import { monthlyEquivalent } from "@pocketcare/finance";
-import type { Period } from "@pocketcare/types";
-import { useBaseCurrency, useConvert } from "../../src/hooks";
+import { useBaseCurrency } from "../../src/hooks";
 import { useMoneyFmt } from "../../src/ui/Money";
-import { KebabMenu } from "../../src/ui/KebabMenu";
-import { useConfirm } from "../../src/ui/Confirm";
 import { softDelete } from "../../src/write";
 import { useRecurringItems, removeRecurring, type RecurringItem, type RecurringDirection } from "../../src/cashflow/recurring";
+import { useGroupsByDirection, ensureDefaultGroups } from "../../src/recurring/groups";
+import { GroupSection } from "../../src/recurring/GroupSection";
+import { TriageStrip } from "../../src/recurring/TriageStrip";
 import { RecurringModal } from "../../src/cashflow/RecurringModal";
 import { useDueRules } from "../../src/templates/hooks";
 import { postRuleOnce, skipRuleOnce, type Freq } from "../../src/templates/write";
@@ -37,6 +36,11 @@ export default function RecurringPage() {
   const items = useRecurringItems();
   const due = useDueRules();
   const [modal, setModal] = useState<ModalState | null>(null);
+  const groupsByDir = useGroupsByDirection();
+
+  // Seed the default groups on first visit. Idempotent and deterministic-id'd,
+  // so two devices doing this at once produce identical rows (see groups.ts).
+  useEffect(() => { void ensureDefaultGroups().catch(() => {}); }, []);
 
   // Open the modal from deep-link query params (add / edit / convert), once.
   useEffect(() => {
@@ -62,9 +66,7 @@ export default function RecurringPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, items.length]);
 
-  const incomes = items.filter((i) => i.direction === "income");
-  const payments = items.filter((i) => i.direction === "payment");
-  const savings = items.filter((i) => i.direction === "saving");
+  const ungrouped = useMemo(() => items.filter((i) => !i.group_id), [items]);
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
@@ -94,12 +96,27 @@ export default function RecurringPage() {
         </section>
       )}
 
-      <RecurringSection title={t("incomes")} accent="var(--positive)" items={incomes} base={base} emptyLabel={t("emptyIncome")}
-        onAdd={() => setModal({ direction: "income" })} onEdit={(it) => setModal({ direction: "income", edit: it })} />
-      <RecurringSection title={t("payments")} accent="var(--negative)" items={payments} base={base} emptyLabel={t("emptyPayment")}
-        onAdd={() => setModal({ direction: "payment" })} onEdit={(it) => setModal({ direction: "payment", edit: it })} />
-      <RecurringSection title={t("savings")} accent="var(--teal)" items={savings} base={base} emptyLabel={t("emptySaving")}
-        onAdd={() => setModal({ direction: "saving" })} onEdit={(it) => setModal({ direction: "saving", edit: it })} />
+      {/* Legacy items with no group — a one-time prompt, not a permanent bucket. */}
+      <TriageStrip
+        items={ungrouped}
+        groupsFor={(it) => groupsByDir[it.direction]}
+      />
+
+      {(["income", "payment", "saving"] as const).map((dir) => (
+        <GroupSection
+          key={dir}
+          direction={dir}
+          title={dir === "income" ? t("incomes") : dir === "payment" ? t("payments") : t("savings")}
+          accent={dir === "income" ? "var(--positive)" : dir === "payment" ? "var(--negative)" : "var(--teal)"}
+          groups={groupsByDir[dir]}
+          items={items.filter((i) => i.direction === dir)}
+          base={base}
+          onAdd={() => setModal({ direction: dir })}
+          onEdit={(it) => setModal({ direction: dir, edit: it })}
+          onRemove={(it) => removeRecurring(it.ruleId, it.templateId)}
+          onPostNow={(it) => void postRuleOnce(it.ruleId)}
+        />
+      ))}
 
       {modal && (
         <RecurringModal
@@ -113,60 +130,6 @@ export default function RecurringPage() {
           }}
         />
       )}
-    </div>
-  );
-}
-
-function RecurringSection({ title, accent, items, base, emptyLabel, onAdd, onEdit }: {
-  title: string; accent: string; items: RecurringItem[]; base: string; emptyLabel: string;
-  onAdd: () => void; onEdit: (it: RecurringItem) => void;
-}) {
-  const { t } = useTranslation("recurring");
-  return (
-    <section style={{ display: "grid", gap: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ margin: 0, fontSize: 17, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 8, height: 8, borderRadius: 999, background: accent }} />{title}
-          <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}>{items.length}</span>
-        </h2>
-        <button className="chip" onClick={onAdd}>+ {t("add")}</button>
-      </div>
-      {items.length === 0 ? (
-        <p className="muted" style={{ fontSize: 13, margin: 0 }}>{emptyLabel}</p>
-      ) : (
-        <div className="list-grid">
-          {items.map((it) => <RecurringRow key={it.ruleId} item={it} base={base} onEdit={() => onEdit(it)} />)}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function RecurringRow({ item, base, onEdit }: { item: RecurringItem; base: string; onEdit: () => void }) {
-  const { t } = useTranslation("recurring");
-  const fmt = useMoneyFmt();
-  const conv = useConvert();
-  const confirm = useConfirm();
-  const monthly = monthlyEquivalent(item.amount, item.frequency as Period);
-  const cur = item.currency || base;
-  const nextDue = item.next_due ? new Date(item.next_due + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
-  return (
-    <div className="card lift" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "12px 14px" }}>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
-        <div className="muted" style={{ fontSize: 12 }}>{t(`freq.${item.frequency}`, item.frequency)} · {t("next", { date: nextDue })} · {item.auto_post ? t("autoPosts") : t("confirm")}</div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontWeight: 650, fontSize: 14 }}>{fmt(conv(money(item.amount, cur)))}</div>
-          <div className="muted" style={{ fontSize: 11 }}>{fmt(conv(money(monthly, cur)))}{t("perMonth")}</div>
-        </div>
-        <KebabMenu label={t("actions", { name: item.name })} items={[
-          { label: t("postNow"), onClick: () => void postRuleOnce(item.ruleId) },
-          { label: t("edit"), onClick: onEdit },
-          { label: t("remove"), danger: true, onClick: async () => { if (await confirm({ title: t("removeTitle"), message: t("removeMsg", { name: item.name }), confirmLabel: t("remove") })) removeRecurring(item.ruleId, item.templateId); } },
-        ]} />
-      </div>
     </div>
   );
 }

@@ -6,13 +6,14 @@
  * no standalone planned_cashflow rows. Savings are a recurring transfer into an
  * investment account.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { Modal } from "../ui/Modal";
 import { FloatingInput } from "../ui/FloatingInput";
 import type { Freq } from "../templates/write";
 import { createRecurring, updateRecurring, type RecurringDirection, type RecurringItem } from "./recurring";
+import { useGroupsByDirection, createGroup } from "../recurring/groups";
 
 const FREQS: Freq[] = ["daily", "weekly", "monthly", "yearly"];
 const INVESTMENT_TYPES = ["demat", "stocks", "mutual_funds"];
@@ -47,18 +48,41 @@ export function RecurringModal({ direction, base, edit, prefill, onClose }: {
   const [autoPost, setAutoPost] = useState(edit ? edit.auto_post === 1 : false);
   const [saving, setSaving] = useState(false);
 
+  /**
+   * Group is REQUIRED — nothing may be ungrouped. When this direction has no
+   * groups at all (the user deleted them), the select is replaced by an inline
+   * create form, so there is no state in which this modal saves groupless.
+   */
+  const groupsByDir = useGroupsByDirection();
+  const groups = groupsByDir[direction];
+  const [groupId, setGroupId] = useState(edit?.group_id ?? "");
+  const [newGroupName, setNewGroupName] = useState("");
+  const needsNewGroup = groups.length === 0;
+
+  // Default to the first group once they've synced, so the common case is
+  // pre-filled rather than an empty required field.
+  useEffect(() => {
+    if (!groupId && groups[0]) setGroupId(groups[0].id);
+  }, [groups, groupId]);
+
   const accountLabel = direction === "income" ? t("depositInto") : isSaving ? t("fundFrom") : t("payFrom");
-  const canSave = !!name.trim() && !!amount && !!accountId && (!isSaving || !!toAccountId);
+  const canSave = !!name.trim() && !!amount && !!accountId && (!isSaving || !!toAccountId)
+    && (needsNewGroup ? !!newGroupName.trim() : !!groupId);
 
   async function submit() {
     if (!canSave) return;
     setSaving(true);
     try {
+      // Create the group first when the user typed a new one, so the item
+      // always has somewhere to belong.
+      const gid = needsNewGroup
+        ? await createGroup({ name: newGroupName, direction })
+        : groupId;
       const input = {
         direction, name: name.trim(), amount: Number(amount),
         accountId, toAccountId: isSaving ? toAccountId : null,
         categoryId: isPayment && categoryId ? categoryId : null,
-        frequency: freq, firstDue, autoPost,
+        frequency: freq, firstDue, autoPost, groupId: gid,
       };
       if (edit) await updateRecurring(edit.ruleId, edit.templateId, input);
       else await createRecurring(input);
@@ -75,6 +99,18 @@ export function RecurringModal({ direction, base, edit, prefill, onClose }: {
 
         <FloatingInput label={t("name")} value={name} onChange={setName} />
         <FloatingInput label={t("amountCur", { base })} group currency={base} value={amount} onChange={setAmount} />
+
+        {needsNewGroup ? (
+          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("groupNew", "New group name")}
+            <input className="input" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} placeholder={t("groupNewEg", "e.g. Subscriptions")} />
+          </label>
+        ) : (
+          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("groupLabel", "Group")}
+            <select className="input" value={groupId} onChange={(e) => setGroupId(e.target.value)}>
+              {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+            </select>
+          </label>
+        )}
 
         <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{accountLabel}
           <select className="input" value={accountId} onChange={(e) => setAccountId(e.target.value)}>

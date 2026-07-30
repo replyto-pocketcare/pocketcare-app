@@ -6,7 +6,12 @@
   "netDifference": "Net difference",
   "intoSavings": "Into savings",
   "per": "per {{unit}}",
-  "timeframeNoun": { "daily": "day", "weekly": "week", "monthly": "month", "yearly": "year" },
+  "timeframeNoun": {
+    "daily": "day",
+    "weekly": "week",
+    "monthly": "month",
+    "yearly": "year"
+  },
   "commitments": "{{count}} commitments",
   "incomeMinusPayments": "income − payments",
   "plans": "{{count}} plans",
@@ -60,7 +65,12 @@
   "portfolioTitle": "Invested portfolio",
   "portfolioMeta_one": "{{count}} holding · invested {{amount}} · view →",
   "portfolioMeta_other": "{{count}} holdings · invested {{amount}} · view →",
-  "freq": { "daily": "daily", "weekly": "weekly", "monthly": "monthly", "yearly": "yearly" },
+  "freq": {
+    "daily": "daily",
+    "weekly": "weekly",
+    "monthly": "monthly",
+    "yearly": "yearly"
+  },
   "name": "Name",
   "amount": "Amount",
   "returnPct": "Return %",
@@ -78,8 +88,11 @@
   "startedRenewal": "Started / next renewal",
   "nextDue": "Next due",
   "add": "Add",
-
-  "dirLabel": { "income": "recurring income", "payment": "recurring payment", "saving": "recurring saving" },
+  "dirLabel": {
+    "income": "recurring income",
+    "payment": "recurring payment",
+    "saving": "recurring saving"
+  },
   "modalEdit": "Edit {{what}}",
   "modalAdd": "Add {{what}}",
   "depositInto": "Deposit into",
@@ -93,5 +106,8 @@
   "firstDue": "First due",
   "postAuto": "Post automatically on the due date",
   "postAutoOff": "Off = we'll ask you to confirm each time it's due.",
-  "savingEllipsis": "Saving…"
+  "savingEllipsis": "Saving…",
+  "groupLabel": "Group",
+  "groupNew": "New group name",
+  "groupNewEg": "e.g. Subscriptions"
 }

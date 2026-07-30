@@ -47,6 +47,7 @@ streams:
       - SELECT * FROM pocketcare.split_invitations WHERE inviter = auth.user_id()
       - SELECT * FROM pocketcare.connections WHERE user_a = auth.user_id() OR user_b = auth.user_id()
       - SELECT * FROM pocketcare.transaction_templates WHERE user_id = auth.user_id()
+      - SELECT * FROM pocketcare.recurring_groups WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.recurring_rules WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.category_rules WHERE user_id = auth.user_id()
       # --- notifications: inbox rows + per-user prefs (push_subscriptions is NOT synced) ---
