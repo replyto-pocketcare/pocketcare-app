@@ -1,3 +1,4 @@
+import Foundation
 import XCTest
 @testable import Domain
 
@@ -111,16 +112,72 @@ final class VectorRunnerTests: XCTestCase {
     func testUpi() throws { try runDomain("upi") }
 }
 
-/// Foundation's JSONSerialization output is NSNumber/NSString/NSArray/
-/// NSDictionary/NSNull -- all of which implement deep structural
-/// `isEqual` -- so bridging to AnyObject gets a correct recursive
-/// comparison for free instead of hand-writing one.
+/// True only for an NSNumber that's actually CFBoolean-backed (i.e. came
+/// from a JSON `true`/`false`, or a Swift Bool bridged to AnyObject) --
+/// CFGetTypeID against CFBooleanGetTypeID is the documented, reliable way
+/// to tell these apart from a numeric NSNumber that just happens to hold
+/// 0/1 (objCType-sniffing is not reliable for this; verified via search
+/// before use).
+private func isBoolNSNumber(_ n: NSNumber) -> Bool {
+    CFGetTypeID(n) == CFBooleanGetTypeID()
+}
+
+/// Structural, value-based comparison for two already-unwrapped JSON
+/// values (String/NSNumber/NSNull/[Any]/[String: Any] -- exactly what
+/// JSONSerialization and our own adapters produce). Recurses into arrays
+/// and dictionaries; NSNumbers are compared by actual numeric value (or
+/// boolValue, when either side is CFBoolean-backed) rather than via
+/// NSNumber.isEqual.
+///
+/// This replaces an earlier version that bridged straight to
+/// `(lhs as AnyObject).isEqual(rhs as AnyObject)` on the assumption that
+/// NSNumber's isEqual was reliably value-based -- a real P1.3 test run
+/// falsified that assumption: `finance[2] periodicRateFromAnnual:
+/// expected Optional(0.006666666666666667) but got 0.006666666666666667`
+/// -- textually IDENTICAL values, isEqual still returned false, because
+/// the two NSNumbers came from different construction paths (one via
+/// `NSNumber(value:)` in the adapter, the other parsed by
+/// JSONSerialization) and isEqual is documented to be sensitive to that
+/// in some cases (see e.g. isEqualToNumber vs isEqualToValue). Comparing
+/// `.doubleValue` directly sidesteps that entirely -- the same fix
+/// Vectors.kt's jsonElementsEqual already applied on the Kotlin side for
+/// an analogous (if differently-caused) textual-vs-value equality gap.
+private func jsonValueEqual(_ lhs: Any, _ rhs: Any) -> Bool {
+    switch (lhs, rhs) {
+    case (is NSNull, is NSNull):
+        return true
+    case let (lhsNum as NSNumber, rhsNum as NSNumber):
+        let lhsBool = isBoolNSNumber(lhsNum)
+        let rhsBool = isBoolNSNumber(rhsNum)
+        if lhsBool || rhsBool {
+            return lhsBool == rhsBool && lhsNum.boolValue == rhsNum.boolValue
+        }
+        return lhsNum.doubleValue == rhsNum.doubleValue
+    case let (lhsStr as String, rhsStr as String):
+        return lhsStr == rhsStr
+    case let (lhsArr as [Any], rhsArr as [Any]):
+        guard lhsArr.count == rhsArr.count else { return false }
+        for i in lhsArr.indices {
+            if !jsonValueEqual(lhsArr[i], rhsArr[i]) { return false }
+        }
+        return true
+    case let (lhsDict as [String: Any], rhsDict as [String: Any]):
+        guard Set(lhsDict.keys) == Set(rhsDict.keys) else { return false }
+        for (key, value) in lhsDict {
+            guard let rhsValue = rhsDict[key], jsonValueEqual(value, rhsValue) else { return false }
+        }
+        return true
+    default:
+        return false
+    }
+}
+
 private func jsonEqual(_ a: Any?, _ b: Any?) -> Bool {
     switch (a, b) {
     case (nil, nil):
         return true
     case let (lhs?, rhs?):
-        return (lhs as AnyObject).isEqual(rhs as AnyObject)
+        return jsonValueEqual(lhs, rhs)
     default:
         return false
     }
