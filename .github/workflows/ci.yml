@@ -68,6 +68,47 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 7
 
+  android:
+    name: Android — build + test (apps/android)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      # Uses gradle/actions/setup-gradle to provision Gradle directly and
+      # run the `gradle` command, NOT `./gradlew` — this scaffold's wrapper
+      # jar is generated locally by a human (see apps/android/README.md;
+      # the agent sandbox that wrote this skeleton has no Gradle/JDK
+      # compiler to produce a trustworthy wrapper binary). Once a human
+      # commits the wrapper, this can switch to `./gradlew` + wrapper
+      # validation if preferred — not required either way.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.6"
+      - name: Build + test :app and :domain
+        working-directory: apps/android
+        run: gradle build test --no-daemon
+
+  ios:
+    name: iOS — build + test (apps/ios)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: apps/ios
+        run: xcodegen generate
+      - name: Build + test (Domain package + App scheme, simulator)
+        working-directory: apps/ios
+        run: |
+          xcodebuild test \
+            -project PocketCare.xcodeproj \
+            -scheme PocketCare \
+            -destination 'platform=iOS Simulator,name=iPhone 16'
+
   # Production promotion is BLOCKED unless unit + e2e are green (via `needs`).
   # Requires Vercel Git auto-deploy for production to be disabled so this is the
   # only path to prod. Secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.

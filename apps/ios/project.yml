@@ -1,0 +1,63 @@
+# XcodeGen spec — the source of truth for PocketCare.xcodeproj (generated,
+# not committed; run `xcodegen generate` after cloning/pulling — see
+# README.md). Rationale for XcodeGen over a hand-edited/committed .xcodeproj:
+# a project.yml diffs and merges like any text file; a raw .pbxproj does not.
+name: PocketCare
+options:
+  bundleIdPrefix: care.pocket
+  deploymentTarget:
+    iOS: "17.0"
+  # PLACEHOLDER — confirm the real minimum iOS version before shipping
+  # (plan §10; same class of open item as Android's minSdk proposal).
+
+packages:
+  Domain:
+    path: Domain
+
+targets:
+  PocketCare:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes:
+          - "PocketCare.entitlements"
+    dependencies:
+      - package: Domain
+    settings:
+      base:
+        # PLACEHOLDER bundle id — confirm the real reverse-DNS id before any
+        # store submission (plan §10; same open item the RN scaffold hit).
+        PRODUCT_BUNDLE_IDENTIFIER: care.pocket.ios
+        CODE_SIGN_ENTITLEMENTS: App/PocketCare.entitlements
+        SWIFT_VERSION: "6.0"
+        MARKETING_VERSION: "0.0.1"
+        CURRENT_PROJECT_VERSION: "1"
+    info:
+      path: Generated/PocketCare-Info.plist
+      properties:
+        CFBundleDisplayName: PocketCare
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+
+  PocketCareTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: AppTests
+    dependencies:
+      - target: PocketCare
+      - package: Domain
+
+schemes:
+  PocketCare:
+    build:
+      targets:
+        PocketCare: all
+        PocketCareTests: [test]
+    test:
+      targets:
+        - PocketCareTests
+    run:
+      config: Debug

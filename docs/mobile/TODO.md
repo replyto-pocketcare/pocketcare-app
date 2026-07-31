@@ -5,35 +5,54 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 — P0.1 done (golden-vector exporter). Plan docs
-               recreated + committed earlier same session (see prior entry
-               below this one's diff — commit 62fd053).
-Android state: does not exist (apps/android not created)
-iOS state:     does not exist (apps/ios not created)
-Vectors:       DONE. tools/golden-vectors/export.ts -> vectors/*.json, 16
-               domain files, 250 vectors, >=1 per public function (88 fns).
-               Two runs verified byte-identical. Covers money, finance,
-               ledger, budget, upi, sync-policy, reconcile, guardrail,
-               splits-insights, entitlements, diagnostics, receipts
-               (allocate/reconcile/parse/money-text, incl. every real-bill
-               fixture in packages/core/receipts/src/fixtures.ts), and
-               apps/web/src/splits/math.ts's pairwiseEdges.
-Next up:       P0.2 (Android skeleton) or P0.3 (iOS skeleton) — plan §4. Can
-               only be scaffolded here, not verified (see trap below).
-Traps/notes:   Sandbox has node/npm only — no pnpm, no JDK compiler/Gradle,
-               no Xcode. P0.2/P0.3 Done-when needs real Gradle/Xcode output
-               (CI or a human machine) — don't mark them DONE from a
-               sandbox-only session. Exporter imports packages by RELATIVE
-               PATH to each src/index.ts (not the "@pocketcare/x" bare
-               specifier) so it needs no new node_modules symlinks; the
-               packages' OWN internal @pocketcare/* imports still resolve
-               fine via their existing per-package node_modules symlinks.
-               Every function that defaults to wall-clock time or
-               Math.random (findDate, effectivePaidEmis, makeEntry,
-               newPaymentRef, parseReceipt) is called with an explicit
-               date/seed in the exporter — don't add a vector that omits one.
+Last session: 2026-07-31 — P0.2 + P0.3 SCAFFOLDED (files written, NOT
+               verified — see Blocked). P0.1/plan docs done earlier same
+               session (commits 62fd053, 136d1e2).
+Android state: apps/android/{app,domain} written. NOT yet built — no
+               Gradle/JDK compiler in the agent sandbox. Wrapper jar not
+               committed either (can't fabricate a binary) — see
+               apps/android/README.md for the one-command bootstrap
+               (`gradle wrapper --gradle-version 8.6`) a human must run once.
+iOS state:     apps/ios/{App,AppTests,Domain} + project.yml written. NOT
+               yet generated or built — no Xcode/Swift toolchain in the
+               agent sandbox. `.xcodeproj` is generated (gitignored), not
+               committed — run `xcodegen generate` first (README.md).
+Vectors:       DONE (P0.1). tools/golden-vectors -> vectors/*.json, 16
+               domain files, 250 vectors, >=1 per public function.
+Next up:       A HUMAN needs to run the verification commands below and
+               report the output back — only then can P0.2/P0.3 move
+               DOING -> DONE per protocol (Done-when needs real
+               build/test output, not "the files exist"):
+                 Android: cd apps/android && gradle wrapper --gradle-version 8.6
+                          && git add gradlew* gradle/wrapper/ && ./gradlew build test
+                 iOS:     cd apps/ios && xcodegen generate
+                          && swift test --package-path Domain
+                          && xcodebuild test -project PocketCare.xcodeproj
+                             -scheme PocketCare
+                             -destination 'platform=iOS Simulator,name=iPhone 16'
+               If either fails, paste the error back rather than silently
+               patching around it blind — these were never compiled.
+Traps/notes:   CI jobs `android`/`ios` added to .github/workflows/ci.yml.
+               Android CI uses gradle/actions/setup-gradle (runs `gradle`,
+               NOT `./gradlew`) specifically so CI doesn't need the
+               human-generated wrapper jar — fine either way once one
+               exists. iOS CI runs `xcodegen generate` fresh every time
+               (project.yml is the source of truth, .xcodeproj is
+               gitignored). Neither CI job blocks `deploy-production`
+               (same pattern as the old RN `mobile` job). versions in
+               apps/android/gradle/libs.versions.toml and
+               apps/ios/project.yml's deploymentTarget are proposals typed
+               from training knowledge, NOT verified against what's
+               actually latest-stable right now — check before trusting
+               them long-term (plan §2 says to). Exporter (P0.1) imports
+               packages by RELATIVE PATH to each src/index.ts, not the
+               "@pocketcare/x" bare specifier — needs no new symlinks.
+               Every vector-exporter call that defaults to wall-clock time
+               or Math.random pins an explicit date/seed instead.
                COMMIT EVERY SESSION, even docs-only ones.
-Blocked:       nothing
+Blocked:       P0.2/P0.3 DONE status on a human running the build commands
+               above and reporting results (sandbox has no JDK
+               compiler/Gradle/Xcode/Swift toolchain).
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -52,8 +71,8 @@ Blocked:       nothing
 |---|---|---|---|---|
 | P0.0 | Decommission RN scaffold | [M] | — | DONE (2026-07-31, N/A — never committed, removed by repo reset) |
 | P0.1 | Golden-vector exporter (`tools/golden-vectors/export.ts`) | [M] | — | DONE (2026-07-31, 8e8bcfd) |
-| P0.2 | Android skeleton (`apps/android`, pure-Kotlin `:domain`) | [M] | — | TODO |
-| P0.3 | iOS skeleton (`apps/ios`, SwiftPM `Domain`, App Group) | [M] | — | TODO |
+| P0.2 | Android skeleton (`apps/android`, pure-Kotlin `:domain`) | [M] | — | DOING (2026-07-31, claude-sonnet-5) |
+| P0.3 | iOS skeleton (`apps/ios`, SwiftPM `Domain`, App Group) | [M] | — | DOING (2026-07-31, claude-sonnet-5) |
 | P0.4a | Vector runner — Android (kotlin.test) | [S] | P0.1, P0.2 | TODO |
 | P0.4b | Vector runner — iOS (XCTest) | [S] | P0.1, P0.3 | TODO |
 | P0.5 | PROJECT_REFERENCE "Native mobile" section + parity table | [S] | — | DONE (2026-07-31, same session as this file) |
