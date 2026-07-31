@@ -85,7 +85,13 @@ class VectorRunnerTest {
     @Test fun entitlements() = runDomain("entitlements")
     @Test fun finance() = runDomain("finance")
     @Test fun guardrail() = runDomain("guardrail")
-    @Test fun ledger() = runDomain("ledger")
+    @Test
+    fun ledger() {
+        // P1.2a: registers Ledger.kt's port before running ledger.json's
+        // vectors, same pattern as money() below.
+        care.pocket.domain.ledger.registerLedgerVectors()
+        runDomain("ledger")
+    }
     @Test
     fun money() {
         // P1.1a: registers Money.kt's port before running money.json's

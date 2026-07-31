@@ -75,7 +75,12 @@ final class VectorRunnerTests: XCTestCase {
     func testEntitlements() throws { try runDomain("entitlements") }
     func testFinance() throws { try runDomain("finance") }
     func testGuardrail() throws { try runDomain("guardrail") }
-    func testLedger() throws { try runDomain("ledger") }
+    func testLedger() throws {
+        // P1.2b: registers Ledger.swift's port before running ledger.json's
+        // vectors, same pattern as testMoney() below.
+        registerLedgerVectors()
+        try runDomain("ledger")
+    }
     func testMoney() throws {
         // P1.1b: registers Money.swift's port before running money.json's
         // vectors. Idempotent (FunctionRegistry.register just overwrites
