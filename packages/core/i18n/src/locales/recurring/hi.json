@@ -49,5 +49,7 @@
   "triageCta_other": "सभी {{count}} सहेजें",
   "triageSaving": "सहेजा जा रहा है…",
   "cancel": "रद्द करें",
-  "create": "बनाएँ"
+  "create": "बनाएँ",
+  "amountLabel": "राशि",
+  "perMonthLabel": "प्रति माह"
 }

@@ -18,6 +18,8 @@ import { useConvert } from "../hooks";
 import { useMoneyFmt } from "../ui/Money";
 import { Modal } from "../ui/Modal";
 import { MaterialIcon, type MaterialIconName } from "../ui/MaterialIcon";
+import { KebabMenu } from "../ui/KebabMenu";
+import { Pill, Field, EmiIcon } from "../loans/ui";
 import { useConfirm } from "../ui/Confirm";
 import type { RecurringItem, RecurringDirection } from "../cashflow/recurring";
 import { createGroup, deleteGroup, type RecurringGroup } from "./groups";
@@ -111,7 +113,7 @@ export function GroupSection({ title, accent, direction, groups, items, base, on
                   {list.length === 0 ? (
                     <p className="muted" style={{ fontSize: 13, margin: "12px 0 0" }}>{t("groupEmpty")}</p>
                   ) : (
-                    <div className="row-stack" style={{ marginTop: 12 }}>
+                    <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
                       {list.map((it) => (
                         <ItemRow key={it.ruleId} item={it} base={base} onEdit={() => onEdit(it)} onRemove={() => onRemove(it)} onPostNow={() => onPostNow(it)} />
                       ))}
@@ -214,6 +216,15 @@ function DeleteGroupDialog({ group, itemCount, others, onClose }: {
   );
 }
 
+/**
+ * One recurring item, in the EMI card language from `src/loans/ui.tsx`:
+ * status icon + title + pill on top, a divided two-column footer below.
+ *
+ * The previous version put the name, cadence, amount, monthly equivalent and
+ * three action chips in a single flex row — far more than fits a group card on
+ * a phone, so it overflowed and read as noise. Actions now live in a kebab,
+ * and the two numbers get their own labelled footer fields.
+ */
 function ItemRow({ item, base, onEdit, onRemove, onPostNow }: {
   item: RecurringItem; base: string; onEdit: () => void; onRemove: () => void; onPostNow: () => void;
 }) {
@@ -223,34 +234,45 @@ function ItemRow({ item, base, onEdit, onRemove, onPostNow }: {
   const confirm = useConfirm();
   const monthly = monthlyEquivalent(item.amount, item.frequency as Period);
   const cur = item.currency || base;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const isDue = !!item.next_due && item.next_due <= today;
   const nextDue = item.next_due
-    ? new Date(item.next_due + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(item.next_due + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "2-digit" })
     : "—";
 
   return (
-    <div className="row-tile" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
-        <div className="muted" style={{ fontSize: 12 }}>
-          {t(`freq.${item.frequency}`, item.frequency)} · {t("next", { date: nextDue })} · {item.auto_post ? t("autoPosts") : t("confirm")}
+    <div className="card" style={{ padding: 0, overflow: "hidden", borderColor: isDue ? "var(--accent-soft)" : undefined }}>
+      <div style={{ padding: "11px 13px", display: "flex", alignItems: "center", gap: 10, background: isDue ? "var(--accent-ghost)" : "transparent" }}>
+        <EmiIcon state={isDue ? "due" : "idle"} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 650, fontSize: 14.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+          <div className="muted" style={{ fontSize: 11.5 }}>{t(`freq.${item.frequency}`, item.frequency)}</div>
         </div>
+        <div style={{ display: "grid", gap: 3, justifyItems: "end", flexShrink: 0 }}>
+          <Pill tone={item.auto_post ? "positive" : "muted"}>
+            {item.auto_post ? t("autoPosts") : t("confirm")}
+          </Pill>
+          <span className="muted" style={{ fontSize: 11, whiteSpace: "nowrap" }}>{t("next", { date: nextDue })}</span>
+        </div>
+        <KebabMenu
+          label={t("actions", { name: item.name })}
+          items={[
+            { label: t("postNow"), onClick: onPostNow },
+            { label: t("edit"), onClick: onEdit },
+            {
+              label: t("remove"),
+              danger: true,
+              onClick: async () => {
+                if (await confirm({ title: t("removeTitle"), message: t("removeMsg", { name: item.name }), confirmLabel: t("remove") })) onRemove();
+              },
+            },
+          ]}
+        />
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontWeight: 650, fontSize: 14 }}>{fmt(conv(money(item.amount, cur)))}</div>
-          <div className="muted" style={{ fontSize: 11 }}>{fmt(conv(money(monthly, cur)))}{t("perMonth")}</div>
-        </div>
-        <button className="chip" style={{ padding: "2px 8px", fontSize: 11 }} onClick={onPostNow}>{t("postNow")}</button>
-        <button className="chip" style={{ padding: "2px 8px", fontSize: 11 }} onClick={onEdit}>{t("edit")}</button>
-        <button
-          className="chip"
-          style={{ padding: "2px 8px", fontSize: 11 }}
-          onClick={async () => {
-            if (await confirm({ title: t("removeTitle"), message: t("removeMsg", { name: item.name }), confirmLabel: t("remove") })) onRemove();
-          }}
-        >
-          {t("remove")}
-        </button>
+      <div style={{ borderTop: "1px solid var(--border)", padding: "9px 13px", display: "flex", justifyContent: "space-between", gap: 12 }}>
+        <Field label={t("amountLabel", "Amount")} value={fmt(conv(money(item.amount, cur)))} />
+        <Field label={t("perMonthLabel", "Per month")} align="right" value={fmt(conv(money(monthly, cur)))} />
       </div>
     </div>
   );

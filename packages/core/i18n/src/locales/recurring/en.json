@@ -49,5 +49,7 @@
   "triageCta_other": "Save all {{count}}",
   "triageSaving": "Saving…",
   "cancel": "Cancel",
-  "create": "Create"
+  "create": "Create",
+  "amountLabel": "Amount",
+  "perMonthLabel": "Per month"
 }

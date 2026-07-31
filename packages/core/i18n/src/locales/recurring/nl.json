@@ -49,5 +49,7 @@
   "triageCta_other": "Alle {{count}} opslaan",
   "triageSaving": "Opslaan…",
   "cancel": "Annuleren",
-  "create": "Aanmaken"
+  "create": "Aanmaken",
+  "amountLabel": "Bedrag",
+  "perMonthLabel": "Per maand"
 }
