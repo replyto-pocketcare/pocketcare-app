@@ -93,11 +93,21 @@ class BudgetRepository(private val db: PowerSyncDatabase) {
         val ors = mutableListOf<String>()
         if (catIds.isNotEmpty()) {
             ors += "t.category_id IN (${catIds.joinToString(",") { "?" }})"
-            params += catIds
+            // .addAll(), not += : `params += catIds` is ambiguous between
+            // MutableCollection's plusAssign(element) (treating the whole
+            // List<String> as ONE Any? element, since List<out E> is
+            // covariant so List<String> conforms to Any?) and
+            // plusAssign(elements: Iterable<T>) (spreading it) -- real
+            // ./gradlew compile error confirmed the compiler resolves this
+            // ambiguity by falling back to the non-mutating `plus` operator
+            // and trying to reassign the `val`, which fails outright
+            // ("'val' cannot be reassigned"). addAll() has no such
+            // ambiguity: it's a single, unambiguous member function.
+            params.addAll(catIds)
         }
         if (labelIds.isNotEmpty()) {
             ors += "EXISTS (SELECT 1 FROM transaction_labels tl WHERE tl.transaction_id = t.id AND tl.label_id IN (${labelIds.joinToString(",") { "?" }}))"
-            params += labelIds
+            params.addAll(labelIds)
         }
         if (ors.isNotEmpty()) where += "(${ors.joinToString(" OR ")})"
 
