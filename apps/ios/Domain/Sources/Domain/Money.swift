@@ -154,7 +154,12 @@ public func sum(_ items: [Money], currency: String? = nil) throws -> Money {
         guard let currency else {
             throw MoneyError(description: "sum() of empty list needs a currency")
         }
-        return money(0, currency)
+        // Int64(0), not the bare literal 0 -- an untyped integer literal is
+        // ambiguous between the money(Int64,_) and money(Double,_) throws
+        // overloads (both conform to ExpressibleByIntegerLiteral), which
+        // Swift reports as "Ambiguous use of 'money'" -- a real error the
+        // first xcodebuild attempt against this file surfaced.
+        return money(Int64(0), currency)
     }
     var acc = items[0]
     for m in items.dropFirst() {
