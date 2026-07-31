@@ -86,7 +86,7 @@ jobs:
       # validation if preferred — not required either way.
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.13"
+          gradle-version: "9.4.1"
       - name: Build + test :app and :domain
         working-directory: apps/android
         run: gradle build test --no-daemon

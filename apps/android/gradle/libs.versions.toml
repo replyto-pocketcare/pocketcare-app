@@ -1,23 +1,23 @@
 # Version catalog. Versions below were verified against
 # developer.android.com/build/releases/about-agp (compatibility table) and
-# search on 2026-07-31 — see apps/android/README.md "Version audit" note for
-# the reasoning. CHECK FOR NEWER STABLE RELEASES before relying on this
-# long-term (plan §2: "latest stable at execution time — executors check
-# versions, don't assume"). Bump via Android Studio's AGP Upgrade Assistant
-# or by hand; this file is the single place versions live.
+# developer.android.com/build/migrate-to-built-in-kotlin on 2026-07-31 — see
+# apps/android/README.md "Version audit" note for the reasoning. CHECK FOR
+# NEWER STABLE RELEASES before relying on this long-term (plan §2: "latest
+# stable at execution time — executors check versions, don't assume"). Bump
+# via Android Studio's AGP Upgrade Assistant or by hand; this file is the
+# single place versions live.
 #
-# Deliberately stayed on the AGP 8.x line (8.13.0) rather than jumping to the
-# 9.x line (9.2.0 latest at audit time): AGP 9.0+ introduces "built-in
-# Kotlin" and drops the separate kotlin-android plugin, a structural DSL
-# migration that can't be verified in this sandbox (no JDK/Gradle). AGP
-# 8.13.0 is current within the 8.x line, keeps the familiar kotlin-android +
-# kotlinOptions{} shape already in app/build.gradle.kts, and its minimum
-# Gradle requirement (8.13, exact match) is a small, well-documented step up
-# from the previous pin (8.7). Revisit the 9.x jump as a deliberate,
-# separately-verified task once a human can actually run a build.
+# On AGP 9.x now (9.2.0 — the newest version with a fully documented Gradle
+# minimum at audit time; 9.3 exists but developer.android.com's own
+# compatibility table hadn't listed its minimum Gradle version yet, so it
+# wasn't used here). AGP 9.0+ ships "built-in Kotlin": the separate
+# kotlin-android plugin is gone (see the migration guide URL above) — :app's
+# build file no longer applies `kotlin.android` at all. `kotlin` here is
+# still needed for :domain's plain `kotlin.jvm` plugin (unaffected, it's not
+# an Android module) and for the `compose.compiler` plugin's version.
 
 [versions]
-agp = "8.13.0"
+agp = "9.2.0"
 kotlin = "2.4.10"
 composeBom = "2026.06.00"
 activityCompose = "1.9.3"
@@ -39,6 +39,10 @@ kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+# kotlin-android (org.jetbrains.kotlin.android) intentionally removed here —
+# AGP 9.0+ built-in Kotlin replaces it for Android modules; applying it
+# alongside AGP 9.x is now a hard error ("no longer required for Kotlin
+# support since AGP 9.0"). :domain still gets Kotlin via kotlin-jvm below,
+# unaffected since it's a plain JVM module, not an Android one.
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

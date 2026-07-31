@@ -1,8 +1,8 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
+// No kotlin.android plugin: AGP 9.0+ built-in Kotlin compiles :app's Kotlin
+// sources without it (see gradle/libs.versions.toml). Applying kotlin.android
+// alongside AGP 9.x is now a hard error.
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
 }
 
@@ -38,17 +38,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // No explicit kotlin.compilerOptions.jvmTarget block: under built-in
+    // Kotlin (AGP 9.0+) it defaults from compileOptions.targetCompatibility
+    // above (17), per developer.android.com/build/migrate-to-built-in-kotlin
+    // step 3. Setting it separately would just be a second place to keep in
+    // sync — and the old kotlinOptions{} setter it used to need is now a
+    // hard compile error anyway.
     buildFeatures {
         compose = true
-    }
-}
-
-// kotlinOptions { jvmTarget = "17" } is a hard error as of this Kotlin
-// Gradle plugin version ("Using 'jvmTarget: String' is an error. Please
-// migrate to the compilerOptions DSL") — this is the replacement.
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

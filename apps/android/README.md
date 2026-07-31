@@ -12,7 +12,7 @@ something safe to hand-write. **Before anything else will build:**
 
 ```bash
 cd apps/android
-gradle wrapper --gradle-version 8.13
+gradle wrapper --gradle-version 9.4.1
 git add gradlew gradlew.bat gradle/wrapper/
 git commit -m "mobile(P0.2): add Gradle wrapper"
 ```
@@ -47,21 +47,28 @@ target layout) — not created yet, to keep this task's diff reviewable.
   decisions.
 - Kotlin/AGP/Compose BOM versions in `gradle/libs.versions.toml` were
   verified against developer.android.com's AGP/Gradle compatibility table
-  and web search on 2026-07-31 (AGP 8.13.0, Kotlin 2.4.10, Compose BOM
-  2026.06.00, Gradle 8.13) — check for newer stable releases before
-  shipping, they will drift again.
+  and migration guide on 2026-07-31 (AGP 9.2.0, Kotlin 2.4.10, Compose BOM
+  2026.06.00, Gradle 9.4.1 — the exact documented minimum for AGP 9.2.0) —
+  check for newer stable releases before shipping, they will drift again.
+  AGP 9.3 existed at audit time too but developer.android.com's own
+  compatibility table hadn't published its minimum Gradle version yet, so
+  9.2.0 (fully documented) was used instead of guessing.
 - **Gradle/AGP version pairing matters.** AGP versions don't move in
   lockstep with their minimum required Gradle version — always check
   developer.android.com/build/releases/about-agp before bumping `agp` in
-  the version catalog. History here: AGP 8.6.0 required Gradle >= 8.7 (an
-  earlier draft shipped 8.6 and failed with "Minimum supported Gradle
-  version is 8.7"); the wrapper and `agp` were then bumped together to
-  8.13.0 / Gradle 8.13 (exact minimum match).
-- **Deliberately stayed on AGP 8.x, not 9.x.** AGP 9.0+ ships "built-in
-  Kotlin" and drops the separate `kotlin-android` plugin — a real DSL
-  migration (see developer.android.com/build/migrate-to-built-in-kotlin)
-  that this sandbox has no way to verify (no JDK/Gradle to actually build
-  with). 8.13.0 is current within the 8.x line and keeps the
-  already-working `kotlin-android` + `kotlinOptions{}` shape. Treat the 9.x
-  jump as its own, separately-verified task once a human can run a real
-  build.
+  the version catalog. History here: AGP 8.6.0 required Gradle >= 8.7, then
+  8.13.0/Gradle 8.13, then (this round) AGP 9.2.0/Gradle 9.4.1 — three real
+  version bumps in one build-fix session, each caught by an actual local
+  build rather than guessed.
+- **On AGP 9.x now — built-in Kotlin is live.** AGP 9.0+ compiles Kotlin
+  without the separate `kotlin-android` plugin (applying it alongside AGP
+  9.x is a hard error: "no longer required for Kotlin support since AGP
+  9.0"). `app/build.gradle.kts` no longer applies `kotlin.android` or sets
+  `kotlinOptions{}`/`compilerOptions{}` — `jvmTarget` now defaults from
+  `android.compileOptions.targetCompatibility` (17) per
+  developer.android.com/build/migrate-to-built-in-kotlin. `:domain` is
+  unaffected (plain `kotlin.jvm` module, not an Android one, so built-in
+  Kotlin doesn't apply to it). This was deliberately deferred during the
+  first scaffold pass (couldn't verify a structural migration blind in a
+  sandbox with no JDK/Gradle) and only done once a human had a real,
+  iterating build to catch mistakes against.
