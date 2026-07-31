@@ -1,0 +1,153 @@
+[
+  {
+    "fn": "averageSettleDays",
+    "input": {
+      "debts": [
+        {
+          "at": "2026-01-01",
+          "amount": 500
+        },
+        {
+          "at": "2026-01-10",
+          "amount": 300
+        }
+      ],
+      "payments": [
+        {
+          "at": "2026-01-05",
+          "amount": 500
+        },
+        {
+          "at": "2026-02-10",
+          "amount": 300
+        }
+      ]
+    },
+    "expected": {
+      "avgDays": 14.125,
+      "clearedCount": 2
+    }
+  },
+  {
+    "fn": "averageSettleDays",
+    "input": {
+      "debts": [],
+      "payments": []
+    },
+    "expected": {
+      "avgDays": null,
+      "clearedCount": 0
+    }
+  },
+  {
+    "fn": "averageSettleDays",
+    "input": {
+      "debts": [
+        {
+          "at": "2026-01-10",
+          "amount": 100
+        }
+      ],
+      "payments": [
+        {
+          "at": "2026-01-01",
+          "amount": 100
+        }
+      ]
+    },
+    "expected": {
+      "avgDays": null,
+      "clearedCount": 0
+    }
+  },
+  {
+    "fn": "computeFriendStats",
+    "input": {
+      "edges": [
+        {
+          "friendId": "f1",
+          "groupId": "g1",
+          "at": "2026-01-01T00:00:00Z",
+          "amount": 500
+        },
+        {
+          "friendId": "f1",
+          "groupId": "g1",
+          "at": "2026-01-10T00:00:00Z",
+          "amount": 300
+        },
+        {
+          "friendId": "f2",
+          "groupId": "g2",
+          "at": "2026-01-05T00:00:00Z",
+          "amount": -200
+        }
+      ],
+      "settlements": [
+        {
+          "friendId": "f1",
+          "at": "2026-01-15T00:00:00Z",
+          "amount": 500
+        }
+      ],
+      "contributions": null
+    },
+    "expected": [
+      {
+        "friendId": "f1",
+        "net": 300,
+        "youCovered": 800,
+        "theyCovered": 0,
+        "lent": 0,
+        "borrowed": 0,
+        "groups": 1,
+        "groupsOwing": 1,
+        "groupsOwed": 0,
+        "expenses": 2,
+        "avgSettleDays": 14,
+        "settledDebts": 1
+      },
+      {
+        "friendId": "f2",
+        "net": -200,
+        "youCovered": 0,
+        "theyCovered": 200,
+        "lent": 0,
+        "borrowed": 0,
+        "groups": 1,
+        "groupsOwing": 0,
+        "groupsOwed": 1,
+        "expenses": 1,
+        "avgSettleDays": null,
+        "settledDebts": 0
+      }
+    ]
+  },
+  {
+    "fn": "pickFriendInsights",
+    "input": {
+      "stats": "computeFriendStats(edges,settlements) above"
+    },
+    "expected": [
+      {
+        "key": "owes_you_most",
+        "friendId": "f1",
+        "value": 300,
+        "evidence": 2
+      },
+      {
+        "key": "you_owe_most",
+        "friendId": "f2",
+        "value": 200,
+        "evidence": 1
+      }
+    ]
+  },
+  {
+    "fn": "pickFriendInsights",
+    "input": {
+      "stats": []
+    },
+    "expected": []
+  }
+]

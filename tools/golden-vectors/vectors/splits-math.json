@@ -1,0 +1,106 @@
+[
+  {
+    "fn": "pairwiseEdges",
+    "input": {
+      "parties": [
+        {
+          "userId": "me",
+          "share": 400,
+          "paid": 1000
+        },
+        {
+          "userId": "f1",
+          "share": 400,
+          "paid": 0
+        },
+        {
+          "userId": "f2",
+          "share": 200,
+          "paid": 0
+        }
+      ],
+      "selfId": "me"
+    },
+    "expected": [
+      {
+        "userId": "f1",
+        "amount": 400
+      },
+      {
+        "userId": "f2",
+        "amount": 200
+      }
+    ]
+  },
+  {
+    "fn": "pairwiseEdges",
+    "input": {
+      "parties": [
+        {
+          "userId": "me",
+          "share": 100,
+          "paid": 0
+        }
+      ],
+      "selfId": "me"
+    },
+    "expected": []
+  },
+  {
+    "fn": "pairwiseEdges",
+    "input": {
+      "parties": [
+        {
+          "userId": "me",
+          "share": 0,
+          "paid": 0
+        },
+        {
+          "userId": "f1",
+          "share": 0,
+          "paid": 0
+        }
+      ],
+      "selfId": "me"
+    },
+    "expected": [
+      {
+        "userId": "f1",
+        "amount": 0
+      }
+    ]
+  },
+  {
+    "fn": "pairwiseEdges",
+    "input": {
+      "parties": [
+        {
+          "userId": "me",
+          "share": 300,
+          "paid": 600
+        },
+        {
+          "userId": "f1",
+          "share": 300,
+          "paid": 400
+        },
+        {
+          "userId": "f2",
+          "share": 300,
+          "paid": 0
+        }
+      ],
+      "selfId": "me"
+    },
+    "expected": [
+      {
+        "userId": "f1",
+        "amount": 60
+      },
+      {
+        "userId": "f2",
+        "amount": 240
+      }
+    ]
+  }
+]

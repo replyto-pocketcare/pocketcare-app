@@ -1,0 +1,928 @@
+[
+  {
+    "fn": "groupIntoLines",
+    "input": {
+      "tokens": [
+        {
+          "text": "Paneer",
+          "x0": 0,
+          "x1": 40,
+          "y0": 0,
+          "y1": 10,
+          "confidence": 92
+        },
+        {
+          "text": "Tikka",
+          "x0": 42,
+          "x1": 70,
+          "y0": 0,
+          "y1": 10,
+          "confidence": 90
+        },
+        {
+          "text": "320.00",
+          "x0": 150,
+          "x1": 190,
+          "y0": 1,
+          "y1": 9,
+          "confidence": 95
+        },
+        {
+          "text": "Butter",
+          "x0": 0,
+          "x1": 35,
+          "y0": 20,
+          "y1": 30,
+          "confidence": 88
+        },
+        {
+          "text": "Naan",
+          "x0": 37,
+          "x1": 65,
+          "y0": 20,
+          "y1": 30,
+          "confidence": 87
+        },
+        {
+          "text": "180.00",
+          "x0": 150,
+          "x1": 190,
+          "y0": 21,
+          "y1": 29,
+          "confidence": 90
+        }
+      ]
+    },
+    "expected": [
+      {
+        "text": "Paneer Tikka 320.00",
+        "tokens": [
+          {
+            "text": "Paneer",
+            "x0": 0,
+            "x1": 40,
+            "y0": 0,
+            "y1": 10,
+            "confidence": 92
+          },
+          {
+            "text": "Tikka",
+            "x0": 42,
+            "x1": 70,
+            "y0": 0,
+            "y1": 10,
+            "confidence": 90
+          },
+          {
+            "text": "320.00",
+            "x0": 150,
+            "x1": 190,
+            "y0": 1,
+            "y1": 9,
+            "confidence": 95
+          }
+        ],
+        "y": 5,
+        "confidence": 92
+      },
+      {
+        "text": "Butter Naan 180.00",
+        "tokens": [
+          {
+            "text": "Butter",
+            "x0": 0,
+            "x1": 35,
+            "y0": 20,
+            "y1": 30,
+            "confidence": 88
+          },
+          {
+            "text": "Naan",
+            "x0": 37,
+            "x1": 65,
+            "y0": 20,
+            "y1": 30,
+            "confidence": 87
+          },
+          {
+            "text": "180.00",
+            "x0": 150,
+            "x1": 190,
+            "y0": 21,
+            "y1": 29,
+            "confidence": 90
+          }
+        ],
+        "y": 25,
+        "confidence": 88
+      }
+    ]
+  },
+  {
+    "fn": "groupIntoLines",
+    "input": {
+      "tokens": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "linesFromText",
+    "input": {
+      "text": "Line one\nLine two\n\nLine three",
+      "confidence": 100
+    },
+    "expected": [
+      {
+        "text": "Line one",
+        "tokens": [],
+        "y": 0,
+        "confidence": 100
+      },
+      {
+        "text": "Line two",
+        "tokens": [],
+        "y": 1,
+        "confidence": 100
+      },
+      {
+        "text": "Line three",
+        "tokens": [],
+        "y": 3,
+        "confidence": 100
+      }
+    ]
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "indian-restaurant-gst-and-service-charge",
+      "text": "\nSPICE GARDEN RESTAURANT\n12 MG Road, Bengaluru 560001\nGSTIN: 29AABCS1234F1Z5\nTax Invoice\nBill No: 4471          Table: 12\nDate: 25/07/2026  Time: 21:14\n--------------------------------\nItem              Qty   Amount\n--------------------------------\nPaneer Tikka        1    320.00\nButter Naan         4    180.00\nCold Coffee         2    120.00\nVeg Biryani         1    280.00\n--------------------------------\nSub Total                900.00\nService Charge 5%         45.00\nCGST 2.5%                 23.63\nSGST 2.5%                 23.63\n--------------------------------\nGrand Total              992.26\n--------------------------------\nCash                    1000.00\nChange                     7.74\nThank you! Visit again\n",
+      "currency": "INR",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "SPICE GARDEN RESTAURANT",
+      "occurredAt": "2026-07-25",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Paneer Tikka",
+          "quantity": 1000,
+          "unit": null,
+          "unitPrice": 32000,
+          "amount": 32000,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Butter Naan",
+          "quantity": 4000,
+          "unit": null,
+          "unitPrice": 4500,
+          "amount": 18000,
+          "confidence": 100
+        },
+        {
+          "id": "l2",
+          "kind": "item",
+          "description": "Cold Coffee",
+          "quantity": 2000,
+          "unit": null,
+          "unitPrice": 6000,
+          "amount": 12000,
+          "confidence": 100
+        },
+        {
+          "id": "l3",
+          "kind": "item",
+          "description": "Veg Biryani",
+          "quantity": 1000,
+          "unit": null,
+          "unitPrice": 28000,
+          "amount": 28000,
+          "confidence": 100
+        },
+        {
+          "id": "l4",
+          "kind": "service_charge",
+          "description": "Service Charge 5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 4500,
+          "confidence": 100
+        },
+        {
+          "id": "l5",
+          "kind": "tax",
+          "description": "CGST 2.5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 2363,
+          "confidence": 100
+        },
+        {
+          "id": "l6",
+          "kind": "tax",
+          "description": "SGST 2.5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 2363,
+          "confidence": 100
+        }
+      ],
+      "total": 99226,
+      "confidence": 100,
+      "engine": "pdf_text",
+      "rawText": "SPICE GARDEN RESTAURANT\n12 MG Road, Bengaluru 560001\nGSTIN: 29AABCS1234F1Z5\nTax Invoice\nBill No: 4471 Table: 12\nDate: 25/07/2026 Time: 21:14\n--------------------------------\nItem Qty Amount\n--------------------------------\nPaneer Tikka 1 320.00\nButter Naan 4 180.00\nCold Coffee 2 120.00\nVeg Biryani 1 280.00\n--------------------------------\nSub Total 900.00\nService Charge 5% 45.00\nCGST 2.5% 23.63\nSGST 2.5% 23.63\n--------------------------------\nGrand Total 992.26\n--------------------------------\nCash 1000.00\nChange 7.74\nThank you! Visit again"
+    }
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "grocery-qty-rate-amount-columns",
+      "text": "\nFRESH MART SUPERMARKET\nShop 4, Sector 18\nGST No 27AAAAA0000A1Z0\nDate 12/06/2026\nDescription        Qty   Rate   Amount\nBasmati Rice 5 kg    1  450.00  450.00\nToor Dal             2   95.50  191.00\nAmul Milk 1L         3   68.00  204.00\nSunflower Oil        1  185.00  185.00\nBritannia Bread      2   45.00   90.00\nTotal Qty: 9\nSub Total                       1120.00\nDiscount                          50.00\nCGST                              26.25\nSGST                              26.25\nGrand Total                     1122.50\nPaid by UPI\n",
+      "currency": "INR",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "FRESH MART SUPERMARKET",
+      "occurredAt": "2026-06-12",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Basmati Rice 5 kg",
+          "quantity": 1000,
+          "unit": "kg",
+          "unitPrice": 45000,
+          "amount": 45000,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Toor Dal",
+          "quantity": 2000,
+          "unit": null,
+          "unitPrice": 9550,
+          "amount": 19100,
+          "confidence": 100
+        },
+        {
+          "id": "l2",
+          "kind": "item",
+          "description": "Amul Milk 1L",
+          "quantity": 3000,
+          "unit": "l",
+          "unitPrice": 6800,
+          "amount": 20400,
+          "confidence": 100
+        },
+        {
+          "id": "l3",
+          "kind": "item",
+          "description": "Sunflower Oil",
+          "quantity": 1000,
+          "unit": null,
+          "unitPrice": 18500,
+          "amount": 18500,
+          "confidence": 100
+        },
+        {
+          "id": "l4",
+          "kind": "item",
+          "description": "Britannia Bread",
+          "quantity": 2000,
+          "unit": null,
+          "unitPrice": 4500,
+          "amount": 9000,
+          "confidence": 100
+        },
+        {
+          "id": "l5",
+          "kind": "discount",
+          "description": "Discount",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": -5000,
+          "confidence": 100
+        },
+        {
+          "id": "l6",
+          "kind": "tax",
+          "description": "CGST",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 2625,
+          "confidence": 100
+        },
+        {
+          "id": "l7",
+          "kind": "tax",
+          "description": "SGST",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 2625,
+          "confidence": 100
+        }
+      ],
+      "total": 112250,
+      "confidence": 100,
+      "engine": "pdf_text",
+      "rawText": "FRESH MART SUPERMARKET\nShop 4, Sector 18\nGST No 27AAAAA0000A1Z0\nDate 12/06/2026\nDescription Qty Rate Amount\nBasmati Rice 5 kg 1 450.00 450.00\nToor Dal 2 95.50 191.00\nAmul Milk 1L 3 68.00 204.00\nSunflower Oil 1 185.00 185.00\nBritannia Bread 2 45.00 90.00\nTotal Qty: 9\nSub Total 1120.00\nDiscount 50.00\nCGST 26.25\nSGST 26.25\nGrand Total 1122.50\nPaid by UPI"
+    }
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "cafe-with-tip-usd",
+      "text": "\nTHE CORNER CAFE\nDate: 03/04/2026\nFlat White             $4.50\nAlmond Croissant       $3.75\nAvocado Toast          $9.00\nSubtotal              $17.25\nTax                    $1.55\nTip                    $3.45\nTotal                 $22.25\nVisa ****4412\n",
+      "currency": "USD",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "THE CORNER CAFE",
+      "occurredAt": "2026-04-03",
+      "currency": "USD",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Flat White",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 450,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Almond Croissant",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 375,
+          "confidence": 100
+        },
+        {
+          "id": "l2",
+          "kind": "item",
+          "description": "Avocado Toast",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 900,
+          "confidence": 100
+        },
+        {
+          "id": "l3",
+          "kind": "tax",
+          "description": "Tax",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 155,
+          "confidence": 100
+        },
+        {
+          "id": "l4",
+          "kind": "tip",
+          "description": "Tip",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 345,
+          "confidence": 100
+        }
+      ],
+      "total": 2225,
+      "confidence": 100,
+      "engine": "pdf_text",
+      "rawText": "THE CORNER CAFE\nDate: 03/04/2026\nFlat White $4.50\nAlmond Croissant $3.75\nAvocado Toast $9.00\nSubtotal $17.25\nTax $1.55\nTip $3.45\nTotal $22.25\nVisa ****4412"
+    }
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "kirana-x-quantity-notation",
+      "text": "\nSHREE BALAJI STORES\n25-07-2026\n2 x Maggi Noodles        28.00\n1 x Tata Salt            26.00\n3 x Parle-G Biscuit      30.00\n1.5 kg Onion             45.00\nTotal                   129.00\n",
+      "currency": "INR",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "SHREE BALAJI STORES",
+      "occurredAt": "2026-07-25",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Maggi Noodles",
+          "quantity": 2000,
+          "unit": null,
+          "unitPrice": 1400,
+          "amount": 2800,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Tata Salt",
+          "quantity": 1000,
+          "unit": null,
+          "unitPrice": 2600,
+          "amount": 2600,
+          "confidence": 100
+        },
+        {
+          "id": "l2",
+          "kind": "item",
+          "description": "Parle-G Biscuit",
+          "quantity": 3000,
+          "unit": null,
+          "unitPrice": 1000,
+          "amount": 3000,
+          "confidence": 100
+        },
+        {
+          "id": "l3",
+          "kind": "item",
+          "description": "Onion",
+          "quantity": 1500,
+          "unit": "kg",
+          "unitPrice": 3000,
+          "amount": 4500,
+          "confidence": 100
+        }
+      ],
+      "total": 12900,
+      "confidence": 100,
+      "engine": "pdf_text",
+      "rawText": "SHREE BALAJI STORES\n25-07-2026\n2 x Maggi Noodles 28.00\n1 x Tata Salt 26.00\n3 x Parle-G Biscuit 30.00\n1.5 kg Onion 45.00\nTotal 129.00"
+    }
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "round-off-adjustment",
+      "text": "\nQUICK BITE\nDate 01/07/2026\nMasala Dosa            120.00\nFilter Coffee           40.00\nSub Total              160.00\nCGST 2.5%                4.00\nSGST 2.5%                4.00\nRound Off                0.60\nGrand Total            168.60\n",
+      "currency": "INR",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "QUICK BITE",
+      "occurredAt": "2026-07-01",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Masala Dosa",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 12000,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Filter Coffee",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 4000,
+          "confidence": 100
+        },
+        {
+          "id": "l2",
+          "kind": "tax",
+          "description": "CGST 2.5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 400,
+          "confidence": 100
+        },
+        {
+          "id": "l3",
+          "kind": "tax",
+          "description": "SGST 2.5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 400,
+          "confidence": 100
+        },
+        {
+          "id": "l4",
+          "kind": "item",
+          "description": "Round Off",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 60,
+          "confidence": 100
+        }
+      ],
+      "total": 16860,
+      "confidence": 100,
+      "engine": "pdf_text",
+      "rawText": "QUICK BITE\nDate 01/07/2026\nMasala Dosa 120.00\nFilter Coffee 40.00\nSub Total 160.00\nCGST 2.5% 4.00\nSGST 2.5% 4.00\nRound Off 0.60\nGrand Total 168.60"
+    }
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "no-total-printed-derives-from-subtotal",
+      "text": "\nSTREET FOOD CORNER\nPav Bhaji               90.00\nVada Pav                30.00\nSub Total              120.00\n",
+      "currency": "INR",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "STREET FOOD CORNER",
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Pav Bhaji",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 9000,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Vada Pav",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 3000,
+          "confidence": 100
+        }
+      ],
+      "total": 12000,
+      "confidence": 100,
+      "engine": "pdf_text",
+      "rawText": "STREET FOOD CORNER\nPav Bhaji 90.00\nVada Pav 30.00\nSub Total 120.00"
+    }
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "european-decimal-comma-dutch",
+      "text": "\nCAFE AMSTERDAM\nDatum 14-05-2026\nCappuccino              3,50\nAppeltaart              4,20\nMineraalwater           2,30\nSubtotaal              10,00\nBTW 19%                 1,90\nTotaal                 11,90\n",
+      "currency": "EUR",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "CAFE AMSTERDAM",
+      "occurredAt": "2026-05-14",
+      "currency": "EUR",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Cappuccino",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 350,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Appeltaart",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 420,
+          "confidence": 100
+        },
+        {
+          "id": "l2",
+          "kind": "item",
+          "description": "Mineraalwater",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 230,
+          "confidence": 100
+        },
+        {
+          "id": "l3",
+          "kind": "tax",
+          "description": "BTW 19%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 190,
+          "confidence": 100
+        }
+      ],
+      "total": 1190,
+      "confidence": 100,
+      "engine": "pdf_text",
+      "rawText": "CAFE AMSTERDAM\nDatum 14-05-2026\nCappuccino 3,50\nAppeltaart 4,20\nMineraalwater 2,30\nSubtotaal 10,00\nBTW 19% 1,90\nTotaal 11,90"
+    }
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "delivery-with-packaging-and-discount",
+      "text": "\nURBAN TIFFIN\nOrder No: 88213\nDate: 20/07/2026\nPaneer Roll x2         240.00\nVeg Thali               180.00\nItem Total              420.00\nPackaging Charge         20.00\nDelivery Fee             35.00\nDiscount                 60.00\nGST                      22.75\nGrand Total             437.75\n",
+      "currency": "INR",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "URBAN TIFFIN",
+      "occurredAt": "2026-07-20",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Paneer Roll",
+          "quantity": 2000,
+          "unit": null,
+          "unitPrice": 12000,
+          "amount": 24000,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Veg Thali",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 18000,
+          "confidence": 100
+        },
+        {
+          "id": "l2",
+          "kind": "service_charge",
+          "description": "Packaging Charge",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 2000,
+          "confidence": 100
+        },
+        {
+          "id": "l3",
+          "kind": "service_charge",
+          "description": "Delivery Fee",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 3500,
+          "confidence": 100
+        },
+        {
+          "id": "l4",
+          "kind": "discount",
+          "description": "Discount",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": -6000,
+          "confidence": 100
+        },
+        {
+          "id": "l5",
+          "kind": "tax",
+          "description": "GST",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 2275,
+          "confidence": 100
+        }
+      ],
+      "total": 43775,
+      "confidence": 100,
+      "engine": "pdf_text",
+      "rawText": "URBAN TIFFIN\nOrder No: 88213\nDate: 20/07/2026\nPaneer Roll x2 240.00\nVeg Thali 180.00\nItem Total 420.00\nPackaging Charge 20.00\nDelivery Fee 35.00\nDiscount 60.00\nGST 22.75\nGrand Total 437.75"
+    }
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "noisy-ocr-artifacts",
+      "text": "\n~~~~ HOTEL SANGAM ~~~~\nPh: 080-4455 6677\nFSSAI 12345678901234\nDate : 18/07/2026\n================================\nChicken Biryani     1    340.00\nRaita               1     60.00\n================================\nSub Total                400.00\nService Charge            40.00\nCGST 2.5%                 11.00\nSGST 2.5%                 11.00\n================================\nTOTAL                    462.00\n================================\nPayment Mode : Card\nCustomer Copy\n",
+      "currency": "INR",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "~~~~ HOTEL SANGAM ~~~~",
+      "occurredAt": "2026-07-18",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Chicken Biryani",
+          "quantity": 1000,
+          "unit": null,
+          "unitPrice": 34000,
+          "amount": 34000,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Raita",
+          "quantity": 1000,
+          "unit": null,
+          "unitPrice": 6000,
+          "amount": 6000,
+          "confidence": 100
+        },
+        {
+          "id": "l2",
+          "kind": "service_charge",
+          "description": "Service Charge",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 4000,
+          "confidence": 100
+        },
+        {
+          "id": "l3",
+          "kind": "tax",
+          "description": "CGST 2.5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 1100,
+          "confidence": 100
+        },
+        {
+          "id": "l4",
+          "kind": "tax",
+          "description": "SGST 2.5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 1100,
+          "confidence": 100
+        }
+      ],
+      "total": 46200,
+      "confidence": 100,
+      "engine": "pdf_text",
+      "rawText": "~~~~ HOTEL SANGAM ~~~~\nPh: 080-4455 6677\nFSSAI 12345678901234\nDate : 18/07/2026\n================================\nChicken Biryani 1 340.00\nRaita 1 60.00\n================================\nSub Total 400.00\nService Charge 40.00\nCGST 2.5% 11.00\nSGST 2.5% 11.00\n================================\nTOTAL 462.00\n================================\nPayment Mode : Card\nCustomer Copy"
+    }
+  },
+  {
+    "fn": "parseReceiptText",
+    "input": {
+      "fixture": "mismatch-must-not-silently-balance",
+      "text": "\nBROKEN PRINT CAFE\nDate 10/07/2026\nSandwich               150.00\nJuice                   80.00\nGrand Total            300.00\n",
+      "currency": "INR",
+      "today": "2026-07-31"
+    },
+    "expected": {
+      "merchant": "BROKEN PRINT CAFE",
+      "occurredAt": "2026-07-10",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l0",
+          "kind": "item",
+          "description": "Sandwich",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 15000,
+          "confidence": 100
+        },
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Juice",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 8000,
+          "confidence": 100
+        }
+      ],
+      "total": 30000,
+      "confidence": 70,
+      "engine": "pdf_text",
+      "rawText": "BROKEN PRINT CAFE\nDate 10/07/2026\nSandwich 150.00\nJuice 80.00\nGrand Total 300.00"
+    }
+  },
+  {
+    "fn": "parseReceipt",
+    "input": {
+      "fixture": "indian-restaurant-gst-and-service-charge",
+      "lines": "linesFromText(fixture.text)",
+      "opts": {
+        "currency": "INR",
+        "today": "2026-07-31",
+        "idPrefix": "x"
+      }
+    },
+    "expected": {
+      "merchant": "SPICE GARDEN RESTAURANT",
+      "occurredAt": "2026-07-25",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "x0",
+          "kind": "item",
+          "description": "Paneer Tikka",
+          "quantity": 1000,
+          "unit": null,
+          "unitPrice": 32000,
+          "amount": 32000,
+          "confidence": 100
+        },
+        {
+          "id": "x1",
+          "kind": "item",
+          "description": "Butter Naan",
+          "quantity": 4000,
+          "unit": null,
+          "unitPrice": 4500,
+          "amount": 18000,
+          "confidence": 100
+        },
+        {
+          "id": "x2",
+          "kind": "item",
+          "description": "Cold Coffee",
+          "quantity": 2000,
+          "unit": null,
+          "unitPrice": 6000,
+          "amount": 12000,
+          "confidence": 100
+        },
+        {
+          "id": "x3",
+          "kind": "item",
+          "description": "Veg Biryani",
+          "quantity": 1000,
+          "unit": null,
+          "unitPrice": 28000,
+          "amount": 28000,
+          "confidence": 100
+        },
+        {
+          "id": "x4",
+          "kind": "service_charge",
+          "description": "Service Charge 5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 4500,
+          "confidence": 100
+        },
+        {
+          "id": "x5",
+          "kind": "tax",
+          "description": "CGST 2.5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 2363,
+          "confidence": 100
+        },
+        {
+          "id": "x6",
+          "kind": "tax",
+          "description": "SGST 2.5%",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 2363,
+          "confidence": 100
+        }
+      ],
+      "total": 99226,
+      "confidence": 100,
+      "engine": "tesseract",
+      "rawText": "SPICE GARDEN RESTAURANT\n12 MG Road, Bengaluru 560001\nGSTIN: 29AABCS1234F1Z5\nTax Invoice\nBill No: 4471 Table: 12\nDate: 25/07/2026 Time: 21:14\n--------------------------------\nItem Qty Amount\n--------------------------------\nPaneer Tikka 1 320.00\nButter Naan 4 180.00\nCold Coffee 2 120.00\nVeg Biryani 1 280.00\n--------------------------------\nSub Total 900.00\nService Charge 5% 45.00\nCGST 2.5% 23.63\nSGST 2.5% 23.63\n--------------------------------\nGrand Total 992.26\n--------------------------------\nCash 1000.00\nChange 7.74\nThank you! Visit again"
+    }
+  }
+]

@@ -1,0 +1,556 @@
+[
+  {
+    "fn": "minorUnits",
+    "input": {
+      "currency": "INR"
+    },
+    "expected": 2
+  },
+  {
+    "fn": "minorUnits",
+    "input": {
+      "currency": "JPY"
+    },
+    "expected": 0
+  },
+  {
+    "fn": "minorUnits",
+    "input": {
+      "currency": "BHD"
+    },
+    "expected": 3
+  },
+  {
+    "fn": "money",
+    "input": {
+      "amount": 12345,
+      "currency": "INR"
+    },
+    "expected": {
+      "amount": "12345",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "money",
+    "input": {
+      "amount": -50,
+      "currency": "USD"
+    },
+    "expected": {
+      "amount": "-50",
+      "currency": "USD"
+    }
+  },
+  {
+    "fn": "money",
+    "input": {
+      "amount": 1.5,
+      "currency": "USD"
+    },
+    "throws": {
+      "name": "Error",
+      "message": "Money.amount must be an integer minor-unit value, got 1.5"
+    }
+  },
+  {
+    "fn": "fromMajor",
+    "input": {
+      "value": 12.34,
+      "currency": "USD"
+    },
+    "expected": {
+      "amount": "1234",
+      "currency": "USD"
+    }
+  },
+  {
+    "fn": "fromMajor",
+    "input": {
+      "value": 0.005,
+      "currency": "USD"
+    },
+    "expected": {
+      "amount": "1",
+      "currency": "USD"
+    }
+  },
+  {
+    "fn": "fromMajor",
+    "input": {
+      "value": -0.005,
+      "currency": "USD"
+    },
+    "expected": {
+      "amount": "-1",
+      "currency": "USD"
+    }
+  },
+  {
+    "fn": "fromMajor",
+    "input": {
+      "value": 100,
+      "currency": "JPY"
+    },
+    "expected": {
+      "amount": "100",
+      "currency": "JPY"
+    }
+  },
+  {
+    "fn": "toMajor",
+    "input": {
+      "money": {
+        "amount": 1234,
+        "currency": "INR"
+      }
+    },
+    "expected": 12.34
+  },
+  {
+    "fn": "toMajor",
+    "input": {
+      "money": {
+        "amount": 500,
+        "currency": "JPY"
+      }
+    },
+    "expected": 500
+  },
+  {
+    "fn": "isZero",
+    "input": {
+      "money": {
+        "amount": 0,
+        "currency": "INR"
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "isZero",
+    "input": {
+      "money": {
+        "amount": 1,
+        "currency": "INR"
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "isNegative",
+    "input": {
+      "money": {
+        "amount": -1,
+        "currency": "INR"
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "isNegative",
+    "input": {
+      "money": {
+        "amount": 0,
+        "currency": "INR"
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "add",
+    "input": {
+      "a": {
+        "amount": 100,
+        "currency": "INR"
+      },
+      "b": {
+        "amount": 250,
+        "currency": "INR"
+      }
+    },
+    "expected": {
+      "amount": "350",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "add",
+    "input": {
+      "a": {
+        "amount": 100,
+        "currency": "INR"
+      },
+      "b": {
+        "amount": 250,
+        "currency": "USD"
+      }
+    },
+    "throws": {
+      "name": "CurrencyMismatchError",
+      "message": "Currency mismatch: INR vs USD"
+    }
+  },
+  {
+    "fn": "subtract",
+    "input": {
+      "a": {
+        "amount": 100,
+        "currency": "INR"
+      },
+      "b": {
+        "amount": 250,
+        "currency": "INR"
+      }
+    },
+    "expected": {
+      "amount": "-150",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "negate",
+    "input": {
+      "money": {
+        "amount": 500,
+        "currency": "INR"
+      }
+    },
+    "expected": {
+      "amount": "-500",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "negate",
+    "input": {
+      "money": {
+        "amount": -500,
+        "currency": "INR"
+      }
+    },
+    "expected": {
+      "amount": "500",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "scale",
+    "input": {
+      "money": {
+        "amount": 100,
+        "currency": "INR"
+      },
+      "factor": 1.5
+    },
+    "expected": {
+      "amount": "150",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "scale",
+    "input": {
+      "money": {
+        "amount": 3,
+        "currency": "INR"
+      },
+      "factor": 0.5
+    },
+    "expected": {
+      "amount": "2",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "sum",
+    "input": {
+      "items": [
+        {
+          "amount": 100,
+          "currency": "INR"
+        },
+        {
+          "amount": 250,
+          "currency": "INR"
+        },
+        {
+          "amount": -30,
+          "currency": "INR"
+        }
+      ]
+    },
+    "expected": {
+      "amount": "320",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "sum",
+    "input": {
+      "items": [],
+      "currency": "INR"
+    },
+    "expected": {
+      "amount": "0",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "sum",
+    "input": {
+      "items": [],
+      "currency": null
+    },
+    "throws": {
+      "name": "Error",
+      "message": "sum() of empty list needs a currency"
+    }
+  },
+  {
+    "fn": "convert",
+    "input": {
+      "money": {
+        "amount": 100000,
+        "currency": "USD"
+      },
+      "to": "INR",
+      "rate": 83.12
+    },
+    "expected": {
+      "amount": "8312000",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "convert",
+    "input": {
+      "money": {
+        "amount": 1000,
+        "currency": "INR"
+      },
+      "to": "INR",
+      "rate": 1
+    },
+    "expected": {
+      "amount": "1000",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "convert",
+    "input": {
+      "money": {
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "to": "INR",
+      "rate": 0
+    },
+    "throws": {
+      "name": "Error",
+      "message": "convert() needs a positive rate, got 0"
+    }
+  },
+  {
+    "fn": "split",
+    "input": {
+      "total": {
+        "amount": 1000,
+        "currency": "INR"
+      },
+      "parts": 3
+    },
+    "expected": [
+      {
+        "amount": "334",
+        "currency": "INR"
+      },
+      {
+        "amount": "333",
+        "currency": "INR"
+      },
+      {
+        "amount": "333",
+        "currency": "INR"
+      }
+    ]
+  },
+  {
+    "fn": "split",
+    "input": {
+      "total": {
+        "amount": -1000,
+        "currency": "INR"
+      },
+      "parts": 3
+    },
+    "expected": [
+      {
+        "amount": "-334",
+        "currency": "INR"
+      },
+      {
+        "amount": "-333",
+        "currency": "INR"
+      },
+      {
+        "amount": "-333",
+        "currency": "INR"
+      }
+    ]
+  },
+  {
+    "fn": "split",
+    "input": {
+      "total": {
+        "amount": 100,
+        "currency": "INR"
+      },
+      "parts": 7
+    },
+    "expected": [
+      {
+        "amount": "15",
+        "currency": "INR"
+      },
+      {
+        "amount": "15",
+        "currency": "INR"
+      },
+      {
+        "amount": "14",
+        "currency": "INR"
+      },
+      {
+        "amount": "14",
+        "currency": "INR"
+      },
+      {
+        "amount": "14",
+        "currency": "INR"
+      },
+      {
+        "amount": "14",
+        "currency": "INR"
+      },
+      {
+        "amount": "14",
+        "currency": "INR"
+      }
+    ]
+  },
+  {
+    "fn": "split",
+    "input": {
+      "total": {
+        "amount": 100,
+        "currency": "INR"
+      },
+      "parts": 0
+    },
+    "throws": {
+      "name": "Error",
+      "message": "split() needs a positive integer count, got 0"
+    }
+  },
+  {
+    "fn": "itemsReconcile",
+    "input": {
+      "total": {
+        "amount": 1000,
+        "currency": "INR"
+      },
+      "items": [
+        {
+          "amount": 334,
+          "currency": "INR"
+        },
+        {
+          "amount": 333,
+          "currency": "INR"
+        },
+        {
+          "amount": 333,
+          "currency": "INR"
+        }
+      ]
+    },
+    "expected": true
+  },
+  {
+    "fn": "itemsReconcile",
+    "input": {
+      "total": {
+        "amount": 1000,
+        "currency": "INR"
+      },
+      "items": [
+        {
+          "amount": 500,
+          "currency": "INR"
+        }
+      ]
+    },
+    "expected": false
+  },
+  {
+    "fn": "itemsReconcile",
+    "input": {
+      "total": {
+        "amount": 1000,
+        "currency": "INR"
+      },
+      "items": [
+        {
+          "amount": 1000,
+          "currency": "USD"
+        }
+      ]
+    },
+    "expected": false
+  },
+  {
+    "fn": "itemsReconcile",
+    "input": {
+      "total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "items": []
+    },
+    "expected": true
+  },
+  {
+    "fn": "format",
+    "input": {
+      "money": {
+        "amount": 123456,
+        "currency": "INR"
+      },
+      "locale": "en-IN"
+    },
+    "expected": "₹1,234.56"
+  },
+  {
+    "fn": "format",
+    "input": {
+      "money": {
+        "amount": 123456,
+        "currency": "USD"
+      },
+      "locale": "en-US"
+    },
+    "expected": "$1,234.56"
+  },
+  {
+    "fn": "format",
+    "input": {
+      "money": {
+        "amount": 500,
+        "currency": "JPY"
+      }
+    },
+    "expected": "￥500"
+  }
+]

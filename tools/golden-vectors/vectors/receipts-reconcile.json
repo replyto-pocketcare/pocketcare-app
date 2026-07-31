@@ -1,0 +1,504 @@
+[
+  {
+    "fn": "subtotals",
+    "input": {
+      "lines": [
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Item",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 900,
+          "confidence": 90
+        },
+        {
+          "id": "l2",
+          "kind": "tax",
+          "description": "Tax",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 100,
+          "confidence": 90
+        }
+      ]
+    },
+    "expected": {
+      "items": 900,
+      "tax": 100,
+      "serviceCharge": 0,
+      "tip": 0,
+      "discount": 0,
+      "computed": 1000
+    }
+  },
+  {
+    "fn": "reconcile",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [
+          {
+            "id": "l1",
+            "kind": "item",
+            "description": "Item",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 900,
+            "confidence": 90
+          },
+          {
+            "id": "l2",
+            "kind": "tax",
+            "description": "Tax",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 100,
+            "confidence": 90
+          }
+        ],
+        "total": 1000,
+        "confidence": 90,
+        "engine": "manual"
+      }
+    },
+    "expected": {
+      "ok": true,
+      "reason": "balanced",
+      "computed": 1000,
+      "stated": 1000,
+      "delta": 0,
+      "subtotals": {
+        "items": 900,
+        "tax": 100,
+        "serviceCharge": 0,
+        "tip": 0,
+        "discount": 0,
+        "computed": 1000
+      }
+    }
+  },
+  {
+    "fn": "reconcile",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [
+          {
+            "id": "l1",
+            "kind": "item",
+            "description": "Item",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 900,
+            "confidence": 90
+          },
+          {
+            "id": "l2",
+            "kind": "tax",
+            "description": "Tax",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 100,
+            "confidence": 90
+          }
+        ],
+        "total": 1050,
+        "confidence": 90,
+        "engine": "manual"
+      }
+    },
+    "expected": {
+      "ok": false,
+      "reason": "mismatch",
+      "computed": 1000,
+      "stated": 1050,
+      "delta": 50,
+      "subtotals": {
+        "items": 900,
+        "tax": 100,
+        "serviceCharge": 0,
+        "tip": 0,
+        "discount": 0,
+        "computed": 1000
+      }
+    }
+  },
+  {
+    "fn": "reconcile",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [
+          {
+            "id": "l1",
+            "kind": "item",
+            "description": "Item",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 900,
+            "confidence": 90
+          },
+          {
+            "id": "l2",
+            "kind": "tax",
+            "description": "Tax",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 100,
+            "confidence": 90
+          }
+        ],
+        "total": null,
+        "confidence": 90,
+        "engine": "manual"
+      }
+    },
+    "expected": {
+      "ok": false,
+      "reason": "missing_total",
+      "computed": 1000,
+      "stated": null,
+      "delta": 0,
+      "subtotals": {
+        "items": 900,
+        "tax": 100,
+        "serviceCharge": 0,
+        "tip": 0,
+        "discount": 0,
+        "computed": 1000
+      }
+    }
+  },
+  {
+    "fn": "reconcile",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [],
+        "total": 1000,
+        "confidence": 90,
+        "engine": "manual"
+      }
+    },
+    "expected": {
+      "ok": false,
+      "reason": "no_lines",
+      "computed": 0,
+      "stated": 1000,
+      "delta": 1000,
+      "subtotals": {
+        "items": 0,
+        "tax": 0,
+        "serviceCharge": 0,
+        "tip": 0,
+        "discount": 0,
+        "computed": 0
+      }
+    }
+  },
+  {
+    "fn": "shouldEscalate",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [
+          {
+            "id": "l1",
+            "kind": "item",
+            "description": "Item",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 900,
+            "confidence": 90
+          },
+          {
+            "id": "l2",
+            "kind": "tax",
+            "description": "Tax",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 100,
+            "confidence": 90
+          }
+        ],
+        "total": 1000,
+        "confidence": 90,
+        "engine": "manual"
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldEscalate",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [
+          {
+            "id": "l1",
+            "kind": "item",
+            "description": "Item",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 900,
+            "confidence": 90
+          },
+          {
+            "id": "l2",
+            "kind": "tax",
+            "description": "Tax",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 100,
+            "confidence": 90
+          }
+        ],
+        "total": 1050,
+        "confidence": 90,
+        "engine": "manual"
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "shouldEscalate",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [
+          {
+            "id": "l1",
+            "kind": "item",
+            "description": "Item",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 900,
+            "confidence": 90
+          },
+          {
+            "id": "l2",
+            "kind": "tax",
+            "description": "Tax",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 100,
+            "confidence": 90
+          }
+        ],
+        "total": 1000,
+        "confidence": 10,
+        "engine": "claude"
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldEscalate",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [
+          {
+            "id": "l1",
+            "kind": "item",
+            "description": "Item",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 900,
+            "confidence": 90
+          },
+          {
+            "id": "l2",
+            "kind": "tax",
+            "description": "Tax",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 100,
+            "confidence": 90
+          }
+        ],
+        "total": 1000,
+        "confidence": 40,
+        "engine": "manual"
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "balanceWithLine",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [
+          {
+            "id": "l1",
+            "kind": "item",
+            "description": "Item",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 900,
+            "confidence": 90
+          },
+          {
+            "id": "l2",
+            "kind": "tax",
+            "description": "Tax",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 100,
+            "confidence": 90
+          }
+        ],
+        "total": 1050,
+        "confidence": 90,
+        "engine": "manual"
+      },
+      "id": "fix1",
+      "description": "Rounding"
+    },
+    "expected": {
+      "merchant": "Cafe",
+      "occurredAt": "2026-07-25",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Item",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 900,
+          "confidence": 90
+        },
+        {
+          "id": "l2",
+          "kind": "tax",
+          "description": "Tax",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 100,
+          "confidence": 90
+        },
+        {
+          "id": "fix1",
+          "kind": "item",
+          "description": "Rounding",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 50,
+          "confidence": 0
+        }
+      ],
+      "total": 1050,
+      "confidence": 90,
+      "engine": "manual"
+    }
+  },
+  {
+    "fn": "balanceWithLine",
+    "input": {
+      "draft": {
+        "merchant": "Cafe",
+        "occurredAt": "2026-07-25",
+        "currency": "INR",
+        "lines": [
+          {
+            "id": "l1",
+            "kind": "item",
+            "description": "Item",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 900,
+            "confidence": 90
+          },
+          {
+            "id": "l2",
+            "kind": "tax",
+            "description": "Tax",
+            "quantity": null,
+            "unit": null,
+            "unitPrice": null,
+            "amount": 100,
+            "confidence": 90
+          }
+        ],
+        "total": 1000,
+        "confidence": 90,
+        "engine": "manual"
+      },
+      "id": "fix1",
+      "description": "Rounding"
+    },
+    "expected": {
+      "merchant": "Cafe",
+      "occurredAt": "2026-07-25",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Item",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 900,
+          "confidence": 90
+        },
+        {
+          "id": "l2",
+          "kind": "tax",
+          "description": "Tax",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 100,
+          "confidence": 90
+        }
+      ],
+      "total": 1000,
+      "confidence": 90,
+      "engine": "manual"
+    }
+  }
+]

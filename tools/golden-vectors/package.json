@@ -1,0 +1,10 @@
+{
+  "name": "@pocketcare/golden-vectors",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Exports fixed-corpus vectors from the real packages/core TS implementations, for the native Android/iOS ports (docs/plans/native-mobile-apps.md) to prove byte-identical behavior against.",
+  "scripts": {
+    "export": "node --experimental-strip-types export.ts"
+  }
+}

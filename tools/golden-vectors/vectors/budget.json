@@ -1,0 +1,156 @@
+[
+  {
+    "fn": "periodBounds",
+    "input": {
+      "period": "daily",
+      "date": "2026-07-31T12:00:00Z"
+    },
+    "expected": {
+      "start": "2026-07-31T00:00:00.000Z",
+      "endExclusive": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "fn": "periodBounds",
+    "input": {
+      "period": "weekly",
+      "date": "2026-07-31T12:00:00Z"
+    },
+    "expected": {
+      "start": "2026-07-27T00:00:00.000Z",
+      "endExclusive": "2026-08-03T00:00:00.000Z"
+    }
+  },
+  {
+    "fn": "periodBounds",
+    "input": {
+      "period": "monthly",
+      "date": "2026-07-31T12:00:00Z"
+    },
+    "expected": {
+      "start": "2026-07-01T00:00:00.000Z",
+      "endExclusive": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "fn": "periodBounds",
+    "input": {
+      "period": "yearly",
+      "date": "2026-07-31T12:00:00Z"
+    },
+    "expected": {
+      "start": "2026-01-01T00:00:00.000Z",
+      "endExclusive": "2027-01-01T00:00:00.000Z"
+    }
+  },
+  {
+    "fn": "budgetProgress",
+    "input": {
+      "limit": {
+        "amount": 10000,
+        "currency": "INR"
+      },
+      "spent": {
+        "amount": 8500,
+        "currency": "INR"
+      },
+      "thresholdPct": 80
+    },
+    "expected": {
+      "pct": 85,
+      "remaining": {
+        "amount": "1500",
+        "currency": "INR"
+      },
+      "atOrOverThreshold": true,
+      "overLimit": false
+    }
+  },
+  {
+    "fn": "budgetProgress",
+    "input": {
+      "limit": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "spent": {
+        "amount": 100,
+        "currency": "INR"
+      },
+      "thresholdPct": 80
+    },
+    "expected": {
+      "pct": null,
+      "remaining": {
+        "amount": "-100",
+        "currency": "INR"
+      },
+      "atOrOverThreshold": true,
+      "overLimit": true
+    }
+  },
+  {
+    "fn": "crossedThreshold",
+    "input": {
+      "previousSpent": {
+        "amount": 7000,
+        "currency": "INR"
+      },
+      "newSpent": {
+        "amount": 8500,
+        "currency": "INR"
+      },
+      "limit": {
+        "amount": 10000,
+        "currency": "INR"
+      },
+      "thresholdPct": 80
+    },
+    "expected": true
+  },
+  {
+    "fn": "crossedThreshold",
+    "input": {
+      "previousSpent": {
+        "amount": 8500,
+        "currency": "INR"
+      },
+      "newSpent": {
+        "amount": 9000,
+        "currency": "INR"
+      },
+      "limit": {
+        "amount": 10000,
+        "currency": "INR"
+      },
+      "thresholdPct": 80
+    },
+    "expected": false
+  },
+  {
+    "fn": "billingCycle",
+    "input": {
+      "statementDay": 5,
+      "dueDay": 20,
+      "asOf": "2026-07-31T00:00:00Z"
+    },
+    "expected": {
+      "cycleStart": "2026-07-06T00:00:00.000Z",
+      "statementDate": "2026-08-05T00:00:00.000Z",
+      "dueDate": "2026-08-20T00:00:00.000Z"
+    }
+  },
+  {
+    "fn": "billingCycle",
+    "input": {
+      "statementDay": 31,
+      "dueDay": 15,
+      "asOf": "2026-02-10T00:00:00Z"
+    },
+    "expected": {
+      "cycleStart": "2026-02-01T00:00:00.000Z",
+      "statementDate": "2026-02-28T00:00:00.000Z",
+      "dueDate": "2026-03-15T00:00:00.000Z"
+    }
+  }
+]

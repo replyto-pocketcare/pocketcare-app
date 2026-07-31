@@ -1,0 +1,142 @@
+[
+  {
+    "fn": "rowChecksum",
+    "input": {
+      "row": {
+        "id": "r1",
+        "amount": 100,
+        "note": "a"
+      }
+    },
+    "expected": "4586515961447bde"
+  },
+  {
+    "fn": "rowChecksum",
+    "input": {
+      "row": {
+        "id": "r1",
+        "amount": 100,
+        "note": "a"
+      }
+    },
+    "expected": "4586515961447bde"
+  },
+  {
+    "fn": "rowChecksum",
+    "input": {
+      "row": {
+        "id": "r1",
+        "amount": 100,
+        "note": "a"
+      },
+      "opts": {
+        "ignore": [
+          "note"
+        ]
+      }
+    },
+    "expected": "95355c99d401acc9"
+  },
+  {
+    "fn": "checksum",
+    "input": {
+      "rows": [
+        {
+          "id": "r1",
+          "amount": 100,
+          "note": "a"
+        },
+        {
+          "id": "r2",
+          "amount": 50,
+          "note": "b"
+        }
+      ]
+    },
+    "expected": "02a255e1727d9fce"
+  },
+  {
+    "fn": "checksum",
+    "input": {
+      "rows": [
+        {
+          "id": "r2",
+          "amount": 50,
+          "note": "b"
+        },
+        {
+          "id": "r1",
+          "amount": 100,
+          "note": "a"
+        }
+      ]
+    },
+    "expected": "02a255e1727d9fce"
+  },
+  {
+    "fn": "reconcile",
+    "input": {
+      "local": [
+        {
+          "id": "r1",
+          "amount": 100,
+          "note": "a"
+        },
+        {
+          "id": "r2",
+          "amount": 50,
+          "note": "b"
+        }
+      ],
+      "remote": [
+        {
+          "id": "r1",
+          "amount": 200,
+          "note": "a"
+        },
+        {
+          "id": "r3",
+          "amount": 10,
+          "note": "c"
+        }
+      ]
+    },
+    "expected": {
+      "inSync": false,
+      "missingRemote": [
+        "r2"
+      ],
+      "missingLocal": [
+        "r3"
+      ],
+      "mismatched": [
+        "r1"
+      ]
+    }
+  },
+  {
+    "fn": "reconcile",
+    "input": {
+      "local": [
+        {
+          "id": "r1",
+          "amount": 100,
+          "note": "a"
+        }
+      ],
+      "remote": [
+        {
+          "id": "r1",
+          "amount": 100,
+          "note": "a"
+        }
+      ]
+    },
+    "expected": {
+      "inSync": true,
+      "missingRemote": [],
+      "missingLocal": [],
+      "mismatched": []
+    }
+  }
+]

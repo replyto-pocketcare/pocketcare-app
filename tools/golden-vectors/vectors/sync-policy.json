@@ -1,0 +1,186 @@
+[
+  {
+    "fn": "classifyFailure",
+    "input": {
+      "code": "23503"
+    },
+    "expected": {
+      "cls": "permanent",
+      "reason": "postgres 23503 is a rejected write"
+    }
+  },
+  {
+    "fn": "classifyFailure",
+    "input": {
+      "code": "40001"
+    },
+    "expected": {
+      "cls": "transient",
+      "reason": "postgres 40001 resolves on retry"
+    }
+  },
+  {
+    "fn": "classifyFailure",
+    "input": {
+      "status": 401
+    },
+    "expected": {
+      "cls": "transient",
+      "reason": "http 401 — token refresh should fix it"
+    }
+  },
+  {
+    "fn": "classifyFailure",
+    "input": {
+      "status": 429
+    },
+    "expected": {
+      "cls": "transient",
+      "reason": "http 429 is retryable"
+    }
+  },
+  {
+    "fn": "classifyFailure",
+    "input": {
+      "status": 400
+    },
+    "expected": {
+      "cls": "permanent",
+      "reason": "http 400 — the server rejected this"
+    }
+  },
+  {
+    "fn": "classifyFailure",
+    "input": {
+      "status": 500
+    },
+    "expected": {
+      "cls": "transient",
+      "reason": "http 500 — server-side, try again"
+    }
+  },
+  {
+    "fn": "classifyFailure",
+    "input": {
+      "message": "Failed to fetch"
+    },
+    "expected": {
+      "cls": "transient",
+      "reason": "network error"
+    }
+  },
+  {
+    "fn": "classifyFailure",
+    "input": {
+      "message": "new row violates row-level security policy"
+    },
+    "expected": {
+      "cls": "permanent",
+      "reason": "row-level security denial"
+    }
+  },
+  {
+    "fn": "classifyFailure",
+    "input": {},
+    "expected": {
+      "cls": "transient",
+      "reason": "unrecognised failure — retrying is the safe default"
+    }
+  },
+  {
+    "fn": "shouldQuarantine",
+    "input": {
+      "c": {
+        "cls": "permanent",
+        "reason": "x"
+      },
+      "attempts": 3
+    },
+    "expected": true
+  },
+  {
+    "fn": "shouldQuarantine",
+    "input": {
+      "c": {
+        "cls": "permanent",
+        "reason": "x"
+      },
+      "attempts": 2
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldQuarantine",
+    "input": {
+      "c": {
+        "cls": "transient",
+        "reason": "x"
+      },
+      "attempts": 99
+    },
+    "expected": false
+  },
+  {
+    "fn": "backoffMs",
+    "input": {
+      "attempts": 1
+    },
+    "expected": 1000
+  },
+  {
+    "fn": "backoffMs",
+    "input": {
+      "attempts": 5
+    },
+    "expected": 16000
+  },
+  {
+    "fn": "backoffMs",
+    "input": {
+      "attempts": 20
+    },
+    "expected": 60000
+  },
+  {
+    "fn": "explainForUser",
+    "input": {
+      "code": "23503"
+    },
+    "expected": "It refers to something that no longer exists — the group or account it belonged to may have been deleted."
+  },
+  {
+    "fn": "explainForUser",
+    "input": {
+      "code": "23505"
+    },
+    "expected": "It looks like this was already saved once."
+  },
+  {
+    "fn": "explainForUser",
+    "input": {
+      "code": "23514"
+    },
+    "expected": "Some of the numbers didn't add up, so the server wouldn't accept it."
+  },
+  {
+    "fn": "explainForUser",
+    "input": {
+      "code": "42501"
+    },
+    "expected": "You don't have permission to save this yet. If it belongs to a group, try Settings → Check for unsynced data — the group itself may not have uploaded."
+  },
+  {
+    "fn": "explainForUser",
+    "input": {
+      "code": "23502"
+    },
+    "expected": "Something required was missing from it."
+  },
+  {
+    "fn": "explainForUser",
+    "input": {
+      "code": "99999"
+    },
+    "expected": "It hasn't uploaded yet. We'll keep trying."
+  }
+]

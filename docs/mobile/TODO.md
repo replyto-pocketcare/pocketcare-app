@@ -5,24 +5,34 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 — rev 3 planning recreated + committed immediately
-               (a prior rev-3 attempt was lost: it sat uncommitted, then a
-               full repo reset to origin/main wiped it along with the rev-2
-               RN scaffold). This time the docs are committed before any
-               further work happens.
+Last session: 2026-07-31 — P0.1 done (golden-vector exporter). Plan docs
+               recreated + committed earlier same session (see prior entry
+               below this one's diff — commit 62fd053).
 Android state: does not exist (apps/android not created)
 iOS state:     does not exist (apps/ios not created)
-Vectors:       not exported yet (tools/golden-vectors not created)
-apps/mobile:   does not exist (rev-2 RN scaffold never made it into a commit;
-               a git reset to origin/main removed it from disk 2026-07-31)
-Next up:       P0.1 (vector exporter, tools/golden-vectors/export.ts) — plan §4.
-Traps/notes:   Sandbox has node/npm only — no pnpm (lockfile not
-               regenerable; dependency changes need a human `pnpm install`),
-               no JDK compiler/Gradle, no Xcode. P0.2/P0.3 (native skeletons)
-               can be scaffolded here but NOT verified here — their
-               Done-when needs a real machine or CI. COMMIT EVERY SESSION,
-               even docs-only ones — this file exists twice now because the
-               last attempt didn't.
+Vectors:       DONE. tools/golden-vectors/export.ts -> vectors/*.json, 16
+               domain files, 250 vectors, >=1 per public function (88 fns).
+               Two runs verified byte-identical. Covers money, finance,
+               ledger, budget, upi, sync-policy, reconcile, guardrail,
+               splits-insights, entitlements, diagnostics, receipts
+               (allocate/reconcile/parse/money-text, incl. every real-bill
+               fixture in packages/core/receipts/src/fixtures.ts), and
+               apps/web/src/splits/math.ts's pairwiseEdges.
+Next up:       P0.2 (Android skeleton) or P0.3 (iOS skeleton) — plan §4. Can
+               only be scaffolded here, not verified (see trap below).
+Traps/notes:   Sandbox has node/npm only — no pnpm, no JDK compiler/Gradle,
+               no Xcode. P0.2/P0.3 Done-when needs real Gradle/Xcode output
+               (CI or a human machine) — don't mark them DONE from a
+               sandbox-only session. Exporter imports packages by RELATIVE
+               PATH to each src/index.ts (not the "@pocketcare/x" bare
+               specifier) so it needs no new node_modules symlinks; the
+               packages' OWN internal @pocketcare/* imports still resolve
+               fine via their existing per-package node_modules symlinks.
+               Every function that defaults to wall-clock time or
+               Math.random (findDate, effectivePaidEmis, makeEntry,
+               newPaymentRef, parseReceipt) is called with an explicit
+               date/seed in the exporter — don't add a vector that omits one.
+               COMMIT EVERY SESSION, even docs-only ones.
 Blocked:       nothing
 ```
 
@@ -41,7 +51,7 @@ Blocked:       nothing
 | ID | Task (plan ref) | Tag | Needs | Status |
 |---|---|---|---|---|
 | P0.0 | Decommission RN scaffold | [M] | — | DONE (2026-07-31, N/A — never committed, removed by repo reset) |
-| P0.1 | Golden-vector exporter (`tools/golden-vectors/export.ts`) | [M] | — | TODO |
+| P0.1 | Golden-vector exporter (`tools/golden-vectors/export.ts`) | [M] | — | DONE (2026-07-31, 8e8bcfd) |
 | P0.2 | Android skeleton (`apps/android`, pure-Kotlin `:domain`) | [M] | — | TODO |
 | P0.3 | iOS skeleton (`apps/ios`, SwiftPM `Domain`, App Group) | [M] | — | TODO |
 | P0.4a | Vector runner — Android (kotlin.test) | [S] | P0.1, P0.2 | TODO |

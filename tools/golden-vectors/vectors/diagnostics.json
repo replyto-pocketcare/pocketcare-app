@@ -1,0 +1,119 @@
+[
+  {
+    "fn": "redactSecrets",
+    "input": {
+      "input": "user akhilesh@example.com paid akhilesh@okhdfcbank Bearer abcd1234efgh5678"
+    },
+    "expected": "user [email] paid [upi-id] Bearer [token]"
+  },
+  {
+    "fn": "redactSecrets",
+    "input": {
+      "input": ""
+    },
+    "expected": ""
+  },
+  {
+    "fn": "redactText",
+    "input": {
+      "input": "sync failed: {\"code\":\"23514\",\"total is 1258784\"}"
+    },
+    "expected": "sync failed: {\"code\":\"23514\",\"total is [amount]\"}"
+  },
+  {
+    "fn": "redactText",
+    "input": {
+      "input": "paid ₹1,234.50 to akhilesh@okhdfcbank"
+    },
+    "expected": "paid [amount] to [upi-id]"
+  },
+  {
+    "fn": "redactDetail",
+    "input": {
+      "input": {
+        "amount": 12587,
+        "description": "Groceries",
+        "account_id": "11111111-2222-3333-4444-555555555555",
+        "note": "x"
+      }
+    },
+    "expected": {
+      "amount": "[amount]",
+      "description": "[text]",
+      "account_id": "11111111-2222-3333-4444-555555555555",
+      "note": "[text]"
+    }
+  },
+  {
+    "fn": "redactDetail",
+    "input": {
+      "input": [
+        1,
+        2,
+        3
+      ]
+    },
+    "expected": [
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "fn": "redactDetail",
+    "input": {
+      "input": null
+    },
+    "expected": null
+  },
+  {
+    "fn": "makeEntry",
+    "input": {
+      "level": "error",
+      "scope": "sync",
+      "message": "upload failed: amount 1258784",
+      "opts": {
+        "route": "/transactions",
+        "at": 1785500000000
+      }
+    },
+    "expected": {
+      "at": 1785500000000,
+      "level": "error",
+      "scope": "sync",
+      "message": "upload failed: amount [amount]",
+      "route": "/transactions"
+    }
+  },
+  {
+    "fn": "formatLog",
+    "input": {
+      "entries": [
+        {
+          "at": 1785500000000,
+          "level": "error",
+          "scope": "sync",
+          "message": "[amount] failed to upload"
+        },
+        {
+          "at": 1785500001000,
+          "level": "info",
+          "scope": "app",
+          "message": "retry scheduled"
+        }
+      ],
+      "context": {
+        "appVersion": "1.0.0"
+      }
+    },
+    "expected": "PocketCare diagnostics\nappVersion: 1.0.0\n\n--- events (newest last, 2) ---\n12:13:20 ERROR [sync] [amount] failed to upload\n12:13:21 INFO  [app] retry scheduled"
+  },
+  {
+    "fn": "formatLog",
+    "input": {
+      "entries": [],
+      "context": {}
+    },
+    "expected": "PocketCare diagnostics\n\n\n--- events (newest last, 0) ---\n(no events captured)"
+  }
+]

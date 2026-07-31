@@ -1,0 +1,64 @@
+[
+  {
+    "fn": "canUse",
+    "input": {
+      "feature": "track_transactions",
+      "tier": "free"
+    },
+    "expected": true
+  },
+  {
+    "fn": "canUse",
+    "input": {
+      "feature": "goals",
+      "tier": "free"
+    },
+    "expected": false
+  },
+  {
+    "fn": "canUse",
+    "input": {
+      "feature": "widgets",
+      "tier": "free"
+    },
+    "expected": false
+  },
+  {
+    "fn": "canUse",
+    "input": {
+      "feature": "track_transactions",
+      "tier": "premium"
+    },
+    "expected": true
+  },
+  {
+    "fn": "canUse",
+    "input": {
+      "feature": "goals",
+      "tier": "premium"
+    },
+    "expected": true
+  },
+  {
+    "fn": "canUse",
+    "input": {
+      "feature": "widgets",
+      "tier": "premium"
+    },
+    "expected": true
+  },
+  {
+    "fn": "isPremiumFeature",
+    "input": {
+      "feature": "track_transactions"
+    },
+    "expected": false
+  },
+  {
+    "fn": "isPremiumFeature",
+    "input": {
+      "feature": "goals"
+    },
+    "expected": true
+  }
+]

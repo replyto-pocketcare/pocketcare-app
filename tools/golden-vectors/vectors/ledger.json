@@ -1,0 +1,192 @@
+[
+  {
+    "fn": "signedEffectFor",
+    "input": {
+      "entry": {
+        "type": "income",
+        "account_id": "a1",
+        "amount": 100000
+      },
+      "accountId": "a1"
+    },
+    "expected": "100000"
+  },
+  {
+    "fn": "signedEffectFor",
+    "input": {
+      "entry": {
+        "type": "expense",
+        "account_id": "a1",
+        "amount": 25000
+      },
+      "accountId": "a1"
+    },
+    "expected": "-25000"
+  },
+  {
+    "fn": "signedEffectFor",
+    "input": {
+      "entry": {
+        "type": "transfer",
+        "account_id": "a1",
+        "amount": 10000,
+        "to_account_id": "a2",
+        "to_amount": 8300
+      },
+      "accountId": "a1"
+    },
+    "expected": "-10000"
+  },
+  {
+    "fn": "signedEffectFor",
+    "input": {
+      "entry": {
+        "type": "transfer",
+        "account_id": "a1",
+        "amount": 10000,
+        "to_account_id": "a2",
+        "to_amount": 8300
+      },
+      "accountId": "a2"
+    },
+    "expected": "8300"
+  },
+  {
+    "fn": "signedEffectFor",
+    "input": {
+      "entry": {
+        "type": "transfer",
+        "account_id": "a1",
+        "amount": 10000,
+        "to_account_id": "a2",
+        "to_amount": 8300
+      },
+      "accountId": "a3"
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "deriveBalance",
+    "input": {
+      "accountId": "a1",
+      "currency": "INR",
+      "entries": [
+        {
+          "type": "income",
+          "account_id": "a1",
+          "amount": 100000
+        },
+        {
+          "type": "expense",
+          "account_id": "a1",
+          "amount": 25000
+        }
+      ]
+    },
+    "expected": {
+      "amount": "75000",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "deriveBalance",
+    "input": {
+      "accountId": "a1",
+      "currency": "INR",
+      "entries": []
+    },
+    "expected": {
+      "amount": "0",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "availableBalance",
+    "input": {
+      "total": {
+        "amount": 100000,
+        "currency": "INR"
+      },
+      "blocked": {
+        "amount": 20000,
+        "currency": "INR"
+      }
+    },
+    "expected": {
+      "amount": "80000",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "aggregateNetWorth",
+    "input": {
+      "balances": [
+        {
+          "balance": {
+            "amount": 100000,
+            "currency": "INR"
+          },
+          "blocked": {
+            "amount": 20000,
+            "currency": "INR"
+          }
+        },
+        {
+          "balance": {
+            "amount": 50000,
+            "currency": "USD"
+          },
+          "blocked": {
+            "amount": 0,
+            "currency": "USD"
+          }
+        }
+      ],
+      "base": "INR",
+      "rates": {
+        "USD": 83.12
+      },
+      "includeBlocked": true
+    },
+    "expected": {
+      "amount": "4256000",
+      "currency": "INR"
+    }
+  },
+  {
+    "fn": "aggregateNetWorth",
+    "input": {
+      "balances": [
+        {
+          "balance": {
+            "amount": 100000,
+            "currency": "INR"
+          },
+          "blocked": {
+            "amount": 20000,
+            "currency": "INR"
+          }
+        },
+        {
+          "balance": {
+            "amount": 50000,
+            "currency": "USD"
+          },
+          "blocked": {
+            "amount": 0,
+            "currency": "USD"
+          }
+        }
+      ],
+      "base": "INR",
+      "rates": {
+        "USD": 83.12
+      },
+      "includeBlocked": false
+    },
+    "expected": {
+      "amount": "4236000",
+      "currency": "INR"
+    }
+  }
+]

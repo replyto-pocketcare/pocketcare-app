@@ -1,0 +1,450 @@
+[
+  {
+    "fn": "futureValue",
+    "input": {
+      "principal": 100000,
+      "contribution": 5000,
+      "periodicRate": 0.006667,
+      "periods": 60
+    },
+    "expected": "516376"
+  },
+  {
+    "fn": "futureValue",
+    "input": {
+      "principal": 100000,
+      "contribution": 5000,
+      "periodicRate": 0,
+      "periods": 60
+    },
+    "expected": "400000"
+  },
+  {
+    "fn": "periodicRateFromAnnual",
+    "input": {
+      "annualPct": 8,
+      "period": "monthly"
+    },
+    "expected": 0.006666666666666667
+  },
+  {
+    "fn": "periodicRateFromAnnual",
+    "input": {
+      "annualPct": 8,
+      "period": "yearly"
+    },
+    "expected": 0.08
+  },
+  {
+    "fn": "periodsToGoal",
+    "input": {
+      "current": 100000,
+      "target": 1000000,
+      "contribution": 10000,
+      "periodicRate": 0.006667
+    },
+    "expected": 68
+  },
+  {
+    "fn": "periodsToGoal",
+    "input": {
+      "current": 100000,
+      "target": 1000000,
+      "contribution": 0,
+      "periodicRate": 0
+    },
+    "expected": null
+  },
+  {
+    "fn": "periodsToGoal",
+    "input": {
+      "current": 1000000,
+      "target": 100000,
+      "contribution": 0,
+      "periodicRate": 0
+    },
+    "expected": 0
+  },
+  {
+    "fn": "monthlyEquivalent",
+    "input": {
+      "amount": 12000,
+      "period": "yearly"
+    },
+    "expected": "1000"
+  },
+  {
+    "fn": "monthlyEquivalent",
+    "input": {
+      "amount": 1000,
+      "period": "weekly"
+    },
+    "expected": "4333"
+  },
+  {
+    "fn": "recurringMonthlyTotal",
+    "input": {
+      "items": [
+        {
+          "amount": 1000,
+          "frequency": "monthly"
+        },
+        {
+          "amount": 12000,
+          "frequency": "yearly"
+        }
+      ]
+    },
+    "expected": "2000"
+  },
+  {
+    "fn": "recurringMonthlyTotal",
+    "input": {
+      "items": []
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "percentOfIncome",
+    "input": {
+      "monthlyAmount": 5000,
+      "monthlyIncome": 50000
+    },
+    "expected": 10
+  },
+  {
+    "fn": "percentOfIncome",
+    "input": {
+      "monthlyAmount": 5000,
+      "monthlyIncome": 0
+    },
+    "expected": null
+  },
+  {
+    "fn": "subscriptionImpact",
+    "input": {
+      "amount": 19900,
+      "frequency": "monthly",
+      "years": 5,
+      "annualReturnPct": 10
+    },
+    "expected": {
+      "totalPaid": 1194000,
+      "opportunityCost": 1540998
+    }
+  },
+  {
+    "fn": "projectCashflow",
+    "input": {
+      "inp": {
+        "monthlyIncome": 100000,
+        "monthlyPayments": 40000,
+        "monthlySavings": 20000,
+        "currentSavings": 500000,
+        "annualReturnPct": 10,
+        "annualInflationPct": 6,
+        "incomeGrowthPct": 5
+      },
+      "years": 3
+    },
+    "expected": [
+      {
+        "year": 1,
+        "income": 1200000,
+        "payments": 480000,
+        "savingsContributed": 240000,
+        "netCashflow": 480000,
+        "savingsBalance": 803668,
+        "realSavingsBalance": 758177
+      },
+      {
+        "year": 2,
+        "income": 1260000,
+        "payments": 508800,
+        "savingsContributed": 254400,
+        "netCashflow": 496800,
+        "savingsBalance": 1154212,
+        "realSavingsBalance": 1027245
+      },
+      {
+        "year": 3,
+        "income": 1323000,
+        "payments": 539328,
+        "savingsContributed": 269664,
+        "netCashflow": 514008,
+        "savingsBalance": 1557447,
+        "realSavingsBalance": 1307663
+      }
+    ]
+  },
+  {
+    "fn": "projectCashflow",
+    "input": {
+      "inp": {
+        "monthlyIncome": 100000,
+        "monthlyPayments": 40000,
+        "monthlySavings": 20000,
+        "currentSavings": 500000,
+        "annualReturnPct": 10,
+        "annualInflationPct": 6,
+        "incomeGrowthPct": 5
+      },
+      "years": 0
+    },
+    "expected": []
+  },
+  {
+    "fn": "yearlyEquivalent",
+    "input": {
+      "amount": 1000,
+      "period": "monthly"
+    },
+    "expected": "12000"
+  },
+  {
+    "fn": "emiFromPrincipal",
+    "input": {
+      "principal": 500000,
+      "annualRatePct": 9.5,
+      "tenureMonths": 60
+    },
+    "expected": "10501"
+  },
+  {
+    "fn": "emiFromPrincipal",
+    "input": {
+      "principal": 500000,
+      "annualRatePct": 0,
+      "tenureMonths": 60
+    },
+    "expected": "8333"
+  },
+  {
+    "fn": "emiFromPrincipal",
+    "input": {
+      "principal": 500000,
+      "annualRatePct": 9.5,
+      "tenureMonths": 0
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "amortizationSchedule",
+    "input": {
+      "principal": 100000,
+      "annualRatePct": 12,
+      "emi": 8885,
+      "maxMonths": 12
+    },
+    "expected": [
+      {
+        "month": 1,
+        "emi": "8885",
+        "interest": "1000",
+        "principal": "7885",
+        "balance": "92115"
+      },
+      {
+        "month": 2,
+        "emi": "8885",
+        "interest": "921",
+        "principal": "7964",
+        "balance": "84151"
+      },
+      {
+        "month": 3,
+        "emi": "8885",
+        "interest": "842",
+        "principal": "8043",
+        "balance": "76108"
+      },
+      {
+        "month": 4,
+        "emi": "8885",
+        "interest": "761",
+        "principal": "8124",
+        "balance": "67984"
+      },
+      {
+        "month": 5,
+        "emi": "8885",
+        "interest": "680",
+        "principal": "8205",
+        "balance": "59779"
+      },
+      {
+        "month": 6,
+        "emi": "8885",
+        "interest": "598",
+        "principal": "8287",
+        "balance": "51492"
+      },
+      {
+        "month": 7,
+        "emi": "8885",
+        "interest": "515",
+        "principal": "8370",
+        "balance": "43122"
+      },
+      {
+        "month": 8,
+        "emi": "8885",
+        "interest": "431",
+        "principal": "8454",
+        "balance": "34668"
+      },
+      {
+        "month": 9,
+        "emi": "8885",
+        "interest": "347",
+        "principal": "8538",
+        "balance": "26130"
+      },
+      {
+        "month": 10,
+        "emi": "8885",
+        "interest": "261",
+        "principal": "8624",
+        "balance": "17506"
+      },
+      {
+        "month": 11,
+        "emi": "8885",
+        "interest": "175",
+        "principal": "8710",
+        "balance": "8796"
+      },
+      {
+        "month": 12,
+        "emi": "8884",
+        "interest": "88",
+        "principal": "8796",
+        "balance": "0"
+      }
+    ]
+  },
+  {
+    "fn": "amortizationSchedule",
+    "input": {
+      "principal": 100000,
+      "annualRatePct": 50,
+      "emi": 100,
+      "maxMonths": 12
+    },
+    "expected": []
+  },
+  {
+    "fn": "timeframeTotal",
+    "input": {
+      "monthlyAmount": 1000,
+      "timeframe": "yearly"
+    },
+    "expected": "12000"
+  },
+  {
+    "fn": "timeframeTotal",
+    "input": {
+      "monthlyAmount": 1000,
+      "timeframe": "quarterly"
+    },
+    "expected": "3000"
+  },
+  {
+    "fn": "emiDueDate",
+    "input": {
+      "startIso": "2026-01-15",
+      "dueDay": 5,
+      "emiNo": 1
+    },
+    "expected": "2026-02-05"
+  },
+  {
+    "fn": "emiDueDate",
+    "input": {
+      "startIso": "2026-01-15",
+      "dueDay": 20,
+      "emiNo": 1
+    },
+    "expected": "2026-01-20"
+  },
+  {
+    "fn": "emiDueDate",
+    "input": {
+      "startIso": "2026-01-31",
+      "dueDay": 31,
+      "emiNo": 2
+    },
+    "expected": "2026-02-28"
+  },
+  {
+    "fn": "emiDueDate",
+    "input": {
+      "startIso": null,
+      "dueDay": 5,
+      "emiNo": 1
+    },
+    "expected": null
+  },
+  {
+    "fn": "isDuePassed",
+    "input": {
+      "dueIso": "2026-07-01",
+      "asOfIso": "2026-07-31"
+    },
+    "expected": true
+  },
+  {
+    "fn": "isDuePassed",
+    "input": {
+      "dueIso": "2026-08-01",
+      "asOfIso": "2026-07-31"
+    },
+    "expected": false
+  },
+  {
+    "fn": "isDuePassed",
+    "input": {
+      "dueIso": null,
+      "asOfIso": "2026-07-31"
+    },
+    "expected": false
+  },
+  {
+    "fn": "effectivePaidEmis",
+    "input": {
+      "manual": [
+        1,
+        3
+      ],
+      "totalEmis": 6,
+      "opts": {
+        "autoMark": false
+      }
+    },
+    "expected": [
+      1,
+      3
+    ]
+  },
+  {
+    "fn": "effectivePaidEmis",
+    "input": {
+      "manual": [
+        1
+      ],
+      "totalEmis": 6,
+      "opts": {
+        "autoMark": true,
+        "startIso": "2026-01-05",
+        "dueDay": 5,
+        "asOfIso": "2026-04-05"
+      }
+    },
+    "expected": [
+      1,
+      2,
+      3,
+      4
+    ]
+  }
+]

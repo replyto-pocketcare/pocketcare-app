@@ -1,0 +1,190 @@
+[
+  {
+    "fn": "detectCurrency",
+    "input": {
+      "text": "Total: ₹1,234.56"
+    },
+    "expected": "INR"
+  },
+  {
+    "fn": "detectCurrency",
+    "input": {
+      "text": "USD 12.00"
+    },
+    "expected": "USD"
+  },
+  {
+    "fn": "detectCurrency",
+    "input": {
+      "text": "no currency here"
+    },
+    "expected": null
+  },
+  {
+    "fn": "detectCurrency",
+    "input": {
+      "text": "€45.00"
+    },
+    "expected": "EUR"
+  },
+  {
+    "fn": "parseMoney",
+    "input": {
+      "raw": "1,234.56",
+      "minorDigits": 2
+    },
+    "expected": 123456
+  },
+  {
+    "fn": "parseMoney",
+    "input": {
+      "raw": "1.234,56",
+      "minorDigits": 2
+    },
+    "expected": 123456
+  },
+  {
+    "fn": "parseMoney",
+    "input": {
+      "raw": "1,23,456.00",
+      "minorDigits": 2
+    },
+    "expected": 12345600
+  },
+  {
+    "fn": "parseMoney",
+    "input": {
+      "raw": "(12.34)",
+      "minorDigits": 2
+    },
+    "expected": -1234
+  },
+  {
+    "fn": "parseMoney",
+    "input": {
+      "raw": "12.34-",
+      "minorDigits": 2
+    },
+    "expected": -1234
+  },
+  {
+    "fn": "parseMoney",
+    "input": {
+      "raw": "not a number",
+      "minorDigits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseMoney",
+    "input": {
+      "raw": "9999999999999",
+      "minorDigits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "findNumbers",
+    "input": {
+      "line": "Paneer Tikka 1 320.00",
+      "minorDigits": 2
+    },
+    "expected": [
+      {
+        "raw": "1",
+        "start": 13,
+        "end": 14,
+        "value": 100
+      },
+      {
+        "raw": "320.00",
+        "start": 15,
+        "end": 21,
+        "value": 32000
+      }
+    ]
+  },
+  {
+    "fn": "findNumbers",
+    "input": {
+      "line": "no numbers here",
+      "minorDigits": 2
+    },
+    "expected": []
+  },
+  {
+    "fn": "findDate",
+    "input": {
+      "text": "Date: 25/07/2026 Time: 21:14",
+      "today": "2026-07-31"
+    },
+    "expected": "2026-07-25"
+  },
+  {
+    "fn": "findDate",
+    "input": {
+      "text": "25 Jul 2026",
+      "today": "2026-07-31"
+    },
+    "expected": "2026-07-25"
+  },
+  {
+    "fn": "findDate",
+    "input": {
+      "text": "2026-07-25",
+      "today": "2026-07-31"
+    },
+    "expected": "2026-07-25"
+  },
+  {
+    "fn": "findDate",
+    "input": {
+      "text": "31/12/2099",
+      "today": "2026-07-31"
+    },
+    "expected": null
+  },
+  {
+    "fn": "findDate",
+    "input": {
+      "text": "no date here",
+      "today": "2026-07-31"
+    },
+    "expected": null
+  },
+  {
+    "fn": "findUnit",
+    "input": {
+      "text": "2.5 kg tomatoes"
+    },
+    "expected": "kg"
+  },
+  {
+    "fn": "findUnit",
+    "input": {
+      "text": "Model L stand"
+    },
+    "expected": null
+  },
+  {
+    "fn": "findUnit",
+    "input": {
+      "text": "no unit"
+    },
+    "expected": null
+  },
+  {
+    "fn": "tidyDescription",
+    "input": {
+      "text": "  Paneer Tikka -- ₹"
+    },
+    "expected": "Paneer Tikka"
+  },
+  {
+    "fn": "tidyDescription",
+    "input": {
+      "text": "Rs. Butter Naan @ ..."
+    },
+    "expected": "Butter Naan"
+  }
+]

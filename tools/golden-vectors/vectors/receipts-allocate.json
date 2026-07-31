@@ -1,0 +1,382 @@
+[
+  {
+    "fn": "splitByWeights",
+    "input": {
+      "total": 1000,
+      "weights": [
+        1,
+        1,
+        1
+      ]
+    },
+    "expected": [
+      334,
+      333,
+      333
+    ]
+  },
+  {
+    "fn": "splitByWeights",
+    "input": {
+      "total": -1000,
+      "weights": [
+        1,
+        1,
+        1
+      ]
+    },
+    "expected": [
+      -333,
+      -333,
+      -334
+    ]
+  },
+  {
+    "fn": "splitByWeights",
+    "input": {
+      "total": 100,
+      "weights": [
+        0,
+        0
+      ]
+    },
+    "expected": [
+      0,
+      0
+    ]
+  },
+  {
+    "fn": "splitEqual",
+    "input": {
+      "total": 1000,
+      "n": 3
+    },
+    "expected": [
+      334,
+      333,
+      333
+    ]
+  },
+  {
+    "fn": "allocateItem",
+    "input": {
+      "amount": 1000,
+      "shares": [
+        {
+          "userId": "u1"
+        },
+        {
+          "userId": "u2"
+        },
+        {
+          "userId": "u3"
+        }
+      ],
+      "mode": "equal"
+    },
+    "expected": [
+      {
+        "userId": "u1",
+        "amount": 334
+      },
+      {
+        "userId": "u2",
+        "amount": 333
+      },
+      {
+        "userId": "u3",
+        "amount": 333
+      }
+    ]
+  },
+  {
+    "fn": "allocateItem",
+    "input": {
+      "amount": 1000,
+      "shares": [
+        {
+          "userId": "u1",
+          "weight": 500
+        },
+        {
+          "userId": "u2",
+          "weight": 500
+        }
+      ],
+      "mode": "exact"
+    },
+    "expected": [
+      {
+        "userId": "u1",
+        "amount": 500
+      },
+      {
+        "userId": "u2",
+        "amount": 500
+      }
+    ]
+  },
+  {
+    "fn": "allocateItem",
+    "input": {
+      "amount": 1000,
+      "shares": [
+        {
+          "userId": "u1",
+          "weight": 400
+        },
+        {
+          "userId": "u2",
+          "weight": 400
+        }
+      ],
+      "mode": "exact"
+    },
+    "throws": {
+      "name": "AllocationError",
+      "message": "Exact shares sum to 800, expected 1000"
+    }
+  },
+  {
+    "fn": "allocateItem",
+    "input": {
+      "amount": 1250,
+      "shares": [
+        {
+          "userId": "u1",
+          "weight": 500
+        },
+        {
+          "userId": "u2",
+          "weight": 1500
+        }
+      ],
+      "mode": "quantity"
+    },
+    "expected": [
+      {
+        "userId": "u1",
+        "amount": 313
+      },
+      {
+        "userId": "u2",
+        "amount": 937
+      }
+    ]
+  },
+  {
+    "fn": "allocateItem",
+    "input": {
+      "amount": 1000,
+      "shares": [],
+      "mode": "equal"
+    },
+    "expected": []
+  },
+  {
+    "fn": "allocateItem",
+    "input": {
+      "amount": 1000,
+      "shares": [
+        {
+          "userId": "u1"
+        }
+      ],
+      "mode": "proportional"
+    },
+    "throws": {
+      "name": "AllocationError",
+      "message": "proportional lines must be allocated via allocateReceipt()"
+    }
+  },
+  {
+    "fn": "allocateProportional",
+    "input": {
+      "amount": 1000,
+      "participants": [
+        "u1",
+        "u2"
+      ],
+      "subtotalByUser": {
+        "u1": 6000,
+        "u2": 4000
+      }
+    },
+    "expected": [
+      {
+        "userId": "u1",
+        "amount": 600
+      },
+      {
+        "userId": "u2",
+        "amount": 400
+      }
+    ]
+  },
+  {
+    "fn": "allocateProportional",
+    "input": {
+      "amount": 1000,
+      "participants": [
+        "u1",
+        "u2"
+      ],
+      "subtotalByUser": {}
+    },
+    "expected": [
+      {
+        "userId": "u1",
+        "amount": 500
+      },
+      {
+        "userId": "u2",
+        "amount": 500
+      }
+    ]
+  },
+  {
+    "fn": "rollUp",
+    "input": {
+      "perLine": {
+        "l1": [
+          {
+            "userId": "u1",
+            "amount": 500
+          },
+          {
+            "userId": "u2",
+            "amount": 500
+          }
+        ],
+        "l2": [
+          {
+            "userId": "u1",
+            "amount": 300
+          }
+        ]
+      }
+    },
+    "expected": {
+      "u1": 800,
+      "u2": 500
+    }
+  },
+  {
+    "fn": "allocateReceipt",
+    "input": {
+      "lines": [
+        {
+          "id": "l1",
+          "kind": "item",
+          "description": "Paneer Tikka",
+          "quantity": 1000,
+          "unit": null,
+          "unitPrice": 32000,
+          "amount": 32000,
+          "confidence": 90
+        },
+        {
+          "id": "l2",
+          "kind": "item",
+          "description": "Butter Naan",
+          "quantity": 4000,
+          "unit": "pcs",
+          "unitPrice": 4500,
+          "amount": 18000,
+          "confidence": 88
+        },
+        {
+          "id": "l3",
+          "kind": "tax",
+          "description": "GST",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": 2500,
+          "confidence": 95
+        }
+      ],
+      "assignments": [
+        {
+          "lineId": "l1",
+          "mode": "equal",
+          "shares": [
+            {
+              "userId": "u1"
+            },
+            {
+              "userId": "u2"
+            }
+          ]
+        },
+        {
+          "lineId": "l2",
+          "mode": "equal",
+          "shares": [
+            {
+              "userId": "u1"
+            },
+            {
+              "userId": "u2"
+            }
+          ]
+        },
+        {
+          "lineId": "l3",
+          "mode": "proportional",
+          "shares": [
+            {
+              "userId": "u1"
+            },
+            {
+              "userId": "u2"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "perLine": {
+        "l1": [
+          {
+            "userId": "u1",
+            "amount": 16000
+          },
+          {
+            "userId": "u2",
+            "amount": 16000
+          }
+        ],
+        "l2": [
+          {
+            "userId": "u1",
+            "amount": 9000
+          },
+          {
+            "userId": "u2",
+            "amount": 9000
+          }
+        ],
+        "l3": [
+          {
+            "userId": "u1",
+            "amount": 1250
+          },
+          {
+            "userId": "u2",
+            "amount": 1250
+          }
+        ]
+      },
+      "byUser": {
+        "u1": 26250,
+        "u2": 26250
+      },
+      "total": 52500,
+      "itemSubtotalByUser": {
+        "u1": 25000,
+        "u2": 25000
+      }
+    }
+  }
+]

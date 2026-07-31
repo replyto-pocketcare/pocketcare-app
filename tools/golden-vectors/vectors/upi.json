@@ -1,0 +1,267 @@
+[
+  {
+    "fn": "isValidVpa",
+    "input": {
+      "value": "akhilesh@okhdfcbank"
+    },
+    "expected": true
+  },
+  {
+    "fn": "isValidVpa",
+    "input": {
+      "value": "not..valid@bank"
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidVpa",
+    "input": {
+      "value": "a@b"
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidVpa",
+    "input": {
+      "value": ""
+    },
+    "expected": false
+  },
+  {
+    "fn": "normalizeVpa",
+    "input": {
+      "value": "  Akhilesh@OkHDFCBank  "
+    },
+    "expected": "akhilesh@okhdfcbank"
+  },
+  {
+    "fn": "maskVpa",
+    "input": {
+      "value": "akhilesh@okhdfcbank"
+    },
+    "expected": "akh••••@okhdfcbank"
+  },
+  {
+    "fn": "maskVpa",
+    "input": {
+      "value": "ab@bank"
+    },
+    "expected": "a••••@bank"
+  },
+  {
+    "fn": "maskVpa",
+    "input": {
+      "value": "noatsign"
+    },
+    "expected": "••••"
+  },
+  {
+    "fn": "formatAmount",
+    "input": {
+      "minor": 43050
+    },
+    "expected": "430.50"
+  },
+  {
+    "fn": "formatAmount",
+    "input": {
+      "minor": 100
+    },
+    "expected": "1.00"
+  },
+  {
+    "fn": "formatAmount",
+    "input": {
+      "minor": 0
+    },
+    "throws": {
+      "name": "UpiError",
+      "message": "Amount must be greater than zero"
+    }
+  },
+  {
+    "fn": "formatAmount",
+    "input": {
+      "minor": 12.5
+    },
+    "throws": {
+      "name": "UpiError",
+      "message": "Amount must be integer minor units, got 12.5"
+    }
+  },
+  {
+    "fn": "newPaymentRef",
+    "input": {
+      "seed": 42
+    },
+    "expected": "PCVQ4XFSJW5R"
+  },
+  {
+    "fn": "newPaymentRef",
+    "input": {
+      "seed": 1
+    },
+    "expected": "PCWAS98JVZP9"
+  },
+  {
+    "fn": "isValidRef",
+    "input": {
+      "ref": "PC1234567890"
+    },
+    "expected": true
+  },
+  {
+    "fn": "isValidRef",
+    "input": {
+      "ref": "bad ref!"
+    },
+    "expected": false
+  },
+  {
+    "fn": "buildIntentUrl",
+    "input": {
+      "vpa": "akhilesh@okhdfcbank",
+      "name": "Akhilesh",
+      "amountMinor": 43050,
+      "note": "Dinner split",
+      "ref": "PCTESTREF01"
+    },
+    "expected": {
+      "url": "upi://pay?pa=akhilesh%40okhdfcbank&pn=Akhilesh&am=430.50&cu=INR&tr=PCTESTREF01&tn=Dinner%20split",
+      "ref": "PCTESTREF01"
+    }
+  },
+  {
+    "fn": "buildIntentUrl",
+    "input": {
+      "vpa": "akhilesh@okhdfcbank",
+      "name": "A & B? #1",
+      "amountMinor": 100,
+      "ref": "PCTESTREF02"
+    },
+    "expected": {
+      "url": "upi://pay?pa=akhilesh%40okhdfcbank&pn=A%20B%201&am=1.00&cu=INR&tr=PCTESTREF02",
+      "ref": "PCTESTREF02"
+    }
+  },
+  {
+    "fn": "buildIntentUrl",
+    "input": {
+      "vpa": "not-a-vpa",
+      "name": "X",
+      "amountMinor": 100
+    },
+    "throws": {
+      "name": "UpiError",
+      "message": "Not a valid UPI ID: not-a-vpa"
+    }
+  },
+  {
+    "fn": "buildQrPayload",
+    "input": {
+      "vpa": "akhilesh@okhdfcbank",
+      "name": "Akhilesh",
+      "amountMinor": 43050,
+      "note": "Dinner split",
+      "ref": "PCTESTREF01"
+    },
+    "expected": {
+      "url": "upi://pay?pa=akhilesh%40okhdfcbank&pn=Akhilesh&am=430.50&cu=INR&tr=PCTESTREF01&tn=Dinner%20split",
+      "ref": "PCTESTREF01"
+    }
+  },
+  {
+    "fn": "canPayViaUpi",
+    "input": {
+      "currency": "INR",
+      "amountMinor": 100,
+      "hasHandle": true
+    },
+    "expected": true
+  },
+  {
+    "fn": "canPayViaUpi",
+    "input": {
+      "currency": "USD",
+      "amountMinor": 100,
+      "hasHandle": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "canPayViaUpi",
+    "input": {
+      "currency": "INR",
+      "amountMinor": 0,
+      "hasHandle": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "parseUpiTarget",
+    "input": {
+      "input": "akhilesh@okhdfcbank"
+    },
+    "expected": {
+      "ok": true,
+      "target": {
+        "vpa": "akhilesh@okhdfcbank"
+      }
+    }
+  },
+  {
+    "fn": "parseUpiTarget",
+    "input": {
+      "input": "upi://pay?pa=akhilesh@okhdfcbank&pn=Akhilesh&am=430.50&cu=INR&tn=Dinner"
+    },
+    "expected": {
+      "ok": true,
+      "target": {
+        "vpa": "akhilesh@okhdfcbank",
+        "name": "Akhilesh",
+        "amountMinor": 43050,
+        "note": "Dinner"
+      }
+    }
+  },
+  {
+    "fn": "parseUpiTarget",
+    "input": {
+      "input": "000201010211..."
+    },
+    "expected": {
+      "ok": false,
+      "reason": "emvco"
+    }
+  },
+  {
+    "fn": "parseUpiTarget",
+    "input": {
+      "input": "https://example.com/not-upi"
+    },
+    "expected": {
+      "ok": false,
+      "reason": "not_upi"
+    }
+  },
+  {
+    "fn": "parseUpiTarget",
+    "input": {
+      "input": ""
+    },
+    "expected": {
+      "ok": false,
+      "reason": "empty"
+    }
+  },
+  {
+    "fn": "parseUpiTarget",
+    "input": {
+      "input": "upi://pay?pa=bad&am=100&cu=USD"
+    },
+    "expected": {
+      "ok": false,
+      "reason": "unsupported_currency"
+    }
+  }
+]
