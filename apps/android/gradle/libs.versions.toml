@@ -15,6 +15,8 @@
 # Gradle requirement (8.13, exact match) is a small, well-documented step up
 # from the previous pin (8.7). Revisit the 9.x jump as a deliberate,
 # separately-verified task once a human can actually run a build.
+
+[versions]
 agp = "8.13.0"
 kotlin = "2.4.10"
 composeBom = "2026.06.00"
