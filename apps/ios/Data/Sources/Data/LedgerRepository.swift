@@ -648,8 +648,39 @@ public final class LedgerRepository: @unchecked Sendable {
 
         let ts = nowIso()
 
+        // Precompute everything the transaction closure needs as `let`s
+        // BEFORE opening it: Swift 6's strict concurrency checker forbids
+        // referencing OR mutating a captured `var` inside a concurrently-
+        // executing closure like writeTransaction's (confirmed by a real
+        // xcodebuild failure on the first version of this function, which
+        // mutated changeLog/sets/params from inside the closure) -- only
+        // `let` captures of Sendable values are safe. All of this is pure
+        // decision-making based on already-known patch/before state (not on
+        // anything the transaction itself produces), so hoisting it out
+        // changes nothing about correctness or atomicity, only where it's
+        // computed.
+        let touchesAmount = changeLog.contains { $0.0 == "amount" }
+        var fullChangeLog = changeLog
+        if touchItems {
+            fullChangeLog.append(("items", "(prev)", (itemsVal?.isEmpty ?? true) ? "none" : "\(itemsVal!.count) items"))
+        }
+        if relabel, let labelsVal {
+            fullChangeLog.append(("labels", "(prev)", labelsVal.joined(separator: ", ")))
+        }
+        var fullSets = sets
+        var fullParams = params
+        if !fullSets.isEmpty {
+            fullSets.append("updated_at = ?")
+            fullParams.append(ts)
+            fullParams.append(id)
+        }
+        let finalChangeLog = fullChangeLog
+        let finalSets = fullSets
+        let finalParams = fullParams
+        let changesJson = changesToJson(finalChangeLog)
+
         try await db.writeTransaction { tx in
-            if changeLog.contains(where: { $0.0 == "amount" }), !touchItems {
+            if touchesAmount, !touchItems {
                 try tx.execute(
                     sql: "UPDATE transaction_items SET deleted_at = ?, updated_at = ? WHERE transaction_id = ? AND deleted_at IS NULL",
                     parameters: [ts, ts, id]
@@ -674,7 +705,6 @@ public final class LedgerRepository: @unchecked Sendable {
                         )
                     }
                 }
-                changeLog.append(("items", "(prev)", (itemsVal?.isEmpty ?? true) ? "none" : "\(itemsVal!.count) items"))
             }
 
             if relabel, let labelsVal {
@@ -703,17 +733,13 @@ public final class LedgerRepository: @unchecked Sendable {
                         parameters: [newId(), userId, id, labelId, ts]
                     )
                 }
-                changeLog.append(("labels", "(prev)", labelsVal.joined(separator: ", ")))
             }
-            if !sets.isEmpty {
-                sets.append("updated_at = ?")
-                params.append(ts)
-                params.append(id)
-                try tx.execute(sql: "UPDATE transactions SET \(sets.joined(separator: ", ")) WHERE id = ?", parameters: params)
+            if !finalSets.isEmpty {
+                try tx.execute(sql: "UPDATE transactions SET \(finalSets.joined(separator: ", ")) WHERE id = ?", parameters: finalParams)
             }
             try tx.execute(
                 sql: "INSERT INTO transaction_audit (id,user_id,transaction_id,action,changes,created_at) VALUES (?,?,?,?,?,?)",
-                parameters: [newId(), userId, id, "update", changesToJson(changeLog), ts]
+                parameters: [newId(), userId, id, "update", changesJson, ts]
             )
         }
     }
