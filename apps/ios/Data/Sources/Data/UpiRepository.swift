@@ -42,7 +42,7 @@ public final class UpiRepository: @unchecked Sendable {
         amountMinor: Int64,
         currency: String = "INR",
         transactionRef: String? = nil,
-        note: String? = null
+        note: String? = nil
     ) throws -> String {
         let params = IntentParams(
             vpa: payeeVpa,
