@@ -107,7 +107,7 @@ jobs:
           xcodebuild test \
             -project PocketCare.xcodeproj \
             -scheme PocketCare \
-            -destination 'platform=iOS Simulator,name=iPhone 16'
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
   # Production promotion is BLOCKED unless unit + e2e are green (via `needs`).
   # Requires Vercel Git auto-deploy for production to be disabled so this is the

@@ -26,12 +26,14 @@ swift test --package-path Domain
 # Full path — App target + a placeholder App-level test, on a simulator:
 xcodegen generate
 xcodebuild test -project PocketCare.xcodeproj -scheme PocketCare \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-(`iPhone 16` is whatever the CI runner's default simulator matrix has —
-swap to whatever's installed locally if that name doesn't exist on your
-machine: `xcrun simctl list devices`.)
+(`iPhone 17 Pro` is what recent Xcode 26.x ships as a default-provisioned
+simulator (verified via search 2026-07-31 — Xcode 26.x's default lineup is
+iPhone 17 Pro / 17 Pro Max / iPhone Air, not iPhone 16). If that name
+doesn't exist on your machine, list what you actually have and swap it in:
+`xcrun simctl list devices`.)
 
 ## Structure
 

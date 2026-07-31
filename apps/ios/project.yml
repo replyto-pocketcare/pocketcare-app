@@ -30,7 +30,11 @@ targets:
         # store submission (plan §10; same open item the RN scaffold hit).
         PRODUCT_BUNDLE_IDENTIFIER: care.pocket.ios
         CODE_SIGN_ENTITLEMENTS: App/PocketCare.entitlements
-        SWIFT_VERSION: "6.0"
+        # "6" not "6.0" — Xcode's SWIFT_VERSION (Swift Language Version)
+        # build setting takes major-version-only language-mode values (4,
+        # 4.2, 5, 6), not toolchain patch versions. Verified via search
+        # 2026-07-31 before the first real xcodegen/xcodebuild attempt.
+        SWIFT_VERSION: "6"
         MARKETING_VERSION: "0.0.1"
         CURRENT_PROJECT_VERSION: "1"
     info:
