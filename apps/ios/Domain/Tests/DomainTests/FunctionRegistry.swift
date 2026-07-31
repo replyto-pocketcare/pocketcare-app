@@ -17,7 +17,22 @@ enum FunctionRegistry {
         let fn: String
     }
 
-    private static var impls: [Key: (Any) throws -> Any] = [:]
+    // nonisolated(unsafe), not a plain `static var`: Swift 6's strict
+    // concurrency checking flags any mutable static property as
+    // "nonisolated global shared mutable state" -- a real build error hit
+    // on the first `swift test` run against this file. `@MainActor` was
+    // the other compiler-suggested fix, but it would force every
+    // register()/lookup() call site (every *Vectors.swift adapter, plus
+    // VectorRunnerTests.swift's test methods) to become `async`/`await`
+    // for a cross-actor hop that serves no purpose here -- every access
+    // is already single-threaded and sequential (one XCTest method
+    // registers its domain's functions, then immediately calls
+    // runDomain() synchronously in the same method body; this test target
+    // has no parallel-execution config enabled). nonisolated(unsafe) is
+    // Swift's documented escape hatch for exactly this "the compiler can't
+    // prove it, but access really is externally synchronized" case --
+    // verified via search before use, not the first guess reached for.
+    private nonisolated(unsafe) static var impls: [Key: (Any) throws -> Any] = [:]
 
     static func register(domain: String, fn: String, impl: @escaping (Any) throws -> Any) {
         impls[Key(domain: domain, fn: fn)] = impl
