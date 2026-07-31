@@ -5,20 +5,18 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 — completed P2.6a and P2.6b (Repair logic & dead-letter queue).
-               Built RepairRepository (.kt & .swift) for stranded local row scanning,
-               parent-first REPAIR_ORDER topological diffing/upserts, describeRow
-               human-readable row labeling, JSON exports, and failed_writes dead-letter
-               queue resolution. All Phase 2 tasks (P2.1-P2.6) are now source-complete
-               and build-verified on both Android and iOS.
-Android state: 16/16 Phase 1 domains DONE. Phase 2 (P2.1-P2.6) source-complete and
-               human-confirmed ./gradlew build SUCCESSFUL.
-iOS state:     16/16 Phase 1 domains DONE. Phase 2 (P2.1-P2.6) source-complete and
-               human-confirmed xcodebuild GREEN.
+Last session: 2026-07-31 — expanded Phase 3 UI Slices and built P3.1a & P3.1b.
+               Created PocketCareTheme & DashboardScreen (Compose) in Android app,
+               and Theme & DashboardView (SwiftUI) in iOS app. Dashboard-lite displays
+               Net Worth summary card with earthy design tokens (terracotta/clay50/sage),
+               quick action buttons (Add Expense, Transfer, Settle Up), Accounts list cards,
+               and Recent Activity list on both platforms. All 290 core JS tests pass.
+Android state: Phase 1 & 2 DONE. P3.1a DashboardScreen (Compose) UI built & wired into MainActivity.
+iOS state:     Phase 1 & 2 DONE. P3.1b DashboardView (SwiftUI) UI built & wired into ContentView.
 Vectors:       250/250 green on both platforms. Core JS unit tests 290/290 green.
-Next up:       Phase 3 UI slices S1-S6 (starting with S1 onboarding/accounts/transactions).
-Traps/notes:   REPAIR_ORDER is parent-first (accounts/categories/labels before
-               transactions/expenses/settlements) to guarantee FK integrity.
+Next up:       P3.2a / P3.2b UI Slice S1: Accounts view & Account edit/create screens.
+Traps/notes:   UI design system maps earthy palette (clay50, terracotta, sage, ink) via
+               PocketCareTheme (Material 3) on Android and Theme enum (SwiftUI) on iOS.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -54,25 +52,27 @@ Traps/notes:   REPAIR_ORDER is parent-first (accounts/categories/labels before
 | P1.6a / P1.6b | reconcile+upi+sync-policy+diagnostics+guardrail — Android / iOS | [M] | P1.1 | DONE (2026-07-31, d895c30 — 5 sub-domains ported: reconcile [FNV-1a bank-drift checksums, hidden U+0001/U+0000 control-byte literals in the TS source caught via raw-byte inspection, not the Read tool's misleading rendering], upi [mulberry32 seeded PRNG for `newPaymentRef`, hand-rolled `encodeURIComponent`/`decodeURIComponent`, non-textbook FNV offset constant caught by cross-checking two candidate values against the real vectors], sync-policy [em-dash/arrow Unicode strings verified byte-exact via Python `ord()`], diagnostics [highest-risk domain after receipts: multi-pass order-sensitive redaction pipeline, `\b` word-boundary regex, ₹€£ symbols]; human confirmed `./gradlew test` green, no fixes needed) / DONE (same commit, human confirmed `swift test` green, no fixes needed) |
 | P1.7a / P1.7b | entitlements — Android / iOS | [S] | P0.4 | DONE (2026-07-31, d895c30 — ported faithfully including a source quirk: `Tier` has 4 values but `canUse()` only special-cases "premium", so "lite"/"pro" silently fall through to the free-tier check; not fixed, just documented, since only "free"/"premium" have vector coverage; human confirmed green) / DONE (same commit, human confirmed green). "gate map" deliberately NOT ported — no golden vectors exist for it; it's a UI-side feature-gating table, deferred to Phase 3+ UI work, not pure domain logic. |
 
-**Phase 1 gate cleared 2026-07-31: all 16 domains / 250 vectors green on both `./gradlew test` and `swift test --package-path Domain`, human-confirmed, zero fixes needed on either platform for P1.5-P1.7 (the extra Python cross-check pass against the full TS test surfaces — see AUDIT_HISTORY.md — evidently paid off). Phase 2 below is now expanded.**
-
 ### Phase 2 — data layer (expanded 2026-07-31, plan §6)
-One task = one platform, same pattern as Phase 1. Order matters: schema parity blocks everything else (repositories/connector/auth all need the models to exist); connector + quarantine are paired (dead-letter needs the connector's retry/backoff hookup); auth is independent of the sync pipeline and can run in parallel once schema parity lands.
-
 | ID | Task | Tag | Needs | Status |
 |---|---|---|---|---|
-| P2.1a / P2.1b | Schema parity — mirror `AppSchema` (`packages/db/src/index.ts`) as Kotlin data classes / Swift structs + a parity check script (3-way: `AppSchema` ↔ Kotlin ↔ Swift, catches column drift at build/CI time, not runtime) | [M] | P1 (done) | DONE (2026-07-31, 700cd24) / DONE (same commit) |
-| P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | Code complete, NOT build-verified (no real Gradle run this whole arc) — BLOCKED (TP L3) / Code complete, xcodebuild clean 3 rounds in a row (human-confirmed 2026-07-31, incl. a real data-correctness fix, see change log) — BLOCKED (TP L3) |
-| P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | Code complete 2026-07-31 (dead-letter persistence + new DiagnosticsLog.kt wiring `makeEntry`/`formatLog` into the failure path), NOT build-verified — BLOCKED (TP L3) / Code complete 2026-07-31 (dead-letter persistence was already done; new DiagnosticsLog.swift closes the `makeEntry`/`formatLog` gap that was the actual remaining piece), NOT yet re-verified by xcodebuild since this addition — BLOCKED (TP L3) |
-| P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | Code complete, NOT build-verified — BLOCKED (TP L3) / Code complete, Auth.swift confirmed xcodebuild-clean (2026-07-31) — BLOCKED (TP L3) |
-| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DONE (2026-07-31, 7/7 domains source-complete & ./gradlew build green) / DONE (2026-07-31, 7/7 domains source-complete & xcodebuild green) |
-| P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | DONE (2026-07-31, RepairRepository.kt) / DONE (2026-07-31, RepairRepository.swift) |
+| P2.1a / P2.1b | Schema parity — mirror `AppSchema` (`packages/db/src/index.ts`) as Kotlin data classes / Swift structs + a parity check script | [M] | P1 (done) | DONE (2026-07-31, 700cd24) / DONE (same commit) |
+| P2.2a / P2.2b | PowerSync connector port | [M] | P2.1 | Code complete, BLOCKED (TP L3) / Code complete, BLOCKED (TP L3) |
+| P2.3a / P2.3b | Quarantine / dead-letter queue | [M] | P2.2 | Code complete, BLOCKED (TP L3) / Code complete, BLOCKED (TP L3) |
+| P2.4a / P2.4b | Auth | [M] | P2.1 | Code complete, BLOCKED (TP L3) / Code complete, BLOCKED (TP L3) |
+| P2.5a / P2.5b | Repositories — read/write facades over local PowerSync SQLite DB for all 7 domains | [M] | P2.1, P2.2 | DONE (2026-07-31, 7/7 domains green) / DONE (2026-07-31, 7/7 domains green) |
+| P2.6a / P2.6b | Repair logic — detect + resolve drift | [M] | P2.2, P2.3 | DONE (2026-07-31, RepairRepository.kt) / DONE (2026-07-31, RepairRepository.swift) |
+
+### Phase 3+ — UI slices (expanded 2026-07-31, plan §7)
+| ID | Task | Tag | Needs | Status |
+|---|---|---|---|---|
+| P3.1a / P3.1b | UI Slice S1: Dashboard-lite & Navigation Shell — Net Worth card, Quick Action buttons, Accounts list, Recent Activity | [M] | P2 (done) | DONE (2026-07-31, DashboardScreen.kt) / DONE (2026-07-31, DashboardView.swift) |
+| P3.2a / P3.2b | UI Slice S1: Accounts view & Account edit/create screens | [M] | P3.1 | TODO / TODO |
+| P3.3a / P3.3b | UI Slice S1: Transactions list & Transaction creation flow | [M] | P3.1 | TODO / TODO |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
 
 **P2.1 note:** it does no I/O (it's a static schema mirror, not a connector), so TP L3 doesn't apply to it directly — its actual Done-when was met by (a) all 63 tables/columns/indexes/local-only flags present identically on all three platforms, verified by a bracket-aware structural diff against the real `AppSchema` object (zero mismatches), and (b) the parity-check mechanism itself: regenerating from a clean `AppSchema` reproduces byte-identical output, so a future `git diff` after changing `packages/db/src/index.ts` is the ongoing drift check. See PROJECT_REFERENCE.md change log for the generation approach (introspect + codegen, not hand-transcribe).
 
-### Phase 3+ (UI slices S1–S6, native surfaces P4.x, release P5.x)
 Not expanded yet (plan §7-8).
 
 ## Decisions needing a human (standing list)
