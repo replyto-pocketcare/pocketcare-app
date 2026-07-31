@@ -8,9 +8,10 @@ package care.pocket.data.repository
  * Local masked hint is cached in-memory/preferences for offline UI display.
  */
 
-import care.pocket.domain.upi.buildUpiUrl
+import care.pocket.domain.upi.IntentParams
+import care.pocket.domain.upi.buildIntentUrl
+import care.pocket.domain.upi.isValidVpa
 import care.pocket.domain.upi.maskVpa
-import care.pocket.domain.upi.validateVpa
 
 data class UpiPaymentHandle(
     val vpa: String,
@@ -28,7 +29,7 @@ class UpiRepository {
 
     fun maskHandle(vpa: String): String = maskVpa(vpa)
 
-    fun isValidVpa(vpa: String): Boolean = validateVpa(vpa)
+    fun isValidVpa(vpa: String): Boolean = isValidVpa(vpa)
 
     fun createPaymentUrl(
         payeeVpa: String,
@@ -38,13 +39,14 @@ class UpiRepository {
         transactionRef: String? = null,
         note: String? = null
     ): String {
-        return buildUpiUrl(
-            payeeVpa = payeeVpa,
-            payeeName = payeeName,
-            amountMinor = amountMinor,
+        val params = IntentParams(
+            vpa = payeeVpa,
+            name = payeeName ?: "PocketCare",
+            amountMinor = amountMinor.toDouble(),
+            note = note,
+            ref = transactionRef,
             currency = currency,
-            transactionRef = transactionRef,
-            note = note
         )
+        return buildIntentUrl(params).url
     }
 }

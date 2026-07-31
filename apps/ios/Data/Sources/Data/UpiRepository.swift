@@ -33,7 +33,7 @@ public final class UpiRepository: @unchecked Sendable {
     }
 
     public func isValidVpa(_ vpa: String) -> Bool {
-        return validateVpa(vpa)
+        return Domain.isValidVpa(vpa)
     }
 
     public func createPaymentUrl(
@@ -42,15 +42,16 @@ public final class UpiRepository: @unchecked Sendable {
         amountMinor: Int64,
         currency: String = "INR",
         transactionRef: String? = nil,
-        note: String? = nil
-    ) -> String {
-        return buildUpiUrl(
-            payeeVpa: payeeVpa,
-            payeeName: payeeName,
-            amountMinor: amountMinor,
-            currency: currency,
-            transactionRef: transactionRef,
-            note: note
+        note: String? = null
+    ) throws -> String {
+        let params = IntentParams(
+            vpa: payeeVpa,
+            name: payeeName ?? "PocketCare",
+            amountMinor: Double(amountMinor),
+            note: note,
+            ref: transactionRef,
+            currency: currency
         )
+        return try buildIntentUrl(params).url
     }
 }
