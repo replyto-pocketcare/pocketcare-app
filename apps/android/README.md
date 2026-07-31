@@ -12,7 +12,7 @@ something safe to hand-write. **Before anything else will build:**
 
 ```bash
 cd apps/android
-gradle wrapper --gradle-version 8.6
+gradle wrapper --gradle-version 8.7
 git add gradlew gradlew.bat gradle/wrapper/
 git commit -m "mobile(P0.2): add Gradle wrapper"
 ```
@@ -48,3 +48,9 @@ target layout) — not created yet, to keep this task's diff reviewable.
 - Kotlin/AGP/Compose BOM versions in `gradle/libs.versions.toml` were the
   latest known-good at authoring time (2026-07) — check for newer stable
   releases before shipping.
+- **Gradle/AGP version pairing matters.** AGP 8.6.0 requires Gradle >= 8.7
+  (the wrapper is pinned to 8.7 in `gradle/wrapper/gradle-wrapper.properties`
+  for exactly this reason — an earlier draft of this scaffold shipped 8.6
+  and failed with "Minimum supported Gradle version is 8.7"). If you bump
+  `agp` in the version catalog, check its minimum Gradle requirement too;
+  they don't move in lockstep.
