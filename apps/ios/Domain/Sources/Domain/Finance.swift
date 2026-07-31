@@ -17,7 +17,10 @@ import Foundation
 // here (the two functions only disagree at -0/-0.5<=x<0, where both
 // represent the value 0 anyway once converted to an integer).
 
-private func jsMathRound(_ x: Double) -> Double {
+// Not private: SplitsMath.swift's pairwiseEdges (P1.4b) needs the same
+// Math.round tie-toward-+Infinity rule and reuses this rather than
+// duplicating it.
+func jsMathRound(_ x: Double) -> Double {
     (x + 0.5).rounded(.down)
 }
 

@@ -127,8 +127,20 @@ class VectorRunnerTest {
     @Test fun `receipts-parse`() = runDomain("receipts-parse")
     @Test fun `receipts-reconcile`() = runDomain("receipts-reconcile")
     @Test fun reconcile() = runDomain("reconcile")
-    @Test fun `splits-insights`() = runDomain("splits-insights")
-    @Test fun `splits-math`() = runDomain("splits-math")
+    @Test
+    fun `splits-insights`() {
+        // P1.4a: registers SplitsInsights.kt's port before running
+        // splits-insights.json's vectors, same pattern as money()/ledger().
+        care.pocket.domain.splitsinsights.registerSplitsInsightsVectors()
+        runDomain("splits-insights")
+    }
+    @Test
+    fun `splits-math`() {
+        // P1.4a: registers SplitsMath.kt's port before running
+        // splits-math.json's vectors, same pattern as money()/ledger().
+        care.pocket.domain.splitsmath.registerSplitsMathVectors()
+        runDomain("splits-math")
+    }
     @Test fun `sync-policy`() = runDomain("sync-policy")
     @Test fun upi() = runDomain("upi")
 }

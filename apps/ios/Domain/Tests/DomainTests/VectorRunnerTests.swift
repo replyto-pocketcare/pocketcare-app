@@ -106,8 +106,18 @@ final class VectorRunnerTests: XCTestCase {
     func testReceiptsParse() throws { try runDomain("receipts-parse") }
     func testReceiptsReconcile() throws { try runDomain("receipts-reconcile") }
     func testReconcile() throws { try runDomain("reconcile") }
-    func testSplitsInsights() throws { try runDomain("splits-insights") }
-    func testSplitsMath() throws { try runDomain("splits-math") }
+    func testSplitsInsights() throws {
+        // P1.4b: registers SplitsInsights.swift's port before running
+        // splits-insights.json's vectors, same pattern as testMoney()/testLedger().
+        registerSplitsInsightsVectors()
+        try runDomain("splits-insights")
+    }
+    func testSplitsMath() throws {
+        // P1.4b: registers SplitsMath.swift's port before running
+        // splits-math.json's vectors, same pattern as testMoney()/testLedger().
+        registerSplitsMathVectors()
+        try runDomain("splits-math")
+    }
     func testSyncPolicy() throws { try runDomain("sync-policy") }
     func testUpi() throws { try runDomain("upi") }
 }
