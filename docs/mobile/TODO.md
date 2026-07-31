@@ -5,69 +5,68 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — P0.2 AND P0.3 both DONE: human
-               confirmed both apps built, tested, and RUNNING (Android on
-               device via installDebug, iOS on simulator via Xcode). Built
-               P0.4a + P0.4b (golden-vector runners, both platforms) in the
-               same session — not yet build-verified, that's the immediate
-               next step.
-Android state: DONE (P0.2). `./gradlew build test` green on AGP 9.2.0/
-               Gradle 9.4.1/built-in Kotlin, runs on-device. P0.4a added:
-               domain/src/test/kotlin/.../vectors/{Vectors,FunctionRegistry,
-               VectorRunnerTest}.kt — loads tools/golden-vectors/vectors/*
-               via a Gradle test-resources srcDir (no copy), one @Test per
-               domain (16), all skipped until FunctionRegistry is
-               populated by Phase 1 tasks. Needed kotlinx.serialization
-               (human-approved in-session — real dependency decision,
-               :domain has no Android SDK / no free JSON parser) — 1.11.0,
-               confirmed compatible with Kotlin 2.4.10 via search.
-iOS state:     DONE (P0.3). `xcodebuild test` green after 2 real-build
-               fixes (SWIFT_VERSION "6.0"->"6", missing PocketCareTests
-               Info.plist), confirmed running on simulator. P0.4b added:
-               Domain/Tests/DomainTests/{VectorFixtures,FunctionRegistry,
-               VectorRunnerTests}.swift — SwiftPM can't declare resources:
-               outside the package, so vectors are read straight off disk
-               via a path computed from #filePath at runtime instead of
-               bundled. Same empty-registry/all-skipped design as Android,
-               one test method per domain (16), mirrors it 1:1.
+Last session: 2026-07-31 (latest) — P0.2+P0.3 confirmed running by human;
+               built P0.4a/P0.4b (vector runners, both platforms, empty
+               registries) then P1.1a/P1.1b (money — the FIRST real domain
+               port, both platforms) in the same session. Told to "move
+               ahead" after P0.4 shipped, so kept going rather than
+               stopping to wait for a build report — none of this is
+               build-verified yet, that's the very next step.
+Android state: P0.2 DONE, P0.4a DOING, P1.1a DOING (commit 7d3107a).
+               domain/src/main/.../money/Money.kt: 13/14 fns ported
+               (money, fromMajor, toMajor, minorUnits, add, subtract,
+               negate, scale, sum, convert, split, itemsReconcile,
+               isZero/isNegative); format() deferred (150+-entry locale
+               table, cross-platform ICU string risk, own follow-up task).
+               domain/src/test/.../money/MoneyVectors.kt registers all 13
+               into FunctionRegistry, called from VectorRunnerTest.money().
+iOS state:     P0.3 DONE, P0.4b DOING, P1.1b DOING (commit 7d3107a).
+               Domain/Sources/Domain/Money.swift: same 13 fns, same
+               deferrals. Domain/Tests/DomainTests/MoneyVectors.swift
+               registers them, called from VectorRunnerTests.testMoney().
 Vectors:       DONE (P0.1). tools/golden-vectors -> vectors/*.json, 16
                domain files, 250 vectors, >=1 per public function.
-Next up:       Human runs the real build on both platforms to verify P0.4:
-               Android `cd apps/android && ./gradlew test` (should show
-               "[vectors] domain=X total=Y passed=0 skipped=Y failed=0"
-               for all 16 domains); iOS `cd apps/ios && xcodegen generate
-               && xcodebuild test -project PocketCare.xcodeproj -scheme
-               PocketCare -destination 'platform=iOS Simulator,name=iPhone
-               17 Pro'` (same expected shape via print()). If either
-               fails, report back — this is genuinely new code, unlike the
-               dependency-version fixes, so treat it as unverified. Once
-               green, P0.4a/P0.4b -> DONE and P1.1a/P1.1b (money — Android/
-               iOS, the first real domain port) unblock.
+Next up:       Human runs the real build/test on both platforms — this is
+               the first attempt at BOTH the vector-runner infra (P0.4)
+               AND real domain logic (P1.1) together, so treat everything
+               as unverified: Android `cd apps/android && ./gradlew test`,
+               iOS `cd apps/ios && xcodegen generate && xcodebuild test
+               -project PocketCare.xcodeproj -scheme PocketCare
+               -destination 'platform=iOS Simulator,name=iPhone 17 Pro'`.
+               Expect "[vectors] domain=money total=40 passed=37 skipped=3
+               failed=0" (money.json has 40 vectors across 14 fns, 3 of
+               them format() -- unregistered, deferred, always skip) and
+               all-skipped for the other 15 domains. Report back whatever
+               actually prints
+               — money's rounding edge cases (fromMajor(0.005), scale's
+               half-away-from-zero case) are the highest-value things to
+               check first if anything's wrong.
 Traps/notes:   **Kotlin AND Swift block comments both nest** — never write
-               a literal `/*` inside a `/** ... */` doc comment (a glob
-               path like `foo/*.json` is the classic accidental trigger;
-               hit this twice this session, once in Placeholder.kt, once
-               while writing VectorRunnerTest.kt). The iOS vector-runner
-               files sidestep this by using only `//`/`///` line comments,
-               never `/* */` — worth doing generally in new Swift files.
-               **AGP 9.0+ built-in Kotlin**: applying kotlin-android
-               alongside AGP 9.x is a hard error. **Xcode SWIFT_VERSION
-               wants "6"**, not a dotted version (different axis from
-               SwiftPM's `swift-tools-version`). **SwiftPM resources:
-               can't reference paths outside the package** — use a
-               #filePath-relative runtime path instead when a Swift target
-               needs to read repo-root fixtures; Gradle's sourceSets
-               resources.srcDir has no such restriction. Golden-vector
-               registries on both platforms are keyed by (domain, fn), not
-               fn alone — the JSON's "fn" field isn't unique across
-               domains. CI jobs `android`/`ios` in .github/workflows/ci.yml
-               (gradle-version "9.4.1", iOS simulator "iPhone 17 Pro") —
-               still only run the existing build+test, not yet updated to
-               specifically surface vector pass counts, though the test
-               output itself already contains them via println/print.
+               a literal `/*` inside a `/** ... */` doc comment. iOS files
+               use only `//`/`///` line comments to sidestep this
+               entirely. **Golden-vector registries are keyed by (domain,
+               fn)**, not fn alone. **Money rounding**: Kotlin uses
+               BigDecimal.valueOf(Double).setScale(0, HALF_UP) (NOT
+               kotlin.math.round — its tie-break rule isn't documented as
+               round-half-away-from-zero); Swift uses the stdlib's
+               explicit `.toNearestOrAwayFromZero`. **Currency decimal
+               places**: Kotlin uses java.util.Currency (authoritative);
+               Swift has no equally-authoritative single API, so it uses
+               an explicit verified ISO 4217 exception table instead of
+               trusting NumberFormatter's automatic behavior (search
+               surfaced inconsistent-behavior reports). **Raw numeric JSON
+               comparison differs by platform**: Kotlin's JsonElement
+               equality is TEXTUAL (500.0 != 500), needed Vectors.kt's
+               jsonNumber() helper; Swift's NSNumber `isEqual` is
+               VALUE-based, no helper needed there — don't assume the two
+               platforms need identical workarounds. **Always check a
+               thrown error's TYPE, not just its message** when
+               vector.throws.name isn't the generic "Error" — both
+               runners had this gap until this session; fixed in
+               VectorRunnerTest.kt / VectorRunnerTests.swift.
                COMMIT EVERY SESSION, even docs-only ones.
-Blocked:       Nothing structurally blocked. P0.4a/P0.4b DONE status is
-               waiting on the human's next build attempt (sandbox has no
+Blocked:       Nothing structurally blocked. Everything from this session
+               is waiting on the human's next build attempt (sandbox has no
                JDK/Gradle/Xcode/Swift toolchain to verify locally).
 ```
 
@@ -96,7 +95,7 @@ Blocked:       Nothing structurally blocked. P0.4a/P0.4b DONE status is
 ### Phase 1 — domain ports (one row = one platform = one task)
 | ID | Task | Tag | Needs | Status |
 |---|---|---|---|---|
-| P1.1a / P1.1b | money — Android / iOS | [M] | P0.4a / P0.4b | TODO / TODO |
+| P1.1a / P1.1b | money — Android / iOS | [M] | P0.4a / P0.4b | DOING (2026-07-31, claude-sonnet-5, commit 7d3107a — 13/14 fns, format() deferred, NOT build-verified) / DOING (same) |
 | P1.2a / P1.2b | ledger — Android / iOS | [M] | P1.1 same-platform | TODO / TODO |
 | P1.3a / P1.3b | finance+budget — Android / iOS | [M] | P1.2 | TODO / TODO |
 | P1.4a / P1.4b | splits+insights — Android / iOS | [M] | P1.1 | TODO / TODO |
