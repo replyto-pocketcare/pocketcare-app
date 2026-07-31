@@ -20,9 +20,21 @@ Last session: 2026-07-31 (latest) — built SplitsRepository.kt/.swift (P2.5,
                files' headers): itemized-bill writes, createInvite/
                acceptInvite (Edge Function HTTP). Self-caught one flaw
                pre-build: personLedger's mixed-type positional-cast list
-               replaced with a proper SettRow type. NOT yet build-verified
-               on either platform — get a real compiler pass next session
-               before trusting it further.
+               replaced with a proper SettRow type. User then ran a real
+               `xcodebuild` against SplitsRepository.swift — FAILED with 2x
+               "Operator can throw but expression is not marked with try":
+               `(try cursor.getStringOptional(...)) ?? (try
+               cursor.getString(...))` — `??` is `rethrows`, so when BOTH
+               operands can throw, a single `try` must prefix the WHOLE
+               coalesce expression, not be duplicated on each side. Fixed
+               both occurrences (commit 6d783ed) to `try
+               cursor.getStringOptional(...) ?? cursor.getString(...)`.
+               The `(try X) ?? false`-shaped lines elsewhere (only one
+               operand throws) are unaffected — already build-green
+               elsewhere in this file and in LedgerRepository.swift.
+               Android (`SplitsRepository.kt`) still has NOT had a real
+               `./gradlew` run against it this session — that's the next
+               required step before trusting the Kotlin half.
 Earlier same arc: discovered packages/data/src/powersync-repositories.ts is
                the REAL authoritative write layer (not hooks.ts/write.ts);
                reconciled LedgerRepository against it, built Budget+
