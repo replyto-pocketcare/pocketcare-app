@@ -5,84 +5,76 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — user confirmed iOS `xcodebuild test`
-               is GREEN after round 3's SupabaseConnector.swift fixes
-               ("Working now"). Two follow-ups done in response: (1)
-               checked Android for the iOS opData/opDataTyped class of
-               bug (flagged open last session) — CONFIRMED the same real
-               bug via source (powersync-kotlin 1.13.0's CrudEntry.kt/
-               SqliteRow.kt): `CrudEntry.opData` is `SqliteRow?`, which
-               itself implements `Map<String, String?>` (stringified,
-               deprecated-in-spirit); the real typed accessor is
-               `.typed: Map<String, Any?>`. Kotlin's covariant `Map<out
-               V>` let `opData?.toMap()` assign into a `Map<String,
-               Any?>`-typed val with ZERO error, so this would have
-               shipped the exact same "money uploaded as JSON strings"
-               bug as iOS, undetectable by any compiler. Fixed to
-               `.typed` at all 3 call sites in SupabaseConnector.kt;
-               also fixed `clientId` (confirmed non-nullable `Int` in
-               the real SDK, not `Int?`) and documented a real SDK
-               constraint found along the way: `.typed`'s numeric parser
-               only ever produces `Int` (32-bit), never `Long` — a risk
-               for any future bigint-range synced column. (2) P2.3 was
-               listed TODO but its actual remaining piece — wiring the
-               already-ported `diagnostics` domain's `makeEntry`/
-               `formatLog` into the connector's failure path so a future
-               "share diagnostics" flow has something to show — had
-               never been done (the connector only did ad-hoc `Log.e`/
-               `print`). Implemented on both platforms: new
-               DiagnosticsLog.kt/.swift (capped 200-entry in-memory ring
-               buffer, `logDiagnostic()` feeding `makeEntry`'s redaction
-               pipeline, `diagnosticsReport()` wrapping `formatLog`),
-               wired into both SupabaseConnector's failure branch
-               (ERROR for permanent/quarantined, WARN for transient).
-               Required adding `import Domain` to SupabaseConnector.swift
-               and 4 new imports to SupabaseConnector.kt — both files'
-               existing Classification/FailureDetails usages worked via
-               inferred chained member access with no import needed, but
-               bare global constants (FAILURE_CLASS_PERMANENT, LOG_LEVEL_
-               *) and named enum cases (DetailValue.obj/.str/...) need
-               the declaring module imported in THAT file, in both
-               Swift and Kotlin — a real, easy-to-miss distinction.
+Last session: 2026-07-31 (latest) — after iOS xcodebuild confirmed green
+               (see prior entries: Android opData parallel-bug fix +
+               P2.3 diagnostics wiring, commit bbb90c4), user said "yes
+               please" to starting P2.5. Began with ledger (accounts +
+               transactions + balance/net-worth derivation), the
+               dependency root every other domain's repository will read
+               off. New files, both platforms: WriteHelpers.kt/.swift
+               (Kotlin/Swift mirror of apps/web/src/write.ts's
+               insertRow/updateRow/softDelete — generic synced-row
+               helpers every repository builds writes on) and
+               LedgerRepository.kt/.swift (accounts/transactions reads +
+               writes; watchAccountBalances/watchNetWorth call the
+               already-ported deriveBalance/aggregateNetWorth, i.e. the
+               actual point of P2.5 — never recomputing balance math
+               here). Schema confirmed against PocketCareSchema.kt/.swift
+               (P2.1) column-by-column, not assumed; query shapes copied
+               from apps/web/src/hooks.ts's real useAccountBalances/
+               useNetWorth/useBlockedByAccount/useRates so mobile matches
+               the web app's actual behavior (IFNULL defaults, emergency-
+               fund exclusion, latest-rate-wins ordering) rather than a
+               plausible-looking reimplementation.
+Real API findings this session (source-verified, not guessed): Kotlin's
+               Queries.watch returns Flow<List<T>> with a real combine()
+               operator — used freely for watchAccountBalances/
+               watchNetWorth. Swift's Queries.watch returns
+               AsyncThrowingStream<[T], Error>, which has NO built-in
+               combine/combineLatest — building one blind (no compiler)
+               was judged disproportionate risk for Phase 2's actual
+               Done-when (TP L3 sync correctness, not UI reactivity), so
+               iOS's derived views (accountBalances/netWorth) are one-shot
+               async snapshots instead of reactive streams; single-table
+               reads (watchAccounts/watchTransactions) ARE real streams.
+               This is a genuine, documented platform asymmetry, not an
+               oversight — flagged inline in LedgerRepository.swift's
+               header comment for whoever wires up UI in Phase 3+.
+               RateLookup (both platforms) is a plain function-type alias,
+               NOT a `fun interface`/functional-interface protocol — built
+               as a lambda assigned to an explicitly-typed val, not via a
+               SAM-style `RateLookup { ... }` constructor call (that
+               syntax needs an actual functional interface). Kotlin
+               Boolean columns written as explicit Long 0/1, not Boolean,
+               since the SQLite bind layer's Boolean support wasn't
+               independently confirmed from this sandbox.
 Android state: 16/16 Phase 1 domains DONE. :data module (P2.2a/P2.3a/
-               P2.4a): 2 bugs from round 1 + opData/clientId bug (above)
-               + new diagnostics wiring, all source-verified, STILL
-               NEVER build-verified — no `./gradlew build` has run
-               against this code at any point in this whole arc.
+               P2.4a) source-verified per prior entries, STILL NEVER
+               build-verified — no `./gradlew build` has run against
+               this code at any point in this whole arc. P2.5a: 1/7
+               domains (ledger) done, same never-build-verified caveat.
 iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2b/P2.3b/
-               P2.4b): xcodebuild CONFIRMED GREEN as of this session for
-               everything through round 3's fixes. New DiagnosticsLog.
-               swift + the SupabaseConnector.swift diagnostics wiring
-               added AFTER that confirmation — NOT yet re-verified by
-               another real xcodebuild run.
+               P2.4b): xcodebuild confirmed green through round 3 + the
+               P2.3 diagnostics wiring is NOT yet re-verified since that
+               addition (prior entry). P2.5b: 1/7 domains (ledger) done,
+               also not yet real-compiler-verified.
 Vectors:       DONE (P0.1), 250/250 green on both platforms (Phase 1).
-Next up:       Re-run real `xcodebuild test` to confirm the diagnostics
-               wiring (new import Domain, DetailValue usage) compiles
-               clean. Get a first-ever real `./gradlew build` for
-               Android — everything there remains source-inspection-only
-               after 3 full rounds of iOS-only real compiler feedback.
-               Then: P2.5 (repositories, 7 domains × 2 platforms) and
-               P2.6 (repair logic × 2 platforms) are the only Phase 2
-               items left untouched — pick up there.
-Traps/notes:   Same traps from rounds 1-3, plus: (1) Kotlin's `Map<out
-               V>` covariance means a stringified-vs-typed accessor mixup
-               like opData/.typed produces ZERO warning at the
-               assignment site, unlike Swift's invariant Dictionary,
-               which at least sometimes surfaces a real type mismatch —
-               Kotlin is actually MORE dangerous for this exact class of
-               bug, not less. (2) confirmed again: per-file imports are
-               required for bare top-level constants and named enum
-               cases in BOTH Swift and Kotlin, even for a sibling file in
-               the exact same target/package that already imports the
-               same module — chained property access on an
-               already-inferred type is the one thing that doesn't need
-               a matching import in either language.
-Blocked:       P2.2/P2.3/P2.4 all still BLOCKED on TP L3 (real sync
-               round-trip against reachable Supabase infra) even once
-               both platforms compile clean — that's a materially higher
-               bar than "compiles," per Phase 2's Done-when. Android
-               additionally blocked on ever getting a first real Gradle
-               build this entire arc.
+Next up:       Get a real compiler run on BOTH platforms for the P2.5
+               ledger slice (this is genuinely new, more complex surface
+               — SQL string building, cursor mapping, generic dictionaries
+               — than the P2.2-P2.4 fixes so far). Then continue P2.5 in
+               dependency order: finance+budget next (reads ledger's
+               accounts), then splits, receipts, upi. P2.6 (repair logic)
+               still fully untouched.
+Traps/notes:   Same traps from rounds 1-3, plus this session's two new
+               findings above (Flow.combine vs no AsyncThrowingStream
+               equivalent; RateLookup as a plain lambda, not a SAM call).
+Blocked:       P2.2/P2.3/P2.4/P2.5 all still BLOCKED on TP L3 (real sync
+               round-trip against reachable Supabase infra) even once a
+               piece compiles clean — that's a materially higher bar than
+               "compiles," per Phase 2's Done-when. Android additionally
+               blocked on ever getting a first real Gradle build this
+               entire arc.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -129,7 +121,7 @@ One task = one platform, same pattern as Phase 1. Order matters: schema parity b
 | P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | Code complete, NOT build-verified (no real Gradle run this whole arc) — BLOCKED (TP L3) / Code complete, xcodebuild clean 3 rounds in a row (human-confirmed 2026-07-31, incl. a real data-correctness fix, see change log) — BLOCKED (TP L3) |
 | P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | Code complete 2026-07-31 (dead-letter persistence + new DiagnosticsLog.kt wiring `makeEntry`/`formatLog` into the failure path), NOT build-verified — BLOCKED (TP L3) / Code complete 2026-07-31 (dead-letter persistence was already done; new DiagnosticsLog.swift closes the `makeEntry`/`formatLog` gap that was the actual remaining piece), NOT yet re-verified by xcodebuild since this addition — BLOCKED (TP L3) |
 | P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | Code complete, NOT build-verified — BLOCKED (TP L3) / Code complete, Auth.swift confirmed xcodebuild-clean (2026-07-31) — BLOCKED (TP L3) |
-| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | TODO / TODO |
+| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DOING (1/7 domains — ledger done 2026-07-31: WriteHelpers.kt + LedgerRepository.kt, source-verified, NOT build-verified; finance/budget/splits/receipts/upi remain) / DOING (1/7 — WriteHelpers.swift + LedgerRepository.swift, source-verified, NOT build-verified; same remaining list) |
 | P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | TODO / TODO |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
