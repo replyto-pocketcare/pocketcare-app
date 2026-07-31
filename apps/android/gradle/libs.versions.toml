@@ -1,13 +1,23 @@
-# Version catalog. Versions below are the last ones known-good at authoring
-# time (2026-07) — CHECK FOR NEWER STABLE RELEASES before relying on this
+# Version catalog. Versions below were verified against
+# developer.android.com/build/releases/about-agp (compatibility table) and
+# search on 2026-07-31 — see apps/android/README.md "Version audit" note for
+# the reasoning. CHECK FOR NEWER STABLE RELEASES before relying on this
 # long-term (plan §2: "latest stable at execution time — executors check
 # versions, don't assume"). Bump via Android Studio's AGP Upgrade Assistant
 # or by hand; this file is the single place versions live.
-
-[versions]
-agp = "8.6.0"
-kotlin = "2.0.21"
-composeBom = "2024.10.01"
+#
+# Deliberately stayed on the AGP 8.x line (8.13.0) rather than jumping to the
+# 9.x line (9.2.0 latest at audit time): AGP 9.0+ introduces "built-in
+# Kotlin" and drops the separate kotlin-android plugin, a structural DSL
+# migration that can't be verified in this sandbox (no JDK/Gradle). AGP
+# 8.13.0 is current within the 8.x line, keeps the familiar kotlin-android +
+# kotlinOptions{} shape already in app/build.gradle.kts, and its minimum
+# Gradle requirement (8.13, exact match) is a small, well-documented step up
+# from the previous pin (8.7). Revisit the 9.x jump as a deliberate,
+# separately-verified task once a human can actually run a build.
+agp = "8.13.0"
+kotlin = "2.4.10"
+composeBom = "2026.06.00"
 activityCompose = "1.9.3"
 lifecycle = "2.8.7"
 coreKtx = "1.13.1"

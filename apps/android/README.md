@@ -12,7 +12,7 @@ something safe to hand-write. **Before anything else will build:**
 
 ```bash
 cd apps/android
-gradle wrapper --gradle-version 8.7
+gradle wrapper --gradle-version 8.13
 git add gradlew gradlew.bat gradle/wrapper/
 git commit -m "mobile(P0.2): add Gradle wrapper"
 ```
@@ -45,12 +45,23 @@ target layout) — not created yet, to keep this task's diff reviewable.
 
 - `applicationId "care.pocket.android"` and `minSdk 26` are proposals, not
   decisions.
-- Kotlin/AGP/Compose BOM versions in `gradle/libs.versions.toml` were the
-  latest known-good at authoring time (2026-07) — check for newer stable
-  releases before shipping.
-- **Gradle/AGP version pairing matters.** AGP 8.6.0 requires Gradle >= 8.7
-  (the wrapper is pinned to 8.7 in `gradle/wrapper/gradle-wrapper.properties`
-  for exactly this reason — an earlier draft of this scaffold shipped 8.6
-  and failed with "Minimum supported Gradle version is 8.7"). If you bump
-  `agp` in the version catalog, check its minimum Gradle requirement too;
-  they don't move in lockstep.
+- Kotlin/AGP/Compose BOM versions in `gradle/libs.versions.toml` were
+  verified against developer.android.com's AGP/Gradle compatibility table
+  and web search on 2026-07-31 (AGP 8.13.0, Kotlin 2.4.10, Compose BOM
+  2026.06.00, Gradle 8.13) — check for newer stable releases before
+  shipping, they will drift again.
+- **Gradle/AGP version pairing matters.** AGP versions don't move in
+  lockstep with their minimum required Gradle version — always check
+  developer.android.com/build/releases/about-agp before bumping `agp` in
+  the version catalog. History here: AGP 8.6.0 required Gradle >= 8.7 (an
+  earlier draft shipped 8.6 and failed with "Minimum supported Gradle
+  version is 8.7"); the wrapper and `agp` were then bumped together to
+  8.13.0 / Gradle 8.13 (exact minimum match).
+- **Deliberately stayed on AGP 8.x, not 9.x.** AGP 9.0+ ships "built-in
+  Kotlin" and drops the separate `kotlin-android` plugin — a real DSL
+  migration (see developer.android.com/build/migrate-to-built-in-kotlin)
+  that this sandbox has no way to verify (no JDK/Gradle to actually build
+  with). 8.13.0 is current within the 8.x line and keeps the
+  already-working `kotlin-android` + `kotlinOptions{}` shape. Treat the 9.x
+  jump as its own, separately-verified task once a human can run a real
+  build.

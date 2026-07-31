@@ -8,7 +8,10 @@ android {
     namespace = "care.pocket.android"
     // PLACEHOLDER — confirm the real reverse-DNS applicationId before any
     // store submission (plan §10; same open item as the RN scaffold hit).
-    compileSdk = 35
+    // compileSdk/targetSdk 36: Google Play requires new apps/updates to
+    // target API 36 by 2026-08-31 (verified via search 2026-07-31) — this
+    // app is new, so target it from the start rather than bumping later.
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "care.pocket.android"
@@ -17,7 +20,7 @@ android {
         // devices while giving access to modern Compose/notification APIs
         // without extra compat shims.
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "0.0.1"
     }

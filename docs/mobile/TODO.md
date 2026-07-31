@@ -5,54 +5,54 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 — P0.2 + P0.3 SCAFFOLDED (files written, NOT
-               verified — see Blocked). P0.1/plan docs done earlier same
-               session (commits 62fd053, 136d1e2).
-Android state: apps/android/{app,domain} written. NOT yet built — no
-               Gradle/JDK compiler in the agent sandbox. Wrapper jar not
-               committed either (can't fabricate a binary) — see
-               apps/android/README.md for the one-command bootstrap
-               (`gradle wrapper --gradle-version 8.6`) a human must run once.
-iOS state:     apps/ios/{App,AppTests,Domain} + project.yml written. NOT
-               yet generated or built — no Xcode/Swift toolchain in the
-               agent sandbox. `.xcodeproj` is generated (gitignored), not
-               committed — run `xcodegen generate` first (README.md).
+Last session: 2026-07-31 (even later) — human ran the REAL Android build for
+               the first time and hit a real Kotlin compile error; fixed it
+               plus did the overdue dependency-version audit. iOS untouched
+               this round (still fully unverified).
+Android state: Human's `./gradlew build test` hit "Unclosed comment" in
+               domain/Placeholder.kt (Kotlin nests block comments; the KDoc
+               had literal /* inside glob paths) — fixed by rephrasing.
+               Also bumped AGP 8.6.0->8.13.0, Kotlin 2.0.21->2.4.10, Compose
+               BOM 2024.10.01->2026.06.00, Gradle wrapper+CI 8.7->8.13,
+               compileSdk/targetSdk 35->36 — verified against
+               developer.android.com's AGP/Gradle compat table (not just
+               assumed). Deliberately stayed on AGP 8.x, not 9.x's
+               built-in-Kotlin (real DSL migration, unverifiable without a
+               live build) — see README "Version audit" note. Also fixed
+               apps/android/.gitignore: `/build` was anchored so it missed
+               apps/android/domain/build/; now unanchored `build/`.
+               STILL NOT build-green — human needs to re-run and report.
+iOS state:     Unchanged since last session. apps/ios/{App,AppTests,Domain}
+               + project.yml written, NEVER generated or built. Not part of
+               this fix round.
 Vectors:       DONE (P0.1). tools/golden-vectors -> vectors/*.json, 16
                domain files, 250 vectors, >=1 per public function.
-Next up:       A HUMAN needs to run the verification commands below and
-               report the output back — only then can P0.2/P0.3 move
-               DOING -> DONE per protocol (Done-when needs real
-               build/test output, not "the files exist"):
-                 Android: cd apps/android && gradle wrapper --gradle-version 8.6
-                          && git add gradlew* gradle/wrapper/ && ./gradlew build test
-                 iOS:     cd apps/ios && xcodegen generate
-                          && swift test --package-path Domain
-                          && xcodebuild test -project PocketCare.xcodeproj
-                             -scheme PocketCare
-                             -destination 'platform=iOS Simulator,name=iPhone 16'
-               If either fails, paste the error back rather than silently
-               patching around it blind — these were never compiled.
-Traps/notes:   CI jobs `android`/`ios` added to .github/workflows/ci.yml.
-               Android CI uses gradle/actions/setup-gradle (runs `gradle`,
-               NOT `./gradlew`) specifically so CI doesn't need the
-               human-generated wrapper jar — fine either way once one
-               exists. iOS CI runs `xcodegen generate` fresh every time
+Next up:       Human re-runs `./gradlew build test` in apps/android and
+               reports the result — could still surface more real errors
+               the sandbox can't catch (no JDK/Gradle here). Once green,
+               P0.2 -> DONE. iOS (P0.3) still needs its first real
+               `xcodegen generate && swift test && xcodebuild test` pass,
+               and its own version audit (swift-tools-version 6.0,
+               deploymentTarget iOS 17 in project.yml) hasn't been done yet
+               — do that BEFORE the first iOS build attempt, not after,
+               now that Android proved the "ship unverified versions, fix
+               reactively" path costs a round trip.
+Traps/notes:   New trap for the list: **Kotlin block comments nest** —
+               never write a literal `/*` inside a `/** ... */` doc comment
+               (glob paths like `foo/*.json` are a classic accidental
+               trigger); rephrase to avoid it. CI jobs `android`/`ios` in
+               .github/workflows/ci.yml (gradle-version now "8.13"). Android
+               CI uses gradle/actions/setup-gradle (runs `gradle`, NOT
+               `./gradlew`) so it doesn't need the human-generated wrapper
+               jar. iOS CI runs `xcodegen generate` fresh every time
                (project.yml is the source of truth, .xcodeproj is
-               gitignored). Neither CI job blocks `deploy-production`
-               (same pattern as the old RN `mobile` job). versions in
-               apps/android/gradle/libs.versions.toml and
-               apps/ios/project.yml's deploymentTarget are proposals typed
-               from training knowledge, NOT verified against what's
-               actually latest-stable right now — check before trusting
-               them long-term (plan §2 says to). Exporter (P0.1) imports
-               packages by RELATIVE PATH to each src/index.ts, not the
-               "@pocketcare/x" bare specifier — needs no new symlinks.
-               Every vector-exporter call that defaults to wall-clock time
-               or Math.random pins an explicit date/seed instead.
+               gitignored). Neither CI job blocks `deploy-production`.
+               Exporter (P0.1) imports packages by RELATIVE PATH to each
+               src/index.ts, not the "@pocketcare/x" bare specifier.
                COMMIT EVERY SESSION, even docs-only ones.
-Blocked:       P0.2/P0.3 DONE status on a human running the build commands
-               above and reporting results (sandbox has no JDK
-               compiler/Gradle/Xcode/Swift toolchain).
+Blocked:       P0.2 DONE status on the human's next build attempt actually
+               going green. P0.3 blocked on ever attempting a first build
+               (sandbox has no JDK/Gradle/Xcode/Swift toolchain).
 ```
 
 ## Rules (short form — full protocol in plan §1)

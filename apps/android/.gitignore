@@ -3,7 +3,10 @@
 /local.properties
 .idea/
 .DS_Store
-/build
+# Unanchored: every module (app/, domain/, future ones) has its own build/
+# output dir, not just the root — an earlier anchored "/build" here missed
+# apps/android/domain/build/ entirely.
+build/
 /captures
 .externalNativeBuild
 .cxx
