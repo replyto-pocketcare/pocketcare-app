@@ -35,6 +35,37 @@ iPhone 17 Pro / 17 Pro Max / iPhone Air, not iPhone 16). If that name
 doesn't exist on your machine, list what you actually have and swap it in:
 `xcrun simctl list devices`.)
 
+`xcodebuild test` above proves the App target compiles and its test
+target passes — it does not launch the app where you can see it. To
+actually see the placeholder UI running, see "Run the app" below.
+
+## Run the app
+
+**Simulator, via Xcode (easiest):**
+1. `xcodegen generate` (if you haven't since the last `project.yml` change)
+2. `open PocketCare.xcodeproj`
+3. Top-left scheme/device selector → pick a simulator (e.g. iPhone 17 Pro)
+4. Press ▶ (or Cmd+R). Xcode boots the simulator, installs, and launches
+   automatically.
+
+**Simulator, from the command line (no Xcode window):**
+```bash
+xcrun simctl boot "iPhone 17 Pro" 2>/dev/null || true   # no-op if already booted
+open -a Simulator
+xcodebuild build -project PocketCare.xcodeproj -scheme PocketCare \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath build
+xcrun simctl install booted build/Build/Products/Debug-iphonesimulator/PocketCare.app
+xcrun simctl launch booted care.pocket.ios
+```
+
+**Physical device:** not wired up yet — this scaffold has no code-signing
+team configured (see "Open items" below). In Xcode: select your device
+from the scheme/device selector, then Signing & Capabilities tab on the
+`PocketCare` target → pick your Apple Developer team → Xcode offers to fix
+provisioning automatically → press ▶. First launch on-device also needs
+"trust this developer" in Settings → General → VPN & Device Management.
+
 ## Structure
 
 ```
