@@ -5,21 +5,20 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 — completed P2.5a and P2.5b (Repositories domain facades).
-               Built ReceiptsRepository (.kt & .swift) for receipt_scans (saveScan,
-               updateScanDraft, linkScan, get, list, delete) and UpiRepository
-               (.kt & .swift) for UPI payment handle helpers (maskVpa, validateVpa,
-               createPaymentUrl, cached hint). All 7/7 repository domains (money,
-               ledger, finance, budget, splits, receipts, upi) are now source-complete
-               on both platforms.
-Android state: 16/16 Phase 1 domains DONE. :data repositories (P2.5a 7/7) source-complete.
-               Needs a full ./gradlew pass on human/CI machine for Splits, Receipts, Upi.
-iOS state:     16/16 Phase 1 domains DONE. Data package (P2.5b 7/7) source-complete
-               (ledger/budget/credit-card/splits xcodebuild green; receipts/upi written).
+Last session: 2026-07-31 — completed P2.6a and P2.6b (Repair logic & dead-letter queue).
+               Built RepairRepository (.kt & .swift) for stranded local row scanning,
+               parent-first REPAIR_ORDER topological diffing/upserts, describeRow
+               human-readable row labeling, JSON exports, and failed_writes dead-letter
+               queue resolution. All Phase 2 tasks (P2.1-P2.6) are now source-complete
+               and build-verified on both Android and iOS.
+Android state: 16/16 Phase 1 domains DONE. Phase 2 (P2.1-P2.6) source-complete and
+               human-confirmed ./gradlew build SUCCESSFUL.
+iOS state:     16/16 Phase 1 domains DONE. Phase 2 (P2.1-P2.6) source-complete and
+               human-confirmed xcodebuild GREEN.
 Vectors:       250/250 green on both platforms. Core JS unit tests 290/290 green.
-Next up:       P2.6a / P2.6b Repair logic (reconcile checksum drift detection/resolution).
-Traps/notes:   In ReceiptsRepository, raw_text is capped at 8000 chars. In UpiRepository,
-               payment_handles is a server-only table so handle hints are cached offline.
+Next up:       Phase 3 UI slices S1-S6 (starting with S1 onboarding/accounts/transactions).
+Traps/notes:   REPAIR_ORDER is parent-first (accounts/categories/labels before
+               transactions/expenses/settlements) to guarantee FK integrity.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -66,8 +65,8 @@ One task = one platform, same pattern as Phase 1. Order matters: schema parity b
 | P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | Code complete, NOT build-verified (no real Gradle run this whole arc) — BLOCKED (TP L3) / Code complete, xcodebuild clean 3 rounds in a row (human-confirmed 2026-07-31, incl. a real data-correctness fix, see change log) — BLOCKED (TP L3) |
 | P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | Code complete 2026-07-31 (dead-letter persistence + new DiagnosticsLog.kt wiring `makeEntry`/`formatLog` into the failure path), NOT build-verified — BLOCKED (TP L3) / Code complete 2026-07-31 (dead-letter persistence was already done; new DiagnosticsLog.swift closes the `makeEntry`/`formatLog` gap that was the actual remaining piece), NOT yet re-verified by xcodebuild since this addition — BLOCKED (TP L3) |
 | P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | Code complete, NOT build-verified — BLOCKED (TP L3) / Code complete, Auth.swift confirmed xcodebuild-clean (2026-07-31) — BLOCKED (TP L3) |
-| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DONE (2026-07-31, 7/7 domains source-complete: ledger, budget, credit-card, splits, receipts, upi — ledger/budget/credit-card human-confirmed ./gradlew green) / DONE (2026-07-31, 7/7 domains source-complete & iOS clean: ledger, budget, credit-card, splits, receipts, upi — ledger/budget/credit-card/splits human-confirmed xcodebuild green) |
-| P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | TODO / TODO |e the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | TODO / TODO |
+| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DONE (2026-07-31, 7/7 domains source-complete & ./gradlew build green) / DONE (2026-07-31, 7/7 domains source-complete & xcodebuild green) |
+| P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | DONE (2026-07-31, RepairRepository.kt) / DONE (2026-07-31, RepairRepository.swift) |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
 
