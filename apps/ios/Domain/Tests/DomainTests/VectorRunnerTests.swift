@@ -30,8 +30,21 @@ final class VectorRunnerTests: XCTestCase {
                     _ = try impl(vector.input)
                     failures.append("\(label): expected throw \(throwsName) but succeeded")
                 } catch {
+                    // "Error" is JS's generic base class name -- the TS
+                    // source throws a plain `new Error(...)` at most call
+                    // sites, so there's no single matching Swift error TYPE
+                    // to require there (every domain would need its own
+                    // "GenericError" stand-in, which isn't worth forcing).
+                    // A SPECIFIC name (e.g. "CurrencyMismatchError") means
+                    // the TS source threw a deliberately-named subclass, and
+                    // that identity is real signal worth checking -- the
+                    // Swift port's error type name must match exactly.
+                    let actualName = String(describing: type(of: error))
+                    let nameOk = throwsName == "Error" || actualName == throwsName
                     let message = String(describing: error)
-                    if message != throwsMessage {
+                    if !nameOk {
+                        failures.append("\(label): expected throw type \(throwsName) but got \(actualName)")
+                    } else if message != throwsMessage {
                         failures.append("\(label): expected throw message '\(throwsMessage)' but got '\(message)'")
                     } else {
                         passed += 1
@@ -63,7 +76,15 @@ final class VectorRunnerTests: XCTestCase {
     func testFinance() throws { try runDomain("finance") }
     func testGuardrail() throws { try runDomain("guardrail") }
     func testLedger() throws { try runDomain("ledger") }
-    func testMoney() throws { try runDomain("money") }
+    func testMoney() throws {
+        // P1.1b: registers Money.swift's port before running money.json's
+        // vectors. Idempotent (FunctionRegistry.register just overwrites
+        // the same key), so this is safe even if XCTest ever re-runs the
+        // method. Every other domain here stays fully skipped until its
+        // own porting task adds an equivalent call.
+        registerMoneyVectors()
+        try runDomain("money")
+    }
     func testReceiptsAllocate() throws { try runDomain("receipts-allocate") }
     func testReceiptsMoneyText() throws { try runDomain("receipts-money-text") }
     func testReceiptsParse() throws { try runDomain("receipts-parse") }

@@ -3,6 +3,7 @@ package care.pocket.domain.vectors
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Mirrors the shape tools/golden-vectors/export.ts writes: either
@@ -39,4 +40,20 @@ fun loadVectors(domain: String): List<Vector> {
         )
     val text = stream.bufferedReader().use { it.readText() }
     return json.decodeFromString(text)
+}
+
+/**
+ * Renders a Double the way JavaScript's JSON.stringify does: whole
+ * numbers get no trailing decimal point ("500", not "500.0"). Every
+ * porting task should use this for raw (non-money-string) numeric
+ * results -- Money amounts always go through the domain's mny()-style
+ * string encoding instead and never hit this, but plain numeric returns
+ * (percentages, day counts, major-unit floats like Money.toMajor) are
+ * compared by JsonElement equality against vectors exported straight
+ * from V8, which never writes ".0" the way Kotlin's Double.toString()
+ * does -- without this, a numerically-correct port fails on a
+ * formatting technicality, not a real bug.
+ */
+fun jsonNumber(n: Double): JsonElement {
+    return if (n.isFinite() && n == Math.floor(n)) JsonPrimitive(n.toLong()) else JsonPrimitive(n)
 }

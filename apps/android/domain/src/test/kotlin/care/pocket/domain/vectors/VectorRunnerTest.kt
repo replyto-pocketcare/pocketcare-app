@@ -36,10 +36,22 @@ class VectorRunnerTest {
                         failures += "$label: expected throw ${vector.throws.name} but succeeded"
                     },
                     onFailure = { error ->
-                        if (error.message != vector.throws.message) {
-                            failures += "$label: expected throw message '${vector.throws.message}' but got '${error.message}'"
-                        } else {
-                            passed++
+                        // "Error" is JS's generic base class name -- the TS
+                        // source throws a plain `new Error(...)` at most call
+                        // sites, so there's no single matching Kotlin
+                        // exception TYPE to require there (forcing every
+                        // generic-error site to be literally named "Error"
+                        // would be unidiomatic). A SPECIFIC name (e.g.
+                        // "CurrencyMismatchError") means the TS source threw
+                        // a deliberately-named subclass, and that identity is
+                        // real signal worth checking -- the Kotlin port's
+                        // exception class name must match exactly.
+                        val nameOk = vector.throws.name == "Error" ||
+                            error::class.simpleName == vector.throws.name
+                        when {
+                            !nameOk -> failures += "$label: expected throw type ${vector.throws.name} but got ${error::class.simpleName}"
+                            error.message != vector.throws.message -> failures += "$label: expected throw message '${vector.throws.message}' but got '${error.message}'"
+                            else -> passed++
                         }
                     },
                 )
@@ -74,7 +86,16 @@ class VectorRunnerTest {
     @Test fun finance() = runDomain("finance")
     @Test fun guardrail() = runDomain("guardrail")
     @Test fun ledger() = runDomain("ledger")
-    @Test fun money() = runDomain("money")
+    @Test
+    fun money() {
+        // P1.1a: registers Money.kt's port before running money.json's
+        // vectors. Idempotent (FunctionRegistry.register just overwrites
+        // the same key), so this is safe even if JUnit ever re-runs the
+        // method. Every other domain here stays fully skipped until its
+        // own porting task adds an equivalent call.
+        care.pocket.domain.money.registerMoneyVectors()
+        runDomain("money")
+    }
     @Test fun `receipts-allocate`() = runDomain("receipts-allocate")
     @Test fun `receipts-money-text`() = runDomain("receipts-money-text")
     @Test fun `receipts-parse`() = runDomain("receipts-parse")
