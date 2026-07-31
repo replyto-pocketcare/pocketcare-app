@@ -5,88 +5,55 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — continuing P2.5 into finance+budget
-               ("keep going"), discovered mid-session that a REAL,
-               authoritative repository layer already exists at
-               packages/data/src/powersync-repositories.ts and is what
-               apps/web/src/powersync.ts's getRepositories() actually
-               wires up for every domain write. Reconciled
-               LedgerRepository.kt/.swift against it (OverdraftError/
-               assertNoOverdraft, setOpeningBalance, transaction items,
-               labels, transaction_audit trail, fixed createAccount's
-               column list/allow_negative default), then built
-               BudgetRepository.kt/.swift + CreditCardRepository.kt/.swift
-               on top. User then ran the FIRST REAL COMPILER PASS this
-               whole arc against P2.5 code, on both platforms, and both
-               failed on the first try — then GREEN after one real fix
-               each (below). This is the arc's first hard evidence that
-               the source-verification-without-a-compiler methodology
-               produces mostly-correct-but-not-perfect code: 2 real bugs
-               in ~1500 lines of new/changed P2.5 code, both fixed same
-               session once the user supplied the actual diagnostics.
-Real bugs found by the first real compiler run (both fixed, both
-               committed): (1) Android `:data:compileDebugKotlin` FAILED —
-               BudgetRepository.kt:96/100 `params += catIds` where
-               params: MutableList<Any?>, catIds: List<String>. Because
-               List<out E> is covariant, List<String> conforms to Any?,
-               so plusAssign(element: Any?) (add the whole list as ONE
-               entry) and plusAssign(elements: Iterable<Any?>) (spread
-               it) are BOTH statically applicable — the compiler resolved
-               the ambiguity by falling back to the non-mutating `plus`
-               operator and tried to reassign the `val`, which fails
-               outright ("'val' cannot be reassigned"). Fixed to
-               `.addAll()`, which has no such ambiguity. Grepped the rest
-               of this session's Kotlin for the same `+= <list>` pattern —
-               nowhere else does it, so this was the complete Kotlin
-               fix. (2) iOS `xcodebuild` FAILED — Swift 6's strict
-               concurrency checker rejected LedgerRepository.swift's
-               updateTransaction for "Reference/Mutation of captured var
-               'changeLog'/'sets'/'params' in concurrently-executing
-               code": a writeTransaction closure (which may run in a
-               different isolation context) can't capture and read/mutate
-               an outer `var`, only `let` captures of Sendable values are
-               safe across that boundary. Fixed by hoisting all the
-               decision-making (items/labels audit-summary entries, final
-               UPDATE sets/params) to immutable `let`s computed BEFORE the
-               closure opens — pure logic based on already-known state, so
-               moving it changes nothing about correctness/atomicity.
-               createTransaction/removeTransaction's writeTransaction
-               closures were already clean (checked, no capture issue).
-Real API findings this session (source-verified via docs.powersync.com's
-               live Kotlin/Swift SDK reference pages, not guessed): both
-               SDKs expose get/getOptional/getAll/execute/writeTransaction
-               with near-identical call shapes; get() throws if no row,
-               getOptional() returns null/nil.
-Android state: 16/16 Phase 1 domains DONE. :data module (P2.2a/P2.3a/
-               P2.4a) STILL NEVER build-verified this whole arc (only
-               P2.5's new files have been). P2.5a: 3/7 domains (ledger
-               reconciled, budget, credit-card) — `./gradlew` BUILD
-               SUCCESSFUL, human-confirmed 2026-07-31; finance/splits/
-               receipts/upi remain.
-iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2b/P2.3b/
-               P2.4b): xcodebuild confirmed green through round 3 + P2.3
-               diagnostics wiring, NOT yet re-verified since (only P2.5's
-               new files have been, this session). P2.5b: 3/7 domains
-               (ledger reconciled, budget, credit-card) — `xcodebuild`
-               green, human-confirmed 2026-07-31.
+Last session: 2026-07-31 (latest) — built SplitsRepository.kt/.swift (P2.5,
+               splits domain: split_groups/members, expenses,
+               expense_participants, settlements, connections). Confirmed
+               twice (own read + independent Agent) that packages/data has
+               NO dedicated splits repo — write.ts/hooks.ts ARE the spec.
+               Ported computeShares/computeBalances, ensureVirtualAccount
+               (generic insertRow path, deliberately different columns from
+               LedgerRepository.createAccount), createSplitExpense/
+               projectPersonal, settleUp/postSettlementLeg/
+               confirmSettlement/disputeSettlement. Balances always route
+               through the already-ported pairwiseEdges/splitsinsights
+               (P1.4), never recomputed. Scoped OUT (documented in both
+               files' headers): itemized-bill writes, createInvite/
+               acceptInvite (Edge Function HTTP). Self-caught one flaw
+               pre-build: personLedger's mixed-type positional-cast list
+               replaced with a proper SettRow type. NOT yet build-verified
+               on either platform — get a real compiler pass next session
+               before trusting it further.
+Earlier same arc: discovered packages/data/src/powersync-repositories.ts is
+               the REAL authoritative write layer (not hooks.ts/write.ts);
+               reconciled LedgerRepository against it, built Budget+
+               CreditCard repositories, then got this arc's FIRST real
+               compiler pass on both platforms — 2 real bugs found and
+               fixed (Kotlin `MutableList<Any?> += List<String>` covariance
+               ambiguity → `.addAll()`; Swift 6 concurrency var-capture in
+               a writeTransaction closure → hoist to `let`s before the
+               closure). Full detail in PROJECT_REFERENCE.md change log.
+Android state: 16/16 Phase 1 domains DONE. :data module (P2.2-P2.4) still
+               never build-verified. P2.5a: 4/7 domains source-complete
+               (ledger/budget/credit-card build-GREEN 2026-07-31; splits
+               NOT yet compiled). Finance/receipts/upi remain.
+iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2-P2.4):
+               xcodebuild confirmed green through round 3 + P2.3 wiring,
+               not re-verified since. P2.5b: 4/7 domains source-complete
+               (ledger/budget/credit-card build-GREEN 2026-07-31; splits
+               NOT yet compiled).
 Vectors:       DONE (P0.1), 250/250 green on both platforms (Phase 1).
-Next up:       Continue P2.5: splits, receipts, upi remain (finance's
-               pure calculators, e.g. EMI/amortization, don't need their
-               own repository — Finance.kt/.swift's
-               functions take explicit inputs, not DB reads, except the
-               EMI due-date helpers which imply a `loans` table a future
-               LoanRepository would read — not yet scoped). P2.6 (repair
-               logic) still fully untouched.
-Traps/notes:   Same traps from rounds 1-3, plus: always check whether a
-               "spec" file you're reverse-engineering from (hooks.ts) is
-               actually the canonical one before porting from it — grep
-               for `getRepositories()`/`@pocketcare/data` usage in
-               apps/web/src before trusting a hooks.ts-only read for any
-               new domain going forward (splits/receipts/upi included).
-Blocked:       P2.2/P2.3/P2.4/P2.5 all still BLOCKED on TP L3 (real sync
-               round-trip against reachable Supabase infra) even once a
-               piece compiles clean. Android additionally blocked on ever
-               getting a first real Gradle build this entire arc.
+Next up:       Get a real `./gradlew`/`xcodebuild` pass on SplitsRepository
+               before continuing. Then P2.5: receipts, upi remain (finance's
+               pure calculators don't need their own repository). P2.6
+               (repair logic) fully untouched.
+Traps/notes:   Always check whether a "spec" file (e.g. hooks.ts) is
+               actually canonical before porting from it — grep for
+               `getRepositories()`/`@pocketcare/data` usage in apps/web/src
+               first. This session confirmed splits genuinely has no
+               repository (both write.ts/hooks.ts ARE the spec there).
+Blocked:       P2.2-P2.5 all BLOCKED on TP L3 (real sync round-trip against
+               reachable Supabase infra) even once a piece compiles clean.
+               Android additionally blocked on a first real Gradle build.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -133,7 +100,7 @@ One task = one platform, same pattern as Phase 1. Order matters: schema parity b
 | P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | Code complete, NOT build-verified (no real Gradle run this whole arc) — BLOCKED (TP L3) / Code complete, xcodebuild clean 3 rounds in a row (human-confirmed 2026-07-31, incl. a real data-correctness fix, see change log) — BLOCKED (TP L3) |
 | P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | Code complete 2026-07-31 (dead-letter persistence + new DiagnosticsLog.kt wiring `makeEntry`/`formatLog` into the failure path), NOT build-verified — BLOCKED (TP L3) / Code complete 2026-07-31 (dead-letter persistence was already done; new DiagnosticsLog.swift closes the `makeEntry`/`formatLog` gap that was the actual remaining piece), NOT yet re-verified by xcodebuild since this addition — BLOCKED (TP L3) |
 | P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | Code complete, NOT build-verified — BLOCKED (TP L3) / Code complete, Auth.swift confirmed xcodebuild-clean (2026-07-31) — BLOCKED (TP L3) |
-| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DOING (3/7 — ledger + budget + credit-card done, human-confirmed `./gradlew` BUILD SUCCESSFUL 2026-07-31 after 1 real fix — `params += list` covariance ambiguity, see change log; splits/receipts/upi remain) / DOING (3/7 — same three, human-confirmed `xcodebuild` green 2026-07-31 after 1 real fix — Swift 6 strict-concurrency var capture in writeTransaction, see change log; same remaining list) |
+| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DOING (4/7 — ledger+budget+credit-card human-confirmed `./gradlew` BUILD SUCCESSFUL 2026-07-31 after 1 real fix — `params += list` covariance ambiguity, see change log; splits source-complete 2026-07-31 but NOT yet build-verified; receipts/upi remain) / DOING (4/7 — ledger+budget+credit-card human-confirmed `xcodebuild` green 2026-07-31 after 1 real fix — Swift 6 strict-concurrency var capture in writeTransaction, see change log; splits source-complete 2026-07-31 but NOT yet build-verified; receipts/upi remain) |
 | P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | TODO / TODO |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
