@@ -101,10 +101,30 @@ final class VectorRunnerTests: XCTestCase {
         registerMoneyVectors()
         try runDomain("money")
     }
-    func testReceiptsAllocate() throws { try runDomain("receipts-allocate") }
-    func testReceiptsMoneyText() throws { try runDomain("receipts-money-text") }
-    func testReceiptsParse() throws { try runDomain("receipts-parse") }
-    func testReceiptsReconcile() throws { try runDomain("receipts-reconcile") }
+    func testReceiptsAllocate() throws {
+        // P1.5b: registers ReceiptsAllocate.swift's port before running
+        // receipts-allocate.json's vectors.
+        registerReceiptsAllocateVectors()
+        try runDomain("receipts-allocate")
+    }
+    func testReceiptsMoneyText() throws {
+        // P1.5b: registers ReceiptsMoneyText.swift's port before running
+        // receipts-money-text.json's vectors.
+        registerReceiptsMoneyTextVectors()
+        try runDomain("receipts-money-text")
+    }
+    func testReceiptsParse() throws {
+        // P1.5b: registers ReceiptsParse.swift's port before running
+        // receipts-parse.json's vectors.
+        registerReceiptsParseVectors()
+        try runDomain("receipts-parse")
+    }
+    func testReceiptsReconcile() throws {
+        // P1.5b: registers ReceiptsReconcile.swift's port before running
+        // receipts-reconcile.json's vectors.
+        registerReceiptsReconcileVectors()
+        try runDomain("receipts-reconcile")
+    }
     func testReconcile() throws { try runDomain("reconcile") }
     func testSplitsInsights() throws {
         // P1.4b: registers SplitsInsights.swift's port before running

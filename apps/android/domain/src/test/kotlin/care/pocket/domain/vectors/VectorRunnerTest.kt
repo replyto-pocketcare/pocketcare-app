@@ -122,10 +122,34 @@ class VectorRunnerTest {
         care.pocket.domain.money.registerMoneyVectors()
         runDomain("money")
     }
-    @Test fun `receipts-allocate`() = runDomain("receipts-allocate")
-    @Test fun `receipts-money-text`() = runDomain("receipts-money-text")
-    @Test fun `receipts-parse`() = runDomain("receipts-parse")
-    @Test fun `receipts-reconcile`() = runDomain("receipts-reconcile")
+    @Test
+    fun `receipts-allocate`() {
+        // P1.5a: registers ReceiptsAllocate.kt's port before running
+        // receipts-allocate.json's vectors, same pattern as money()/ledger().
+        care.pocket.domain.receipts.registerReceiptsAllocateVectors()
+        runDomain("receipts-allocate")
+    }
+    @Test
+    fun `receipts-money-text`() {
+        // P1.5a: registers ReceiptsMoneyText.kt's port before running
+        // receipts-money-text.json's vectors.
+        care.pocket.domain.receipts.registerReceiptsMoneyTextVectors()
+        runDomain("receipts-money-text")
+    }
+    @Test
+    fun `receipts-parse`() {
+        // P1.5a: registers ReceiptsParse.kt's port before running
+        // receipts-parse.json's vectors.
+        care.pocket.domain.receipts.registerReceiptsParseVectors()
+        runDomain("receipts-parse")
+    }
+    @Test
+    fun `receipts-reconcile`() {
+        // P1.5a: registers ReceiptsReconcile.kt's port before running
+        // receipts-reconcile.json's vectors.
+        care.pocket.domain.receipts.registerReceiptsReconcileVectors()
+        runDomain("receipts-reconcile")
+    }
     @Test fun reconcile() = runDomain("reconcile")
     @Test
     fun `splits-insights`() {
