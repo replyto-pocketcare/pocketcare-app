@@ -3,7 +3,7 @@
 > **Living index / audit of the whole repo. Read this first in every session to minimize context.**
 > Keep it updated whenever structure, decisions, or conventions change. Detailed rationale lives in `ARCHITECTURE.md`.
 
-**Last updated:** 2026-07-15 · **Status:** WEB-ONLY. Full feature build across all pages (dashboard, all-3 transactions, 3D card wallet, goals, subs, loans, investments, settings, PWA, onboarding/login, dark mode). Mobile deleted. 49 core tests passing. **DB fully normalized** (enums→lookup tables, M2M via junctions).
+**Last updated:** 2026-07-31 · **Status:** Web full-featured (see below); **mobile revival in progress, rev 3 (pure native, two independent apps)** — planning only so far, `apps/android`/`apps/ios` not yet created, see "Native mobile" section. Header test count below is historical/stale — trust the live `pnpm test:core` count (290 passing as of this update) and the change log. **DB fully normalized** (enums→lookup tables, M2M via junctions).
 
 ## ⚠️ Pivot (2026-07-02): web-only
 Mobile (`apps/mobile`) was DELETED. Sole client is `apps/web` (Next.js), installable as a **PWA** via Chrome. Shared `packages/*` (money, finance, ledger, budget, entitlements, i18n, types, ui-tokens, db, data) remain the engine. Animations use **three.js / @react-three/fiber** (card wallet), **framer-motion** (progress bars), **recharts** (charts).
@@ -112,7 +112,38 @@ New deps to install: `@react-three/fiber @react-three/drei three framer-motion r
 Migrations: single **`0001_init.sql`** (normalized; 0002–0004 folded in). **Fresh Supabase project + redeploy sync-streams** (adds `reference_data` global stream + `transaction_labels`/`budget_categories`/`budget_labels` in user_data).
 Premium gating via `useTier()` (reads entitlements). Settings has a Free/Premium toggle (updates entitlements.tier). Budgets support name + scope(category/label) + recurring period OR custom date range (repo handles both).
 
+## Native mobile
+
+**Status (2026-07-31, rev 3 — current direction): PURE NATIVE, planning only.** `apps/mobile` (the rev-2 React Native/Expo attempt) never made it into a commit — a full repo reset to `origin/main` removed it from disk along with a session's worth of build-breakage debugging (Xcode/Clang vs. the `fmt` pod's `consteval` usage, `expo-localization` switch exhaustiveness, three rounds of `lru-cache` export-shape mismatches, a stale `expo` pin — see the change log below for the entries that survived, since those were committed). Owner decision after that: two fully independent native apps — **Android (Kotlin 2.x + Jetpack Compose)**, **iOS (Swift 6 + SwiftUI)** — no cross-platform layer at all, first-party OS frameworks by default.
+
+**Work queue: `docs/mobile/TODO.md`** (claim 1–3 finishable tasks, capability tags [S]/[M]/[H], mandatory ≤15-line Handover block rewritten **and committed** every session — a plan that isn't committed doesn't survive, learned the hard way twice now). **Full plan: `docs/plans/native-mobile-apps.md`** (rev 3). Executors: read this section + TODO.md + only the plan sections for your current task.
+
+**ADR (rev 3):** two independent native apps, no shared runtime code between them. What IS shared: backend, `sync-streams.yaml`, **golden vectors** (`tools/golden-vectors/` — exported from the TS core, the law for both ports, not yet created), generated design tokens + i18n catalogs, test catalog. The 290-test TS suite remains the single spec; behavior changes start in `packages/core`, then vectors re-export, then both apps fix. Rejected: RN/Expo (attempted, rev 2 — third-party breakage risk owned by others), KMP (a cross-platform toolchain is the same class of dependency, especially on iOS), Capacitor.
+
+**Sandbox constraint (new as of rev 3):** the agent sandbox has node/npm only — no JDK compiler, no Gradle, no Xcode. `apps/android`/`apps/ios` skeletons (P0.2/P0.3) can be written here but their Done-when (`./gradlew build test` / `xcodebuild test`) can only be verified in CI or on a human's real machine. P0.1 (the golden-vector exporter) is plain TS/Node and fully verifiable here — start there.
+
+### Repo layout (rev 3 target)
+```
+apps/android/          # :app, :domain (pure Kotlin, vector-tested), :data, :widgets (Glance), :baselineprofile
+apps/ios/               # App, Domain (pure SwiftPM pkg, vector-tested), Data, Widgets+LiveActivity targets; XcodeGen
+tools/golden-vectors/  # export.ts + vectors/*.json — single fixture source for BOTH apps
+docs/mobile/            # TODO.md (queue+handover)
+```
+
+### Feature parity (Android / iOS) — tracks `docs/plans/native-mobile-apps.md` (rev 3) §7 slices
+| Slice | Feature | Web | Android | iOS |
+|---|---|---|---|---|
+| S1 | Onboarding/walkthrough, auth (guest/OTP/Google) | ✅ | ⬜ not started | ⬜ not started |
+| S1 | Accounts, transactions, dashboard-lite, settings-lite | ✅ | ⬜ | ⬜ |
+| S2 | Budgets, goals/EF, cashflow hub, credit cards | ✅ | ⬜ | ⬜ |
+| S3 | Splits & groups, UPI settle-up | ✅ | ⬜ | ⬜ |
+| S4 | Receipts (camera OCR), statement import | ✅ | ⬜ | ⬜ |
+| S5 | Investments, insight cards, statements | ✅ | ⬜ | ⬜ |
+| S6 | Assistant (voice input) | ✅ | ⬜ | ⬜ |
+| P4 | Widgets, Live Activities (iOS), native push, biometric lock | — | ⬜ | ⬜ |
+
 ## Change log
+- 2026-07-31 — **Mobile rev 3 planning recreated and committed.** The rev-3 pure-native direction (two independent apps, no RN/KMP) had been decided in an earlier session but its docs sat uncommitted and were lost to a `git reset --hard origin/main` (done deliberately, at the owner's request, to discard the never-pushed rev-2 RN scaffold). Recreated `docs/plans/native-mobile-apps.md` (rev 3), `docs/mobile/TODO.md`, and this "Native mobile" section — this time committed immediately rather than left pending. No native code yet; next task is P0.1 (golden-vector exporter).
 - 2026-07-29 — **EMIs charged to a credit card (0047).** A loan now names the account its EMI hits, asked when the loan is created, with "Not linked" a first-class option.
   - **CHARGED and PAID are separate events** — conflating them is what made the first attempt wrong. A due EMI is *charged*: `autoPost.ts` posts it onto the linked account on its due date, exactly as a bank adds the instalment to your statement, so it shows in the card's total due. It becomes *paid* only when the bill containing it is settled. `auto_mark_paid` no longer gates the charge (an instalment is owed whether or not you've said you paid it).
   - **Settling the card ASKS before marking EMIs paid.** `findCoveredEmis` walks due, unmarked EMIs on that card oldest-first and stops when the settled amount runs out; the user confirms. This is money state inferred from a payment amount — a partial payment must not silently clear an instalment.
