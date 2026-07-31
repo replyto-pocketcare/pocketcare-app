@@ -77,15 +77,30 @@ final class VectorRunnerTests: XCTestCase {
         registerBudgetVectors()
         try runDomain("budget")
     }
-    func testDiagnostics() throws { try runDomain("diagnostics") }
-    func testEntitlements() throws { try runDomain("entitlements") }
+    func testDiagnostics() throws {
+        // P1.6b: registers Diagnostics.swift's port before running
+        // diagnostics.json's vectors.
+        registerDiagnosticsVectors()
+        try runDomain("diagnostics")
+    }
+    func testEntitlements() throws {
+        // P1.7b: registers Entitlements.swift's port before running
+        // entitlements.json's vectors.
+        registerEntitlementsVectors()
+        try runDomain("entitlements")
+    }
     func testFinance() throws {
         // P1.3b: registers Finance.swift's port before running finance.json's
         // vectors, same pattern as testMoney()/testLedger().
         registerFinanceVectors()
         try runDomain("finance")
     }
-    func testGuardrail() throws { try runDomain("guardrail") }
+    func testGuardrail() throws {
+        // P1.6b: registers Guardrail.swift's port before running
+        // guardrail.json's vectors.
+        registerGuardrailVectors()
+        try runDomain("guardrail")
+    }
     func testLedger() throws {
         // P1.2b: registers Ledger.swift's port before running ledger.json's
         // vectors, same pattern as testMoney() below.
@@ -125,7 +140,12 @@ final class VectorRunnerTests: XCTestCase {
         registerReceiptsReconcileVectors()
         try runDomain("receipts-reconcile")
     }
-    func testReconcile() throws { try runDomain("reconcile") }
+    func testReconcile() throws {
+        // P1.6b: registers Reconcile.swift's port before running
+        // reconcile.json's vectors.
+        registerReconcileVectors()
+        try runDomain("reconcile")
+    }
     func testSplitsInsights() throws {
         // P1.4b: registers SplitsInsights.swift's port before running
         // splits-insights.json's vectors, same pattern as testMoney()/testLedger().
@@ -138,8 +158,17 @@ final class VectorRunnerTests: XCTestCase {
         registerSplitsMathVectors()
         try runDomain("splits-math")
     }
-    func testSyncPolicy() throws { try runDomain("sync-policy") }
-    func testUpi() throws { try runDomain("upi") }
+    func testSyncPolicy() throws {
+        // P1.6b: registers SyncPolicy.swift's port before running
+        // sync-policy.json's vectors.
+        registerSyncPolicyVectors()
+        try runDomain("sync-policy")
+    }
+    func testUpi() throws {
+        // P1.6b: registers Upi.swift's port before running upi.json's vectors.
+        registerUpiVectors()
+        try runDomain("upi")
+    }
 }
 
 /// True only for an NSNumber that's actually CFBoolean-backed (i.e. came

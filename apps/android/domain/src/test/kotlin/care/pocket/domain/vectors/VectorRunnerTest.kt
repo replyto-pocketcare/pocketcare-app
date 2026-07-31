@@ -95,8 +95,20 @@ class VectorRunnerTest {
         care.pocket.domain.budget.registerBudgetVectors()
         runDomain("budget")
     }
-    @Test fun diagnostics() = runDomain("diagnostics")
-    @Test fun entitlements() = runDomain("entitlements")
+    @Test
+    fun diagnostics() {
+        // P1.6a: registers Diagnostics.kt's port before running
+        // diagnostics.json's vectors.
+        care.pocket.domain.diagnostics.registerDiagnosticsVectors()
+        runDomain("diagnostics")
+    }
+    @Test
+    fun entitlements() {
+        // P1.7a: registers Entitlements.kt's port before running
+        // entitlements.json's vectors.
+        care.pocket.domain.entitlements.registerEntitlementsVectors()
+        runDomain("entitlements")
+    }
     @Test
     fun finance() {
         // P1.3a: registers Finance.kt's port before running finance.json's
@@ -104,7 +116,13 @@ class VectorRunnerTest {
         care.pocket.domain.finance.registerFinanceVectors()
         runDomain("finance")
     }
-    @Test fun guardrail() = runDomain("guardrail")
+    @Test
+    fun guardrail() {
+        // P1.6a: registers Guardrail.kt's port before running
+        // guardrail.json's vectors.
+        care.pocket.domain.guardrail.registerGuardrailVectors()
+        runDomain("guardrail")
+    }
     @Test
     fun ledger() {
         // P1.2a: registers Ledger.kt's port before running ledger.json's
@@ -150,7 +168,13 @@ class VectorRunnerTest {
         care.pocket.domain.receipts.registerReceiptsReconcileVectors()
         runDomain("receipts-reconcile")
     }
-    @Test fun reconcile() = runDomain("reconcile")
+    @Test
+    fun reconcile() {
+        // P1.6a: registers Reconcile.kt's port before running reconcile.json's
+        // vectors, same pattern as money()/ledger().
+        care.pocket.domain.reconcile.registerReconcileVectors()
+        runDomain("reconcile")
+    }
     @Test
     fun `splits-insights`() {
         // P1.4a: registers SplitsInsights.kt's port before running
@@ -165,6 +189,17 @@ class VectorRunnerTest {
         care.pocket.domain.splitsmath.registerSplitsMathVectors()
         runDomain("splits-math")
     }
-    @Test fun `sync-policy`() = runDomain("sync-policy")
-    @Test fun upi() = runDomain("upi")
+    @Test
+    fun `sync-policy`() {
+        // P1.6a: registers SyncPolicy.kt's port before running
+        // sync-policy.json's vectors.
+        care.pocket.domain.syncpolicy.registerSyncPolicyVectors()
+        runDomain("sync-policy")
+    }
+    @Test
+    fun upi() {
+        // P1.6a: registers Upi.kt's port before running upi.json's vectors.
+        care.pocket.domain.upi.registerUpiVectors()
+        runDomain("upi")
+    }
 }
