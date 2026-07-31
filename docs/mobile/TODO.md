@@ -5,76 +5,88 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — after iOS xcodebuild confirmed green
-               (see prior entries: Android opData parallel-bug fix +
-               P2.3 diagnostics wiring, commit bbb90c4), user said "yes
-               please" to starting P2.5. Began with ledger (accounts +
-               transactions + balance/net-worth derivation), the
-               dependency root every other domain's repository will read
-               off. New files, both platforms: WriteHelpers.kt/.swift
-               (Kotlin/Swift mirror of apps/web/src/write.ts's
-               insertRow/updateRow/softDelete — generic synced-row
-               helpers every repository builds writes on) and
-               LedgerRepository.kt/.swift (accounts/transactions reads +
-               writes; watchAccountBalances/watchNetWorth call the
-               already-ported deriveBalance/aggregateNetWorth, i.e. the
-               actual point of P2.5 — never recomputing balance math
-               here). Schema confirmed against PocketCareSchema.kt/.swift
-               (P2.1) column-by-column, not assumed; query shapes copied
-               from apps/web/src/hooks.ts's real useAccountBalances/
-               useNetWorth/useBlockedByAccount/useRates so mobile matches
-               the web app's actual behavior (IFNULL defaults, emergency-
-               fund exclusion, latest-rate-wins ordering) rather than a
-               plausible-looking reimplementation.
-Real API findings this session (source-verified, not guessed): Kotlin's
-               Queries.watch returns Flow<List<T>> with a real combine()
-               operator — used freely for watchAccountBalances/
-               watchNetWorth. Swift's Queries.watch returns
-               AsyncThrowingStream<[T], Error>, which has NO built-in
-               combine/combineLatest — building one blind (no compiler)
-               was judged disproportionate risk for Phase 2's actual
-               Done-when (TP L3 sync correctness, not UI reactivity), so
-               iOS's derived views (accountBalances/netWorth) are one-shot
-               async snapshots instead of reactive streams; single-table
-               reads (watchAccounts/watchTransactions) ARE real streams.
-               This is a genuine, documented platform asymmetry, not an
-               oversight — flagged inline in LedgerRepository.swift's
-               header comment for whoever wires up UI in Phase 3+.
-               RateLookup (both platforms) is a plain function-type alias,
-               NOT a `fun interface`/functional-interface protocol — built
-               as a lambda assigned to an explicitly-typed val, not via a
-               SAM-style `RateLookup { ... }` constructor call (that
-               syntax needs an actual functional interface). Kotlin
-               Boolean columns written as explicit Long 0/1, not Boolean,
-               since the SQLite bind layer's Boolean support wasn't
-               independently confirmed from this sandbox.
+Last session: 2026-07-31 (latest) — continuing P2.5 into finance+budget
+               ("keep going"), discovered mid-session that a REAL,
+               authoritative repository layer already exists at
+               packages/data/src/powersync-repositories.ts and is what
+               apps/web/src/powersync.ts's getRepositories() actually
+               wires up for every domain write (dashboard tiles,
+               transaction forms, credit-card settle). The prior session's
+               LedgerRepository (commit 72dcb2b) had been built by
+               reverse-engineering hooks.ts/write.ts WITHOUT knowing this
+               file existed — per CLAUDE.md golden rule 8 ("web is the
+               spec"), packages/data is the correct source of truth, not
+               hooks.ts. Read packages/data/src/index.ts (interfaces) and
+               powersync-repositories.ts (541 lines) in full, then
+               rewrote LedgerRepository.kt/.swift to match: added
+               OverdraftError/assertNoOverdraft (blocks expenses/transfers
+               that would take a no-overdraft account negative),
+               setOpeningBalance (opening_balance vs adjustment typing),
+               transaction breakdown items (transaction_items,
+               itemsReconcile-checked), labels (labels/transaction_labels,
+               find-or-create), a transaction_audit change-audit trail on
+               update/remove, fixed createAccount's INSERT column list to
+               match exactly (no include_in_net_worth/kind at creation —
+               real spec doesn't write them either) and its allow_negative
+               default (true for credit_card accounts). Reactive
+               watch()-based reads (this repo's own addition, no
+               equivalent in the real spec at all) were kept. One
+               deliberate divergence, documented inline: the real spec's
+               netWorth() is an explicit unfinished placeholder
+               (`return money(0, base)`, comment "Phase 5"); this repo's
+               netWorth already computes a real answer via
+               aggregateNetWorth, kept as-is rather than regressed.
+               Then built the actual P2.5 finance+budget slice on top:
+               new BudgetRepository.kt/.swift (list/spentThisPeriod,
+               matching PowerSyncBudgetRepository's category/label
+               junction OR-scoping and custom-date-range-vs-periodBounds
+               logic exactly) and CreditCardRepository.kt/.swift
+               (getDetails/upsertDetails/settle, settle() composing with
+               LedgerRepository.createTransaction).
+Real API findings this session (source-verified via docs.powersync.com's
+               live Kotlin/Swift SDK reference pages, not guessed): both
+               SDKs expose get/getOptional/getAll/execute/writeTransaction
+               with near-identical call shapes; get() throws if no row,
+               getOptional() returns null/nil. writeTransaction's tx
+               parameter's exact type name (PowerSyncTransaction on
+               Kotlin per secondary corroboration; unconfirmed on Swift)
+               was deliberately never spelled out in new code — the real
+               spec's shared writeLabels(tx, ...) helper is inlined at
+               both its call sites (create/update) instead, since lambda
+               parameter type inference lets `db.writeTransaction { tx -> }`
+               never need that name written down, which is safer than a
+               guessed import with no compiler to catch a wrong one.
 Android state: 16/16 Phase 1 domains DONE. :data module (P2.2a/P2.3a/
-               P2.4a) source-verified per prior entries, STILL NEVER
-               build-verified — no `./gradlew build` has run against
-               this code at any point in this whole arc. P2.5a: 1/7
-               domains (ledger) done, same never-build-verified caveat.
+               P2.4a) STILL NEVER build-verified this whole arc. P2.5a:
+               3/7 domains (ledger reconciled, budget, credit-card) done,
+               same never-build-verified caveat; finance/splits/receipts/
+               upi remain.
 iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2b/P2.3b/
-               P2.4b): xcodebuild confirmed green through round 3 + the
-               P2.3 diagnostics wiring is NOT yet re-verified since that
-               addition (prior entry). P2.5b: 1/7 domains (ledger) done,
-               also not yet real-compiler-verified.
+               P2.4b): xcodebuild confirmed green through round 3 + P2.3
+               diagnostics wiring, NOT yet re-verified since. P2.5b: 3/7
+               domains (ledger reconciled, budget, credit-card) done, not
+               yet real-compiler-verified either.
 Vectors:       DONE (P0.1), 250/250 green on both platforms (Phase 1).
-Next up:       Get a real compiler run on BOTH platforms for the P2.5
-               ledger slice (this is genuinely new, more complex surface
-               — SQL string building, cursor mapping, generic dictionaries
-               — than the P2.2-P2.4 fixes so far). Then continue P2.5 in
-               dependency order: finance+budget next (reads ledger's
-               accounts), then splits, receipts, upi. P2.6 (repair logic)
-               still fully untouched.
-Traps/notes:   Same traps from rounds 1-3, plus this session's two new
-               findings above (Flow.combine vs no AsyncThrowingStream
-               equivalent; RateLookup as a plain lambda, not a SAM call).
+Next up:       Get a real compiler run on BOTH platforms for P2.5 (now the
+               single largest unverified surface in the whole arc — SQL
+               string building, writeTransaction closures, Map<String,Any?>
+               patch diffing). Then continue P2.5: splits, receipts, upi
+               remain (finance's pure calculators, e.g. EMI/amortization,
+               don't need their own repository — Finance.kt/.swift's
+               functions take explicit inputs, not DB reads, except the
+               EMI due-date helpers which imply a `loans` table a future
+               LoanRepository would read — not yet scoped). P2.6 (repair
+               logic) still fully untouched.
+Traps/notes:   Same traps from rounds 1-3, plus: always check whether a
+               "spec" file you're reverse-engineering from (hooks.ts) is
+               actually the canonical one before porting from it — grep
+               for `getRepositories()`/`@pocketcare/data` usage in
+               apps/web/src before trusting a hooks.ts-only read for any
+               new domain going forward (splits/receipts/upi included).
 Blocked:       P2.2/P2.3/P2.4/P2.5 all still BLOCKED on TP L3 (real sync
                round-trip against reachable Supabase infra) even once a
-               piece compiles clean — that's a materially higher bar than
-               "compiles," per Phase 2's Done-when. Android additionally
-               blocked on ever getting a first real Gradle build this
-               entire arc.
+               piece compiles clean. Android additionally blocked on ever
+               getting a first real Gradle build this entire arc.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -121,7 +133,7 @@ One task = one platform, same pattern as Phase 1. Order matters: schema parity b
 | P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | Code complete, NOT build-verified (no real Gradle run this whole arc) — BLOCKED (TP L3) / Code complete, xcodebuild clean 3 rounds in a row (human-confirmed 2026-07-31, incl. a real data-correctness fix, see change log) — BLOCKED (TP L3) |
 | P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | Code complete 2026-07-31 (dead-letter persistence + new DiagnosticsLog.kt wiring `makeEntry`/`formatLog` into the failure path), NOT build-verified — BLOCKED (TP L3) / Code complete 2026-07-31 (dead-letter persistence was already done; new DiagnosticsLog.swift closes the `makeEntry`/`formatLog` gap that was the actual remaining piece), NOT yet re-verified by xcodebuild since this addition — BLOCKED (TP L3) |
 | P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | Code complete, NOT build-verified — BLOCKED (TP L3) / Code complete, Auth.swift confirmed xcodebuild-clean (2026-07-31) — BLOCKED (TP L3) |
-| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DOING (1/7 domains — ledger done 2026-07-31: WriteHelpers.kt + LedgerRepository.kt, source-verified, NOT build-verified; finance/budget/splits/receipts/upi remain) / DOING (1/7 — WriteHelpers.swift + LedgerRepository.swift, source-verified, NOT build-verified; same remaining list) |
+| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DOING (3/7 — ledger reconciled against the real packages/data spec + budget + credit-card done 2026-07-31, source-verified, NOT build-verified; splits/receipts/upi remain) / DOING (3/7 — same three, Swift mirrors, source-verified, NOT build-verified; same remaining list) |
 | P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | TODO / TODO |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.

@@ -3,14 +3,56 @@ package care.pocket.data.repository
 /**
  * Read/write facade over the local PowerSync SQLite DB for accounts and
  * transactions (P2.5). Mirrors apps/web/src/hooks.ts's useAccountBalances/
- * useNetWorth/useRates exactly: query raw rows, then call the already-ported
- * pure domain functions (deriveBalance, aggregateNetWorth -- money+ledger
- * domain, P1.1/P1.2) for any derived value, rather than recomputing balance
- * logic here. Reactive via PowerSync's watch(), which mirrors useQuery's
- * "re-run on table change" semantics on the web.
+ * useNetWorth/useRates for the REACTIVE reads (query raw rows, then call the
+ * already-ported pure domain functions -- deriveBalance, aggregateNetWorth --
+ * money+ledger domain, P1.1/P1.2 -- for any derived value), and mirrors
+ * packages/data/src/powersync-repositories.ts's PowerSyncAccountRepository /
+ * PowerSyncTransactionRepository / PowerSyncBalanceRepository for the WRITE
+ * business logic and one-shot spec reads.
+ *
+ * IMPORTANT CORRECTION (this revision): the first version of this file
+ * (commit 72dcb2b) was built by reverse-engineering apps/web/src/hooks.ts and
+ * write.ts, WITHOUT knowing that a real, authoritative repository layer
+ * already exists at packages/data/src/powersync-repositories.ts and is what
+ * apps/web/src/powersync.ts's getRepositories() actually wires up for all
+ * domain writes (dashboard tiles, transaction forms, credit-card settle,
+ * etc). Per CLAUDE.md golden rule 8 ("web is the spec"), THAT file -- not
+ * hooks.ts/write.ts -- is the correct source of truth for write behavior.
+ * This revision ports its business logic faithfully: overdraft protection
+ * (OverdraftError/assertNoOverdraft), opening-balance semantics
+ * (setOpeningBalance), transaction breakdown items (transaction_items,
+ * itemsReconcile-checked), labels (labels/transaction_labels,
+ * find-or-create), and a change-audit trail (transaction_audit). The
+ * reactive watch()-based reads have NO equivalent in the real repository
+ * layer at all (the web app gets reactivity from separate useQuery hooks in
+ * hooks.ts, not from @pocketcare/data) -- they're a genuine mobile-side
+ * addition on top of the spec, not a divergence from it, and are kept.
+ *
+ * One deliberate, documented divergence: PowerSyncBalanceRepository.netWorth()
+ * in the real spec is currently an explicit unfinished placeholder that
+ * always returns money(0, base) (comment: "full multi-account + FX
+ * aggregation lands in Phase 5"). This repository's watchNetWorth() computes
+ * a real answer via aggregateNetWorth (already correct domain logic, ported
+ * in P1.2). Regressing mobile to match a stated placeholder would be a
+ * strictly worse user experience for no fidelity benefit -- when the web
+ * spec's real Phase 5 aggregation ships, reconcile the two.
  *
  * Table columns confirmed against the generated schema descriptor
- * (PocketCareSchema.kt, P2.1) rather than assumed.
+ * (PocketCareSchema.kt, P2.1) and against supabase/migrations/0001_init.sql
+ * (transaction_items/labels/transaction_labels/transaction_audit column
+ * lists), not assumed.
+ *
+ * PowerSync Kotlin SDK call shapes (get/getOptional/getAll/execute/
+ * writeTransaction) confirmed against docs.powersync.com's Kotlin SDK
+ * reference page (fetched live), not assumed -- see that page's "Using
+ * PowerSync: CRUD functions" section. The label-writing logic that the real
+ * TS spec factors into a shared `writeLabels(tx, ...)` helper is inlined at
+ * both of its two call sites here (create/update) instead, deliberately: the
+ * real transaction-context type's exact name (PowerSyncTransaction, per
+ * secondary web-search corroboration but not a fetched source file) wasn't
+ * independently confirmed, and Kotlin's lambda-parameter type inference lets
+ * `db.writeTransaction { tx -> ... }` avoid ever having to spell that type
+ * out -- safer than risking a wrong import in code with no compiler to catch it.
  */
 
 import com.powersync.PowerSyncDatabase
@@ -26,6 +68,7 @@ import care.pocket.domain.ledger.RateLookup
 import care.pocket.domain.ledger.aggregateNetWorth
 import care.pocket.domain.ledger.deriveBalance
 import care.pocket.domain.money.Money
+import care.pocket.domain.money.itemsReconcile
 import care.pocket.domain.money.money
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -65,9 +108,36 @@ data class TransactionRow(
     val fxRate: Double?,
 )
 
+data class TransactionItemInput(val description: String, val amount: Money)
+
+data class TransactionItem(
+    val id: String,
+    val transactionId: String,
+    val description: String,
+    val amount: Long,
+)
+
+data class TransactionAudit(
+    val id: String,
+    val transactionId: String,
+    val action: String,
+    /** JSON string of { field: { from, to } } -- not parsed here, mirrors the real repo's shape. */
+    val changes: String?,
+    val createdAt: String,
+)
+
 data class AccountWithBalance(val account: Account, val balance: Money)
 
 data class NetWorth(val total: Money, val available: Money, val base: String)
+
+/** Thrown when a write would take a no-overdraft account below zero.
+ * Mirrors packages/data/src/powersync-repositories.ts's OverdraftError. */
+class OverdraftError(val accountName: String, val shortfall: Money) : Exception(
+    "Recording this would take \"$accountName\" below zero. " +
+        "Turn on \"Allow negative balance\" for this account, or reduce the amount.",
+) {
+    val code: String = "OVERDRAFT"
+}
 
 private fun accountMapper(cursor: com.powersync.db.SqlCursor): Account = Account(
     id = cursor.getString("id"),
@@ -113,9 +183,24 @@ private fun ledgerEntryMapper(cursor: com.powersync.db.SqlCursor): LedgerEntry =
     toAmount = cursor.getLongOptional("to_amount"),
 )
 
+private fun itemMapper(cursor: com.powersync.db.SqlCursor): TransactionItem = TransactionItem(
+    id = cursor.getString("id"),
+    transactionId = cursor.getString("transaction_id"),
+    description = cursor.getString("description"),
+    amount = cursor.getLong("amount"),
+)
+
+private fun auditMapper(cursor: com.powersync.db.SqlCursor): TransactionAudit = TransactionAudit(
+    id = cursor.getString("id"),
+    transactionId = cursor.getString("transaction_id"),
+    action = cursor.getString("action"),
+    changes = cursor.getStringOptional("changes"),
+    createdAt = cursor.getString("created_at"),
+)
+
 class LedgerRepository(private val db: PowerSyncDatabase) {
 
-    // ---- reads ----
+    // ---- reads (reactive) ----
 
     /** All accounts (reactive). Archived accounts excluded unless [includeArchived]. */
     fun watchAccounts(includeArchived: Boolean = false): Flow<List<Account>> {
@@ -198,7 +283,10 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
         lookup
     }
 
-    /** Net worth in [base] currency, with and without blocked amounts (feature #13). */
+    /** Net worth in [base] currency, with and without blocked amounts (feature #13).
+     * See the file-header note: this is intentionally ahead of the real web
+     * spec's current netWorth() placeholder, not a divergence from settled
+     * behavior. */
     fun watchNetWorth(base: String): Flow<NetWorth> =
         combine(watchAccountBalances(), watchBlockedByAccount(), watchRates()) { balances, blocked, rates ->
             val accountBalances: List<AccountBalance> = balances
@@ -213,11 +301,38 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
             )
         }
 
-    // ---- writes ----
+    // ---- reads (one-shot, spec-matching) ----
 
-    /** Create a real account. [kind] defaults to "real" (as opposed to a
-     * virtual split account, which this repository does not create --
-     * that's owned by the splits domain, P2.5's later slice). */
+    /** Ledger-derived balance of a single account. Scoped by
+     * (account_id = ? OR to_account_id = ?), matching
+     * PowerSyncBalanceRepository.accountBalance() exactly (more efficient
+     * than folding over the whole ledger for a single-account lookup). */
+    suspend fun accountBalance(accountId: String): Money {
+        val currency = db.getOptional(
+            sql = "SELECT currency FROM accounts WHERE id = ?",
+            parameters = listOf(accountId),
+            mapper = { cursor -> cursor.getString("currency") },
+        ) ?: error("Account $accountId not found")
+        val entries = db.getAll(
+            sql = """SELECT type, account_id, amount, to_account_id, to_amount FROM transactions
+                WHERE deleted_at IS NULL AND (account_id = ? OR to_account_id = ?)""",
+            parameters = listOf(accountId, accountId),
+            mapper = ::ledgerEntryMapper,
+        )
+        return deriveBalance(accountId, currency, entries)
+    }
+
+    // ---- writes: accounts ----
+
+    /** Create a real account. Matches PowerSyncAccountRepository.create()'s
+     * exact INSERT column list (id,user_id,name,type,currency,icon,color,
+     * is_archived,allow_negative,created_at,updated_at) -- notably it does
+     * NOT write include_in_net_worth or kind at creation time; those stay
+     * NULL and fall back to their IFNULL read-side defaults (true / "real")
+     * until explicitly set via update(). [allowNegative] defaults to true
+     * for credit_card accounts (liabilities that carry a negative/owed
+     * balance) and false otherwise, unless the caller passes an explicit
+     * value -- matches `row.allow_negative ?? row.type === "credit_card"`. */
     suspend fun createAccount(
         userId: String,
         name: String,
@@ -225,26 +340,44 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
         currency: String,
         icon: String? = null,
         color: String? = null,
-        includeInNetWorth: Boolean = true,
-        allowNegative: Boolean = false,
-    ): String = insertRow(
-        db, "accounts", userId,
-        mapOf(
-            "name" to name,
-            "type" to type,
-            "currency" to currency,
-            "icon" to icon,
-            "color" to color,
-            // Bound as Long (0/1), not Boolean: these are INTEGER columns and
-            // the SQLite bind layer's Boolean support isn't independently
-            // confirmed from this sandbox (no real driver source checked for
-            // this specific path) -- Long is unambiguously safe.
-            "is_archived" to 0L,
-            "include_in_net_worth" to if (includeInNetWorth) 1L else 0L,
-            "allow_negative" to if (allowNegative) 1L else 0L,
-            "kind" to "real",
-        ),
-    )
+        allowNegative: Boolean? = null,
+        isArchived: Boolean = false,
+    ): String {
+        val id = newId()
+        val ts = nowIso()
+        val allowNeg = allowNegative ?: (type == "credit_card")
+        db.execute(
+            sql = """INSERT INTO accounts (id,user_id,name,type,currency,icon,color,is_archived,allow_negative,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            parameters = listOf(id, userId, name, type, currency, icon, color, if (isArchived) 1L else 0L, if (allowNeg) 1L else 0L, ts, ts),
+        )
+        return id
+    }
+
+    /** Set/adjust the opening balance by appending a ledger entry -- never
+     * rewrites history. First call on an account writes an "opening_balance"
+     * entry; subsequent calls write "adjustment" entries. Matches
+     * PowerSyncAccountRepository.setOpeningBalance() exactly. */
+    suspend fun setOpeningBalance(userId: String, accountId: String, balance: Money, occurredAt: String) {
+        val currency = db.getOptional(
+            sql = "SELECT currency FROM accounts WHERE id = ?",
+            parameters = listOf(accountId),
+            mapper = { cursor -> cursor.getString("currency") },
+        ) ?: error("Account $accountId not found")
+        require(currency == balance.currency) { "Opening balance currency must match account currency" }
+        val existingCount = db.get(
+            sql = "SELECT COUNT(*) as c FROM transactions WHERE account_id = ? AND type = 'opening_balance'",
+            parameters = listOf(accountId),
+            mapper = { cursor -> cursor.getLong("c") },
+        )
+        val type = if (existingCount > 0) "adjustment" else "opening_balance"
+        val ts = nowIso()
+        db.execute(
+            sql = """INSERT INTO transactions (id,user_id,account_id,type,amount,currency,occurred_at,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?)""",
+            parameters = listOf(newId(), userId, accountId, type, balance.amount, balance.currency, occurredAt, ts, ts),
+        )
+    }
 
     suspend fun updateAccount(id: String, values: Map<String, Any?>) = updateRow(db, "accounts", id, values)
 
@@ -253,64 +386,338 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
 
     suspend fun deleteAccount(id: String) = softDelete(db, "accounts", id)
 
-    /** Create a non-transfer transaction (income/expense/opening_balance/adjustment). */
+    // ---- writes: transactions ----
+
+    /** Throw [OverdraftError] if applying [deltaMinor] to [accountId] would
+     * take a no-overdraft account below zero. [excludeTxnId] omits a
+     * transaction from the current balance (used on edits, so the row's own
+     * prior effect isn't counted). Matches assertNoOverdraft() exactly. */
+    private suspend fun assertNoOverdraft(accountId: String, deltaMinor: Long, excludeTxnId: String?) {
+        if (deltaMinor >= 0) return
+        val acct = db.getOptional(
+            sql = "SELECT name, currency, IFNULL(allow_negative, 0) AS allow_negative FROM accounts WHERE id = ?",
+            parameters = listOf(accountId),
+            mapper = { cursor ->
+                Triple(cursor.getString("name"), cursor.getString("currency"), cursor.getBooleanOptional("allow_negative") ?: false)
+            },
+        ) ?: return // unknown account
+        val (name, currency, allowNegative) = acct
+        if (allowNegative) return
+        val sql = if (excludeTxnId != null) {
+            """SELECT type, account_id, amount, to_account_id, to_amount FROM transactions
+                WHERE deleted_at IS NULL AND (account_id = ? OR to_account_id = ?) AND id != ?"""
+        } else {
+            """SELECT type, account_id, amount, to_account_id, to_amount FROM transactions
+                WHERE deleted_at IS NULL AND (account_id = ? OR to_account_id = ?)"""
+        }
+        val params = if (excludeTxnId != null) listOf(accountId, accountId, excludeTxnId) else listOf(accountId, accountId)
+        val entries = db.getAll(sql = sql, parameters = params, mapper = ::ledgerEntryMapper)
+        val projected = deriveBalance(accountId, currency, entries).amount + deltaMinor
+        if (projected < 0) throw OverdraftError(name, money(projected, currency))
+    }
+
+    /** Create a transaction (+ optional breakdown items, + optional labels)
+     * atomically. Rejects if items don't reconcile to the total. Overdraft-
+     * checked for expenses and the source side of transfers. Matches
+     * PowerSyncTransactionRepository.create() exactly, including the
+     * transfer_group_id/fx_rate derivation. [toAccountId]/[toAmount] are for
+     * transfers only; [toAmount] defaults to null (same-currency 1:1 is the
+     * caller's responsibility to pass explicitly, matching the real spec --
+     * it does NOT default to-amount to amount the way this repo's old
+     * createTransfer() used to). */
     suspend fun createTransaction(
         userId: String,
         accountId: String,
         type: String,
-        amount: Long,
-        currency: String,
+        amount: Money,
         occurredAt: String,
         categoryId: String? = null,
+        labels: List<String>? = null,
         note: String? = null,
         description: String? = null,
         paymentMethod: String? = null,
-    ): String = insertRow(
-        db, "transactions", userId,
-        mapOf(
-            "account_id" to accountId,
-            "type" to type,
-            "amount" to amount,
-            "currency" to currency,
-            "category_id" to categoryId,
-            "note" to note,
-            "description" to description,
-            "payment_method" to paymentMethod,
-            "occurred_at" to occurredAt,
-        ),
+        items: List<TransactionItemInput>? = null,
+        toAccountId: String? = null,
+        toAmount: Money? = null,
+    ): TransactionRow {
+        val itemList = items ?: emptyList()
+        if (itemList.isNotEmpty() && !itemsReconcile(amount, itemList.map { it.amount })) {
+            error("Breakdown items must sum exactly to the transaction amount")
+        }
+        if (type == "transfer" && toAccountId == null) {
+            error("Transfer requires a destination account")
+        }
+        if (type == "expense" || type == "transfer") {
+            assertNoOverdraft(accountId, -amount.amount, null)
+        }
+
+        val id = newId()
+        val ts = nowIso()
+        val transferGroup = if (type == "transfer") newId() else null
+        val fxRate = if (toAmount != null && amount.amount != 0L) toAmount.amount.toDouble() / amount.amount else null
+
+        db.writeTransaction { tx ->
+            tx.execute(
+                sql = """INSERT INTO transactions
+                    (id,user_id,account_id,type,amount,currency,category_id,note,description,payment_method,occurred_at,
+                     transfer_group_id,to_account_id,to_amount,fx_rate,created_at,updated_at)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                parameters = listOf(
+                    id, userId, accountId, type, amount.amount, amount.currency,
+                    categoryId, note, description, paymentMethod, occurredAt, transferGroup,
+                    toAccountId, toAmount?.amount, fxRate, ts, ts,
+                ),
+            )
+            for (item in itemList) {
+                tx.execute(
+                    sql = """INSERT INTO transaction_items (id,user_id,transaction_id,description,amount,created_at,updated_at)
+                        VALUES (?,?,?,?,?,?,?)""",
+                    parameters = listOf(newId(), userId, id, item.description, item.amount.amount, ts, ts),
+                )
+            }
+            // Label resolution inlined here (and in updateTransaction) rather
+            // than shared -- see file header note on the tx-type risk.
+            if (!labels.isNullOrEmpty()) {
+                tx.execute("DELETE FROM transaction_labels WHERE transaction_id = ?", listOf(id))
+                val seen = mutableSetOf<String>()
+                for (raw in labels) {
+                    val name = raw.trim()
+                    val lower = name.lowercase()
+                    if (name.isEmpty() || lower in seen) continue
+                    seen += lower
+                    var labelId = tx.getOptional(
+                        sql = "SELECT id FROM labels WHERE user_id = ? AND name = ? AND deleted_at IS NULL",
+                        parameters = listOf(userId, name),
+                        mapper = { cursor -> cursor.getString("id") },
+                    )
+                    if (labelId == null) {
+                        labelId = newId()
+                        tx.execute(
+                            "INSERT INTO labels (id,user_id,name,color,created_at,updated_at) VALUES (?,?,?,?,?,?)",
+                            listOf(labelId, userId, name, null, ts, ts),
+                        )
+                    }
+                    tx.execute(
+                        "INSERT INTO transaction_labels (id,user_id,transaction_id,label_id,created_at) VALUES (?,?,?,?,?)",
+                        listOf(newId(), userId, id, labelId, ts),
+                    )
+                }
+            }
+        }
+
+        return TransactionRow(
+            id = id, accountId = accountId, type = type, amount = amount.amount, currency = amount.currency,
+            categoryId = categoryId, note = note, description = description, paymentMethod = paymentMethod,
+            occurredAt = occurredAt, transferGroupId = transferGroup, toAccountId = toAccountId,
+            toAmount = toAmount?.amount, fxRate = fxRate,
+        )
+    }
+
+    suspend fun listByAccount(accountId: String, limit: Int = 50): List<TransactionRow> = db.getAll(
+        sql = "SELECT * FROM transactions WHERE account_id = ? AND deleted_at IS NULL ORDER BY occurred_at DESC LIMIT ?",
+        parameters = listOf(accountId, limit),
+        mapper = ::transactionMapper,
     )
 
-    /** Create a transfer (single row: source account_id/amount, destination
-     * to_account_id/to_amount -- matches Ledger.kt's signedEffectFor, which
-     * reads both sides off one row, not two linked rows). [toAmount] defaults
-     * to [amount] for a same-currency transfer. */
-    suspend fun createTransfer(
-        userId: String,
-        fromAccountId: String,
-        toAccountId: String,
-        amount: Long,
-        currency: String,
-        occurredAt: String,
-        toAmount: Long? = null,
-        fxRate: Double? = null,
-        note: String? = null,
-    ): String = insertRow(
-        db, "transactions", userId,
-        mapOf(
-            "account_id" to fromAccountId,
-            "type" to "transfer",
-            "amount" to amount,
-            "currency" to currency,
-            "to_account_id" to toAccountId,
-            "to_amount" to (toAmount ?: amount),
-            "fx_rate" to fxRate,
-            "transfer_group_id" to newId(),
-            "occurred_at" to occurredAt,
-            "note" to note,
-        ),
+    suspend fun items(transactionId: String): List<TransactionItem> = db.getAll(
+        sql = "SELECT * FROM transaction_items WHERE transaction_id = ? AND deleted_at IS NULL",
+        parameters = listOf(transactionId),
+        mapper = ::itemMapper,
     )
 
-    suspend fun updateTransaction(id: String, values: Map<String, Any?>) = updateRow(db, "transactions", id, values)
+    suspend fun search(query: String, limit: Int = 50): List<TransactionRow> {
+        val like = "%$query%"
+        return db.getAll(
+            sql = """SELECT t.* FROM transactions t
+                WHERE t.deleted_at IS NULL AND (
+                  t.note LIKE ? OR t.description LIKE ?
+                  OR EXISTS (
+                    SELECT 1 FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id
+                    WHERE tl.transaction_id = t.id AND l.name LIKE ?
+                  )
+                )
+                ORDER BY t.occurred_at DESC LIMIT ?""",
+            parameters = listOf(like, like, like, limit),
+            mapper = ::transactionMapper,
+        )
+    }
 
-    suspend fun deleteTransaction(id: String) = softDelete(db, "transactions", id)
+    /** Edit a transaction and append an audit record of what changed.
+     * [patch]'s KEY PRESENCE (not just non-null value) decides whether a
+     * field is touched -- a missing key means "don't touch"; a present key
+     * with a null value means "set this nullable column to null". This
+     * mirrors the real EditTransactionInput's undefined-vs-null distinction,
+     * which a plain nullable Kotlin parameter can't represent by itself, and
+     * is consistent with this codebase's existing updateRow()/updateAccount()
+     * Map<String,Any?> convention. Recognized keys: "type" (String),
+     * "account_id" (String), "amount" (Long, minor units), "category_id"
+     * (String?), "note" (String?), "description" (String?),
+     * "payment_method" (String?), "occurred_at" (String), "to_account_id"
+     * (String?), "to_amount" (Long?), "items" (List<TransactionItemInput>?
+     * -- absent = don't touch; present null/empty = clear; present non-empty
+     * = replace with fresh rows), "labels" (List<String>? -- null/absent =
+     * don't touch; non-null (even empty) = replace). [userId] is required
+     * for any new item/label/audit rows this call writes (TransactionRow
+     * doesn't carry user_id, unlike the real repo's `before.user_id`, so
+     * this facade takes it as an explicit parameter -- mirrors
+     * LedgerRepository.swift's updateTransaction(userId:id:patch:) exactly). */
+    suspend fun updateTransaction(userId: String, id: String, patch: Map<String, Any?>) {
+        val before = db.getOptional(
+            sql = "SELECT * FROM transactions WHERE id = ?",
+            parameters = listOf(id),
+            mapper = ::transactionMapper,
+        ) ?: error("Transaction $id not found")
+
+        val changes = LinkedHashMap<String, Pair<Any?, Any?>>()
+        val sets = mutableListOf<String>()
+        val params = mutableListOf<Any?>()
+        fun track(col: String, from: Any?, key: String) {
+            if (!patch.containsKey(key)) return
+            val to = patch[key]
+            if (to != from) {
+                changes[col] = from to to
+                sets += "$col = ?"
+                params += to
+            }
+        }
+        track("type", before.type, "type")
+        track("account_id", before.accountId, "account_id")
+        track("amount", before.amount, "amount")
+        track("category_id", before.categoryId, "category_id")
+        track("note", before.note, "note")
+        track("description", before.description, "description")
+        track("payment_method", before.paymentMethod, "payment_method")
+        track("occurred_at", before.occurredAt, "occurred_at")
+        track("to_account_id", before.toAccountId, "to_account_id")
+        track("to_amount", before.toAmount, "to_amount")
+
+        val touchItems = patch.containsKey("items")
+        @Suppress("UNCHECKED_CAST")
+        val itemsVal = patch["items"] as? List<TransactionItemInput>
+        @Suppress("UNCHECKED_CAST")
+        val labelsVal = patch["labels"] as? List<String>
+        val relabel = labelsVal != null
+        if (sets.isEmpty() && !touchItems && !relabel) return
+
+        val newType = (patch["type"] as? String) ?: before.type
+        val newAccount = (patch["account_id"] as? String) ?: before.accountId
+        val newAmount = (patch["amount"] as? Long) ?: before.amount
+        if (newType == "expense" || newType == "transfer") {
+            assertNoOverdraft(newAccount, -newAmount, id)
+        }
+
+        val ts = nowIso()
+
+        db.writeTransaction { tx ->
+            if (changes.containsKey("amount") && !touchItems) {
+                tx.execute(
+                    "UPDATE transaction_items SET deleted_at = ?, updated_at = ? WHERE transaction_id = ? AND deleted_at IS NULL",
+                    listOf(ts, ts, id),
+                )
+            }
+            if (touchItems) {
+                tx.execute(
+                    "UPDATE transaction_items SET deleted_at = ?, updated_at = ? WHERE transaction_id = ? AND deleted_at IS NULL",
+                    listOf(ts, ts, id),
+                )
+                if (!itemsVal.isNullOrEmpty()) {
+                    for (item in itemsVal) {
+                        tx.execute(
+                            """INSERT INTO transaction_items (id,user_id,transaction_id,description,amount,created_at,updated_at)
+                                VALUES (?,?,?,?,?,?,?)""",
+                            // Always a fresh id: the previous items were just
+                            // soft-deleted (rows still exist), so reusing an
+                            // incoming id would collide on the PRIMARY KEY.
+                            listOf(newId(), userId, id, item.description, item.amount.amount, ts, ts),
+                        )
+                    }
+                }
+                changes["items"] = "(prev)" to (if (itemsVal.isNullOrEmpty()) "none" else "${itemsVal.size} items")
+            }
+
+            if (relabel) {
+                tx.execute("DELETE FROM transaction_labels WHERE transaction_id = ?", listOf(id))
+                val seen = mutableSetOf<String>()
+                for (raw in labelsVal!!) {
+                    val name = raw.trim()
+                    val lower = name.lowercase()
+                    if (name.isEmpty() || lower in seen) continue
+                    seen += lower
+                    var labelId = tx.getOptional(
+                        sql = "SELECT id FROM labels WHERE user_id = ? AND name = ? AND deleted_at IS NULL",
+                        parameters = listOf(userId, name),
+                        mapper = { cursor -> cursor.getString("id") },
+                    )
+                    if (labelId == null) {
+                        labelId = newId()
+                        tx.execute(
+                            "INSERT INTO labels (id,user_id,name,color,created_at,updated_at) VALUES (?,?,?,?,?,?)",
+                            listOf(labelId, userId, name, null, ts, ts),
+                        )
+                    }
+                    tx.execute(
+                        "INSERT INTO transaction_labels (id,user_id,transaction_id,label_id,created_at) VALUES (?,?,?,?,?)",
+                        listOf(newId(), userId, id, labelId, ts),
+                    )
+                }
+                changes["labels"] = "(prev)" to labelsVal.joinToString(", ")
+            }
+            if (sets.isNotEmpty()) {
+                sets += "updated_at = ?"
+                params += ts
+                params += id
+                tx.execute("UPDATE transactions SET ${sets.joinToString(", ")} WHERE id = ?", params)
+            }
+            tx.execute(
+                "INSERT INTO transaction_audit (id,user_id,transaction_id,action,changes,created_at) VALUES (?,?,?,?,?,?)",
+                listOf(newId(), userId, id, "update", changesToJson(changes), ts),
+            )
+        }
+    }
+
+    /** Soft-delete a transaction (and its items/labels), appending a delete
+     * audit record. [userId] is needed for the audit row (see
+     * updateTransaction's doc comment on why this facade can't derive it). */
+    suspend fun removeTransaction(userId: String, id: String) {
+        val exists = db.getOptional(
+            sql = "SELECT id FROM transactions WHERE id = ?",
+            parameters = listOf(id),
+            mapper = { cursor -> cursor.getString("id") },
+        ) ?: return
+        val ts = nowIso()
+        db.writeTransaction { tx ->
+            tx.execute(
+                "UPDATE transaction_items SET deleted_at = ?, updated_at = ? WHERE transaction_id = ? AND deleted_at IS NULL",
+                listOf(ts, ts, id),
+            )
+            tx.execute("DELETE FROM transaction_labels WHERE transaction_id = ?", listOf(id))
+            tx.execute("UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE id = ?", listOf(ts, ts, id))
+            tx.execute(
+                "INSERT INTO transaction_audit (id,user_id,transaction_id,action,changes,created_at) VALUES (?,?,?,?,?,?)",
+                listOf(newId(), userId, id, "delete", "{\"deleted\":{\"from\":\"active\",\"to\":\"removed\"}}", ts),
+            )
+        }
+    }
+
+    suspend fun history(transactionId: String): List<TransactionAudit> = db.getAll(
+        sql = "SELECT id, transaction_id, action, changes, created_at FROM transaction_audit WHERE transaction_id = ? ORDER BY created_at DESC",
+        parameters = listOf(transactionId),
+        mapper = ::auditMapper,
+    )
+}
+
+/** Minimal, dependency-free JSON-object serializer for the audit `changes`
+ * column -- values are always strings or null here (from/to pairs plus the
+ * items/labels string summaries above), so a hand-rolled encoder avoids
+ * pulling in a JSON library just for this one column. */
+private fun changesToJson(changes: Map<String, Pair<Any?, Any?>>): String {
+    fun encode(v: Any?): String = when (v) {
+        null -> "null"
+        is Number, is Boolean -> v.toString()
+        else -> "\"${v.toString().replace("\\", "\\\\").replace("\"", "\\\"")}\""
+    }
+    val entries = changes.entries.joinToString(",") { (k, fromTo) ->
+        "\"$k\":{\"from\":${encode(fromTo.first)},\"to\":${encode(fromTo.second)}}"
+    }
+    return "{$entries}"
 }
