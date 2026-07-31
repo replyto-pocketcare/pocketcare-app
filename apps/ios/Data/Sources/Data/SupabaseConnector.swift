@@ -21,6 +21,14 @@ import Foundation
 
 import PowerSync
 import Supabase
+// Needed explicitly in this file (unlike the pre-existing Classification/
+// FailureDetails usages, which only ever appear via inferred chained member
+// access) for the new P2.3 diagnostics wiring below: DetailValue/DetailEntry
+// enum-case shorthand and the bare FAILURE_CLASS_PERMANENT/LOG_LEVEL_*
+// globals all need Domain's declarations directly visible in this file —
+// Swift imports are per-file, not per-target, regardless of what sibling
+// files in the same Data target already import.
+import Domain
 
 /// Postgres schema that holds all PocketCare tables.
 public let DB_SCHEMA = "pocketcare"
@@ -223,6 +231,26 @@ public final class SupabaseConnector: PowerSyncBackendConnectorProtocol, @unchec
                     + "(\(op.op.rawValue), \(run.count) row(s), attempt \(verdict.attempts), "
                     + "\(verdict.classification.cls))"
                     + (verdict.quarantined ? " — moved to Problems syncing" : ""))
+
+                // P2.3: feed the already-ported diagnostics domain (P1.6b) so a
+                // future "share diagnostics" flow has a redacted, human-readable
+                // record. Permanent (about to be/already quarantined) is ERROR;
+                // transient (still retrying) is WARN. makeEntry redacts the raw
+                // failure.message itself — safe to pass straight through.
+                logDiagnostic(
+                    level: verdict.classification.cls == FAILURE_CLASS_PERMANENT ? LOG_LEVEL_ERROR : LOG_LEVEL_WARN,
+                    scope: "sync",
+                    message: failure.message ?? "Upload failed for \(op.table)",
+                    detail: .obj([
+                        DetailEntry(key: "table", value: .str("\(schema).\(op.table)")),
+                        DetailEntry(key: "op", value: .str(op.op.rawValue)),
+                        DetailEntry(key: "rows", value: .intNum(Int64(run.count))),
+                        DetailEntry(key: "attempts", value: .intNum(Int64(verdict.attempts))),
+                        DetailEntry(key: "cls", value: .str(verdict.classification.cls)),
+                        DetailEntry(key: "quarantined", value: .bool(verdict.quarantined)),
+                        DetailEntry(key: "code", value: failure.code.map { DetailValue.str($0) } ?? DetailValue.null),
+                    ])
+                )
 
                 reportSyncDiagnostic(SyncDiagnostic(
                     table: "\(schema).\(op.table)",

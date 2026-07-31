@@ -33,6 +33,17 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+// P2.3 diagnostics wiring. Unlike Classification/FailureDetails (used only
+// via inferred chained member access on same-package Quarantine.kt types,
+// which needs no import), these are bare top-level identifiers / a type
+// named directly, from OTHER packages -- Kotlin, like Swift, requires each
+// file to import what it names explicitly, regardless of what a same-package
+// sibling file already imports.
+import care.pocket.data.diagnostics.logDiagnostic
+import care.pocket.domain.diagnostics.DetailValue
+import care.pocket.domain.diagnostics.LOG_LEVEL_ERROR
+import care.pocket.domain.diagnostics.LOG_LEVEL_WARN
+import care.pocket.domain.syncpolicy.FAILURE_CLASS_PERMANENT
 
 /** Postgres schema that holds all PocketCare tables. */
 const val DB_SCHEMA = "pocketcare"
@@ -115,11 +126,29 @@ private fun reportSyncDiagnostic(d: SyncDiagnostic) {
 /**
  * Convert a PowerSync CrudEntry to our CrudOpSummary for quarantine tracking.
  * Reads the op's data map and serialises it to JSON for dead-letter storage.
+ *
+ * opData.typed, NOT opData.toMap(): CrudEntry.opData's real type is
+ * `SqliteRow?` (confirmed via powersync-kotlin 1.13.0's real source,
+ * CrudEntry.kt/SqliteRow.kt at the pinned tag), and SqliteRow itself
+ * implements `Map<String, String?>` — every value stringified, kept only
+ * for backwards compatibility. `opData?.toMap()` copies that same
+ * stringified view; because Kotlin's Map is declared `out V` (covariant),
+ * assigning a `Map<String, String?>` into a `Map<String, Any?>`-typed val
+ * compiles with ZERO warning or error, so this shipped silently wrong.
+ * `.typed: Map<String, Any?>` is SqliteRow's real typed accessor (Int/
+ * Double/Boolean/String) — mirrors the exact fix applied to iOS's
+ * SupabaseConnector.swift (opData vs opDataTyped) after finding the same
+ * class of bug there. See CAUTION below `toJsonPrimitive` for a real
+ * constraint of `.typed` itself (Int, never Long, for numeric columns).
  */
 private fun CrudEntry.toOpSummary(): CrudOpSummary {
-    val rawData: Map<String, Any?> = opData?.toMap() ?: emptyMap()
+    val rawData: Map<String, Any?> = opData?.typed ?: emptyMap()
     return CrudOpSummary(
-        clientId = clientId?.toLong(),
+        // clientId is a non-nullable Int in the real SDK (confirmed via
+        // CrudEntry.kt source) — the `?.` here is a harmless-but-misleading
+        // unnecessary safe call, not a bug; kept as `.toLong()` since
+        // CrudOpSummary.clientId is Long?.
+        clientId = clientId.toLong(),
         table = table,
         op = op.name,
         id = id,
@@ -130,6 +159,16 @@ private fun CrudEntry.toOpSummary(): CrudOpSummary {
 /**
  * Convert an opData value (Any?) to a kotlinx.serialization JsonElement.
  * Used to build JsonObject payloads for supabase-kt's Serializable PostgREST API.
+ *
+ * CAUTION (real constraint, confirmed via SqliteRow.kt source): `.typed`'s
+ * numeric parser (`jsonNumberOrBoolean()`) always produces Kotlin `Int`
+ * (32-bit) for non-decimal numeric strings, never `Long` — there is no
+ * bigint-range path. A synced integer column whose value exceeds
+ * Int32.MAX_VALUE (~2.15 billion) would silently overflow when read via
+ * `.typed`. Money is stored as integer minor units (golden rule #1) and
+ * unlikely to hit that range in practice, but this is an SDK-level
+ * limitation, not something fixable from our side — flag for review if a
+ * future schema ever needs a genuinely bigint-range synced column.
  */
 private fun toJsonPrimitive(v: Any?): kotlinx.serialization.json.JsonElement = when (v) {
     null -> JsonNull
@@ -206,9 +245,11 @@ class SupabaseConnector(
                 try {
                     when (op.op) {
                         UpdateType.PUT -> {
+                            // .typed, not the bare Map<String, String?> — see
+                            // the comment on toOpSummary above.
                             val rows: List<JsonObject> = run.map { entry ->
                                 buildJsonObject {
-                                    entry.opData?.forEach { (k, v) -> put(k, toJsonPrimitive(v)) }
+                                    entry.opData?.typed?.forEach { (k, v) -> put(k, toJsonPrimitive(v)) }
                                     put("id", entry.id)
                                 }
                             }
@@ -220,7 +261,7 @@ class SupabaseConnector(
                         }
                         UpdateType.PATCH -> {
                             val data: JsonObject = buildJsonObject {
-                                op.opData?.forEach { (k, v) -> put(k, toJsonPrimitive(v)) }
+                                op.opData?.typed?.forEach { (k, v) -> put(k, toJsonPrimitive(v)) }
                             }
                             rel.update(data) { filter { eq("id", op.id) } }
                         }
@@ -249,6 +290,29 @@ class SupabaseConnector(
                         "${verdict.classification.cls})" +
                         if (verdict.quarantined) " — moved to Problems syncing" else "",
                 )
+
+                // P2.3: feed the already-ported diagnostics domain (P1.6a) so a
+                // future "share diagnostics" flow has a redacted, human-readable
+                // record. Permanent (about to be/already quarantined) is ERROR;
+                // transient (still retrying) is WARN. makeEntry redacts the raw
+                // failure.message itself -- safe to pass straight through.
+                logDiagnostic(
+                    level = if (verdict.classification.cls == FAILURE_CLASS_PERMANENT) LOG_LEVEL_ERROR else LOG_LEVEL_WARN,
+                    scope = "sync",
+                    message = failure.message ?: "Upload failed for ${op.table}",
+                    detail = DetailValue.Obj(
+                        linkedMapOf(
+                            "table" to DetailValue.Str("$schema.${op.table}"),
+                            "op" to DetailValue.Str(op.op.name),
+                            "rows" to DetailValue.IntNum(run.size.toLong()),
+                            "attempts" to DetailValue.IntNum(verdict.attempts.toLong()),
+                            "cls" to DetailValue.Str(verdict.classification.cls),
+                            "quarantined" to DetailValue.Bool(verdict.quarantined),
+                            "code" to (failure.code?.let { DetailValue.Str(it) } ?: DetailValue.Null),
+                        ),
+                    ),
+                )
+
                 reportSyncDiagnostic(
                     SyncDiagnostic(
                         table = "$schema.${op.table}",

@@ -5,81 +5,84 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — third round of fixing REAL
-               `xcodebuild test` errors the human ran locally (this
-               sandbox still has no swiftc/javac). This round hit
-               SupabaseConnector.swift: (1) `entry.clientId.map { ... }`
-               — clientId is a non-optional `Int64` in the real SDK
-               (confirmed via CrudEntry.swift source AND DocC), not
-               `Int64?`, so `.map` doesn't exist; fixed to pass it
-               directly. (2) `AnyJSON.number`/`.boolean` don't exist —
-               fetched supabase-swift's real AnyJSON.swift (path only
-               discoverable via jsdelivr's flat directory listing;
-               raw.githubusercontent guesses at 3 plausible paths all
-               silently returned empty) — real cases are `.integer(Int)`,
-               `.double(Double)`, `.bool(Bool)`, `.string`, `.null`,
-               `.object`, `.array`; fixed both call sites. (3) BEYOND
-               the reported errors: while fetching CrudEntry.swift for
-               #1, found that `CrudEntry.opData` (which the code used
-               everywhere) is a *deprecated, stringified* accessor —
-               `[String: String?]?` — that turns every column value,
-               including money minor-unit integers, into a String for
-               backwards compat. The typed accessor is
-               `opDataTyped: JsonParam?` (`JsonParam = [String:
-               JsonValue]`). Using `opData` compiles fine (Swift widens
-               String? to Any?/AnyJSON's .string case silently) but
-               would have uploaded every field as a JSON string —
-               a silent violation of CLAUDE.md golden rule #1 (money
-               as integers) that no compiler would ever catch, only a
-               real Postgres round-trip. Switched both `uploadData`'s
-               row-building and `toOpSummary`'s dead-letter payload to
-               `opDataTyped`, with two new small converters
-               (`anyJSON(from: JsonValue)`, `anyValue(from: JsonValue)`)
-               since JsonValue's own `toValue()` is SDK-internal, not
-               `public` — can't be called from our module.
-Android state: 16/16 Phase 1 domains DONE. :data module (P2.2a/P2.4a)
-               reviewed + 2 bugs fixed (round 1), NOT build-verified —
-               no `./gradlew build` has ever run against this code.
-               OPEN QUESTION carried over from this session's iOS find:
-               check whether Kotlin's `CrudEntry.opData` has the same
-               stringify-by-default trap — Android's SupabaseConnector.kt
-               currently reads `entry.opData` directly into
-               `Map<String, Any?>` and branches on `is Number`/
-               `is Boolean` in `toJsonPrimitive`, which only works if
-               Kotlin's opData is actually typed (unverified this
-               session).
-iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2b/P2.4b):
-               Quarantine.swift fixed (round 2, 3 errors) + confirmed
-               clean by re-run; SupabaseConnector.swift fixed (round 3,
-               above) — NOT yet re-verified by an actual xcodebuild run
-               (this fix is answering the round-3 log, not confirmed
-               green yet). Auth.swift confirmed clean by real compiler
-               in round 2, no changes since.
+Last session: 2026-07-31 (latest) — user confirmed iOS `xcodebuild test`
+               is GREEN after round 3's SupabaseConnector.swift fixes
+               ("Working now"). Two follow-ups done in response: (1)
+               checked Android for the iOS opData/opDataTyped class of
+               bug (flagged open last session) — CONFIRMED the same real
+               bug via source (powersync-kotlin 1.13.0's CrudEntry.kt/
+               SqliteRow.kt): `CrudEntry.opData` is `SqliteRow?`, which
+               itself implements `Map<String, String?>` (stringified,
+               deprecated-in-spirit); the real typed accessor is
+               `.typed: Map<String, Any?>`. Kotlin's covariant `Map<out
+               V>` let `opData?.toMap()` assign into a `Map<String,
+               Any?>`-typed val with ZERO error, so this would have
+               shipped the exact same "money uploaded as JSON strings"
+               bug as iOS, undetectable by any compiler. Fixed to
+               `.typed` at all 3 call sites in SupabaseConnector.kt;
+               also fixed `clientId` (confirmed non-nullable `Int` in
+               the real SDK, not `Int?`) and documented a real SDK
+               constraint found along the way: `.typed`'s numeric parser
+               only ever produces `Int` (32-bit), never `Long` — a risk
+               for any future bigint-range synced column. (2) P2.3 was
+               listed TODO but its actual remaining piece — wiring the
+               already-ported `diagnostics` domain's `makeEntry`/
+               `formatLog` into the connector's failure path so a future
+               "share diagnostics" flow has something to show — had
+               never been done (the connector only did ad-hoc `Log.e`/
+               `print`). Implemented on both platforms: new
+               DiagnosticsLog.kt/.swift (capped 200-entry in-memory ring
+               buffer, `logDiagnostic()` feeding `makeEntry`'s redaction
+               pipeline, `diagnosticsReport()` wrapping `formatLog`),
+               wired into both SupabaseConnector's failure branch
+               (ERROR for permanent/quarantined, WARN for transient).
+               Required adding `import Domain` to SupabaseConnector.swift
+               and 4 new imports to SupabaseConnector.kt — both files'
+               existing Classification/FailureDetails usages worked via
+               inferred chained member access with no import needed, but
+               bare global constants (FAILURE_CLASS_PERMANENT, LOG_LEVEL_
+               *) and named enum cases (DetailValue.obj/.str/...) need
+               the declaring module imported in THAT file, in both
+               Swift and Kotlin — a real, easy-to-miss distinction.
+Android state: 16/16 Phase 1 domains DONE. :data module (P2.2a/P2.3a/
+               P2.4a): 2 bugs from round 1 + opData/clientId bug (above)
+               + new diagnostics wiring, all source-verified, STILL
+               NEVER build-verified — no `./gradlew build` has run
+               against this code at any point in this whole arc.
+iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2b/P2.3b/
+               P2.4b): xcodebuild CONFIRMED GREEN as of this session for
+               everything through round 3's fixes. New DiagnosticsLog.
+               swift + the SupabaseConnector.swift diagnostics wiring
+               added AFTER that confirmation — NOT yet re-verified by
+               another real xcodebuild run.
 Vectors:       DONE (P0.1), 250/250 green on both platforms (Phase 1).
-Next up:       Re-run real `xcodebuild test` to confirm round 3's fixes
-               (clientId, AnyJSON cases, opDataTyped) land clean. If
-               clean, do the same for Android (`./gradlew build`, still
-               never actually run against this code) and resolve the
-               opData/opDataTyped open question above on Kotlin's side.
-Traps/notes:   Same traps from rounds 1-2, plus: (1) a file compiling
-               clean is NOT the same as a file being correct — the
-               opData/opDataTyped split shows source inspection can
-               surface real data-correctness bugs a compiler will never
-               flag, especially anything touching golden rule #1 (money
-               as integers). Grep for every accessor SDK docs mark
-               "deprecated" or "consider using X instead" before trusting
-               it. (2) jsdelivr's flat directory listing
-               (`data.jsdelivr.com/v1/packages/gh/<owner>/<repo>@<tag>
-               ?structure=flat`) is the reliable way to find an exact
-               file path in a pinned dependency when raw.githubusercontent
-               guesses at plausible paths return silently empty rather
-               than erroring — used successfully twice this session
-               (AnyJSON.swift, CrudEntry.swift's actual directory).
-Blocked:       P2.2a/b and P2.4a/b still BLOCKED pending a real,
-               clean-of-errors Gradle/Xcode build (Android untested by
-               any real compiler so far — Kotlin fixes from round 1 are
-               source-inspection-verified only) and, beyond that, TP L3
-               execution against reachable Supabase infra.
+Next up:       Re-run real `xcodebuild test` to confirm the diagnostics
+               wiring (new import Domain, DetailValue usage) compiles
+               clean. Get a first-ever real `./gradlew build` for
+               Android — everything there remains source-inspection-only
+               after 3 full rounds of iOS-only real compiler feedback.
+               Then: P2.5 (repositories, 7 domains × 2 platforms) and
+               P2.6 (repair logic × 2 platforms) are the only Phase 2
+               items left untouched — pick up there.
+Traps/notes:   Same traps from rounds 1-3, plus: (1) Kotlin's `Map<out
+               V>` covariance means a stringified-vs-typed accessor mixup
+               like opData/.typed produces ZERO warning at the
+               assignment site, unlike Swift's invariant Dictionary,
+               which at least sometimes surfaces a real type mismatch —
+               Kotlin is actually MORE dangerous for this exact class of
+               bug, not less. (2) confirmed again: per-file imports are
+               required for bare top-level constants and named enum
+               cases in BOTH Swift and Kotlin, even for a sibling file in
+               the exact same target/package that already imports the
+               same module — chained property access on an
+               already-inferred type is the one thing that doesn't need
+               a matching import in either language.
+Blocked:       P2.2/P2.3/P2.4 all still BLOCKED on TP L3 (real sync
+               round-trip against reachable Supabase infra) even once
+               both platforms compile clean — that's a materially higher
+               bar than "compiles," per Phase 2's Done-when. Android
+               additionally blocked on ever getting a first real Gradle
+               build this entire arc.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -123,9 +126,9 @@ One task = one platform, same pattern as Phase 1. Order matters: schema parity b
 | ID | Task | Tag | Needs | Status |
 |---|---|---|---|---|
 | P2.1a / P2.1b | Schema parity — mirror `AppSchema` (`packages/db/src/index.ts`) as Kotlin data classes / Swift structs + a parity check script (3-way: `AppSchema` ↔ Kotlin ↔ Swift, catches column drift at build/CI time, not runtime) | [M] | P1 (done) | DONE (2026-07-31, 700cd24) / DONE (same commit) |
-| P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | BLOCKED (needs L3 test infrastructure) / BLOCKED (needs L3 test infrastructure) |
-| P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | TODO / TODO |
-| P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | BLOCKED (needs L3 test infrastructure) / BLOCKED (needs L3 test infrastructure) |
+| P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | Code complete, NOT build-verified (no real Gradle run this whole arc) — BLOCKED (TP L3) / Code complete, xcodebuild clean 3 rounds in a row (human-confirmed 2026-07-31, incl. a real data-correctness fix, see change log) — BLOCKED (TP L3) |
+| P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | Code complete 2026-07-31 (dead-letter persistence + new DiagnosticsLog.kt wiring `makeEntry`/`formatLog` into the failure path), NOT build-verified — BLOCKED (TP L3) / Code complete 2026-07-31 (dead-letter persistence was already done; new DiagnosticsLog.swift closes the `makeEntry`/`formatLog` gap that was the actual remaining piece), NOT yet re-verified by xcodebuild since this addition — BLOCKED (TP L3) |
+| P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | Code complete, NOT build-verified — BLOCKED (TP L3) / Code complete, Auth.swift confirmed xcodebuild-clean (2026-07-31) — BLOCKED (TP L3) |
 | P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | TODO / TODO |
 | P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | TODO / TODO |
 
