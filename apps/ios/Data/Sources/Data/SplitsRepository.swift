@@ -468,7 +468,7 @@ public final class SplitsRepository: @unchecked Sendable {
             sql: "SELECT from_user, to_user, amount, settled_at, created_at FROM settlements WHERE deleted_at IS NULL AND status <> 'disputed'",
             parameters: []
         ) { cursor -> (String, String, Int64, String) in
-            let at = (try cursor.getStringOptional(name: "settled_at")) ?? (try cursor.getString(name: "created_at"))
+            let at = try cursor.getStringOptional(name: "settled_at") ?? cursor.getString(name: "created_at")
             return (try cursor.getString(name: "from_user"), try cursor.getString(name: "to_user"), try cursor.getInt64(name: "amount"), at)
         }
 
@@ -535,7 +535,7 @@ public final class SplitsRepository: @unchecked Sendable {
                 fromUser: try cursor.getString(name: "from_user"),
                 toUser: try cursor.getString(name: "to_user"),
                 amount: try cursor.getInt64(name: "amount"),
-                at: (try cursor.getStringOptional(name: "settled_at")) ?? (try cursor.getString(name: "created_at"))
+                at: try cursor.getStringOptional(name: "settled_at") ?? cursor.getString(name: "created_at")
             )
         }
 
