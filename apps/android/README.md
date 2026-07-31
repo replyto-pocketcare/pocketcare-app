@@ -31,6 +31,36 @@ once; everyone after you uses the committed wrapper.)
 run as plain JVM tests — fast, no emulator. `:app` is the Compose shell that
 depends on it.
 
+## Run on a device
+
+**Physical device (fastest to set up if you already have one):**
+1. Settings → About phone → tap "Build number" 7 times to unlock Developer
+   options.
+2. Settings → System → Developer options → enable **USB debugging**.
+3. Plug the phone in via USB, accept the "Allow USB debugging?" prompt on
+   the phone.
+4. From `apps/android`:
+   ```bash
+   ./gradlew installDebug
+   adb shell am start -n care.pocket.android/.MainActivity
+   ```
+   (or just tap the app icon — "PocketCare" — on the device.)
+
+**Emulator (no physical device needed):** open the project in Android
+Studio (`apps/android`), Tools → Device Manager → create a virtual device
+(any recent phone profile, API 34+), then hit ▶ Run. Android Studio handles
+the emulator boot + install + launch. There's no CLI-only emulator path set
+up in this repo yet (no `avdmanager`/`emulator` invocations scripted) —
+Android Studio is the easiest route for now.
+
+**Wireless debugging** (no cable): Settings → Developer options → Wireless
+debugging → pair with the code shown, then `adb pair <ip>:<port>` and
+`adb connect <ip>:<port>` before `./gradlew installDebug`.
+
+Right now the app is P0.2's placeholder Compose screen (wired to
+`DomainSkeleton` from `:domain`) — real UI starts in Phase 3 (plan §7)
+after the domain ports (Phase 1) and data layer (Phase 2) land.
+
 ## Structure
 
 ```

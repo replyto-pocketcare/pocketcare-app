@@ -5,11 +5,12 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (even later still) — human's Android build has
-               been through 3 real fix rounds in one session: (1) Kotlin
-               nested-comment compile error, (2) AGP 8.6.0->8.13.0 version
-               audit, (3) owner asked for TRUE latest Gradle -> migrated to
-               AGP 9.2.0 + Gradle 9.4.1 + built-in Kotlin. iOS untouched.
+Last session: 2026-07-31 (even later still) — P0.2 DONE. Human's Android
+               build went through 3 real fix rounds then BUILD SUCCESSFUL:
+               (1) Kotlin nested-comment compile error, (2) AGP
+               8.6.0->8.13.0 version audit, (3) owner asked for TRUE latest
+               Gradle -> migrated to AGP 9.2.0 + Gradle 9.4.1 + built-in
+               Kotlin. `./gradlew build test` passes. iOS untouched.
 Android state: Round 3: warning said Kotlin Gradle plugin wants Gradle
                >=8.14.4 soon. Rather than just bump within 8.x, owner chose
                real-latest Gradle (9.6.1 stable) — which per Google's own
@@ -33,13 +34,16 @@ iOS state:     Unchanged since last session. apps/ios/{App,AppTests,Domain}
                this fix round.
 Vectors:       DONE (P0.1). tools/golden-vectors -> vectors/*.json, 16
                domain files, 250 vectors, >=1 per public function.
-Next up:       Human re-runs `./gradlew build test` in apps/android and
-               reports the result. Once green, P0.2 -> DONE. iOS (P0.3)
-               still needs its first real build attempt AND its own version
-               audit (swift-tools-version 6.0, deploymentTarget iOS 17 in
-               project.yml) BEFORE that first attempt — Android proved
-               "ship unverified versions, fix reactively" costs real round
-               trips.
+Next up:       P0.4a (Android vector runner, kotlin.test, needs P0.1+P0.2 —
+               both DONE) is now unblocked. Also: human asked how to run
+               the app on a device — pointed at USB debugging + `adb
+               install` / Android Studio Run, not yet documented in
+               README.md, consider adding a short "Run on device" section.
+               iOS (P0.3) still needs its first real build attempt AND its
+               own version audit (swift-tools-version 6.0, deploymentTarget
+               iOS 17 in project.yml) BEFORE that first attempt — Android
+               proved "ship unverified versions, fix reactively" costs real
+               round trips.
 Traps/notes:   **Kotlin block comments nest** — never write a literal `/*`
                inside a `/** ... */` doc comment (glob paths like
                `foo/*.json` are a classic accidental trigger). **AGP 9.0+
@@ -54,9 +58,8 @@ Traps/notes:   **Kotlin block comments nest** — never write a literal `/*`
                human-generated wrapper jar. iOS CI runs `xcodegen generate`
                fresh every time. Neither CI job blocks `deploy-production`.
                COMMIT EVERY SESSION, even docs-only ones.
-Blocked:       P0.2 DONE status on the human's next build attempt actually
-               going green. P0.3 blocked on ever attempting a first build
-               (sandbox has no JDK/Gradle/Xcode/Swift toolchain).
+Blocked:       P0.3 blocked on ever attempting a first build (sandbox has
+               no JDK/Gradle/Xcode/Swift toolchain).
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -75,7 +78,7 @@ Blocked:       P0.2 DONE status on the human's next build attempt actually
 |---|---|---|---|---|
 | P0.0 | Decommission RN scaffold | [M] | — | DONE (2026-07-31, N/A — never committed, removed by repo reset) |
 | P0.1 | Golden-vector exporter (`tools/golden-vectors/export.ts`) | [M] | — | DONE (2026-07-31, 8e8bcfd) |
-| P0.2 | Android skeleton (`apps/android`, pure-Kotlin `:domain`) | [M] | — | DOING (2026-07-31, claude-sonnet-5) |
+| P0.2 | Android skeleton (`apps/android`, pure-Kotlin `:domain`) | [M] | — | DONE (2026-07-31, dc923f2 — human ran `./gradlew build test`, BUILD SUCCESSFUL, on AGP 9.2.0/Gradle 9.4.1/built-in Kotlin) |
 | P0.3 | iOS skeleton (`apps/ios`, SwiftPM `Domain`, App Group) | [M] | — | DOING (2026-07-31, claude-sonnet-5) |
 | P0.4a | Vector runner — Android (kotlin.test) | [S] | P0.1, P0.2 | TODO |
 | P0.4b | Vector runner — iOS (XCTest) | [S] | P0.1, P0.3 | TODO |
