@@ -78,6 +78,19 @@ AppTests/      Placeholder XCTest proving App -> Domain wiring on-device/simulat
 (plan §3 target layout) — not created yet, to keep this task's diff
 reviewable.
 
+## Golden-vector runner (P0.4b)
+
+`Domain/Tests/DomainTests/VectorFixtures.swift` + `FunctionRegistry.swift`
++ `VectorRunnerTests.swift` load every JSON file under
+`tools/golden-vectors/vectors/` and report pass/skip/fail counts per
+domain, mirroring the Android runner 1:1. SwiftPM can't declare
+`resources:` outside the package, so the vectors are read straight off
+disk via a path computed from `#filePath` at runtime, rather than bundled
+— no duplication, so this can't drift from the Android side's copy.
+Every vector is skipped right now, because `FunctionRegistry` starts
+empty — each Phase 1 porting task (plan §5) registers its own
+`domain`/`fn` pair there to un-skip its vectors.
+
 ## Open items (plan §10 — need a human "yes")
 
 - `PRODUCT_BUNDLE_IDENTIFIER "care.pocket.ios"`, the App Group id

@@ -23,6 +23,12 @@ composeBom = "2026.06.00"
 activityCompose = "1.9.3"
 lifecycle = "2.8.7"
 coreKtx = "1.13.1"
+# Human-approved 2026-07-31 for P0.4a (golden-vector runner): :domain is a
+# pure-JVM module with no Android SDK, so it has no built-in JSON parser.
+# kotlinx.serialization is JetBrains-official and the standard Kotlin
+# choice; version confirmed compatible with Kotlin 2.4.10 via search.
+# Test-scope only, does not ship in the app.
+kotlinxSerializationJson = "1.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +42,7 @@ compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -46,3 +53,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 # unaffected since it's a plain JVM module, not an Android one.
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

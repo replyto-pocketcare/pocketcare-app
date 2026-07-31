@@ -81,9 +81,9 @@ Blocked:       P0.3 blocked on ever attempting a first build (sandbox has
 | P0.0 | Decommission RN scaffold | [M] | — | DONE (2026-07-31, N/A — never committed, removed by repo reset) |
 | P0.1 | Golden-vector exporter (`tools/golden-vectors/export.ts`) | [M] | — | DONE (2026-07-31, 8e8bcfd) |
 | P0.2 | Android skeleton (`apps/android`, pure-Kotlin `:domain`) | [M] | — | DONE (2026-07-31, dc923f2 — human ran `./gradlew build test`, BUILD SUCCESSFUL, on AGP 9.2.0/Gradle 9.4.1/built-in Kotlin) |
-| P0.3 | iOS skeleton (`apps/ios`, SwiftPM `Domain`, App Group) | [M] | — | DOING (2026-07-31, claude-sonnet-5) |
-| P0.4a | Vector runner — Android (kotlin.test) | [S] | P0.1, P0.2 | TODO |
-| P0.4b | Vector runner — iOS (XCTest) | [S] | P0.1, P0.3 | TODO |
+| P0.3 | iOS skeleton (`apps/ios`, SwiftPM `Domain`, App Group) | [M] | — | DONE (2026-07-31, 1b3804a — human ran `xcodebuild test`, passed, app confirmed running on simulator) |
+| P0.4a | Vector runner — Android (kotlin.test) | [S] | P0.1, P0.2 | DOING (2026-07-31, claude-sonnet-5) |
+| P0.4b | Vector runner — iOS (XCTest) | [S] | P0.1, P0.3 | DOING (2026-07-31, claude-sonnet-5) |
 | P0.5 | PROJECT_REFERENCE "Native mobile" section + parity table | [S] | — | DONE (2026-07-31, same session as this file) |
 
 ### Phase 1 — domain ports (one row = one platform = one task)

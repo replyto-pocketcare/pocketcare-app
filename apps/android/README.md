@@ -68,6 +68,20 @@ app/      Compose UI shell, application id care.pocket.android (placeholder — 
 domain/   Pure Kotlin, vector-tested against tools/golden-vectors/vectors/*.json (P1.x)
 ```
 
+## Golden-vector runner (P0.4a)
+
+`domain/src/test/kotlin/care/pocket/domain/vectors/` loads every JSON file
+under `tools/golden-vectors/vectors/` (via a Gradle test-resources
+`srcDir` pointed at the repo root — nothing is copied, so it can't drift)
+and reports pass/skip/fail counts per domain. Right now every vector is
+skipped, because `FunctionRegistry` (in the same directory) starts empty
+— each Phase 1 porting task (plan §5) registers its own `domain`/`fn`
+pair there to un-skip its vectors. A registered function whose output
+doesn't match its vector fails the build; an unregistered one just
+counts as skipped. Uses `kotlinx.serialization` for JSON (human-approved
+2026-07-31 — see the version catalog comment — since `:domain` has no
+Android SDK and thus no built-in JSON parser).
+
 `:data`, `:widgets`, `:baselineprofile` are added in later phases (plan §3
 target layout) — not created yet, to keep this task's diff reviewable.
 
