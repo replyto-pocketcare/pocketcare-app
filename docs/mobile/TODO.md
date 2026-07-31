@@ -5,40 +5,53 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — money (P1.1) shipped and hit ONE real
-               Xcode build error ("Ambiguous use of 'money'" in Swift's
-               sum(), fixed 6be76b9). Human confirmed both apps running,
-               then chose "Systematic" over "fast-track a UI slice" when
-               asked about sequencing — so P1.2 ledger (both platforms)
-               was ported next, same session, per dependency order.
-               NOTHING in P1.1 or P1.2 is build-verified yet.
-Android state: P1.1a DOING (7d3107a, 13/14 money fns). P1.2a DOING
-               (5a705de): domain/.../ledger/Ledger.kt — signedEffectFor,
-               deriveBalance, availableBalance, aggregateNetWorth, all 4
-               registered via LedgerVectors.kt, wired into
-               VectorRunnerTest.ledger().
-iOS state:     P1.1b DOING (7d3107a + fix 6be76b9). P1.2b DOING
-               (5a705de): Domain/Sources/Domain/Ledger.swift, same 4 fns,
-               registered via new LedgerVectors.swift, wired into
-               VectorRunnerTests.testLedger().
-Vectors:       DONE (P0.1), 250 total. money.json 40 (37 registered/3
-               format() deferred). ledger.json 10, all 4 fns registered,
-               zero throws vectors.
+Last session: 2026-07-31 (latest) — after money (P1.1) + ledger (P1.2),
+               kept going systematically per the human's "Systematic"
+               sequencing choice: ported finance+budget (P1.3, both
+               platforms, commit e8ef8b8) in the same session, unprompted
+               ("continue with other phases"). This is the largest port
+               yet (20 fns, date math + loan amortization + cashflow
+               projection) and surfaced two new infra needs: Math.round's
+               tie-toward-+Infinity rule (different from Money's
+               round-half-away-from-zero) and Infinity-valued results
+               (JS's JSON.stringify(Infinity) === null). Also fixed a
+               latent Kotlin harness bug (JsonElement's default equality
+               is textual, not value-based -- see jsonElementsEqual in
+               Vectors.kt). NOTHING in P1.1/P1.2/P1.3 is build-verified
+               yet -- still the single most important next step.
+Android state: money 7d3107a, ledger 5a705de, finance+budget e8ef8b8:
+               domain/.../finance/Finance.kt + budget/Budget.kt, all 20
+               fns registered via FinanceVectors.kt/BudgetVectors.kt,
+               wired into VectorRunnerTest's finance()/budget().
+iOS state:     money 7d3107a+6be76b9, ledger 5a705de, finance+budget
+               e8ef8b8: Domain/Sources/Domain/Finance.swift + Budget.swift
+               (hand-rolled Ymd date type, NOT Foundation Calendar --
+               search found real reports of Calendar silently using the
+               device's local time zone), registered via new
+               FinanceVectors.swift/BudgetVectors.swift, wired into
+               VectorRunnerTests' testFinance()/testBudget().
+Vectors:       DONE (P0.1), 250 total. money 40 (37 reg./3 format()
+               deferred), ledger 10 (4/4), finance 33 (16/16), budget 10
+               (4/4) -- 87 vectors registered, 163 still fully skipped.
 Next up:       Human runs `cd apps/android && ./gradlew test` and
                `cd apps/ios && xcodegen generate && xcodebuild test
                -project PocketCare.xcodeproj -scheme PocketCare
                -destination 'platform=iOS Simulator,name=iPhone 17 Pro'`.
-               Expect money: total=40 passed=37 skipped=3; ledger:
-               total=10 passed=10 skipped=0. Then continue systematically:
-               P1.3 finance+budget next (needs P1.2, per plan §5 order).
-Traps/notes:   Kotlin/Swift block comments both NEST — grep new files for
-               literal `/*` inside doc comments before every commit.
-               Swift: bare integer literals (e.g. `0`) are ambiguous
-               between money(Int64,_) / money(Double,_) throws overloads
-               — always write Int64(0) explicitly; ledger's
-               aggregateNetWorth applied this proactively. Registries are
-               keyed by (domain, fn). COMMIT EVERY SESSION.
-Blocked:       Nothing structurally blocked — sandbox has no JDK/Gradle/
+               Expect money 40/37/3, ledger 10/10/0, finance 33/33/0,
+               budget 10/10/0 (total/passed/skipped). This is the first
+               real compiler run for date math (Sakamoto's algorithm,
+               hand-rolled Ymd arithmetic) and Math.round-vs-round-half-
+               away-from-zero -- highest-value things to check if
+               anything's wrong. Then P1.4 splits+insights next (needs
+               only P1.1, per plan §5).
+Traps/notes:   Kotlin/Swift block comments both NEST -- grep for literal
+               `/*` before every commit. Swift: bare int literals are
+               ambiguous against Int64/Double overloads -- always
+               Int64(0) explicitly. Kotlin: bare int literals do NOT
+               auto-widen to Long params either (confirmed via search) --
+               always 0L explicitly, same failure class as Swift's.
+               Registries keyed by (domain, fn). COMMIT EVERY SESSION.
+Blocked:       Nothing structurally blocked -- sandbox has no JDK/Gradle/
                Xcode/Swift toolchain, everything waits on the human's
                next build attempt.
 ```
@@ -70,7 +83,7 @@ Blocked:       Nothing structurally blocked — sandbox has no JDK/Gradle/
 |---|---|---|---|---|
 | P1.1a / P1.1b | money — Android / iOS | [M] | P0.4a / P0.4b | DOING (2026-07-31, claude-sonnet-5, commit 7d3107a — 13/14 fns, format() deferred, NOT build-verified) / DOING (same) |
 | P1.2a / P1.2b | ledger — Android / iOS | [M] | P1.1 same-platform | DOING (2026-07-31, claude-sonnet-5, commit 5a705de — 4/4 fns, 10 vectors, NOT build-verified) / DOING (same) |
-| P1.3a / P1.3b | finance+budget — Android / iOS | [M] | P1.2 | TODO / TODO |
+| P1.3a / P1.3b | finance+budget — Android / iOS | [M] | P1.2 | DOING (2026-07-31, claude-sonnet-5, commit e8ef8b8 — 20/20 fns, 43 vectors, NOT build-verified) / DOING (same) |
 | P1.4a / P1.4b | splits+insights — Android / iOS | [M] | P1.1 | TODO / TODO |
 | P1.5a / P1.5b | receipts — Android / iOS | [H] | P1.1 | TODO / TODO |
 | P1.6a / P1.6b | upi+sync-policy+diagnostics — Android / iOS | [M] | P1.1 | TODO / TODO |
