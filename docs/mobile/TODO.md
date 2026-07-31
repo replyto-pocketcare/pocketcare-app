@@ -5,63 +5,70 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — P0.2 DONE: Android `./gradlew build
-               test` BUILD SUCCESSFUL (AGP 9.2.0/Gradle 9.4.1/built-in
-               Kotlin, after 3 real fix rounds) and human confirmed it runs
-               on-device. Now starting P0.3: did a pre-emptive iOS version
-               audit BEFORE the first real xcodegen/xcodebuild attempt
-               (lesson from Android's reactive-fix cost), found + fixed 2
-               real bugs by reading docs, human about to attempt the first
-               real build.
-Android state: DONE. `./gradlew build test` green, installs + runs on a
-               physical device via `installDebug`. apps/android/README.md
-               has a "Run on a device" section (USB debugging, adb,
-               Android Studio emulator, wireless debugging).
-iOS state:     project.yml/Package.swift never generated or built — about
-               to attempt the first real build. Pre-build audit (verified
-               via search 2026-07-31, not yet build-verified) found: (1)
-               project.yml's SWIFT_VERSION was "6.0", should be "6" — Xcode's
-               Swift Language Version build setting takes major-version-only
-               values (4/4.2/5/6), not toolchain patch versions; fixed. (2)
-               README/CI's simulator destination was "iPhone 16", doesn't
-               match Xcode 26.x's actual default-provisioned lineup (iPhone
-               17 Pro/Pro Max/Air); changed to "iPhone 17 Pro". Domain/
-               Package.swift's "swift-tools-version: 6.0" is a DIFFERENT,
-               correctly-dotted axis (SwiftPM manifest tools version, not
-               the Xcode language-mode setting) — left as-is. Still 0 real
-               builds attempted; these are doc/search-verified corrections,
-               not build-verified ones — more real errors are plausible on
-               first attempt, same as Android's first round.
+Last session: 2026-07-31 (latest) — P0.2 AND P0.3 both DONE: human
+               confirmed both apps built, tested, and RUNNING (Android on
+               device via installDebug, iOS on simulator via Xcode). Built
+               P0.4a + P0.4b (golden-vector runners, both platforms) in the
+               same session — not yet build-verified, that's the immediate
+               next step.
+Android state: DONE (P0.2). `./gradlew build test` green on AGP 9.2.0/
+               Gradle 9.4.1/built-in Kotlin, runs on-device. P0.4a added:
+               domain/src/test/kotlin/.../vectors/{Vectors,FunctionRegistry,
+               VectorRunnerTest}.kt — loads tools/golden-vectors/vectors/*
+               via a Gradle test-resources srcDir (no copy), one @Test per
+               domain (16), all skipped until FunctionRegistry is
+               populated by Phase 1 tasks. Needed kotlinx.serialization
+               (human-approved in-session — real dependency decision,
+               :domain has no Android SDK / no free JSON parser) — 1.11.0,
+               confirmed compatible with Kotlin 2.4.10 via search.
+iOS state:     DONE (P0.3). `xcodebuild test` green after 2 real-build
+               fixes (SWIFT_VERSION "6.0"->"6", missing PocketCareTests
+               Info.plist), confirmed running on simulator. P0.4b added:
+               Domain/Tests/DomainTests/{VectorFixtures,FunctionRegistry,
+               VectorRunnerTests}.swift — SwiftPM can't declare resources:
+               outside the package, so vectors are read straight off disk
+               via a path computed from #filePath at runtime instead of
+               bundled. Same empty-registry/all-skipped design as Android,
+               one test method per domain (16), mirrors it 1:1.
 Vectors:       DONE (P0.1). tools/golden-vectors -> vectors/*.json, 16
                domain files, 250 vectors, >=1 per public function.
-Next up:       Human runs (apps/ios): `brew install xcodegen` (if needed),
-               `xcodegen generate`, `swift test --package-path Domain`
-               (fast path, no simulator), then `xcodebuild test -project
-               PocketCare.xcodeproj -scheme PocketCare -destination
-               'platform=iOS Simulator,name=iPhone 17 Pro'` — report any
-               error back rather than guessing further. P0.4a (Android
-               vector runner) is unblocked but not started — iOS is the
-               active thread. Also open: applicationId/bundle-id/App-Group
-               placeholders (plan §10) still need a human "yes" on both
-               platforms before any store submission.
-Traps/notes:   **Kotlin block comments nest** — never write a literal `/*`
-               inside a `/** ... */` doc comment (glob paths like
-               `foo/*.json` are a classic accidental trigger). **AGP 9.0+
-               built-in Kotlin**: applying the kotlin-android plugin
-               alongside AGP 9.x is now a hard error — use
-               `libs.plugins.kotlin.jvm` for pure-JVM modules only, nothing
-               extra for Android modules. **Xcode SWIFT_VERSION build
-               setting wants "6", not "6.0"** — different from SwiftPM's
-               dotted `swift-tools-version`, don't confuse the two when
-               scaffolding new targets. CI jobs `android`/`ios` in
-               .github/workflows/ci.yml (gradle-version "9.4.1", iOS
-               simulator "iPhone 17 Pro"). Android CI uses
-               gradle/actions/setup-gradle (runs `gradle`, NOT `./gradlew`).
-               iOS CI runs `xcodegen generate` fresh every time. Neither CI
-               job blocks `deploy-production`.
+Next up:       Human runs the real build on both platforms to verify P0.4:
+               Android `cd apps/android && ./gradlew test` (should show
+               "[vectors] domain=X total=Y passed=0 skipped=Y failed=0"
+               for all 16 domains); iOS `cd apps/ios && xcodegen generate
+               && xcodebuild test -project PocketCare.xcodeproj -scheme
+               PocketCare -destination 'platform=iOS Simulator,name=iPhone
+               17 Pro'` (same expected shape via print()). If either
+               fails, report back — this is genuinely new code, unlike the
+               dependency-version fixes, so treat it as unverified. Once
+               green, P0.4a/P0.4b -> DONE and P1.1a/P1.1b (money — Android/
+               iOS, the first real domain port) unblock.
+Traps/notes:   **Kotlin AND Swift block comments both nest** — never write
+               a literal `/*` inside a `/** ... */` doc comment (a glob
+               path like `foo/*.json` is the classic accidental trigger;
+               hit this twice this session, once in Placeholder.kt, once
+               while writing VectorRunnerTest.kt). The iOS vector-runner
+               files sidestep this by using only `//`/`///` line comments,
+               never `/* */` — worth doing generally in new Swift files.
+               **AGP 9.0+ built-in Kotlin**: applying kotlin-android
+               alongside AGP 9.x is a hard error. **Xcode SWIFT_VERSION
+               wants "6"**, not a dotted version (different axis from
+               SwiftPM's `swift-tools-version`). **SwiftPM resources:
+               can't reference paths outside the package** — use a
+               #filePath-relative runtime path instead when a Swift target
+               needs to read repo-root fixtures; Gradle's sourceSets
+               resources.srcDir has no such restriction. Golden-vector
+               registries on both platforms are keyed by (domain, fn), not
+               fn alone — the JSON's "fn" field isn't unique across
+               domains. CI jobs `android`/`ios` in .github/workflows/ci.yml
+               (gradle-version "9.4.1", iOS simulator "iPhone 17 Pro") —
+               still only run the existing build+test, not yet updated to
+               specifically surface vector pass counts, though the test
+               output itself already contains them via println/print.
                COMMIT EVERY SESSION, even docs-only ones.
-Blocked:       P0.3 blocked on ever attempting a first build (sandbox has
-               no JDK/Gradle/Xcode/Swift toolchain).
+Blocked:       Nothing structurally blocked. P0.4a/P0.4b DONE status is
+               waiting on the human's next build attempt (sandbox has no
+               JDK/Gradle/Xcode/Swift toolchain to verify locally).
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -105,6 +112,7 @@ Not expanded yet (plan §7-8).
 
 ## Decisions needing a human (standing list)
 - Any new dependency beyond the §0 irreducible set (PowerSync, Supabase SDK, RevenueCat, FCM).
+  - ✅ 2026-07-31: `kotlinx.serialization` (test-scope, Android only, P0.4a) — approved in-session for parsing golden-vector JSON in `:domain`, which has no Android SDK and thus no built-in JSON parser. iOS needed no equivalent approval (Foundation's JSONSerialization is already available, not a new dependency).
 - [H] tasks: P1.5, and any Phase 2 items once expanded — strong model or human-paired only.
 - Exact minimum OS versions (proposal due with P0.2/P0.3: minSdk + iOS min).
 - Real bundle ids / Universal-Links domain (plan §10).
