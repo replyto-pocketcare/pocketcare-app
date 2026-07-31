@@ -53,6 +53,17 @@ targets:
     dependencies:
       - target: PocketCare
       - package: Domain
+    settings:
+      base:
+        # Real build error on first xcodebuild attempt: "Cannot code sign
+        # because the target does not have an Info.plist file and one is
+        # not being generated automatically." Unlike PocketCare above,
+        # this target has no `info:` block, and XcodeGen doesn't imply
+        # GENERATE_INFOPLIST_FILE for bundle.unit-test targets — it has to
+        # be set explicitly. Using auto-generation (the error's own
+        # recommended fix) rather than hand-writing a plist for a test
+        # bundle that has no real Info.plist content to speak of.
+        GENERATE_INFOPLIST_FILE: YES
 
 schemes:
   PocketCare:
