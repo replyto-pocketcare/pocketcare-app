@@ -5,50 +5,54 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (even later) — human ran the REAL Android build for
-               the first time and hit a real Kotlin compile error; fixed it
-               plus did the overdue dependency-version audit. iOS untouched
-               this round (still fully unverified).
-Android state: Human's `./gradlew build test` hit "Unclosed comment" in
-               domain/Placeholder.kt (Kotlin nests block comments; the KDoc
-               had literal /* inside glob paths) — fixed by rephrasing.
-               Also bumped AGP 8.6.0->8.13.0, Kotlin 2.0.21->2.4.10, Compose
-               BOM 2024.10.01->2026.06.00, Gradle wrapper+CI 8.7->8.13,
-               compileSdk/targetSdk 35->36 — verified against
-               developer.android.com's AGP/Gradle compat table (not just
-               assumed). Deliberately stayed on AGP 8.x, not 9.x's
-               built-in-Kotlin (real DSL migration, unverifiable without a
-               live build) — see README "Version audit" note. Also fixed
-               apps/android/.gitignore: `/build` was anchored so it missed
-               apps/android/domain/build/; now unanchored `build/`.
-               STILL NOT build-green — human needs to re-run and report.
+Last session: 2026-07-31 (even later still) — human's Android build has
+               been through 3 real fix rounds in one session: (1) Kotlin
+               nested-comment compile error, (2) AGP 8.6.0->8.13.0 version
+               audit, (3) owner asked for TRUE latest Gradle -> migrated to
+               AGP 9.2.0 + Gradle 9.4.1 + built-in Kotlin. iOS untouched.
+Android state: Round 3: warning said Kotlin Gradle plugin wants Gradle
+               >=8.14.4 soon. Rather than just bump within 8.x, owner chose
+               real-latest Gradle (9.6.1 stable) — which per Google's own
+               policy ("one major AGP version per Gradle major version")
+               meant AGP 9.x too, not 8.13.0. Migrated: agp 9.2.0 (9.3
+               exists but developer.android.com's compat table hadn't
+               published its min-Gradle yet, so used the last
+               fully-documented version), Gradle wrapper+CI 9.4.1 (AGP
+               9.2.0's exact documented minimum). Applied the built-in-Kotlin
+               migration from developer.android.com/build/migrate-to-built-in-kotlin:
+               removed kotlin-android plugin from libs.versions.toml,
+               root build.gradle.kts, app/build.gradle.kts; removed the
+               explicit kotlin.compilerOptions jvmTarget block (now defaults
+               from compileOptions.targetCompatibility=17 per the guide).
+               :domain (plain kotlin.jvm, not Android) untouched by any of
+               this. STILL NOT build-green — human needs to re-run and
+               report; built-in Kotlin is new territory for this repo, more
+               real errors are plausible.
 iOS state:     Unchanged since last session. apps/ios/{App,AppTests,Domain}
                + project.yml written, NEVER generated or built. Not part of
                this fix round.
 Vectors:       DONE (P0.1). tools/golden-vectors -> vectors/*.json, 16
                domain files, 250 vectors, >=1 per public function.
 Next up:       Human re-runs `./gradlew build test` in apps/android and
-               reports the result — could still surface more real errors
-               the sandbox can't catch (no JDK/Gradle here). Once green,
-               P0.2 -> DONE. iOS (P0.3) still needs its first real
-               `xcodegen generate && swift test && xcodebuild test` pass,
-               and its own version audit (swift-tools-version 6.0,
-               deploymentTarget iOS 17 in project.yml) hasn't been done yet
-               — do that BEFORE the first iOS build attempt, not after,
-               now that Android proved the "ship unverified versions, fix
-               reactively" path costs a round trip.
-Traps/notes:   New trap for the list: **Kotlin block comments nest** —
-               never write a literal `/*` inside a `/** ... */` doc comment
-               (glob paths like `foo/*.json` are a classic accidental
-               trigger); rephrase to avoid it. CI jobs `android`/`ios` in
-               .github/workflows/ci.yml (gradle-version now "8.13"). Android
-               CI uses gradle/actions/setup-gradle (runs `gradle`, NOT
-               `./gradlew`) so it doesn't need the human-generated wrapper
-               jar. iOS CI runs `xcodegen generate` fresh every time
-               (project.yml is the source of truth, .xcodeproj is
-               gitignored). Neither CI job blocks `deploy-production`.
-               Exporter (P0.1) imports packages by RELATIVE PATH to each
-               src/index.ts, not the "@pocketcare/x" bare specifier.
+               reports the result. Once green, P0.2 -> DONE. iOS (P0.3)
+               still needs its first real build attempt AND its own version
+               audit (swift-tools-version 6.0, deploymentTarget iOS 17 in
+               project.yml) BEFORE that first attempt — Android proved
+               "ship unverified versions, fix reactively" costs real round
+               trips.
+Traps/notes:   **Kotlin block comments nest** — never write a literal `/*`
+               inside a `/** ... */` doc comment (glob paths like
+               `foo/*.json` are a classic accidental trigger). **AGP 9.0+
+               built-in Kotlin**: applying the kotlin-android plugin
+               alongside AGP 9.x is now a hard error — don't re-add it by
+               habit when scaffolding new Android modules; use
+               `libs.plugins.kotlin.jvm` for pure-JVM modules only, nothing
+               extra for Android modules under AGP 9.x. CI jobs
+               `android`/`ios` in .github/workflows/ci.yml (gradle-version
+               now "9.4.1"). Android CI uses gradle/actions/setup-gradle
+               (runs `gradle`, NOT `./gradlew`) so it doesn't need the
+               human-generated wrapper jar. iOS CI runs `xcodegen generate`
+               fresh every time. Neither CI job blocks `deploy-production`.
                COMMIT EVERY SESSION, even docs-only ones.
 Blocked:       P0.2 DONE status on the human's next build attempt actually
                going green. P0.3 blocked on ever attempting a first build
