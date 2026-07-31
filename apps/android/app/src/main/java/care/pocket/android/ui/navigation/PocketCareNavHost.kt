@@ -6,7 +6,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import care.pocket.android.theme.*
 import care.pocket.android.ui.AccountsScreen
+import care.pocket.android.ui.BudgetsScreen
 import care.pocket.android.ui.CreateAccountScreen
+import care.pocket.android.ui.CreateBudgetScreen
 import care.pocket.android.ui.CreateTransactionScreen
 import care.pocket.android.ui.DashboardScreen
 import care.pocket.android.ui.TransactionsScreen
@@ -14,7 +16,8 @@ import care.pocket.android.ui.TransactionsScreen
 enum class NavTab {
     DASHBOARD,
     ACCOUNTS,
-    TRANSACTIONS
+    TRANSACTIONS,
+    BUDGETS
 }
 
 @Composable
@@ -22,6 +25,7 @@ fun PocketCareNavHost() {
     var currentTab by remember { mutableStateOf(NavTab.DASHBOARD) }
     var showingCreateAccount by remember { mutableStateOf(false) }
     var showingCreateTxn by remember { mutableStateOf(false) }
+    var showingCreateBudget by remember { mutableStateOf(false) }
 
     if (showingCreateAccount) {
         CreateAccountScreen(
@@ -32,6 +36,11 @@ fun PocketCareNavHost() {
         CreateTransactionScreen(
             onDismiss = { showingCreateTxn = false },
             onSave = { _, _, _, _, _ -> showingCreateTxn = false }
+        )
+    } else if (showingCreateBudget) {
+        CreateBudgetScreen(
+            onDismiss = { showingCreateBudget = false },
+            onSave = { _, _, _, _ -> showingCreateBudget = false }
         )
     } else {
         Scaffold(
@@ -56,7 +65,13 @@ fun PocketCareNavHost() {
                         selected = (currentTab == NavTab.TRANSACTIONS),
                         onClick = { currentTab = NavTab.TRANSACTIONS },
                         icon = { Text("📋") },
-                        label = { Text("Transactions") }
+                        label = { Text("Txns") }
+                    )
+                    NavigationBarItem(
+                        selected = (currentTab == NavTab.BUDGETS),
+                        onClick = { currentTab = NavTab.BUDGETS },
+                        icon = { Text("📊") },
+                        label = { Text("Budgets") }
                     )
                 }
             }
@@ -69,6 +84,9 @@ fun PocketCareNavHost() {
                     )
                     NavTab.TRANSACTIONS -> TransactionsScreen(
                         onAddTransactionClick = { showingCreateTxn = true }
+                    )
+                    NavTab.BUDGETS -> BudgetsScreen(
+                        onAddBudgetClick = { showingCreateBudget = true }
                     )
                 }
             }

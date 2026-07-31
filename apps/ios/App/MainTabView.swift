@@ -15,7 +15,12 @@ struct MainTabView: View {
 
             TransactionsView()
                 .tabItem {
-                    Label("Transactions", systemImage: "list.bullet.rectangle.fill")
+                    Label("Txns", systemImage: "list.bullet.rectangle.fill")
+                }
+
+            BudgetsView()
+                .tabItem {
+                    Label("Budgets", systemImage: "chart.pie.fill")
                 }
         }
         .tint(Theme.terracotta)

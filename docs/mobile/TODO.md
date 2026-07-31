@@ -5,17 +5,17 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 — completed UI Slice S1 (P3.1, P3.2, P3.3) for Android & iOS.
-               Built TransactionsScreen & CreateTransactionScreen (Compose) + PocketCareNavHost,
-               and TransactionsView & CreateTransactionView (SwiftUI) + MainTabView. Complete S1
-               flow (Dashboard, Accounts, Transactions list, search/filter, Add Account/Txn)
-               is now complete and navigable on both native platforms.
-Android state: Phase 1 & 2 DONE. Phase 3 S1 UI (DashboardScreen, AccountsScreen, TransactionsScreen) DONE.
-iOS state:     Phase 1 & 2 DONE. Phase 3 S1 UI (DashboardView, AccountsView, TransactionsView) DONE.
+Last session: 2026-07-31 — completed Phase 3 S2 Budgets UI (P3.4a & P3.4b).
+               Built BudgetsScreen & CreateBudgetScreen (Compose) + Budgets tab in NavHost,
+               and BudgetsView & CreateBudgetView (SwiftUI) + Budgets tab in MainTabView.
+               Features progress bars, status tags (On Track / Near Limit / Over Budget),
+               spent vs limit comparisons, and category filters matching BudgetRepository.
+Android state: Phase 1 & 2 DONE. S1 & S2 Budgets UI (Dashboard, Accounts, Txns, Budgets) DONE.
+iOS state:     Phase 1 & 2 DONE. S1 & S2 Budgets UI (Dashboard, Accounts, Txns, Budgets) DONE.
 Vectors:       250/250 green on both platforms. Core JS unit tests 290/290 green.
-Next up:       Phase 3 UI Slice S2 (Budgets, Goals, Planned Cashflow, Credit Cards).
-Traps/notes:   Transactions view supports search filtering by description and category,
-               plus segmented filter chips (Expense vs Income).
+Next up:       P3.5a / P3.5b UI Slice S2: Financial Goals & Planned Cashflow screens.
+Traps/notes:   Budgets progress percentage is clamped at 100% for progress bar rendering
+               while tag accurately reflects Over Budget (>100%).
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -67,6 +67,8 @@ Traps/notes:   Transactions view supports search filtering by description and ca
 | P3.1a / P3.1b | UI Slice S1: Dashboard-lite & Navigation Shell — Net Worth card, Quick Action buttons, Accounts list, Recent Activity | [M] | P2 (done) | DONE (2026-07-31, DashboardScreen.kt) / DONE (2026-07-31, DashboardView.swift) |
 | P3.2a / P3.2b | UI Slice S1: Accounts view & Account edit/create screens | [M] | P3.1 | DONE (2026-07-31, AccountsScreen.kt) / DONE (2026-07-31, AccountsView.swift) |
 | P3.3a / P3.3b | UI Slice S1: Transactions list & Transaction creation flow | [M] | P3.1 | DONE (2026-07-31, TransactionsScreen.kt) / DONE (2026-07-31, TransactionsView.swift) |
+| P3.4a / P3.4b | UI Slice S2: Budgets list & Budget progress view with status indicators | [M] | P3.1 | DONE (2026-07-31, BudgetsScreen.kt) / DONE (2026-07-31, BudgetsView.swift) |
+| P3.5a / P3.5b | UI Slice S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | TODO / TODO |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
 
