@@ -47,7 +47,7 @@ func daysBetween(_ fromIso: String, _ toIso: String) -> Double {
     (parseIsoMillis(toIso) - parseIsoMillis(fromIso)) / dayMs
 }
 
-public struct DebtLike {
+public struct DebtLike: Sendable {
     public let at: String
     public let amount: Int64
     public init(at: String, amount: Int64) {
@@ -56,7 +56,7 @@ public struct DebtLike {
     }
 }
 
-public struct PaymentLike {
+public struct PaymentLike: Sendable {
     public let at: String
     public let amount: Int64
     public init(at: String, amount: Int64) {
@@ -65,7 +65,7 @@ public struct PaymentLike {
     }
 }
 
-public struct AverageSettleResult: Equatable {
+public struct AverageSettleResult: Equatable, Sendable {
     public let avgDays: Double?
     public let clearedCount: Int
 }
@@ -113,7 +113,7 @@ public func averageSettleDays(_ debts: [DebtLike], _ payments: [PaymentLike]) ->
     return AverageSettleResult(avgDays: weight > 0 ? weighted / weight : nil, clearedCount: cleared)
 }
 
-public struct FriendEdge {
+public struct FriendEdge: Sendable {
     public let friendId: String
     public let groupId: String
     public let at: String
@@ -126,7 +126,7 @@ public struct FriendEdge {
     }
 }
 
-public struct FriendSettlement {
+public struct FriendSettlement: Sendable {
     public let friendId: String
     public let at: String
     public let amount: Int64
@@ -137,7 +137,7 @@ public struct FriendSettlement {
     }
 }
 
-public struct Contribution {
+public struct Contribution: Sendable {
     public let userId: String
     public let paid: Int64
     public let share: Int64
@@ -248,7 +248,7 @@ public func computeFriendStats(
     return order.map { byFriend[$0]! }
 }
 
-public struct FriendInsight: Equatable {
+public struct FriendInsight: Equatable, Sendable {
     public let key: String
     public let friendId: String
     public let value: Double

@@ -21,7 +21,7 @@ import Foundation
 /// share a date type since their needs differ (this one needs real +N-day
 /// arithmetic and day-of-week; Finance.swift only ever builds/compares
 /// YYYY-MM-DD strings).
-public struct Ymd: Equatable, Comparable, CustomStringConvertible {
+public struct Ymd: Equatable, Comparable, CustomStringConvertible, Sendable {
     public let year: Int
     public let month: Int
     public let day: Int
@@ -113,7 +113,7 @@ private func addDaysYmd(_ ymd: Ymd, _ delta: Int) -> Ymd {
 }
 
 /// Half-open date window [start, endExclusive).
-public struct DateWindow: Equatable {
+public struct DateWindow: Equatable, Sendable {
     public let start: Ymd
     public let endExclusive: Ymd
 }
@@ -140,7 +140,7 @@ public func periodBounds(_ period: String, _ date: Ymd) -> DateWindow {
     }
 }
 
-public struct BudgetProgress: Equatable {
+public struct BudgetProgress: Equatable, Sendable {
     public let pct: Double
     public let remaining: Money
     public let atOrOverThreshold: Bool
@@ -206,7 +206,7 @@ private func nextDayStrictlyAfter(_ from: Ymd, _ day: Int) -> Ymd {
     return clampDayYmd(from.year, from.month - 1 + 1, day)
 }
 
-public struct BillingCycle: Equatable {
+public struct BillingCycle: Equatable, Sendable {
     public let cycleStart: Ymd
     public let statementDate: Ymd
     public let dueDate: Ymd

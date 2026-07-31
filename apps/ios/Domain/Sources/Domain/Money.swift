@@ -24,12 +24,12 @@ import Foundation
 // rather than a same-turn guess. money.json's 3 "format" vectors stay
 // skipped until that follow-up task.
 
-public struct Money: Equatable {
+public struct Money: Equatable, Sendable {
     public let amount: Int64
     public let currency: String
 }
 
-public struct CurrencyMismatchError: Error, CustomStringConvertible {
+public struct CurrencyMismatchError: Error, CustomStringConvertible, Sendable {
     let a: String
     let b: String
     public var description: String { "Currency mismatch: \(a) vs \(b)" }
@@ -40,7 +40,7 @@ public struct CurrencyMismatchError: Error, CustomStringConvertible {
 /// runner treats a vector's `throws.name == "Error"` as "any error type
 /// is fine, just check the message" for exactly this reason -- see
 /// VectorRunnerTests.swift.
-public struct MoneyError: Error, CustomStringConvertible {
+public struct MoneyError: Error, CustomStringConvertible, Sendable {
     public let description: String
 }
 

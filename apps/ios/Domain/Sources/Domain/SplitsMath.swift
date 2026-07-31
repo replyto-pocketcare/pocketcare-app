@@ -13,7 +13,7 @@ import Foundation
 // NOT Money's round-half-away-from-zero) -- reuses Finance.swift's
 // jsMathRound rather than duplicating it.
 
-public struct Party {
+public struct Party: Sendable {
     public let userId: String
     public let share: Int64
     public let paid: Int64
@@ -24,7 +24,7 @@ public struct Party {
     }
 }
 
-public struct SplitEdge: Equatable {
+public struct SplitEdge: Equatable, Sendable {
     public let userId: String
     public let amount: Int64
 }

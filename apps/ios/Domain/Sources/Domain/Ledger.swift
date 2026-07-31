@@ -10,7 +10,7 @@ import Foundation
 // rates are applied.
 
 /// Minimal transaction shape the ledger needs (a subset of the full row).
-public struct LedgerEntry {
+public struct LedgerEntry: Sendable {
     public let type: String
     public let accountId: String
     public let amount: Int64
@@ -59,7 +59,7 @@ public func availableBalance(_ total: Money, _ blocked: Money) throws -> Money {
 }
 
 /// A per-account balance plus how much of it is blocked toward goals.
-public struct AccountBalance {
+public struct AccountBalance: Sendable {
     public let balance: Money
     public let blocked: Money
     public init(balance: Money, blocked: Money) {

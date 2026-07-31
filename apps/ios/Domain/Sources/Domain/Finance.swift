@@ -32,7 +32,7 @@ func jsMathRound(_ x: Double) -> Double {
 /// rather than `precondition`/`fatalError` for consistency with the rest
 /// of the Domain package: a validation failure should be a catchable
 /// error a caller can handle, not an uncatchable crash.
-public struct FinanceError: Error, CustomStringConvertible {
+public struct FinanceError: Error, CustomStringConvertible, Sendable {
     public let description: String
 }
 
@@ -86,7 +86,7 @@ public func monthlyEquivalent(_ amount: Int64, _ period: String) -> Int64 {
     return Int64(jsMathRound(Double(amount) * Double(perYear) / 12))
 }
 
-public struct RecurringLike {
+public struct RecurringLike: Sendable {
     public let amount: Int64
     public let frequency: String
     public init(amount: Int64, frequency: String) {
@@ -107,7 +107,7 @@ public func percentOfIncome(_ monthlyAmount: Int64, _ monthlyIncome: Int64) -> D
     return (Double(monthlyAmount) / Double(monthlyIncome)) * 100
 }
 
-public struct SubscriptionImpact: Equatable {
+public struct SubscriptionImpact: Equatable, Sendable {
     public let totalPaid: Int64
     public let opportunityCost: Int64
 }
@@ -127,7 +127,7 @@ public func subscriptionImpact(_ amount: Int64, _ frequency: String, _ years: Do
     return SubscriptionImpact(totalPaid: totalPaid, opportunityCost: invested)
 }
 
-public struct CashflowInputs {
+public struct CashflowInputs: Sendable {
     public let monthlyIncome: Int64
     public let monthlyPayments: Int64
     public let monthlySavings: Int64
@@ -147,7 +147,7 @@ public struct CashflowInputs {
     }
 }
 
-public struct YearProjection: Equatable {
+public struct YearProjection: Equatable, Sendable {
     public let year: Int
     public let income: Int64
     public let payments: Int64
@@ -208,7 +208,7 @@ public func yearlyEquivalent(_ amount: Int64, _ period: String) -> Int64 {
     Int64(jsMathRound(Double(amount) * Double(periodsPerYear[period]!)))
 }
 
-public struct AmortRow: Equatable {
+public struct AmortRow: Equatable, Sendable {
     public let month: Int
     public let emi: Int64
     public let interest: Int64
