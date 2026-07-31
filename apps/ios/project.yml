@@ -13,6 +13,10 @@ options:
 packages:
   Domain:
     path: Domain
+  # P2.2b/P2.4b: Data package holds SupabaseConnector + Auth (approved
+  # irreducible dependencies: PowerSync Swift SDK + supabase-swift).
+  Data:
+    path: Data
 
 targets:
   PocketCare:
@@ -24,6 +28,7 @@ targets:
           - "PocketCare.entitlements"
     dependencies:
       - package: Domain
+      - package: Data
     settings:
       base:
         # PLACEHOLDER bundle id — confirm the real reverse-DNS id before any

@@ -5,63 +5,26 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — Phase 1 DONE (prior session, human-
-               confirmed). This session: P2.1a/P2.1b (schema parity,
-               700cd24) — mirrored AppSchema's 63 PowerSync tables onto
-               Android/iOS as a data-driven schema DESCRIPTOR (table/
-               column names, SQLite type, indexes, local-only flags),
-               NOT hand-typed: wrote tools/golden-vectors/
-               export-mobile-schema.mjs + gen-mobile-schema.mjs, which
-               introspect the real AppSchema object at runtime and
-               codegen PocketCareSchema.kt/.swift from that JSON. Chose
-               generation over transcription deliberately -- 63 tables x
-               ~10 cols x 2 platforms is exactly the kind of volume
-               where P1.6's transcription bugs (hidden control bytes,
-               wrong FNV constant) would recur, and it surfaced a real
-               per-table inconsistency (only some tables redeclare the
-               implicit `id` column) that'd be easy to miss by eye.
-               Verified via a bracket-aware structural diff (0/63
-               mismatches) and by confirming regeneration is
-               byte-identical (sha256) -- that reproducibility IS the
-               ongoing parity check per plan's ask.
-Android state: 16/16 Phase 1 domains DONE + human-confirmed green.
-               PocketCareSchema.kt added (schema descriptor, not yet
-               consumed by anything -- P2.2+ will).
-iOS state:     16/16 Phase 1 domains DONE + human-confirmed green.
-               PocketCareSchema.swift added, same status as Android.
-Vectors:       DONE (P0.1), 250/250 green on both platforms (Phase 1
-               only -- schema parity has no vectors, see P2.1 note in
-               the Phase 2 table for why).
-Next up:       Claim P2.2a/P2.2b (PowerSync connector port) or P2.4a/
-               P2.4b (auth, independent of the sync pipeline) -- both
-               now unblocked by P2.1. Read packages/db/src/connector.ts,
-               quarantine.ts, auth.ts first (not yet read this arc).
-Traps/notes:   Everything from the Phase 1 handover still applies
-               (control-byte literals, non-textbook constants,
-               NSNumber.isEqual, Sendable on public structs in test
-               fixtures, JS single-.replace vs Kotlin/Swift replace-all,
-               nested block comments). NEW: when introspecting a TS
-               module at runtime instead of reading its source, watch
-               for syntax `node --experimental-strip-types` can't
-               parse (TS parameter properties, e.g. `connector.ts`'s
-               constructor) -- work around it by importing a stripped
-               copy of just the part you need (see export-mobile-
-               schema.mjs's header for the exact technique), don't reach
-               for tsc/esbuild (esbuild's binary in this sandbox is
-               darwin-arm64 only and won't run on the Linux sandbox;
-               tsc works but its `.ts`-extension import rules and
-               parameter-property errors need real workarounds too --
-               the stripped-copy approach sidesteps all of it). Phase 2
-               remains a different verification regime than Phase 1 for
-               everything touching real I/O (P2.2+) -- TP L3 (local
-               Supabase + fault injection) needs a reachable test
-               Supabase project this sandbox doesn't have. COMMIT EVERY
-               SESSION.
-Blocked:       P2.2+ (connector, repositories, repair logic) will need
-               a local/test Supabase project reachable for TP L3
-               fault-injection testing before their Done-when can be
-               met -- flag this to the human once one of those is
-               claimed, if it isn't already set up.
+Last session: 2026-07-31 (latest) — P2.1a/P2.1b DONE.
+               This session: P2.2a/P2.2b (PowerSync connector) and P2.4a/
+               P2.4b (Auth). Wrote the implementation for both Android 
+               and iOS (Auth.kt/.swift, SupabaseConnector.kt/.swift,
+               Quarantine.kt/.swift). Added PowerSync and Supabase SDK
+               dependencies to build configs (libs.versions.toml, 
+               Package.swift). Added unit tests for pure-logic parts
+               like `opKey` and `encodePayload`.
+Android state: 16/16 Phase 1 domains DONE.
+               :data module created with P2.2a/P2.4a implemented.
+iOS state:     16/16 Phase 1 domains DONE.
+               Data package created with P2.2b/P2.4b implemented.
+Vectors:       DONE (P0.1), 250/250 green on both platforms (Phase 1).
+Next up:       L3 integration tests for P2.2/P2.4 against a real 
+               local Supabase + PowerSync project.
+Traps/notes:   Same traps from Phase 1. P2.2/P2.4 code is written
+               but cannot be verified inside the sandbox due to lack of 
+               L3 test infrastructure (reachable Supabase).
+Blocked:       P2.2a/b and P2.4a/b are BLOCKED pending TP L3 execution
+               by a human or against reachable infrastructure.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -105,9 +68,9 @@ One task = one platform, same pattern as Phase 1. Order matters: schema parity b
 | ID | Task | Tag | Needs | Status |
 |---|---|---|---|---|
 | P2.1a / P2.1b | Schema parity — mirror `AppSchema` (`packages/db/src/index.ts`) as Kotlin data classes / Swift structs + a parity check script (3-way: `AppSchema` ↔ Kotlin ↔ Swift, catches column drift at build/CI time, not runtime) | [M] | P1 (done) | DONE (2026-07-31, 700cd24) / DONE (same commit) |
-| P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | TODO / TODO |
+| P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | BLOCKED (needs L3 test infrastructure) / BLOCKED (needs L3 test infrastructure) |
 | P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | TODO / TODO |
-| P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | TODO / TODO |
+| P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | BLOCKED (needs L3 test infrastructure) / BLOCKED (needs L3 test infrastructure) |
 | P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | TODO / TODO |
 | P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | TODO / TODO |
 
