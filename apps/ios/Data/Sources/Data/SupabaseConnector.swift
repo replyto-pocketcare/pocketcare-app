@@ -101,11 +101,21 @@ private func reportSyncDiagnostic(_ d: SyncDiagnostic) {
 /// Convert a PowerSync CrudEntry to a CrudOpSummary for quarantine tracking.
 private func toOpSummary(_ entry: CrudEntry) -> CrudOpSummary {
     CrudOpSummary(
-        clientId: entry.clientId.map { Int64($0) },
+        // entry.clientId is a non-optional Int64 in the real SDK (confirmed via
+        // PowerSync Swift's DocC index and CrudEntry.swift source: `let clientId:
+        // Int64`, no `?`) — unlike Kotlin's nullable clientId, so there's nothing
+        // to .map over. Widens implicitly to CrudOpSummary.clientId's Int64? field.
+        clientId: entry.clientId,
         table: entry.table,
         op: entry.op.rawValue,
         id: entry.id,
-        payloadJson: encodePayload(entry.opData)
+        // opDataTyped, not opData: CrudEntry.opData (confirmed via the real
+        // CrudEntry.swift source) is a *deprecated, stringified* accessor —
+        // `[String: String?]?` — that turns every value, including money minor
+        // units, into a string for backwards compatibility. opDataTyped
+        // (`[String: JsonValue]?`) is the real typed data. Using opData here
+        // would put stringified numbers into the dead-letter record.
+        payloadJson: encodePayload(entry.opDataTyped?.mapValues { anyValue(from: $0) })
     )
 }
 
@@ -171,10 +181,13 @@ public final class SupabaseConnector: PowerSyncBackendConnectorProtocol, @unchec
                 do {
                     switch op.op {
                     case .put:
+                        // opDataTyped (not opData) — see the comment on toOpSummary:
+                        // opData stringifies every value, which would upload money
+                        // minor-unit columns as JSON strings instead of integers.
                         var rows: [[String: AnyJSON]] = run.map { entry in
                             var row: [String: AnyJSON] = [:]
-                            if let d = entry.opData {
-                                for (k, v) in d { row[k] = anyJSONValue(v) }
+                            if let d = entry.opDataTyped {
+                                for (k, v) in d { row[k] = anyJSON(from: v) }
                             }
                             row["id"] = .string(entry.id)
                             return row
@@ -185,8 +198,8 @@ public final class SupabaseConnector: PowerSyncBackendConnectorProtocol, @unchec
                         try await rel.delete().in("id", value: ids).execute()
                     case .patch:
                         var data: [String: AnyJSON] = [:]
-                        if let d = op.opData {
-                            for (k, v) in d { data[k] = anyJSONValue(v) }
+                        if let d = op.opDataTyped {
+                            for (k, v) in d { data[k] = anyJSON(from: v) }
                         }
                         try await rel.update(data).eq("id", value: op.id).execute()
                     @unknown default:
@@ -244,18 +257,47 @@ public final class SupabaseConnector: PowerSyncBackendConnectorProtocol, @unchec
     }
 }
 
-// MARK: - AnyJSON helper
+// MARK: - JsonValue → AnyJSON / Any conversion
+//
+// PowerSync's CrudEntry exposes typed op data as `opDataTyped: JsonParam?`
+// (JsonParam = [String: JsonValue]), confirmed via the real source at the
+// pinned commit (Sources/PowerSync/Protocol/db/JsonParam.swift). JsonValue
+// has its own `toValue() -> Any?`, but that method is NOT `public` in the
+// SDK — it's internal to the PowerSync module and inaccessible here — so we
+// need our own converters. Two are needed because they target different
+// destination types: AnyJSON for supabase-swift's PostgREST builder, and
+// plain Any? for Quarantine.swift's encodePayload (JSONSerialization-based).
 
-/// Convert an opData value (Any?) into an AnyJSON for supabase-swift's PostgREST builder.
-/// supabase-swift's AnyJSON cases: .string, .number(Double), .boolean(Bool), .object, .array, .null
-private func anyJSONValue(_ v: Any?) -> AnyJSON {
-    switch v {
-    case nil: return .null
-    case let s as String: return .string(s)
-    case let n as Int: return .number(Double(n))
-    case let n as Int64: return .number(Double(n))
-    case let n as Double: return .number(n)
-    case let b as Bool: return .boolean(b)
-    default: return .string(String(describing: v!))
+/// Convert a PowerSync JsonValue into supabase-swift's AnyJSON, preserving the
+/// real type (Int/Double/Bool/String/null/array/object) instead of stringifying.
+///
+/// supabase-swift's real AnyJSON cases (confirmed via source at the pinned
+/// commit, Sources/Helpers/AnyJSON/AnyJSON.swift): .null, .bool(Bool),
+/// .integer(Int), .double(Double), .string(String), .object(JSONObject),
+/// .array(JSONArray). There is no .number or .boolean case — those were
+/// guesses, not the real API.
+private func anyJSON(from value: JsonValue) -> AnyJSON {
+    switch value {
+    case .null: return .null
+    case .string(let s): return .string(s)
+    case .int(let n): return .integer(n)
+    case .double(let d): return .double(d)
+    case .bool(let b): return .bool(b)
+    case .array(let arr): return .array(arr.map { anyJSON(from: $0) })
+    case .object(let obj): return .object(obj.mapValues { anyJSON(from: $0) })
+    }
+}
+
+/// Convert a PowerSync JsonValue into a plain Swift value, for encodePayload's
+/// `[String: Any?]?` input (the quarantine dead-letter record).
+private func anyValue(from value: JsonValue) -> Any? {
+    switch value {
+    case .null: return nil
+    case .string(let s): return s
+    case .int(let n): return n
+    case .double(let d): return d
+    case .bool(let b): return b
+    case .array(let arr): return arr.map { anyValue(from: $0) as Any }
+    case .object(let obj): return obj.mapValues { anyValue(from: $0) as Any }
     }
 }

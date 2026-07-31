@@ -5,80 +5,81 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — verified another agent's P2.2/P2.4
-               implementation (commit 4633c6f + uncommitted working-tree
-               fixes) against the REAL pinned SDK sources, since this
-               sandbox has no javac/swiftc (JRE-only, no JDK; no swift;
-               network allowlist blocks toolchain installs) — couldn't
-               run a real compiler either. Instead fetched supabase-kt's
-               actual Postgrest.kt, supabase-swift's actual
-               SupabaseClient.swift/Types.swift/AuthClient.swift, and
-               PowerSync's own official Kotlin Supabase connector
-               example, all at pinned versions (Data/Package.resolved
-               confirms 1.15.1/2.54.1 for iOS; libs.versions.toml for
-               Android), and diffed our code against real signatures.
-               iOS: no bugs found, high confidence (Package.resolved
-               proves `swift package resolve` already ran for real on
-               someone's machine). Android: found + fixed 2 real bugs
-               that compile fine but are functionally wrong: (1)
-               `client.postgrest[op.table]` silently drops schema-
-               qualification (confirmed via source: the 1-arg subscript
-               uses Postgrest.Config.defaultSchema, "public" unless
-               configured — nothing configures it — a direct violation
-               of CLAUDE.md golden rule #3; fixed to the real 2-arg
-               `[schema, table]` overload). (2) `OtpType.Email
-               .MAGIC_LINK` should be `.EMAIL` (confirmed via Supabase's
-               own Kotlin docs example; also now matches iOS's `.email`
-               case). Also normalized `batch.complete("")` to
-               `batch.complete(null)` matching PowerSync's own official
-               connector's `transaction.complete(null)`.
+Last session: 2026-07-31 (latest) — third round of fixing REAL
+               `xcodebuild test` errors the human ran locally (this
+               sandbox still has no swiftc/javac). This round hit
+               SupabaseConnector.swift: (1) `entry.clientId.map { ... }`
+               — clientId is a non-optional `Int64` in the real SDK
+               (confirmed via CrudEntry.swift source AND DocC), not
+               `Int64?`, so `.map` doesn't exist; fixed to pass it
+               directly. (2) `AnyJSON.number`/`.boolean` don't exist —
+               fetched supabase-swift's real AnyJSON.swift (path only
+               discoverable via jsdelivr's flat directory listing;
+               raw.githubusercontent guesses at 3 plausible paths all
+               silently returned empty) — real cases are `.integer(Int)`,
+               `.double(Double)`, `.bool(Bool)`, `.string`, `.null`,
+               `.object`, `.array`; fixed both call sites. (3) BEYOND
+               the reported errors: while fetching CrudEntry.swift for
+               #1, found that `CrudEntry.opData` (which the code used
+               everywhere) is a *deprecated, stringified* accessor —
+               `[String: String?]?` — that turns every column value,
+               including money minor-unit integers, into a String for
+               backwards compat. The typed accessor is
+               `opDataTyped: JsonParam?` (`JsonParam = [String:
+               JsonValue]`). Using `opData` compiles fine (Swift widens
+               String? to Any?/AnyJSON's .string case silently) but
+               would have uploaded every field as a JSON string —
+               a silent violation of CLAUDE.md golden rule #1 (money
+               as integers) that no compiler would ever catch, only a
+               real Postgres round-trip. Switched both `uploadData`'s
+               row-building and `toOpSummary`'s dead-letter payload to
+               `opDataTyped`, with two new small converters
+               (`anyJSON(from: JsonValue)`, `anyValue(from: JsonValue)`)
+               since JsonValue's own `toValue()` is SDK-internal, not
+               `public` — can't be called from our module.
 Android state: 16/16 Phase 1 domains DONE. :data module (P2.2a/P2.4a)
-               reviewed + 2 bugs fixed (see above), NOT build-verified.
-iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2b/P2.4b)
-               reviewed against real pinned SDK source, no bugs found,
-               NOT build-verified (no swift toolchain in this sandbox).
+               reviewed + 2 bugs fixed (round 1), NOT build-verified —
+               no `./gradlew build` has ever run against this code.
+               OPEN QUESTION carried over from this session's iOS find:
+               check whether Kotlin's `CrudEntry.opData` has the same
+               stringify-by-default trap — Android's SupabaseConnector.kt
+               currently reads `entry.opData` directly into
+               `Map<String, Any?>` and branches on `is Number`/
+               `is Boolean` in `toJsonPrimitive`, which only works if
+               Kotlin's opData is actually typed (unverified this
+               session).
+iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2b/P2.4b):
+               Quarantine.swift fixed (round 2, 3 errors) + confirmed
+               clean by re-run; SupabaseConnector.swift fixed (round 3,
+               above) — NOT yet re-verified by an actual xcodebuild run
+               (this fix is answering the round-3 log, not confirmed
+               green yet). Auth.swift confirmed clean by real compiler
+               in round 2, no changes since.
 Vectors:       DONE (P0.1), 250/250 green on both platforms (Phase 1).
-Next up:       Human ran a REAL `xcodebuild test` and got real compiler
-               output for Quarantine.swift (3 distinct error classes,
-               fixed same session — see below); Auth.swift and
-               SupabaseConnector.swift compiled clean, no changes
-               needed. Re-run the real build to confirm these fixes
-               land, then do the same for Android (`./gradlew build`,
-               still never actually run against this code).
-Traps/notes:   Same traps from Phase 1, plus, from this session's REAL
-               xcodebuild output (not source-inspection guesses):
-               (1) PowerSync Swift's `SqlCursor` has NO `getLong` at
-               all (that's a Kotlin-ism) — the Int64 accessors are
-               `getInt64(index:)`/`getInt64Optional(index:)`, confirmed
-               against the SDK's DocC JSON index. (2) `Queries.execute`/
-               `getOptional`'s real parameter type is `[Sendable?]?`,
-               NOT `[Any]` — `Any` does not conform to `Sendable`, so
-               `code as Any` in a parameters array is a real compile
-               error; just pass the value directly (or `as Sendable?`
-               for a non-literal like `.map { $0 as Sendable? }`) and
-               let the contextual array-literal type do the coercion.
-               (3) our own `shouldQuarantine(_:_:)` (SyncPolicy.swift)
-               takes an unlabeled second `Int` param — calling it as
-               `shouldQuarantine(classification, attempts: attempts)`
-               is an "extraneous argument label" error; a same-session,
-               source-inspection-only fix (before any real compiler
-               output existed) had already caught and fixed this one
-               correctly by matching our own Domain source, which is
-               the reminder that OUR OWN previously-ported code is
-               exactly as fetchable/checkable as a third-party SDK.
-               Broader lesson: source-code inspection (fetching the
-               real pinned SDK and reading it) caught real Kotlin bugs
-               correctly last session, but still isn't equivalent to a
-               real compiler — it can't see Swift-specific quirks like
-               Any-vs-Sendable existential coercion rules, which only
-               showed up once xcodebuild actually ran. Keep doing the
-               source-inspection pass when no compiler is available,
-               but don't treat it as equivalent to DONE.
+Next up:       Re-run real `xcodebuild test` to confirm round 3's fixes
+               (clientId, AnyJSON cases, opDataTyped) land clean. If
+               clean, do the same for Android (`./gradlew build`, still
+               never actually run against this code) and resolve the
+               opData/opDataTyped open question above on Kotlin's side.
+Traps/notes:   Same traps from rounds 1-2, plus: (1) a file compiling
+               clean is NOT the same as a file being correct — the
+               opData/opDataTyped split shows source inspection can
+               surface real data-correctness bugs a compiler will never
+               flag, especially anything touching golden rule #1 (money
+               as integers). Grep for every accessor SDK docs mark
+               "deprecated" or "consider using X instead" before trusting
+               it. (2) jsdelivr's flat directory listing
+               (`data.jsdelivr.com/v1/packages/gh/<owner>/<repo>@<tag>
+               ?structure=flat`) is the reliable way to find an exact
+               file path in a pinned dependency when raw.githubusercontent
+               guesses at plausible paths return silently empty rather
+               than erroring — used successfully twice this session
+               (AnyJSON.swift, CrudEntry.swift's actual directory).
 Blocked:       P2.2a/b and P2.4a/b still BLOCKED pending a real,
                clean-of-errors Gradle/Xcode build (Android untested by
-               any real compiler so far — Kotlin fixes from last
-               session are source-inspection-verified only) and, beyond
-               that, TP L3 execution against reachable Supabase infra.
+               any real compiler so far — Kotlin fixes from round 1 are
+               source-inspection-verified only) and, beyond that, TP L3
+               execution against reachable Supabase infra.
 ```
 
 ## Rules (short form — full protocol in plan §1)
