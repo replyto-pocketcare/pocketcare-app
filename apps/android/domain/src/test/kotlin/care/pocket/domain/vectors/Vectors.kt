@@ -2,8 +2,13 @@ package care.pocket.domain.vectors
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.doubleOrNull
 
 /**
  * Mirrors the shape tools/golden-vectors/export.ts writes: either
@@ -55,5 +60,48 @@ fun loadVectors(domain: String): List<Vector> {
  * formatting technicality, not a real bug.
  */
 fun jsonNumber(n: Double): JsonElement {
-    return if (n.isFinite() && n == Math.floor(n)) JsonPrimitive(n.toLong()) else JsonPrimitive(n)
+    // Not finite (Infinity/-Infinity/NaN) mirrors JS's JSON.stringify(Infinity)
+    // === "null" -- P1.3's finance domain is the first port to actually
+    // produce Infinity results (periodsToGoal/percentOfIncome/budgetProgress
+    // pct on a zero limit or income), so this branch was previously untested
+    // and just fell through to JsonPrimitive(Double.POSITIVE_INFINITY), which
+    // is wrong.
+    if (!n.isFinite()) return JsonNull
+    return if (n == Math.floor(n)) JsonPrimitive(n.toLong()) else JsonPrimitive(n)
+}
+
+/**
+ * Recursively compares two JsonElements the way the vector runner actually
+ * needs: numeric JSON values compared by VALUE (parsed Double), not by
+ * kotlinx.serialization's default JsonPrimitive equality, which compares the
+ * raw `content` STRING -- so a genuinely fractional double (e.g.
+ * periodicRateFromAnnual's 0.006666666666666667) would only match if
+ * Kotlin's Double-to-string formatting happens to produce the exact same
+ * digit sequence V8 wrote when the vector was exported, which is not
+ * guaranteed. String content (money's decimal-string amounts, ids, ISO date
+ * strings) still compares as plain text -- only unquoted JSON numbers get
+ * the value-based treatment. Swift's NSNumber-based `isEqual` already does
+ * this correctly by default (documented in Money's port), so this fix is
+ * Kotlin-only; a real, not assumed, platform asymmetry.
+ */
+fun jsonElementsEqual(a: JsonElement, b: JsonElement): Boolean {
+    return when {
+        a is JsonNull || b is JsonNull -> a is JsonNull && b is JsonNull
+        a is JsonArray && b is JsonArray ->
+            a.size == b.size && a.indices.all { jsonElementsEqual(a[it], b[it]) }
+        a is JsonObject && b is JsonObject ->
+            a.keys == b.keys && a.keys.all { jsonElementsEqual(a.getValue(it), b.getValue(it)) }
+        a is JsonPrimitive && b is JsonPrimitive -> {
+            if (a.isString != b.isString) return false
+            if (a.isString) return a.content == b.content
+            val aBool = a.booleanOrNull
+            val bBool = b.booleanOrNull
+            if (aBool != null || bBool != null) return aBool == bBool
+            val aNum = a.doubleOrNull
+            val bNum = b.doubleOrNull
+            if (aNum != null && bNum != null) return aNum == bNum
+            a.content == b.content
+        }
+        else -> false
+    }
 }

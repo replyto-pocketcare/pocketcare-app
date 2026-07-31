@@ -1,5 +1,6 @@
 package care.pocket.domain.vectors
 
+import kotlinx.serialization.json.JsonNull
 import kotlin.test.Test
 import kotlin.test.fail
 
@@ -58,7 +59,14 @@ class VectorRunnerTest {
             } else {
                 result.fold(
                     onSuccess = { actual ->
-                        if (actual != vector.expected) {
+                        // jsonElementsEqual, not raw !=: JsonElement's default
+                        // equality compares numeric JsonPrimitives by their
+                        // literal string content, which only accidentally
+                        // matches V8's own Double formatting -- see its
+                        // doc comment in Vectors.kt (added for P1.3, finance,
+                        // the first domain with genuinely fractional
+                        // non-money doubles like periodicRateFromAnnual).
+                        if (!jsonElementsEqual(actual, vector.expected ?: JsonNull)) {
                             failures += "$label: expected ${vector.expected} but got $actual"
                         } else {
                             passed++
@@ -80,10 +88,22 @@ class VectorRunnerTest {
         }
     }
 
-    @Test fun budget() = runDomain("budget")
+    @Test
+    fun budget() {
+        // P1.3a: registers Budget.kt's port before running budget.json's
+        // vectors, same pattern as money()/ledger().
+        care.pocket.domain.budget.registerBudgetVectors()
+        runDomain("budget")
+    }
     @Test fun diagnostics() = runDomain("diagnostics")
     @Test fun entitlements() = runDomain("entitlements")
-    @Test fun finance() = runDomain("finance")
+    @Test
+    fun finance() {
+        // P1.3a: registers Finance.kt's port before running finance.json's
+        // vectors, same pattern as money()/ledger().
+        care.pocket.domain.finance.registerFinanceVectors()
+        runDomain("finance")
+    }
     @Test fun guardrail() = runDomain("guardrail")
     @Test
     fun ledger() {

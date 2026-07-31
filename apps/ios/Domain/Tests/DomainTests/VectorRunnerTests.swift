@@ -70,10 +70,20 @@ final class VectorRunnerTests: XCTestCase {
         }
     }
 
-    func testBudget() throws { try runDomain("budget") }
+    func testBudget() throws {
+        // P1.3b: registers Budget.swift's port before running budget.json's
+        // vectors, same pattern as testMoney()/testLedger().
+        registerBudgetVectors()
+        try runDomain("budget")
+    }
     func testDiagnostics() throws { try runDomain("diagnostics") }
     func testEntitlements() throws { try runDomain("entitlements") }
-    func testFinance() throws { try runDomain("finance") }
+    func testFinance() throws {
+        // P1.3b: registers Finance.swift's port before running finance.json's
+        // vectors, same pattern as testMoney()/testLedger().
+        registerFinanceVectors()
+        try runDomain("finance")
+    }
     func testGuardrail() throws { try runDomain("guardrail") }
     func testLedger() throws {
         // P1.2b: registers Ledger.swift's port before running ledger.json's
