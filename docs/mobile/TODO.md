@@ -5,58 +5,60 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (even later still) — P0.2 DONE. Human's Android
-               build went through 3 real fix rounds then BUILD SUCCESSFUL:
-               (1) Kotlin nested-comment compile error, (2) AGP
-               8.6.0->8.13.0 version audit, (3) owner asked for TRUE latest
-               Gradle -> migrated to AGP 9.2.0 + Gradle 9.4.1 + built-in
-               Kotlin. `./gradlew build test` passes. iOS untouched.
-Android state: Round 3: warning said Kotlin Gradle plugin wants Gradle
-               >=8.14.4 soon. Rather than just bump within 8.x, owner chose
-               real-latest Gradle (9.6.1 stable) — which per Google's own
-               policy ("one major AGP version per Gradle major version")
-               meant AGP 9.x too, not 8.13.0. Migrated: agp 9.2.0 (9.3
-               exists but developer.android.com's compat table hadn't
-               published its min-Gradle yet, so used the last
-               fully-documented version), Gradle wrapper+CI 9.4.1 (AGP
-               9.2.0's exact documented minimum). Applied the built-in-Kotlin
-               migration from developer.android.com/build/migrate-to-built-in-kotlin:
-               removed kotlin-android plugin from libs.versions.toml,
-               root build.gradle.kts, app/build.gradle.kts; removed the
-               explicit kotlin.compilerOptions jvmTarget block (now defaults
-               from compileOptions.targetCompatibility=17 per the guide).
-               :domain (plain kotlin.jvm, not Android) untouched by any of
-               this. STILL NOT build-green — human needs to re-run and
-               report; built-in Kotlin is new territory for this repo, more
-               real errors are plausible.
-iOS state:     Unchanged since last session. apps/ios/{App,AppTests,Domain}
-               + project.yml written, NEVER generated or built. Not part of
-               this fix round.
+Last session: 2026-07-31 (latest) — P0.2 DONE: Android `./gradlew build
+               test` BUILD SUCCESSFUL (AGP 9.2.0/Gradle 9.4.1/built-in
+               Kotlin, after 3 real fix rounds) and human confirmed it runs
+               on-device. Now starting P0.3: did a pre-emptive iOS version
+               audit BEFORE the first real xcodegen/xcodebuild attempt
+               (lesson from Android's reactive-fix cost), found + fixed 2
+               real bugs by reading docs, human about to attempt the first
+               real build.
+Android state: DONE. `./gradlew build test` green, installs + runs on a
+               physical device via `installDebug`. apps/android/README.md
+               has a "Run on a device" section (USB debugging, adb,
+               Android Studio emulator, wireless debugging).
+iOS state:     project.yml/Package.swift never generated or built — about
+               to attempt the first real build. Pre-build audit (verified
+               via search 2026-07-31, not yet build-verified) found: (1)
+               project.yml's SWIFT_VERSION was "6.0", should be "6" — Xcode's
+               Swift Language Version build setting takes major-version-only
+               values (4/4.2/5/6), not toolchain patch versions; fixed. (2)
+               README/CI's simulator destination was "iPhone 16", doesn't
+               match Xcode 26.x's actual default-provisioned lineup (iPhone
+               17 Pro/Pro Max/Air); changed to "iPhone 17 Pro". Domain/
+               Package.swift's "swift-tools-version: 6.0" is a DIFFERENT,
+               correctly-dotted axis (SwiftPM manifest tools version, not
+               the Xcode language-mode setting) — left as-is. Still 0 real
+               builds attempted; these are doc/search-verified corrections,
+               not build-verified ones — more real errors are plausible on
+               first attempt, same as Android's first round.
 Vectors:       DONE (P0.1). tools/golden-vectors -> vectors/*.json, 16
                domain files, 250 vectors, >=1 per public function.
-Next up:       P0.4a (Android vector runner, kotlin.test, needs P0.1+P0.2 —
-               both DONE) is now unblocked. Also: human asked how to run
-               the app on a device — pointed at USB debugging + `adb
-               install` / Android Studio Run, not yet documented in
-               README.md, consider adding a short "Run on device" section.
-               iOS (P0.3) still needs its first real build attempt AND its
-               own version audit (swift-tools-version 6.0, deploymentTarget
-               iOS 17 in project.yml) BEFORE that first attempt — Android
-               proved "ship unverified versions, fix reactively" costs real
-               round trips.
+Next up:       Human runs (apps/ios): `brew install xcodegen` (if needed),
+               `xcodegen generate`, `swift test --package-path Domain`
+               (fast path, no simulator), then `xcodebuild test -project
+               PocketCare.xcodeproj -scheme PocketCare -destination
+               'platform=iOS Simulator,name=iPhone 17 Pro'` — report any
+               error back rather than guessing further. P0.4a (Android
+               vector runner) is unblocked but not started — iOS is the
+               active thread. Also open: applicationId/bundle-id/App-Group
+               placeholders (plan §10) still need a human "yes" on both
+               platforms before any store submission.
 Traps/notes:   **Kotlin block comments nest** — never write a literal `/*`
                inside a `/** ... */` doc comment (glob paths like
                `foo/*.json` are a classic accidental trigger). **AGP 9.0+
                built-in Kotlin**: applying the kotlin-android plugin
-               alongside AGP 9.x is now a hard error — don't re-add it by
-               habit when scaffolding new Android modules; use
+               alongside AGP 9.x is now a hard error — use
                `libs.plugins.kotlin.jvm` for pure-JVM modules only, nothing
-               extra for Android modules under AGP 9.x. CI jobs
-               `android`/`ios` in .github/workflows/ci.yml (gradle-version
-               now "9.4.1"). Android CI uses gradle/actions/setup-gradle
-               (runs `gradle`, NOT `./gradlew`) so it doesn't need the
-               human-generated wrapper jar. iOS CI runs `xcodegen generate`
-               fresh every time. Neither CI job blocks `deploy-production`.
+               extra for Android modules. **Xcode SWIFT_VERSION build
+               setting wants "6", not "6.0"** — different from SwiftPM's
+               dotted `swift-tools-version`, don't confuse the two when
+               scaffolding new targets. CI jobs `android`/`ios` in
+               .github/workflows/ci.yml (gradle-version "9.4.1", iOS
+               simulator "iPhone 17 Pro"). Android CI uses
+               gradle/actions/setup-gradle (runs `gradle`, NOT `./gradlew`).
+               iOS CI runs `xcodegen generate` fresh every time. Neither CI
+               job blocks `deploy-production`.
                COMMIT EVERY SESSION, even docs-only ones.
 Blocked:       P0.3 blocked on ever attempting a first build (sandbox has
                no JDK/Gradle/Xcode/Swift toolchain).
