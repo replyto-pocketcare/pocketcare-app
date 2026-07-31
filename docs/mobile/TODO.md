@@ -31,6 +31,33 @@ Last session: 2026-07-31 (latest) — ported receipts (P1.5, 56a3200),
                strings carry literal U+2014 em-dashes and a U+2192 arrow,
                verified byte-exact via Python `ord()` against the vector
                JSON before typing them into source.
+Extra verify:  Per plan §5 ("also port the TS tests not expressible as
+               vectors"), re-read all 6 P1.6/P1.7 `*.test.ts` files (not
+               just the golden vectors) and Python-reimplemented the
+               regex-heavy ports (guardrail's 13 rules against its full
+               69-prompt fixture list incl. `fixtures.ts`'s 54 adversarial
+               + 15 benign; diagnostics' redactSecrets/redactText/
+               redactDetail against every assertion in
+               diagnostics.test.ts; upi's isValidVpa/formatAmount/
+               buildIntentUrl/parseUpiTarget against every assertion in
+               upi.test.ts) using the EXACT patterns/logic written into
+               Guardrail.kt/Diagnostics.kt/Upi.kt -- 0 mismatches across
+               ~150 additional assertions, run via real V8 (Node, ground
+               truth) + Python (re-implementation of the ported logic)
+               side by side. This doesn't replace a real Kotlin/Swift
+               compile+test run, but it substantially de-risks the
+               "not yet build-verified" gap for the two domains (upi,
+               diagnostics) with the heaviest regex surface, since a
+               compiler alone can't catch a semantic regex-transcription
+               error. Also found (byte-scanned every new *.test.ts/*.ts
+               file, not just reconcile's index.ts): `diagnostics.test.ts`
+               has ONE more hidden control byte the Read tool
+               misrenders -- `assert.equal(out.includes("\x00"), false)`
+               displays as `out.includes(" ")` (a check that formatLog's
+               output never leaks a raw NUL). Confirmed no code-path in
+               either port could ever emit one; no fix needed, but
+               flagged since it's the same misrendering class as
+               reconcile's control bytes and easy to misread as a typo.
 Android state: 16/16 domains ported and registered (money, ledger,
                finance, budget, splits-insights, splits-math, receipts
                x4, reconcile, upi, sync-policy, diagnostics, guardrail,
