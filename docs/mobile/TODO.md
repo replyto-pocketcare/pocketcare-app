@@ -31,8 +31,9 @@ Last session: 2026-07-31 (latest) — built SplitsRepository.kt/.swift (P2.5,
                cursor.getStringOptional(...) ?? cursor.getString(...)`.
                The `(try X) ?? false`-shaped lines elsewhere (only one
                operand throws) are unaffected — already build-green
-               elsewhere in this file and in LedgerRepository.swift.
-               Android (`SplitsRepository.kt`) still has NOT had a real
+               elsewhere in this file and in LedgerRepository.swift. User
+               re-ran `xcodebuild` — GREEN, confirmed. Android
+               (`SplitsRepository.kt`) still has NOT had a real
                `./gradlew` run against it this session — that's the next
                required step before trusting the Kotlin half.
 Earlier same arc: discovered packages/data/src/powersync-repositories.ts is
@@ -50,14 +51,15 @@ Android state: 16/16 Phase 1 domains DONE. :data module (P2.2-P2.4) still
                NOT yet compiled). Finance/receipts/upi remain.
 iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2-P2.4):
                xcodebuild confirmed green through round 3 + P2.3 wiring,
-               not re-verified since. P2.5b: 4/7 domains source-complete
-               (ledger/budget/credit-card build-GREEN 2026-07-31; splits
-               NOT yet compiled).
+               not re-verified since. P2.5b: 4/4 written domains
+               build-GREEN 2026-07-31 (ledger/budget/credit-card/splits,
+               splits after 1 real fix — try-placement on a rethrows `??`,
+               see change log).
 Vectors:       DONE (P0.1), 250/250 green on both platforms (Phase 1).
-Next up:       Get a real `./gradlew`/`xcodebuild` pass on SplitsRepository
-               before continuing. Then P2.5: receipts, upi remain (finance's
-               pure calculators don't need their own repository). P2.6
-               (repair logic) fully untouched.
+Next up:       Get a real `./gradlew` pass on Android's SplitsRepository.kt
+               (iOS side now green). Then P2.5: receipts, upi remain
+               (finance's pure calculators don't need their own
+               repository). P2.6 (repair logic) fully untouched.
 Traps/notes:   Always check whether a "spec" file (e.g. hooks.ts) is
                actually canonical before porting from it — grep for
                `getRepositories()`/`@pocketcare/data` usage in apps/web/src
@@ -112,7 +114,7 @@ One task = one platform, same pattern as Phase 1. Order matters: schema parity b
 | P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | Code complete, NOT build-verified (no real Gradle run this whole arc) — BLOCKED (TP L3) / Code complete, xcodebuild clean 3 rounds in a row (human-confirmed 2026-07-31, incl. a real data-correctness fix, see change log) — BLOCKED (TP L3) |
 | P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | Code complete 2026-07-31 (dead-letter persistence + new DiagnosticsLog.kt wiring `makeEntry`/`formatLog` into the failure path), NOT build-verified — BLOCKED (TP L3) / Code complete 2026-07-31 (dead-letter persistence was already done; new DiagnosticsLog.swift closes the `makeEntry`/`formatLog` gap that was the actual remaining piece), NOT yet re-verified by xcodebuild since this addition — BLOCKED (TP L3) |
 | P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | Code complete, NOT build-verified — BLOCKED (TP L3) / Code complete, Auth.swift confirmed xcodebuild-clean (2026-07-31) — BLOCKED (TP L3) |
-| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DOING (4/7 — ledger+budget+credit-card human-confirmed `./gradlew` BUILD SUCCESSFUL 2026-07-31 after 1 real fix — `params += list` covariance ambiguity, see change log; splits source-complete 2026-07-31 but NOT yet build-verified; receipts/upi remain) / DOING (4/7 — ledger+budget+credit-card human-confirmed `xcodebuild` green 2026-07-31 after 1 real fix — Swift 6 strict-concurrency var capture in writeTransaction, see change log; splits source-complete 2026-07-31 but NOT yet build-verified; receipts/upi remain) |
+| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | DOING (4/7 — ledger+budget+credit-card human-confirmed `./gradlew` BUILD SUCCESSFUL 2026-07-31 after 1 real fix — `params += list` covariance ambiguity, see change log; splits source-complete 2026-07-31 but Android `./gradlew` NOT yet run; receipts/upi remain) / DOING (4/7 — ledger+budget+credit-card human-confirmed `xcodebuild` green 2026-07-31 after 1 real fix — Swift 6 strict-concurrency var capture in writeTransaction, see change log; splits ALSO human-confirmed `xcodebuild` green 2026-07-31 after 1 real fix — rethrows-operator try-placement on a double-throwing `??`, see change log; receipts/upi remain) |
 | P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | TODO / TODO |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
