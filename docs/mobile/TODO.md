@@ -38,33 +38,47 @@ iOS state:     16/16 Phase 1 domains DONE. Data package (P2.2b/P2.4b)
                reviewed against real pinned SDK source, no bugs found,
                NOT build-verified (no swift toolchain in this sandbox).
 Vectors:       DONE (P0.1), 250/250 green on both platforms (Phase 1).
-Next up:       A real `./gradlew build` (Android) and `xcodebuild`/
-               `swift build` (iOS) pass — still the actual gate, this
-               review only removes known-wrong code, it doesn't replace
-               compilation. Two lower-confidence items flagged for that
-               pass specifically: (a) SupabaseConnector.kt's
-               `getCrudBatch()` vs the newer `getNextCrudTransaction()`/
-               `getCrudTransactions()` API — both likely exist, but
-               confirm `getCrudBatch()` didn't get deprecated/removed;
-               (b) Auth.kt's `isGuest` uses an `appMetadata["provider"]`
-               workaround on the theory that `UserInfo.isAnonymous` was
-               removed from supabase-kt — evidence found this session
-               suggests that's likely WRONG (isAnonymous was added back
-               to UserInfo per supabase-kt release notes) but couldn't
-               pin down the exact version, so left as-is rather than
-               guess; try `user.isAnonymous` directly first when this
-               next gets a real compiler.
-Traps/notes:   Same traps from Phase 1, plus: when no compiler is
-               available, don't trust an LLM-authored "fix" at face
-               value even if it looks like a real compile-error
-               response — verify against the actual pinned dependency
-               source (Package.resolved / libs.versions.toml give you
-               the exact version to fetch). A fix can trade a real
-               compile error for a silent functional regression (the
-               schema-qualification drop here is the textbook case).
-Blocked:       P2.2a/b and P2.4a/b still BLOCKED pending a real Gradle/
-               Xcode build (see Next up) and, beyond that, TP L3
-               execution against reachable Supabase infrastructure.
+Next up:       Human ran a REAL `xcodebuild test` and got real compiler
+               output for Quarantine.swift (3 distinct error classes,
+               fixed same session — see below); Auth.swift and
+               SupabaseConnector.swift compiled clean, no changes
+               needed. Re-run the real build to confirm these fixes
+               land, then do the same for Android (`./gradlew build`,
+               still never actually run against this code).
+Traps/notes:   Same traps from Phase 1, plus, from this session's REAL
+               xcodebuild output (not source-inspection guesses):
+               (1) PowerSync Swift's `SqlCursor` has NO `getLong` at
+               all (that's a Kotlin-ism) — the Int64 accessors are
+               `getInt64(index:)`/`getInt64Optional(index:)`, confirmed
+               against the SDK's DocC JSON index. (2) `Queries.execute`/
+               `getOptional`'s real parameter type is `[Sendable?]?`,
+               NOT `[Any]` — `Any` does not conform to `Sendable`, so
+               `code as Any` in a parameters array is a real compile
+               error; just pass the value directly (or `as Sendable?`
+               for a non-literal like `.map { $0 as Sendable? }`) and
+               let the contextual array-literal type do the coercion.
+               (3) our own `shouldQuarantine(_:_:)` (SyncPolicy.swift)
+               takes an unlabeled second `Int` param — calling it as
+               `shouldQuarantine(classification, attempts: attempts)`
+               is an "extraneous argument label" error; a same-session,
+               source-inspection-only fix (before any real compiler
+               output existed) had already caught and fixed this one
+               correctly by matching our own Domain source, which is
+               the reminder that OUR OWN previously-ported code is
+               exactly as fetchable/checkable as a third-party SDK.
+               Broader lesson: source-code inspection (fetching the
+               real pinned SDK and reading it) caught real Kotlin bugs
+               correctly last session, but still isn't equivalent to a
+               real compiler — it can't see Swift-specific quirks like
+               Any-vs-Sendable existential coercion rules, which only
+               showed up once xcodebuild actually ran. Keep doing the
+               source-inspection pass when no compiler is available,
+               but don't treat it as equivalent to DONE.
+Blocked:       P2.2a/b and P2.4a/b still BLOCKED pending a real,
+               clean-of-errors Gradle/Xcode build (Android untested by
+               any real compiler so far — Kotlin fixes from last
+               session are source-inspection-verified only) and, beyond
+               that, TP L3 execution against reachable Supabase infra.
 ```
 
 ## Rules (short form — full protocol in plan §1)

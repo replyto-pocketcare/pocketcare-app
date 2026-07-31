@@ -54,23 +54,30 @@ public func bumpAttempts(
 ) async -> Int {
     do {
         // getOptional returns nil when no row matches.
+        // PowerSync's SqlCursor has no getLong — the Int64 accessors are
+        // getInt64(index:)/getInt64Optional(index:) (confirmed against the
+        // real SDK's DocC index, powersync-ja.github.io/powersync-swift).
         let existing: Int64? = try await db.getOptional(
             sql: "SELECT attempts FROM sync_attempts WHERE id = ?",
             parameters: [key]
         ) { cursor in
-            cursor.getLong(index: 0)
+            try cursor.getInt64(index: 0)
         }
         let attempts = Int((existing ?? 0) + 1)
         let now = ISO8601DateFormatter().string(from: Date())
         if existing != nil {
+            // No `as Any` — Queries.execute's real signature is
+            // `parameters: [Sendable?]?`, and `Any` does not conform to
+            // `Sendable`, so casting to it (rather than just passing the
+            // already-Sendable String?) was the actual compile error.
             try await db.execute(
                 sql: "UPDATE sync_attempts SET attempts = ?, last_code = ?, updated_at = ? WHERE id = ?",
-                parameters: [attempts, code as Any, now, key]
+                parameters: [attempts, code, now, key]
             )
         } else {
             try await db.execute(
                 sql: "INSERT INTO sync_attempts (id, attempts, last_code, updated_at) VALUES (?, ?, ?, ?)",
-                parameters: [key, attempts, code as Any, now]
+                parameters: [key, attempts, code, now]
             )
         }
         return attempts
@@ -82,7 +89,7 @@ public func bumpAttempts(
 }
 
 public func clearAttempts(db: PowerSyncDatabaseProtocol, key: String) async {
-    try? await db.execute(
+    _ = try? await db.execute(
         sql: "DELETE FROM sync_attempts WHERE id = ?",
         parameters: [key]
     )
@@ -163,8 +170,8 @@ public func quarantineOps(
                 op.op,
                 op.id,
                 op.payloadJson,
-                failure.code as Any,
-                failure.message as Any,
+                failure.code,
+                failure.message,
                 classification.cls,
                 classification.reason,
                 attempts,
@@ -178,7 +185,7 @@ public func quarantineOps(
         let placeholders = ids.map { _ in "?" }.joined(separator: ",")
         try await db.execute(
             sql: "DELETE FROM ps_crud WHERE id IN (\(placeholders))",
-            parameters: ids.map { $0 as Any }
+            parameters: ids.map { $0 as Sendable? }
         )
     }
     return ops.count
@@ -209,12 +216,12 @@ public func handleUploadFailure(
     onBump?(key)
     let attempts = await bumpAttempts(db: db, key: key, code: failure.code)
 
-    guard shouldQuarantine(classification, attempts: attempts) else {
+    guard shouldQuarantine(classification, attempts) else {
         return UploadFailureResult(quarantined: false, classification: classification, attempts: attempts)
     }
 
     do {
-        try await quarantineOps(db: db, ops: run, failure: failure, classification: classification, attempts: attempts)
+        _ = try await quarantineOps(db: db, ops: run, failure: failure, classification: classification, attempts: attempts)
         await clearAttempts(db: db, key: key)
         return UploadFailureResult(quarantined: true, classification: classification, attempts: attempts)
     } catch {
