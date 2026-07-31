@@ -1,16 +1,13 @@
 package care.pocket.android.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -115,9 +112,9 @@ fun DashboardScreen() {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    QuickActionButton(icon = Icons.Default.Add, label = "Add Expense")
-                    QuickActionButton(icon = Icons.Default.SwapHoriz, label = "Transfer")
-                    QuickActionButton(icon = Icons.Default.AccountBalanceWallet, label = "Settle Up")
+                    QuickActionButton(symbol = "+", label = "Add Expense")
+                    QuickActionButton(symbol = "⇄", label = "Transfer")
+                    QuickActionButton(symbol = "👥", label = "Settle Up")
                 }
             }
 
@@ -135,9 +132,13 @@ fun DashboardScreen() {
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.ArrowForward, contentDescription = "View all")
-                        }
+                        Text(
+                            "→",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.padding(8.dp)
+                        )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     LazyRow(
@@ -227,17 +228,23 @@ fun DashboardScreen() {
 }
 
 @Composable
-fun QuickActionButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {
+fun QuickActionButton(symbol: String, label: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        SmallFloatingActionButton(
-            onClick = {},
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = Terracotta,
-            shape = RoundedCornerShape(16.dp)
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surface),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = label)
+            Text(
+                text = symbol,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Terracotta
+            )
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(label, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onBackground)
