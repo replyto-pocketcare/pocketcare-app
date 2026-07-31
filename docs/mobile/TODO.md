@@ -5,115 +5,73 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — ported receipts (P1.5, 56a3200),
-               then ALL of Phase 1's remaining domains in one session:
-               reconcile+upi+sync-policy+diagnostics+guardrail (P1.6)
-               and entitlements (P1.7), both platforms. Phase 1 domain
-               porting is now CODE-COMPLETE (16/16 vector domains
-               registered on both platforms) -- nothing build/test
-               verified yet, see Blocked.
-               Notable catches this session: (1) reconcile's FNV-1a
+Last session: 2026-07-31 (latest) — PHASE 1 DONE. Ported receipts
+               (P1.5, 56a3200), then reconcile+upi+sync-policy+
+               diagnostics+guardrail (P1.6) and entitlements (P1.7,
+               d895c30), all 16 domains/250 vectors on both platforms.
+               Ran an extra Python cross-check pass against the full TS
+               *.test.ts surfaces for the 3 regex-heaviest domains
+               (guardrail/diagnostics/upi, a1c9813) before handing off.
+               Human then ran `./gradlew test` + `swift test
+               --package-path Domain` and confirmed ALL GREEN on BOTH
+               PLATFORMS, zero fixes needed for P1.5-P1.7 -- unlike
+               P1.4's iOS pass, which needed 2 real Swift 6 fixes
+               post-compile. Phase 1 gate (plan §5: "all vectors green
+               on both apps") is CLEARED. Phase 2 (data layer) expanded
+               into 6 tasks x 2 platforms below (plan §6).
+               Notable catches from the porting session, worth
+               remembering for Phase 2: (1) reconcile's FNV-1a
                canonical-row serializer uses literal control-byte
                separators (U+0001 field join, U+0000 null placeholder)
-               that the Read tool silently misrenders as "" and " " --
-               caught by executing the real TS module and diffing hex
-               checksums, confirmed via raw `open(path,'rb')` byte
-               inspection. (2) upi's mulberry32 FNV-style offset constant
-               in the TS source (1469598103934665603) is NOT the textbook
-               FNV-1a-adjacent value some references would suggest --
-               verified the actual constant by testing both candidates
-               against the real `newPaymentRef` vectors in Python before
-               committing to one. (3) diagnostics is an order-sensitive
-               multi-pass redaction pipeline (secrets -> UUID-preserve ->
-               code-protect -> amount-scrub); every regex transcribed
-               verbatim and traced by hand against all 10 vectors before
-               writing Kotlin/Swift. (4) sync-policy/guardrail's message
-               strings carry literal U+2014 em-dashes and a U+2192 arrow,
-               verified byte-exact via Python `ord()` against the vector
-               JSON before typing them into source.
-Extra verify:  Per plan §5 ("also port the TS tests not expressible as
-               vectors"), re-read all 6 P1.6/P1.7 `*.test.ts` files (not
-               just the golden vectors) and Python-reimplemented the
-               regex-heavy ports (guardrail's 13 rules against its full
-               69-prompt fixture list incl. `fixtures.ts`'s 54 adversarial
-               + 15 benign; diagnostics' redactSecrets/redactText/
-               redactDetail against every assertion in
-               diagnostics.test.ts; upi's isValidVpa/formatAmount/
-               buildIntentUrl/parseUpiTarget against every assertion in
-               upi.test.ts) using the EXACT patterns/logic written into
-               Guardrail.kt/Diagnostics.kt/Upi.kt -- 0 mismatches across
-               ~150 additional assertions, run via real V8 (Node, ground
-               truth) + Python (re-implementation of the ported logic)
-               side by side. This doesn't replace a real Kotlin/Swift
-               compile+test run, but it substantially de-risks the
-               "not yet build-verified" gap for the two domains (upi,
-               diagnostics) with the heaviest regex surface, since a
-               compiler alone can't catch a semantic regex-transcription
-               error. Also found (byte-scanned every new *.test.ts/*.ts
-               file, not just reconcile's index.ts): `diagnostics.test.ts`
-               has ONE more hidden control byte the Read tool
-               misrenders -- `assert.equal(out.includes("\x00"), false)`
-               displays as `out.includes(" ")` (a check that formatLog's
-               output never leaks a raw NUL). Confirmed no code-path in
-               either port could ever emit one; no fix needed, but
-               flagged since it's the same misrendering class as
-               reconcile's control bytes and easy to misread as a typo.
-Android state: 16/16 domains ported and registered (money, ledger,
-               finance, budget, splits-insights, splits-math, receipts
-               x4, reconcile, upi, sync-policy, diagnostics, guardrail,
-               entitlements). money/ledger/finance/budget/splits-*
-               human-confirmed green. receipts (P1.5) + reconcile/upi/
-               sync-policy/diagnostics/guardrail/entitlements (P1.6/1.7,
-               this session) NOT yet human-verified by `./gradlew test`.
-iOS state:     Same 16/16 domains ported and registered. money/ledger/
-               finance/budget human-confirmed green; splits-* ported but
-               awaiting first post-fix `swift test` re-verification
-               (27a91cb, 6f320b9); receipts + P1.6/P1.7 (this session)
-               NOT yet human-verified by `swift test`.
-Vectors:       DONE (P0.1), 250 total across 16 domain files -- ALL 250
-               now have a registered implementation on both platforms
-               (0 remaining unported domains). Actual pass/fail counts
-               unknown until a human runs the real test suites.
-Next up:       Human runs `./gradlew test` (Android) and
-               `cd apps/ios/Domain && swift test` (iOS). This is the
-               first full-suite run since P1.4 -- expect it to surface
-               real build errors (every P1.4-P1.7 Swift file has never
-               been compiled). Fix iteratively per domain, report back
-               pass/skip/fail counts per `[vectors] domain=... total=...
-               passed=... skipped=... failed=...` lines. Once fully
-               green, Phase 1 is DONE and Phase 2 (data layer) can be
-               expanded (plan §6).
+               that the Read tool silently misrenders as "" and " ".
+               (2) upi's mulberry32 FNV-style offset constant
+               (1469598103934665603) is NOT the textbook FNV-1a-64
+               value -- verify unusual-looking numeric constants against
+               real output before trusting them. (3) diagnostics is an
+               order-sensitive multi-pass regex pipeline -- trace every
+               vector by hand before porting anything like it again.
+Android state: 16/16 domains DONE + human-confirmed green
+               (`./gradlew test`, all vectors, zero fixes needed for
+               P1.5-P1.7).
+iOS state:     16/16 domains DONE + human-confirmed green (`swift test
+               --package-path Domain`, all vectors, zero fixes needed
+               for P1.5-P1.7 -- notably cleaner than P1.4's two-fix
+               round, plausibly because the extra Python cross-check
+               pass caught what a compiler alone couldn't).
+Vectors:       DONE (P0.1), 250/250 green on both platforms. Phase 1
+               fully closed out.
+Next up:       Claim P2.1a/P2.1b (schema parity) -- it blocks every
+               other Phase 2 task (connector/repositories/auth all need
+               the models to exist first). See the Phase 2 table for
+               the full task breakdown and dependency order.
 Traps/notes:   Kotlin/Swift block comments both NEST -- grep for literal
-               `/*` before every commit (still zero hits across P1.5-1.7,
-               all doc comments are `/**`/`///`, no accidental nesting).
-               Bare int literals need explicit widening on both platforms
-               (Int64(0) / 0L). Registries keyed by (domain, fn). iOS:
-               `swift test --package-path Domain` for real vector tests,
-               NOT `xcodebuild test -scheme PocketCare` (App-level
-               placeholder only). Swift's NSNumber.isEqual is NOT
-               trustworthy for fractional doubles -- jsonValueEqual
-               compares .doubleValue directly. Swift 6 strict
-               concurrency: any public struct from Sources/Domain that a
-               *Vectors.swift file puts in a global `let` fixture needs
-               explicit `Sendable`. NEW this session: (a) a source .ts
-               file CAN contain literal control-byte characters that
-               look like "" or " " in every tool's rendering -- if a
-               computed hash/checksum doesn't match a vector, inspect the
-               source file's raw bytes via Python before assuming the
-               port logic is wrong. (b) JS's single-string
-               `.replace(str,str)` replaces only the FIRST match; Kotlin
-               `String.replace(String,String)` and Swift's naive
-               equivalents replace ALL -- use range/index-based
-               replacement (or a regex-based replace, which already
-               matches JS's /g semantics) instead of a plain string
-               replace wherever the TS source relies on first-match-only.
-               COMMIT EVERY SESSION.
-Blocked:       Nothing structurally. P1.4-P1.7's Swift code (6 domains'
-               worth) has never been compiled -- expect real Swift 6
-               errors on first `swift test`, same pattern as P1.4's
-               27a91cb/6f320b9. Android is lower-risk (Kotlin has caught
-               fewer surprises historically) but also fully unverified
-               for P1.5-P1.7.
+               `/*` before every commit. Bare int literals need explicit
+               widening on both platforms (Int64(0) / 0L). Registries
+               keyed by (domain, fn). iOS: `swift test --package-path
+               Domain` for real vector tests, NOT `xcodebuild test
+               -scheme PocketCare` (App-level placeholder only). Swift's
+               NSNumber.isEqual is NOT trustworthy for fractional
+               doubles. Swift 6 strict concurrency: any public struct
+               from Sources/Domain in a *Vectors.swift global `let`
+               fixture needs explicit `Sendable`. A source .ts file CAN
+               contain literal control-byte characters every tool
+               misrenders as "" or " " -- inspect raw bytes via Python
+               if a computed value doesn't match a vector. JS's
+               single-string `.replace(str,str)` replaces only the FIRST
+               match; Kotlin/Swift's naive equivalents replace ALL --
+               use range/regex-based replace instead. Phase 2 is a
+               different verification regime than Phase 1: these tasks
+               touch real I/O (SQLite, network), so pure-function vector
+               tests won't be the Done-when gate anymore -- it's TP L3
+               (local Supabase + fault injection, `docs/plans/
+               full-test-plan.md`), which needs a real Supabase project
+               and can't be faked from a sandbox any more than Gradle/
+               Xcode could. COMMIT EVERY SESSION.
+Blocked:       Nothing on Phase 1 (closed out). Phase 2 needs a local/
+               test Supabase project reachable for TP L3 fault-injection
+               testing -- flag this to the human before claiming P2.1
+               if that isn't already set up, since Done-when can't be
+               met without it.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -144,13 +102,26 @@ Blocked:       Nothing structurally. P1.4-P1.7's Swift code (6 domains'
 | P1.1a / P1.1b | money — Android / iOS | [M] | P0.4a / P0.4b | DONE (2026-07-31, 7d3107a + Swift fix 6be76b9 — human confirmed `[vectors] domain=money total=40 passed=37 skipped=3 failed=0` both platforms) / DONE (same) |
 | P1.2a / P1.2b | ledger — Android / iOS | [M] | P1.1 same-platform | DONE (2026-07-31, 5a705de — human confirmed `total=10 passed=10 skipped=0 failed=0` both platforms) / DONE (same) |
 | P1.3a / P1.3b | finance+budget — Android / iOS | [M] | P1.2 | DONE (2026-07-31, e8ef8b8 + Swift fixes 29a9d01/77607ac — human confirmed `finance total=33 passed=33` and `budget total=10 passed=10`, both `failed=0`, both platforms) / DONE (same) |
-| P1.4a / P1.4b | splits+insights — Android / iOS | [M] | P1.1 | DONE (2026-07-31, 17291cb — human confirmed `./gradlew test` BUILD SUCCESSFUL, splits-insights 6/6/0 + splits-math 4/4/0) / DOING (17291cb + fixes 27a91cb, 6f320b9 — 4/4 fns, 10 vectors, 2 real Swift 6 build errors found+fixed, NOT yet re-verified by `swift test`) |
-| P1.5a / P1.5b | receipts — Android / iOS | [H] | P1.1 | DONE (2026-07-31, 56a3200 — 4 sub-domains ported, 2 real bugs caught+fixed pre-commit: JS single-`.replace` vs Kotlin's replace-all, findDate UTC-vs-local. NOT yet human-verified by `./gradlew test`/`swift test`) / DONE (same commit, same caveat) |
-| P1.6a / P1.6b | reconcile+upi+sync-policy+diagnostics+guardrail — Android / iOS | [M] | P1.1 | DOING (this session — 5 sub-domains ported: reconcile [FNV-1a bank-drift checksums, hidden U+0001/U+0000 control-byte literals in the TS source caught via raw-byte inspection, not the Read tool's misleading rendering], upi [mulberry32 seeded PRNG for `newPaymentRef`, hand-rolled `encodeURIComponent`/`decodeURIComponent`, non-textbook FNV offset constant caught by cross-checking two candidate values against the real vectors], sync-policy [em-dash/arrow Unicode strings verified byte-exact via Python `ord()`], diagnostics [highest-risk domain after receipts: multi-pass order-sensitive redaction pipeline, `\b` word-boundary regex, ₹€£ symbols]. NOT yet human-verified by `./gradlew test`/`swift test`) / DOING (same session, same 5 sub-domains, same caveat) |
-| P1.7a / P1.7b | entitlements — Android / iOS | [S] | P0.4 | DOING (this session — ported faithfully including a source quirk: `Tier` has 4 values but `canUse()` only special-cases "premium", so "lite"/"pro" silently fall through to the free-tier check; not fixed, just documented, since only "free"/"premium" have vector coverage. NOT yet human-verified) / DOING (same session, same caveat). "gate map" deliberately NOT ported — no golden vectors exist for it; it's a UI-side feature-gating table, deferred to Phase 3+ UI work, not pure domain logic. |
+| P1.4a / P1.4b | splits+insights — Android / iOS | [M] | P1.1 | DONE (2026-07-31, 17291cb — human confirmed `./gradlew test` BUILD SUCCESSFUL, splits-insights 6/6/0 + splits-math 4/4/0) / DONE (2026-07-31, 17291cb + fixes 27a91cb, 6f320b9 — human confirmed `swift test` green after the two Swift 6 fixes) |
+| P1.5a / P1.5b | receipts — Android / iOS | [H] | P1.1 | DONE (2026-07-31, 56a3200 — 4 sub-domains ported, 2 real bugs caught+fixed pre-commit: JS single-`.replace` vs Kotlin's replace-all, findDate UTC-vs-local; human confirmed `./gradlew test` green) / DONE (same commit, human confirmed `swift test` green) |
+| P1.6a / P1.6b | reconcile+upi+sync-policy+diagnostics+guardrail — Android / iOS | [M] | P1.1 | DONE (2026-07-31, d895c30 — 5 sub-domains ported: reconcile [FNV-1a bank-drift checksums, hidden U+0001/U+0000 control-byte literals in the TS source caught via raw-byte inspection, not the Read tool's misleading rendering], upi [mulberry32 seeded PRNG for `newPaymentRef`, hand-rolled `encodeURIComponent`/`decodeURIComponent`, non-textbook FNV offset constant caught by cross-checking two candidate values against the real vectors], sync-policy [em-dash/arrow Unicode strings verified byte-exact via Python `ord()`], diagnostics [highest-risk domain after receipts: multi-pass order-sensitive redaction pipeline, `\b` word-boundary regex, ₹€£ symbols]; human confirmed `./gradlew test` green, no fixes needed) / DONE (same commit, human confirmed `swift test` green, no fixes needed) |
+| P1.7a / P1.7b | entitlements — Android / iOS | [S] | P0.4 | DONE (2026-07-31, d895c30 — ported faithfully including a source quirk: `Tier` has 4 values but `canUse()` only special-cases "premium", so "lite"/"pro" silently fall through to the free-tier check; not fixed, just documented, since only "free"/"premium" have vector coverage; human confirmed green) / DONE (same commit, human confirmed green). "gate map" deliberately NOT ported — no golden vectors exist for it; it's a UI-side feature-gating table, deferred to Phase 3+ UI work, not pure domain logic. |
 
-### Phase 2 — data layer
-Not expanded yet — expand once Phase 1 is ~80% DONE (plan §6).
+**Phase 1 gate cleared 2026-07-31: all 16 domains / 250 vectors green on both `./gradlew test` and `swift test --package-path Domain`, human-confirmed, zero fixes needed on either platform for P1.5-P1.7 (the extra Python cross-check pass against the full TS test surfaces — see PROJECT_REFERENCE.md change log — evidently paid off). Phase 2 below is now expanded.**
+
+### Phase 2 — data layer (expanded 2026-07-31, plan §6)
+One task = one platform, same pattern as Phase 1. Order matters: schema parity blocks everything else (repositories/connector/auth all need the models to exist); connector + quarantine are paired (dead-letter needs the connector's retry/backoff hookup); auth is independent of the sync pipeline and can run in parallel once schema parity lands.
+
+| ID | Task | Tag | Needs | Status |
+|---|---|---|---|---|
+| P2.1a / P2.1b | Schema parity — mirror `AppSchema` (`packages/db/src/index.ts`) as Kotlin data classes / Swift structs + a parity check script (3-way: `AppSchema` ↔ Kotlin ↔ Swift, catches column drift at build/CI time, not runtime) | [M] | P1 (done) | TODO / TODO |
+| P2.2a / P2.2b | PowerSync connector port — op-coalescing upload queue matching `packages/db`'s fault-injection semantics (retry classification via the now-ported `sync-policy` domain, exponential backoff via `backoffMs`) | [M] | P2.1 | TODO / TODO |
+| P2.3a / P2.3b | Quarantine / dead-letter queue — wires `shouldQuarantine`/`MAX_PERMANENT_ATTEMPTS` (already-ported `sync-policy` domain) into the connector's actual retry loop, plus local persistence for quarantined ops so they're inspectable (diagnostics `formatLog`/`makeEntry`, already ported, log them) | [M] | P2.2 | TODO / TODO |
+| P2.4a / P2.4b | Auth — guest/OTP/Google sign-in, in-place guest→registered upgrade, offline marker so the UI can tell "signed out" from "signed in but offline" | [M] | P2.1 | TODO / TODO |
+| P2.5a / P2.5b | Repositories — read/write facades over the local PowerSync SQLite DB for each domain (money/ledger/finance/budget/splits/receipts/upi), calling the already-ported pure domain functions for any derived value (balances, progress, etc.) rather than recomputing ad hoc | [M] | P2.1, P2.2 | TODO / TODO |
+| P2.6a / P2.6b | Repair logic — detect + resolve the drift `reconcile`'s checksums surface (missingRemote/missingLocal/mismatched), matching `packages/db`'s repair semantics | [M] | P2.2, P2.3 | TODO / TODO |
+
+*Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
 
 ### Phase 3+ (UI slices S1–S6, native surfaces P4.x, release P5.x)
 Not expanded yet (plan §7-8).
