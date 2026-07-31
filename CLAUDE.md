@@ -1,9 +1,9 @@
 # CLAUDE.md — PocketCare working guide
 
-> Read `PROJECT_REFERENCE.md` first (living index + change log). This file adds the rules an agent must follow while working here.
+> Read `PROJECT_REFERENCE.md` first (compact LLM boot file: architecture, structure, patterns — read it INSTEAD of scanning the repo). Dated change history lives in `AUDIT_HISTORY.md` — new dated entries go there, and PROJECT_REFERENCE.md is updated only for evergreen changes (new tables/patterns/conventions/instructions). This file adds the rules an agent must follow while working here.
 
 ## What this is
-Offline-first, multi-currency personal expense & wealth manager. **Web-only** (Next.js PWA; mobile was deprecated). PowerSync (WASM SQLite) ↔ Supabase Postgres. Full technical docs live in [`docs/`](docs/README.md).
+Offline-first, multi-currency personal expense & wealth manager. Live client: **web** (Next.js PWA). Pure-native Android/iOS apps are planned/in-flight (`docs/plans/native-mobile-apps.md`, queue in `docs/mobile/TODO.md`). PowerSync (WASM SQLite) ↔ Supabase Postgres. Full technical docs live in [`docs/`](docs/README.md).
 
 ## Golden rules (never violate)
 1. Money = **integer minor units**, never floats. Use `@pocketcare/money`.
@@ -33,7 +33,7 @@ When you add or materially change a feature, **update the docs in the same chang
 1. **Feature doc** — create/update `docs/features/<feature>.md` (overview, user-flow diagram, technical/sequence diagram, data touched, key files, gating, edge cases). Follow the structure of the existing feature docs.
 2. **Diagrams** — update affected Mermaid diagrams. New table → update the ER diagram in `docs/architecture/02-data-model.md`. New stream/edge function → update `docs/architecture/03-sync-and-offline.md`. New auth/crypto/deletion behaviour → `docs/architecture/04-security-and-privacy.md`.
 3. **Indexes** — add to `docs/features/README.md` (and `docs/README.md` if architectural).
-4. **Change log** — add a dated entry to `PROJECT_REFERENCE.md`.
+4. **Change log** — add a dated entry to `AUDIT_HISTORY.md` (never to `PROJECT_REFERENCE.md`; update that only if a table/pattern/convention/instruction changed).
 5. **Shareables** — if diagrams/architecture changed, regenerate the PDF via `scripts/build-docs-pdf.sh`. If investor-relevant, flag for the next deck refresh (`pitch/`).
 
 Diagrams are **Mermaid** (GitHub-native, maintainable). Keep them accurate — a wrong diagram is worse than none.

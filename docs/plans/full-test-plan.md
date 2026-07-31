@@ -1,7 +1,7 @@
 # Plan — Full test suite + Firebase Test Lab
 
 > **Status:** PLANNED (2026-07-30). Companion to `docs/plans/native-mobile-apps.md` (referenced as "mobile plan").
-> **Executor:** written for smaller LLM agents. Protocol: pick ONE unchecked case ID, implement the test at the layer stated, run it, check it off with the commit hash. Never mark a case done because "the code looks right" — only a green run counts. Never weaken an assertion to make a test pass; if the app is wrong, file it in `PROJECT_REFERENCE.md` change log and stop.
+> **Executor:** written for smaller LLM agents. Protocol: pick ONE unchecked case ID, implement the test at the layer stated, run it, check it off with the commit hash. Never mark a case done because "the code looks right" — only a green run counts. Never weaken an assertion to make a test pass; if the app is wrong, file it in `AUDIT_HISTORY.md` and stop.
 
 ## 1. Layers (where a test lives)
 
@@ -19,7 +19,7 @@ Rules of placement: money/date/allocation logic → L0 only, shared code (never 
 
 ## 2. Test ID scheme
 
-`<FEATURE>-<n>` below. Every automated test names its case ID in the test name. The parity table in `PROJECT_REFERENCE.md` links feature → case range → layer. A case marked **[E]** is an edge case; **[TL]** requires a physical/virtual device (Test Lab); **[W]** web-applicable too.
+`<FEATURE>-<n>` below. Every automated test names its case ID in the test name. The parity table in `docs/mobile/TODO.md` links feature → case range → layer. A case marked **[E]** is an edge case; **[TL]** requires a physical/virtual device (Test Lab); **[W]** web-applicable too.
 
 ## 3. Case catalog
 

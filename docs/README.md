@@ -28,7 +28,7 @@ Every user-facing feature area has its own doc with an **overview**, a **user-fl
 
 ### Other references (repo root)
 
-- [`PROJECT_REFERENCE.md`](../PROJECT_REFERENCE.md) — living per-session index + change log (source of truth for "what changed").
+- [`PROJECT_REFERENCE.md`](../PROJECT_REFERENCE.md) — compact LLM boot file (architecture, structure, patterns); dated history in [`AUDIT_HISTORY.md`](../AUDIT_HISTORY.md).
 - [`ARCHITECTURE.md`](../ARCHITECTURE.md) — original architecture & implementation plan.
 - [`DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) — visual language tokens.
 - [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md), [`SECURITY_ENCRYPTION_PLAN.md`](../SECURITY_ENCRYPTION_PLAN.md) — security posture.
@@ -42,7 +42,7 @@ Every user-facing feature area has its own doc with an **overview**, a **user-fl
 1. **Feature doc** — create or update `docs/features/<feature>.md` (overview, user-flow diagram, technical diagram, data touched, key files, gating, edge cases).
 2. **Diagrams** — update the relevant Mermaid diagram(s). If you added a table, update the ER diagram in [02 — Data Model](architecture/02-data-model.md). If you added a sync stream or edge function, update [03 — Sync & Offline](architecture/03-sync-and-offline.md).
 3. **Index** — add the feature to the [features index](features/README.md) and, if architectural, to this README.
-4. **Change log** — add a dated entry to `PROJECT_REFERENCE.md` (existing convention).
+4. **Change log** — add a dated entry to `AUDIT_HISTORY.md`.
 5. **PDF/deck** — regenerate the shareable PDF (`scripts/build-docs-pdf.sh`) and, if the change is investor-relevant, note it for the next deck refresh.
 
 This rule is also mirrored in the project's `CLAUDE.md` so the AI agent applies it automatically on every feature.

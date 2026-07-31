@@ -15,4 +15,4 @@ Do not read the whole repo, the change logs, or other plan sections. When portin
 
 **Hard rules:** money = integer minor units, never floats; behavior comes from the golden vectors and the web/TS source, never your judgment — never edit a vector or weaken a test to pass; schema-qualify all `pocketcare.*` calls; no new dependencies, no touching `apps/web`/`packages/*`/migrations/`sync-streams.yaml` unless your task names it; ask instead of guessing on money, sync, auth, or crypto.
 
-**Before ending (mandatory):** update task statuses in TODO.md; rewrite its Handover block (≤15 lines, written for a zero-context successor: state of android/ios/vectors, what you did, exact next task, traps); add one line to the mobile change log in `PROJECT_REFERENCE.md`; commit as `mobile(<task-id>): …`.
+**Before ending (mandatory):** update task statuses in TODO.md; rewrite its Handover block (≤15 lines, written for a zero-context successor: state of android/ios/vectors, what you did, exact next task, traps); add one line to the Mobile change log in `AUDIT_HISTORY.md`; commit as `mobile(<task-id>): …`.
