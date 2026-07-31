@@ -18,15 +18,24 @@ import Foundation
 /// Calendar-arithmetic concerns) -- the string specifies UTC explicitly and
 /// `Date` itself is timezone-agnostic absolute-time storage, so this is a
 /// much lower-risk use of Foundation than `Calendar.date(byAdding:)`.
-private let isoFormatter: ISO8601DateFormatter = {
-    let f = ISO8601DateFormatter()
-    f.formatOptions = [.withInternetDateTime]
-    return f
-}()
-
+///
+/// A fresh formatter is created per call rather than shared as a global --
+/// a real Swift 6 build error ("not concurrency-safe because non-Sendable
+/// type 'ISO8601DateFormatter' may have shared mutable state") rejected a
+/// single cached instance. `nonisolated(unsafe)` (the fix used for
+/// FunctionRegistry.impls) would have silenced the compiler, but this is
+/// production domain code, not test-only infra -- it can genuinely be
+/// called from concurrent Swift Tasks in the real app, and
+/// ISO8601DateFormatter's own thread-safety for concurrent reads isn't
+/// documented as guaranteed. Allocating per call sidesteps the question
+/// entirely rather than asserting an unverified safety claim; this
+/// function isn't a hot loop (per-expense insight computation, not a
+/// tight numeric kernel), so the allocation cost doesn't matter here.
 private func parseIsoMillis(_ iso: String) -> Double {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime]
     let normalized = iso.count == 10 ? iso + "T00:00:00Z" : iso
-    guard let date = isoFormatter.date(from: normalized) else {
+    guard let date = formatter.date(from: normalized) else {
         fatalError("unparseable ISO date: \(iso)")
     }
     return date.timeIntervalSince1970 * 1000
