@@ -5,18 +5,17 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 — expanded Phase 3 UI Slices and built P3.1a & P3.1b.
-               Created PocketCareTheme & DashboardScreen (Compose) in Android app,
-               and Theme & DashboardView (SwiftUI) in iOS app. Dashboard-lite displays
-               Net Worth summary card with earthy design tokens (terracotta/clay50/sage),
-               quick action buttons (Add Expense, Transfer, Settle Up), Accounts list cards,
-               and Recent Activity list on both platforms. All 290 core JS tests pass.
-Android state: Phase 1 & 2 DONE. P3.1a DashboardScreen (Compose) UI built & wired into MainActivity.
-iOS state:     Phase 1 & 2 DONE. P3.1b DashboardView (SwiftUI) UI built & wired into ContentView.
+Last session: 2026-07-31 — completed P3.2a & P3.2b (Accounts list & Create Account screens).
+               Built AccountsScreen & CreateAccountScreen (Compose) in Android app,
+               and AccountsView & CreateAccountView (SwiftUI) in iOS app. Includes
+               account type badges, currency pickers, opening balance, overdraft toggle,
+               and net worth toggle, matching LedgerRepository schemas.
+Android state: Phase 1 & 2 DONE. P3.1a & P3.2a UI screens built (DashboardScreen, AccountsScreen).
+iOS state:     Phase 1 & 2 DONE. P3.1b & P3.2b UI views built (DashboardView, AccountsView).
 Vectors:       250/250 green on both platforms. Core JS unit tests 290/290 green.
-Next up:       P3.2a / P3.2b UI Slice S1: Accounts view & Account edit/create screens.
-Traps/notes:   UI design system maps earthy palette (clay50, terracotta, sage, ink) via
-               PocketCareTheme (Material 3) on Android and Theme enum (SwiftUI) on iOS.
+Next up:       P3.3a / P3.3b UI Slice S1: Transactions list & Transaction creation flow.
+Traps/notes:   Credit card accounts auto-enable allow_negative/overdraft by default;
+               opening balances are stored in minor units (rupees * 100).
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -66,7 +65,7 @@ Traps/notes:   UI design system maps earthy palette (clay50, terracotta, sage, i
 | ID | Task | Tag | Needs | Status |
 |---|---|---|---|---|
 | P3.1a / P3.1b | UI Slice S1: Dashboard-lite & Navigation Shell — Net Worth card, Quick Action buttons, Accounts list, Recent Activity | [M] | P2 (done) | DONE (2026-07-31, DashboardScreen.kt) / DONE (2026-07-31, DashboardView.swift) |
-| P3.2a / P3.2b | UI Slice S1: Accounts view & Account edit/create screens | [M] | P3.1 | TODO / TODO |
+| P3.2a / P3.2b | UI Slice S1: Accounts view & Account edit/create screens | [M] | P3.1 | DONE (2026-07-31, AccountsScreen.kt) / DONE (2026-07-31, AccountsView.swift) |
 | P3.3a / P3.3b | UI Slice S1: Transactions list & Transaction creation flow | [M] | P3.1 | TODO / TODO |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
