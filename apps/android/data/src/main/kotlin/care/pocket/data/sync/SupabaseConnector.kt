@@ -154,7 +154,7 @@ class SupabaseConnector(
     private val powerSyncUrl: String,
     /** Schema the tables live in; must be an Exposed schema in Supabase settings. */
     private val schema: String = DB_SCHEMA,
-) : PowerSyncBackendConnector {
+) : PowerSyncBackendConnector() {
 
     override suspend fun fetchCredentials(): PowerSyncCredentials? {
         val session = client.auth.currentSessionOrNull() ?: return null
@@ -175,7 +175,14 @@ class SupabaseConnector(
         var i = 0
         while (i < ops.size) {
             val op = ops[i]
-            val rel = client.postgrest.schema(schema).from(op.table)
+            // 2-arg operator get(schema, table) — NOT the 1-arg get(table), which uses
+            // Postgrest.Config.defaultSchema ("public" unless configured at client
+            // construction, which nothing here does). Golden rule #3 (CLAUDE.md):
+            // every call must be schema-qualified or PostgREST 404s. Verified against
+            // supabase-kt's real Postgrest.kt source (github.com/supabase-community/
+            // supabase-kt) before using this form — `operator fun get(schema: String,
+            // table: String): PostgrestQueryBuilder` is a real overload, not a guess.
+            val rel = client.postgrest[schema, op.table]
 
             // Extend the run while the next op targets the same table + op type.
             // PATCH always stays per-row (different columns may be touched).
@@ -273,6 +280,10 @@ class SupabaseConnector(
             i = j
         }
 
-        batch.complete()
+        // null, not "" — matches PowerSync's own official Kotlin Supabase connector
+        // (github.com/powersync-ja/powersync-kotlin, integrations/supabase), which calls
+        // transaction.complete(null); an empty string is a real (if likely harmless)
+        // writeCheckpoint value, not "no checkpoint".
+        batch.complete(null)
     }
 }

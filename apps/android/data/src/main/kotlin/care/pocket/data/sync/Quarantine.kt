@@ -61,11 +61,11 @@ suspend fun bumpAttempts(
     code: String?,
 ): Int {
     return try {
-        val existing = db.getOptional(
+        val existing = db.getOptional<Long>(
             sql = "SELECT attempts FROM sync_attempts WHERE id = ?",
             parameters = listOf(key),
         ) { cursor ->
-            cursor.getLong(0)
+            cursor.getLong(0) as Long
         }
         val attempts = ((existing ?: 0L) + 1L).toInt()
         val now = java.time.Instant.now().toString()

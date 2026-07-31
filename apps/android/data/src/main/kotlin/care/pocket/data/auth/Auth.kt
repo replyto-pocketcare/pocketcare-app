@@ -46,12 +46,13 @@ suspend fun ensureUser(client: SupabaseClient): String {
  */
 suspend fun isGuest(client: SupabaseClient): Boolean {
     val user = try {
-        client.auth.retrieveCurrentUser()
+        val token = client.auth.currentAccessTokenOrNull() ?: return false
+        client.auth.retrieveUser(token)
     } catch (_: Exception) {
         return false
     }
-    // isAnonymous is a property on UserInfo in supabase-kt 3.x (from the JWT).
-    return user?.isAnonymous == true
+    // isAnonymous was removed/moved in newer supabase-kt. Check appMetadata provider.
+    return user.appMetadata?.get("provider")?.let { it as? kotlinx.serialization.json.JsonPrimitive }?.content == "anonymous"
 }
 
 /**
@@ -83,19 +84,23 @@ suspend fun sendOtp(client: SupabaseClient, email: String) {
         this.email = email
         // createUser: if no account exists, create one. Mirrors the web's
         // behavior of treating OTP as both sign-up and sign-in.
-        shouldCreateUser = true
+        createUser = true
     }
 }
 
 /**
- * Verify an OTP token received by the user (completes the magic-link flow).
- * NOTE: The exact OtpType enum path varies by supabase-kt version — verify
- * against the installed version's KDoc during the L3 build verification.
+ * Verify an OTP token received by the user (completes the OTP sign-in flow
+ * started by sendOtp, above — NOT specifically a magic-link flow).
  */
 suspend fun verifyOtp(client: SupabaseClient, email: String, token: String) {
-    // supabase-kt 3.x OTP verification — token is the 6-digit code or link token.
+    // OtpType.Email.EMAIL is the generic email-OTP case, matching sendOtp's
+    // generic createUser=true flow (not .MAGIC_LINK, a distinct, more specific
+    // OTP type for a dedicated magic-link flow this app doesn't use). Verified
+    // against Supabase's own Kotlin reference example (supabase.com/docs/
+    // reference/kotlin/auth-verifyotp), which uses exactly this case; also
+    // matches Auth.swift's `.email` case on iOS — cross-platform consistent.
     client.auth.verifyEmailOtp(
-        type = io.github.jan.supabase.auth.providers.builtin.OtpType.Email.EMAIL,
+        type = io.github.jan.supabase.auth.OtpType.Email.EMAIL,
         email = email,
         token = token,
     )
@@ -111,7 +116,8 @@ suspend fun verifyOtp(client: SupabaseClient, email: String, token: String) {
  * the token is obtained, only about how it's exchanged with Supabase.
  */
 suspend fun signInWithGoogle(client: SupabaseClient, idToken: String) {
-    client.auth.signInWith(Google) {
+    client.auth.signInWith(io.github.jan.supabase.auth.providers.builtin.IDToken) {
+        provider = Google
         this.idToken = idToken
     }
 }

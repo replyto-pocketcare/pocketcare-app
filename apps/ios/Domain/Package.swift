@@ -8,7 +8,7 @@ import PackageDescription
 // golden rule 8 "web is the spec").
 let package = Package(
     name: "Domain",
-    platforms: [.iOS(.v17)],
+    platforms: [.iOS(.v17), .macOS(.v13)],
     products: [
         .library(name: "Domain", targets: ["Domain"])
     ],

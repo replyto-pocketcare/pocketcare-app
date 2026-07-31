@@ -11,7 +11,7 @@ import PackageDescription
 // P2.4b: Auth helpers (guest sign-in, in-place upgrade, offline marker)
 let package = Package(
     name: "Data",
-    platforms: [.iOS(.v17)],
+    platforms: [.iOS(.v17), .macOS(.v13)],
     products: [
         .library(name: "Data", targets: ["Data"])
     ],

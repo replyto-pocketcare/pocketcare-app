@@ -23,14 +23,12 @@ import Supabase
 ///
 /// Mirrors ensureUser(client) in auth.ts.
 public func ensureUser(client: SupabaseClient) async throws -> String {
-    if let session = try? await client.auth.session, let user = session.user {
-        return user.id.uuidString
+    if let session = try? await client.auth.session {
+        return session.user.id.uuidString
     }
     try await client.auth.signInAnonymously()
-    guard let user = try await client.auth.session.user else {
-        throw AuthError.anonymousSignInFailed
-    }
-    return user.id.uuidString
+    let session = try await client.auth.session
+    return session.user.id.uuidString
 }
 
 // MARK: - isGuest
@@ -40,8 +38,8 @@ public func ensureUser(client: SupabaseClient) async throws -> String {
 /// Mirrors isGuest(client) in auth.ts.
 /// Supabase exposes `isAnonymous` on the User object for anonymous sessions.
 public func isGuest(client: SupabaseClient) async -> Bool {
-    guard let user = try? await client.auth.session.user else { return false }
-    return user.isAnonymous
+    guard let session = try? await client.auth.session else { return false }
+    return session.user.isAnonymous
 }
 
 // MARK: - upgradeGuestWithEmail
