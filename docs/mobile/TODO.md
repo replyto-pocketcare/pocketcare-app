@@ -5,48 +5,48 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 (latest) — FIRST fully green build on both
-               platforms. money+ledger+finance+budget (P1.1-P1.3) all
-               confirmed passing by the human on real `./gradlew test` /
-               `swift test` runs. Getting there took 3 real, non-obvious
-               Swift fixes AFTER "compiled" but before "all green": (1)
-               `xcodebuild test -scheme PocketCare` doesn't run the
-               Domain package's own tests at all (two separate test
-               tracks by design -- `swift test --package-path Domain` is
-               the one that matters); (2) Swift 6 strict concurrency
-               rejected FunctionRegistry's mutable `static var` (fixed
-               with `nonisolated(unsafe)`, 29a9d01); (3) NSNumber.isEqual
-               returned false for two textually-identical fractional
-               doubles from different construction paths -- replaced
-               with a value-based recursive comparator (77607ac),
-               mirroring the jsonElementsEqual fix already made on the
-               Kotlin side. Kotlin needed zero fixes after "compiled."
-Android state: money 7d3107a, ledger 5a705de, finance+budget e8ef8b8 --
-               all DONE, human-confirmed green.
-iOS state:     money 7d3107a+6be76b9, ledger 5a705de, finance+budget
-               e8ef8b8, plus infra fixes 29a9d01 (concurrency) and
-               77607ac (NSNumber equality) -- all DONE, human-confirmed
-               green.
-Vectors:       DONE (P0.1), 250 total. 87 registered and passing (money
-               37/40, ledger 10, finance 33, budget 10); 163 still fully
-               skipped across the 12 unported domains.
-Next up:       P1.4 splits+insights (needs only P1.1, per plan §5) --
-               starting now, same session, per "let's move ahead."
+Last session: 2026-07-31 (latest) — money+ledger+finance+budget (P1.1-
+               P1.3) confirmed green on both platforms (see change log
+               for the 3 real Swift fixes it took to get there), then
+               kept going per "let's move ahead": ported splits-insights
+               + splits-math (P1.4, commit 17291cb) same session. This
+               domain's vectors are plain JSON numbers throughout (no
+               amt()/mny() string convention, a first) and needed real
+               ISO date-arithmetic (averageSettleDays' FIFO debt-aging)
+               -- Kotlin via java.time.Instant/LocalDate, Swift via
+               ISO8601DateFormatter (safe here, unlike Budget.swift's
+               Calendar avoidance, since this is pure UTC-string parsing
+               with no add/subtract). P1.4 itself is NOT build-verified
+               yet -- next step.
+Android state: money/ledger/finance/budget DONE+green. P1.4 DOING
+               (17291cb): domain/.../splitsinsights/SplitsInsights.kt +
+               splitsmath/SplitsMath.kt, all 4 fns registered, wired
+               into VectorRunnerTest's `splits-insights`()/`splits-math`().
+iOS state:     money/ledger/finance/budget DONE+green. P1.4 DOING
+               (17291cb): Domain/Sources/Domain/SplitsInsights.swift +
+               SplitsMath.swift, registered via new *Vectors.swift files,
+               wired into VectorRunnerTests' testSplitsInsights()/
+               testSplitsMath().
+Vectors:       DONE (P0.1), 250 total. 97 registered (87 confirmed
+               green + 10 new P1.4, unverified); 153 still fully skipped
+               across 10 unported domains.
+Next up:       Human runs `cd apps/android && ./gradlew test` and
+               `cd apps/ios/Domain && swift test`. Expect
+               splits-insights 6/6/0, splits-math 4/4/0 (total/passed/
+               skipped). Then P1.5 receipts next ([H] tag -- strong
+               model/human-paired per the standing rule, needs only
+               P1.1).
 Traps/notes:   Kotlin/Swift block comments both NEST -- grep for literal
-               `/*` before every commit. Swift: bare int literals are
-               ambiguous against Int64/Double overloads -- always
-               Int64(0) explicitly; Kotlin needs 0L for the same reason.
-               Registries keyed by (domain, fn). iOS has TWO test
-               commands -- `swift test --package-path Domain` for the
-               actual vector tests, `xcodebuild test -scheme PocketCare`
-               only for the App-level placeholder -- always ask for the
-               former's output, not just "it compiled." Swift's
+               `/*` before every commit. Bare int literals need explicit
+               widening on both platforms (Int64(0) / 0L). Registries
+               keyed by (domain, fn). iOS: `swift test --package-path
+               Domain` for real vector tests, NOT `xcodebuild test
+               -scheme PocketCare` (App-level placeholder only). Swift's
                NSNumber.isEqual is NOT trustworthy for fractional
-               doubles -- VectorRunnerTests.swift's jsonValueEqual now
-               compares .doubleValue directly instead. COMMIT EVERY
-               SESSION.
-Blocked:       Nothing. Both platforms verified end-to-end for the first
-               time this session.
+               doubles -- jsonValueEqual compares .doubleValue directly.
+               COMMIT EVERY SESSION.
+Blocked:       Nothing structurally. P1.4 (this session's newest work)
+               awaits its first real build/test run.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -77,7 +77,7 @@ Blocked:       Nothing. Both platforms verified end-to-end for the first
 | P1.1a / P1.1b | money — Android / iOS | [M] | P0.4a / P0.4b | DONE (2026-07-31, 7d3107a + Swift fix 6be76b9 — human confirmed `[vectors] domain=money total=40 passed=37 skipped=3 failed=0` both platforms) / DONE (same) |
 | P1.2a / P1.2b | ledger — Android / iOS | [M] | P1.1 same-platform | DONE (2026-07-31, 5a705de — human confirmed `total=10 passed=10 skipped=0 failed=0` both platforms) / DONE (same) |
 | P1.3a / P1.3b | finance+budget — Android / iOS | [M] | P1.2 | DONE (2026-07-31, e8ef8b8 + Swift fixes 29a9d01/77607ac — human confirmed `finance total=33 passed=33` and `budget total=10 passed=10`, both `failed=0`, both platforms) / DONE (same) |
-| P1.4a / P1.4b | splits+insights — Android / iOS | [M] | P1.1 | TODO / TODO |
+| P1.4a / P1.4b | splits+insights — Android / iOS | [M] | P1.1 | DOING (2026-07-31, claude-sonnet-5, commit 17291cb — 4/4 fns, 10 vectors, NOT build-verified) / DOING (same) |
 | P1.5a / P1.5b | receipts — Android / iOS | [H] | P1.1 | TODO / TODO |
 | P1.6a / P1.6b | upi+sync-policy+diagnostics — Android / iOS | [M] | P1.1 | TODO / TODO |
 | P1.7a / P1.7b | entitlements+gate map — Android / iOS | [S] | P0.4 | TODO / TODO |
