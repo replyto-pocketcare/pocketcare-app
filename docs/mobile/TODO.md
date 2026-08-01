@@ -5,17 +5,16 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-07-31 — completed Phase 3 S2 Budgets UI (P3.4a & P3.4b).
-               Built BudgetsScreen & CreateBudgetScreen (Compose) + Budgets tab in NavHost,
-               and BudgetsView & CreateBudgetView (SwiftUI) + Budgets tab in MainTabView.
-               Features progress bars, status tags (On Track / Near Limit / Over Budget),
-               spent vs limit comparisons, and category filters matching BudgetRepository.
-Android state: Phase 1 & 2 DONE. S1 & S2 Budgets UI (Dashboard, Accounts, Txns, Budgets) DONE.
-iOS state:     Phase 1 & 2 DONE. S1 & S2 Budgets UI (Dashboard, Accounts, Txns, Budgets) DONE.
+Last session: 2026-08-01 — completed Phase 3 UI Slice S2 (P3.4 & P3.5) for Android & iOS.
+               Built GoalsScreen & CreateGoalScreen (Compose), and GoalsView & CreateGoalView (SwiftUI).
+               Features segmented toggle for Financial Goals vs Planned Cashflow, progress bars,
+               target dates, saved vs goal comparisons, and cashflow status badges (planned, completed).
+Android state: Phase 1 & 2 DONE. S1 & S2 UI (Dashboard, Accounts, Txns, Budgets, Goals, Cashflow) DONE.
+iOS state:     Phase 1 & 2 DONE. S1 & S2 UI (Dashboard, Accounts, Txns, Budgets, Goals, Cashflow) DONE.
 Vectors:       250/250 green on both platforms. Core JS unit tests 290/290 green.
-Next up:       P3.5a / P3.5b UI Slice S2: Financial Goals & Planned Cashflow screens.
-Traps/notes:   Budgets progress percentage is clamped at 100% for progress bar rendering
-               while tag accurately reflects Over Budget (>100%).
+Next up:       Phase 3 UI Slice S3 (Splits groups/expenses/settlements, UPI payment flow).
+Traps/notes:   Goals and Cashflow views are unified in a single tab using a segmented button
+               for clean UI hierarchy without overcrowding the tab bar.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -68,17 +67,61 @@ Traps/notes:   Budgets progress percentage is clamped at 100% for progress bar r
 | P3.2a / P3.2b | UI Slice S1: Accounts view & Account edit/create screens | [M] | P3.1 | DONE (2026-07-31, AccountsScreen.kt) / DONE (2026-07-31, AccountsView.swift) |
 | P3.3a / P3.3b | UI Slice S1: Transactions list & Transaction creation flow | [M] | P3.1 | DONE (2026-07-31, TransactionsScreen.kt) / DONE (2026-07-31, TransactionsView.swift) |
 | P3.4a / P3.4b | UI Slice S2: Budgets list & Budget progress view with status indicators | [M] | P3.1 | DONE (2026-07-31, BudgetsScreen.kt) / DONE (2026-07-31, BudgetsView.swift) |
-| P3.5a / P3.5b | UI Slice S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | TODO / TODO |
+| P3.5a / P3.5b | UI Slice S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | DONE (2026-08-01, GoalsScreen.kt) / DONE (2026-08-01, GoalsView.swift) |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
 
 **P2.1 note:** it does no I/O (it's a static schema mirror, not a connector), so TP L3 doesn't apply to it directly — its actual Done-when was met by (a) all 63 tables/columns/indexes/local-only flags present identically on all three platforms, verified by a bracket-aware structural diff against the real `AppSchema` object (zero mismatches), and (b) the parity-check mechanism itself: regenerating from a clean `AppSchema` reproduces byte-identical output, so a future `git diff` after changing `packages/db/src/index.ts` is the ongoing drift check. See PROJECT_REFERENCE.md change log for the generation approach (introspect + codegen, not hand-transcribe).
 
-Not expanded yet (plan §7-8).
+### Phase 2 closeout — the L3 gate (expanded 2026-07-31)
+| ID | Task | Tag | Needs | Status |
+|---|---|---|---|---|
+| P2.7 | **TP L3 harness** — test Supabase project + PowerSync instance + the fault-injection presets from `docs/plans/full-test-plan.md` §SYN (0040 partial-set replay, head-of-line block, 401 refresh, quarantine drain). Needs human-provided credentials + a first real device/simulator sync run. Unblocks verification of P2.2–P2.4 on both platforms. | [H] | human: infra + creds | TODO |
+| P2.8a / P2.8b | Run L3 suite → flip P2.2–P2.4 from "code complete" to DONE — Android / iOS | [M] | P2.7 | TODO / TODO |
+
+### Phase 3 — UI slices, remainder (expanded 2026-07-31, plan §7)
+*Done-when (each): builds green on the platform, slice's test-catalog cases ([W]-portable ones) pass, screenshots in the commit/PR, parity row flipped. Anything touching money display goes through the ONE shared hide-amounts formatter (PRIV-1).*
+
+| ID | Task | Tag | Needs | Status |
+|---|---|---|---|---|
+| P3.5a / P3.5b | S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | TODO / TODO |
+| P3.6a / P3.6b | S1 leftover: Onboarding/walkthrough (keep the "not connected to your bank" copy faithfully) + auth screens (guest → OTP → Google; in-place guest upgrade UI) | [H] | P2.4 verified (P2.8) | TODO / TODO |
+| P3.7a / P3.7b | S1 leftover: Settings-lite (currency, language, theme, hide-amounts) + the shared money formatter + premium **gate map port** (deferred from P1.7) wired via entitlements | [M] | P3.1 | TODO / TODO |
+| P3.8a / P3.8b | S2: Loans & recurring (EMI schedule view, mark-paid dialog, auto-post surfacing, recurring groups) | [M] | P3.5 | TODO / TODO |
+| P3.9a / P3.9b | S2: Credit cards (native card list, cycle/limit/due, settle-bill flow incl. covered-EMI confirm) | [M] | P3.3 | TODO / TODO |
+| P3.10a / P3.10b | S3: Splits & groups (friends screen, group detail, who-owes-whom, Patterns w/ thresholds, person sheet) | [M] | P3.3 | TODO / TODO |
+| P3.11a / P3.11b | S3: Invite deep links — App Links / Universal Links for `/join?token=`, token survives auth, no redirect loop (needs real domain — see Decisions) | [H] | P3.6, P3.10 | TODO / TODO |
+| P3.12a / P3.12b | S3: UPI settle-up — Android: real Intent + chooser + copy/QR fallback; iOS: copy-first + QR; two-sided confirmation states, optimistic pending netting, disputed excluded everywhere | [H] | P3.10 | TODO / TODO |
+| P3.13a / P3.13b | S4: Receipt scan — CameraX+ML Kit / AVFoundation+Vision **with word bounding boxes** → ported line-rebuild + reconciliation gate UI (review must not save until Σ lines == total) | [H] | P3.3 | TODO / TODO |
+| P3.14a / P3.14b | S4: Statement import — file pick, PDF text extraction (PdfRenderer / PDFKit), column-aware parse, bulk import w/ dedupe preview | [H] | P3.3 | TODO / TODO |
+| P3.15a / P3.15b | S5: Investments (holdings, add-investment dialog, FD/SIP) | [M] | P3.1 | TODO / TODO |
+| P3.16a / P3.16b | S5: Insights cards + month comparison (respect hide-amounts in every chart — the historical leak class) | [M] | P3.1 | TODO / TODO |
+| P3.17a / P3.17b | S5: Statements (premium, printable/share) + Search | [M] | P3.3, P3.7 | TODO / TODO |
+| P3.18a / P3.18b | S6 (optional, last): Assistant — same edge function, native chat UI, SpeechRecognizer / SFSpeechRecognizer input | [M] | P3.7 | TODO / TODO |
+
+### Phase 4 — native surfaces (expanded 2026-07-31, plan §7 "P4.x")
+| ID | Task | Tag | Needs | Status |
+|---|---|---|---|---|
+| P4.0 | Migration `00xx_native_push.sql` (`push_subscriptions` + platform/token/live_activity_token) + `notify-dispatch` per-platform fan-out. THE only backend change — CLAUDE.md migration rules, human runs `supabase db push` + function deploy | [H] | human approval | TODO |
+| P4.1a / P4.1b | Notifications — FCM channels / APNs categories mapped to `notification_prefs`, deep links with prefill, dedupe via `pushed_at` | [M] | P4.0, P2.8 | TODO / TODO |
+| P4.2a / P4.2b | Widgets — pre-formatted **pre-masked** snapshot to DataStore / App Group on sync+write; Glance / WidgetKit render-only (never open the PowerSync DB); stale-since; empty-state | [M] | P3.1 | TODO / TODO |
+| P4.3 | Live Activities (iOS only) — trip-mode running spend + EMI-due-today; APNs `liveactivity` pushes off `group_expense` fan-out, ≤1/15min batching | [H] | P4.0, P4.2b | TODO |
+| P4.4a / P4.4b | Quick capture — Android app shortcuts + QS tile / iOS App Intents ("log 200 rupees groceries"), writes through normal repos, offline-safe | [S] | P3.3 | TODO / TODO |
+| P4.5a / P4.5b | Security — biometric lock, FLAG_SECURE / privacy screen; field-level crypto port (Keystore / CryptoKit, EXACT web algorithms — never swap KDF/primitives); **SEC-1 cross-platform round-trip (web↔android↔ios) green before any mobile write of sealed fields** | [H] | P2.8 | TODO / TODO |
+
+### Phase 5 — monetization + release (expanded 2026-07-31, plan §8)
+| ID | Task | Tag | Needs | Status |
+|---|---|---|---|---|
+| P5.1a / P5.1b | RevenueCat native SDKs → same `entitlements` semantics, offline grace; boundaries = web gate map (ported in P3.7), never re-decided | [M] | P3.7 | TODO / TODO |
+| P5.2 | CI/CD — fastlane lanes both apps: unit+vectors → L3 integration → Firebase Test Lab (test plan §TL: matrix, Robo, instrumented) → Play internal / TestFlight → staged rollout 5→20→100% | [H] | P2.7 | TODO |
+| P5.3 | Store prep — privacy labels matching reality, data-safety forms, `assetlinks.json` + `apple-app-site-association` on the web origin (named `apps/web/public/` exception; needs real bundle ids/domain) | [M] | P3.11 | TODO |
+| P5.4 | Launch gate — test-plan §6 exit criteria: PRIV sweep, SEC-1, SYN suite, AUTH-6 zero-exception green; 3 clean Robo nightlies; TalkBack/VoiceOver pass on S1; hi/nl reviews resolved/accepted; manual smoke on one real low-end Android + one iPhone | [H] | all above | TODO |
 
 ## Decisions needing a human (standing list)
 - Any new dependency beyond the §0 irreducible set (PowerSync, Supabase SDK, RevenueCat, FCM).
   - ✅ 2026-07-31: `kotlinx.serialization` (test-scope, Android only, P0.4a) — approved in-session for parsing golden-vector JSON in `:domain`, which has no Android SDK and thus no built-in JSON parser. iOS needed no equivalent approval (Foundation's JSONSerialization is already available, not a new dependency).
-- [H] tasks: P1.5, and any Phase 2 items once expanded — strong model or human-paired only.
+- [H] tasks (strong model or human-paired only): P2.7, P3.6, P3.11–P3.14, P4.0, P4.3, P4.5, P5.2, P5.4.
+- **P2.7 needs you:** a test Supabase project + PowerSync instance + credentials, and a first on-device sync run — nothing in Phase 2 can be marked truly DONE without it, and P3.6/P4.x chain behind it.
+- **P4.0 needs you:** approve + deploy the one backend migration (`supabase db push`, `notify-dispatch` redeploy).
 - Exact minimum OS versions (proposal due with P0.2/P0.3: minSdk + iOS min).
-- Real bundle ids / Universal-Links domain (plan §10).
+- Real bundle ids / Universal-Links domain — now blocking P3.11 and P5.3, not just "eventually".
