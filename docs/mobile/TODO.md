@@ -5,17 +5,17 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-01 — completed Phase 3 UI Slice S3 (Splits & UPI Payment flow).
-               Built SplitsScreen & CreateGroupScreen & PayViaUpiDialog (Compose) on Android,
-               and SplitsView & CreateGroupView & PayViaUpiSheet (SwiftUI) on iOS.
-               Design mirrors web's PayViaUpi.tsx and NewGroupModal.tsx (masked VPA,
-               direct upi:// intent launch, manual fallback with copy buttons, trip/group kinds).
-Android state: Phase 1 & 2 DONE. S1, S2 & S3 UI (Dashboard, Accounts, Txns, Budgets, Splits, UPI) DONE.
-iOS state:     Phase 1 & 2 DONE. S1, S2 & S3 UI (Dashboard, Accounts, Txns, Budgets, Splits, UPI) DONE.
+Last session: 2026-08-01 — completed Phase 3 UI Slice S4 (Receipts & Bank Statements).
+               Built ReceiptScanScreen & StatementImportScreen (Compose) on Android,
+               and ReceiptScanView & StatementImportView (SwiftUI) on iOS.
+               Features AI scan line-item breakdown, participant share allocation,
+               PDF/CSV bank statement parser preview, and zero-drift FNV-1a checksum verification.
+Android state: Phase 1 & 2 DONE. S1-S4 UI (Dashboard, Accounts, Txns, Budgets, Splits, Receipts, Statements) DONE.
+iOS state:     Phase 1 & 2 DONE. S1-S4 UI (Dashboard, Accounts, Txns, Budgets, Splits, Receipts, Statements) DONE.
 Vectors:       250/250 green on both platforms. Core JS unit tests 290/290 green.
-Next up:       Phase 3 UI Slice S4 (Receipts scanning/breakdown, Bank Statements).
-Traps/notes:   UPI payment flow mirrors web's exact structure (no success callback,
-               deep-link trigger, manual copy fallback for VPA & amount).
+Next up:       Phase 3 UI Slice S5 (Investment Portfolios, Financial Insights, Credit Cards).
+Traps/notes:   Receipt scan allocation mirrors web's ItemBreakdown component,
+               supporting individual item shares and proportional tax/service charge.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -71,6 +71,8 @@ Traps/notes:   UPI payment flow mirrors web's exact structure (no success callba
 | P3.5a / P3.5b | UI Slice S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | DONE (2026-08-01, GoalsScreen.kt) / DONE (2026-08-01, GoalsView.swift) |
 | P3.6a / P3.6b | UI Slice S3: Splits view (Groups, Trips, 1:1 friends, split balance netting) | [M] | P3.1 | DONE (2026-08-01, SplitsScreen.kt) / DONE (2026-08-01, SplitsView.swift) |
 | P3.7a / P3.7b | UI Slice S3: UPI Payment flow & manual copy fallback (PayViaUpi) | [M] | P3.6 | DONE (2026-08-01, PayViaUpiDialog.kt) / DONE (2026-08-01, PayViaUpiSheet.swift) |
+| P3.8a / P3.8b | UI Slice S4: Receipt scanning & line-item participant allocation screen | [M] | P3.1 | DONE (2026-08-01, ReceiptScanScreen.kt) / DONE (2026-08-01, ReceiptScanView.swift) |
+| P3.9a / P3.9b | UI Slice S4: Bank statement import & reconcile screen | [M] | P3.1 | DONE (2026-08-01, StatementImportScreen.kt) / DONE (2026-08-01, StatementImportView.swift) |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
 
