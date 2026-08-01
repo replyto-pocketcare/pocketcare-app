@@ -9,15 +9,21 @@ import care.pocket.android.ui.AccountsScreen
 import care.pocket.android.ui.BudgetsScreen
 import care.pocket.android.ui.CreateAccountScreen
 import care.pocket.android.ui.CreateBudgetScreen
+import care.pocket.android.ui.CreateGroupScreen
 import care.pocket.android.ui.CreateTransactionScreen
 import care.pocket.android.ui.DashboardScreen
+import care.pocket.android.ui.FriendEdgeUiModel
+import care.pocket.android.ui.GoalsScreen
+import care.pocket.android.ui.PayViaUpiDialog
+import care.pocket.android.ui.SplitsScreen
 import care.pocket.android.ui.TransactionsScreen
 
 enum class NavTab {
     DASHBOARD,
     ACCOUNTS,
     TRANSACTIONS,
-    BUDGETS
+    BUDGETS,
+    SPLITS
 }
 
 @Composable
@@ -26,6 +32,8 @@ fun PocketCareNavHost() {
     var showingCreateAccount by remember { mutableStateOf(false) }
     var showingCreateTxn by remember { mutableStateOf(false) }
     var showingCreateBudget by remember { mutableStateOf(false) }
+    var showingCreateGroup by remember { mutableStateOf(false) }
+    var settlingFriend by remember { mutableStateOf<FriendEdgeUiModel?>(null) }
 
     if (showingCreateAccount) {
         CreateAccountScreen(
@@ -42,7 +50,22 @@ fun PocketCareNavHost() {
             onDismiss = { showingCreateBudget = false },
             onSave = { _, _, _, _ -> showingCreateBudget = false }
         )
+    } else if (showingCreateGroup) {
+        CreateGroupScreen(
+            onDismiss = { showingCreateGroup = false },
+            onSave = { _, _, _, _ -> showingCreateGroup = false }
+        )
     } else {
+        settlingFriend?.let { friend ->
+            PayViaUpiDialog(
+                counterpartyName = friend.name,
+                vpa = friend.vpa ?: "payee@upi",
+                amountMinor = 120000,
+                onDismiss = { settlingFriend = null },
+                onPaid = { settlingFriend = null }
+            )
+        }
+
         Scaffold(
             bottomBar = {
                 NavigationBar(
@@ -53,7 +76,7 @@ fun PocketCareNavHost() {
                         selected = (currentTab == NavTab.DASHBOARD),
                         onClick = { currentTab = NavTab.DASHBOARD },
                         icon = { Text("🏠") },
-                        label = { Text("Dashboard") }
+                        label = { Text("Home") }
                     )
                     NavigationBarItem(
                         selected = (currentTab == NavTab.ACCOUNTS),
@@ -73,6 +96,12 @@ fun PocketCareNavHost() {
                         icon = { Text("📊") },
                         label = { Text("Budgets") }
                     )
+                    NavigationBarItem(
+                        selected = (currentTab == NavTab.SPLITS),
+                        onClick = { currentTab = NavTab.SPLITS },
+                        icon = { Text("🤝") },
+                        label = { Text("Splits") }
+                    )
                 }
             }
         ) { padding ->
@@ -87,6 +116,10 @@ fun PocketCareNavHost() {
                     )
                     NavTab.BUDGETS -> BudgetsScreen(
                         onAddBudgetClick = { showingCreateBudget = true }
+                    )
+                    NavTab.SPLITS -> SplitsScreen(
+                        onAddGroupClick = { showingCreateGroup = true },
+                        onSettleUpClick = { friend -> settlingFriend = friend }
                     )
                 }
             }

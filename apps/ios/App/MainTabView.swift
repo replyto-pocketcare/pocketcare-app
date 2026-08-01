@@ -5,7 +5,7 @@ struct MainTabView: View {
         TabView {
             DashboardView()
                 .tabItem {
-                    Label("Dashboard", systemImage: "house.fill")
+                    Label("Home", systemImage: "house.fill")
                 }
 
             AccountsView()
@@ -21,6 +21,11 @@ struct MainTabView: View {
             BudgetsView()
                 .tabItem {
                     Label("Budgets", systemImage: "chart.pie.fill")
+                }
+
+            SplitsView()
+                .tabItem {
+                    Label("Splits", systemImage: "person.2.fill")
                 }
         }
         .tint(Theme.terracotta)
