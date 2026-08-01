@@ -5,17 +5,15 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-01 — completed Phase 3 UI Slice S5 (Investments & Credit Cards).
-               Built InvestmentsScreen & CreditCardsScreen (Compose) on Android,
-               and InvestmentsView & CreditCardsView (SwiftUI) on iOS.
-               Features portfolio summary, stock/MF/SIP/Crypto/FD asset filters, return % tags,
-               and CSS credit card face mirror matching web's CreditCard.tsx.
-Android state: Phase 1 & 2 DONE. S1-S5 UI (Dashboard, Accounts, Txns, Budgets, Splits, Receipts, Statements, Investments, Credit Cards) DONE.
-iOS state:     Phase 1 & 2 DONE. S1-S5 UI (Dashboard, Accounts, Txns, Budgets, Splits, Receipts, Statements, Investments, Credit Cards) DONE.
+Last session: 2026-08-01 — completed Phase 3 UI Slice S6 (AI Assistant & Voice Interface).
+               Built AssistantScreen (Compose) on Android, and AssistantView (SwiftUI) on iOS.
+               Features chat stream, rich financial insight cards, composer bar with MicButton toggle
+               (recording state & transcribing percentage pulse), and quick prompts.
+Android state: Phase 1 & 2 DONE. ALL Phase 3 UI Slices S1-S6 COMPLETE (Dashboard, Accounts, Txns, Budgets, Splits, Receipts, Statements, Investments, Credit Cards, AI Assistant).
+iOS state:     Phase 1 & 2 DONE. ALL Phase 3 UI Slices S1-S6 COMPLETE (Dashboard, Accounts, Txns, Budgets, Splits, Receipts, Statements, Investments, Credit Cards, AI Assistant).
 Vectors:       250/250 green on both platforms. Core JS unit tests 290/290 green.
-Next up:       Phase 3 UI Slice S6 (AI Financial Assistant natural language & voice interface).
-Traps/notes:   Credit card face mirrors CreditCard.tsx's exact visual layout (cardholder,
-               network logo, contactless wave symbol, EMV chip icon, masked 16-digit number).
+Next up:       Phase 4 Native Features (Widgets, Live Activities, Native Push, Biometrics).
+Traps/notes:   AI Assistant mirrors MicButton.tsx's exact state machine (idle -> recording -> transcribing -> listening).
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -75,6 +73,7 @@ Traps/notes:   Credit card face mirrors CreditCard.tsx's exact visual layout (ca
 | P3.9a / P3.9b | UI Slice S4: Bank statement import & reconcile screen | [M] | P3.1 | DONE (2026-08-01, StatementImportScreen.kt) / DONE (2026-08-01, StatementImportView.swift) |
 | P3.10a / P3.10b | UI Slice S5: Investment Portfolios & Holdings breakdown screen | [M] | P3.1 | DONE (2026-08-01, InvestmentsScreen.kt) / DONE (2026-08-01, InvestmentsView.swift) |
 | P3.11a / P3.11b | UI Slice S5: Credit Cards view & CreditCard.tsx face design mirror | [M] | P3.1 | DONE (2026-08-01, CreditCardsScreen.kt) / DONE (2026-08-01, CreditCardsView.swift) |
+| P3.12a / P3.12b | UI Slice S6: AI Financial Assistant chat interface & MicButton voice dictation | [M] | P3.1 | DONE (2026-08-01, AssistantScreen.kt) / DONE (2026-08-01, AssistantView.swift) |
 
 *Done-when (each):* TP L3 (sync integration, per plan's test-plan doc) passes for that piece on that platform — a real PowerSync round-trip against a test Supabase project, not just unit tests of the surrounding logic. This is a materially different verification bar than Phase 1's pure-function vectors: these tasks touch actual I/O (SQLite, network), so "compiles and the domain-logic unit tests pass" is necessary but not sufficient — plan's `docs/plans/full-test-plan.md` L3 fault-injection presets are the real gate.
 
