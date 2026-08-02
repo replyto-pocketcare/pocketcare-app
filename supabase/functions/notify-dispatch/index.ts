@@ -1,18 +1,22 @@
-// PocketCare — notification dispatcher.
+// Sanvya — notification dispatcher.
 //
 // Computes per-user triggers (upcoming EMIs/bills, budget limits, low balance,
 // unusual spend), writes them into `pocketcare.notifications` (deduped so a
 // given event alerts once), and delivers a Web Push to every registered
 // subscription so the alert arrives even with the app closed (browser must be
-// running in the background).
+// running in the background). Also supports native push (FCM for Android, APNs for iOS).
 //
 // Deploy:   supabase functions deploy notify-dispatch --no-verify-jwt
 // Secrets:  supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:you@app
+//           supabase secrets set FIREBASE_SERVICE_ACCOUNT='{...}'
+//           supabase secrets set APNS_KEY='...' APNS_KEY_ID=... APNS_TEAM_ID=... APNS_TOPIC=com.sanvya.app
 // Schedule: hit this endpoint on a cron (e.g. hourly) via Supabase scheduled
 //           functions / pg_cron / an external scheduler. Optional POST body
 //           { "user_id": "<uuid>" } runs it for a single user (handy for tests).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
+import { GoogleAuth } from "npm:google-auth-library@9.0.0";
+import * as jose from "npm:jose@5.2.3";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -35,7 +39,8 @@ const DEFAULT_PREFS: Prefs = {
   low_balance_threshold: 0, emi_lead_days: 3,
 };
 
-interface Notif { kind: string; title: string; body: string; severity: string; href: string | null; dedupe_key: string }
+interface Notif { kind: string; title: string; body: string; subtitle?: string; image_url?: string; severity: string; href: string | null; dedupe_key: string }
+
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -44,25 +49,26 @@ Deno.serve(async (req: Request) => {
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const vapidPublic = Deno.env.get("VAPID_PUBLIC_KEY");
   const vapidPrivate = Deno.env.get("VAPID_PRIVATE_KEY");
-  const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:support@pocketcare.app";
+  const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:support@sanvya.app";
   if (!url || !key) return json({ error: "Supabase environment not configured." }, 500);
   if (vapidPublic && vapidPrivate) webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
 
   const db = createClient(url, key, { db: { schema: "pocketcare" } });
 
-  let onlyUser: string | undefined;
-  try { onlyUser = (await req.json())?.user_id; } catch { /* no body — run for everyone */ }
+  let bodyObj: any;
+  try { bodyObj = await req.json(); } catch { /* no body */ }
 
-  // Pending UPI settlements (0041): nudge the payee at 3 days, auto-confirm at
-  // 14. Without this a payer who really did send money is left looking like
-  // they still owe it, indefinitely, because we get no payment callback.
-  // Runs once per dispatch, not per user — it's a global sweep.
+  if (bodyObj?.action === "broadcast") {
+    return await handleBroadcast(db, bodyObj);
+  }
+
+  let onlyUser = bodyObj?.user_id;
+
   if (!onlyUser) {
     const { error: sweepErr } = await db.rpc("sweep_pending_settlements");
     if (sweepErr) console.error("[notify-dispatch] settlement sweep failed:", sweepErr.message);
   }
 
-  // Which users to process: the requested one, or everyone with a profile.
   const { data: profiles, error: pErr } = onlyUser
     ? await db.from("profiles").select("id").eq("id", onlyUser)
     : await db.from("profiles").select("id");
@@ -81,7 +87,6 @@ Deno.serve(async (req: Request) => {
 });
 
 async function processUser(db: ReturnType<typeof createClient>, userId: string): Promise<{ created: number; pushed: number }> {
-  // Prefs (fall back to defaults if the user never opened settings).
   const { data: prefRow } = await db.from("notification_prefs")
     .select("push_enabled, emi_due, budget, low_balance, outlier, low_balance_threshold, emi_lead_days")
     .eq("user_id", userId).is("deleted_at", null).maybeSingle();
@@ -93,7 +98,6 @@ async function processUser(db: ReturnType<typeof createClient>, userId: string):
       }
     : DEFAULT_PREFS;
 
-  // 1. Compute cron-style triggers and insert them (deduped).
   const out: Notif[] = [];
   if (prefs.emi_due) out.push(...await emiDue(db, userId, prefs.emi_lead_days));
   if (prefs.budget) out.push(...await budgetAlerts(db, userId));
@@ -111,26 +115,59 @@ async function processUser(db: ReturnType<typeof createClient>, userId: string):
     else created = (inserted ?? []).length;
   }
 
-  // 2. Push EVERY unpushed recent notification — covers both the rows we just
-  // inserted AND event-driven rows created by DB triggers (group joins/expenses)
-  // since the last run. This unifies delivery so trigger rows aren't missed.
   const pushed = prefs.push_enabled ? await pushUnpushed(db, userId) : 0;
   return { created, pushed };
 }
 
-/** Deliver Web Push for any recent, unread, not-yet-pushed rows; mark them pushed. */
+async function handleBroadcast(db: ReturnType<typeof createClient>, payload: any) {
+  const { group_id, title, subtitle, body, image_url, href } = payload;
+  if (!group_id || !title) return json({ error: "group_id and title required" }, 400);
+
+  const { data: members, error: memErr } = await db.from("notification_group_members").select("user_id").eq("group_id", group_id);
+  if (memErr) return json({ error: memErr.message }, 500);
+  if (!members || members.length === 0) return json({ ok: true, sent: 0, msg: "empty group" });
+
+  const now = new Date().toISOString();
+  const dedupe_key = `broadcast:${group_id}:${now}`;
+  const notifs = members.map((m: any) => ({
+    user_id: m.user_id,
+    kind: "system",
+    severity: "info",
+    title,
+    subtitle: subtitle || null,
+    body: body || null,
+    image_url: image_url || null,
+    href: href || null,
+    dedupe_key,
+    created_at: now,
+    updated_at: now
+  }));
+
+  const { error: insErr } = await db.from("notifications").insert(notifs);
+  if (insErr) return json({ error: insErr.message }, 500);
+
+  let sent = 0;
+  for (const m of members) {
+    // We send directly rather than waiting for next cron
+    const { data: prefRow } = await db.from("notification_prefs").select("push_enabled").eq("user_id", m.user_id).maybeSingle();
+    if (prefRow?.push_enabled) {
+      sent += await pushUnpushed(db, m.user_id);
+    }
+  }
+
+  return json({ ok: true, users: members.length, sent });
+}
+
 async function pushUnpushed(db: ReturnType<typeof createClient>, userId: string): Promise<number> {
   const since = new Date(Date.now() - 2 * DAY).toISOString();
   const { data: rows } = await db.from("notifications")
-    .select("id, title, body, href, dedupe_key")
+    .select("id, title, body, subtitle, image_url, href, dedupe_key")
     .eq("user_id", userId).is("pushed_at", null).is("read_at", null).is("deleted_at", null)
     .gte("created_at", since)
     .order("created_at", { ascending: false }).limit(20);
   if (!rows || rows.length === 0) return 0;
 
   const sent = await sendPush(db, userId, rows);
-  // Mark attempted rows pushed regardless of per-device success, so we don't
-  // re-push on every tick (404/410 subscriptions are pruned inside sendPush).
   await db.from("notifications").update({ pushed_at: new Date().toISOString() })
     .in("id", rows.map((r: { id: string }) => r.id));
   return sent;
@@ -138,7 +175,6 @@ async function pushUnpushed(db: ReturnType<typeof createClient>, userId: string)
 
 // --- Triggers ---------------------------------------------------------------
 
-/** Loans whose EMI falls within the lead window, plus planned bill payments. */
 async function emiDue(db: ReturnType<typeof createClient>, userId: string, lead: number): Promise<Notif[]> {
   const out: Notif[] = [];
   const today = todayISO();
@@ -151,8 +187,7 @@ async function emiDue(db: ReturnType<typeof createClient>, userId: string, lead:
   const y = d.getUTCFullYear(), m = d.getUTCMonth();
   for (const l of loans ?? []) {
     if (!l.emi_due_day || !l.emi_amount) continue;
-    if (l.tenure_months && l.emis_paid != null && l.emis_paid >= l.tenure_months) continue; // closed
-    // Due date this month (clamp day to month length).
+    if (l.tenure_months && l.emis_paid != null && l.emis_paid >= l.tenure_months) continue;
     const dim = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
     const dueDay = Math.min(l.emi_due_day, dim);
     const due = new Date(Date.UTC(y, m, dueDay)).toISOString().slice(0, 10);
@@ -186,7 +221,6 @@ async function emiDue(db: ReturnType<typeof createClient>, userId: string, lead:
   return out;
 }
 
-/** Budgets crossed 80% / 100% of their limit within the current period. */
 async function budgetAlerts(db: ReturnType<typeof createClient>, userId: string): Promise<Notif[]> {
   const out: Notif[] = [];
   const { data: budgets } = await db.from("budgets")
@@ -197,7 +231,7 @@ async function budgetAlerts(db: ReturnType<typeof createClient>, userId: string)
     if (!bg.limit_amount || bg.limit_amount <= 0) continue;
     const from = (bg.start_date ?? "").slice(0, 10) || addDays(today, -30);
     const to = (bg.end_date ?? "").slice(0, 10) || today;
-    if (today < from || today > to) continue; // not the active period
+    if (today < from || today > to) continue;
 
     const { data: cats } = await db.from("budget_categories").select("category_id").eq("budget_id", bg.id);
     const catIds = (cats ?? []).map((c: { category_id: string }) => c.category_id);
@@ -223,7 +257,6 @@ async function budgetAlerts(db: ReturnType<typeof createClient>, userId: string)
   return out;
 }
 
-/** Accounts whose derived balance is at/below the user's floor. */
 async function lowBalance(db: ReturnType<typeof createClient>, userId: string, threshold: number): Promise<Notif[]> {
   const { data: accts } = await db.from("accounts")
     .select("id, name, currency, kind, is_archived")
@@ -265,7 +298,6 @@ async function lowBalance(db: ReturnType<typeof createClient>, userId: string, t
   return out;
 }
 
-/** Expenses in the last ~2 days that are far above the user's typical spend. */
 async function outliers(db: ReturnType<typeof createClient>, userId: string): Promise<Notif[]> {
   const since90 = addDays(todayISO(), -90);
   const { data: txns } = await db.from("transactions")
@@ -274,11 +306,11 @@ async function outliers(db: ReturnType<typeof createClient>, userId: string): Pr
     .gte("occurred_at", `${since90}T00:00:00Z`)
     .order("occurred_at", { ascending: false });
   const rows = txns ?? [];
-  if (rows.length < 12) return []; // not enough history to judge "unusual"
+  if (rows.length < 12) return [];
 
   const amounts = rows.map((t: { amount: number }) => t.amount).sort((a: number, b: number) => a - b);
   const median = amounts[Math.floor(amounts.length / 2)];
-  const floor = Math.max(median * 4, 200_00); // 4× median, and at least a small absolute floor
+  const floor = Math.max(median * 4, 200_00);
   const recentCut = addDays(todayISO(), -2);
 
   const out: Notif[] = [];
@@ -299,28 +331,160 @@ async function outliers(db: ReturnType<typeof createClient>, userId: string): Pr
 
 // --- Push delivery ----------------------------------------------------------
 
-async function sendPush(db: ReturnType<typeof createClient>, userId: string, items: { title: string; body: string | null; href: string | null; dedupe_key: string }[]): Promise<number> {
-  if (!Deno.env.get("VAPID_PRIVATE_KEY")) return 0;
+// Reusable instances for OAuth2 and APNs JWT caching
+let fcmAuthClient: any = null;
+let apnsJwtCache: { token: string; expiresAt: number } | null = null;
+
+async function getFcmAccessToken(): Promise<string | null> {
+  const saJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
+  if (!saJson) return null;
+  if (!fcmAuthClient) {
+    const auth = new GoogleAuth({
+      credentials: JSON.parse(saJson),
+      scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
+    });
+    fcmAuthClient = await auth.getClient();
+  }
+  const token = await fcmAuthClient.getAccessToken();
+  return token.token;
+}
+
+async function getApnsJwt(): Promise<string | null> {
+  const key = Deno.env.get("APNS_KEY");
+  const keyId = Deno.env.get("APNS_KEY_ID");
+  const teamId = Deno.env.get("APNS_TEAM_ID");
+  if (!key || !keyId || !teamId) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  if (apnsJwtCache && apnsJwtCache.expiresAt > now) {
+    return apnsJwtCache.token;
+  }
+
+  const pkcs8 = await jose.importPKCS8(key.replace(/\\n/g, '\n'), 'ES256');
+  const token = await new jose.SignJWT({ iss: teamId })
+    .setProtectedHeader({ alg: 'ES256', kid: keyId })
+    .setIssuedAt(now)
+    .sign(pkcs8);
+    
+  apnsJwtCache = { token, expiresAt: now + 45 * 60 }; // Cache for 45 minutes (APNs max is 60m)
+  return token;
+}
+
+async function sendPush(db: ReturnType<typeof createClient>, userId: string, items: any[]): Promise<number> {
   const { data: subs } = await db.from("push_subscriptions")
-    .select("endpoint, p256dh, auth").eq("user_id", userId);
+    .select("platform, token, endpoint, p256dh, auth").eq("user_id", userId);
   if (!subs || subs.length === 0) return 0;
 
-  // One push per new notification, to each of the user's devices.
   let sent = 0;
   for (const it of items) {
-    const payload = JSON.stringify({ title: it.title, body: it.body ?? "", href: it.href ?? "/notifications", tag: it.dedupe_key });
+    const webPayload = JSON.stringify({ 
+      title: it.title, 
+      body: it.body ?? "", 
+      image: it.image_url ?? undefined,
+      href: it.href ?? "/notifications", 
+      tag: it.dedupe_key 
+    });
+    
     for (const s of subs) {
-      const subscription = { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } };
       try {
-        await webpush.sendNotification(subscription, payload);
-        sent++;
+        if (s.platform === 'web' || !s.platform) {
+          if (!s.endpoint || !Deno.env.get("VAPID_PRIVATE_KEY")) continue;
+          await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, webPayload);
+          sent++;
+        } 
+        else if (s.platform === 'android' && s.token) {
+          const accessToken = await getFcmAccessToken();
+          if (!accessToken) continue;
+          const projectId = JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT")!).project_id;
+          
+          const payloadData: any = {
+            title: it.title,
+            body: it.body ?? "",
+            href: it.href ?? "/notifications",
+            tag: it.dedupe_key
+          };
+          if (it.subtitle) payloadData.subtitle = it.subtitle;
+          if (it.image_url) payloadData.image = it.image_url;
+
+          const res = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: {
+                token: s.token,
+                data: payloadData,
+                android: {
+                  priority: "high"
+                }
+              }
+            })
+          });
+          
+          if (!res.ok) {
+            const errBody = await res.json();
+            if (errBody.error?.status === 'NOT_FOUND' || errBody.error?.status === 'UNREGISTERED') {
+              await db.from("push_subscriptions").delete().eq("token", s.token);
+            } else {
+              console.error("[notify-dispatch] FCM push failed:", errBody);
+            }
+          } else {
+            sent++;
+          }
+        }
+        else if (s.platform === 'ios' && s.token) {
+          const jwt = await getApnsJwt();
+          if (!jwt) continue;
+          const topic = Deno.env.get("APNS_TOPIC") || "com.sanvya.app";
+          
+          const apsPayload: any = {
+            alert: { title: it.title, body: it.body ?? "" },
+            sound: "default",
+            "content-available": 1
+          };
+          if (it.subtitle) apsPayload.alert.subtitle = it.subtitle;
+          if (it.image_url) apsPayload["mutable-content"] = 1;
+
+          const res = await fetch(`https://api.push.apple.com/3/device/${s.token}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `bearer ${jwt}`,
+              'apns-topic': topic,
+              'apns-push-type': 'alert',
+              'apns-priority': '10'
+            },
+            body: JSON.stringify({
+              aps: apsPayload,
+              image_url: it.image_url ?? undefined,
+              href: it.href ?? "/notifications",
+              tag: it.dedupe_key
+            })
+          });
+          
+          if (!res.ok) {
+            const status = res.status;
+            if (status === 410) { // Unregistered
+              await db.from("push_subscriptions").delete().eq("token", s.token);
+            } else {
+              const errBody = await res.text();
+              console.error(`[notify-dispatch] APNs push failed (status ${status}):`, errBody);
+            }
+          } else {
+            sent++;
+          }
+        }
       } catch (e) {
-        const status = (e as { statusCode?: number }).statusCode;
-        // 404/410 = subscription gone (unsubscribed / browser reset) — prune it.
-        if (status === 404 || status === 410) {
-          await db.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
+        if (s.platform === 'web' || !s.platform) {
+          const status = (e as { statusCode?: number }).statusCode;
+          if (status === 404 || status === 410) {
+            await db.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
+          } else {
+            console.error("[notify-dispatch] web push failed:", status, (e as Error).message);
+          }
         } else {
-          console.error("[notify-dispatch] push failed:", status, (e as Error).message);
+          console.error(`[notify-dispatch] ${s.platform} push failed:`, (e as Error).message);
         }
       }
     }

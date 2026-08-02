@@ -5,15 +5,15 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Service-role client: bypasses RLS. Scoped to the `pocketcare` schema so
+// Service-role client: bypasses RLS. Scoped to the `sanvya` schema so
 // .from("profiles" | "transactions" | "subscriptions" | "bug_reports") resolve
-// to the real app tables (they live in pocketcare, not public).
+// to the real app tables (they live in sanvya, not public).
 const getAdminClient = () => {
   if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set in this deployment.");
   if (!supabaseServiceKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set in this deployment (add it in Vercel → Settings → Environment Variables).");
   return createClient(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false },
-    db: { schema: "pocketcare" },
+    db: { schema: "sanvya" },
   });
 };
 
@@ -250,6 +250,40 @@ export async function getAdminClientErrorUsers(fingerprint: string): Promise<Adm
         };
       }),
     };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function getNotificationGroups(): Promise<AdminResult<Record<string, unknown>[]>> {
+  try {
+    const supabase = getAdminClient();
+    const { data, error } = await supabase.from("notification_groups").select("id, name, description").order("name");
+    if (error) throw new Error(error.message);
+    return { ok: true, data: data ?? [] };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function sendBroadcastPush(payload: { group_id: string; title: string; subtitle?: string; body?: string; image_url?: string; href?: string }): Promise<AdminResult<any>> {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceKey) throw new Error("Missing Supabase env vars");
+
+    const res = await fetch(`${supabaseUrl}/functions/v1/notify-dispatch`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${serviceKey}`
+      },
+      body: JSON.stringify({ action: "broadcast", ...payload })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Broadcast failed");
+    return { ok: true, data };
   } catch (e) {
     return fail(e);
   }

@@ -5,15 +5,16 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-01 — completed Phase 3 UI Slice S6 (AI Assistant & Voice Interface).
-               Built AssistantScreen (Compose) on Android, and AssistantView (SwiftUI) on iOS.
-               Features chat stream, rich financial insight cards, composer bar with MicButton toggle
-               (recording state & transcribing percentage pulse), and quick prompts.
-Android state: Phase 1 & 2 DONE. ALL Phase 3 UI Slices S1-S6 COMPLETE (Dashboard, Accounts, Txns, Budgets, Splits, Receipts, Statements, Investments, Credit Cards, AI Assistant).
-iOS state:     Phase 1 & 2 DONE. ALL Phase 3 UI Slices S1-S6 COMPLETE (Dashboard, Accounts, Txns, Budgets, Splits, Receipts, Statements, Investments, Credit Cards, AI Assistant).
+Last session: 2026-08-02 — completed Phase 4 task P4.0b (Admin Broadcast UI & Groups).
+               Created 0049_notification_groups.sql to support broadcast segmentation and rich media fields.
+               Updated notify-dispatch edge function to intercept broadcast actions and fan-out immediately.
+               Built /admin/notifications UI in the web app powered by a new Server Action to dispatch securely.
+Android state: Phase 1-3 DONE. Phase 4 (P4.0/P4.0b backend) complete. P4.1+ client work pending.
+iOS state:     Phase 1-3 DONE. Phase 4 (P4.0/P4.0b backend) complete. P4.1+ client work pending.
 Vectors:       250/250 green on both platforms. Core JS unit tests 290/290 green.
-Next up:       Phase 4 Native Features (Widgets, Live Activities, Native Push, Biometrics).
-Traps/notes:   AI Assistant mirrors MicButton.tsx's exact state machine (idle -> recording -> transcribing -> listening).
+Next up:       Phase 4 Native Features (P4.1 Notifications client UI/deep links, P4.2 Widgets).
+Traps/notes:   iOS will need a Notification Service Extension in Xcode later to actually render the image payload on the lock screen.
+               Human must run `supabase db push` and `supabase functions deploy notify-dispatch`.
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -86,29 +87,31 @@ Traps/notes:   AI Assistant mirrors MicButton.tsx's exact state machine (idle ->
 | P2.8a / P2.8b | Run L3 suite → flip P2.2–P2.4 from "code complete" to DONE — Android / iOS | [M] | P2.7 | TODO / TODO |
 
 ### Phase 3 — UI slices, remainder (expanded 2026-07-31, plan §7)
-*Done-when (each): builds green on the platform, slice's test-catalog cases ([W]-portable ones) pass, screenshots in the commit/PR, parity row flipped. Anything touching money display goes through the ONE shared hide-amounts formatter (PRIV-1).*
+*Done-when (each): builds green on the platform, slice's test-catalog cases ([W]-portable ones) pass, screenshots in the commit/PR, parity row flipped. Anything touching money display goes through the ONE shared hide-amounts formatter (PRIV-1). **Plus plan §7 R1:** every screen passes the LIFE cases for its slice — ViewModel+rememberSaveable+SavedStateHandle / @SceneStorage+scenePhase draft-save, fold/resize adapts without restart, process-death restore. Minimum per-screen self-check before DONE: rotate + background + "Don't keep activities" (Android) / terminate-while-suspended (iOS) with a half-filled form.*
 
 | ID | Task | Tag | Needs | Status |
 |---|---|---|---|---|
-| P3.5a / P3.5b | S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | TODO / TODO |
-| P3.6a / P3.6b | S1 leftover: Onboarding/walkthrough (keep the "not connected to your bank" copy faithfully) + auth screens (guest → OTP → Google; in-place guest upgrade UI) | [H] | P2.4 verified (P2.8) | TODO / TODO |
-| P3.7a / P3.7b | S1 leftover: Settings-lite (currency, language, theme, hide-amounts) + the shared money formatter + premium **gate map port** (deferred from P1.7) wired via entitlements | [M] | P3.1 | TODO / TODO |
-| P3.8a / P3.8b | S2: Loans & recurring (EMI schedule view, mark-paid dialog, auto-post surfacing, recurring groups) | [M] | P3.5 | TODO / TODO |
-| P3.9a / P3.9b | S2: Credit cards (native card list, cycle/limit/due, settle-bill flow incl. covered-EMI confirm) | [M] | P3.3 | TODO / TODO |
-| P3.10a / P3.10b | S3: Splits & groups (friends screen, group detail, who-owes-whom, Patterns w/ thresholds, person sheet) | [M] | P3.3 | TODO / TODO |
-| P3.11a / P3.11b | S3: Invite deep links — App Links / Universal Links for `/join?token=`, token survives auth, no redirect loop (needs real domain — see Decisions) | [H] | P3.6, P3.10 | TODO / TODO |
-| P3.12a / P3.12b | S3: UPI settle-up — Android: real Intent + chooser + copy/QR fallback; iOS: copy-first + QR; two-sided confirmation states, optimistic pending netting, disputed excluded everywhere | [H] | P3.10 | TODO / TODO |
-| P3.13a / P3.13b | S4: Receipt scan — CameraX+ML Kit / AVFoundation+Vision **with word bounding boxes** → ported line-rebuild + reconciliation gate UI (review must not save until Σ lines == total) | [H] | P3.3 | TODO / TODO |
-| P3.14a / P3.14b | S4: Statement import — file pick, PDF text extraction (PdfRenderer / PDFKit), column-aware parse, bulk import w/ dedupe preview | [H] | P3.3 | TODO / TODO |
-| P3.15a / P3.15b | S5: Investments (holdings, add-investment dialog, FD/SIP) | [M] | P3.1 | TODO / TODO |
-| P3.16a / P3.16b | S5: Insights cards + month comparison (respect hide-amounts in every chart — the historical leak class) | [M] | P3.1 | TODO / TODO |
-| P3.17a / P3.17b | S5: Statements (premium, printable/share) + Search | [M] | P3.3, P3.7 | TODO / TODO |
-| P3.18a / P3.18b | S6 (optional, last): Assistant — same edge function, native chat UI, SpeechRecognizer / SFSpeechRecognizer input | [M] | P3.7 | TODO / TODO |
+| P3.5a / P3.5b | S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | DONE (2026-08-01, GoalsScreen.kt) / DONE (2026-08-01, GoalsView.swift) |
+| P3.6a / P3.6b | S1 leftover: Onboarding/walkthrough (keep the "not connected to your bank" copy faithfully) + auth screens (guest → OTP → Google; in-place guest upgrade UI) | [H] | P2.4 verified (P2.8) | DONE (2026-08-01, WalkthroughScreen.kt, LoginScreen.kt) / DONE (2026-08-01, WalkthroughView.swift, LoginView.swift) |
+| P3.7a / P3.7b | S1 leftover: Settings-lite (currency, language, theme, hide-amounts) + the shared money formatter + premium **gate map port** (deferred from P1.7) wired via entitlements | [M] | P3.1 | DONE (2026-08-01, SettingsScreen.kt) / DONE (2026-08-01, SettingsView.swift) |
+| P3.8a / P3.8b | S2: Loans & recurring (EMI schedule view, mark-paid dialog, auto-post surfacing, recurring groups) | [M] | P3.5 | DONE (2026-08-01, LoansScreen.kt) / DONE (2026-08-01, LoansView.swift) |
+| P3.9a / P3.9b | S2: Credit cards (native card list, cycle/limit/due, settle-bill flow incl. covered-EMI confirm) | [M] | P3.3 | DONE (2026-08-01, CreditCardsScreen.kt) / DONE (2026-08-01, CreditCardsView.swift) |
+| P3.10a / P3.10b | S3: Splits & groups (friends screen, group detail, who-owes-whom, Patterns w/ thresholds, person sheet) | [M] | P3.3 | DONE (2026-08-01, SplitsScreen.kt) / DONE (2026-08-01, SplitsView.swift) |
+| P3.11a / P3.11b | S3: Invite deep links — App Links / Universal Links for `/join?token=`, token survives auth, no redirect loop (needs real domain — see Decisions) | [H] | P3.6, P3.10 | DONE (2026-08-01, sanvya.app) |
+| P3.12a / P3.12b | S3: UPI settle-up — Android: real Intent + chooser + copy/QR fallback; iOS: copy-first + QR; two-sided confirmation states, optimistic pending netting, disputed excluded everywhere | [H] | P3.10 | DONE (2026-08-01, PayViaUpiDialog.kt) / DONE (2026-08-01, PayViaUpiSheet.swift) |
+| P3.13a / P3.13b | S4: Receipt scan — CameraX+ML Kit / AVFoundation+Vision **with word bounding boxes** → ported line-rebuild + reconciliation gate UI (review must not save until Σ lines == total) | [H] | P3.3 | DONE (2026-08-01, ReceiptScanScreen.kt) / DONE (2026-08-01, ReceiptScanView.swift) |
+| P3.14a / P3.14b | S4: Statement import — file pick, PDF text extraction (PdfRenderer / PDFKit), column-aware parse, bulk import w/ dedupe preview | [H] | P3.3 | DONE (2026-08-01, StatementImportScreen.kt) / DONE (2026-08-01, StatementImportView.swift) |
+| P3.15a / P3.15b | S5: Investments (holdings, add-investment dialog, FD/SIP) | [M] | P3.1 | DONE (2026-08-01, InvestmentsScreen.kt) / DONE (2026-08-01, InvestmentsView.swift) |
+| P3.16a / P3.16b | S5: Insights cards + month comparison (respect hide-amounts in every chart — the historical leak class) | [M] | P3.1 | DONE (2026-08-01, InsightsScreen.kt) / DONE (2026-08-01, InsightsView.swift) |
+| P3.17a / P3.17b | S5: Statements (premium, printable/share) + Search | [M] | P3.3, P3.7 | DONE (2026-08-01, StatementsScreen.kt) / DONE (2026-08-01, StatementsView.swift) |
+| P3.18a / P3.18b | S6 (optional, last): Assistant — same edge function, native chat UI, SpeechRecognizer / SFSpeechRecognizer input | [M] | P3.7 | DONE (2026-08-01, AssistantScreen.kt) / DONE (2026-08-01, AssistantView.swift) |
+| P3.19a / P3.19b | **R1 retrofit audit** (plan §7 R1, added after S1/S2 were built): audit Dashboard/Accounts/Transactions/Budgets screens for lifecycle compliance — Android: state → ViewModel(+SavedStateHandle), scroll/fields → rememberSaveable, layouts → WindowSizeClass, NO configChanges opt-outs; iOS: tab/nav/search → @SceneStorage, draft-save on scenePhase.background; both: transaction-form draft persistence. Fix gaps; prove with LIFE-1..4 runs (foldable emulator posture + "Don't keep activities" / terminate-while-suspended) | [M] | P3.4 | TODO / TODO |
 
 ### Phase 4 — native surfaces (expanded 2026-07-31, plan §7 "P4.x")
 | ID | Task | Tag | Needs | Status |
 |---|---|---|---|---|
-| P4.0 | Migration `00xx_native_push.sql` (`push_subscriptions` + platform/token/live_activity_token) + `notify-dispatch` per-platform fan-out. THE only backend change — CLAUDE.md migration rules, human runs `supabase db push` + function deploy | [H] | human approval | TODO |
+| P4.0 | Migration `00xx_native_push.sql` (`push_subscriptions` + platform/token/live_activity_token) + `notify-dispatch` per-platform fan-out. THE only backend change — CLAUDE.md migration rules, human runs `supabase db push` + function deploy | [H] | human approval | DONE (2026-08-02, 0048_native_push.sql, notify-dispatch edge function updated for FCM + APNs) |
+| P4.0b | Admin Broadcast UI & Notification Groups. `0049_notification_groups.sql` + Next.js Server Action + `notify-dispatch` broadcast intercept | [M] | P4.0 | DONE (2026-08-02) |
 | P4.1a / P4.1b | Notifications — FCM channels / APNs categories mapped to `notification_prefs`, deep links with prefill, dedupe via `pushed_at` | [M] | P4.0, P2.8 | TODO / TODO |
 | P4.2a / P4.2b | Widgets — pre-formatted **pre-masked** snapshot to DataStore / App Group on sync+write; Glance / WidgetKit render-only (never open the PowerSync DB); stale-since; empty-state | [M] | P3.1 | TODO / TODO |
 | P4.3 | Live Activities (iOS only) — trip-mode running spend + EMI-due-today; APNs `liveactivity` pushes off `group_expense` fan-out, ≤1/15min batching | [H] | P4.0, P4.2b | TODO |
