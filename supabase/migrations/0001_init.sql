@@ -486,7 +486,7 @@ $$;
 create or replace function handle_new_user() returns trigger
 language plpgsql security definer set search_path = pocketcare, public as $$
 begin
-  insert into profiles (id) values (new.id) on conflict (id) do nothing;
+  insert into profiles (id, email) values (new.id, new.email) on conflict (id) do nothing;
   insert into entitlements (user_id, tier) values (new.id, 'free') on conflict (user_id) do nothing;
   if coalesce(new.is_anonymous, false) then
     insert into guest_sessions (user_id) values (new.id) on conflict (user_id) do nothing;
