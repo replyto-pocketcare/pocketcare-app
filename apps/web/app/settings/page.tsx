@@ -64,7 +64,7 @@ export default function SettingsPage() {
       // The RPC lives in the `sanvya` schema (same as every table), so it
       // must be called schema-qualified — a plain supabase.rpc() hits `public`
       // and 404s, which is why deletes silently did nothing before.
-      const { error } = await supabase.schema("sanvya").rpc("delete_user_account", { orphan_records: false });
+      const { error } = await supabase.schema("pocketcare").rpc("delete_user_account", { orphan_records: false });
       if (error) {
         // Wipe the local mirror so the just-deleted data can't linger / re-upload,
         // then sign out to a clean slate.

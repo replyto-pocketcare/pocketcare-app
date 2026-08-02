@@ -131,7 +131,7 @@ export interface RetryResult {
  */
 export async function retryFailedWrite(item: FailedWrite): Promise<RetryResult> {
   const supabase = getSupabase();
-  const rel = supabase.schema("sanvya").from(item.table);
+  const rel = supabase.schema("pocketcare").from(item.table);
 
   const { error } =
     item.op.toUpperCase() === "DELETE"

@@ -66,7 +66,7 @@ export async function enablePush(): Promise<{ ok: true } | { ok: false; reason: 
 
     const json = sub.toJSON();
     const keys = json.keys ?? {};
-    const { error } = await getSupabase().schema("sanvya").from("push_subscriptions").upsert(
+    const { error } = await getSupabase().schema("pocketcare").from("push_subscriptions").upsert(
       {
         user_id: getUserId(),
         endpoint: json.endpoint,
@@ -119,7 +119,7 @@ export async function disablePush(): Promise<void> {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = await reg?.pushManager.getSubscription();
     if (sub) {
-      await getSupabase().schema("sanvya").from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+      await getSupabase().schema("pocketcare").from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
       await sub.unsubscribe();
     }
   } catch { /* best effort */ }

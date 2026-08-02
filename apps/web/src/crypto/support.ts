@@ -52,7 +52,7 @@ export async function issueSupportGrant(scope: GrantScope, ttlHours = 2): Promis
   if (!priv) throw new Error("Unlock encryption to authorize support access.");
 
   const signature = await signGrant({ userId: uid, grantId, exp, scope }, priv);
-  const sb = getSupabase().schema("sanvya");
+  const sb = getSupabase().schema("pocketcare");
   const { error } = await sb.from("support_grants").insert({
     id: grantId, user_id: uid, scope, wrapped_dek_for_support: wrapped, signature, expires_at: expiresAt,
   });
@@ -65,7 +65,7 @@ export async function issueSupportGrant(scope: GrantScope, ttlHours = 2): Promis
 export async function revokeGrant(grantId: string): Promise<void> {
   const uid = getUserId();
   if (!uid) return;
-  const sb = getSupabase().schema("sanvya");
+  const sb = getSupabase().schema("pocketcare");
   await sb.from("support_grants").update({ revoked_at: new Date().toISOString() }).eq("id", grantId).eq("user_id", uid);
   await sb.from("security_audit").insert({ actor: `user:${uid}`, action: "grant_revoked", subject_user: uid, grant_id: grantId });
 }

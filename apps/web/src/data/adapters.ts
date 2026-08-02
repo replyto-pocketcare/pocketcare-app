@@ -55,10 +55,10 @@ const toType = (t: string, amount: number): CanonRow["type"] => {
 // income / expense / transfer are always positive (the type gives the sign).
 const isSignedType = (t: string) => t === "adjustment" || t === "opening_balance";
 
-// ---- Sanvya's own round-trippable format ----
+// ---- PocketCare's own round-trippable format ----
 const sanvya: ImportAdapter = {
-  id: "sanvya",
-  label: "Sanvya (CSV export)",
+  id: "pocketcare",
+  label: "PocketCare (CSV export)",
   parse(records) {
     return records.map((r) => {
       const raw = num(r["amount"]);
@@ -83,7 +83,7 @@ const sanvya: ImportAdapter = {
   },
 };
 
-// Wallet's human payment labels → Sanvya payment-method labels.
+// Wallet's human payment labels → PocketCare payment-method labels.
 const WALLET_PAYMENT: Record<string, string> = {
   "mobile payment": "UPI",
   "bank transfer": "Net Banking",
@@ -131,7 +131,7 @@ export function parseWithAdapter(adapterId: string, text: string): CanonRow[] {
   return adapter.parse(parseRecords(text, adapter.delimiter));
 }
 
-/** Column order for Sanvya's own export (matches the sanvya adapter). */
+/** Column order for PocketCare's own export (matches the sanvya adapter). */
 export const EXPORT_HEADERS = [
   "Date", "Type", "Amount", "Currency", "Account", "To Account", "To Amount",
   "Category", "Labels", "Payment Method", "Note", "Description",

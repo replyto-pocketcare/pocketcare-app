@@ -60,7 +60,7 @@ export async function getMyPaymentHandle(): Promise<string | null> {
   }
 
   const { data, error } = await getSupabase()
-    .schema("sanvya")
+    .schema("pocketcare")
     .from("payment_handles")
     .select("handle_hint")
     .eq("user_id", userId)

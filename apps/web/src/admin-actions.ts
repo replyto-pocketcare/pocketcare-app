@@ -13,7 +13,7 @@ const getAdminClient = () => {
   if (!supabaseServiceKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set in this deployment (add it in Vercel → Settings → Environment Variables).");
   return createClient(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false },
-    db: { schema: "sanvya" },
+    db: { schema: "pocketcare" },
   });
 };
 

@@ -59,7 +59,7 @@ async function send(entry: LogEntry): Promise<void> {
     // Schema-qualified: every Sanvya RPC lives in the `sanvya` schema
     // and the browser client has no default schema set, so a bare .rpc() call
     // resolves to public.* and 404s (golden rule #3).
-    await getSupabase().schema("sanvya").rpc("report_client_error", {
+    await getSupabase().schema("pocketcare").rpc("report_client_error", {
       p_fingerprint: fp,
       p_message: entry.message,
       p_level: entry.level,

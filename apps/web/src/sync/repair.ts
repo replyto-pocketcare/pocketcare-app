@@ -146,7 +146,7 @@ export async function scanForStranded(limitPerTable = 500): Promise<RepairScan> 
     for (let i = 0; i < ids.length; i += CHUNK) {
       const chunk = ids.slice(i, i + CHUNK);
       const { data, error } = await supabase
-        .schema("sanvya")
+        .schema("pocketcare")
         .from(table)
         .select("id")
         .in("id", chunk);
@@ -201,7 +201,7 @@ export async function repairStranded(rows: readonly StrandedRow[]): Promise<Repa
     // was bad, and identifying the bad row is the whole point.
     for (const item of forTable) {
       const { error } = await supabase
-        .schema("sanvya")
+        .schema("pocketcare")
         .from(table)
         .upsert(item.row, { onConflict: "id" });
       if (error) {
