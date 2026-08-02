@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !serviceKey) return json({ error: "Supabase environment not configured." });
   if (!cryptoKey) return json({ error: "Payments are not configured (missing PAYMENT_HANDLE_KEY)." });
 
-  const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "sanvya" } });
+  const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "pocketcare" } });
   const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (authErr || !user) return json({ error: "Unauthorized" });
 

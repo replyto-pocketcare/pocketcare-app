@@ -120,7 +120,7 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !supabaseServiceKey) return json({ error: "Supabase environment not configured." });
   if (!key) return json({ error: "Receipt scanning is not configured (missing ANTHROPIC_API_KEY)." });
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, { db: { schema: "sanvya" } });
+  const supabase = createClient(supabaseUrl, supabaseServiceKey, { db: { schema: "pocketcare" } });
   const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (authErr || !user) return json({ error: "Unauthorized" });
 

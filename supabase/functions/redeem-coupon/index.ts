@@ -35,7 +35,7 @@ Deno.serve(async (req: Request) => {
   if (!auth) return json({ error: "Missing Authorization header" }, 401);
   if (!url || !serviceKey) return json({ error: "Supabase environment not configured." }, 500);
 
-  const db = createClient(url, serviceKey, { db: { schema: "sanvya" } });
+  const db = createClient(url, serviceKey, { db: { schema: "pocketcare" } });
   const { data: { user }, error: authErr } = await db.auth.getUser(auth.replace("Bearer ", ""));
   if (authErr || !user) return json({ error: "Unauthorized" }, 401);
 
