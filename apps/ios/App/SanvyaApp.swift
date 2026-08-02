@@ -4,6 +4,7 @@ import Data
 
 @main
 struct SanvyaApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var authViewModel = Container.shared.authViewModel()
     
     var body: some Scene {

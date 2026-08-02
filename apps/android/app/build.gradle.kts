@@ -4,6 +4,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -68,4 +69,8 @@ dependencies {
     
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation("com.google.firebase:firebase-messaging")
 }

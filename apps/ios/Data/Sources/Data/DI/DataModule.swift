@@ -91,4 +91,8 @@ public extension Container {
     var prefsRepository: Factory<PrefsRepository> {
         self { PrefsRepository(db: self.powerSyncDatabase() as! PowerSyncDatabase) }.singleton
     }
+
+    var pushRepository: Factory<PushRepository> {
+        self { SupabasePushRepository(client: self.supabaseClient()) }.singleton
+    }
 }

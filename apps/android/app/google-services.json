@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1029552264086",
+    "project_id": "onelifedev-exp-mgmt-app",
+    "storage_bucket": "onelifedev-exp-mgmt-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1029552264086:android:ffe29cab57cb54623083b7",
+        "android_client_info": {
+          "package_name": "com.sanvya.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbSIkWYe2CkQxUcEE3X1blPInwxiBgvbk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

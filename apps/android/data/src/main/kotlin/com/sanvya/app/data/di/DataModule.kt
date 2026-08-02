@@ -52,4 +52,5 @@ val dataModule = module {
     single { LoansRepository(get()) }
     single { SplitsRepository(get(), get()) }
     single { com.sanvya.app.data.repository.PrefsRepository(get()) }
+    single<com.sanvya.app.domain.repository.PushRepository> { com.sanvya.app.data.repository.SupabasePushRepository(get()) }
 }
