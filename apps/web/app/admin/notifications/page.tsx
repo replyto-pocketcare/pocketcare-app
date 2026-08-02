@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getNotificationGroups, sendBroadcastPush, createNotificationGroup, addUsersToGroupByEmail, addUsersToGroupByDemographics } from "../../../src/admin-actions";
+import { getNotificationGroups, sendBroadcastPush, createNotificationGroup, addUsersToGroupByEmail, addUsersToGroupByDemographics, getGroupMembers, GroupMember } from "../../../src/admin-actions";
 
 export default function AdminNotifications() {
   const [groups, setGroups] = useState<any[]>([]);
@@ -33,6 +33,9 @@ export default function AdminNotifications() {
   const [gender, setGender] = useState("");
   const [ipRegion, setIpRegion] = useState("");
 
+  const [groupMembers, setGroupMembers] = useState<GroupMember[] | null>(null);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+
   const loadGroups = async () => {
     const res = await getNotificationGroups();
     if (res.ok) {
@@ -45,6 +48,22 @@ export default function AdminNotifications() {
   useEffect(() => {
     loadGroups();
   }, []);
+
+  useEffect(() => {
+    setGroupMembers(null);
+  }, [groupId]);
+
+  const loadMembers = async () => {
+    if (!groupId) return;
+    setLoadingMembers(true);
+    const res = await getGroupMembers(groupId);
+    setLoadingMembers(false);
+    if (res.ok) {
+      setGroupMembers(res.data);
+    } else {
+      setMemberStatus({ type: "error", msg: res.error });
+    }
+  };
 
   const handleBroadcastSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,6 +162,26 @@ export default function AdminNotifications() {
 
             {groupId && (
               <div style={{ display: "grid", gap: 20, marginTop: 10 }}>
+                <div style={{ padding: 16, border: "1px solid #444", borderRadius: 8, background: "#1a1a1a" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <h4 style={{ margin: 0 }}>View Members</h4>
+                    <button type="button" onClick={loadMembers} disabled={loadingMembers} style={{ padding: "6px 12px", borderRadius: 4, background: "#444", border: "none", color: "#fff", cursor: loadingMembers ? "not-allowed" : "pointer" }}>{loadingMembers ? "Loading..." : "Load Members"}</button>
+                  </div>
+                  {groupMembers && (
+                    <div style={{ maxHeight: 200, overflowY: "auto", borderTop: "1px solid #333", paddingTop: 10 }}>
+                      {groupMembers.length === 0 ? <p style={{ fontSize: 14, color: "#999" }}>No members in this group.</p> : (
+                        <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                          {groupMembers.map(m => (
+                            <li key={m.user_id} style={{ padding: "6px 0", borderBottom: "1px solid #222", fontSize: 14 }}>
+                              <strong style={{ color: "#eee" }}>{m.name}</strong> {m.email ? `<${m.email}>` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ padding: 16, border: "1px solid #444", borderRadius: 8, background: "#1a1a1a" }}>
                   <h4 style={{ margin: "0 0 10px" }}>Add by Email</h4>
                   <textarea value={emails} onChange={(e) => setEmails(e.target.value)} placeholder="user1@app.com, user2@app.com" style={{ ...inputStyle, minHeight: 60, marginBottom: 10 }} />

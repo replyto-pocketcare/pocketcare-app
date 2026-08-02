@@ -266,6 +266,50 @@ export async function getNotificationGroups(): Promise<AdminResult<Record<string
   }
 }
 
+export interface GroupMember {
+  user_id: string;
+  name: string;
+  email: string | null;
+}
+
+export async function getGroupMembers(groupId: string): Promise<AdminResult<GroupMember[]>> {
+  try {
+    const supabase = getAdminClient();
+    const { data: members, error: mErr } = await supabase
+      .from("notification_group_members")
+      .select("user_id")
+      .eq("group_id", groupId);
+    if (mErr) throw new Error(mErr.message);
+
+    const rows = members ?? [];
+    if (rows.length === 0) return { ok: true, data: [] };
+
+    const ids = rows.map(r => r.user_id).filter(Boolean) as string[];
+    const byId = new Map<string, { display_name?: string; email?: string }>();
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, email")
+        .in("id", ids);
+      for (const p of profs ?? []) byId.set(p.id as string, p);
+    }
+
+    return {
+      ok: true,
+      data: rows.map(r => {
+        const prof = byId.get(r.user_id);
+        return {
+          user_id: r.user_id,
+          name: prof?.display_name || prof?.email?.split("@")[0] || "Unknown user",
+          email: prof?.email ?? null,
+        };
+      })
+    };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function createNotificationGroup(name: string, description: string): Promise<AdminResult<any>> {
   try {
     const supabase = getAdminClient();
