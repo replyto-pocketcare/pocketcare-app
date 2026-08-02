@@ -63,7 +63,7 @@ function buildLlmPrompt(rows: Row[]): string {
   };
 
   return [
-    "You are working on Sanvya, an offline-first personal finance PWA (Next.js App Router + PowerSync WASM SQLite synced to Supabase Postgres, Turborepo/pnpm monorepo, TypeScript strict). Money is integer minor units via @sanvya/money; balances derive from an append-only ledger; sync is server-authoritative.",
+    "You are working on PocketCare, an offline-first personal finance PWA (Next.js App Router + PowerSync WASM SQLite synced to Supabase Postgres, Turborepo/pnpm monorepo, TypeScript strict). Money is integer minor units via @sanvya/money; balances derive from an append-only ledger; sync is server-authoritative.",
     "",
     "Below are beta-tester bug reports and suggestions exported from the admin console.",
     "",
@@ -153,7 +153,7 @@ export default function AdminFeedback() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `sanvya-feedback-prompt-${new Date().toISOString().slice(0, 10)}.md`;
+    a.download = `pocketcare-feedback-prompt-${new Date().toISOString().slice(0, 10)}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
