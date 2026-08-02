@@ -18,7 +18,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { handleUploadFailure, clearAttempts, opKey } from "./quarantine.ts";
 
 /** Postgres schema that holds all Sanvya tables (see 0001_init.sql). */
-export const DB_SCHEMA = "sanvya";
+export const DB_SCHEMA = "pocketcare";
 
 /**
  * Optional sink for structured sync failures.
