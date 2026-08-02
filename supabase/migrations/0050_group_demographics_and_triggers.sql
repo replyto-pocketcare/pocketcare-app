@@ -30,7 +30,7 @@ begin
   -- emi_due
   select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:emi_due';
   if v_group_id is not null then
-    if new.emi_due = 1 then
+    if new.emi_due = true then
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, new.user_id) on conflict do nothing;
     else
       delete from pocketcare.notification_group_members where group_id = v_group_id and user_id = new.user_id;
@@ -40,7 +40,7 @@ begin
   -- budget
   select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:budget';
   if v_group_id is not null then
-    if new.budget = 1 then
+    if new.budget = true then
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, new.user_id) on conflict do nothing;
     else
       delete from pocketcare.notification_group_members where group_id = v_group_id and user_id = new.user_id;
@@ -50,7 +50,7 @@ begin
   -- low_balance
   select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:low_balance';
   if v_group_id is not null then
-    if new.low_balance = 1 then
+    if new.low_balance = true then
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, new.user_id) on conflict do nothing;
     else
       delete from pocketcare.notification_group_members where group_id = v_group_id and user_id = new.user_id;
@@ -60,7 +60,7 @@ begin
   -- outlier
   select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:outlier';
   if v_group_id is not null then
-    if new.outlier = 1 then
+    if new.outlier = true then
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, new.user_id) on conflict do nothing;
     else
       delete from pocketcare.notification_group_members where group_id = v_group_id and user_id = new.user_id;
@@ -70,7 +70,7 @@ begin
   -- group_invite
   select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:group_invite';
   if v_group_id is not null then
-    if new.group_invite = 1 then
+    if new.group_invite = true then
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, new.user_id) on conflict do nothing;
     else
       delete from pocketcare.notification_group_members where group_id = v_group_id and user_id = new.user_id;
@@ -80,7 +80,7 @@ begin
   -- group_expense
   select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:group_expense';
   if v_group_id is not null then
-    if new.group_expense = 1 then
+    if new.group_expense = true then
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, new.user_id) on conflict do nothing;
     else
       delete from pocketcare.notification_group_members where group_id = v_group_id and user_id = new.user_id;
@@ -103,27 +103,27 @@ declare
   v_group_id uuid;
 begin
   for pref in select * from pocketcare.notification_prefs loop
-    if pref.emi_due = 1 then
+    if pref.emi_due = true then
       select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:emi_due';
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, pref.user_id) on conflict do nothing;
     end if;
-    if pref.budget = 1 then
+    if pref.budget = true then
       select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:budget';
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, pref.user_id) on conflict do nothing;
     end if;
-    if pref.low_balance = 1 then
+    if pref.low_balance = true then
       select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:low_balance';
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, pref.user_id) on conflict do nothing;
     end if;
-    if pref.outlier = 1 then
+    if pref.outlier = true then
       select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:outlier';
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, pref.user_id) on conflict do nothing;
     end if;
-    if pref.group_invite = 1 then
+    if pref.group_invite = true then
       select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:group_invite';
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, pref.user_id) on conflict do nothing;
     end if;
-    if pref.group_expense = 1 then
+    if pref.group_expense = true then
       select id into v_group_id from pocketcare.notification_groups where sys_key = 'opt-in:group_expense';
       insert into pocketcare.notification_group_members (group_id, user_id) values (v_group_id, pref.user_id) on conflict do nothing;
     end if;
