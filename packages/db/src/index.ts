@@ -1,5 +1,5 @@
 /**
- * @pocketcare/db — PowerSync client schema (local SQLite mirror).
+ * @sanvya/db — PowerSync client schema (local SQLite mirror).
  * Shared by mobile (native SQLite) and web (WASM SQLite). Money columns are
  * INTEGER minor units. The authoritative schema + constraints live in Postgres
  * (see supabase/migrations); this mirror is what the client reads/writes offline.
@@ -620,8 +620,8 @@ const category_rules = new Table(
 
 const notifications = new Table(
   {
-    user_id: column.text, kind: column.text, title: column.text, body: column.text,
-    severity: column.text, href: column.text, data: column.text, dedupe_key: column.text,
+    user_id: column.text, kind: column.text, title: column.text, subtitle: column.text, body: column.text,
+    image_url: column.text, severity: column.text, href: column.text, data: column.text, dedupe_key: column.text,
     read_at: column.text, pushed_at: column.text,
     created_at: column.text, updated_at: column.text, deleted_at: column.text,
   },
