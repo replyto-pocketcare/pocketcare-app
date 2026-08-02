@@ -46,7 +46,7 @@ import com.sanvya.app.domain.diagnostics.LOG_LEVEL_WARN
 import com.sanvya.app.domain.syncpolicy.FAILURE_CLASS_PERMANENT
 
 /** Postgres schema that holds all Sanvya tables. */
-const val DB_SCHEMA = "sanvya"
+const val DB_SCHEMA = "pocketcare"
 
 /**
  * Optional sink for structured sync failures.

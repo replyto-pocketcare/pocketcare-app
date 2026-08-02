@@ -31,7 +31,7 @@ import Supabase
 import Domain
 
 /// Postgres schema that holds all Sanvya tables.
-public let DB_SCHEMA = "sanvya"
+public let DB_SCHEMA = "pocketcare"
 
 // MARK: - SyncDiagnostic
 

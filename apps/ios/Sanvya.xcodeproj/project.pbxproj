@@ -88,7 +88,7 @@
 		5EE73731F43CF8294191BB96 /* BudgetsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetsViewModel.swift; sourceTree = "<group>"; };
 		63B3A56DD3C10BC02363E7CB /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		63B9A54B7924069305063F50 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		6DE20186B791FFE18BA89E51 /* Data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Data; path = Data; sourceTree = SOURCE_ROOT; };
+		6DE20186B791FFE18BA89E51 /* Data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Data; sourceTree = SOURCE_ROOT; };
 		761309FD0C94D51552CF85E2 /* WalkthroughView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkthroughView.swift; sourceTree = "<group>"; };
 		79B2F762AF3408CD96CD08DA /* NavModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavModels.swift; sourceTree = "<group>"; };
 		7D892763C022D110A3FD72CC /* Sanvya.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sanvya.entitlements; sourceTree = "<group>"; };
@@ -104,7 +104,7 @@
 		B7B68564BB9C98C1EE594700 /* CreditCardsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditCardsViewModel.swift; sourceTree = "<group>"; };
 		B906CF274F8B2527E5F4A51A /* AppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTests.swift; sourceTree = "<group>"; };
 		BD8EF9B743B8A1096CFDA737 /* SplitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitsView.swift; sourceTree = "<group>"; };
-		C1DFE68F183F7A758ECA532C /* Domain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Domain; path = Domain; sourceTree = SOURCE_ROOT; };
+		C1DFE68F183F7A758ECA532C /* Domain */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Domain; sourceTree = SOURCE_ROOT; };
 		C7813DD3B4C0633E4D062C46 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C91402E05D0AE54DC02C610E /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
 		C9D7AE1214A8F14892C18B14 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
@@ -113,7 +113,7 @@
 		D78D8CF43707874261885A06 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		DF8FE48C599A5D8A0D907D43 /* CreateTransactionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTransactionView.swift; sourceTree = "<group>"; };
 		E23B5B611431A99EE080D739 /* SplitsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitsViewModel.swift; sourceTree = "<group>"; };
-		E2647775D278840C9CFF765D /* Sanvya.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Sanvya.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2647775D278840C9CFF765D /* Sanvya.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sanvya.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E37DD678765D9BB5AFF503CA /* AppModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModule.swift; sourceTree = "<group>"; };
 		ED0D59D3F7F09392C52ECBCC /* CreateGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
 		EF72024A2E1298FD8A2DC9F5 /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
@@ -316,8 +316,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 4FDE9B071785128443CE1F21 /* Build configuration list for PBXProject "Sanvya" */;
 			developmentRegion = en;
@@ -568,6 +566,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/Sanvya.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3853484T8N;
 				INFOPLIST_FILE = "Generated/Sanvya-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -588,6 +587,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/Sanvya.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3853484T8N;
 				INFOPLIST_FILE = "Generated/Sanvya-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

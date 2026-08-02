@@ -4,11 +4,6 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<!-- Configured now per plan §4 (P0.3) so widgets/Live Activities
-		     (Phase 3+4) can share a masked snapshot with the App without a
-		     later entitlements migration. See PROJECT_REFERENCE "Native
-		     mobile" §10 — the "group.care.pocket" id is a placeholder,
-		     confirm the real one before store submission. -->
 		<string>group.care.pocket</string>
 	</array>
 </dict>
