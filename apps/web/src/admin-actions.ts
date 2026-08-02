@@ -285,15 +285,14 @@ export async function addUsersToGroupByEmail(groupId: string, emails: string[]):
     if (!users || users.length === 0) return { ok: true, data: 0 };
     
     const rows = users.map(u => ({ group_id: groupId, user_id: u.id }));
-    const { error: insErr } = await supabase.from("notification_group_members").insert(rows).select("user_id");
-    if (insErr) {
-      if (insErr.code === '23505') { /* some already exist, ignore or handle gracefully, let's just use upsert */ }
-    }
-    const { data: inserted, error: upsErr } = await supabase.from("notification_group_members")
-      .upsert(rows, { onConflict: "group_id,user_id", ignoreDuplicates: true }).select("user_id");
+    
+    // Upsert the users, ignoring duplicates
+    const { error: upsErr } = await supabase.from("notification_group_members")
+      .upsert(rows, { onConflict: "group_id,user_id", ignoreDuplicates: true });
     if (upsErr) throw new Error(upsErr.message);
     
-    return { ok: true, data: inserted?.length ?? 0 };
+    // Return the total number of matched users
+    return { ok: true, data: rows.length };
   } catch (e) {
     return fail(e);
   }
@@ -312,11 +311,14 @@ export async function addUsersToGroupByDemographics(groupId: string, filters: { 
     if (!users || users.length === 0) return { ok: true, data: 0 };
     
     const rows = users.map(u => ({ group_id: groupId, user_id: u.id }));
-    const { data: inserted, error: upsErr } = await supabase.from("notification_group_members")
-      .upsert(rows, { onConflict: "group_id,user_id", ignoreDuplicates: true }).select("user_id");
+    
+    // Upsert the users, ignoring duplicates
+    const { error: upsErr } = await supabase.from("notification_group_members")
+      .upsert(rows, { onConflict: "group_id,user_id", ignoreDuplicates: true });
     if (upsErr) throw new Error(upsErr.message);
     
-    return { ok: true, data: inserted?.length ?? 0 };
+    // Return the total number of matched users
+    return { ok: true, data: rows.length };
   } catch (e) {
     return fail(e);
   }
