@@ -6,7 +6,7 @@ import Domain
 // packages/data/src/powersync-repositories.ts's PowerSyncBudgetRepository
 // exactly. Mirrors apps/android/data/.../repository/BudgetRepository.kt.
 //
-// Table columns confirmed against PocketCareSchema.swift (budgets,
+// Table columns confirmed against SanvyaSchema.swift (budgets,
 // budget_categories, budget_labels) and supabase/migrations/0001_init.sql.
 
 public struct BudgetLike: Sendable {

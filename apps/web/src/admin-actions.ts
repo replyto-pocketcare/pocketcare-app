@@ -277,6 +277,52 @@ export async function createNotificationGroup(name: string, description: string)
   }
 }
 
+export async function addUsersToGroupByEmail(groupId: string, emails: string[]): Promise<AdminResult<number>> {
+  try {
+    const supabase = getAdminClient();
+    const { data: users, error: uErr } = await supabase.from("profiles").select("id").in("email", emails);
+    if (uErr) throw new Error(uErr.message);
+    if (!users || users.length === 0) return { ok: true, data: 0 };
+    
+    const rows = users.map(u => ({ group_id: groupId, user_id: u.id }));
+    const { error: insErr } = await supabase.from("notification_group_members").insert(rows).select("user_id");
+    if (insErr) {
+      if (insErr.code === '23505') { /* some already exist, ignore or handle gracefully, let's just use upsert */ }
+    }
+    const { data: inserted, error: upsErr } = await supabase.from("notification_group_members")
+      .upsert(rows, { onConflict: "group_id,user_id", ignoreDuplicates: true }).select("user_id");
+    if (upsErr) throw new Error(upsErr.message);
+    
+    return { ok: true, data: inserted?.length ?? 0 };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function addUsersToGroupByDemographics(groupId: string, filters: { country?: string; gender?: string; ip_region?: string }): Promise<AdminResult<number>> {
+  try {
+    const supabase = getAdminClient();
+    let query = supabase.from("profiles").select("id");
+    if (filters.country) query = query.eq("country", filters.country);
+    if (filters.gender) query = query.eq("gender", filters.gender);
+    if (filters.ip_region) query = query.eq("ip_region", filters.ip_region);
+    
+    const { data: users, error: uErr } = await query;
+    if (uErr) throw new Error(uErr.message);
+    if (!users || users.length === 0) return { ok: true, data: 0 };
+    
+    const rows = users.map(u => ({ group_id: groupId, user_id: u.id }));
+    const { data: inserted, error: upsErr } = await supabase.from("notification_group_members")
+      .upsert(rows, { onConflict: "group_id,user_id", ignoreDuplicates: true }).select("user_id");
+    if (upsErr) throw new Error(upsErr.message);
+    
+    return { ok: true, data: inserted?.length ?? 0 };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+
 export async function sendBroadcastPush(payload: { group_id: string; title: string; subtitle?: string; body?: string; image_url?: string; href?: string }): Promise<AdminResult<any>> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

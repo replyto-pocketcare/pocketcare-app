@@ -24,7 +24,7 @@ import Domain
 // find-or-create), and a change-audit trail (transaction_audit). The
 // reactive watch()-based reads have NO equivalent in the real repository
 // layer at all (the web app gets reactivity from separate useQuery hooks in
-// hooks.ts, not from @pocketcare/data) -- they're a genuine mobile-side
+// hooks.ts, not from @sanvya/data) -- they're a genuine mobile-side
 // addition on top of the spec, not a divergence from it, and are kept.
 //
 // One deliberate, documented divergence: PowerSyncBalanceRepository.netWorth()
@@ -37,7 +37,7 @@ import Domain
 // Phase 5 aggregation ships, reconcile the two.
 //
 // Table columns confirmed against the generated schema descriptor
-// (PocketCareSchema.swift, P2.1) and against
+// (SanvyaSchema.swift, P2.1) and against
 // supabase/migrations/0001_init.sql, not assumed.
 //
 // PowerSync Swift SDK call shapes (get/getOptional/getAll/execute/
@@ -252,6 +252,24 @@ public final class LedgerRepository: @unchecked Sendable {
         try db.watch(
             sql: "SELECT * FROM transactions WHERE deleted_at IS NULL AND account_id = ? ORDER BY occurred_at DESC",
             parameters: [accountId],
+            mapper: transactionMapper
+        )
+    }
+
+    /// All transaction rows across all accounts, newest first (for Dashboard).
+    public func watchRecentTransactions(limit: Int = 10) throws -> AsyncThrowingStream<[TransactionRow], Error> {
+        try db.watch(
+            sql: "SELECT * FROM transactions WHERE deleted_at IS NULL ORDER BY occurred_at DESC LIMIT ?",
+            parameters: [limit],
+            mapper: transactionMapper
+        )
+    }
+
+    /// All transaction rows across all accounts (for Transactions list).
+    public func watchAllTransactions() throws -> AsyncThrowingStream<[TransactionRow], Error> {
+        try db.watch(
+            sql: "SELECT * FROM transactions WHERE deleted_at IS NULL ORDER BY occurred_at DESC",
+            parameters: [],
             mapper: transactionMapper
         )
     }

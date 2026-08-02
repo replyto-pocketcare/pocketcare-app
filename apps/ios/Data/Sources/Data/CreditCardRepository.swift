@@ -6,7 +6,7 @@ import Domain
 // packages/data/src/powersync-repositories.ts's PowerSyncCreditCardRepository
 // exactly. Mirrors apps/android/data/.../repository/CreditCardRepository.kt.
 //
-// Table columns confirmed against PocketCareSchema.swift's
+// Table columns confirmed against SanvyaSchema.swift's
 // credit_card_details entry and supabase/migrations/0001_init.sql +
 // 0032_loans_investments_cards.sql.
 

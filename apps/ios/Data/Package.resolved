@@ -1,5 +1,5 @@
 {
-  "originHash" : "2c47c1ac41ed541d1c4bedf1dcddad0cd745ea30ec86f4c87006b3e28930a3fc",
+  "originHash" : "378977a6a320457f48c676b8753c109347f8875b5a35078b5ee359007396d7b2",
   "pins" : [
     {
       "identity" : "csqlite",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "9f10da4272e292c453db400342d9e16c15e59db5",
         "version" : "3.51.2"
+      }
+    },
+    {
+      "identity" : "factory",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hmlongco/Factory",
+      "state" : {
+        "revision" : "ccc898f21992ebc130bc04cc197460a5ae230bcf",
+        "version" : "2.5.3"
       }
     },
     {

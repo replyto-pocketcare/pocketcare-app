@@ -46,7 +46,7 @@ public final class UpiRepository: @unchecked Sendable {
     ) throws -> String {
         let params = IntentParams(
             vpa: payeeVpa,
-            name: payeeName ?? "PocketCare",
+            name: payeeName ?? "Sanvya",
             amountMinor: Double(amountMinor),
             note: note,
             ref: transactionRef,

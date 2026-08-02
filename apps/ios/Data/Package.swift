@@ -30,6 +30,11 @@ let package = Package(
             url: "https://github.com/supabase/supabase-swift.git",
             from: "2.54.0"
         ),
+        // Factory — DI Framework
+        .package(
+            url: "https://github.com/hmlongco/Factory",
+            from: "2.3.2"
+        ),
     ],
     targets: [
         .target(
@@ -39,6 +44,7 @@ let package = Package(
                 .product(name: "PowerSync", package: "powersync-swift"),
                 // Use umbrella Supabase product — includes Auth + PostgREST.
                 .product(name: "Supabase", package: "supabase-swift"),
+                .product(name: "Factory", package: "Factory"),
             ]
         ),
         .testTarget(

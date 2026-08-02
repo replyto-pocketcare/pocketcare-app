@@ -30,8 +30,8 @@ import Supabase
 // files in the same Data target already import.
 import Domain
 
-/// Postgres schema that holds all PocketCare tables.
-public let DB_SCHEMA = "pocketcare"
+/// Postgres schema that holds all Sanvya tables.
+public let DB_SCHEMA = "sanvya"
 
 // MARK: - SyncDiagnostic
 
@@ -227,7 +227,7 @@ public final class SupabaseConnector: PowerSyncBackendConnectorProtocol, @unchec
                     onBump: { k in bumped.insert(k) }
                 )
 
-                print("[PocketCare sync] upload failed for \(schema).\(op.table) "
+                print("[Sanvya sync] upload failed for \(schema).\(op.table) "
                     + "(\(op.op.rawValue), \(run.count) row(s), attempt \(verdict.attempts), "
                     + "\(verdict.classification.cls))"
                     + (verdict.quarantined ? " — moved to Problems syncing" : ""))
@@ -267,7 +267,7 @@ public final class SupabaseConnector: PowerSyncBackendConnectorProtocol, @unchec
                     i = j
                     continue
                 }
-                throw NSError(domain: "PocketCareSync", code: 1,
+                throw NSError(domain: "SanvyaSync", code: 1,
                               userInfo: [NSLocalizedDescriptionKey: failure.message ?? "Upload failed"])
             }
 

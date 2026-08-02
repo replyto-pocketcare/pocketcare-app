@@ -22,7 +22,7 @@ import Supabase
 /// Ensure there is a session; sign in anonymously (guest) if none exists.
 ///
 /// Mirrors ensureUser(client) in auth.ts.
-public func ensureUser(client: SupabaseClient) async throws -> String {
+public func authEnsureUser(client: SupabaseClient) async throws -> String {
     if let session = try? await client.auth.session {
         return session.user.id.uuidString
     }
@@ -37,7 +37,7 @@ public func ensureUser(client: SupabaseClient) async throws -> String {
 ///
 /// Mirrors isGuest(client) in auth.ts.
 /// Supabase exposes `isAnonymous` on the User object for anonymous sessions.
-public func isGuest(client: SupabaseClient) async -> Bool {
+public func authIsGuest(client: SupabaseClient) async -> Bool {
     guard let session = try? await client.auth.session else { return false }
     return session.user.isAnonymous
 }
@@ -49,7 +49,7 @@ public func isGuest(client: SupabaseClient) async -> Bool {
 /// by this user. After email confirmation the same user is now non-anonymous.
 ///
 /// Mirrors upgradeGuestWithEmail in auth.ts.
-public func upgradeGuestWithEmail(
+public func authUpgradeGuestWithEmail(
     client: SupabaseClient,
     email: String,
     password: String
@@ -63,12 +63,12 @@ public func upgradeGuestWithEmail(
 // MARK: - sendOtp / verifyOtp
 
 /// Send an OTP to the given email (magic link / OTP sign-in).
-public func sendOtp(client: SupabaseClient, email: String) async throws {
+public func authSendOtp(client: SupabaseClient, email: String) async throws {
     try await client.auth.signInWithOTP(email: email, shouldCreateUser: true)
 }
 
 /// Verify an OTP token received by the user (completes the magic-link / OTP flow).
-public func verifyOtp(client: SupabaseClient, email: String, token: String) async throws {
+public func authVerifyOtp(client: SupabaseClient, email: String, token: String) async throws {
     try await client.auth.verifyOTP(email: email, token: token, type: .email)
 }
 
@@ -80,7 +80,7 @@ public func verifyOtp(client: SupabaseClient, email: String, token: String) asyn
 /// The caller is responsible for presenting the sign-in UI and passing the
 /// resulting token here — this function is intentionally decoupled from the
 /// presentation layer.
-public func signInWithGoogle(client: SupabaseClient, idToken: String, nonce: String? = nil) async throws {
+public func authSignInWithGoogle(client: SupabaseClient, idToken: String, nonce: String? = nil) async throws {
     try await client.auth.signInWithIdToken(
         credentials: .init(provider: .google, idToken: idToken, nonce: nonce)
     )
@@ -90,7 +90,7 @@ public func signInWithGoogle(client: SupabaseClient, idToken: String, nonce: Str
 
 /// Sign in with Apple (iOS-native, preferred for App Store compliance).
 /// Pass the ID token and raw nonce from ASAuthorizationAppleIDCredential.
-public func signInWithApple(
+public func authSignInWithApple(
     client: SupabaseClient,
     idToken: String,
     nonce: String
@@ -108,7 +108,7 @@ public func signInWithApple(
 /// The caller is responsible for clearing the offline marker in UserDefaults/
 /// the App layer and triggering a PowerSync schema reset for a "switch account"
 /// flow.
-public func signOut(client: SupabaseClient) async throws {
+public func authSignOut(client: SupabaseClient) async throws {
     try await client.auth.signOut()
 }
 
@@ -140,7 +140,7 @@ public enum AuthState: String, Sendable, Codable {
 ///
 /// - Parameter isOnline: true if the device has a working network connection
 ///   (determined by the caller — e.g. NWPathMonitor or PowerSync status).
-public func currentAuthState(
+public func authCurrentAuthState(
     client: SupabaseClient,
     isOnline: Bool
 ) async -> AuthState {
