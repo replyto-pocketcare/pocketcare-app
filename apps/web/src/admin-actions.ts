@@ -266,6 +266,17 @@ export async function getNotificationGroups(): Promise<AdminResult<Record<string
   }
 }
 
+export async function createNotificationGroup(name: string, description: string): Promise<AdminResult<any>> {
+  try {
+    const supabase = getAdminClient();
+    const { data, error } = await supabase.from("notification_groups").insert({ name, description }).select().single();
+    if (error) throw new Error(error.message);
+    return { ok: true, data };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function sendBroadcastPush(payload: { group_id: string; title: string; subtitle?: string; body?: string; image_url?: string; href?: string }): Promise<AdminResult<any>> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
