@@ -13,7 +13,7 @@ import { useQuery } from "@powersync/react";
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
-import { money, fromMajor } from "@pocketcare/money";
+import { money, fromMajor } from "@sanvya/money";
 import { useBaseCurrency, useAccountBalances } from "../../../src/hooks";
 import { useMoneyFmt } from "../../../src/ui/Money";
 import { getDb, getUserId } from "../../../src/powersync";
@@ -127,7 +127,7 @@ export default function AnalyzeStatementPage() {
 }
 
 function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
-  parsed: ParsedStatement; base: string; cur: string; fmt: (m: import("@pocketcare/money").Money) => string;
+  parsed: ParsedStatement; base: string; cur: string; fmt: (m: import("@sanvya/money").Money) => string;
   accountId: string; accountName: string; onReset: () => void;
 }) {
   const { t } = useTranslation("statementsAnalyze");

@@ -9,13 +9,13 @@ import { startSubscription, buyCredits, cancelSubscription, redeemCoupon } from 
 import { openInvoice, type InvoicePayment } from "../billing/invoice";
 
 const FREE_FEATURES = ["All account types (bank, cash, cards, stocks…)", "Categories, labels, budgets, goals", "Transactions, transfers, search"];
-const PAID_EXTRA = ["Detailed Insights & Statements", "Ask PocketCare AI assistant", "Auto-categorisation, upcoming, stock sync", "CSV import"];
+const PAID_EXTRA = ["Detailed Insights & Statements", "Ask Sanvya AI assistant", "Auto-categorisation, upcoming, stock sync", "CSV import"];
 
 type PlanKey = "free" | "lite" | "pro";
 const PLAN_DETAILS: Record<PlanKey, { includes: string[]; excludes: string[]; ai: string }> = {
-  free: { includes: FREE_FEATURES, excludes: PAID_EXTRA, ai: "No Ask PocketCare — upgrade to Lite or Pro to unlock" },
-  lite: { includes: [...FREE_FEATURES, ...PAID_EXTRA], excludes: [], ai: "50 Ask PocketCare prompts / month" },
-  pro: { includes: [...FREE_FEATURES, ...PAID_EXTRA], excludes: [], ai: "200 Ask PocketCare prompts / month" },
+  free: { includes: FREE_FEATURES, excludes: PAID_EXTRA, ai: "No Ask Sanvya — upgrade to Lite or Pro to unlock" },
+  lite: { includes: [...FREE_FEATURES, ...PAID_EXTRA], excludes: [], ai: "50 Ask Sanvya prompts / month" },
+  pro: { includes: [...FREE_FEATURES, ...PAID_EXTRA], excludes: [], ai: "200 Ask Sanvya prompts / month" },
 };
 
 export function Billing() {
@@ -177,7 +177,7 @@ export function Billing() {
 
       {/* AI credit top-ups — Lite/Pro only */}
       <div style={{ display: "grid", gap: 8, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-        <div><strong style={{ fontSize: 14 }}>Buy AI credits</strong> <span className="muted" style={{ fontSize: 12 }}>— extra Ask PocketCare prompts that never expire.</span></div>
+        <div><strong style={{ fontSize: 14 }}>Buy AI credits</strong> <span className="muted" style={{ fontSize: 12 }}>— extra Ask Sanvya prompts that never expire.</span></div>
         {e.isPaid ? (
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {CREDIT_PACKS.map((c) => (

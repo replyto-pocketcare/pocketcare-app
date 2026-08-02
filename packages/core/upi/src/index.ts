@@ -1,12 +1,12 @@
 /**
- * @pocketcare/upi — building UPI Intent deep links for peer-to-peer settle-up.
+ * @sanvya/upi — building UPI Intent deep links for peer-to-peer settle-up.
  *
  * WHY THIS IS A PACKAGE: the URL we produce is handed to a third-party UPI app
  * and we never see what happens next. A malformed link fails silently inside
  * someone else's software, where no amount of logging will help us. So the
  * construction is pure, isolated, and tested to death.
  *
- * WHAT THIS IS NOT: a payment integration. PocketCare never touches the money.
+ * WHAT THIS IS NOT: a payment integration. Sanvya never touches the money.
  * We hand the payer's own UPI app a prefilled instruction; the transfer is
  * bank-to-bank between two individuals. There is no PSP, no escrow, no merchant
  * account, and consequently **no success callback** — see `docs/features/
@@ -106,7 +106,7 @@ export function formatAmount(minor: number): string {
  *
  * Most UPI apps surface this in the payment record, and banks often carry it
  * into the statement narration — so it's the one thread a user can pull to
- * match a PocketCare settlement against their bank statement when something
+ * match a Sanvya settlement against their bank statement when something
  * looks wrong. Alphanumeric only and kept short, because some PSPs quietly
  * truncate or reject punctuation here.
  */
@@ -159,7 +159,7 @@ function sanitizeNote(note: string): string {
 
 function sanitizeName(name: string): string {
   const cleaned = name.replace(/[&?#=%]/g, " ").replace(/\s+/g, " ").trim().slice(0, 50);
-  return cleaned || "PocketCare";
+  return cleaned || "Sanvya";
 }
 
 export interface BuiltIntent {

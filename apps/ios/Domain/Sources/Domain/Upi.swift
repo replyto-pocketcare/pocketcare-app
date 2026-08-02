@@ -3,7 +3,7 @@ import Foundation
 // Ported from packages/core/upi/src/index.ts (P1.6b). Mirrors
 // apps/android/domain/.../upi/Upi.kt (P1.6a). Building UPI Intent deep
 // links for peer-to-peer settle-up. UPI is India-only; every entry point
-// below refuses anything else. PocketCare never touches the money -- this
+// below refuses anything else. Sanvya never touches the money -- this
 // only builds a `upi://pay?...` URL and hands it to a third-party app.
 
 /// UPI is India-only. Every entry point refuses anything else.
@@ -202,7 +202,7 @@ private func sanitizeName(_ name: String) -> String {
     s = SANITIZE_WHITESPACE_RE.replacingAllMatches(in: s, with: " ")
     s = s.trimmingCharacters(in: .whitespacesAndNewlines)
     let cleaned = String(s.prefix(50))
-    return cleaned.isEmpty ? "PocketCare" : cleaned
+    return cleaned.isEmpty ? "Sanvya" : cleaned
 }
 
 public struct BuiltIntent: Sendable {

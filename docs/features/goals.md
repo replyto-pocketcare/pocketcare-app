@@ -19,7 +19,7 @@ flowchart TD
 flowchart LR
     Goal["goals + goal_allocations"] --> Saved["saved = Σ allocations"]
     Saved --> Prog["progress = saved / target"]
-    Contrib["monthly contribution + return %"] --> Proj["periodsToGoal()\n@pocketcare/finance"]
+    Contrib["monthly contribution + return %"] --> Proj["periodsToGoal()\n@sanvya/finance"]
     Proj --> ETA["ETA date"]
 ```
 
@@ -27,7 +27,7 @@ flowchart LR
 `goals` (`is_emergency_fund`, `priority`), `goal_allocations` (blocked amounts reduce **available** balance), savings `accounts`.
 
 ## Key files
-`app/goals/`, `@pocketcare/finance` (`periodsToGoal`, `futureValue`), `src/ui/ProgressBar.tsx`.
+`app/goals/`, `@sanvya/finance` (`periodsToGoal`, `futureValue`), `src/ui/ProgressBar.tsx`.
 
 ## Gating
 Free: create goals + track. Premium: compounding ETA projections.

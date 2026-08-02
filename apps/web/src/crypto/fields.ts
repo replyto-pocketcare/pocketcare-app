@@ -7,7 +7,7 @@
  * as-is. `useDecrypted` transparently decrypts envelopes for display.
  */
 import { useEffect, useState } from "react";
-import { encryptField, decryptField, isEncrypted } from "@pocketcare/crypto";
+import { encryptField, decryptField, isEncrypted } from "@sanvya/crypto";
 import { getDek } from "./session";
 
 // ciphertext -> plaintext, primed on write and filled on read (envelopes are stable).

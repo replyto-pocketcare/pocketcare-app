@@ -197,7 +197,7 @@ export function InsightFeed() {
       <div className="card fade-up" style={{ padding: 32, textAlign: "center", display: "grid", gap: 8, maxWidth: 460, margin: "24px auto" }}>
         <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><MaterialIcon name="insights" size={30} /></div>
         <h2>Your stack is empty for now</h2>
-        <p className="muted">Add a few transactions and PocketCare will start surfacing weekly recaps, budget alerts and savings wins here.</p>
+        <p className="muted">Add a few transactions and Sanvya will start surfacing weekly recaps, budget alerts and savings wins here.</p>
       </div>
     );
   }

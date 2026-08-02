@@ -135,7 +135,7 @@ const APP_VERSION = "0.1.0";
 const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: string; icon: MaterialIconName; beta?: boolean }[] }[] = [
   { title: "", items: [
     { href: "/", tkey: "nav.home", label: "Dashboard", icon: "space_dashboard" },
-    { href: "/assistant", tkey: "nav.assistant", label: "Ask PocketCare", icon: "auto_awesome" },
+    { href: "/assistant", tkey: "nav.assistant", label: "Ask Sanvya", icon: "auto_awesome" },
   ] },
   { title: "Money", items: [
     { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "account_balance" },
@@ -331,13 +331,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
           )}
           <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-2)", opacity: 0.7, paddingTop: 2 }}>
-            PocketCare v{APP_VERSION}
+            Sanvya v{APP_VERSION}
           </div>
         </div>
       </aside>
 
       <Modal open={showInstall} onClose={() => setShowInstall(false)}>
-        <h2 style={{ margin: "0 0 12px" }}>Install PocketCare</h2>
+        <h2 style={{ margin: "0 0 12px" }}>Install Sanvya</h2>
         <InstallGuide />
       </Modal>
 
@@ -374,7 +374,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   }}>
                     Force Sync
                   </button>
-                  <a href="mailto:support@pocketcare.app?subject=Sync%20Issue" className="btn ghost" style={{ padding: "4px 10px", fontSize: 12, minHeight: 0, height: 28 }}>
+                  <a href="mailto:support@sanvya.app?subject=Sync%20Issue" className="btn ghost" style={{ padding: "4px 10px", fontSize: 12, minHeight: 0, height: 28 }}>
                     Report Issue
                   </a>
                 </div>

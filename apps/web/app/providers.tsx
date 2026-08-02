@@ -3,8 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { AbstractPowerSyncDatabase } from "@powersync/common";
 import { PowerSyncContext } from "@powersync/react";
-import { initI18n } from "@pocketcare/i18n";
-import { lightTheme } from "@pocketcare/ui-tokens";
+import { initI18n } from "@sanvya/i18n";
+import { lightTheme } from "@sanvya/ui-tokens";
 import { initSystem } from "../src/powersync";
 import { Spinner } from "../src/ui/Spinner";
 import { ConfirmProvider } from "../src/ui/Confirm";
@@ -39,7 +39,7 @@ export function Providers({ children }: { children: ReactNode }) {
     return (
       <div style={fallback}>
         <div>
-          <strong>Couldn’t start PocketCare.</strong>
+          <strong>Couldn’t start Sanvya.</strong>
           <div style={{ color: lightTheme.textSecondary, marginTop: 8, fontSize: 13 }}>{error}</div>
           <div style={{ color: lightTheme.textSecondary, marginTop: 8, fontSize: 13 }}>
             Check your <code>.env</code> (NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY / _POWERSYNC_URL).
@@ -54,7 +54,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <div style={fallback}>
         <div style={{ display: "grid", placeItems: "center", gap: 16 }}>
           <Spinner size={38} />
-          <span style={{ color: lightTheme.textSecondary }}>Loading PocketCare…</span>
+          <span style={{ color: lightTheme.textSecondary }}>Loading Sanvya…</span>
         </div>
       </div>
     );

@@ -47,7 +47,7 @@ Deno.serve(async (req: Request) => {
     return new Response("bad signature", { status: 401 });
   }
 
-  const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "pocketcare" } });
+  const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "sanvya" } });
   let evt: any;
   try { evt = JSON.parse(raw); } catch { return new Response("bad json", { status: 400 }); }
   const event: string = evt.event;

@@ -50,7 +50,7 @@
   "autoSplitDates": "Uitgaven binnen deze datums automatisch splitsen",
   "save": "Opslaan",
   "inviteTo": "Uitnodigen voor {{name}}",
-  "inviteBody": "Voer het e-mailadres van een vriend in. Als ze op PocketCare zitten, worden ze meteen toegevoegd; anders geven we je een link om te delen.",
+  "inviteBody": "Voer het e-mailadres van een vriend in. Als ze op Sanvya zitten, worden ze meteen toegevoegd; anders geven we je een link om te delen.",
   "emailPlaceholder": "vriend@email.com",
   "orShareLink": "Of maak een deelbare link",
   "alreadyIn": "{{name}} zit al in deze groep.",

@@ -13,15 +13,15 @@
  * Consequence: nothing in `hooks.ts`, `math.ts`, `collapse.ts` or the settle-up
  * flow needs to change to support itemized bills.
  */
-import { money } from "@pocketcare/money";
-import type { CurrencyCode } from "@pocketcare/types";
+import { money } from "@sanvya/money";
+import type { CurrencyCode } from "@sanvya/types";
 import {
   allocateReceipt,
   isCharge,
   reconcile,
   type LineAssignment,
   type ReceiptDraft,
-} from "@pocketcare/receipts";
+} from "@sanvya/receipts";
 
 import { getRepositories, getUserId } from "../powersync";
 import { insertRow } from "../write";

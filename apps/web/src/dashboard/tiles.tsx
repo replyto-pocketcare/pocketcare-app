@@ -7,11 +7,11 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip, CartesianGrid,
   BarChart, Bar, AreaChart, Area, XAxis, YAxis, LabelList,
 } from "recharts";
-import { money, format, toMajor, type Money } from "@pocketcare/money";
-import { budgetProgress } from "@pocketcare/budget";
-import { monthlyEquivalent, emiDueDate } from "@pocketcare/finance";
-import type { BudgetLike } from "@pocketcare/data";
-import type { Transaction, Period } from "@pocketcare/types";
+import { money, format, toMajor, type Money } from "@sanvya/money";
+import { budgetProgress } from "@sanvya/budget";
+import { monthlyEquivalent, emiDueDate } from "@sanvya/finance";
+import type { BudgetLike } from "@sanvya/data";
+import type { Transaction, Period } from "@sanvya/types";
 import { getRepositories } from "../powersync";
 import { useBaseCurrency, useCurrencyBreakdown, useConvertAmount } from "../hooks";
 import { useAmountsHidden } from "../prefs";

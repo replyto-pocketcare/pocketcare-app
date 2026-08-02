@@ -5,11 +5,11 @@ import { useQuery } from "@powersync/react";
 import {
   computeFriendStats, pickFriendInsights,
   type Contribution, type FriendEdge, type FriendInsight, type FriendSettlement, type FriendStats,
-} from "@pocketcare/splits-insights";
+} from "@sanvya/splits-insights";
 import { getUserId } from "../powersync";
 import { pairwiseEdges, type Party } from "./math";
 
-export type { FriendInsight, FriendStats } from "@pocketcare/splits-insights";
+export type { FriendInsight, FriendStats } from "@sanvya/splits-insights";
 
 export function useMyUserId(): string {
   try { return getUserId(); } catch { return ""; }
@@ -273,7 +273,7 @@ export function useSplitOverview(): SplitOverview {
  *
  * The pairwise edges are built here (the balance maths lives in `math.ts` and
  * must stay the single implementation); the behavioural analysis is delegated
- * to `@pocketcare/splits-insights`, which is pure and unit-tested.
+ * to `@sanvya/splits-insights`, which is pure and unit-tested.
  */
 export function useFriendInsights(): { stats: FriendStats[]; insights: FriendInsight[] } {
   const me = useMyUserId();

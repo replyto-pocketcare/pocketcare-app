@@ -1,6 +1,6 @@
 # 04 — Security & Privacy
 
-PocketCare handles sensitive financial data. Security rests on four pillars: **authentication**, **row-level security**, **zero-trust encryption of sensitive fields**, and **auditable support access**. See also `SECURITY_AUDIT.md` and `SECURITY_ENCRYPTION_PLAN.md` at the repo root.
+Sanvya handles sensitive financial data. Security rests on four pillars: **authentication**, **row-level security**, **zero-trust encryption of sensitive fields**, and **auditable support access**. See also `SECURITY_AUDIT.md` and `SECURITY_ENCRYPTION_PLAN.md` at the repo root.
 
 ## Authentication
 
@@ -13,7 +13,7 @@ PocketCare handles sensitive financial data. Security rests on four pillars: **a
 Every owner-scoped table enables RLS with an owner policy:
 
 ```sql
-create policy <name>_owner on pocketcare.<table>
+create policy <name>_owner on sanvya.<table>
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 ```
 
@@ -33,7 +33,7 @@ flowchart TB
 
 ## Zero-trust encryption (sensitive fields)
 
-The server only ever holds **wrapped keys + ciphertext** — it cannot read protected values. Implemented with WebCrypto in `@pocketcare/crypto` and the `user_keys` table.
+The server only ever holds **wrapped keys + ciphertext** — it cannot read protected values. Implemented with WebCrypto in `@sanvya/crypto` and the `user_keys` table.
 
 ```mermaid
 flowchart LR
@@ -76,10 +76,10 @@ Self-serve deletion removes the identity and **all** associated data and frees t
 sequenceDiagram
     actor User
     participant UI as Settings
-    participant RPC as pocketcare.delete_user_account()
+    participant RPC as sanvya.delete_user_account()
     participant PG as Postgres
     User->>UI: Delete everything
-    UI->>RPC: supabase.schema('pocketcare').rpc('delete_user_account')
+    UI->>RPC: supabase.schema('sanvya').rpc('delete_user_account')
     RPC->>PG: clear splits rows (no-cascade FKs) in FK-safe order
     RPC->>PG: delete owner tables (accounts, transactions, planned_cashflow, …)
     RPC->>PG: delete profiles, entitlements
@@ -90,7 +90,7 @@ sequenceDiagram
 
 **Two historical bugs, both fixed:**
 
-1. **404 / silent no-op** — the RPC lives in the `pocketcare` schema but was called via `supabase.rpc()` (which targets `public`). Fixed by schema-qualifying the call **and** checking the returned `error` (migration `0030`, `apps/web/app/settings/page.tsx`).
+1. **404 / silent no-op** — the RPC lives in the `sanvya` schema but was called via `supabase.rpc()` (which targets `public`). Fixed by schema-qualifying the call **and** checking the returned `error` (migration `0030`, `apps/web/app/settings/page.tsx`).
 2. **FK violation on `auth.users`** — the multi-user splits tables reference `auth.users` **without** `ON DELETE CASCADE`, so the final delete failed. Fixed by clearing splits rows first (migration `0031`). A full-schema scan confirmed those 7 columns are the only non-cascade FKs to `auth.users`.
 
 ## Threat-model highlights
@@ -108,7 +108,7 @@ sequenceDiagram
 - **Disclosure gate.** Release requires a shared live group, existing financial activity between the two users, and a per-caller rate limit (20/hour). Without all three the endpoint is a UPI-ID directory. Every release writes a `payment_handle_disclosures` row the owner can read.
 - **Guests cannot save a handle**, enforced by a trigger on `auth.users.is_anonymous` — checked there rather than via `guest_sessions`, because guest→registered is an in-place UID upgrade that leaves the guest row behind.
 - **We never verify handle ownership.** That requires a penny-drop through a PSP, i.e. becoming a regulated payment entity. The payer's own UPI app resolves and shows the real account name before they confirm, which is the actual verification.
-- **PocketCare never holds funds.** UPI Intent moves money bank-to-bank between two individuals; we are not a party to the transfer and cannot reverse, refund or recover a mistaken payment.
+- **Sanvya never holds funds.** UPI Intent moves money bank-to-bank between two individuals; we are not a party to the transfer and cannot reverse, refund or recover a mistaken payment.
 
 ## Diagnostics and error reporting
 

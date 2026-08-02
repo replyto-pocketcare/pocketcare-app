@@ -3,7 +3,7 @@
 /**
  * Pay any UPI ID — typed in, or read off a QR with the camera.
  *
- * Same posture as the settle-up flow: **no money touches PocketCare**. We build
+ * Same posture as the settle-up flow: **no money touches Sanvya**. We build
  * a UPI Intent deep link and the payer's own UPI app moves it bank-to-bank.
  *
  * SECURITY — a scanned QR is untrusted input:
@@ -13,7 +13,7 @@
  *    showing the registered account name before they confirm.
  *  - A scanned amount is a suggestion that lands in an editable field. Nothing
  *    is ever auto-submitted; opening the UPI app is always a deliberate tap.
- *  - Parsing/validation lives in `@pocketcare/upi` (`parseUpiTarget`), which is
+ *  - Parsing/validation lives in `@sanvya/upi` (`parseUpiTarget`), which is
  *    unit-tested against duplicated `pa` params, hostile amounts, non-UPI URLs
  *    and EMVCo payloads.
  *
@@ -24,7 +24,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { buildIntentUrl, parseUpiTarget, maskVpa, type UpiTarget, type UpiParseFailure } from "@pocketcare/upi";
+import { buildIntentUrl, parseUpiTarget, maskVpa, type UpiTarget, type UpiParseFailure } from "@sanvya/upi";
 import { Modal } from "../ui/Modal";
 import { AmountInput } from "../ui/AmountInput";
 import { MaterialIcon } from "../ui/MaterialIcon";
@@ -119,7 +119,7 @@ export function PayAnyone({ open, onClose }: { open: boolean; onClose: () => voi
         <div>
           <h2 style={{ margin: 0 }}>{t("payAnyone.title", "Pay someone")}</h2>
           <p className="muted" style={{ margin: "4px 0 0", fontSize: 12.5 }}>
-            {t("payAnyone.subtitle", "Opens your own UPI app. PocketCare never holds or moves the money.")}
+            {t("payAnyone.subtitle", "Opens your own UPI app. Sanvya never holds or moves the money.")}
           </p>
         </div>
 
@@ -191,7 +191,7 @@ export function PayAnyone({ open, onClose }: { open: boolean; onClose: () => voi
             )}
 
             <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>
-              {t("payAnyone.footnote", "Check the account name in your UPI app before you confirm. PocketCare can't verify who owns a UPI ID.")}
+              {t("payAnyone.footnote", "Check the account name in your UPI app before you confirm. Sanvya can't verify who owns a UPI ID.")}
             </p>
 
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>

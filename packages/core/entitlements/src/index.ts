@@ -1,9 +1,9 @@
 /**
- * @pocketcare/entitlements — freemium feature gating (features #19/#20).
+ * @sanvya/entitlements — freemium feature gating (features #19/#20).
  * Pure + synchronous so it works offline; the current tier comes from the
  * locally-cached `entitlements` row (validated on reconnect via RevenueCat).
  */
-import type { Tier } from "@pocketcare/types";
+import type { Tier } from "@sanvya/types";
 
 export const Feature = {
   // Free

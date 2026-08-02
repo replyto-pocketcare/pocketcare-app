@@ -17,7 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { useQuery } from "@powersync/react";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 import {
   allocateReceipt,
   AllocationError,
@@ -29,7 +29,7 @@ import {
   type LineAssignment,
   type ReceiptDraft,
   type ReceiptLine,
-} from "@pocketcare/receipts";
+} from "@sanvya/receipts";
 
 import { useMoneyFmt } from "../../../src/ui/Money";
 import { Spinner } from "../../../src/ui/Spinner";

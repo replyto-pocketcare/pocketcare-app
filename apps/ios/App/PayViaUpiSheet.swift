@@ -7,14 +7,14 @@ struct PayViaUpiSheet: View {
     let counterpartyName: String
     let vpa: String
     let amountMinor: Int64
-    var note: String = "PocketCare settle-up"
+    var note: String = "Sanvya settle-up"
 
     @State private var showFallback = false
     @State private var copiedNotice: String? = nil
 
-    private var builtIntent: BuiltIntent {
-        let params = IntentParams(vpa: vpa, name: counterpartyName, amountMinor: amountMinor, note: note)
-        return (try? buildIntentUrl(params)) ?? BuiltIntent(url: "upi://pay", reference: "REF")
+    private var builtIntent: BuiltIntent? {
+        let params = IntentParams(vpa: vpa, name: counterpartyName, amountMinor: Double(amountMinor), note: note)
+        return try? buildIntentUrl(params)
     }
 
     private var maskedVpa: String {
@@ -31,25 +31,27 @@ struct PayViaUpiSheet: View {
                 VStack(spacing: 6) {
                     Text("Paying \(counterpartyName)")
                         .font(.headline)
-                        .foregroundColor(Theme.ink)
+                        .foregroundColor(Color.text)
 
                     Text(maskedVpa)
                         .font(.caption)
                         .fontDesign(.monospaced)
-                        .foregroundColor(Theme.inkSoft)
+                        .foregroundColor(Color.text2)
                 }
 
                 Text("₹\(amountRupees)")
                     .font(.system(size: 36, weight: .bold))
-                    .foregroundColor(Theme.terracotta)
+                    .foregroundColor(Color.accent)
 
                 Button(action: {
-                    if let url = URL(string: builtIntent.url) {
+                    if let intentUrl = builtIntent?.url, let url = URL(string: intentUrl) {
                         UIApplication.shared.open(url) { success in
                             if !success {
                                 showFallback = true
                             }
                         }
+                    } else {
+                        showFallback = true
                     }
                 }) {
                     Text("Open UPI App")
@@ -57,8 +59,8 @@ struct PayViaUpiSheet: View {
                         .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Theme.terracotta)
-                        .foregroundColor(Theme.cream)
+                        .background(Color.accent)
+                        .foregroundColor(Color.surface)
                         .cornerRadius(12)
                 }
 
@@ -66,7 +68,7 @@ struct PayViaUpiSheet: View {
                     Button(action: { showFallback = true }) {
                         Text("Didn't open? Pay another way")
                             .font(.caption)
-                            .foregroundColor(Theme.inkSoft)
+                            .foregroundColor(Color.text2)
                     }
                 }
 
@@ -75,7 +77,7 @@ struct PayViaUpiSheet: View {
                         Text("Pay manually")
                             .font(.subheadline)
                             .fontWeight(.bold)
-                            .foregroundColor(Theme.ink)
+                            .foregroundColor(Color.text)
 
                         HStack {
                             Text(vpa)
@@ -105,11 +107,11 @@ struct PayViaUpiSheet: View {
                             Text(notice)
                                 .font(.caption2)
                                 .fontWeight(.bold)
-                                .foregroundColor(Theme.sage)
+                                .foregroundColor(Color.positive)
                         }
                     }
                     .padding(12)
-                    .background(Theme.clay100)
+                    .background(Color.surface2)
                     .cornerRadius(12)
                 }
 
@@ -123,24 +125,24 @@ struct PayViaUpiSheet: View {
                         .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Theme.sage)
-                        .foregroundColor(Theme.cream)
+                        .background(Color.positive)
+                        .foregroundColor(Color.surface)
                         .cornerRadius(12)
                 }
 
                 Text("We can't see UPI payments directly, so we'll ask \(counterpartyName) to confirm it arrived.")
                     .font(.caption2)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(Theme.inkSoft)
+                    .foregroundColor(Color.text2)
             }
             .padding(20)
-            .background(Theme.clay50.ignoresSafeArea())
+            .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Pay via UPI")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(Theme.inkSoft)
+                        .foregroundColor(Color.text2)
                 }
             }
         }

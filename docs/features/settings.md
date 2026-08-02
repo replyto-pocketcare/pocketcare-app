@@ -25,7 +25,7 @@ flowchart LR
 ```
 
 ## Data touched
-`profiles` (username, locale, optional traits), `categories`, `labels`, `entitlements` (plan), plus deletion via `pocketcare.delete_user_account`.
+`profiles` (username, locale, optional traits), `categories`, `labels`, `entitlements` (plan), plus deletion via `sanvya.delete_user_account`.
 
 ## Key files
 `app/settings/`, `app/settings/categories`, `app/settings/labels`, `src/prefs.ts`, `src/theme.ts`, `src/ui/Billing.tsx`.

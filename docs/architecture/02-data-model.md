@@ -1,6 +1,6 @@
 # 02 — Data Model
 
-All persistent state lives in the **`pocketcare`** Postgres schema (mirrored locally as WASM SQLite via the PowerSync `AppSchema` in `packages/db/src/index.ts`). Money columns are **integer minor units**. Every owner-scoped table has `user_id`, `created_at`, `updated_at`, `deleted_at` (soft delete) and is protected by RLS (`user_id = auth.uid()`).
+All persistent state lives in the **`sanvya`** Postgres schema (mirrored locally as WASM SQLite via the PowerSync `AppSchema` in `packages/db/src/index.ts`). Money columns are **integer minor units**. Every owner-scoped table has `user_id`, `created_at`, `updated_at`, `deleted_at` (soft delete) and is protected by RLS (`user_id = auth.uid()`).
 
 ## Entity relationships (core financial ledger)
 
@@ -200,7 +200,7 @@ erDiagram
     }
 ```
 
-> **Itemized bills (0040).** `expense_items` / `expense_item_shares` are a **breakdown, not a second balance model**: per-item shares are rolled up by the client into `expense_participants`, which stays the single source of truth for every balance and settle-up query. `expenses.has_items` flags that a breakdown exists. `Σ expense_items.amount = expenses.amount` is enforced **on the client**, not by a DB constraint — a cross-row sum can't be checked synchronously when PowerSync uploads rows incrementally across separate transactions (0042 removed the trigger 0040 shipped). Use `pocketcare.audit_expense_item_sums()` to observe drift.
+> **Itemized bills (0040).** `expense_items` / `expense_item_shares` are a **breakdown, not a second balance model**: per-item shares are rolled up by the client into `expense_participants`, which stays the single source of truth for every balance and settle-up query. `expenses.has_items` flags that a breakdown exists. `Σ expense_items.amount = expenses.amount` is enforced **on the client**, not by a DB constraint — a cross-row sum can't be checked synchronously when PowerSync uploads rows incrementally across separate transactions (0042 removed the trigger 0040 shipped). Use `sanvya.audit_expense_item_sums()` to observe drift.
 >
 > **Payment handles (0041) are server-only.** `payment_handles` is deliberately absent from `sync-streams.yaml` and from `AppSchema` — a UPI ID must never be copied onto co-members' devices. It is released just-in-time by the `payment-handle` edge function. Only `payment_handle_disclosures` (the owner's audit trail, which holds no secret) syncs. `settlements.status` defaults to `confirmed` so every pre-existing row keeps its meaning; **every settlements query must filter `status <> 'disputed'`**.
 >
@@ -247,7 +247,7 @@ classDiagram
         +rate(from, to) number
     }
     class FinanceEngine {
-        <<module @pocketcare/finance>>
+        <<module @sanvya/finance>>
         +futureValue(P, PMT, r, n) number
         +monthlyEquivalent(amount, period) number
         +recurringMonthlyTotal(items) number
@@ -268,11 +268,11 @@ classDiagram
 
 ```mermaid
 flowchart LR
-    UI["React components / hooks"] --> Repos["Repositories<br/>@pocketcare/data"]
+    UI["React components / hooks"] --> Repos["Repositories<br/>@sanvya/data"]
     UI --> WriteH["write.ts<br/>insertRow · updateRow · softDelete"]
     Repos --> PS[("PowerSync SQLite")]
     WriteH --> PS
-    Repos --> Ledger["@pocketcare/ledger<br/>deriveBalance · aggregateNetWorth"]
+    Repos --> Ledger["@sanvya/ledger<br/>deriveBalance · aggregateNetWorth"]
 ```
 
 ## Conventions

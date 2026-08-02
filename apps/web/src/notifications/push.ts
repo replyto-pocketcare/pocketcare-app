@@ -4,7 +4,7 @@
  * Web Push subscription management. The service worker (public/sw.js) shows the
  * OS notification; here we (1) ask the browser for permission, (2) create a
  * PushSubscription bound to our VAPID public key, and (3) persist its endpoint +
- * keys to `pocketcare.push_subscriptions` so the notify-dispatch edge function
+ * keys to `sanvya.push_subscriptions` so the notify-dispatch edge function
  * can deliver to it even when the app/tab is fully closed.
  *
  * The VAPID *public* key is safe to ship to the browser; the private key lives
@@ -66,7 +66,7 @@ export async function enablePush(): Promise<{ ok: true } | { ok: false; reason: 
 
     const json = sub.toJSON();
     const keys = json.keys ?? {};
-    const { error } = await getSupabase().schema("pocketcare").from("push_subscriptions").upsert(
+    const { error } = await getSupabase().schema("sanvya").from("push_subscriptions").upsert(
       {
         user_id: getUserId(),
         endpoint: json.endpoint,
@@ -99,11 +99,11 @@ export async function sendTestNotification(): Promise<{ ok: true } | { ok: false
   }
   try {
     const reg = await readyRegistration();
-    await reg.showNotification("PocketCare", {
+    await reg.showNotification("Sanvya", {
       body: "Test notification — you're all set to receive alerts.",
       icon: "/icon-192.png",
       badge: "/icon-192.png",
-      tag: "pocketcare-test",
+      tag: "sanvya-test",
       data: { href: "/notifications" },
     });
     return { ok: true };
@@ -119,7 +119,7 @@ export async function disablePush(): Promise<void> {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = await reg?.pushManager.getSubscription();
     if (sub) {
-      await getSupabase().schema("pocketcare").from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+      await getSupabase().schema("sanvya").from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
       await sub.unsubscribe();
     }
   } catch { /* best effort */ }

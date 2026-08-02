@@ -30,7 +30,7 @@ flowchart TD
 sequenceDiagram
   participant Cron
   participant Fn as notify-dispatch (edge)
-  participant PG as Postgres (pocketcare)
+  participant PG as Postgres (sanvya)
   participant Push as Web Push service
   participant SW as Service worker
   Cron->>Fn: POST (optionally { user_id })

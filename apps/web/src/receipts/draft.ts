@@ -10,13 +10,13 @@
 import {
   minorUnits,
   type Money,
-} from "@pocketcare/money";
+} from "@sanvya/money";
 import {
   reconcile,
   type ReceiptDraft,
   type ReceiptLine,
   type ReceiptLineKind,
-} from "@pocketcare/receipts";
+} from "@sanvya/receipts";
 
 /** Minor-unit digits for a currency, defaulting sanely on an unknown code. */
 export function digitsFor(currency: string): number {

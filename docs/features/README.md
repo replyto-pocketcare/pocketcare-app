@@ -29,7 +29,7 @@ Each feature has a dedicated doc with: **Overview**, **User flow** (Mermaid), **
 | Insights | [insights](insights.md) | `/insights` |
 | Statements | [statements](statements.md) | `/statements` |
 | Notifications (in-app + Web Push) | [notifications](notifications.md) | `/notifications`, `/settings` |
-| Ask PocketCare (AI assistant) | [assistant](assistant.md) | `/assistant` |
+| Ask Sanvya (AI assistant) | [assistant](assistant.md) | `/assistant` |
 | Settings & preferences | [settings](settings.md) | `/settings` |
 | Billing & entitlements | [billing-and-entitlements](billing-and-entitlements.md) | `/settings` (plan) |
 | Security & account deletion | [../architecture/04-security-and-privacy](../architecture/04-security-and-privacy.md) | `/settings` |

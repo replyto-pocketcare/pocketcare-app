@@ -528,7 +528,7 @@ function seeded(seed: number): () => number {
 
 // =========================================================================
 // receipts (reconcile.ts) — note: namespaced "receipts-reconcile" to avoid
-// colliding with the top-level @pocketcare/reconcile domain above.
+// colliding with the top-level @sanvya/reconcile domain above.
 // =========================================================================
 {
   const D = "receipts-reconcile";
@@ -616,7 +616,7 @@ function seeded(seed: number): () => number {
 
 // =========================================================================
 // splits (apps/web/src/splits/math.ts) — pairwiseEdges only; splitByWeights/
-// splitEqual are re-exports of @pocketcare/receipts, already vectored above.
+// splitEqual are re-exports of @sanvya/receipts, already vectored above.
 // =========================================================================
 {
   const D = "splits-math";

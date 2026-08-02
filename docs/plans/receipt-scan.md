@@ -65,7 +65,7 @@ display logic all keep working with zero changes.
 
 ## Data model
 
-### New tables (all in `pocketcare` schema, synced)
+### New tables (all in `sanvya` schema, synced)
 
 **`receipt_scans`** — audit/history of a scan, so a draft survives a refresh and we can show
 "scanned from a receipt" on a transaction. No image bytes.
@@ -137,7 +137,7 @@ to avoid a schema change — see Task 3 note if you'd rather add columns).
 - **Tests** (`node:test`): reconciliation tolerance, rounding never loses/creates money,
   quantity mode with fractional qty, proportional tax with a zero-subtotal participant,
   100% single-payer item, discount lines (negative amounts).
-- Add `@pocketcare/receipts` to `pnpm-workspace` + web deps + `test:core`.
+- Add `@sanvya/receipts` to `pnpm-workspace` + web deps + `test:core`.
 
 **A2. Migration `0040_receipts_and_expense_items.sql`**
 - Create the three tables above + `expenses.has_items`.
@@ -190,7 +190,7 @@ to avoid a schema change — see Task 3 note if you'd rather add columns).
 **B4. Claude-vision fallback**
 - `supabase/functions/receipt-scan/index.ts` — clone the `assistant` function's shape:
   same CORS/`json()` helper, same `verify_jwt`, same entitlements quota read/decrement,
-  same service-role client on `pocketcare` schema.
+  same service-role client on `sanvya` schema.
 - Model: a **vision-capable** model (`claude-sonnet-4-5` class), overridable via a
   `RECEIPT_MODEL` secret. Body: `{ image: base64, mediaType, currencyHint, localeHint }`.
 - Force structured output with a **tool schema** (`emit_receipt`) rather than free-text JSON —
@@ -315,8 +315,8 @@ to avoid a schema change — see Task 3 note if you'd rather add columns).
 - Regenerate the docs PDF (`scripts/build-docs-pdf.sh`).
 
 **D5. Verification**
-- `pnpm --filter @pocketcare/web typecheck`
-- `pnpm test:core` (new `@pocketcare/receipts` suite must pass alongside the existing 49)
+- `pnpm --filter @sanvya/web typecheck`
+- `pnpm test:core` (new `@sanvya/receipts` suite must pass alongside the existing 49)
 - Playwright e2e: upload a fixture image → review → save as plain transaction; and
   → split across 3 members → assert per-person totals.
 - Manual matrix: crumpled restaurant bill, thermal grocery bill (faded), a PDF bill,

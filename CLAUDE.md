@@ -1,4 +1,4 @@
-# CLAUDE.md — PocketCare working guide
+# CLAUDE.md — Sanvya working guide
 
 > Read `PROJECT_REFERENCE.md` first (compact LLM boot file: architecture, structure, patterns — read it INSTEAD of scanning the repo). Dated change history lives in `AUDIT_HISTORY.md` — new dated entries go there, and PROJECT_REFERENCE.md is updated only for evergreen changes (new tables/patterns/conventions/instructions). This file adds the rules an agent must follow while working here.
 
@@ -6,13 +6,13 @@
 Offline-first, multi-currency personal expense & wealth manager. Live client: **web** (Next.js PWA). Pure-native Android/iOS apps are planned/in-flight (`docs/plans/native-mobile-apps.md`, queue in `docs/mobile/TODO.md`). PowerSync (WASM SQLite) ↔ Supabase Postgres. Full technical docs live in [`docs/`](docs/README.md).
 
 ## Golden rules (never violate)
-1. Money = **integer minor units**, never floats. Use `@pocketcare/money`.
+1. Money = **integer minor units**, never floats. Use `@sanvya/money`.
 2. Balances are **derived from an append-only ledger**, never mutated.
-3. All tables + RPCs live in the **`pocketcare`** Postgres schema → direct calls must be schema-qualified (`supabase.schema('pocketcare').rpc(...)`) or PostgREST 404s.
+3. All tables + RPCs live in the **`sanvya`** Postgres schema → direct calls must be schema-qualified (`supabase.schema('sanvya').rpc(...)`) or PostgREST 404s.
 4. Server is authoritative; the client is an offline cache reconciled via sync.
 
 ## Writing migrations
-- **Schema-qualify every function call** — `pocketcare.is_group_member(...)`, not bare. Older migrations (0011) get away with a bare call only because they `set search_path` at the top of the file; copying their policy shape without that fails with `function is_group_member(uuid, uuid) does not exist`.
+- **Schema-qualify every function call** — `sanvya.is_group_member(...)`, not bare. Older migrations (0011) get away with a bare call only because they `set search_path` at the top of the file; copying their policy shape without that fails with `function is_group_member(uuid, uuid) does not exist`.
 - **Make migrations re-runnable.** `create table`/`create index` take `if not exists`, but `create policy` and `create constraint trigger` do **not** — precede each with `drop policy if exists` / `drop trigger if exists`. A migration that fails halfway (as 0040 first did) otherwise can't be retried, because the statements before the failure already applied.
 - Validate before shipping: `pip install pglast --break-system-packages`, then parse the file.
 - **Never write a cross-row constraint on a synced table.** PowerSync uploads the write queue as separate HTTP requests, each its own Postgres transaction, so related rows arrive **incrementally** — a "these rows must sum to that row" check will fire against a partial set and **wedge the upload queue forever** (0040 did exactly this; 0042 removed it). `DEFERRABLE INITIALLY DEFERRED` does not help: it defers only to the end of its own transaction. Enforce such invariants on the client, where the whole set is known at once, and expose a server-side *audit* function for observability instead.
@@ -45,7 +45,7 @@ Diagrams are **Mermaid** (GitHub-native, maintainable). Keep them accurate — a
 - Format money via `useMoneyFmt()` (respects the hide-amounts toggle).
 - Use design tokens (`globals.css` `:root`), `.card`/`.btn`/`.chip`/`.list-grid`; charts use CSS-var fills for theming.
 - Gate premium behind `useEntitlement`.
-- Verify with `pnpm --filter @pocketcare/web typecheck` and core tests (`node --test packages/core/**/src/*.test.ts`).
+- Verify with `pnpm --filter @sanvya/web typecheck` and core tests (`node --test packages/core/**/src/*.test.ts`).
 
 ## Environment notes (agent sandbox)
 
@@ -68,7 +68,7 @@ There are no git credentials in the sandbox — `git push` fails with `could not
 ### pnpm is NOT installed in the sandbox
 Only `node` and `npm`, and there is no network for a global install. Consequences:
 - **`pnpm-lock.yaml` cannot be regenerated.** CI runs `pnpm install --frozen-lockfile`, so if a change adds a dependency or a new workspace package, the commit **will fail CI** until the user runs `pnpm install` and amends. Always say so explicitly.
-- To typecheck a new workspace package, hand-link it: `ln -s ../../../../packages/core/<name> apps/web/node_modules/@pocketcare/<name>` (and add its own `node_modules/@pocketcare/*` links for its deps).
+- To typecheck a new workspace package, hand-link it: `ln -s ../../../../packages/core/<name> apps/web/node_modules/@sanvya/<name>` (and add its own `node_modules/@sanvya/*` links for its deps).
 - Run tsc directly: `cd apps/web && ../../node_modules/.bin/tsc --noEmit`.
 - Run core tests directly: `node --test --experimental-strip-types packages/core/*/src/*.test.ts`.
 

@@ -21,8 +21,8 @@
  */
 
 import Link from "next/link";
-import { money } from "@pocketcare/money";
-import type { Transaction } from "@pocketcare/types";
+import { money } from "@sanvya/money";
+import type { Transaction } from "@sanvya/types";
 import { useMoneyFmt } from "./Money";
 import { MaterialIcon, type MaterialIconName } from "./MaterialIcon";
 

@@ -8,7 +8,7 @@
  * interaction, and dropped. This is online-only by design — you need a
  * connection to pay anyway.
  */
-import { maskVpa } from "@pocketcare/upi";
+import { maskVpa } from "@sanvya/upi";
 
 import { getSupabase, getUserId } from "../powersync";
 
@@ -60,7 +60,7 @@ export async function getMyPaymentHandle(): Promise<string | null> {
   }
 
   const { data, error } = await getSupabase()
-    .schema("pocketcare")
+    .schema("sanvya")
     .from("payment_handles")
     .select("handle_hint")
     .eq("user_id", userId)

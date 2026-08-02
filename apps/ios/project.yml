@@ -2,7 +2,7 @@
 # not committed; run `xcodegen generate` after cloning/pulling — see
 # README.md). Rationale for XcodeGen over a hand-edited/committed .xcodeproj:
 # a project.yml diffs and merges like any text file; a raw .pbxproj does not.
-name: PocketCare
+name: Sanvya
 options:
   bundleIdPrefix: care.pocket
   deploymentTarget:
@@ -17,9 +17,12 @@ packages:
   # irreducible dependencies: PowerSync Swift SDK + supabase-swift).
   Data:
     path: Data
+  Factory:
+    url: https://github.com/hmlongco/Factory
+    from: 2.3.2
 
 targets:
-  PocketCare:
+  Sanvya:
     type: application
     platform: iOS
     sources:
@@ -29,12 +32,14 @@ targets:
     dependencies:
       - package: Domain
       - package: Data
+      - package: Factory
     settings:
       base:
         # PLACEHOLDER bundle id — confirm the real reverse-DNS id before any
         # store submission (plan §10; same open item the RN scaffold hit).
-        PRODUCT_BUNDLE_IDENTIFIER: care.pocket.ios
-        CODE_SIGN_ENTITLEMENTS: App/PocketCare.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.sanvya.app
+        CODE_SIGN_ENTITLEMENTS: App/Sanvya.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # "6" not "6.0" — Xcode's SWIFT_VERSION (Swift Language Version)
         # build setting takes major-version-only language-mode values (4,
         # 4.2, 5, 6), not toolchain patch versions. Verified via search
@@ -43,20 +48,20 @@ targets:
         MARKETING_VERSION: "0.0.1"
         CURRENT_PROJECT_VERSION: "1"
     info:
-      path: Generated/PocketCare-Info.plist
+      path: Generated/Sanvya-Info.plist
       properties:
-        CFBundleDisplayName: PocketCare
+        CFBundleDisplayName: Sanvya
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
 
-  PocketCareTests:
+  SanvyaTests:
     type: bundle.unit-test
     platform: iOS
     sources:
       - path: AppTests
     dependencies:
-      - target: PocketCare
+      - target: Sanvya
       - package: Domain
     settings:
       base:
@@ -71,13 +76,13 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
 
 schemes:
-  PocketCare:
+  Sanvya:
     build:
       targets:
-        PocketCare: all
-        PocketCareTests: [test]
+        Sanvya: all
+        SanvyaTests: [test]
     test:
       targets:
-        - PocketCareTests
+        - SanvyaTests
     run:
       config: Debug

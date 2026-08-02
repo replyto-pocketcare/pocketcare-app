@@ -15,7 +15,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 
 import { useMyUserId, useUserProfiles } from "../splits/hooks";
 import { confirmSettlement, disputeSettlement, type PendingSettlement } from "../splits/write";

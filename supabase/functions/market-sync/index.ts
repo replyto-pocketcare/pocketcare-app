@@ -1,4 +1,4 @@
-// PocketCare — collective Alpha Vantage market-data sync.
+// Sanvya — collective Alpha Vantage market-data sync.
 //
 // Runs once a day (see MARKET_DATA_PLAN.md for scheduling). Spends a shared
 // 25-call/day budget on the DEDUPLICATED union of symbols held across ALL users,
@@ -65,7 +65,7 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json({ error: "ALPHAVANTAGE_API_KEY not set." }, 500);
 
   const budget = Math.max(1, Number(Deno.env.get("AV_DAILY_BUDGET") ?? "25"));
-  const db = createClient(url, serviceKey, { db: { schema: "pocketcare" } });
+  const db = createClient(url, serviceKey, { db: { schema: "sanvya" } });
 
   // 1) Refresh demand: which symbols does anyone hold, and how many holders?
   const { data: holds } = await db.from("holdings").select("symbol, exchange").is("deleted_at", null);

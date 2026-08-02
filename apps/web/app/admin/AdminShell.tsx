@@ -27,14 +27,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
       }
 
       // Check if the signed-in user is an admin. The admins table lives in the
-      // pocketcare_admin schema (not exposed to PostgREST on this project), so
-      // we read it through the security_invoker view pocketcare.admins, which
+      // sanvya_admin schema (not exposed to PostgREST on this project), so
+      // we read it through the security_invoker view sanvya.admins, which
       // IS exposed. RLS on the base table still restricts rows to the caller.
       // NOTE: use limit(1)+array rather than .maybeSingle() — the object+json
       // Accept header used by single/maybeSingle returns HTTP 406 on zero rows
       // in some PostgREST versions, which is exactly the non-admin case.
       const { data: adminRows, error } = await getSupabase()
-        .schema("pocketcare")
+        .schema("sanvya")
         .from("admins")
         .select("id")
         .eq("user_id", session.user.id)
@@ -102,11 +102,11 @@ function AdminDenied({ denied, onSignIn, onHome }: { denied: Denied | null; onSi
     body = (
       <>
         <p style={{ color: "#bbb", lineHeight: 1.6 }}>
-          Your account is signed in, but there’s no matching row in <code>pocketcare_admin.admins</code>.
+          Your account is signed in, but there’s no matching row in <code>sanvya_admin.admins</code>.
           If you just added yourself, confirm the <code>user_id</code> matches exactly.
         </p>
         <pre style={{ background: "#000", padding: 12, borderRadius: 8, fontSize: 12, overflowX: "auto", color: "#8fd" }}>
-{`insert into pocketcare_admin.admins (user_id, email)
+{`insert into sanvya_admin.admins (user_id, email)
 values ('${denied.userId}', '<your-email>');`}
         </pre>
       </>
@@ -116,8 +116,8 @@ values ('${denied.userId}', '<your-email>');`}
     body = (
       <>
         <p style={{ color: "#bbb", lineHeight: 1.6 }}>
-          The lookup against <code>pocketcare_admin.admins</code> returned an error. Common causes: the
-          <code> pocketcare_admin</code> schema isn’t in the Data API “Exposed schemas”, or the
+          The lookup against <code>sanvya_admin.admins</code> returned an error. Common causes: the
+          <code> sanvya_admin</code> schema isn’t in the Data API “Exposed schemas”, or the
           <code> authenticated</code> role lacks <code>SELECT</code>/RLS access.
         </p>
         <div style={{ color: "#f88", fontWeight: 600 }}>{denied.message}</div>

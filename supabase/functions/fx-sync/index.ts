@@ -1,4 +1,4 @@
-// PocketCare — daily FX rate sync.
+// Sanvya — daily FX rate sync.
 //
 // Populates the global `exchange_rates` table so the app can convert every
 // account's native currency into the user's base currency (net worth,
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      { db: { schema: "pocketcare" } },
+      { db: { schema: "sanvya" } },
     );
     const { error } = await supabase
       .from("exchange_rates")

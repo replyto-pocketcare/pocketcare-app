@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Playwright config for PocketCare e2e. CI boots the Next.js app (against a
+ * Playwright config for Sanvya e2e. CI boots the Next.js app (against a
  * local/mock backend — see .github/workflows/ci.yml) and runs these specs
  * headless on Chromium. Failures block the production promotion job.
  */
@@ -26,7 +26,7 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: "pnpm --filter @pocketcare/web start",
+        command: "pnpm --filter @sanvya/web start",
         url: BASE_URL,
         timeout: 120_000,
         reuseExistingServer: !process.env.CI,

@@ -1,5 +1,5 @@
 /**
- * @pocketcare/guardrail — deterministic pre-flight screening for the AI
+ * @sanvya/guardrail — deterministic pre-flight screening for the AI
  * assistant. This is a defense-in-depth layer that runs BEFORE the model call:
  * it deterministically rejects the classes of prompt we never want to reach the
  * LLM (prompt injection, data exfiltration, secret/credential harvesting,
@@ -85,4 +85,4 @@ export function screenConversation(messages: Array<{ role: string; content: unkn
 
 /** Standard refusal message shown when the guardrail blocks a prompt. */
 export const REFUSAL_MESSAGE =
-  "I can only help with your own PocketCare finances — budgets, spending, goals, and the like. I can't help with that request.";
+  "I can only help with your own Sanvya finances — budgets, spending, goals, and the like. I can't help with that request.";

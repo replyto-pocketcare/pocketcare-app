@@ -1,16 +1,16 @@
 {
   "slides": {
     "0": {
-      "title": "Meet PocketCare",
+      "title": "Meet Sanvya",
       "body": "Your calm money companion — track spending, plan ahead, and reach your goals, all in one private place that works offline."
     },
     "1": {
       "title": "Start here: add your accounts",
-      "body": "Add your bank, cash and cards so PocketCare knows your starting balances. This one step powers everything else — your net worth, budgets and insights."
+      "body": "Add your bank, cash and cards so Sanvya knows your starting balances. This one step powers everything else — your net worth, budgets and insights."
     },
     "2": {
       "title": "Log money in seconds",
-      "body": "Record what you spend or earn — type it, or just tap the mic and say it out loud. PocketCare even suggests the category for you."
+      "body": "Record what you spend or earn — type it, or just tap the mic and say it out loud. Sanvya even suggests the category for you."
     },
     "3": {
       "title": "Know where it goes",
@@ -26,7 +26,7 @@
     },
     "6": {
       "title": "Not sure? Just ask",
-      "body": "Ask PocketCare in plain words — \"where did my money go?\", \"can I afford this?\" — and it'll answer or take you right to the screen."
+      "body": "Ask Sanvya in plain words — \"where did my money go?\", \"can I afford this?\" — and it'll answer or take you right to the screen."
     }
   },
   "guestErr": "Couldn't start a guest session.",
@@ -38,17 +38,17 @@
   "starting": "Starting…",
   "footer": "Create an account to sync across devices. Guest data stays on this device and is kept for 3 days.",
   "installApp": "Install app on your device",
-  "installTitle": "Install PocketCare",
+  "installTitle": "Install Sanvya",
   "wt": {
-    "dialogLabel": "Getting started with PocketCare",
+    "dialogLabel": "Getting started with Sanvya",
     "progress": "Step {{step}} of {{of}}",
     "next": "Next",
     "saving": "Saving…",
     "skip": "I'll look around myself",
     "later": "Skip this for now",
     "intro": {
-      "title": "Welcome to PocketCare",
-      "p1": "PocketCare is your private money diary. You write down what you spend and earn, and it shows you where your money is actually going.",
+      "title": "Welcome to Sanvya",
+      "p1": "Sanvya is your private money diary. You write down what you spend and earn, and it shows you where your money is actually going.",
       "p2": "It is not connected to your bank.",
       "p3": "We never ask for your bank login, card number or OTP, and we can't see your bank at all.",
       "p4": "Nothing is tracked automatically — you'll type your spends in yourself. That's deliberate: the few seconds it takes is what makes you notice where your money goes, and noticing is the whole point.",
@@ -68,7 +68,7 @@
     "spend": {
       "title": "Now write down one thing you spent",
       "p1": "Think of the last thing you paid for — tea, groceries, a bill.",
-      "p2": "When you record a spend, PocketCare subtracts it from that account, so the number stays true to real life.",
+      "p2": "When you record a spend, Sanvya subtracts it from that account, so the number stays true to real life.",
       "p3": "This is the one habit that matters — everything else in the app is built from it.",
       "whatLabel": "What was it for?",
       "whatEg": "Groceries",
@@ -82,14 +82,14 @@
       "txnTitle": "Transactions",
       "txnBody": "Everything you've written down.",
       "budgetTitle": "Budgets",
-      "budgetBody": "Set a monthly limit and PocketCare tells you when to slow down.",
+      "budgetBody": "Set a monthly limit and Sanvya tells you when to slow down.",
       "privacy": "Your data is yours. It stays on your device and in your private account — we don't share it, and nobody else can see it.",
       "cta": "Finish",
       "more": "See what else it does →"
     },
     "insights": {
-      "title": "PocketCare reads your entries back to you",
-      "p1": "Once you've written a few things down, PocketCare starts pointing things out on its own: which category is eating the most, a month running hotter than the last, a subscription you may have forgotten.",
+      "title": "Sanvya reads your entries back to you",
+      "p1": "Once you've written a few things down, Sanvya starts pointing things out on its own: which category is eating the most, a month running hotter than the last, a subscription you may have forgotten.",
       "eg": "\"You've spent 32% more on eating out this month than last.\"",
       "p2": "You don't have to build a single chart or spreadsheet. The more you write down, the more it has to tell you."
     },
@@ -102,15 +102,15 @@
     "plan": {
       "titleTrial": "Everything is already unlocked for 14 days",
       "title": "What's free, and what's not",
-      "trial": "Insights, Ask PocketCare and Statements are on right now — no card, nothing to set up. Use them and see whether they're worth it to you.",
+      "trial": "Insights, Ask Sanvya and Statements are on right now — no card, nothing to set up. Use them and see whether they're worth it to you.",
       "free": "The basics stay free forever: your accounts, transactions, budgets and search.",
       "perMonth": "₹{{amount}}/month",
-      "quota": "{{count}} Ask PocketCare questions a month · everything else unlocked",
+      "quota": "{{count}} Ask Sanvya questions a month · everything else unlocked",
       "cta": "Done",
       "see": "See plans"
     },
     "guest": {
-      "title": "You're using PocketCare as a guest",
+      "title": "You're using Sanvya as a guest",
       "p1": "Your entries live only on this device, and guest data is deleted after a few days. Create a free account to keep it — and you'll get 14 days with everything unlocked.",
       "cta": "Create a free account",
       "later": "Later"

@@ -10,8 +10,8 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { Period } from "@pocketcare/types";
-import { money, fromMajor } from "@pocketcare/money";
+import type { Period } from "@sanvya/types";
+import { money, fromMajor } from "@sanvya/money";
 import { Modal } from "../ui/Modal";
 import { FloatingInput } from "../ui/FloatingInput";
 import { useMoneyFmt } from "../ui/Money";

@@ -4,10 +4,10 @@
  * Shapes, quick-start templates, bucket metadata and aggregation helpers for the
  * Planned Cashflow hub. No React, no I/O — so it stays unit-testable and shared.
  * Money is always minor-unit integers; normalisation goes through
- * `monthlyEquivalent` from @pocketcare/finance.
+ * `monthlyEquivalent` from @sanvya/finance.
  */
-import type { Period } from "@pocketcare/types";
-import { monthlyEquivalent } from "@pocketcare/finance";
+import type { Period } from "@sanvya/types";
+import { monthlyEquivalent } from "@sanvya/finance";
 
 export type Direction = "income" | "payment" | "saving";
 export type Timeframe = "monthly" | "quarterly" | "yearly";

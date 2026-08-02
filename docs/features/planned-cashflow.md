@@ -44,7 +44,7 @@ flowchart TD
 flowchart LR
     Items["planned_cashflow + subscriptions + loans"] --> Norm["monthlyEquivalent()\nnormalise to monthly minor units"]
     Norm --> Totals["computeTotals()\nincome · payments · savings · net · surplus"]
-    Totals --> Proj["projectCashflow(inputs, 3)\n@pocketcare/finance"]
+    Totals --> Proj["projectCashflow(inputs, 3)\n@sanvya/finance"]
     Sliders["return % · inflation % · income growth · starting savings"] --> Proj
     Proj --> Cards["1/2/3-yr structure cards"]
     Proj --> Charts["Recharts: growth area (nominal vs real), net-surplus bars"]
@@ -58,7 +58,7 @@ flowchart LR
 **Savings ↔ Investments:** adding a **SIP** on the Investments page creates a recurring **transfer** rule (debit account → investment account, with a next-SIP date), so it appears under [Recurring](recurring.md) and in the Savings totals here. The Savings section also shows a read-only **invested-portfolio summary** card (current value + invested, from `holdings`) that links to `/investments`. See [features/investments](investments.md).
 
 ## Key files
-`app/cashflow/page.tsx`, `src/cashflow/model.ts` (buckets, templates, aggregation), `src/cashflow/Charts.tsx` (recharts, token colors), `src/cashflow/Projections.tsx` (sliders + engine), `@pocketcare/finance` (`projectCashflow`, `yearlyEquivalent`, `timeframeTotal`).
+`app/cashflow/page.tsx`, `src/cashflow/model.ts` (buckets, templates, aggregation), `src/cashflow/Charts.tsx` (recharts, token colors), `src/cashflow/Projections.tsx` (sliders + engine), `@sanvya/finance` (`projectCashflow`, `yearlyEquivalent`, `timeframeTotal`).
 
 ## Gating
 Free basics; the AI projection engine runs fully client-side (offline, no API cost).

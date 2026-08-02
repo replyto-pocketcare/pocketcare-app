@@ -1,6 +1,6 @@
 "use client";
 
-import { fromMajor } from "@pocketcare/money";
+import { fromMajor } from "@sanvya/money";
 import { getDb, getRepositories } from "../powersync";
 import { insertRow } from "../write";
 import { getBaseCurrency } from "../prefs";

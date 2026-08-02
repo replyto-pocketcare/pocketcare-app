@@ -11,9 +11,9 @@
 
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { money } from "@pocketcare/money";
-import { monthlyEquivalent } from "@pocketcare/finance";
-import type { Period } from "@pocketcare/types";
+import { money } from "@sanvya/money";
+import { monthlyEquivalent } from "@sanvya/finance";
+import type { Period } from "@sanvya/types";
 import { useConvert } from "../hooks";
 import { useMoneyFmt } from "../ui/Money";
 import { Modal } from "../ui/Modal";

@@ -18,7 +18,7 @@
  *  - **Do nothing** — it stays listed. Never expires, never cleans itself up.
  */
 import { getSupabase, getDb } from "../powersync";
-import { explainForUser } from "@pocketcare/sync-policy";
+import { explainForUser } from "@sanvya/sync-policy";
 import { logEvent } from "../diagnostics/log";
 import { describeRow, downloadExport } from "./repair";
 
@@ -131,7 +131,7 @@ export interface RetryResult {
  */
 export async function retryFailedWrite(item: FailedWrite): Promise<RetryResult> {
   const supabase = getSupabase();
-  const rel = supabase.schema("pocketcare").from(item.table);
+  const rel = supabase.schema("sanvya").from(item.table);
 
   const { error } =
     item.op.toUpperCase() === "DELETE"

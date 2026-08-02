@@ -41,7 +41,7 @@
   "cancel": "Cancel",
   "settle": "Settle",
   "settling": "Settling…",
-  "remindOwed": "Hi {{name}}, friendly reminder about the {{amount}} from our split on PocketCare 🙂",
+  "remindOwed": "Hi {{name}}, friendly reminder about the {{amount}} from our split on Sanvya 🙂",
   "remindOwe": "Hi {{name}}, I still owe you {{amount}} from our split — I’ll settle up soon!",
   "newGroupCta": "New group",
   "owedInGroup": "{{amount}} owed to you",

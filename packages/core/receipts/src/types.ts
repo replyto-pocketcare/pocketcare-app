@@ -1,5 +1,5 @@
 /**
- * @pocketcare/receipts — types for a parsed receipt/bill and its per-item split.
+ * @sanvya/receipts — types for a parsed receipt/bill and its per-item split.
  *
  * INVARIANTS (see ARCHITECTURE.md §2 and docs/features/receipt-scanning.md):
  *  - Every money value here is an INTEGER count of minor units. Never floats.

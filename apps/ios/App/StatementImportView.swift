@@ -32,13 +32,13 @@ struct StatementImportView: View {
                             .fontWeight(.bold)
                         Text("Target: \(selectedAccount)")
                             .font(.caption)
-                            .foregroundColor(Theme.inkSoft)
+                            .foregroundColor(Color.text2)
                     }
 
                     Text("✓ 4 Transactions Parsed • Zero Checksum Drift")
                         .font(.caption)
                         .fontWeight(.bold)
-                        .foregroundColor(Theme.sage)
+                        .foregroundColor(Color.positive)
                 }
 
                 Section(header: Text("Parsed Transactions Preview")) {
@@ -50,13 +50,13 @@ struct StatementImportView: View {
                                     .fontWeight(.semibold)
                                 Text("\(txn.date) • \(txn.category)")
                                     .font(.caption)
-                                    .foregroundColor(Theme.inkSoft)
+                                    .foregroundColor(Color.text2)
                             }
                             Spacer()
                             Text(txn.amountFormatted)
                                 .font(.subheadline)
                                 .fontWeight(.bold)
-                                .foregroundColor(txn.isDebit ? Theme.terracotta : Theme.sage)
+                                .foregroundColor(txn.isDebit ? Color.accent : Color.positive)
                         }
                     }
                 }
@@ -67,9 +67,9 @@ struct StatementImportView: View {
                             .font(.headline)
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(Theme.cream)
+                            .foregroundColor(Color.surface)
                     }
-                    .listRowBackground(Theme.terracotta)
+                    .listRowBackground(Color.accent)
                 }
             }
             .navigationTitle("Import Bank Statement")
@@ -77,7 +77,7 @@ struct StatementImportView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(Theme.inkSoft)
+                        .foregroundColor(Color.text2)
                 }
             }
         }

@@ -7,7 +7,7 @@ import {
   aggregateNetWorth,
   type LedgerEntry,
 } from "./index.ts";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 
 const A = "acc-A";
 const B = "acc-B";

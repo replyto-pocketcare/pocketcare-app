@@ -1,5 +1,5 @@
 /**
- * @pocketcare/diagnostics — support-log types and redaction.
+ * @sanvya/diagnostics — support-log types and redaction.
  *
  * WHY THIS EXISTS: on a laptop you can ask someone to open the console. On a
  * phone you cannot, so a sync failure is invisible to everyone — the user sees
@@ -217,5 +217,5 @@ export function formatLog(entries: readonly LogEntry[], context: Record<string, 
         })
         .join("\n");
 
-  return `PocketCare diagnostics\n${head}\n\n--- events (newest last, ${entries.length}) ---\n${body}`;
+  return `Sanvya diagnostics\n${head}\n\n--- events (newest last, ${entries.length}) ---\n${body}`;
 }

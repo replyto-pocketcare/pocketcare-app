@@ -1,5 +1,5 @@
 {
-  "name": "@pocketcare/data",
+  "name": "@sanvya/data",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,10 +9,10 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@pocketcare/types": "workspace:*",
-    "@pocketcare/money": "workspace:*",
-    "@pocketcare/ledger": "workspace:*",
-    "@pocketcare/budget": "workspace:*",
+    "@sanvya/types": "workspace:*",
+    "@sanvya/money": "workspace:*",
+    "@sanvya/ledger": "workspace:*",
+    "@sanvya/budget": "workspace:*",
     "@powersync/common": "^1.20.0"
   },
   "scripts": {

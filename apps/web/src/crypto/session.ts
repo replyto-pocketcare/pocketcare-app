@@ -12,7 +12,7 @@ import { useSyncExternalStore } from "react";
 import {
   deriveKek, newSalt, generateDek, wrapDek, unwrapDek, encryptField, decryptField,
   generateRecoveryCode, generateSigningKeypair, toBase64, fromBase64,
-} from "@pocketcare/crypto";
+} from "@sanvya/crypto";
 import { getSupabase, getUserId, getDb } from "../powersync";
 
 export type CryptoStatus = "loading" | "unset" | "locked" | "unlocked";
@@ -65,7 +65,7 @@ export async function setupEncryption(passphrase: string): Promise<string> {
   signingPrivate = signing.privateJwk;
   const wrapped_signing_private = await encryptField(JSON.stringify(signing.privateJwk), dek);
 
-  const { error } = await getSupabase().schema("pocketcare").from("user_keys").upsert({
+  const { error } = await getSupabase().schema("sanvya").from("user_keys").upsert({
     user_id: uid,
     salt: toBase64(salt),
     wrapped_dek_passphrase,

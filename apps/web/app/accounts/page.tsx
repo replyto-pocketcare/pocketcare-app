@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 import { useAccountBalances, useAccountsLoading, useCurrencyBreakdown } from "../../src/hooks";
 import { useInitialSyncPending } from "../../src/sync";
 import { getDb } from "../../src/powersync";

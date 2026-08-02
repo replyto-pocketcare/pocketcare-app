@@ -6,7 +6,7 @@ import {
   crossedThreshold,
   billingCycle,
 } from "./index.ts";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 

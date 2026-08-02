@@ -1,9 +1,9 @@
 {
   "title": "Help & FAQ",
-  "subtitlePre": "Everything PocketCare can do. Still stuck? Ask ",
-  "subtitleLink": "Ask PocketCare",
+  "subtitlePre": "Everything Sanvya can do. Still stuck? Ask ",
+  "subtitleLink": "Ask Sanvya",
   "subtitlePost": ".",
   "searchPlaceholder": "Search help — e.g. “split”, “budget”, “invoice”…",
   "noMatch": "No help topics match “{{query}}”. Try a different word, or ask the assistant.",
-  "footer": "PocketCare · your money, quietly organised."
+  "footer": "Sanvya · your money, quietly organised."
 }

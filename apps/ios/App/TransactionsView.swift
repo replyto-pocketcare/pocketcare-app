@@ -1,22 +1,17 @@
 import SwiftUI
+import Factory
 
 struct TransactionsView: View {
+    @Binding var isDrawerOpen: Bool
+    @State private var viewModel = Container.shared.transactionsViewModel()
     @State private var searchText = ""
     @State private var selectedFilter = 0
     @State private var showingCreateSheet = false
 
-    let sampleTxns = [
-        DummyTxnItem(id: "1", description: "Swiggy Gourmet", amount: "-₹840.00", date: "Today", isPositive: false),
-        DummyTxnItem(id: "2", description: "Salary Credit", amount: "+₹85,000.00", date: "Yesterday", isPositive: true),
-        DummyTxnItem(id: "3", description: "Reliance Fresh Groceries", amount: "-₹2,350.00", date: "29 Jul", isPositive: false),
-        DummyTxnItem(id: "4", description: "Uber Ride", amount: "-₹420.00", date: "28 Jul", isPositive: false),
-        DummyTxnItem(id: "5", description: "Splitwise Settlement (Ankit)", amount: "+₹1,500.00", date: "26 Jul", isPositive: true)
-    ]
-
-    var filteredTxns: [DummyTxnItem] {
-        sampleTxns.filter { txn in
+    var filteredTxns: [TransactionUiModel] {
+        viewModel.allTransactions.filter { txn in
             let matchesSearch = searchText.isEmpty || txn.description.localizedCaseInsensitiveContains(searchText)
-            let matchesFilter = (selectedFilter == 0) || (selectedFilter == 1 && !txn.isPositive) || (selectedFilter == 2 && txn.isPositive)
+            let matchesFilter = (selectedFilter == 0) || (selectedFilter == 1 && !txn.isIncome) || (selectedFilter == 2 && txn.isIncome)
             return matchesSearch && matchesFilter
         }
     }
@@ -36,51 +31,58 @@ struct TransactionsView: View {
                 // List
                 ScrollView {
                     VStack(spacing: 10) {
-                        ForEach(filteredTxns) { txn in
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(txn.description)
-                                        .font(.body)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(Theme.ink)
-
-                                    HStack(spacing: 6) {
-                                        Text("Food & Dining")
+                        if filteredTxns.isEmpty {
+                            Text("No transactions found")
+                                .foregroundColor(Color.text2)
+                                .padding(.top, 40)
+                        } else {
+                            ForEach(filteredTxns) { txn in
+                                RowTile(
+                                    title: txn.description,
+                                    subtitle: "\(txn.accountName) • \(txn.date)",
+                                    trailing: {
+                                        Text(txn.amount)
+                                            .font(.body)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(txn.isIncome ? Color.positive : Color.text)
+                                    },
+                                    leading: {
+                                        Text(txn.categoryName)
                                             .font(.caption2)
                                             .fontWeight(.medium)
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 2)
-                                            .background(Theme.clay100)
+                                            .background(Color.surface2)
                                             .cornerRadius(6)
-
-                                        Text(txn.date)
-                                            .font(.caption)
-                                            .foregroundColor(Theme.inkSoft)
                                     }
-                                }
-                                Spacer()
-                                Text(txn.amount)
-                                    .font(.body)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(txn.isPositive ? Theme.sage : Theme.ink)
+                                )
                             }
-                            .padding(16)
-                            .background(Theme.cream)
-                            .cornerRadius(12)
                         }
                     }
                     .padding(16)
                 }
             }
-            .background(Theme.clay50.ignoresSafeArea())
+            .background(Color.bg.ignoresSafeArea())
             .searchable(text: $searchText, prompt: "Search transactions")
             .navigationTitle("Transactions")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        withAnimation(.spring()) {
+                            isDrawerOpen.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "line.3.horizontal")
+                            .imageScale(.large)
+                    }
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {
                         Image(systemName: "plus")
                             .font(.headline)
-                            .foregroundColor(Theme.terracotta)
+                            .foregroundColor(Color.accent)
                     }
                 }
             }
@@ -88,9 +90,15 @@ struct TransactionsView: View {
                 CreateTransactionView()
             }
         }
+        .onAppear {
+            viewModel.start()
+        }
+        .onDisappear {
+            viewModel.cancel()
+        }
     }
 }
 
 #Preview {
-    TransactionsView()
+    TransactionsView(isDrawerOpen: .constant(false))
 }

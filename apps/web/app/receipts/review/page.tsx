@@ -12,14 +12,14 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 import {
   balanceWithLine,
   reconcile,
   subtotals,
   type ReceiptDraft,
   type ReceiptLineKind,
-} from "@pocketcare/receipts";
+} from "@sanvya/receipts";
 
 import { useAccountBalances } from "../../../src/hooks";
 import { useMoneyFmt } from "../../../src/ui/Money";

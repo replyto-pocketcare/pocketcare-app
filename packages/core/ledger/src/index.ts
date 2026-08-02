@@ -1,13 +1,13 @@
 /**
- * @pocketcare/ledger — derive balances from the append-only ledger.
+ * @sanvya/ledger — derive balances from the append-only ledger.
  *
  * Balances are NEVER stored as a mutable number; they are always computed by
  * summing the signed effects of transactions (invariant #2). Account balances
  * stay within a single currency (no conversion). Cross-currency only matters at
  * net-worth aggregation, where cached FX rates are applied.
  */
-import type { CurrencyCode, TransactionType } from "@pocketcare/types";
-import { money, add, subtract, convert, type Money } from "@pocketcare/money";
+import type { CurrencyCode, TransactionType } from "@sanvya/types";
+import { money, add, subtract, convert, type Money } from "@sanvya/money";
 
 /** Minimal transaction shape the ledger needs (a subset of the full row). */
 export interface LedgerEntry {

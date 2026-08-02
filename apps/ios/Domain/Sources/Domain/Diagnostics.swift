@@ -342,5 +342,5 @@ public func formatLog(_ entries: [LogEntry], _ context: [(key: String, value: St
         }.joined(separator: "\n")
     }
 
-    return "PocketCare diagnostics\n\(head)\n\n--- events (newest last, \(entries.count)) ---\n\(body)"
+    return "Sanvya diagnostics\n\(head)\n\n--- events (newest last, \(entries.count)) ---\n\(body)"
 }

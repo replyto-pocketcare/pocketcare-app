@@ -1,9 +1,9 @@
-# PocketCare — Documentation
+# Sanvya — Documentation
 
 > Living technical documentation for engineers, reviewers, and new joiners.
 > Diagrams are written in **Mermaid** and render natively on GitHub.
 
-PocketCare is an **offline-first, multi-currency personal expense & wealth manager**. It runs as an installable **PWA** (Next.js), backed by **PowerSync** (local WASM SQLite) syncing to **Supabase** Postgres. All money is stored as integer minor units; balances are derived from an append-only ledger.
+Sanvya is an **offline-first, multi-currency personal expense & wealth manager**. It runs as an installable **PWA** (Next.js), backed by **PowerSync** (local WASM SQLite) syncing to **Supabase** Postgres. All money is stored as integer minor units; balances are derived from an append-only ledger.
 
 ## Map of this documentation
 
@@ -23,8 +23,8 @@ Every user-facing feature area has its own doc with an **overview**, a **user-fl
 
 ### Shareables (generated)
 
-- [`docs/exports/PocketCare-Technical-Overview.pdf`](exports/PocketCare-Technical-Overview.pdf) — polished PDF snapshot of the architecture, with rendered diagrams (regenerate via `scripts/build-docs-pdf.sh`; sources in `docs/pdf-src/`).
-- [`pitch/PocketCare-Investor-Deck.pptx`](../pitch/PocketCare-Investor-Deck.pptx) — investor pitch deck (+ a rendered `.pdf`). Business-specific figures are marked `[PLACEHOLDER]`.
+- [`docs/exports/Sanvya-Technical-Overview.pdf`](exports/Sanvya-Technical-Overview.pdf) — polished PDF snapshot of the architecture, with rendered diagrams (regenerate via `scripts/build-docs-pdf.sh`; sources in `docs/pdf-src/`).
+- [`pitch/Sanvya-Investor-Deck.pptx`](../pitch/Sanvya-Investor-Deck.pptx) — investor pitch deck (+ a rendered `.pdf`). Business-specific figures are marked `[PLACEHOLDER]`.
 
 ### Other references (repo root)
 

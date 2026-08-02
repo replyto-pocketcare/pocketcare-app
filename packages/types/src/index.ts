@@ -1,5 +1,5 @@
 /**
- * @pocketcare/types — shared domain types & enums.
+ * @sanvya/types — shared domain types & enums.
  * Uses const-object "enums" + union types (erasable syntax) so the code runs
  * under Node's TypeScript type-stripping and any bundler without transforms.
  */

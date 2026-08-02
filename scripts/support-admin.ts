@@ -1,5 +1,5 @@
 /**
- * PocketCare — headless Support Admin.
+ * Sanvya — headless Support Admin.
  *
  * Sealed support tooling: it can (1) check/repair SYNC DRIFT without ever seeing
  * plaintext, and (2) decrypt a user's fields ONLY under a live, user-signed,
@@ -17,15 +17,15 @@
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { verifyGrant, unwrapDekFromSupport, decryptField, isEncrypted, fromBase64 } from "@pocketcare/crypto";
-import { combine } from "@pocketcare/crypto/shamir";
-import { reconcile, type Row } from "@pocketcare/reconcile";
+import { verifyGrant, unwrapDekFromSupport, decryptField, isEncrypted, fromBase64 } from "@sanvya/crypto";
+import { combine } from "@sanvya/crypto/shamir";
+import { reconcile, type Row } from "@sanvya/reconcile";
 
 const url = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const officer = process.env.SUPPORT_OFFICER ?? "unknown";
 if (!url || !serviceKey) { console.error("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."); process.exit(1); }
-const db = createClient(url, serviceKey, { db: { schema: "pocketcare" } });
+const db = createClient(url, serviceKey, { db: { schema: "sanvya" } });
 
 async function audit(action: string, subjectUser: string, grantId: string | null, detail: string) {
   await db.from("security_audit").insert({ actor: `support:${officer}`, action, subject_user: subjectUser, grant_id: grantId, detail });

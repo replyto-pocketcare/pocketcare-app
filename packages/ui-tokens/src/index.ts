@@ -1,5 +1,5 @@
 /**
- * @pocketcare/ui-tokens — earthy, minimal design tokens shared by mobile + web.
+ * @sanvya/ui-tokens — earthy, minimal design tokens shared by mobile + web.
  * Platform layers map these to StyleSheet (RN) or CSS variables (web).
  */
 

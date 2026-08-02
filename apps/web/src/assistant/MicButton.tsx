@@ -70,7 +70,7 @@ export function MicButton({ getInput, setInput, disabled }: { getInput: () => st
     <button
       type="button"
       aria-label={label}
-      title={status === "idle" ? "Speak to PocketCare" : label}
+      title={status === "idle" ? "Speak to Sanvya" : label}
       onClick={onClick}
       disabled={disabled || status === "transcribing"}
       style={{

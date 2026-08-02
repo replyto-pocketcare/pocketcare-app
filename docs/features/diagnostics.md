@@ -57,7 +57,7 @@ in:  expense_items for 693e8c6d-4214-4b70-8bbe-88708a2601bd sum to 20000
      but the expense total is 1258784
 out: expense_items for 693e8c6d-4214-4b70-8bbe-88708a2601bd sum to [amount]
      but the expense total is [amount]
-     + detail: { table: pocketcare.expense_items, op: PUT, rows: 1, code: 23514 }
+     + detail: { table: sanvya.expense_items, op: PUT, rows: 1, code: 23514 }
 ```
 
 Everything needed to diagnose it; nothing about what was bought.

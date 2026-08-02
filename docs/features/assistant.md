@@ -1,4 +1,4 @@
-# Ask PocketCare (AI Assistant)
+# Ask Sanvya (AI Assistant)
 
 ## Overview
 A conversational assistant with a "conscious-decision" persona that answers finance questions grounded in the user's data snapshot, renders **visual/actionable responses** (stat cards, progress, action chips), and can perform **confirm-gated actions** (record a transaction, create a subscription, create a group). Native-messenger chat UX with persistent threads.
@@ -6,7 +6,7 @@ A conversational assistant with a "conscious-decision" persona that answers fina
 ## User flow
 ```mermaid
 flowchart TD
-    A([Ask PocketCare]) --> Land[Landing: new chat / continue]
+    A([Ask Sanvya]) --> Land[Landing: new chat / continue]
     Land --> Chat[Chat thread]
     Chat --> Ask[User asks / requests action]
     Ask --> Resp[Prose + <ui> cards/actions]

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
-import { format, money, type Money } from "@pocketcare/money";
+import { format, money, type Money } from "@sanvya/money";
 import { useNetWorth, useAccountBalances, useAccountsLoading } from "../src/hooks";
 import { HeroSkeleton, Skeleton } from "../src/ui/Skeleton";
 import { useEntitlement } from "../src/entitlement";
@@ -119,7 +119,7 @@ export default function Dashboard() {
         <Walkthrough />
         <div className="fade-up" style={{ minHeight: "70vh", display: "grid", placeItems: "center" }}>
           <div className="card" style={{ maxWidth: 460, padding: 36, textAlign: "center", display: "grid", gap: 14, background: "radial-gradient(120% 120% at 50% 0%, var(--accent-ghost), var(--surface) 70%)" }}>
-            <h1 style={{ fontSize: 26 }}>Welcome to PocketCare</h1>
+            <h1 style={{ fontSize: 26 }}>Welcome to Sanvya</h1>
             {/* This is the screen the 60+ user actually landed on, and "a bank,
                 cash, a card" read as "link your bank". Say what it isn't. */}
             <p className="muted" style={{ lineHeight: 1.6 }}>

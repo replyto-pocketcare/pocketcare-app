@@ -2,7 +2,7 @@
 
 **Status:** awaiting approval · **Created:** 2026-07-28 · **Owner:** —
 
-Let a user settle a split balance by paying the other person over UPI, straight from PocketCare. **No money touches PocketCare's accounts** — we never become a party to the transfer.
+Let a user settle a split balance by paying the other person over UPI, straight from Sanvya. **No money touches Sanvya's accounts** — we never become a party to the transfer.
 
 ## Decisions (locked)
 
@@ -17,7 +17,7 @@ Let a user settle a split balance by paying the other person over UPI, straight 
 
 ## 1. Why not Razorpay
 
-Razorpay is a **Payment Aggregator**: funds land in its escrow and settle to a *merchant's* bank account. Routing a settle-up between two PocketCare users through it makes PocketCare the merchant of record for money that isn't ours — the opposite of "nothing hits our accounts". RBI's PA framework restricts escrow credits/debits to permitted merchant-transaction purposes; P2P transfers aren't among them. RazorpayX Payouts is worse for this goal: it requires us to actually hold and disburse funds.
+Razorpay is a **Payment Aggregator**: funds land in its escrow and settle to a *merchant's* bank account. Routing a settle-up between two Sanvya users through it makes Sanvya the merchant of record for money that isn't ours — the opposite of "nothing hits our accounts". RBI's PA framework restricts escrow credits/debits to permitted merchant-transaction purposes; P2P transfers aren't among them. RazorpayX Payouts is worse for this goal: it requires us to actually hold and disburse funds.
 
 **UPI Intent needs no provider at all.** We build a `upi://pay?...` link; the payer's own UPI app moves the money bank-to-bank. Zero MDR, no escrow, no PA licence, no reconciliation, no settlement risk.
 
@@ -27,7 +27,7 @@ Razorpay is a **Payment Aggregator**: funds land in its escrow and settle to a *
 
 ## 2. Correction to D3 — "encrypted + shared" is not possible client-side
 
-The existing zero-trust scheme (`user_keys`, `@pocketcare/crypto`) wraps a DEK with a **passphrase-derived KEK owned by one user**. A co-member has no way to decrypt another user's field. So "encrypt the VPA with our existing envelope and sync it to group members" is self-contradictory — the payer could never read it.
+The existing zero-trust scheme (`user_keys`, `@sanvya/crypto`) wraps a DEK with a **passphrase-derived KEK owned by one user**. A co-member has no way to decrypt another user's field. So "encrypt the VPA with our existing envelope and sync it to group members" is self-contradictory — the payer could never read it.
 
 **Resolution: server-mediated disclosure.** `payment_handles` is a **server-only table, in no sync stream** (same pattern as `push_subscriptions` from 0037). The VPA is encrypted at rest with a server-held key and released by an edge function only to a caller who shares a group with the owner *and* has a live balance with them.
 
@@ -113,7 +113,7 @@ Money genuinely left the payer's bank the moment they completed the UPI transact
 - **Balance netting counts `pending` optimistically**, badged "awaiting confirmation" in the UI. The alternative — excluding pending — shows the payer as *still owing* money they've already sent, which reads as a bug and drives duplicate payments.
 - **Only `disputed` is excluded**, and disputing writes a **compensating entry** rather than deleting anything (golden rules #2 and #5: the ledger is append-only, corrections are compensating entries).
 
-**Concrete blast radius** — `settlements` is queried in five places in `src/splits/hooks.ts` (lines ~132, 159, 193, 259, 305) plus `@pocketcare/reconcile`. Each needs `AND status <> 'disputed'`. Missing one causes a *silently wrong balance*, so this gets its own task and its own tests.
+**Concrete blast radius** — `settlements` is queried in five places in `src/splits/hooks.ts` (lines ~132, 159, 193, 259, 305) plus `@sanvya/reconcile`. Each needs `AND status <> 'disputed'`. Missing one causes a *silently wrong balance*, so this gets its own task and its own tests.
 
 ---
 
@@ -121,7 +121,7 @@ Money genuinely left the payer's bank the moment they completed the UPI transact
 
 ### Phase A — Foundations
 
-**A1. `@pocketcare/upi` (new core package, tested)**
+**A1. `@sanvya/upi` (new core package, tested)**
 - `buildIntentUrl({ vpa, name, amount, currency, note, ref })` → `upi://pay?...` with correct percent-encoding.
 - `isValidVpa(s)` — `name@handle`, charset and length per NPCI's linking spec.
 - `maskVpa(s)` → `ak••••@okhdfc`.
@@ -148,7 +148,7 @@ Money genuinely left the payer's bank the moment they completed the UPI transact
   3. rate limit (e.g. 20/hour/caller).
   Writes a `payment_handle_disclosures` row. Never returns a handle for someone you have no financial relationship with — otherwise this is a directory-harvesting endpoint.
 - `POST /forget` — soft-delete your handle.
-- Reuses the `assistant`/`receipt-scan` shape: CORS, `json()`, `verify_jwt`, service-role client on `pocketcare`.
+- Reuses the `assistant`/`receipt-scan` shape: CORS, `json()`, `verify_jwt`, service-role client on `sanvya`.
 
 **B2. Settlement-confirmation notification**
 - Extend `0039`'s settlement trigger: on a `pending` insert, notify the payee with a deep link to confirm. Reuses `notifications` + `notification_prefs` + `notify-dispatch` — add a `settlement_confirm` pref.
@@ -180,7 +180,7 @@ Money genuinely left the payer's bank the moment they completed the UPI transact
 - Take `status`; post only the acting party's leg; keep the existing immediate-confirm path (manual "mark settled") working unchanged by defaulting to `confirmed`.
 - Add `confirmSettlement()` and `disputeSettlement()`.
 
-**C6. Status filters** — the five `settlements` queries in `hooks.ts` + `@pocketcare/reconcile`. Own task by design (§5).
+**C6. Status filters** — the five `settlements` queries in `hooks.ts` + `@sanvya/reconcile`. Own task by design (§5).
 
 ### Phase D — Cross-cutting
 
@@ -189,7 +189,7 @@ Money genuinely left the payer's bank the moment they completed the UPI transact
 **D2. Docs** — `docs/features/upi-settle-up.md`; update `splits.md`, the ER diagram in `02-data-model.md`, the edge-function table in `03-sync-and-offline.md`, and a **new section in `04-security-and-privacy.md`** covering the not-zero-trust tier, the disclosure gate and the audit trail. Dated `PROJECT_REFERENCE.md` entry.
 
 **D3. Verification**
-- `pnpm --filter @pocketcare/web typecheck`, `pnpm test:core` (new `@pocketcare/upi` suite).
+- `pnpm --filter @sanvya/web typecheck`, `pnpm test:core` (new `@sanvya/upi` suite).
 - Unit tests for balance netting across `confirmed` / `pending` / `disputed`.
 - Playwright: settle → pending → confirm → balance clears; and → dispute → balance restored.
 - Manual: real UPI app handoff on Android and iOS, desktop QR scan, counterparty with no handle, non-INR user (button absent).

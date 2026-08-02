@@ -1,12 +1,12 @@
 /**
- * @pocketcare/finance — pure financial math (no I/O, no money formatting).
+ * @sanvya/finance — pure financial math (no I/O, no money formatting).
  *
  * Amounts are plain numbers in MINOR UNITS (integers in, rounded integers out
  * for money results). Rates are decimals per period unless noted. Deterministic
  * and unit-tested — powers goal ETAs (feature #15) and the subscription
  * impact simulator (feature #11).
  */
-import type { Period } from "@pocketcare/types";
+import type { Period } from "@sanvya/types";
 
 /** How many times each budgeting/commitment period occurs per year. */
 export const PERIODS_PER_YEAR: Record<Period, number> = {

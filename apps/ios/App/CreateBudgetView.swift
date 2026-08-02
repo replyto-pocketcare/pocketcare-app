@@ -26,7 +26,7 @@ struct CreateBudgetView: View {
                     HStack {
                         Text("₹")
                             .font(.headline)
-                            .foregroundColor(Theme.terracotta)
+                            .foregroundColor(Color.accent)
                         TextField("8000", text: $limitText)
                             .keyboardType(.numberPad)
                     }
@@ -40,9 +40,9 @@ struct CreateBudgetView: View {
                             .font(.headline)
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(Theme.cream)
+                            .foregroundColor(Color.surface)
                     }
-                    .listRowBackground(Theme.terracotta)
+                    .listRowBackground(Color.accent)
                 }
             }
             .navigationTitle("New Budget")
@@ -50,7 +50,7 @@ struct CreateBudgetView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(Theme.inkSoft)
+                        .foregroundColor(Color.text2)
                 }
             }
         }

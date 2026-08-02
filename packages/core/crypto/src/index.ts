@@ -1,5 +1,5 @@
 /**
- * @pocketcare/crypto — envelope encryption for the Hybrid zero-trust model.
+ * @sanvya/crypto — envelope encryption for the Hybrid zero-trust model.
  *
  * Model:
  *   passphrase --PBKDF2--> KEK  (never leaves the device)

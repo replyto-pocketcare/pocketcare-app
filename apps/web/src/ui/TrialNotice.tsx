@@ -8,7 +8,7 @@ import { Modal } from "./Modal";
 
 // Features that disappear when the trial ends and the user stays on Free.
 const LOSE_ON_FREE = [
-  "Ask PocketCare — the AI assistant",
+  "Ask Sanvya — the AI assistant",
   "Detailed Insights & Statements",
   "Auto-categorisation, upcoming bills & daily stock sync",
   "CSV import",
@@ -20,7 +20,7 @@ const LOSE_ON_FREE = [
  * this dialog, stacked, saying overlapping things. The walkthrough's last step
  * explains the trial instead.
  */
-export const trialWelcomeSeenKey = (email: string | null) => `pocketcare:trial-welcome:${email ?? "anon"}`;
+export const trialWelcomeSeenKey = (email: string | null) => `sanvya:trial-welcome:${email ?? "anon"}`;
 const seenKey = trialWelcomeSeenKey;
 
 /**
@@ -59,7 +59,7 @@ export function TrialNotice() {
         <span style={{ width: 8, height: 8, borderRadius: 999, flexShrink: 0, background: "var(--accent)" }} />
         <div style={{ flex: "1 1 auto", minWidth: 0 }}>
           <strong>Free trial · {dayLabel} left.</strong>{" "}
-          <span className="muted">When it ends you’ll lose Ask PocketCare, Insights, Statements &amp; more unless you upgrade.</span>
+          <span className="muted">When it ends you’ll lose Ask Sanvya, Insights, Statements &amp; more unless you upgrade.</span>
         </div>
         <Link href="/settings" className="btn" style={{ padding: "4px 12px", fontSize: 12, minHeight: 0, height: 28, display: "inline-flex", alignItems: "center" }}>
           Upgrade
@@ -77,7 +77,7 @@ export function TrialNotice() {
             </div>
           </div>
           <p style={{ margin: 0, fontSize: 14 }}>
-            You’ve got everything unlocked while you explore PocketCare — including the features that are paid-only after the trial:
+            You’ve got everything unlocked while you explore Sanvya — including the features that are paid-only after the trial:
           </p>
           <ul style={{ margin: 0, paddingLeft: 4, display: "grid", gap: 6, fontSize: 13.5, listStyle: "none" }}>
             {LOSE_ON_FREE.map((f) => (

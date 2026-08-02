@@ -3,7 +3,7 @@
 ## Pay anyone: typed UPI ID or scanned QR (2026-07-29)
 Beyond settling a split, you can pay **any** UPI ID from Splits → "Pay someone"
 (`src/payments/PayAnyone.tsx`). Same posture as settle-up: **no money touches
-PocketCare** — we build a UPI Intent deep link and the payer's own app moves it.
+Sanvya** — we build a UPI Intent deep link and the payer's own app moves it.
 
 **A scanned QR is attacker-controlled input**, and the design says so out loud.
 A sticker on a shop counter can be swapped, and the code decides the payee, the
@@ -18,7 +18,7 @@ displayed name and the amount. So:
   page, so we can't know it went through. Offering to log it afterwards is a
   reasonable follow-up; logging it silently is not.
 
-Parsing lives in `@pocketcare/upi` → `parseUpiTarget`, unit-tested against a
+Parsing lives in `@sanvya/upi` → `parseUpiTarget`, unit-tested against a
 **duplicated `pa=` param** (an appended second payee must not win), hostile
 amounts (`-5`, `1e9`, `10.999`, `0` — all dropped, payee still parsed),
 non-UPI URLs (`https:`, `javascript:`, `mailto:`), and EMVCo/Bharat QR payloads
@@ -47,9 +47,9 @@ is a frozen spec, so an older encoder isn't a liability. See
 `public/vendor/README.md`.
 
 ## Overview
-Settle a split balance by paying the other person over UPI, from inside PocketCare. **No money touches PocketCare's accounts** — we build a UPI Intent deep link, the payer's own UPI app moves the money bank-to-bank, and we record the outcome.
+Settle a split balance by paying the other person over UPI, from inside Sanvya. **No money touches Sanvya's accounts** — we build a UPI Intent deep link, the payer's own UPI app moves the money bank-to-bank, and we record the outcome.
 
-**No payment provider is involved.** Razorpay and every other Payment Aggregator settles to a *merchant* through escrow; routing a person-to-person settle-up through one would make PocketCare the merchant of record for money that isn't ours. UPI Intent needs no PSP, no escrow, no MDR, no reconciliation, and no licence.
+**No payment provider is involved.** Razorpay and every other Payment Aggregator settles to a *merchant* through escrow; routing a person-to-person settle-up through one would make Sanvya the merchant of record for money that isn't ours. UPI Intent needs no PSP, no escrow, no MDR, no reconciliation, and no licence.
 
 ## User flow
 ```mermaid
@@ -77,7 +77,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     participant P as Payer
-    participant App as PocketCare
+    participant App as Sanvya
     participant Fn as payment-handle edge fn
     participant DB as Postgres
     participant UPI as Payer's UPI app
@@ -127,7 +127,7 @@ This is structural, not a gap to close later. UPI Intent hands control to a thir
 Consequences we accept, deliberately:
 - Confirmation is two-sided and human.
 - Pending settlements are swept: nudge at 3 days, **auto-confirm at 14** (the payer's cash already moved; leaving the debt open forever is the worse error).
-- The `tr=` reference is surfaced to the payee, because it's the one thread that ties a PocketCare settlement to a line on a bank statement.
+- The `tr=` reference is surfaced to the payee, because it's the one thread that ties a Sanvya settlement to a line on a bank statement.
 
 ## Handle storage — deliberately NOT zero-trust
 The existing zero-trust scheme wraps a DEK with a **passphrase-derived KEK owned by one user**, so a co-member could never decrypt it. A shared payment handle must be readable by the payer, so it cannot use that scheme. Instead:
@@ -170,7 +170,7 @@ Migration: `0041_payment_handles.sql`.
 | QR (CDN-loaded) | `apps/web/src/payments/qr.ts` |
 | Writers | `apps/web/src/splits/write.ts` — `settleUp`, `confirmSettlement`, `disputeSettlement` |
 | Edge function | `supabase/functions/payment-handle/index.ts` |
-| Sweep | `pocketcare.sweep_pending_settlements()`, called from `notify-dispatch` |
+| Sweep | `sanvya.sweep_pending_settlements()`, called from `notify-dispatch` |
 
 ## Gating
 - **Registered users only.** A UPI ID is a financial identifier tied to a real identity; a 3-day throwaway guest is the wrong place for one. Enforced by a DB trigger on `auth.users.is_anonymous` — *not* by the presence of a `guest_sessions` row, since guest→registered is an in-place UID upgrade that leaves that row behind.

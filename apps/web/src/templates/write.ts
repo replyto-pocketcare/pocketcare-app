@@ -1,7 +1,7 @@
 "use client";
 
-import { money, fromMajor, type Money } from "@pocketcare/money";
-import type { CurrencyCode } from "@pocketcare/types";
+import { money, fromMajor, type Money } from "@sanvya/money";
+import type { CurrencyCode } from "@sanvya/types";
 import { getDb, getRepositories, getUserId } from "../powersync";
 import { insertRow, updateRow } from "../write";
 import { getBaseCurrency } from "../prefs";

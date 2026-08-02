@@ -20,7 +20,7 @@ flowchart TD
 flowchart LR
     Members["split_group_members"] --> Stream["split_shared sync stream\n(JOIN membership)"]
     Stream --> Local[("member's local SQLite")]
-    Expenses["expenses + expense_participants"] --> Recon["@pocketcare/reconcile\nnet balances"]
+    Expenses["expenses + expense_participants"] --> Recon["@sanvya/reconcile\nnet balances"]
     Settlements["settlements"] --> Recon
     Recon --> UI["Owed / owe per person + net position"]
 ```
@@ -57,9 +57,9 @@ expense doesn't require navigating to the group first.
 `app/friends/` (the merged screen), `app/groups/` (redirect), `app/groups/[id]`,
 `src/splits/hooks.ts` (`useSplitOverview`, `usePersonLedger`, `useFriendInsights`),
 `src/splits/NewGroupModal.tsx`, `src/splits/write.ts` (`settleUp`),
-`@pocketcare/reconcile`, `@pocketcare/splits-insights`.
+`@sanvya/reconcile`, `@sanvya/splits-insights`.
 
-## Friend insights (`@pocketcare/splits-insights`)
+## Friend insights (`@sanvya/splits-insights`)
 Behavioural patterns over the shared ledger: who covers the most, who owes the
 most, who *always* ends up owing or owed, and who settles fastest / slowest.
 Pure and unit-tested (18 tests); the app hook builds pairwise edges with the

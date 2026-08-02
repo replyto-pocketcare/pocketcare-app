@@ -8,8 +8,8 @@
  * seeded from the user's blended expected return.
  */
 import { useMemo, useState } from "react";
-import { money, toMajor, fromMajor, format } from "@pocketcare/money";
-import { projectCashflow } from "@pocketcare/finance";
+import { money, toMajor, fromMajor, format } from "@sanvya/money";
+import { projectCashflow } from "@sanvya/finance";
 import { GrowthArea, NetBars, type GrowthPoint, type NetPoint } from "./Charts";
 
 function Slider({ label, value, set, min, max, step, suffix }: { label: string; value: number; set: (n: number) => void; min: number; max: number; step: number; suffix: string }) {

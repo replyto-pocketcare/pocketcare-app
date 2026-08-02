@@ -42,7 +42,7 @@ would retry 3× and quarantine the loan — the head-of-line block 0040 caused a
 the column follows automatically).
 
 ## Overview
-A dedicated `/loans` list + `/loans/[id]` detail page for tracking loans: principal, monthly EMI, tenure, interest rate, and a reducing-balance **amortization schedule** (principal vs interest per month via `amortizationSchedule()` in `@pocketcare/finance`). The **monthly EMI is auto-calculated** from principal + rate + tenure (`emiFromPrincipal()`), editable to override. Loans are **fixed** or **variable** rate: fixed loans get the computed EMI + amortization schedule; variable loans (which re-price over time and can't be modelled) instead show a **month-by-month list where the user enters each month's actual EMI**. Each EMI has a **due date** derived from the loan's start date + a configurable **due day of the month**, and can be marked paid either **manually** or **automatically on the due date**.
+A dedicated `/loans` list + `/loans/[id]` detail page for tracking loans: principal, monthly EMI, tenure, interest rate, and a reducing-balance **amortization schedule** (principal vs interest per month via `amortizationSchedule()` in `@sanvya/finance`). The **monthly EMI is auto-calculated** from principal + rate + tenure (`emiFromPrincipal()`), editable to override. Loans are **fixed** or **variable** rate: fixed loans get the computed EMI + amortization schedule; variable loans (which re-price over time and can't be modelled) instead show a **month-by-month list where the user enters each month's actual EMI**. Each EMI has a **due date** derived from the loan's start date + a configurable **due day of the month**, and can be marked paid either **manually** or **automatically on the due date**.
 
 ## Fixed vs variable
 ```mermaid
@@ -83,7 +83,7 @@ flowchart LR
 `loans` (`principal`, `emi_amount`, `tenure_months`, `interest_rate`, `rate_type`, `start_date`, `emi_due_day`, `auto_mark_paid`, `emi_payments`, `emi_amounts`, `emis_paid`), `transactions` (optional EMI expense on mark-paid).
 
 ## Key files
-`app/loans/page.tsx` (list + AddLoan), `app/loans/[id]/page.tsx` (detail, fixed schedule + variable EMI list, mark-paid dialog, edit), `@pocketcare/finance` (`emiFromPrincipal`, `amortizationSchedule`, `emiDueDate`, `isDuePassed`, `effectivePaidEmis`). Migrations `0034` (due-day/auto-mark) + `0036` (rate_type/emi_amounts).
+`app/loans/page.tsx` (list + AddLoan), `app/loans/[id]/page.tsx` (detail, fixed schedule + variable EMI list, mark-paid dialog, edit), `@sanvya/finance` (`emiFromPrincipal`, `amortizationSchedule`, `emiDueDate`, `isDuePassed`, `effectivePaidEmis`). Migrations `0034` (due-day/auto-mark) + `0036` (rate_type/emi_amounts).
 
 ## Gating
 Free.

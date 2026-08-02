@@ -7,7 +7,7 @@
  * user's key. A "structural" grant carries no key — it only authorizes drift
  * checksums. Every action is written to the hash-chained security_audit.
  */
-import { wrapDekForSupport, signGrant } from "@pocketcare/crypto";
+import { wrapDekForSupport, signGrant } from "@sanvya/crypto";
 import { getSupabase, getUserId, getDb } from "../powersync";
 import { getDek, getSigningPrivate } from "./session";
 
@@ -52,7 +52,7 @@ export async function issueSupportGrant(scope: GrantScope, ttlHours = 2): Promis
   if (!priv) throw new Error("Unlock encryption to authorize support access.");
 
   const signature = await signGrant({ userId: uid, grantId, exp, scope }, priv);
-  const sb = getSupabase().schema("pocketcare");
+  const sb = getSupabase().schema("sanvya");
   const { error } = await sb.from("support_grants").insert({
     id: grantId, user_id: uid, scope, wrapped_dek_for_support: wrapped, signature, expires_at: expiresAt,
   });
@@ -65,7 +65,7 @@ export async function issueSupportGrant(scope: GrantScope, ttlHours = 2): Promis
 export async function revokeGrant(grantId: string): Promise<void> {
   const uid = getUserId();
   if (!uid) return;
-  const sb = getSupabase().schema("pocketcare");
+  const sb = getSupabase().schema("sanvya");
   await sb.from("support_grants").update({ revoked_at: new Date().toISOString() }).eq("id", grantId).eq("user_id", uid);
   await sb.from("security_audit").insert({ actor: `user:${uid}`, action: "grant_revoked", subject_user: uid, grant_id: grantId });
 }

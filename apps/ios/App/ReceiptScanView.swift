@@ -30,10 +30,10 @@ struct ReceiptScanView: View {
                         Text("📷 Photo / OCR Scan Attached")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundColor(Theme.ink)
+                            .foregroundColor(Color.text)
                         Text("AI detected 4 line items with 100% confidence")
                             .font(.caption)
-                            .foregroundColor(Theme.inkSoft)
+                            .foregroundColor(Color.text2)
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 8)
@@ -57,13 +57,13 @@ struct ReceiptScanView: View {
                                     .fontWeight(.semibold)
                                 Text("Qty: \(item.quantity) • Assigned: \(item.assignedMember)")
                                     .font(.caption)
-                                    .foregroundColor(Theme.inkSoft)
+                                    .foregroundColor(Color.text2)
                             }
                             Spacer()
                             Text(item.amountFormatted)
                                 .font(.body)
                                 .fontWeight(.bold)
-                                .foregroundColor(Theme.terracotta)
+                                .foregroundColor(Color.accent)
                         }
                     }
                 }
@@ -74,9 +74,9 @@ struct ReceiptScanView: View {
                             .font(.headline)
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(Theme.cream)
+                            .foregroundColor(Color.surface)
                     }
-                    .listRowBackground(Theme.terracotta)
+                    .listRowBackground(Color.accent)
                 }
             }
             .navigationTitle("Receipt Scan & Split")
@@ -84,7 +84,7 @@ struct ReceiptScanView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(Theme.inkSoft)
+                        .foregroundColor(Color.text2)
                 }
             }
         }

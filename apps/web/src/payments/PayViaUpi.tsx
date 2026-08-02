@@ -19,7 +19,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { buildIntentUrl, formatAmount, maskVpa } from "@pocketcare/upi";
+import { buildIntentUrl, formatAmount, maskVpa } from "@sanvya/upi";
 
 import { Spinner } from "../ui/Spinner";
 import { fetchCounterpartyHandle, HandleError } from "./handles";
@@ -73,7 +73,7 @@ export function PayViaUpi({ counterpartyId, counterpartyName, amountMinor, note,
         vpa: handle.vpa,
         name: handle.displayName ?? counterpartyName,
         amountMinor,
-        note: note ?? "PocketCare settle-up",
+        note: note ?? "Sanvya settle-up",
       });
       setVpa(handle.vpa);
       setIntent(built);

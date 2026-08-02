@@ -12,7 +12,7 @@
 
 import type { CSSProperties } from "react";
 
-/** name → PUA codepoint in `pocketcare-icons.woff2`. Keep in sync with the subset. */
+/** name → PUA codepoint in `sanvya-icons.woff2`. Keep in sync with the subset. */
 export const MATERIAL_ICON = {
   account_balance: "\ue84f",
   add: "\ue145",

@@ -46,7 +46,7 @@ function openCheckout(options: Record<string, unknown>): Promise<{ ok: boolean }
   return new Promise((resolve) => {
     const Razorpay = (window as unknown as { Razorpay: new (o: unknown) => { open: () => void } }).Razorpay;
     const rzp = new Razorpay({
-      name: "PocketCare",
+      name: "Sanvya",
       theme: { color: "#b06a4f" },
       handler: () => resolve({ ok: true }),
       modal: { ondismiss: () => resolve({ ok: false }) },
@@ -70,7 +70,7 @@ export async function startSubscription(tier: PaidTier, cycle: Cycle): Promise<{
   const { subscription_id, key_id } = await invoke<{ subscription_id: string; key_id: string }>(
     "razorpay-subscription", { tier, cycle },
   );
-  return openCheckout({ key: key_id, subscription_id, description: `PocketCare ${tier} (${cycle})`, prefill: await prefill() });
+  return openCheckout({ key: key_id, subscription_id, description: `Sanvya ${tier} (${cycle})`, prefill: await prefill() });
 }
 
 /** Cancel the current subscription at cycle end (access continues until then). */

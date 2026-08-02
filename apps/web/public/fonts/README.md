@@ -1,4 +1,4 @@
-# pocketcare-icons.woff2
+# sanvya-icons.woff2
 
 A **subset** of [Material Symbols Rounded](https://github.com/google/material-design-icons)
 (npm `material-symbols@0.45.9`), licensed **Apache 2.0** — see
@@ -10,7 +10,7 @@ The full variable font is **5.2 MB**. This file is **4 KB** — it contains only
 the 25 glyphs the navigation actually uses, with the variable axes flattened to
 the single style we render (`wght 400, opsz 24, FILL 0, GRAD 0`).
 
-It is self-hosted rather than CDN-loaded because PocketCare is an offline-first
+It is self-hosted rather than CDN-loaded because Sanvya is an offline-first
 PWA: a CDN font fails offline, and the nav would render raw text instead of
 icons. This file is precached by the service worker.
 
@@ -31,7 +31,7 @@ python3 -m fontTools.varLib.instancer package/material-symbols-rounded.woff2 \
 python3 -m fontTools.subset static.ttf \
   --unicodes="U+e028,U+e0b6,..." \
   --layout-features='' --no-hinting --desubroutinize \
-  --flavor=woff2 --output-file=pocketcare-icons.woff2
+  --flavor=woff2 --output-file=sanvya-icons.woff2
 ```
 
 ## Why codepoints, not ligatures

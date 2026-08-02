@@ -21,7 +21,7 @@ export function LabelPicker({ labels, selected, onChange }: {
     // Sort recently used labels first
     let recentLabels: string[] = [];
     try {
-      const stored = localStorage.getItem("pocketcare:recent-labels");
+      const stored = localStorage.getItem("sanvya:recent-labels");
       if (stored) recentLabels = JSON.parse(stored);
     } catch (e) {}
 
@@ -48,10 +48,10 @@ export function LabelPicker({ labels, selected, onChange }: {
       
       // Update recently used in localStorage
       try {
-        const stored = localStorage.getItem("pocketcare:recent-labels");
+        const stored = localStorage.getItem("sanvya:recent-labels");
         let recent: string[] = stored ? JSON.parse(stored) : [];
         recent = [n, ...recent.filter(l => l !== n)].slice(0, 10); // keep last 10
-        localStorage.setItem("pocketcare:recent-labels", JSON.stringify(recent));
+        localStorage.setItem("sanvya:recent-labels", JSON.stringify(recent));
       } catch (e) {}
     }
     setQuery("");

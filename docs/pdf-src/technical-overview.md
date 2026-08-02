@@ -1,5 +1,5 @@
 ---
-title: "PocketCare — Technical Overview"
+title: "Sanvya — Technical Overview"
 subtitle: "Architecture, data model, and system design — for CTO / senior engineering review"
 date: "Confidential"
 toc: true
@@ -14,16 +14,16 @@ linkcolor: "[HTML]{B06A4F}"
 
 \newpage
 
-# 1. What PocketCare is
+# 1. What Sanvya is
 
-PocketCare is an **offline-first, multi-currency personal expense & wealth manager**, delivered as an installable **Progressive Web App** (Next.js). It combines day-to-day tracking, forward planning (the *Planned Cashflow* hub), and a deterministic, inflation-aware projection engine — all working fully offline and syncing across devices.
+Sanvya is an **offline-first, multi-currency personal expense & wealth manager**, delivered as an installable **Progressive Web App** (Next.js). It combines day-to-day tracking, forward planning (the *Planned Cashflow* hub), and a deterministic, inflation-aware projection engine — all working fully offline and syncing across devices.
 
 **Golden rules (financial integrity):**
 
 1. Money is stored as **integer minor units**, never floats.
 2. Balances are **derived from an append-only ledger**, never mutated in place.
 3. The **server is authoritative**; the client is an offline cache reconciled via sync.
-4. All tables and RPCs live in the **`pocketcare`** Postgres schema — direct calls must be schema-qualified.
+4. All tables and RPCs live in the **`sanvya`** Postgres schema — direct calls must be schema-qualified.
 
 # 2. Technology stack
 
@@ -66,7 +66,7 @@ Writes never block on the network. Rows carry client-generated UUIDs so they hav
 
 # 5. Data model
 
-All state lives in the `pocketcare` schema, mirrored locally as WASM SQLite. Money columns are integer minor units; every owner-scoped table has `user_id`, timestamps, and a soft-delete `deleted_at`, protected by RLS.
+All state lives in the `sanvya` schema, mirrored locally as WASM SQLite. Money columns are integer minor units; every owner-scoped table has `user_id`, timestamps, and a soft-delete `deleted_at`, protected by RLS.
 
 ![Core entity relationships](img/data.png)
 
@@ -86,7 +86,7 @@ The **design system** (Inter typeface, earthy terracotta palette, token-driven `
 - **RLS:** owner policies (`user_id = auth.uid()`) on personal tables; membership-based policies for the shared ledger.
 - **Zero-trust encryption:** sensitive fields are envelope-encrypted with WebCrypto. The server holds only ciphertext + wrapped keys (`user_keys`); the data key is unwrapped in memory from a passphrase-derived key and never leaves the client in plaintext. A hash-chained `security_audit` table makes privileged actions tamper-evident.
 - **Support access:** time-bound, consented, Shamir-split custody — no single party holds the key.
-- **Account deletion:** `pocketcare.delete_user_account` clears splits rows (non-cascade FKs) in FK-safe order, deletes owner tables, then removes `auth.users` (cascading the rest) and frees the email. Two historical bugs are fixed: a schema-mismatch 404 (call must be schema-qualified and the error checked) and an `auth.users` FK violation from the splits tables.
+- **Account deletion:** `sanvya.delete_user_account` clears splits rows (non-cascade FKs) in FK-safe order, deletes owner tables, then removes `auth.users` (cascading the rest) and frees the email. Two historical bugs are fixed: a schema-mismatch 404 (call must be schema-qualified and the error checked) and an `auth.users` FK violation from the splits tables.
 - **Billing integrity:** Razorpay webhooks are HMAC-verified and idempotent; entitlement writes use `upsert(onConflict: user_id)`.
 
 # 8. Feature surface
@@ -99,7 +99,7 @@ The **design system** (Inter typeface, earthy terracotta palette, token-driven `
 | Planned Cashflow (BETA) | recurring income/payments/savings + 1/2/3-year AI projections |
 | Splits | groups & trips, shared ledger, settle-up, reconciliation |
 | Investments | holdings + daily market data (Alpha Vantage) |
-| Ask PocketCare | AI assistant with visual, confirm-gated, actionable responses |
+| Ask Sanvya | AI assistant with visual, confirm-gated, actionable responses |
 | Insights & statements | 15+ insight charts; printable/PDF statements (premium) |
 | Billing | freemium (Free / Lite / Pro) + AI credit packs, offline-aware gating |
 
@@ -111,6 +111,6 @@ Full per-feature documentation — each with user-flow and technical diagrams �
 - Soft-delete via `deleted_at`; filter `WHERE deleted_at IS NULL`.
 - Format money via `useMoneyFmt()` (respects the hide-amounts privacy toggle).
 - Gate premium behind `useEntitlement` (offline-capable).
-- Verify with `pnpm --filter @pocketcare/web typecheck` and the core test suite.
+- Verify with `pnpm --filter @sanvya/web typecheck` and the core test suite.
 
 *This PDF is a generated snapshot. The living source — with interactive Mermaid diagrams and a doc per feature — is maintained in `docs/` and updated with every feature per the documentation-maintenance rule in `CLAUDE.md`.*

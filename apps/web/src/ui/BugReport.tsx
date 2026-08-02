@@ -16,7 +16,7 @@ const SEVERITIES: { id: "fatal" | "high" | "medium" | "low"; label: string; colo
 const AREAS = [
   "Dashboard", "Transactions", "Accounts & Cards", "Budgets", "Goals",
   "Investments", "Friends & Splits", "Subscriptions", "Loans",
-  "Ask PocketCare", "Insights", "Settings & Billing", "Sync / Offline", "Other",
+  "Ask Sanvya", "Insights", "Settings & Billing", "Sync / Offline", "Other",
 ];
 
 const APP_VERSION = "0.1.0";
@@ -86,7 +86,7 @@ export function BugReportModal({ open, onClose }: { open: boolean; onClose: () =
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>
             {isBug
               ? <>Beta testers who report <strong>5 bugs get a free month of Lite</strong>, and <strong>25 unlock Pro</strong> — your reward coupon shows up in Settings → Billing.</>
-              : <>We read every suggestion — thanks for helping shape PocketCare.</>}
+              : <>We read every suggestion — thanks for helping shape Sanvya.</>}
           </p>
           <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 6 }}>
             <button className="btn ghost" onClick={reset}>Send another</button>
@@ -131,7 +131,7 @@ export function BugReportModal({ open, onClose }: { open: boolean; onClose: () =
 
           <input className="input" placeholder="Short title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} />
           <textarea className="input" rows={4}
-            placeholder={isBug ? "What went wrong? What did you expect to happen?" : "What would make PocketCare better?"}
+            placeholder={isBug ? "What went wrong? What did you expect to happen?" : "What would make Sanvya better?"}
             value={description} onChange={(e) => setDescription(e.target.value)} style={{ resize: "vertical" }} />
 
           <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13 }}>

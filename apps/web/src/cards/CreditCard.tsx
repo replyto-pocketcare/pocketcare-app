@@ -6,7 +6,7 @@ export function CreditCard({
   color,
   currency,
   last4,
-  network = "PocketCare",
+  network = "Sanvya",
 }: {
   name: string;
   color: string;

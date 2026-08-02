@@ -1,6 +1,6 @@
-# Deploying PocketCare to Vercel
+# Deploying Sanvya to Vercel
 
-PocketCare is a **pnpm + Turborepo monorepo**; the deployable app is `apps/web`
+Sanvya is a **pnpm + Turborepo monorepo**; the deployable app is `apps/web`
 (Next.js). The shared `packages/*` are consumed as source (via `transpilePackages`),
 so there's no separate build step for them.
 
@@ -10,7 +10,7 @@ git push -u origin main
 ```
 
 ## 2. Create the Vercel project
-1. Vercel → **Add New… → Project** → import `replyto-pocketcare/pocketcare-app`.
+1. Vercel → **Add New… → Project** → import `replyto-sanvya/sanvya-app`.
 2. **Root Directory:** set to `apps/web`.
    Vercel is pnpm-workspace aware — it installs the whole workspace and builds the
    app from this directory. No `vercel.json` is needed.
@@ -35,7 +35,7 @@ Add these for **Production** (and Preview if you want PR deploys to work):
 
 ## 4. Point Supabase at the deployed URL
 In Supabase → **Authentication → URL Configuration**:
-- **Site URL:** your Vercel URL (e.g. `https://pocketcare.vercel.app`).
+- **Site URL:** your Vercel URL (e.g. `https://sanvya.vercel.app`).
 - **Redirect URLs:** add the same URL (and any custom domain). Needed so email
   confirmation / OTP magic links redirect back into the app.
 
@@ -78,7 +78,7 @@ Check which one you're on in Supabase → **Settings → API → JWT Keys**. If 
 After changing PowerSync auth, reload the app — the Settings sync line should read
 "Synced …" with no warning banner.
 
-## 7. AI assistant ("Ask PocketCare") — optional
+## 7. AI assistant ("Ask Sanvya") — optional
 The in-app assistant is a Supabase **Edge Function** that proxies Anthropic's
 API (the key stays server-side; only an aggregated summary — never raw
 transactions — leaves the device). To enable it:
@@ -89,7 +89,7 @@ supabase secrets set ASSISTANT_MODEL=claude-3-5-haiku-latest   # optional overri
 supabase functions deploy assistant                    # from supabase/functions/assistant
 ```
 
-`verify_jwt` is on by default, so only signed-in PocketCare users can call it.
+`verify_jwt` is on by default, so only signed-in Sanvya users can call it.
 If the key isn't set, the assistant page shows a friendly "not set up yet"
 message and the rest of the app is unaffected. The client invokes the function
 via `supabase.functions.invoke("assistant", …)`, so no extra env vars are needed
@@ -108,7 +108,7 @@ invents numbers, and shows a "can make mistakes — verify" disclaimer.
 
 ## 8. Payments — Razorpay (subscriptions + AI credits)
 Three tiers: **Free**, **Lite** (₹49/mo, ₹499/yr), **Pro** (₹99/mo, ₹999/yr).
-Paid tiers unlock Insights, Statements, Ask PocketCare, import, etc. Lite gives
+Paid tiers unlock Insights, Statements, Ask Sanvya, import, etc. Lite gives
 50 AI prompts/mo, Pro 200; users can also buy one-time credit packs (₹29→50,
 ₹49→100, ₹99→250) that never expire. Entitlements are **server-authoritative** —
 the webhook is the only thing that changes a plan or adds credits.
@@ -143,15 +143,15 @@ supabase functions deploy razorpay-webhook --no-verify-jwt
 entitlements with the service role; the client reads them via sync and gates
 features with `useEntitlement()`.
 
-**6. Expose the `pocketcare` schema to PostgREST (REQUIRED).** The edge functions
-read/write `pocketcare.entitlements` and `pocketcare.payments` via the Supabase
-client (`{ db: { schema: "pocketcare" } }`). PostgREST only serves schemas in its
-allow-list (default `public, graphql_public`), so `pocketcare` MUST be added or
+**6. Expose the `sanvya` schema to PostgREST (REQUIRED).** The edge functions
+read/write `sanvya.entitlements` and `sanvya.payments` via the Supabase
+client (`{ db: { schema: "sanvya" } }`). PostgREST only serves schemas in its
+allow-list (default `public, graphql_public`), so `sanvya` MUST be added or
 every function's DB call fails silently — payments succeed but no credits/plan
-change land. Either add `pocketcare` under **Dashboard → Project Settings → API →
+change land. Either add `sanvya` under **Dashboard → Project Settings → API →
 Exposed schemas**, or run in SQL:
 ```sql
-alter role authenticator set pgrst.db_schemas = 'public, graphql_public, pocketcare';
+alter role authenticator set pgrst.db_schemas = 'public, graphql_public, sanvya';
 notify pgrst, 'reload config';
 ```
 

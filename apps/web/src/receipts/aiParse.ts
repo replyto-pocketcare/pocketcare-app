@@ -8,8 +8,8 @@
  * that on-device OCR could not reconcile. This is the ONLY code path in the
  * feature where the image leaves the device.
  */
-import type { ReceiptDraft, ReceiptLine, ReceiptLineKind } from "@pocketcare/receipts";
-import { QTY_SCALE } from "@pocketcare/receipts";
+import type { ReceiptDraft, ReceiptLine, ReceiptLineKind } from "@sanvya/receipts";
+import { QTY_SCALE } from "@sanvya/receipts";
 
 import { getSupabase } from "../powersync";
 

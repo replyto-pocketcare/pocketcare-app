@@ -1,5 +1,5 @@
 /**
- * PocketCare — generate the SUPPORT keypair for sealed support access.
+ * Sanvya — generate the SUPPORT keypair for sealed support access.
  *
  * Produces:
  *   1. the PUBLIC JWK → paste into NEXT_PUBLIC_SUPPORT_PUBLIC_JWK (Vercel/client)
@@ -16,8 +16,8 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { generateSupportKeypair, toBase64 } from "@pocketcare/crypto";
-import { split } from "@pocketcare/crypto/shamir";
+import { generateSupportKeypair, toBase64 } from "@sanvya/crypto";
+import { split } from "@sanvya/crypto/shamir";
 
 function arg(name: string, fallback: string): string {
   const i = process.argv.indexOf(`--${name}`);

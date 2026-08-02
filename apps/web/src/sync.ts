@@ -53,7 +53,7 @@ export function useSyncStatus(): SyncInfo {
       const next = read(s ?? (db?.currentStatus as LooseStatus));
       // Keep the raw error in the console for debugging; the UI shows a friendly
       // message (see syncMessage) instead of the technical text.
-      if (next.error) console.warn("[PocketCare sync]", next.error);
+      if (next.error) console.warn("[Sanvya sync]", next.error);
       setInfo(next);
     };
     refresh();

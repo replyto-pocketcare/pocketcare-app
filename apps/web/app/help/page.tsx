@@ -12,7 +12,7 @@ const SECTIONS: Section[] = [
   {
     icon: "space_dashboard", color: "#b06a4f", title: "Getting started",
     items: [
-      { q: "What is PocketCare?", a: "An offline-first personal expense & wealth manager. Your data lives on your device and syncs securely — you can use most of the app with no connection." },
+      { q: "What is Sanvya?", a: "An offline-first personal expense & wealth manager. Your data lives on your device and syncs securely — you can use most of the app with no connection." },
       { q: "How do I begin?", a: "Add your first account (bank, cash, card, or investments) from the Dashboard or Accounts page. Then start logging transactions. Set your base currency in Settings." },
       { q: "Can I install it like an app?", a: "Yes — on mobile or desktop use your browser's “Install app” / “Add to Home Screen” option (or the Install button in the sidebar) for a full-screen, offline experience." },
       { q: "Does it work offline?", a: "Yes. You can add and edit accounts, transactions, budgets, goals and splits offline; everything syncs the next time you're online." },
@@ -52,7 +52,7 @@ const SECTIONS: Section[] = [
     icon: "call_split", color: "#b06a4f", title: "Splits & friends",
     items: [
       { q: "How do I split a bill?", a: "Open Add transaction → turn on “Split this expense” → pick a group/trip → choose who's in and how to split (equally, exact amounts, or percentages) → mark who paid. Only your own share counts in your budget; the rest is tracked as owed or lent." },
-      { q: "How do I add friends?", a: "Everyone in a split must be in a shared group. Go to Groups & trips → open a group → Invite by email (they're added instantly if they're on PocketCare) or share an invite link. They join, then you can split with them." },
+      { q: "How do I add friends?", a: "Everyone in a split must be in a shared group. Go to Groups & trips → open a group → Invite by email (they're added instantly if they're on Sanvya) or share an invite link. They join, then you can split with them." },
       { q: "Where do I see who owes whom?", a: "The Friends page shows your net balance with each person — who owes you and who you owe — across all groups, plus a per-group view inside each group." },
       { q: "How do I settle up?", a: "On Friends, tap Settle next to a person. Record the repayment into an account, or choose “None” to just mark it settled without moving money." },
       { q: "Can a trip split automatically?", a: "Yes — give a trip a date range and turn on auto-split. Any expense you add within those dates is split equally with the group (you can turn it off per transaction)." },
@@ -75,7 +75,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    icon: "auto_awesome", color: "#b06a4f", title: "Ask PocketCare (AI)",
+    icon: "auto_awesome", color: "#b06a4f", title: "Ask Sanvya (AI)",
     items: [
       { q: "What can the assistant do?", a: "It helps you use the app and think through your own money — and can create goals, budgets, subscriptions and groups, reserve money to a goal, and log a transaction (always asking you to confirm first)." },
       { q: "What data does it see?", a: "Only an aggregated on-device snapshot (balances, average income/expense, goals, upcoming bills, split totals) — never your individual transactions. It won't write or explain code or give tax/legal/investment advice." },
@@ -85,7 +85,7 @@ const SECTIONS: Section[] = [
   {
     icon: "redeem", color: "#a8503a", title: "Premium & billing",
     items: [
-      { q: "What are the plans?", a: "Free (all core money tracking), Lite (₹49/mo or ₹499/yr) and Pro (₹99/mo or ₹999/yr). Lite and Pro unlock Insights, Statements, Ask PocketCare, auto-categorisation and more; Pro has a larger AI quota." },
+      { q: "What are the plans?", a: "Free (all core money tracking), Lite (₹49/mo or ₹499/yr) and Pro (₹99/mo or ₹999/yr). Lite and Pro unlock Insights, Statements, Ask Sanvya, auto-categorisation and more; Pro has a larger AI quota." },
       { q: "Is there a trial?", a: "New accounts get a 14-day free trial with full access. You'll see a countdown and can upgrade anytime from Settings." },
       { q: "Can I cancel or get invoices?", a: "Yes — cancel anytime from Settings → Plan & billing (you keep access until the cycle ends). Every payment has a downloadable invoice in your billing history." },
     ],

@@ -11,7 +11,7 @@ interface ExportRow {
   note: string | null; description: string | null;
 }
 
-/** All non-deleted transactions as a PocketCare-format CSV string. */
+/** All non-deleted transactions as a Sanvya-format CSV string. */
 export async function exportTransactionsCsv(): Promise<{ csv: string; count: number }> {
   const db = getDb();
   if (!db) return { csv: "", count: 0 };

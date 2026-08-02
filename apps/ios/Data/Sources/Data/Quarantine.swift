@@ -19,7 +19,7 @@ import Foundation
 // the queue it exists to unblock.
 //
 // Database schema for the local-only tables (declared as local-only in the
-// app's PowerSync schema via SanvyaSchema.swift):
+// app's PowerSync schema via PocketCareSchema.swift):
 //   sync_attempts(id TEXT PRIMARY KEY, attempts INTEGER, last_code TEXT, updated_at TEXT)
 //   failed_writes(id TEXT PRIMARY KEY, table_name TEXT, op TEXT, row_id TEXT,
 //                 payload TEXT, code TEXT, message TEXT, cls TEXT, reason TEXT,

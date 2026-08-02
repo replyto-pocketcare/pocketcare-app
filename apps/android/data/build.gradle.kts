@@ -14,7 +14,7 @@ plugins {
 }
 
 android {
-    namespace = "care.pocket.data"
+    namespace = "com.sanvya.app.data"
     compileSdk = 36
 
     defaultConfig {
@@ -51,4 +51,6 @@ dependencies {
     // Unit tests for pure-logic parts (opKey, AuthState, encodePayload).
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlin.test.junit)
+
+    implementation(libs.koin.android)
 }

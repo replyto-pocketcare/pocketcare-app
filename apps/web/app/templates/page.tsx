@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
 import { useEntitlement } from "../../src/entitlement";
 import { useMoneyFmt } from "../../src/ui/Money";

@@ -1,7 +1,7 @@
 "use client";
 
-import { toMajor, money } from "@pocketcare/money";
-import { monthlyEquivalent } from "@pocketcare/finance";
+import { toMajor, money } from "@sanvya/money";
+import { monthlyEquivalent } from "@sanvya/finance";
 import { getDb, getRepositories, getUserId } from "../powersync";
 import { getBaseCurrency } from "../prefs";
 import { pairwiseEdges, type Party } from "../splits/math";

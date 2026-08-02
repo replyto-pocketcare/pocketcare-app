@@ -1,4 +1,4 @@
-# PocketCare — iOS (native, rev 3)
+# Sanvya — iOS (native, rev 3)
 
 Pure Swift 6 + SwiftUI. No cross-platform layer — see
 `docs/plans/native-mobile-apps.md` for the why and the full plan.
@@ -14,7 +14,7 @@ or built — that's on you as the first real verification pass.
 brew install xcodegen   # if you don't already have it
 cd apps/ios
 xcodegen generate
-open PocketCare.xcodeproj
+open Sanvya.xcodeproj
 ```
 
 ## Build & test
@@ -25,7 +25,7 @@ swift test --package-path Domain
 
 # Full path — App target + a placeholder App-level test, on a simulator:
 xcodegen generate
-xcodebuild test -project PocketCare.xcodeproj -scheme PocketCare \
+xcodebuild test -project Sanvya.xcodeproj -scheme Sanvya \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
@@ -43,7 +43,7 @@ actually see the placeholder UI running, see "Run the app" below.
 
 **Simulator, via Xcode (easiest):**
 1. `xcodegen generate` (if you haven't since the last `project.yml` change)
-2. `open PocketCare.xcodeproj`
+2. `open Sanvya.xcodeproj`
 3. Top-left scheme/device selector → pick a simulator (e.g. iPhone 17 Pro)
 4. Press ▶ (or Cmd+R). Xcode boots the simulator, installs, and launches
    automatically.
@@ -52,17 +52,17 @@ actually see the placeholder UI running, see "Run the app" below.
 ```bash
 xcrun simctl boot "iPhone 17 Pro" 2>/dev/null || true   # no-op if already booted
 open -a Simulator
-xcodebuild build -project PocketCare.xcodeproj -scheme PocketCare \
+xcodebuild build -project Sanvya.xcodeproj -scheme Sanvya \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -derivedDataPath build
-xcrun simctl install booted build/Build/Products/Debug-iphonesimulator/PocketCare.app
-xcrun simctl launch booted care.pocket.ios
+xcrun simctl install booted build/Build/Products/Debug-iphonesimulator/Sanvya.app
+xcrun simctl launch booted com.sanvya.app.ios
 ```
 
 **Physical device:** not wired up yet — this scaffold has no code-signing
 team configured (see "Open items" below). In Xcode: select your device
 from the scheme/device selector, then Signing & Capabilities tab on the
-`PocketCare` target → pick your Apple Developer team → Xcode offers to fix
+`Sanvya` target → pick your Apple Developer team → Xcode offers to fix
 provisioning automatically → press ▶. First launch on-device also needs
 "trust this developer" in Settings → General → VPN & Device Management.
 
@@ -70,7 +70,7 @@ provisioning automatically → press ▶. First launch on-device also needs
 
 ```
 Domain/        Pure SwiftPM package, vector-tested against tools/golden-vectors/vectors/*.json (P1.x)
-App/           SwiftUI app shell, depends on Domain, App Group group.care.pocket configured
+App/           SwiftUI app shell, depends on Domain, App Group group.com.sanvya.app configured
 AppTests/      Placeholder XCTest proving App -> Domain wiring on-device/simulator
 ```
 
@@ -93,8 +93,8 @@ empty — each Phase 1 porting task (plan §5) registers its own
 
 ## Open items (plan §10 — need a human "yes")
 
-- `PRODUCT_BUNDLE_IDENTIFIER "care.pocket.ios"`, the App Group id
-  `"group.care.pocket"`, and `deploymentTarget iOS 17.0` are proposals, not
+- `PRODUCT_BUNDLE_IDENTIFIER "com.sanvya.app.ios"`, the App Group id
+  `"group.com.sanvya.app"`, and `deploymentTarget iOS 17.0` are proposals, not
   decisions.
 - Real code signing (a team/provisioning profile) isn't configured —
   simulator builds don't need it, but a device build or TestFlight upload

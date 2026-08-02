@@ -1,10 +1,10 @@
 /**
- * @pocketcare/budget — pure budgeting + credit-card cycle math.
+ * @sanvya/budget — pure budgeting + credit-card cycle math.
  * All date logic is computed in UTC for determinism. Weeks start Monday (ISO).
- * Money amounts are minor units via @pocketcare/money.
+ * Money amounts are minor units via @sanvya/money.
  */
-import type { Period } from "@pocketcare/types";
-import { subtract, type Money } from "@pocketcare/money";
+import type { Period } from "@sanvya/types";
+import { subtract, type Money } from "@sanvya/money";
 
 /** Half-open date window [start, endExclusive). */
 export interface DateWindow {

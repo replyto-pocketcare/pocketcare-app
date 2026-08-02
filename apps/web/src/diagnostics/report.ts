@@ -11,11 +11,11 @@
  * queue would guarantee it never arrives. This calls the RPC directly, which
  * works even when sync is completely wedged.
  *
- * Everything sent is already redacted (see @pocketcare/diagnostics): no
+ * Everything sent is already redacted (see @sanvya/diagnostics): no
  * amounts, descriptions, merchants, emails or payment handles. Table names,
  * operations, error codes and row ids survive, which is what diagnoses a bug.
  */
-import type { LogEntry } from "@pocketcare/diagnostics";
+import type { LogEntry } from "@sanvya/diagnostics";
 
 import { getSupabase } from "../powersync";
 import { captureContext, subscribe, getEntries } from "./log";
@@ -56,10 +56,10 @@ async function send(entry: LogEntry): Promise<void> {
 
   const ctx = captureContext() as { platform?: string; userAgent?: string };
   try {
-    // Schema-qualified: every PocketCare RPC lives in the `pocketcare` schema
+    // Schema-qualified: every Sanvya RPC lives in the `sanvya` schema
     // and the browser client has no default schema set, so a bare .rpc() call
     // resolves to public.* and 404s (golden rule #3).
-    await getSupabase().schema("pocketcare").rpc("report_client_error", {
+    await getSupabase().schema("sanvya").rpc("report_client_error", {
       p_fingerprint: fp,
       p_message: entry.message,
       p_level: entry.level,

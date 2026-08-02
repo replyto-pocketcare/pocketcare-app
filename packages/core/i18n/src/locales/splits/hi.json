@@ -41,7 +41,7 @@
   "cancel": "रद्द करें",
   "settle": "निपटाएं",
   "settling": "निपटा रहे हैं…",
-  "remindOwed": "नमस्ते {{name}}, PocketCare पर हमारे स्प्लिट के {{amount}} की एक दोस्ताना याद 🙂",
+  "remindOwed": "नमस्ते {{name}}, Sanvya पर हमारे स्प्लिट के {{amount}} की एक दोस्ताना याद 🙂",
   "remindOwe": "नमस्ते {{name}}, मुझ पर अब भी आपके {{amount}} बाकी हैं — मैं जल्द ही चुका दूँगा!",
   "newGroupCta": "नया समूह",
   "owedInGroup": "आपको {{amount}} मिलने हैं",

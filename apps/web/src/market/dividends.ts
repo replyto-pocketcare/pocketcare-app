@@ -1,5 +1,5 @@
-import type { RateLookup } from "@pocketcare/ledger";
-import type { CurrencyCode } from "@pocketcare/types";
+import type { RateLookup } from "@sanvya/ledger";
+import type { CurrencyCode } from "@sanvya/types";
 
 export interface HoldingLite { symbol: string; exchange: string | null; quantity: number; currency: string }
 export interface DivRow { symbol: string; exchange: string | null; ex_date: string; pay_date: string | null; amount: number; currency: string }

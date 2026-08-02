@@ -1,4 +1,4 @@
-# PocketCare — Ship & Follow-up Checklist
+# Sanvya — Ship & Follow-up Checklist
 
 _Last updated: 2026-07-17. Covers Planned Cashflow, currency conversion, loans/investments/cards, admin jobs, and the loan EMI due-date / auto-mark work._
 
@@ -17,14 +17,14 @@ _Last updated: 2026-07-17. Covers Planned Cashflow, currency conversion, loans/i
 ## 📝 Commits (sandbox can't commit — run locally)
 The workspace mount blocks git writes from the agent. Commit locally, e.g.:
 ```bash
-cd ~/Projects/PocketCare && rm -f .git/*.lock
+cd ~/Projects/Sanvya && rm -f .git/*.lock
 git add packages apps/web supabase docs PROJECT_REFERENCE.md CLAUDE.md pitch
 git commit -m "feat(loans): EMI due-dates + auto-mark-paid, EMI→ledger option, grouped-input rollout"
 # then, for the investments rework:
 git add packages apps/web supabase docs PROJECT_REFERENCE.md
 git commit -m "feat(investments): multi-asset grouped portfolio, dividend-FY, insight charts, dialog add, cashflow sync"
 ```
-Also: an old stray `PocketCare-Investor-Deck.pptx` sits at repo root (canonical copy is in `pitch/`) — `rm` it if you like.
+Also: an old stray `Sanvya-Investor-Deck.pptx` sits at repo root (canonical copy is in `pitch/`) — `rm` it if you like.
 
 ## 🔭 Deferred / follow-ups
 - [x] **Grouped amount inputs** — ✅ done everywhere: accounts/loans/cashflow/investments/transactions/budgets/goals + cashflow inline edit, card settle-up & cycle-edit, split exact-share/multi-payer, Friends settle dialog (2026-07-17).
@@ -39,7 +39,7 @@ Also: an old stray `PocketCare-Investor-Deck.pptx` sits at repo root (canonical 
 - [ ] **Drive mirror** — `/docs` markdown partially uploaded to Google Drive (README + 2 architecture docs); finish or drag-drop the rest + binaries.
 
 ## ⚠️ Sync error `PGRST204 … Could not find the '<col>' column … in the schema cache`
-The client (local SQLite schema) is ahead of Postgres/PostgREST. This surfaces as `[PocketCare sync] upload failed … PGRST204` (e.g. `sort` on `transaction_templates`, or the new `loans`/`holdings` columns). Fix:
+The client (local SQLite schema) is ahead of Postgres/PostgREST. This surfaces as `[Sanvya sync] upload failed … PGRST204` (e.g. `sort` on `transaction_templates`, or the new `loans`/`holdings` columns). Fix:
 1. **Apply all pending migrations** (see Deploy steps) — `0016` adds `transaction_templates.sort`; `0029`–`0036` add the newer columns.
 2. **Reload the PostgREST schema cache** so it sees the new columns: run `notify pgrst, 'reload schema';` in the SQL editor, or Dashboard → Settings → API → **Reload schema**. (Even with a column present, a stale cache throws PGRST204.)
 The failed writes stay queued locally and re-upload automatically once the column exists + cache is reloaded — no data loss.

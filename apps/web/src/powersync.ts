@@ -9,7 +9,7 @@
 import type { AbstractPowerSyncDatabase } from "@powersync/common";
 import { PowerSyncDatabase } from "@powersync/web";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { AppSchema, SupabaseConnector, createSupabaseClient, setSyncDiagnosticSink } from "@pocketcare/db";
+import { AppSchema, SupabaseConnector, createSupabaseClient, setSyncDiagnosticSink } from "@sanvya/db";
 import { logEvent } from "./diagnostics/log";
 
 // Route structured upload failures into the on-device support log, so a user
@@ -23,7 +23,7 @@ import {
   PowerSyncBalanceRepository,
   PowerSyncBudgetRepository,
   PowerSyncCreditCardRepository,
-} from "@pocketcare/data";
+} from "@sanvya/data";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -60,7 +60,7 @@ export function getDb(): AbstractPowerSyncDatabase | null {
     // cleanly from the server, which is now the sole seeder.
     _db = new PowerSyncDatabase({
       schema: AppSchema,
-      database: { dbFilename: "pocketcare-v2.db" },
+      database: { dbFilename: "sanvya-v2.db" },
     });
   }
   return _db;
@@ -123,7 +123,7 @@ export function initSystem(): Promise<AbstractPowerSyncDatabase> {
     // still warming up), the UI must still load from local SQLite instead of
     // hanging on the loading spinner forever.
     if (currentUserId) {
-      void db.connect(connector).catch((err) => console.error("[PocketCare] connect failed:", err));
+      void db.connect(connector).catch((err) => console.error("[Sanvya] connect failed:", err));
     }
 
     // Re-key the local DB whenever the signed-in identity changes.
@@ -166,6 +166,6 @@ export async function forceSync(): Promise<void> {
   );
   try { await db.disconnect(); } catch {}
   try { await db.connect(connector); } catch (err) {
-    console.error("[PocketCare] Force connect failed:", err);
+    console.error("[Sanvya] Force connect failed:", err);
   }
 }

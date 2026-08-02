@@ -8,7 +8,7 @@ believed "add an account" meant **linking their real bank**. They stopped there.
 (deleted). Plan and full copy: `docs/plans/first-run-walkthrough.md`.
 
 **Three claims the copy must always make**, in plain words, early:
-1. PocketCare is **not connected to your bank** — no bank login, card number or OTP.
+1. Sanvya is **not connected to your bank** — no bank login, card number or OTP.
 2. **Nothing is tracked automatically.** You write things down.
 3. That's **on purpose**, to build the habit of noticing where money goes.
 
@@ -23,7 +23,7 @@ dismissible.
 
 **Structure.** Part A (steps 1–4) is setup, ending in a real *Finish*: what the
 app is → add first account **inline** → record one spend **inline** → where to
-look. Part B (5–7) is opt-in: Insights → Ask PocketCare → trial/plans. Making
+look. Part B (5–7) is opt-in: Insights → Ask Sanvya → trial/plans. Making
 onboarding *longer* would be the wrong answer to "I found this overwhelming".
 
 **Step 2 asks two questions only** — a name and a rough balance — and defaults
@@ -33,7 +33,7 @@ permanent `noBankLink` reassurance line for everyone else.
 
 **Trigger.** Signed in · first sync complete · zero accounts · not done before.
 Skipping closes it for the session (`sessionStorage`); it returns next visit
-until an account exists. Completing sets `pocketcare:walkthroughDone`.
+until an account exists. Completing sets `sanvya:walkthroughDone`.
 
 **Mounted in BOTH dashboard branches.** `app/page.tsx` returns early when
 `balances.length === 0` — which is precisely the new user's state — so mounting

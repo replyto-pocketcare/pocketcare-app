@@ -6,7 +6,7 @@ import Foundation
 // docs/plans/native-mobile-apps.md section 5 and CLAUDE.md golden rule 8
 // ("web is the spec"). Only pairwiseEdges is exercised by the golden
 // vectors -- splitByWeights/splitEqual (re-exported from
-// @pocketcare/receipts in the TS source) are that package's own port,
+// @sanvya/receipts in the TS source) are that package's own port,
 // tracked under P1.5 receipts, not duplicated here.
 //
 // Rounding: Math.round (ties toward +Infinity, same rule as Finance.swift,

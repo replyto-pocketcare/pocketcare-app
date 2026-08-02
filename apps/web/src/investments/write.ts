@@ -11,7 +11,7 @@
  * In both cases the holding's cost is "deployed" from the pool, so the
  * account's available-to-invest figure stays coherent.
  */
-import type { Period } from "@pocketcare/types";
+import type { Period } from "@sanvya/types";
 import { insertRow, uuid, nowIso } from "../write";
 import { getDb, getUserId } from "../powersync";
 import type { AssetClass } from "./model";

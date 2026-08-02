@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { AccountType } from "@pocketcare/types";
-import { fromMajor } from "@pocketcare/money";
+import { AccountType } from "@sanvya/types";
+import { fromMajor } from "@sanvya/money";
 import { getRepositories, getDb } from "../../../src/powersync";
 import { useBaseCurrency } from "../../../src/hooks";
 import { ACCOUNT_COLORS } from "../../../src/colors";

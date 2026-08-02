@@ -1,7 +1,7 @@
 # Receipt & Bill Scanning (with itemized splitting)
 
 ## Overview
-Photograph a restaurant bill or grocery receipt and PocketCare turns it into a transaction — **line by line**, with quantities, unit prices, tax, service charge, tip and discounts read separately. From there the bill can either be recorded as a normal expense (with a `transaction_items` breakdown) or **split per item** across a group, so each person pays for what they actually had.
+Photograph a restaurant bill or grocery receipt and Sanvya turns it into a transaction — **line by line**, with quantities, unit prices, tax, service charge, tip and discounts read separately. From there the bill can either be recorded as a normal expense (with a `transaction_items` breakdown) or **split per item** across a group, so each person pays for what they actually had.
 
 Reading happens **on the device** by default. A photo only leaves the device if the user explicitly taps *Improve with AI* after an unclear scan, and **no receipt image is ever stored** — not locally, not in Supabase Storage, not by the edge function.
 
@@ -35,7 +35,7 @@ sequenceDiagram
     participant Cap as /receipts/new
     participant Img as receipts/image.ts
     participant OCR as receipts/ocr.ts (tesseract)
-    participant P as "@pocketcare/receipts" parse+reconcile
+    participant P as "@sanvya/receipts" parse+reconcile
     participant Fn as receipt-scan edge fn
     participant AN as Anthropic (vision)
     participant DB as local SQLite → PowerSync
@@ -105,7 +105,7 @@ Migrations: `0040_receipts_and_expense_items.sql`, `0042_drop_expense_items_sum_
 
 **Why there is no server-side sum constraint.** 0040 shipped a deferred constraint trigger enforcing `Σ expense_items.amount = expenses.amount`. It had to be removed: PowerSync uploads the write queue as a series of HTTP requests, each its own Postgres transaction, so rows arrive **incrementally** and every transaction contains a partial set of items. `DEFERRABLE INITIALLY DEFERRED` defers only to the end of its own transaction, so the check fired against 1-of-N items and wedged the upload queue permanently. A cross-row sum is not expressible as a synchronous constraint against an incremental sync engine.
 
-Integrity is enforced **at write time on the client**, where the whole set is known at once — `reconcile()` gates the review screen, `allocateReceipt()` throws on any unallocated line, and `createSplitExpenseItemized()` re-checks before writing anything. All three are covered by tests. Server-side the invariant is *observable* via `pocketcare.audit_expense_item_sums()`, which returns any drifting expense; run it as an audit, not a gate (a fresh drift may just be a sync in flight).
+Integrity is enforced **at write time on the client**, where the whole set is known at once — `reconcile()` gates the review screen, `allocateReceipt()` throws on any unallocated line, and `createSplitExpenseItemized()` re-checks before writing anything. All three are covered by tests. Server-side the invariant is *observable* via `sanvya.audit_expense_item_sums()`, which returns any drifting expense; run it as an audit, not a gate (a fresh drift may just be a sync in flight).
 
 Sync: `receipt_scans` → `user_data`; `expense_items` + `expense_item_shares` → **`split_shared`** (every member must see every line, not just their own).
 

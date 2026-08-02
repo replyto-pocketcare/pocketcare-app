@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import i18n, { SUPPORTED_LANGUAGES } from "@pocketcare/i18n";
+import i18n, { SUPPORTED_LANGUAGES } from "@sanvya/i18n";
 import { useTranslation } from "react-i18next";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { Billing } from "../../src/ui/Billing";
@@ -61,10 +61,10 @@ export default function SettingsPage() {
     try {
       const { getSupabase } = await import("../../src/powersync");
       const supabase = getSupabase();
-      // The RPC lives in the `pocketcare` schema (same as every table), so it
+      // The RPC lives in the `sanvya` schema (same as every table), so it
       // must be called schema-qualified — a plain supabase.rpc() hits `public`
       // and 404s, which is why deletes silently did nothing before.
-      const { error } = await supabase.schema("pocketcare").rpc("delete_user_account", { orphan_records: false });
+      const { error } = await supabase.schema("sanvya").rpc("delete_user_account", { orphan_records: false });
       if (error) {
         // Wipe the local mirror so the just-deleted data can't linger / re-upload,
         // then sign out to a clean slate.
@@ -238,7 +238,7 @@ export default function SettingsPage() {
       <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>{t("help")}</h2>
         <div style={{ display: "grid", gap: 6 }}>
-          <a href="mailto:support@pocketcare.app" className="chip" style={{ justifySelf: "start" }}>{t("contactSupport")}</a>
+          <a href="mailto:support@sanvya.app" className="chip" style={{ justifySelf: "start" }}>{t("contactSupport")}</a>
           <button className="chip" style={{ justifySelf: "start" }} onClick={() => void replayIntro()}>{t("replayIntro")}</button>
           <span className="muted" style={{ fontSize: 12 }}>{t("helpNote")}</span>
         </div>

@@ -1,5 +1,5 @@
 {
-  "greeting": "Hi! I'm your PocketCare companion. I can help you plan a purchase, set up goals and budgets, make sense of your spending, or split expenses with friends — all from your own data.\n\nHere are a few things you could try:",
+  "greeting": "Hi! I'm your Sanvya companion. I can help you plan a purchase, set up goals and budgets, make sense of your spending, or split expenses with friends — all from your own data.\n\nHere are a few things you could try:",
   "suggestions": [
     "What can you help me with?",
     "I want to buy an iPhone in the Diwali sale — help me plan for it.",
@@ -9,7 +9,7 @@
     "Who owes me money right now, and how much?",
     "Create a Goa trip so I can split expenses with friends."
   ],
-  "title": "Ask PocketCare",
+  "title": "Ask Sanvya",
   "premiumFeature": "The AI assistant is a Premium feature",
   "premiumBody": "Plan purchases and savings in plain language, get concrete numeric plans from your own data, and let it set up goals and budgets for you.",
   "goPremium": "Go Premium",

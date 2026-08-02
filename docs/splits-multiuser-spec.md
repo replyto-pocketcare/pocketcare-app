@@ -1,4 +1,4 @@
-# PocketCare — Multi-user Splits (Splitwise-style) — Design Spec
+# Sanvya — Multi-user Splits (Splitwise-style) — Design Spec
 
 Status: **PROPOSED — for review. Nothing here is applied yet.**
 Author: engineering
@@ -16,15 +16,15 @@ Decision baked in for v1: **every split belongs to a group** (a 1:1 split auto-c
 
 ---
 
-## 1. Schema (proposed DDL, `pocketcare` schema)
+## 1. Schema (proposed DDL, `sanvya` schema)
 
 New tables. `expense_participants` merges the old shares+payers into one row per user. Note the **denormalized `group_id`** on `expenses`, `expense_participants`, and `settlements` — required so PowerSync can bucket child rows by group without joins.
 
 ```sql
-set search_path to pocketcare, public;
+set search_path to sanvya, public;
 
 -- Groups (a trip/household, or an auto-created 2-person container for a 1:1)
-create table pocketcare.split_groups (
+create table sanvya.split_groups (
   id           uuid primary key default gen_random_uuid(),
   created_by   uuid not null references auth.users(id),
   name         text not null,
@@ -40,9 +40,9 @@ create table pocketcare.split_groups (
   deleted_at   timestamptz
 );
 
-create table pocketcare.split_group_members (
+create table sanvya.split_group_members (
   id         uuid primary key default gen_random_uuid(),
-  group_id   uuid not null references pocketcare.split_groups(id) on delete cascade,
+  group_id   uuid not null references sanvya.split_groups(id) on delete cascade,
   user_id    uuid not null references auth.users(id) on delete cascade,
   role       text not null default 'member',     -- 'owner' | 'member'
   created_at timestamptz not null default now(),
@@ -51,9 +51,9 @@ create table pocketcare.split_group_members (
   unique (group_id, user_id)
 );
 
-create table pocketcare.expenses (
+create table sanvya.expenses (
   id          uuid primary key default gen_random_uuid(),
-  group_id    uuid not null references pocketcare.split_groups(id) on delete cascade,
+  group_id    uuid not null references sanvya.split_groups(id) on delete cascade,
   created_by  uuid not null references auth.users(id),
   description text,
   amount      int  not null,                     -- minor units, total
@@ -66,10 +66,10 @@ create table pocketcare.expenses (
   deleted_at  timestamptz
 );
 
-create table pocketcare.expense_participants (
+create table sanvya.expense_participants (
   id           uuid primary key default gen_random_uuid(),
-  expense_id   uuid not null references pocketcare.expenses(id) on delete cascade,
-  group_id     uuid not null references pocketcare.split_groups(id) on delete cascade, -- denormalized for bucketing
+  expense_id   uuid not null references sanvya.expenses(id) on delete cascade,
+  group_id     uuid not null references sanvya.split_groups(id) on delete cascade, -- denormalized for bucketing
   user_id      uuid not null references auth.users(id),
   paid_amount  int  not null default 0,          -- what this user put in
   share_amount int  not null default 0,          -- what this user consumed
@@ -79,9 +79,9 @@ create table pocketcare.expense_participants (
   unique (expense_id, user_id)
 );
 
-create table pocketcare.settlements (
+create table sanvya.settlements (
   id         uuid primary key default gen_random_uuid(),
-  group_id   uuid not null references pocketcare.split_groups(id) on delete cascade, -- denormalized
+  group_id   uuid not null references sanvya.split_groups(id) on delete cascade, -- denormalized
   from_user  uuid not null references auth.users(id),  -- payer
   to_user    uuid not null references auth.users(id),  -- receiver
   amount     int  not null,
@@ -96,7 +96,7 @@ create table pocketcare.settlements (
 );
 
 -- PRIVATE per-user projection into personal budget (never shared)
-create table pocketcare.expense_postings (
+create table sanvya.expense_postings (
   id             uuid primary key default gen_random_uuid(),
   user_id        uuid not null references auth.users(id) on delete cascade,
   expense_id     uuid,                             -- references expenses.id (shared)
@@ -109,9 +109,9 @@ create table pocketcare.expense_postings (
 );
 
 -- Invitations (registered-user gate)
-create table pocketcare.split_invitations (
+create table sanvya.split_invitations (
   id            uuid primary key default gen_random_uuid(),
-  group_id      uuid not null references pocketcare.split_groups(id) on delete cascade,
+  group_id      uuid not null references sanvya.split_groups(id) on delete cascade,
   inviter       uuid not null references auth.users(id),
   invitee_email text not null,
   token         text not null unique,
@@ -122,13 +122,13 @@ create table pocketcare.split_invitations (
   expires_at    timestamptz
 );
 
-create index expenses_group_idx        on pocketcare.expenses(group_id, occurred_at desc);
-create index eparticipants_group_idx   on pocketcare.expense_participants(group_id);
-create index eparticipants_user_idx    on pocketcare.expense_participants(user_id);
-create index settlements_group_idx     on pocketcare.settlements(group_id);
-create index members_user_idx          on pocketcare.split_group_members(user_id);
-create index postings_user_idx         on pocketcare.expense_postings(user_id);
-create index invitations_token_idx     on pocketcare.split_invitations(token);
+create index expenses_group_idx        on sanvya.expenses(group_id, occurred_at desc);
+create index eparticipants_group_idx   on sanvya.expense_participants(group_id);
+create index eparticipants_user_idx    on sanvya.expense_participants(user_id);
+create index settlements_group_idx     on sanvya.settlements(group_id);
+create index members_user_idx          on sanvya.split_group_members(user_id);
+create index postings_user_idx         on sanvya.expense_postings(user_id);
+create index invitations_token_idx     on sanvya.split_invitations(token);
 ```
 
 ---
@@ -138,16 +138,16 @@ create index invitations_token_idx     on pocketcare.split_invitations(token);
 RLS policies must not re-trigger RLS on `split_group_members` (infinite recursion). Wrap the check in a `security definer` function that bypasses RLS internally:
 
 ```sql
-create or replace function pocketcare.is_group_member(g uuid, u uuid)
+create or replace function sanvya.is_group_member(g uuid, u uuid)
 returns boolean language sql stable security definer
-set search_path = pocketcare, public as $$
+set search_path = sanvya, public as $$
   select exists (
-    select 1 from pocketcare.split_group_members m
+    select 1 from sanvya.split_group_members m
     where m.group_id = g and m.user_id = u and m.deleted_at is null
   );
 $$;
-revoke all on function pocketcare.is_group_member(uuid, uuid) from public;
-grant execute on function pocketcare.is_group_member(uuid, uuid) to authenticated, anon, service_role;
+revoke all on function sanvya.is_group_member(uuid, uuid) from public;
+grant execute on function sanvya.is_group_member(uuid, uuid) to authenticated, anon, service_role;
 ```
 
 ---
@@ -158,60 +158,60 @@ Reads are gated by group membership; writes by membership + self-ownership where
 
 ```sql
 -- split_groups
-alter table pocketcare.split_groups enable row level security;
-create policy sg_select on pocketcare.split_groups for select
+alter table sanvya.split_groups enable row level security;
+create policy sg_select on sanvya.split_groups for select
   using (is_group_member(id, auth.uid()) or created_by = auth.uid());
-create policy sg_insert on pocketcare.split_groups for insert
+create policy sg_insert on sanvya.split_groups for insert
   with check (created_by = auth.uid());
-create policy sg_update on pocketcare.split_groups for update
+create policy sg_update on sanvya.split_groups for update
   using (is_group_member(id, auth.uid())) with check (is_group_member(id, auth.uid()));
 
 -- split_group_members: members can SEE co-members; INSERT/DELETE only via edge fn (service role)
-alter table pocketcare.split_group_members enable row level security;
-create policy sgm_select on pocketcare.split_group_members for select
+alter table sanvya.split_group_members enable row level security;
+create policy sgm_select on sanvya.split_group_members for select
   using (is_group_member(group_id, auth.uid()));
 -- (no client insert/update/delete policy → only service_role can mutate membership)
 
 -- expenses: visible to group members; writable by group members
-alter table pocketcare.expenses enable row level security;
-create policy ex_select on pocketcare.expenses for select
+alter table sanvya.expenses enable row level security;
+create policy ex_select on sanvya.expenses for select
   using (is_group_member(group_id, auth.uid()));
-create policy ex_write on pocketcare.expenses for all
+create policy ex_write on sanvya.expenses for all
   using (is_group_member(group_id, auth.uid()))
   with check (is_group_member(group_id, auth.uid()));
 
 -- expense_participants: gated by the (denormalized) group_id
-alter table pocketcare.expense_participants enable row level security;
-create policy ep_select on pocketcare.expense_participants for select
+alter table sanvya.expense_participants enable row level security;
+create policy ep_select on sanvya.expense_participants for select
   using (is_group_member(group_id, auth.uid()));
-create policy ep_write on pocketcare.expense_participants for all
+create policy ep_write on sanvya.expense_participants for all
   using (is_group_member(group_id, auth.uid()))
   with check (is_group_member(group_id, auth.uid()));
 
 -- settlements: visible to members; writable by members (usually from_user/to_user)
-alter table pocketcare.settlements enable row level security;
-create policy st_select on pocketcare.settlements for select
+alter table sanvya.settlements enable row level security;
+create policy st_select on sanvya.settlements for select
   using (is_group_member(group_id, auth.uid()));
-create policy st_write on pocketcare.settlements for all
+create policy st_write on sanvya.settlements for all
   using (is_group_member(group_id, auth.uid()))
   with check (is_group_member(group_id, auth.uid()));
 
 -- expense_postings: PRIVATE to owner
-alter table pocketcare.expense_postings enable row level security;
-create policy epost_owner on pocketcare.expense_postings for all
+alter table sanvya.expense_postings enable row level security;
+create policy epost_owner on sanvya.expense_postings for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- invitations: inviter manages; accept via edge fn (service role)
-alter table pocketcare.split_invitations enable row level security;
-create policy inv_select on pocketcare.split_invitations for select
+alter table sanvya.split_invitations enable row level security;
+create policy inv_select on sanvya.split_invitations for select
   using (inviter = auth.uid() or is_group_member(group_id, auth.uid()));
-create policy inv_insert on pocketcare.split_invitations for insert
+create policy inv_insert on sanvya.split_invitations for insert
   with check (inviter = auth.uid() and is_group_member(group_id, auth.uid()));
 
 grant all on table
-  pocketcare.split_groups, pocketcare.split_group_members, pocketcare.expenses,
-  pocketcare.expense_participants, pocketcare.settlements, pocketcare.expense_postings,
-  pocketcare.split_invitations
+  sanvya.split_groups, sanvya.split_group_members, sanvya.expenses,
+  sanvya.expense_participants, sanvya.settlements, sanvya.expense_postings,
+  sanvya.split_invitations
   to anon, authenticated, service_role;
 ```
 
@@ -229,21 +229,21 @@ The shared tables move to a **parameterized bucket per group**; private tables s
 bucket_definitions:
   # One bucket per group the user belongs to.
   group_data:
-    parameters: SELECT group_id AS group_id FROM pocketcare.split_group_members
+    parameters: SELECT group_id AS group_id FROM sanvya.split_group_members
                 WHERE user_id = request.user_id() AND deleted_at IS NULL
     data:
-      - SELECT * FROM pocketcare.split_groups        WHERE id = bucket.group_id
-      - SELECT * FROM pocketcare.split_group_members WHERE group_id = bucket.group_id
-      - SELECT * FROM pocketcare.expenses            WHERE group_id = bucket.group_id
-      - SELECT * FROM pocketcare.expense_participants WHERE group_id = bucket.group_id
-      - SELECT * FROM pocketcare.settlements         WHERE group_id = bucket.group_id
+      - SELECT * FROM sanvya.split_groups        WHERE id = bucket.group_id
+      - SELECT * FROM sanvya.split_group_members WHERE group_id = bucket.group_id
+      - SELECT * FROM sanvya.expenses            WHERE group_id = bucket.group_id
+      - SELECT * FROM sanvya.expense_participants WHERE group_id = bucket.group_id
+      - SELECT * FROM sanvya.settlements         WHERE group_id = bucket.group_id
 
   # Per-user private data (existing pattern) + projections + invites you sent.
   user_private:
     parameters: SELECT request.user_id() AS user_id
     data:
-      - SELECT * FROM pocketcare.expense_postings   WHERE user_id = bucket.user_id
-      - SELECT * FROM pocketcare.split_invitations  WHERE inviter = bucket.user_id
+      - SELECT * FROM sanvya.expense_postings   WHERE user_id = bucket.user_id
+      - SELECT * FROM sanvya.split_invitations  WHERE inviter = bucket.user_id
       # … plus all existing per-user tables (accounts, transactions, budgets, …)
 ```
 

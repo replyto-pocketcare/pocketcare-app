@@ -106,7 +106,7 @@
         "appVersion": "1.0.0"
       }
     },
-    "expected": "PocketCare diagnostics\nappVersion: 1.0.0\n\n--- events (newest last, 2) ---\n12:13:20 ERROR [sync] [amount] failed to upload\n12:13:21 INFO  [app] retry scheduled"
+    "expected": "Sanvya diagnostics\nappVersion: 1.0.0\n\n--- events (newest last, 2) ---\n12:13:20 ERROR [sync] [amount] failed to upload\n12:13:21 INFO  [app] retry scheduled"
   },
   {
     "fn": "formatLog",
@@ -114,6 +114,6 @@
       "entries": [],
       "context": {}
     },
-    "expected": "PocketCare diagnostics\n\n\n--- events (newest last, 0) ---\n(no events captured)"
+    "expected": "Sanvya diagnostics\n\n\n--- events (newest last, 0) ---\n(no events captured)"
   }
 ]

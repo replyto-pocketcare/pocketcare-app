@@ -1,4 +1,4 @@
-// PocketCare payment handles — store a user's UPI ID and release it, narrowly.
+// Sanvya payment handles — store a user's UPI ID and release it, narrowly.
 //
 // This function is the ONLY way a UPI ID moves between two users. Handles are
 // never synced to devices (see 0041): they live encrypted at rest here and are
@@ -37,7 +37,7 @@ function json(body: unknown): Response {
 /** Max handle fetches per caller per hour. Generous for real use, useless for scraping. */
 const FETCH_LIMIT_PER_HOUR = 20;
 
-// --- VPA validation (mirror of @pocketcare/upi; keep the two in sync) -------
+// --- VPA validation (mirror of @sanvya/upi; keep the two in sync) -------
 const VPA_RE = /^[a-z0-9](?:[a-z0-9._-]{0,60}[a-z0-9])?@[a-z][a-z0-9.-]{1,63}$/i;
 function isValidVpa(value: string): boolean {
   const v = value.trim();
@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !serviceKey) return json({ error: "Supabase environment not configured." });
   if (!cryptoKey) return json({ error: "Payments are not configured (missing PAYMENT_HANDLE_KEY)." });
 
-  const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "pocketcare" } });
+  const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "sanvya" } });
   const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (authErr || !user) return json({ error: "Unauthorized" });
 

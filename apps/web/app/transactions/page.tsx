@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
-import type { Transaction } from "@pocketcare/types";
+import type { Transaction } from "@sanvya/types";
 import { TransactionTile, txTags } from "../../src/ui/TransactionTile";
 import { Skeleton } from "../../src/ui/Skeleton";
 import { useInitialSyncPending } from "../../src/sync";

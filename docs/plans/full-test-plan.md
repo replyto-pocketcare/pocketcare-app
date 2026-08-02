@@ -159,6 +159,17 @@ Rules of placement: money/date/allocation logic → L0 only, shared code (never 
 - PERF-1 [TL] Cold start < 2s on low-end device (Test Lab: 2GB RAM class); dashboard with 10k transactions scrolls at 60fps (macrobenchmark / XCTest metrics).
 - PERF-2 [E][TL] 10k-transaction fixture DB: search, statement gen, budget calc within budgeted time; no OOM on 2GB device.
 
+### LIFE — Lifecycle & state preservation (plan §7 R1 — every slice's exit gate includes these for its screens)
+- LIFE-1 [TL] Fold/unfold (posture change) on every S1–S5 screen: same screen, adapted layout, same data, scroll position kept, no visible restart. (Test Lab foldable device; Android emulator posture APIs for CI.)
+- LIFE-2 [TL] Rotation + split-screen/Stage-Manager resize mid-use: no state reset, no re-fetch flash, dialogs stay open.
+- LIFE-3 [TL] Half-completed new-transaction form (type+amount+3 breakdown items) → background 10 min → return: every field intact, same screen.
+- LIFE-4 [E][TL] **Process death while backgrounded** (Android "Don't keep activities" + `am kill`; iOS terminate-while-suspended): reopen restores same screen + draft input. The single highest-value LIFE case — run it on every slice.
+- LIFE-5 [E][TL] Config change **during a write** (rotate/fold while save in flight): write commits exactly once, no duplicate, no loss. (L3-assisted assert on row count.)
+- LIFE-6 [E][TL] Receipt review draft + statement-analyze progress survive background/kill (draft persisted, never a restart-from-scratch).
+- LIFE-7 [E][TL] Navigation back-stack depth ≥3 (dashboard→group→person sheet) survives process death; back behaves correctly after restore.
+- LIFE-8 [E][W] Web parity: tab discard + BFCache restore keep route and form drafts; transaction-form draft survives reload.
+- LIFE-9 [E][TL] Backgrounded mid-sync → return: sync resumes/completes, no wedged queue, UI reflects final state (pairs with SYN-7).
+
 ## 4. Firebase Test Lab (layer L5) — operations
 
 - [ ] **TL.1 — Project setup.** Firebase project (Test Lab only — the app backend stays Supabase; do not add Firebase SDKs beyond what FCM already requires on Android; iOS Test Lab needs no Firebase SDK). Service account + `gcloud` in CI. Results bucket with 90-day lifecycle.
@@ -176,7 +187,7 @@ Division of labor: **Maestro** (not a Test Lab product) runs the scripted journe
     --num-flaky-test-attempts 1 --use-orchestrator --shards 4 \
     --environment-variables clearPackageData=true
   ```
-  Device policy: India-weighted — one 2GB/Android 11 budget device, one Samsung A-series, one Pixel latest; refresh the exact models quarterly from Test Lab's catalog (`gcloud firebase test android models list`). Hermetic backend: instrumented tests hit a **seeded staging Supabase project**, credentials via `--environment-variables`; every test namespaces its data by fresh user (anonymous auth) so runs don't collide.
+  Device policy: India-weighted — one 2GB/Android 11 budget device, one Samsung A-series, one Pixel latest, **one foldable** (e.g. a Galaxy Z-series model from the catalog — required for LIFE-1/2 posture runs); refresh the exact models quarterly from Test Lab's catalog (`gcloud firebase test android models list`). Hermetic backend: instrumented tests hit a **seeded staging Supabase project**, credentials via `--environment-variables`; every test namespaces its data by fresh user (anonymous auth) so runs don't collide.
 - [ ] **TL.3 — Robo crawls** (nightly): `--type robo` on the same matrix + `--robo-directives` to get past onboarding (script the guest path), login-screen credentials via robo script. Purpose: crash discovery outside scripted flows. Any crash = P1 bug with the Test Lab video/logcat attached.
 - [ ] **TL.4 — iOS matrix.** Build `xcodebuild build-for-testing` → zip → `gcloud firebase test ios run --test Tests.zip --device model=iphone8,version=<min-supported> --device model=<current-iphone>,version=<latest>` — one oldest-supported, one current. XCUITest covers the [TL] iOS cases; Robo is Android-only.
 - [ ] **TL.5 — Special runs.** (a) Network-degraded profile run (Test Lab traffic shaping on physical devices) for SYN-7 class flows; (b) locale run `hi_IN` for I18N-3; (c) pre-release **full matrix** = every [TL] case × full device set; nightly = smoke subset (S1 flows + SYN + WID smoke).

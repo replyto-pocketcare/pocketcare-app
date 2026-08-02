@@ -1,4 +1,4 @@
-// PocketCare AI assistant — thin, authenticated proxy to Anthropic's Messages API.
+// Sanvya AI assistant — thin, authenticated proxy to Anthropic's Messages API.
 //
 // The API key lives ONLY here (as a Supabase secret); the browser never sees it.
 // The client sends the conversation + tool definitions + an AGGREGATED financial
@@ -9,7 +9,7 @@
 // Deploy:
 //   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 //   supabase functions deploy assistant
-// verify_jwt is ON by default, so only signed-in PocketCare users can call it.
+// verify_jwt is ON by default, so only signed-in Sanvya users can call it.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -31,7 +31,7 @@ const GUARDRAIL_RULES: Array<{ category: string; test: RegExp }> = [
   { category: "harmful", test: /\b(child|minor|underage|preteen|teen)\b[\s\S]{0,25}\b(sex|sexual|nude|naked|porn|explicit)\b/i },
   { category: "harmful", test: /\b(how (can|do) i|best way to|help me)\b[\s\S]{0,25}\b(kill myself|end my life|commit suicide|overdose|hurt myself)\b/i },
 ];
-const REFUSAL_MESSAGE = "I can only help with your own PocketCare finances — budgets, spending, goals, and the like. I can't help with that request.";
+const REFUSAL_MESSAGE = "I can only help with your own Sanvya finances — budgets, spending, goals, and the like. I can't help with that request.";
 function screenConversation(messages: unknown[]): { allow: boolean; category?: string } {
   const arr = messages as Array<{ role?: string; content?: unknown }>;
   const lastUser = [...arr].reverse().find((m) => m?.role === "user");
@@ -78,7 +78,7 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !supabaseServiceKey) return json({ error: "Supabase environment not configured." });
   if (!key) return json({ error: "Assistant is not configured (missing ANTHROPIC_API_KEY)." });
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, { db: { schema: "pocketcare" } });
+  const supabase = createClient(supabaseUrl, supabaseServiceKey, { db: { schema: "sanvya" } });
   const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (authErr || !user) return json({ error: "Unauthorized" });
 

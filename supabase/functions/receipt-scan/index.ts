@@ -1,4 +1,4 @@
-// PocketCare receipt scanner — authenticated proxy to Anthropic's vision API.
+// Sanvya receipt scanner — authenticated proxy to Anthropic's vision API.
 //
 // This is the OPT-IN fallback for the on-device OCR pipeline. It is only ever
 // called when the user taps "Improve with AI" after a scan failed to reconcile,
@@ -6,12 +6,12 @@
 //
 // The API key lives ONLY here (a Supabase secret); the browser never sees it.
 // The image is forwarded to Anthropic and dropped — this function persists
-// nothing, and PocketCare stores no receipt images at all.
+// nothing, and Sanvya stores no receipt images at all.
 //
 // Deploy:
 //   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 //   supabase functions deploy receipt-scan
-// verify_jwt is ON by default, so only signed-in PocketCare users can call it.
+// verify_jwt is ON by default, so only signed-in Sanvya users can call it.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -120,7 +120,7 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !supabaseServiceKey) return json({ error: "Supabase environment not configured." });
   if (!key) return json({ error: "Receipt scanning is not configured (missing ANTHROPIC_API_KEY)." });
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, { db: { schema: "pocketcare" } });
+  const supabase = createClient(supabaseUrl, supabaseServiceKey, { db: { schema: "sanvya" } });
   const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (authErr || !user) return json({ error: "Unauthorized" });
 

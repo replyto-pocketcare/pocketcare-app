@@ -1,6 +1,6 @@
 "use client";
 
-/** PocketCare logo mark — an earthy leaf nestled in a rounded pocket. */
+/** Sanvya logo mark — an earthy leaf nestled in a rounded pocket. */
 export function LogoMark({ size = 32 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>

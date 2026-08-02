@@ -1,7 +1,7 @@
 "use client";
 
-import { money, type Money } from "@pocketcare/money";
-import type { CurrencyCode } from "@pocketcare/types";
+import { money, type Money } from "@sanvya/money";
+import type { CurrencyCode } from "@sanvya/types";
 import { getRepositories, getUserId, getDb, getSupabase } from "../powersync";
 import { insertRow, updateRow, nowIso } from "../write";
 import { ensureVirtualAccount } from "./accounts";
@@ -262,7 +262,7 @@ export interface InviteResult {
 
 /**
  * Invite to a group (edge function; you must be a member). If `email` belongs to
- * a registered PocketCare user they're added to the group directly; otherwise a
+ * a registered Sanvya user they're added to the group directly; otherwise a
  * shareable invite link is returned. With no email, always returns a link.
  */
 export async function createInvite(groupId: string, email?: string): Promise<InviteResult> {

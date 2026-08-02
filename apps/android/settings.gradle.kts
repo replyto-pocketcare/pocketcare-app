@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "pocketcare-android"
+rootProject.name = "sanvya-android"
 
 // :domain is pure Kotlin (no Android SDK dependency) — this is what makes it
 // vector-testable with plain `kotlin.test` and keeps the domain logic honest

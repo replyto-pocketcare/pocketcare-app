@@ -176,4 +176,4 @@ public func screenConversation(_ messages: [ConversationMessage]) -> GuardrailRe
 
 /// Standard refusal message shown when the guardrail blocks a prompt.
 public let REFUSAL_MESSAGE =
-    "I can only help with your own PocketCare finances — budgets, spending, goals, and the like. I can't help with that request."
+    "I can only help with your own Sanvya finances — budgets, spending, goals, and the like. I can't help with that request."

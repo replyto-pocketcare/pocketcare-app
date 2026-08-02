@@ -50,7 +50,7 @@
   "autoSplitDates": "Auto-split expenses within these dates",
   "save": "Save",
   "inviteTo": "Invite to {{name}}",
-  "inviteBody": "Enter a friend's email. If they're on PocketCare they're added right away; otherwise we'll give you a link to share.",
+  "inviteBody": "Enter a friend's email. If they're on Sanvya they're added right away; otherwise we'll give you a link to share.",
   "emailPlaceholder": "friend@email.com",
   "orShareLink": "Or create a shareable link",
   "alreadyIn": "{{name}} is already in this group.",

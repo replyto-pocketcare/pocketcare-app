@@ -17,7 +17,7 @@ import {
   shouldEscalate,
   subtotals,
   type ReceiptDraft,
-} from "@pocketcare/receipts";
+} from "@sanvya/receipts";
 
 import { insertRow, updateRow } from "../write";
 import { extractPdfRows, isEncrypted } from "../statements/parsePdf";

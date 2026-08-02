@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 import { useBaseCurrency } from "../../../src/hooks";
 import { useMoneyFmt } from "../../../src/ui/Money";
 import { updateRow, softDelete } from "../../../src/write";
@@ -27,7 +27,7 @@ const looksLikeEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim()
 function ExpenseRow({ expense, base, fmt, fallback }: {
   expense: GroupExpense;
   base: string;
-  fmt: (m: import("@pocketcare/money").Money) => string;
+  fmt: (m: import("@sanvya/money").Money) => string;
   fallback: string;
 }) {
   const { t } = useTranslation("receipts");

@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@powersync/react";
 import { BarChart, Bar, XAxis, YAxis, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { money } from "@pocketcare/money";
-import type { CurrencyCode } from "@pocketcare/types";
+import { money } from "@sanvya/money";
+import type { CurrencyCode } from "@sanvya/types";
 import { useBaseCurrency, useRates } from "../hooks";
 import { useMoneyFmt } from "../ui/Money";
 import { computeDividendEvents, bucketize, dividendSummary, type Period, type HoldingLite, type DivRow } from "./dividends";

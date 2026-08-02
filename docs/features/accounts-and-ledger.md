@@ -18,7 +18,7 @@ flowchart TD
 ## Technical flow — balance derivation
 ```mermaid
 flowchart LR
-    Entries["transactions rows\n(income/expense/transfer/opening/adjustment)"] --> D["deriveBalance()\n@pocketcare/ledger"]
+    Entries["transactions rows\n(income/expense/transfer/opening/adjustment)"] --> D["deriveBalance()\n@sanvya/ledger"]
     D --> Total["total balance"]
     Alloc["goal_allocations (blocked)"] --> Avail["available = total − blocked"]
     Total --> Avail
@@ -29,7 +29,7 @@ flowchart LR
 `accounts`, `transactions` (all entry types), `goal_allocations` (blocked amounts), `credit_card_details`, `exchange_rates` (net-worth conversion), `account_types` lookup.
 
 ## Key files
-`app/accounts/`, `app/accounts/new`, `app/accounts/[id]`, `src/hooks.ts` (`useAccountBalances`, `useNetWorth`), `@pocketcare/ledger` (`deriveBalance`, `aggregateNetWorth`).
+`app/accounts/`, `app/accounts/new`, `app/accounts/[id]`, `src/hooks.ts` (`useAccountBalances`, `useNetWorth`), `@sanvya/ledger` (`deriveBalance`, `aggregateNetWorth`).
 
 ## Gating
 Free (core ledger). Net-worth roll-up and per-account inclusion toggle are free.

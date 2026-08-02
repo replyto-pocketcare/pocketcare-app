@@ -4,10 +4,10 @@
  * connector. Money invariants are enforced here before anything is committed.
  */
 import type { AbstractPowerSyncDatabase } from "@powersync/common";
-import type { Account, Transaction, TransactionItem, CurrencyCode } from "@pocketcare/types";
-import { itemsReconcile, money, type Money } from "@pocketcare/money";
-import { deriveBalance, type LedgerEntry } from "@pocketcare/ledger";
-import { periodBounds } from "@pocketcare/budget";
+import type { Account, Transaction, TransactionItem, CurrencyCode } from "@sanvya/types";
+import { itemsReconcile, money, type Money } from "@sanvya/money";
+import { deriveBalance, type LedgerEntry } from "@sanvya/ledger";
+import { periodBounds } from "@sanvya/budget";
 import type {
   AccountRepository,
   TransactionRepository,

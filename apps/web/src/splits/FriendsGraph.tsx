@@ -1,6 +1,6 @@
 "use client";
 
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 import { useBaseCurrency } from "../hooks";
 import { useMoneyFmt } from "../ui/Money";
 import { useFriendBalances, useUserProfiles } from "./hooks";

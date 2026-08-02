@@ -8,7 +8,7 @@
  * The invariant is **every recurring item belongs to a group**. It is enforced
  * here and in the UI, NOT by a `NOT NULL` + foreign key in Postgres — see the
  * long comment in migration 0046 for why (two rows, two upload transactions,
- * head-of-line block). `pocketcare.audit_ungrouped_recurring()` makes any
+ * head-of-line block). `sanvya.audit_ungrouped_recurring()` makes any
  * violation observable server-side.
  */
 
@@ -76,7 +76,7 @@ export const DEFAULT_GROUPS: Record<RecurringDirection, { slug: string; name: st
  * primitive — it only needs to be deterministic and collision-free in practice.
  */
 async function deterministicId(userId: string, slug: string): Promise<string> {
-  const data = new TextEncoder().encode(`pocketcare:recurring-group:${userId}:${slug}`);
+  const data = new TextEncoder().encode(`sanvya:recurring-group:${userId}:${slug}`);
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-1", data));
   const b = digest.slice(0, 16);
   b[6] = (b[6]! & 0x0f) | 0x50; // version 5

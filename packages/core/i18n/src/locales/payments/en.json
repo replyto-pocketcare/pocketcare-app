@@ -32,7 +32,7 @@
   },
   "settings": {
     "title": "Your UPI ID",
-    "intro": "Add your UPI ID so friends can pay you back from inside PocketCare. Money goes straight to your bank — we never hold it.",
+    "intro": "Add your UPI ID so friends can pay you back from inside Sanvya. Money goes straight to your bank — we never hold it.",
     "guestBlocked": "Create an account to add a UPI ID. Guest sessions can't save payment details.",
     "label": "UPI ID",
     "current": "Your UPI ID",
@@ -49,7 +49,7 @@
   },
   "payAnyone": {
     "title": "Pay someone",
-    "subtitle": "Opens your own UPI app. PocketCare never holds or moves the money.",
+    "subtitle": "Opens your own UPI app. Sanvya never holds or moves the money.",
     "upiId": "UPI ID",
     "scanCta": "Scan a QR code",
     "scanHint": "Point the camera at a UPI QR code",
@@ -57,7 +57,7 @@
     "amount": "Amount",
     "notePlaceholder": "Note (optional)",
     "claimsName": "Code says: {{name}} — your UPI app will show the real account name",
-    "footnote": "Check the account name in your UPI app before you confirm. PocketCare can't verify who owns a UPI ID.",
+    "footnote": "Check the account name in your UPI app before you confirm. Sanvya can't verify who owns a UPI ID.",
     "pay": "Open UPI app",
     "payAmount": "Open UPI app",
     "close": "Close",

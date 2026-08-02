@@ -1,4 +1,4 @@
-# PocketCare — Android (native, rev 3)
+# Sanvya — Android (native, rev 3)
 
 Pure Kotlin + Jetpack Compose. No cross-platform layer — see
 `docs/plans/native-mobile-apps.md` for the why and the full plan.
@@ -42,9 +42,9 @@ depends on it.
 4. From `apps/android`:
    ```bash
    ./gradlew installDebug
-   adb shell am start -n care.pocket.android/.MainActivity
+   adb shell am start -n com.sanvya.app/.MainActivity
    ```
-   (or just tap the app icon — "PocketCare" — on the device.)
+   (or just tap the app icon — "Sanvya" — on the device.)
 
 **Emulator (no physical device needed):** open the project in Android
 Studio (`apps/android`), Tools → Device Manager → create a virtual device
@@ -64,7 +64,7 @@ after the domain ports (Phase 1) and data layer (Phase 2) land.
 ## Structure
 
 ```
-app/      Compose UI shell, application id care.pocket.android (placeholder — plan §10)
+app/      Compose UI shell, application id com.sanvya.app (placeholder — plan §10)
 domain/   Pure Kotlin, vector-tested against tools/golden-vectors/vectors/*.json (P1.x)
 ```
 
@@ -87,7 +87,7 @@ target layout) — not created yet, to keep this task's diff reviewable.
 
 ## Open items (plan §10 — need a human "yes")
 
-- `applicationId "care.pocket.android"` and `minSdk 26` are proposals, not
+- `applicationId "com.sanvya.app"` and `minSdk 26` are proposals, not
   decisions.
 - Kotlin/AGP/Compose BOM versions in `gradle/libs.versions.toml` were
   verified against developer.android.com's AGP/Gradle compatibility table

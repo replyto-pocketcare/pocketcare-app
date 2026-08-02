@@ -17,8 +17,8 @@ import { UpdateType } from "@powersync/common";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { handleUploadFailure, clearAttempts, opKey } from "./quarantine.ts";
 
-/** Postgres schema that holds all PocketCare tables (see 0001_init.sql). */
-export const DB_SCHEMA = "pocketcare";
+/** Postgres schema that holds all Sanvya tables (see 0001_init.sql). */
+export const DB_SCHEMA = "sanvya";
 
 /**
  * Optional sink for structured sync failures.
@@ -194,7 +194,7 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
         // Surface the real cause (e.g. a PostgREST "schema must be exposed"
         // error, or an RLS violation) instead of failing silently.
         console.error(
-          `[PocketCare sync] upload failed for ${this.schema}.${op.table} (${op.op}, ${run.length} row(s), attempt ${verdict.attempts}, ${verdict.classification.cls})${verdict.quarantined ? " — moved to Problems syncing" : ""}:`,
+          `[Sanvya sync] upload failed for ${this.schema}.${op.table} (${op.op}, ${run.length} row(s), attempt ${verdict.attempts}, ${verdict.classification.cls})${verdict.quarantined ? " — moved to Problems syncing" : ""}:`,
           error,
         );
         // Also emit it structurally. The console line is captured as free text

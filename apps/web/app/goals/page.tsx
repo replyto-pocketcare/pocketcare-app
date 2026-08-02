@@ -3,10 +3,10 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@powersync/react";
-import { money, format, fromMajor, toMajor } from "@pocketcare/money";
+import { money, format, fromMajor, toMajor } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
-import type { CurrencyCode } from "@pocketcare/types";
+import type { CurrencyCode } from "@sanvya/types";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { KebabMenu } from "../../src/ui/KebabMenu";

@@ -1,45 +1,14 @@
 import SwiftUI
 
-struct CreditCardUiItem: Identifiable {
-    let id: String
-    let cardName: String
-    let bankNetwork: String
-    let last4: String
-    let outstandingFormatted: String
-    let availableLimitFormatted: String
-    let dueDate: String
-    let gradientColors: [Color]
-}
-
 struct CreditCardsView: View {
-    let sampleCards = [
-        CreditCardUiItem(
-            id: "1",
-            cardName: "HDFC Regalia Gold",
-            bankNetwork: "HDFC Bank • Visa",
-            last4: "4821",
-            outstandingFormatted: "₹28,450",
-            availableLimitFormatted: "₹2,71,550",
-            dueDate: "15 Aug 2026",
-            gradientColors: [Color(red: 0.17, green: 0.24, blue: 0.31), Color(red: 0.10, green: 0.15, blue: 0.18)]
-        ),
-        CreditCardUiItem(
-            id: "2",
-            cardName: "ICICI Amazon Pay",
-            bankNetwork: "ICICI Bank • RuPay",
-            last4: "9102",
-            outstandingFormatted: "₹6,120",
-            availableLimitFormatted: "₹1,43,880",
-            dueDate: "22 Aug 2026",
-            gradientColors: [Theme.terracotta, Color(red: 0.48, green: 0.24, blue: 0.16)]
-        )
-    ]
+    @Binding var isDrawerOpen: Bool
+    @State private var viewModel = CreditCardsViewModel()
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    ForEach(sampleCards) { card in
+                    ForEach(viewModel.cards) { card in
                         VStack(spacing: 12) {
                             // Card Face (CreditCard.tsx mirror)
                             VStack(alignment: .leading) {
@@ -105,10 +74,10 @@ struct CreditCardsView: View {
                                     Text("Outstanding: \(card.outstandingFormatted)")
                                         .font(.body)
                                         .fontWeight(.bold)
-                                        .foregroundColor(Theme.terracotta)
+                                        .foregroundColor(Color.accent)
                                     Text("Available limit: \(card.availableLimitFormatted)")
                                         .font(.caption)
-                                        .foregroundColor(Theme.inkSoft)
+                                        .foregroundColor(Color.text2)
                                 }
 
                                 Spacer()
@@ -119,25 +88,37 @@ struct CreditCardsView: View {
                                         .fontWeight(.bold)
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 8)
-                                        .background(Theme.terracotta)
-                                        .foregroundColor(Theme.cream)
+                                        .background(Color.accent)
+                                        .foregroundColor(Color.surface)
                                         .cornerRadius(10)
                                 }
                             }
                             .padding(16)
-                            .background(Theme.cream)
+                            .background(Color.surface)
                             .cornerRadius(14)
                         }
                     }
                 }
                 .padding(16)
             }
-            .background(Theme.clay50.ignoresSafeArea())
+            .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Credit Cards")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        withAnimation(.spring()) {
+                            isDrawerOpen.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "line.3.horizontal")
+                            .imageScale(.large)
+                    }
+                }
+            }
         }
     }
 }
 
 #Preview {
-    CreditCardsView()
+    CreditCardsView(isDrawerOpen: .constant(false))
 }

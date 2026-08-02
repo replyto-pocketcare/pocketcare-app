@@ -1,10 +1,10 @@
 # 03 — Sync & Offline
 
-PocketCare is **offline-first**: the UI only ever touches local SQLite, and PowerSync reconciles with Supabase in the background. This document explains how writes propagate, how the guest→user identity works, and how conflicts are handled.
+Sanvya is **offline-first**: the UI only ever touches local SQLite, and PowerSync reconciles with Supabase in the background. This document explains how writes propagate, how the guest→user identity works, and how conflicts are handled.
 
 ## Components
 
-- **Local DB** — WASM SQLite in the browser (`pocketcare-v2.db`), schema from `AppSchema` (`packages/db`).
+- **Local DB** — WASM SQLite in the browser (`sanvya-v2.db`), schema from `AppSchema` (`packages/db`).
 - **PowerSync** — bidirectional sync engine. Downloads the user's rows into local SQLite and uploads local changes to Postgres.
 - **Sync streams** — declarative queries in `packages/db/sync-streams.yaml` deciding which rows each user receives. **Must be redeployed to the PowerSync dashboard whenever a synced table is added.**
 - **SupabaseConnector** — uploads queued local changes via schema-qualified PostgREST calls (`packages/db/src/connector.ts`).
@@ -46,7 +46,7 @@ sequenceDiagram
     Note over SQLite,Q: change recorded in the upload queue
     alt online
         Q->>Conn: flush queued ops
-        Conn->>PG: schema('pocketcare').from(table).upsert/delete (JWT)
+        Conn->>PG: schema('sanvya').from(table).upsert/delete (JWT)
         PG->>PG: RLS enforces user_id = auth.uid()
         PG-->>SQLite: down-sync confirms + fans out to other devices
     else offline
@@ -97,7 +97,7 @@ This fixed a real multi-device bug where a second device kept syncing the empty 
 
 - Rows are **last-write-wins** at the column level via `updated_at`; the write helpers always set `updated_at`.
 - The **ledger is append-only** — balances are recomputed from entries rather than mutated, so concurrent edits converge without lost-update anomalies on balances.
-- The **splits ledger** uses explicit, additive rows (expenses, participants, settlements) plus a reconciliation engine (`@pocketcare/reconcile`) to compute net balances deterministically.
+- The **splits ledger** uses explicit, additive rows (expenses, participants, settlements) plus a reconciliation engine (`@sanvya/reconcile`) to compute net balances deterministically.
 
 ## Edge functions (online-only server actions)
 

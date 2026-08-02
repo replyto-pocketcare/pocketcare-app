@@ -9,7 +9,7 @@ Sensitive free-text / identifiers → ciphertext at rest, key never on server:
 
 Stays plaintext (server must compute on it): `amount`, `currency`, `occurred_at`, `account_id`, `category_id`, `symbol`. (Amounts are numbers, not identifying on their own; this is the pragmatic Hybrid tradeoff.)
 
-## Key model (envelope encryption) — `@pocketcare/crypto`
+## Key model (envelope encryption) — `@sanvya/crypto`
 
 ```
 passphrase --PBKDF2(210k, SHA-256, per-user salt)--> KEK   (client only)
@@ -21,7 +21,7 @@ Server stores only `wrapped_dek_*` + salt + ciphertext envelopes (`v1.<iv>.<ct>`
 
 ## Sealed support access
 
-1. **Structural (default, no plaintext).** Support runs the `@pocketcare/reconcile` checksum validators (local SQLite vs remote Supabase) to detect/repair sync drift by id + per-row checksum. No field is ever decrypted.
+1. **Structural (default, no plaintext).** Support runs the `@sanvya/reconcile` checksum validators (local SQLite vs remote Supabase) to detect/repair sync drift by id + per-row checksum. No field is ever decrypted.
 2. **Consent grant (content, rare).** User flips "Grant Temporary Support Access" → client unwraps its DEK locally and **re-wraps it for the SUPPORT public key** (`wrapDekForSupport`), producing a grant valid **2 hours**. The grant payload (`{ userId, grantId, exp, scope }`) is **signed by the user's ECDSA key** (`signGrant`) proving they authorized it. Support cannot decrypt without a live, unexpired, user-signed grant.
 3. **No single-insider decryption.** The SUPPORT private key is **Shamir-split M-of-N** (`./shamir`, GF(256)) across support officers; e.g. 2-of-3 must combine shares to open any grant.
 4. **Immutable audit.** Every grant issue/expire and every support decrypt/drift-fix is appended to a hash-chained `security_audit` table (each row stores `prev_hash` + `row_hash`), so tampering is detectable.
@@ -34,7 +34,7 @@ Server stores only `wrapped_dek_*` + salt + ciphertext envelopes (`v1.<iv>.<ct>`
 
 ## Build phases
 
-1. ✅ `@pocketcare/crypto` (envelope + recovery + support grant + Shamir) + tests. `@pocketcare/reconcile` (drift checksums) + tests.
+1. ✅ `@sanvya/crypto` (envelope + recovery + support grant + Shamir) + tests. `@sanvya/reconcile` (drift checksums) + tests.
 2. Schema migrations (`user_keys`, `support_grants`, `security_audit`) + RLS + streams.
 3. Client key lifecycle: setup (passphrase + recovery code), unlock at login, lock on sign-out; store `user_keys`.
 4. Field encryption through the repos (encrypt on write / decrypt on read for the listed fields); migration/backfill for existing rows.

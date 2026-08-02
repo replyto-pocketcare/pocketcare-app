@@ -14,7 +14,7 @@
  * camera and a deliberate tap. The browser caches it after first use.
  *
  * Decoding is the easy half. The hard half is that a QR is attacker-controlled
- * input — see `parseUpiTarget` in `@pocketcare/upi`. This module only returns
+ * input — see `parseUpiTarget` in `@sanvya/upi`. This module only returns
  * the decoded TEXT; it never decides anything about payment.
  */
 

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "PocketCare"
+    "name": "Sanvya"
   },
   "common": {
     "add": "Add",
@@ -27,7 +27,7 @@
     "loans": "Loans",
     "investments": "Investments",
     "settings": "Settings",
-    "assistant": "Ask PocketCare",
+    "assistant": "Ask Sanvya",
     "friends": "Splits & groups"
   },
   "pages": {

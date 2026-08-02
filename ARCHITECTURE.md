@@ -1,4 +1,4 @@
-# PocketCare — Architecture & Implementation Plan
+# Sanvya — Architecture & Implementation Plan
 
 > Cross-device, offline-first personal expense & wealth manager.
 > Theme: earthy, minimal, elegant animations. Freemium.

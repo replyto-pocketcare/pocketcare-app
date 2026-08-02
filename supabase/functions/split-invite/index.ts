@@ -21,7 +21,7 @@ Deno.serve(async (req: Request) => {
   if (!auth) return json({ error: "Missing Authorization header" }, 401);
   if (!supabaseUrl || !serviceKey) return json({ error: "Supabase environment not configured." }, 500);
 
-  const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "pocketcare" } });
+  const supabase = createClient(supabaseUrl, serviceKey, { db: { schema: "sanvya" } });
   const { data: { user }, error: authErr } = await supabase.auth.getUser(auth.replace("Bearer ", ""));
   if (authErr || !user) return json({ error: "Unauthorized" }, 401);
 
@@ -52,7 +52,7 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // Otherwise create a pending invite link (they're not on PocketCare yet).
+  // Otherwise create a pending invite link (they're not on Sanvya yet).
   const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
   const expiresAt = new Date(Date.now() + 14 * 86_400_000).toISOString();
   const { error: insErr } = await supabase.from("split_invitations").insert({

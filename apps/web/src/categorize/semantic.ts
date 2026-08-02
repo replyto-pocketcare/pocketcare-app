@@ -54,7 +54,7 @@ function cosine(a: Float32Array, b: Float32Array): number {
 }
 
 // ---- learned corrections (IndexedDB) ----
-const DB_NAME = "pocketcare-categorize";
+const DB_NAME = "sanvya-categorize";
 const STORE = "learned";
 
 function openDb(): Promise<IDBDatabase | null> {

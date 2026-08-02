@@ -1,4 +1,4 @@
-# PocketCare — Security Audit & Remediation Plan
+# Sanvya — Security Audit & Remediation Plan
 
 **Date:** 2026-07-13
 **Scope:** monorepo at repo root — `apps/web` (Next.js), `supabase/` (Postgres migrations + Edge Functions), `packages/core/crypto`, `scripts/`, repo config.
@@ -76,8 +76,8 @@ to every exported action before any data access.
       @supabase/ssr server client (createServerClient) with Next's cookies(), NOT
       the service-role client, to get the authenticated user via auth.getUser().
       If there is no user, throw new Error("Unauthorized").
-   b. Using the service-role client, query pocketcare_admin.admins (or the
-      pocketcare.admins view) for a row where user_id = <caller id>. If none,
+   b. Using the service-role client, query sanvya_admin.admins (or the
+      sanvya.admins view) for a row where user_id = <caller id>. If none,
       throw new Error("Forbidden").
    c. Return the caller's user id.
 2. Call `await assertAdmin()` as the FIRST line inside the try block of
@@ -144,25 +144,25 @@ must not be publicly triggerable. Add a shared-secret gate:
 
 ## 🟠 H3 — Blanket table grants to the `anon` role
 
-**Where:** `supabase/migrations/0001_init.sql` (and several later migrations): `grant all on all tables in schema pocketcare to anon, authenticated, service_role;` plus per-table `grant all ... to anon`.
+**Where:** `supabase/migrations/0001_init.sql` (and several later migrations): `grant all on all tables in schema sanvya to anon, authenticated, service_role;` plus per-table `grant all ... to anon`.
 
 **Why it matters:** RLS is the only thing standing between the `anon` (pre-login) API role and every row. That's a single-control design: any table shipped **without** an RLS policy, or any policy regression, is instantly world-readable/writable through PostgREST. For financial data, `anon` should have no table reach at all unless a feature explicitly needs it.
 
 **Fix prompt (for the LLM):**
 ```
 Goal: remove standing table privileges from the `anon` Postgres role in the
-pocketcare schema, since anonymous (pre-auth) users should not reach user data.
+sanvya schema, since anonymous (pre-auth) users should not reach user data.
 Create a NEW migration file supabase/migrations/0029_tighten_anon_grants.sql:
 
-1. set search_path to pocketcare, public;
-2. REVOKE ALL on all tables and sequences in schema pocketcare FROM anon.
-   (revoke all on all tables in schema pocketcare from anon; same for sequences.)
-3. Also revoke execute on all functions in schema pocketcare from anon, EXCEPT
+1. set search_path to sanvya, public;
+2. REVOKE ALL on all tables and sequences in schema sanvya FROM anon.
+   (revoke all on all tables in schema sanvya from anon; same for sequences.)
+3. Also revoke execute on all functions in schema sanvya from anon, EXCEPT
    any function that genuinely must run pre-login (e.g. invite/join flows). List
    each retained grant explicitly with a comment justifying it.
 4. Keep grants for `authenticated` and `service_role` unchanged.
 5. Before finalizing, search the codebase for supabase clients created WITHOUT a
-   user session (anon key, no auth) that hit pocketcare tables; list them so a
+   user session (anon key, no auth) that hit sanvya tables; list them so a
    human can confirm nothing legitimately depends on anon table access. Guest
    mode uses Supabase anonymous AUTH (a real authenticated user), so it is
    unaffected by revoking the `anon` role — call that out.
@@ -185,7 +185,7 @@ Do not weaken any existing RLS policy; this migration only narrows GRANTs.
 Replace read-then-write counter updates with atomic DB operations.
 
 1. Create migration supabase/migrations/0030_atomic_counters.sql defining
-   security-definer RPCs in schema pocketcare:
+   security-definer RPCs in schema sanvya:
    - increment_quota_used(p_user uuid) returns void: UPDATE entitlements
      SET monthly_quota_used = monthly_quota_used + 1 WHERE user_id = p_user;
    - add_purchased_credits(p_user uuid, p_delta int): UPDATE ... SET

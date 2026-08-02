@@ -1,5 +1,5 @@
 /**
- * PocketCare — admin coupon / promo / segment tooling (service role).
+ * Sanvya — admin coupon / promo / segment tooling (service role).
  *
  * Run:  node --experimental-strip-types scripts/admin-coupons.ts <command> [args]
  * Env:  SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
@@ -19,7 +19,7 @@ import { createClient } from "@supabase/supabase-js";
 const url = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !serviceKey) { console.error("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."); process.exit(1); }
-const db = createClient(url, serviceKey, { db: { schema: "pocketcare" } });
+const db = createClient(url, serviceKey, { db: { schema: "sanvya" } });
 
 function flag(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);

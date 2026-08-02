@@ -1,11 +1,11 @@
 // Pure split math (minor units). Keyed by user id in the multi-user model.
 //
-// The largest-remainder primitive now lives in @pocketcare/receipts (it is
+// The largest-remainder primitive now lives in @sanvya/receipts (it is
 // shared with itemized receipt splitting and is covered by that package's
 // tests). Re-exported here so every existing import site keeps working and
 // there is exactly ONE implementation of the money-preserving allocation.
-export { splitByWeights, splitEqual } from "@pocketcare/receipts";
-import { splitByWeights } from "@pocketcare/receipts";
+export { splitByWeights, splitEqual } from "@sanvya/receipts";
+import { splitByWeights } from "@sanvya/receipts";
 
 export interface Party {
   userId: string;

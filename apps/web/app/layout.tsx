@@ -4,11 +4,11 @@ import { Providers } from "./providers";
 import { AppShell } from "./AppShell";
 
 export const metadata = {
-  title: "PocketCare",
+  title: "Sanvya",
   description: "Offline-first, multi-currency expense & wealth manager",
   manifest: "/manifest.webmanifest",
-  applicationName: "PocketCare",
-  appleWebApp: { capable: true, title: "PocketCare", statusBarStyle: "default" as const },
+  applicationName: "Sanvya",
+  appleWebApp: { capable: true, title: "Sanvya", statusBarStyle: "default" as const },
 };
 
 export const viewport = {

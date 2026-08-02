@@ -28,7 +28,7 @@ struct CreateTransactionView: View {
                     HStack {
                         Text("₹")
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(Theme.terracotta)
+                            .foregroundColor(Color.accent)
                         TextField("0.00", text: $amountText)
                             .font(.system(size: 28, weight: .bold))
                             .keyboardType(.decimalPad)
@@ -59,9 +59,9 @@ struct CreateTransactionView: View {
                             .font(.headline)
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(Theme.cream)
+                            .foregroundColor(Color.surface)
                     }
-                    .listRowBackground(Theme.terracotta)
+                    .listRowBackground(Color.accent)
                 }
             }
             .navigationTitle("New Transaction")
@@ -69,7 +69,7 @@ struct CreateTransactionView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(Theme.inkSoft)
+                        .foregroundColor(Color.text2)
                 }
             }
         }

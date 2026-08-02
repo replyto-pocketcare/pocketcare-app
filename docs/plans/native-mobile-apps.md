@@ -15,7 +15,7 @@ Native apps with home-screen **widgets**, iOS **Live Activities**, **native noti
 
 1. Money = integer minor units: Kotlin `value class Money(val minor: Long)`, Swift `struct Money { var minor: Int64 }`. **Never** Float/Double/Decimal for stored amounts.
 2. Balances derive from the append-only ledger; corrections are compensating entries, never mutation.
-3. Everything server-side is in the **`pocketcare`** schema — schema-qualify every call.
+3. Everything server-side is in the **`sanvya`** schema — schema-qualify every call.
 4. Server authoritative; the device DB is an offline cache reconciled by sync.
 5. Amounts stay in their account's currency; convert only at display via `exchange_rates`.
 6. Never a cross-row constraint on a synced table (wedges the upload queue — CLAUDE.md).
@@ -64,8 +64,8 @@ docs/mobile/           # TODO.md (queue+handover) · parity table · per-screen 
 - [x] **P0.0 [M] — Decommission the RN scaffold.** N/A as of rev 3 — the rev-2 `apps/mobile` scaffold was never committed to `origin/main`, so a repo-wide reset (2026-07-31) already removed it along with all uncommitted rev-2 build-fix history from disk. Nothing left to decommission. (The breakage narrative that justified rev 3 is preserved above in this doc's header and in AUDIT_HISTORY.md — it happened, it's just not sitting in the tree as files anymore.)
 - [ ] **P0.1 [M] — Vector exporter.** `tools/golden-vectors/export.ts` (`node --experimental-strip-types`): imports the real functions from `packages/core/{money,finance,ledger,budget,receipts,upi,sync-policy,reconcile,guardrail,splits-insights,entitlements,diagnostics}` + `apps/web/src/splits/math.ts` source, runs a fixed corpus covering every edge case in the existing TS tests (largest-remainder, milli-quantities, cross-currency, FIFO settle-speed with `null`-not-zero, redaction passes), writes `vectors/<domain>.json` as `[{fn, input, expected}]` — amounts as strings, deterministic order. (`crypto` excluded — covered by a SEC-1 round-trip test instead, ported per-platform.)
   *Done-when:* two runs byte-identical; ≥1 vector per public function; committed.
-- [ ] **P0.2 [M] — Android skeleton.** `apps/android` with `:domain` as a **pure-Kotlin module** (no Android imports — this is what makes vector tests fast and the logic honest), empty Compose app `care.pocket.android`, CI: `./gradlew build test`. **No JDK/Gradle in this sandbox as of rev 3** — write the skeleton, but verification runs in CI or on a human's machine; don't mark this DONE from a sandbox session without that output.
-- [ ] **P0.3 [M] — iOS skeleton.** `apps/ios` with `Domain` as a **pure SwiftPM package**, empty SwiftUI app `care.pocket.ios`, App Group `group.care.pocket` configured now, XcodeGen, CI: `xcodebuild test` on simulator. **No Xcode in this sandbox** — same caveat as P0.2.
+- [ ] **P0.2 [M] — Android skeleton.** `apps/android` with `:domain` as a **pure-Kotlin module** (no Android imports — this is what makes vector tests fast and the logic honest), empty Compose app `com.sanvya.app`, CI: `./gradlew build test`. **No JDK/Gradle in this sandbox as of rev 3** — write the skeleton, but verification runs in CI or on a human's machine; don't mark this DONE from a sandbox session without that output.
+- [ ] **P0.3 [M] — iOS skeleton.** `apps/ios` with `Domain` as a **pure SwiftPM package**, empty SwiftUI app `com.sanvya.app.ios`, App Group `group.com.sanvya.app` configured now, XcodeGen, CI: `xcodebuild test` on simulator. **No Xcode in this sandbox** — same caveat as P0.2.
 - [ ] **P0.4 [S]×2 — Vector runners.** kotlin.test runner in `:domain` and XCTest runner in `Domain` that load every JSON vector; all initially skipped, un-skipped per porting task. CI prints per-domain pass counts for both apps side by side.
 - [ ] **P0.5 [S] — Docs bootstrap.** Keep `PROJECT_REFERENCE.md` "Native mobile" section (layout, ADR, progress line) in sync with this plan; session logs go to `AUDIT_HISTORY.md`, parity table lives in `docs/mobile/TODO.md`. Verify `docs/mobile/TODO.md` matches this plan's tasks.
 
@@ -93,6 +93,25 @@ Not expanded into individual tasks yet — expand once Phase 1 is ~80% done (kee
 
 Not expanded yet. Slices mirror web's feature index (S1 onboarding/accounts/transactions/dashboard-lite → S2 budgets/goals/cashflow/cards → S3 splits/UPI → S4 receipts/statements → S5 investments/insights → S6 assistant), plus native-only surfaces (P4.x: widgets, Live Activities, native push, biometric lock). One planned backend migration lives here: `push_subscriptions` gains `platform`/`token`/`live_activity_token` columns + a `notify-dispatch` fan-out — do not start it without a human "yes" (§0 dependency/migration policy).
 
+### R1 — Lifecycle & state preservation (cross-cutting, EVERY screen, all three apps — standing requirement)
+
+The app must never visibly restart, lose its place, or lose user input across: fold/unfold and any window resize (foldables, split-screen, Stage Manager), rotation, backgrounding + return (however long), and **OS-initiated process death** while backgrounded. Committed data is already safe by architecture (writes land in local SQLite immediately, rule 4) — R1 is about *UI state and in-progress input*.
+
+**Android (every Compose screen):**
+- Screen state lives in a `ViewModel` (survives config change); UI bits (scroll position, text fields, selected tab, dialog-open) via `rememberSaveable`; ViewModel state that must survive **process death** goes through `SavedStateHandle`.
+- **Never** opt out via `android:configChanges` to swallow fold/resize — handle them. Layout adapts via `WindowSizeClass` (fold/unfold = size-class change → same screen, adapted layout, same data, no Activity relaunch visible to the user).
+- Navigation back-stack: Navigation-Compose's default saver must stay enabled (don't construct nav state outside `rememberNavController`).
+- Long-form input (new transaction w/ breakdown, receipt review, new loan/goal) additionally auto-persists a **draft** (DataStore) on `onStop`, restored on next open — this is what survives process death and even a crash.
+
+**iOS (every SwiftUI screen):**
+- Scene state via `@SceneStorage` (selected tab, nav path as codable, search text); app-level prefs via `@AppStorage`.
+- Persist the draft + scene essentials on `scenePhase == .background` — suspension is free, but **termination while suspended must restore** to the same screen with the same input.
+- Size-class / Stage-Manager / iPad-multitasking resize: layouts respond to size classes; no state resets on resize (no `id(...)` tricks that recreate view identity on geometry change).
+
+**Web (parity):** route is already the URL; long-form drafts persist (receipt draft already does via `receipt_scans` — extend the same pattern to the transaction form via localStorage); state must survive tab discard/BFCache restore.
+
+**Verification (test plan §LIFE):** every slice's Done-when now includes its screens passing the LIFE cases — including Android's "Don't keep activities" run and a foldable posture-change run on Firebase Test Lab. **Retrofit note:** S1/S2 screens built before this requirement (2026-07-31) must be audited against it — queued as P3.19 in TODO.md.
+
 ## 8. Phase 5 — Monetization + release
 
 Not expanded yet. RevenueCat wiring (entitlements parity with web's `useEntitlement`), store listings, release signing, staged rollout.
@@ -104,6 +123,6 @@ Not expanded yet. RevenueCat wiring (entitlements parity with web's `useEntitlem
 ## 10. Risks / open decisions (human calls)
 
 - Exact minimum OS versions (minSdk + iOS minimum) — proposal due with P0.2/P0.3.
-- Real reverse-DNS bundle ids (`care.pocket.android` / `care.pocket.ios` used above are placeholders) and Universal/App-Links domain — confirm before P4.3 (store prep needs the real domain for `assetlinks.json`/`apple-app-site-association`).
+- Real reverse-DNS bundle ids (`com.sanvya.app` / `com.sanvya.app.ios` used above are placeholders) and Universal/App-Links domain — confirm before P4.3 (store prep needs the real domain for `assetlinks.json`/`apple-app-site-association`).
 - Market-data API, FX provider, launch languages — same open items as the web roadmap (PROJECT_REFERENCE "Open decisions"), inherited here.
 - Any dependency beyond the §0 irreducible set.

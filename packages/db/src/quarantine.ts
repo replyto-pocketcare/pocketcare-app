@@ -17,7 +17,7 @@
  * the queue it exists to unblock.
  */
 import type { AbstractPowerSyncDatabase, CrudEntry } from "@powersync/common";
-import { classifyFailure, shouldQuarantine, type Classification } from "@pocketcare/sync-policy";
+import { classifyFailure, shouldQuarantine, type Classification } from "@sanvya/sync-policy";
 
 /**
  * Stable identity for one logical write, used as the retry-counter key.

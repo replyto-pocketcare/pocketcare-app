@@ -1,5 +1,5 @@
 /**
- * @pocketcare/sync-policy — is this upload failure worth retrying?
+ * @sanvya/sync-policy — is this upload failure worth retrying?
  *
  * THE DISTINCTION THAT MATTERS: PowerSync retries the upload queue forever, in
  * order. That is exactly right for a transient failure (offline, 5xx, timeout)

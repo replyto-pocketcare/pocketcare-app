@@ -1,5 +1,5 @@
 /**
- * @pocketcare/money — currency-aware money primitives.
+ * @sanvya/money — currency-aware money primitives.
  *
  * INVARIANTS (see ARCHITECTURE.md §2):
  *  - A Money value is an INTEGER count of minor units + an ISO 4217 currency.
@@ -8,7 +8,7 @@
  *    conversion produces a NEW Money in the target currency.
  *  - Arithmetic across different currencies throws unless you convert first.
  */
-import type { CurrencyCode } from "@pocketcare/types";
+import type { CurrencyCode } from "@sanvya/types";
 
 export interface Money {
   /** Integer amount in minor units (e.g. cents, paise). */

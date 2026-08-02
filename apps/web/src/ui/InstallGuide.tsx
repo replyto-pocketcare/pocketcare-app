@@ -35,10 +35,10 @@ function Step({ n, icon, children }: { n: number; icon?: React.ReactNode; childr
 function IosSteps() {
   return (
     <ol style={{ display: "grid", gap: 10, margin: 0, padding: 0, listStyle: "none" }}>
-      <Step n={1}>Open PocketCare in <strong>Safari</strong> (Chrome on iPhone can’t add to the Home Screen).</Step>
+      <Step n={1}>Open Sanvya in <strong>Safari</strong> (Chrome on iPhone can’t add to the Home Screen).</Step>
       <Step n={2} icon={<IosShareIcon />}>Tap the <strong>Share</strong> button in the toolbar</Step>
       <Step n={3} icon={<AddBoxIcon />}>Scroll down and tap <strong>Add to Home Screen</strong></Step>
-      <Step n={4}>Tap <strong>Add</strong> — PocketCare appears on your Home Screen like a native app.</Step>
+      <Step n={4}>Tap <strong>Add</strong> — Sanvya appears on your Home Screen like a native app.</Step>
     </ol>
   );
 }
@@ -55,7 +55,7 @@ function DesktopSteps() {
   return (
     <ol style={{ display: "grid", gap: 10, margin: 0, padding: 0, listStyle: "none" }}>
       <Step n={1} icon={<DownloadIcon size={16} />}>Click the <strong>install icon</strong> at the right of the address bar…</Step>
-      <Step n={2} icon={<KebabIcon />}>…or open the <strong>⋮ menu</strong> → <strong>Install PocketCare</strong></Step>
+      <Step n={2} icon={<KebabIcon />}>…or open the <strong>⋮ menu</strong> → <strong>Install Sanvya</strong></Step>
       <Step n={3}>Confirm <strong>Install</strong> — it opens in its own window.</Step>
     </ol>
   );
@@ -72,13 +72,13 @@ export function InstallGuide() {
   const Steps = STEPS[platform];
 
   if (standalone) {
-    return <p className="muted" style={{ fontSize: 14, margin: 0 }}>✓ PocketCare is installed — you’re using the app.</p>;
+    return <p className="muted" style={{ fontSize: 14, margin: 0 }}>✓ Sanvya is installed — you’re using the app.</p>;
   }
 
   return (
     <div style={{ display: "grid", gap: 14 }}>
       <p className="muted" style={{ fontSize: 13, margin: 0 }}>
-        Install PocketCare for a full-screen, offline-first app on your phone or desktop — no app store needed.
+        Install Sanvya for a full-screen, offline-first app on your phone or desktop — no app store needed.
       </p>
 
       {canInstall && (

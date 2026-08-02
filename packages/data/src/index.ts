@@ -1,10 +1,10 @@
 /**
- * @pocketcare/data — repository interfaces (the data-access contract).
+ * @sanvya/data — repository interfaces (the data-access contract).
  * Platform apps provide implementations backed by a PowerSync database; the
  * contract keeps money invariants explicit so every implementation upholds them.
  */
-import type { Account, Transaction, TransactionItem, CurrencyCode } from "@pocketcare/types";
-import type { Money } from "@pocketcare/money";
+import type { Account, Transaction, TransactionItem, CurrencyCode } from "@sanvya/types";
+import type { Money } from "@sanvya/money";
 
 /** Input for creating a transaction together with its breakdown, atomically. */
 export interface NewTransactionInput {
@@ -40,7 +40,7 @@ export interface TransactionRepository {
   /**
    * Create a transaction (+ optional breakdown items) inside ONE local SQLite
    * transaction. Implementations MUST reject if items don't reconcile to the
-   * total (see @pocketcare/money `itemsReconcile`). Transfers write both sides.
+   * total (see @sanvya/money `itemsReconcile`). Transfers write both sides.
    */
   create(input: NewTransactionInput): Promise<Transaction>;
   listByAccount(accountId: string, limit?: number): Promise<Transaction[]>;
@@ -98,7 +98,7 @@ export interface BalanceRepository {
 export interface BudgetLike {
   id: string;
   name?: string | null;
-  period: import("@pocketcare/types").Period;
+  period: import("@sanvya/types").Period;
   /** Optional fixed timeframe; when set it overrides the recurring period. */
   start_date?: string | null;
   end_date?: string | null;

@@ -2,7 +2,7 @@
  * Instruments catalog — the searchable universe of stocks/ETFs behind the
  * investments picker.
  *
- * PocketCare is offline-first, so the catalog is designed around a *local*
+ * Sanvya is offline-first, so the catalog is designed around a *local*
  * cache that never touches PowerSync (it is global reference data, not user
  * data, and is tens of thousands of rows). The cache lives in IndexedDB and is
  * refreshed at most once a day from the free, MIT-licensed adanos-software
@@ -28,7 +28,7 @@ export const instrumentKey = (i: Pick<Instrument, "symbol" | "exchange">) =>
   `${i.symbol.toUpperCase()}|${i.exchange.toUpperCase()}`;
 
 // ---- bundled seed (always available offline) --------------------------------
-// A compact, high-coverage starter set across the exchanges most PocketCare
+// A compact, high-coverage starter set across the exchanges most Sanvya
 // users hold. The daily fetch augments/replaces this with the full universe.
 export const SEED: Instrument[] = [
   // United States — NASDAQ
@@ -105,7 +105,7 @@ export function knownExchanges(list: Instrument[]): string[] {
 }
 
 // ---- IndexedDB cache --------------------------------------------------------
-const DB_NAME = "pocketcare-instruments";
+const DB_NAME = "sanvya-instruments";
 const STORE = "catalog";
 const META = "meta";
 const REFRESH_MS = 24 * 60 * 60 * 1000; // once a day

@@ -28,7 +28,7 @@ export default function DataPage() {
     try {
       const { csv, count } = await exportTransactionsCsv();
       if (count === 0) { setExportMsg(t("noExport")); return; }
-      downloadText(`pocketcare-transactions-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+      downloadText(`sanvya-transactions-${new Date().toISOString().slice(0, 10)}.csv`, csv);
       setExportMsg(t("exported", { count }));
     } catch (e) {
       setExportMsg(t("exportFailed", { msg: (e as Error).message }));

@@ -8,10 +8,10 @@ import { downloadText } from "../data/csv";
  * live — this text prints on every invoice.
  */
 export const INVOICE_ISSUER = {
-  brand: "PocketCare",
-  legalName: "PocketCare",
+  brand: "Sanvya",
+  legalName: "Sanvya",
   address: "Eastonia, Palm Groves Society, Ghorpadi, Pune ",
-  email: "replyto.pocketcare@gmail.com",
+  email: "replyto.sanvya@gmail.com",
   gstin: "", // e.g. "27ABCDE1234F1Z5" — leave blank if not GST-registered
   note: "This is a computer-generated invoice and does not require a signature.",
 };
@@ -38,8 +38,8 @@ export function invoiceNumber(p: InvoicePayment): string {
 
 const description = (p: InvoicePayment): string =>
   p.kind === "credits"
-    ? `PocketCare AI credits — ${p.credits_added ?? 0} prompts`
-    : "PocketCare subscription";
+    ? `Sanvya AI credits — ${p.credits_added ?? 0} prompts`
+    : "Sanvya subscription";
 
 function esc(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
@@ -86,7 +86,7 @@ export function invoiceHtml(p: InvoicePayment, buyerEmail: string): string {
     <div class="meta">
       <div>
         <div class="muted">Billed to</div>
-        <div><strong>${esc(buyerEmail || "PocketCare customer")}</strong></div>
+        <div><strong>${esc(buyerEmail || "Sanvya customer")}</strong></div>
       </div>
       <div class="right">
         <div><span class="muted">Invoice no.</span> <strong>${esc(inv)}</strong></div>
@@ -119,6 +119,6 @@ export function openInvoice(p: InvoicePayment, buyerEmail: string): void {
     w.document.write(html);
     w.document.close();
   } else {
-    downloadText(`pocketcare-invoice-${invoiceNumber(p)}.html`, html, "text/html;charset=utf-8");
+    downloadText(`sanvya-invoice-${invoiceNumber(p)}.html`, html, "text/html;charset=utf-8");
   }
 }

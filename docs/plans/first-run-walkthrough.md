@@ -10,7 +10,7 @@ which they did not want to do. They didn't proceed.
 
 Two things failed there, and only one of them is an onboarding problem:
 
-1. **Nobody told them what the app is.** They never learned that PocketCare is a
+1. **Nobody told them what the app is.** They never learned that Sanvya is a
    manual money diary, so "account" was read with the only meaning they had for
    it — a bank login.
 2. **The one thing that would have reassured them was never said.** Nowhere does
@@ -52,7 +52,7 @@ saying so converts the scariest fact into the strongest pitch:
 
 Every step reuses that frame. Three claims appear early, in plain words:
 
-1. PocketCare is **not connected to your bank** and never asks for a bank login,
+1. Sanvya is **not connected to your bank** and never asks for a bank login,
    card number or OTP.
 2. **Nothing is tracked automatically.** You write things down.
 3. That's **on purpose**, to build the habit of being mindful with money.
@@ -80,9 +80,9 @@ finite — an open-ended dialog is its own source of anxiety.
 
 ### Step 1 — What this app is
 
-> **Welcome to PocketCare**
+> **Welcome to Sanvya**
 >
-> PocketCare is your private money diary. You write down what you spend and
+> Sanvya is your private money diary. You write down what you spend and
 > earn, and it shows you where your money is actually going.
 >
 > **It is not connected to your bank.** We never ask for your bank login, card
@@ -127,7 +127,7 @@ Actions: **Save** · *Skip this for now*
 >
 > Think of the last thing you paid for — tea, groceries, a bill.
 >
-> When you record a spend, PocketCare subtracts it from that account, so the
+> When you record a spend, Sanvya subtracts it from that account, so the
 > number stays true to real life. **This is the one habit that matters** —
 > everything else in the app is built from it.
 
@@ -145,7 +145,7 @@ obvious:
 
 - **Dashboard** — your money at a glance.
 - **Transactions** — everything you've written down.
-- **Budgets** — set a monthly limit and PocketCare tells you when to slow down.
+- **Budgets** — set a monthly limit and Sanvya tells you when to slow down.
 
 Closing reassurance:
 
@@ -160,9 +160,9 @@ Actions: **Finish** · *See what else it does →*
 
 ### Step 5 — Insights
 
-> **PocketCare reads your entries back to you**
+> **Sanvya reads your entries back to you**
 >
-> Once you've written a few things down, PocketCare starts pointing things out
+> Once you've written a few things down, Sanvya starts pointing things out
 > on its own: which category is eating the most, a month that's running hotter
 > than the last, a subscription you may have forgotten.
 >
@@ -172,7 +172,7 @@ Actions: **Finish** · *See what else it does →*
 Icon: `insights`. One real screenshot-free example line, e.g. *"You've spent 32%
 more on eating out this month than last."*
 
-### Step 6 — Ask PocketCare
+### Step 6 — Ask Sanvya
 
 > **Or just ask, in your own words**
 >
@@ -195,7 +195,7 @@ For a **registered user on trial**:
 
 > **Everything is already unlocked for 14 days**
 >
-> Insights, Ask PocketCare and Statements are on right now — no card, nothing to
+> Insights, Ask Sanvya and Statements are on right now — no card, nothing to
 > set up. Use them and see whether they're worth it to you.
 >
 > After 14 days the basics stay free forever: your accounts, transactions,
@@ -206,7 +206,7 @@ Both plans, from `src/billing/plans.ts` so nothing is hard-coded:
 | | Lite | Pro |
 |---|---|---|
 | Price | ₹49/mo · ₹499/yr | ₹99/mo · ₹999/yr |
-| Ask PocketCare | 50 prompts/month | 200 prompts/month |
+| Ask Sanvya | 50 prompts/month | 200 prompts/month |
 | Everything else | unlocked | unlocked |
 
 Actions: **Done** (primary) · *See plans* → `/settings`
@@ -214,7 +214,7 @@ Actions: **Done** (primary) · *See plans* → `/settings`
 For a **guest**, the trial doesn't apply (`TrialNotice` excludes guests), so this
 step says something different and more useful:
 
-> **You're using PocketCare as a guest**
+> **You're using Sanvya as a guest**
 >
 > Your entries live only on this device, and guest data is deleted after a few
 > days. Create a free account to keep it — and you'll get 14 days with
@@ -228,7 +228,7 @@ Actions: **Create a free account** → `/login` · *Later*
 
 `src/ui/TrialNotice.tsx` **already shows a one-time modal** on first login —
 "Your 14-day free trial is live" — keyed on
-`localStorage["pocketcare:trial-welcome:<email>"]`. Left alone, a new user gets
+`localStorage["sanvya:trial-welcome:<email>"]`. Left alone, a new user gets
 that dialog *and* the walkthrough, stacked, saying overlapping things. That is
 worse than either alone.
 

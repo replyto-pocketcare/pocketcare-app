@@ -15,6 +15,7 @@ struct RichInsightUiItem {
 }
 
 struct AssistantView: View {
+    @Binding var isDrawerOpen: Bool
     @Environment(\.dismiss) private var dismiss
 
     @State private var inputText: String = ""
@@ -23,20 +24,20 @@ struct AssistantView: View {
     @State private var messages: [ChatMessageUiItem] = [
         ChatMessageUiItem(
             id: "1",
-            text: "Hello! I'm your PocketCare AI financial assistant. Ask me anything about your spending, splits, budgets, or net worth.",
+            text: "Hello! I'm your Sanvya AI financial assistant. Ask me anything about your spending, splits, budgets, or net worth.",
             isUser: false,
             timeFormatted: "10:14 AM",
             richInsight: nil
         ),
         ChatMessageUiItem(
-            id = "2",
+            id: "2",
             text: "How much did I spend on dining out this month?",
             isUser: true,
             timeFormatted: "10:15 AM",
             richInsight: nil
         ),
         ChatMessageUiItem(
-            id = "3",
+            id: "3",
             text: "You've spent ₹6,400 on Food & Dining in July 2026 across 14 transactions. That's 80% of your ₹8,000 monthly dining budget.",
             isUser: false,
             timeFormatted: "10:15 AM",
@@ -58,35 +59,35 @@ struct AssistantView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text(msg.text)
                                         .font(.subheadline)
-                                        .foregroundColor(msg.isUser ? Theme.cream : Theme.ink)
+                                        .foregroundColor(msg.isUser ? Color.surface : Color.text)
 
                                     if let insight = msg.richInsight {
                                         VStack(alignment: .leading, spacing: 4) {
                                             Text(insight.title)
                                                 .font(.caption2)
                                                 .fontWeight(.bold)
-                                                .foregroundColor(Theme.inkSoft)
+                                                .foregroundColor(Color.text2)
                                             Text(insight.mainStat)
                                                 .font(.headline)
                                                 .fontWeight(.bold)
-                                                .foregroundColor(Theme.terracotta)
+                                                .foregroundColor(Color.accent)
                                             Text(insight.subtitle)
                                                 .font(.caption2)
-                                                .foregroundColor(Theme.ink)
+                                                .foregroundColor(Color.text)
                                         }
                                         .padding(10)
-                                        .background(Theme.clay100)
+                                        .background(Color.surface2)
                                         .cornerRadius(10)
                                     }
                                 }
                                 .padding(14)
-                                .background(msg.isUser ? Theme.terracotta : Theme.cream)
+                                .background(msg.isUser ? Color.accent : Color.surface)
                                 .cornerRadius(16)
                                 .frame(maxWidth: 280, alignment: msg.isUser ? .trailing : .leading)
 
                                 Text(msg.timeFormatted)
                                     .font(.caption2)
-                                    .foregroundColor(Theme.inkSoft)
+                                    .foregroundColor(Color.text2)
                             }
                             .frame(maxWidth: .infinity, alignment: msg.isUser ? .trailing : .leading)
                         }
@@ -99,16 +100,16 @@ struct AssistantView: View {
                     Button(action: { isRecording.toggle() }) {
                         Image(systemName: isRecording ? "stop.fill" : "mic.fill")
                             .font(.system(size: 18))
-                            .foregroundColor(isRecording ? .white : Theme.ink)
+                            .foregroundColor(isRecording ? .white : Color.text)
                             .frame(width: 40, height: 40)
-                            .background(isRecording ? Theme.terracotta : Theme.clay100)
+                            .background(isRecording ? Color.accent : Color.surface2)
                             .clipShape(Circle())
                     }
 
-                    TextField("Ask PocketCare AI…", text: $inputText)
+                    TextField("Ask Sanvya AI…", text: $inputText)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .background(Theme.cream)
+                        .background(Color.surface)
                         .cornerRadius(20)
 
                     Button(action: {
@@ -127,22 +128,34 @@ struct AssistantView: View {
                     }) {
                         Image(systemName: "paperplane.fill")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(Theme.cream)
+                            .foregroundColor(Color.surface)
                             .frame(width: 40, height: 40)
-                            .background(Theme.terracotta)
+                            .background(Color.accent)
                             .clipShape(Circle())
                     }
                 }
                 .padding(12)
-                .background(Theme.cream)
+                .background(Color.surface)
             }
-            .background(Theme.clay50.ignoresSafeArea())
-            .navigationTitle("✨ PocketCare AI")
+            .background(Color.bg.ignoresSafeArea())
+            .navigationTitle("✨ Sanvya AI")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        withAnimation(.spring()) {
+                            isDrawerOpen.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "line.3.horizontal")
+                            .imageScale(.large)
+                    }
+                }
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
-                        .foregroundColor(Theme.inkSoft)
+                        .foregroundColor(Color.text2)
                 }
             }
         }
@@ -150,5 +163,5 @@ struct AssistantView: View {
 }
 
 #Preview {
-    AssistantView()
+    AssistantView(isDrawerOpen: .constant(false))
 }

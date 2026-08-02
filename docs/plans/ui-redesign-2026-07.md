@@ -89,14 +89,14 @@ New synced table, plus a nullable FK on the existing template row.
 **`supabase/migrations/0045_recurring_groups.sql`**
 
 ```
-pocketcare.recurring_groups
+sanvya.recurring_groups
   id uuid pk · user_id uuid → auth.users on delete cascade
   name text · direction text check in ('income','payment','saving')
   icon text · color text · sort int · is_system boolean default false
   created_at · updated_at · deleted_at
 + unique index on (user_id, direction, lower(name)) where deleted_at is null
 
-alter table pocketcare.transaction_templates
+alter table sanvya.transaction_templates
   add column if not exists group_id uuid;   -- see "why nullable in Postgres"
 ```
 
@@ -121,7 +121,7 @@ grants, every function call schema-qualified, `if not exists` on table/index,
 
 So the column stays nullable in Postgres, the **UI makes it impossible to
 create or save an item without a group**, and (following the
-`audit_expense_item_sums()` precedent) a `pocketcare.audit_ungrouped_recurring()`
+`audit_expense_item_sums()` precedent) a `sanvya.audit_ungrouped_recurring()`
 function makes any violation *observable* server-side without being able to
 wedge anything.
 
@@ -133,7 +133,7 @@ wedge anything.
    `table transaction_templates has no column named group_id` on read *and* write.
 2. Migration (above).
 3. `packages/db/sync-streams.yaml` — add
-   `SELECT * FROM pocketcare.recurring_groups WHERE user_id = auth.user_id()`
+   `SELECT * FROM sanvya.recurring_groups WHERE user_id = auth.user_id()`
    to `user_data`. The templates query is already `SELECT *`, so the new column
    comes along automatically.
 4. `supabase db push` **and** deploy the Sync Streams config in the PowerSync dashboard.
@@ -295,7 +295,7 @@ They render in the text font — hence thin — and several are arbitrary
 
 **One correction to your choice, worth making explicitly.** You picked Material
 Symbols via CDN. Same icons, but I'd **self-host the woff2** instead, because
-PocketCare is an offline-first PWA:
+Sanvya is an offline-first PWA:
 
 - a CDN font is a third-party request that **fails offline** — the nav would
   show raw ligature text (`space_dashboard`) instead of icons;
@@ -319,7 +319,7 @@ Identical glyphs, no downside. Tell me if you'd still rather use the CDN.
   | Item | Symbol | Item | Symbol |
   |---|---|---|---|
   | Dashboard | `space_dashboard` | Budgets | `donut_small` |
-  | Ask PocketCare | `auto_awesome` | Goals | `flag` |
+  | Ask Sanvya | `auto_awesome` | Goals | `flag` |
   | Accounts | `account_balance` | Planned Cashflow | `waterfall_chart` |
   | Transactions | `swap_horiz` | Recurring | `autorenew` |
   | Templates | `bookmarks` | Loans | `request_quote` |
@@ -495,7 +495,7 @@ or a popover. Worth keeping as a dev-only check.
 
 ## Verification
 
-1. `pnpm --filter @pocketcare/web typecheck` (or `cd apps/web && ../../node_modules/.bin/tsc --noEmit`).
+1. `pnpm --filter @sanvya/web typecheck` (or `cd apps/web && ../../node_modules/.bin/tsc --noEmit`).
 2. `node --test --experimental-strip-types packages/core/*/src/*.test.ts` — the
    new insight generators are pure, so `genDividends` / `genProjection` get unit
    tests (empty-holdings → `[]`, bucket maths, no-crash on zero portfolio value).
@@ -508,7 +508,7 @@ or a popover. Worth keeping as a dev-only check.
    - deleting a non-empty group forces a destination and moves the items;
    - a profile with pre-existing recurring items shows the triage strip, and the
      strip disappears permanently once cleared;
-   - `pocketcare.audit_ungrouped_recurring()` returns zero rows afterwards;
+   - `sanvya.audit_ungrouped_recurring()` returns zero rows afterwards;
    - `/recurring?add=income` still opens the modal (Planned Cashflow deep link).
 5. Offline check: DevTools → Offline, hard reload — nav icons must still render
    as glyphs, not words.

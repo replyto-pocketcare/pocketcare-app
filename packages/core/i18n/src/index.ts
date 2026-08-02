@@ -1,7 +1,7 @@
 /**
- * @pocketcare/i18n — shared internationalization layer for mobile + web.
+ * @sanvya/i18n — shared internationalization layer for mobile + web.
  * i18next handles translation + ICU pluralization; number/date/currency
- * formatting is delegated to the platform `Intl` APIs (see @pocketcare/money).
+ * formatting is delegated to the platform `Intl` APIs (see @sanvya/money).
  */
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";

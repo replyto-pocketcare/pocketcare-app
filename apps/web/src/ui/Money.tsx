@@ -1,6 +1,6 @@
 "use client";
 
-import { format, type Money as MoneyT } from "@pocketcare/money";
+import { format, type Money as MoneyT } from "@sanvya/money";
 import { useAmountsHidden } from "../prefs";
 
 /**

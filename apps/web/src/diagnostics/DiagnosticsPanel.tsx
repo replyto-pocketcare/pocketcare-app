@@ -125,7 +125,7 @@ export function DiagnosticsPanel() {
       // navigator.share is the good path on a phone — it opens WhatsApp,
       // Mail, wherever — and is exactly where this needs to end up.
       if (typeof navigator !== "undefined" && navigator.share) {
-        await navigator.share({ title: "PocketCare diagnostics", text });
+        await navigator.share({ title: "Sanvya diagnostics", text });
         return;
       }
       await navigator.clipboard?.writeText(text);

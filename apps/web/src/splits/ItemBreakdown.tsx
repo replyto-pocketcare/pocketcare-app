@@ -10,8 +10,8 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { money } from "@pocketcare/money";
-import { qtyToMajor } from "@pocketcare/receipts";
+import { money } from "@sanvya/money";
+import { qtyToMajor } from "@sanvya/receipts";
 
 import { useMoneyFmt } from "../ui/Money";
 import { useExpenseItems, useItemShareMap, useMyUserId, useUserProfiles } from "./hooks";

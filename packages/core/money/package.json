@@ -1,5 +1,5 @@
 {
-  "name": "@pocketcare/money",
+  "name": "@sanvya/money",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@pocketcare/types": "workspace:*"
+    "@sanvya/types": "workspace:*"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

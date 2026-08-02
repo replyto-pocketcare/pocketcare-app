@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "care.pocket.android"
+    namespace = "com.sanvya.app"
     // PLACEHOLDER — confirm the real reverse-DNS applicationId before any
     // store submission (plan §10; same open item as the RN scaffold hit).
     // compileSdk/targetSdk 36: Google Play requires new apps/updates to
@@ -16,7 +16,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "care.pocket.android"
+        applicationId = "com.sanvya.app"
         // PLACEHOLDER — proposal only, needs a human "yes" (plan §10).
         // 26 = Android 8.0 (Oreo). Covers the vast majority of active
         // devices while giving access to modern Compose/notification APIs
@@ -60,5 +60,12 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
     debugImplementation(libs.compose.ui.tooling)
+    
+    implementation(project(":data"))
+    
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
 }

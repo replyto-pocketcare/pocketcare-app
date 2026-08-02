@@ -26,9 +26,9 @@
  *  - manually-marked EMIs are skipped: that dialog already made the posting
  *    decision (the user picked an account there, or chose not to record).
  */
-import { effectivePaidEmis, emiDueDate } from "@pocketcare/finance";
-import { money } from "@pocketcare/money";
-import type { CurrencyCode } from "@pocketcare/types";
+import { effectivePaidEmis, emiDueDate } from "@sanvya/finance";
+import { money } from "@sanvya/money";
+import type { CurrencyCode } from "@sanvya/types";
 import { getDb, getRepositories } from "../powersync";
 import { emiDescription, getLoanFundingAccount } from "./funding";
 

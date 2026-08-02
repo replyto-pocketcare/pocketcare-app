@@ -18,7 +18,7 @@ public extension Container {
 
     var powerSyncDatabase: Factory<PowerSyncDatabaseProtocol> {
         self {
-            let powersyncTables = SanvyaSchema.tables.map { tableDef in
+            let powersyncTables = PocketCareSchema.tables.map { tableDef in
                 Table(
                     name: tableDef.name,
                     columns: tableDef.columns.map { col in
@@ -43,7 +43,7 @@ public extension Container {
                 )
             }
             let schema = Schema(tables: powersyncTables)
-            return try! PowerSyncDatabase(schema: schema, dbFilename: "sanvya.db")
+            return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
         }.singleton
     }
 

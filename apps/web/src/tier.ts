@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { Tier } from "@pocketcare/types";
+import type { Tier } from "@sanvya/types";
 
 /**
  * Local, reactive entitlement override used for the Free/Premium preview toggle.

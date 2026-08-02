@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter, useSearchParams } from "next/navigation";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { softDelete } from "../../src/write";

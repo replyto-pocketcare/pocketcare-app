@@ -1,15 +1,15 @@
 "use client";
 
 import { useQuery } from "@powersync/react";
-import { money, convert, type Money } from "@pocketcare/money";
+import { money, convert, type Money } from "@sanvya/money";
 import {
   deriveBalance,
   aggregateNetWorth,
   type LedgerEntry,
   type AccountBalance,
   type RateLookup,
-} from "@pocketcare/ledger";
-import type { Account, ExchangeRate } from "@pocketcare/types";
+} from "@sanvya/ledger";
+import type { Account, ExchangeRate } from "@sanvya/types";
 
 // Entitlement tier comes from a local reactive store (see src/tier.ts).
 export { useTier } from "./tier";

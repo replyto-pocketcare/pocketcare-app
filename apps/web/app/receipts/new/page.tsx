@@ -13,8 +13,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { reconcile } from "@pocketcare/receipts";
-import type { ReceiptDraft } from "@pocketcare/receipts";
+import { reconcile } from "@sanvya/receipts";
+import type { ReceiptDraft } from "@sanvya/receipts";
 
 import { useBaseCurrency } from "../../../src/hooks";
 import { useEntitlement } from "../../../src/entitlement";

@@ -32,7 +32,7 @@
   },
   "settings": {
     "title": "Je UPI-ID",
-    "intro": "Voeg je UPI-ID toe zodat vrienden je vanuit PocketCare kunnen terugbetalen. Het geld gaat rechtstreeks naar je bank — wij houden het nooit vast.",
+    "intro": "Voeg je UPI-ID toe zodat vrienden je vanuit Sanvya kunnen terugbetalen. Het geld gaat rechtstreeks naar je bank — wij houden het nooit vast.",
     "guestBlocked": "Maak een account aan om een UPI-ID toe te voegen. In een gastsessie kunnen geen betaalgegevens worden opgeslagen.",
     "label": "UPI-ID",
     "current": "Jouw UPI-ID",
@@ -49,7 +49,7 @@
   },
   "payAnyone": {
     "title": "Iemand betalen",
-    "subtitle": "Opent je eigen UPI-app. PocketCare bewaart of verplaatst het geld nooit.",
+    "subtitle": "Opent je eigen UPI-app. Sanvya bewaart of verplaatst het geld nooit.",
     "upiId": "UPI-ID",
     "scanCta": "QR-code scannen",
     "scanHint": "Richt de camera op een UPI QR-code",
@@ -57,7 +57,7 @@
     "amount": "Bedrag",
     "notePlaceholder": "Notitie (optioneel)",
     "claimsName": "De code zegt: {{name}} — je UPI-app toont de echte rekeningnaam",
-    "footnote": "Controleer de rekeningnaam in je UPI-app voordat je bevestigt. PocketCare kan niet verifiëren van wie een UPI-ID is.",
+    "footnote": "Controleer de rekeningnaam in je UPI-app voordat je bevestigt. Sanvya kan niet verifiëren van wie een UPI-ID is.",
     "pay": "UPI-app openen",
     "payAmount": "UPI-app openen",
     "close": "Sluiten",

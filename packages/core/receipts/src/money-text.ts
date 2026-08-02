@@ -1,7 +1,7 @@
 /**
  * Parsing money and quantities out of OCR text.
  *
- * Deliberately separate from `@pocketcare/money`: that package deals in
+ * Deliberately separate from `@sanvya/money`: that package deals in
  * already-trusted values, this one deals in whatever a thermal printer and an
  * OCR engine conspired to produce. Everything here returns `null` rather than
  * guessing, because a wrong amount is far worse than an unread one.

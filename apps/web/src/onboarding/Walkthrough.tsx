@@ -26,8 +26,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { fromMajor, money } from "@pocketcare/money";
-import type { CurrencyCode } from "@pocketcare/types";
+import { fromMajor, money } from "@sanvya/money";
+import type { CurrencyCode } from "@sanvya/types";
 import { PLANS, price } from "../billing/plans";
 import { getRepositories } from "../powersync";
 import { useBaseCurrency } from "../hooks";
@@ -182,13 +182,13 @@ export function Walkthrough() {
   const of = partA ? 4 : 3;
 
   return (
-    <Modal open={open} onClose={skip} label={t("wt.dialogLabel", "Getting started with PocketCare")}>
+    <Modal open={open} onClose={skip} label={t("wt.dialogLabel", "Getting started with Sanvya")}>
       <div style={{ display: "grid", gap: 18 }}>
         {/* ---- Step 1: what this app IS ---- */}
         {step === 1 && (
           <>
-            <StepHeader icon="volunteer_activism" step={num} of={of} title={t("wt.intro.title", "Welcome to PocketCare")} />
-            <p style={BODY}>{t("wt.intro.p1", "PocketCare is your private money diary. You write down what you spend and earn, and it shows you where your money is actually going.")}</p>
+            <StepHeader icon="volunteer_activism" step={num} of={of} title={t("wt.intro.title", "Welcome to Sanvya")} />
+            <p style={BODY}>{t("wt.intro.p1", "Sanvya is your private money diary. You write down what you spend and earn, and it shows you where your money is actually going.")}</p>
             <p style={STRONG}>{t("wt.intro.p2", "It is not connected to your bank.")}</p>
             <p style={BODY}>{t("wt.intro.p3", "We never ask for your bank login, card number or OTP, and we can't see your bank at all.")}</p>
             <p style={BODY}>{t("wt.intro.p4", "Nothing is tracked automatically — you'll type your spends in yourself. That's deliberate: the few seconds it takes is what makes you notice where your money goes, and noticing is the whole point.")}</p>
@@ -232,7 +232,7 @@ export function Walkthrough() {
           <>
             <StepHeader icon="receipt_long" step={num} of={of} title={t("wt.spend.title", "Now write down one thing you spent")} />
             <p style={BODY}>{t("wt.spend.p1", "Think of the last thing you paid for — tea, groceries, a bill.")}</p>
-            <p style={BODY}>{t("wt.spend.p2", "When you record a spend, PocketCare subtracts it from that account, so the number stays true to real life.")}</p>
+            <p style={BODY}>{t("wt.spend.p2", "When you record a spend, Sanvya subtracts it from that account, so the number stays true to real life.")}</p>
             <p style={STRONG}>{t("wt.spend.p3", "This is the one habit that matters — everything else in the app is built from it.")}</p>
 
             <label style={{ display: "grid", gap: 6 }}>
@@ -264,7 +264,7 @@ export function Walkthrough() {
             <div style={{ display: "grid", gap: 12 }}>
               <Where icon="space_dashboard" title={t("wt.done.dashTitle", "Dashboard")} body={t("wt.done.dashBody", "Your money at a glance.")} />
               <Where icon="swap_horiz" title={t("wt.done.txnTitle", "Transactions")} body={t("wt.done.txnBody", "Everything you've written down.")} />
-              <Where icon="donut_small" title={t("wt.done.budgetTitle", "Budgets")} body={t("wt.done.budgetBody", "Set a monthly limit and PocketCare tells you when to slow down.")} />
+              <Where icon="donut_small" title={t("wt.done.budgetTitle", "Budgets")} body={t("wt.done.budgetBody", "Set a monthly limit and Sanvya tells you when to slow down.")} />
             </div>
             <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.5, margin: 0 }}>
               {t("wt.done.privacy", "Your data is yours. It stays on your device and in your private account — we don't share it, and nobody else can see it.")}
@@ -279,8 +279,8 @@ export function Walkthrough() {
         {/* ---- Step 5: insights ---- */}
         {step === 5 && (
           <>
-            <StepHeader icon="insights" step={num} of={of} title={t("wt.insights.title", "PocketCare reads your entries back to you")} />
-            <p style={BODY}>{t("wt.insights.p1", "Once you've written a few things down, PocketCare starts pointing things out on its own: which category is eating the most, a month running hotter than the last, a subscription you may have forgotten.")}</p>
+            <StepHeader icon="insights" step={num} of={of} title={t("wt.insights.title", "Sanvya reads your entries back to you")} />
+            <p style={BODY}>{t("wt.insights.p1", "Once you've written a few things down, Sanvya starts pointing things out on its own: which category is eating the most, a month running hotter than the last, a subscription you may have forgotten.")}</p>
             <div className="card" style={{ padding: 12, background: "var(--surface-2)" }}>
               <p style={{ ...BODY, fontSize: 14, fontStyle: "italic" }}>{t("wt.insights.eg", "\"You've spent 32% more on eating out this month than last.\"")}</p>
             </div>
@@ -289,7 +289,7 @@ export function Walkthrough() {
           </>
         )}
 
-        {/* ---- Step 6: Ask PocketCare ---- */}
+        {/* ---- Step 6: Ask Sanvya ---- */}
         {step === 6 && (
           <>
             <StepHeader icon="auto_awesome" step={num} of={of} title={t("wt.ask.title", "Or just ask, in your own words")} />
@@ -307,7 +307,7 @@ export function Walkthrough() {
           <>
             {isGuest ? (
               <>
-                <StepHeader icon="person" step={num} of={of} title={t("wt.guest.title", "You're using PocketCare as a guest")} />
+                <StepHeader icon="person" step={num} of={of} title={t("wt.guest.title", "You're using Sanvya as a guest")} />
                 <p style={BODY}>{t("wt.guest.p1", "Your entries live only on this device, and guest data is deleted after a few days. Create a free account to keep it — and you'll get 14 days with everything unlocked.")}</p>
                 <Actions
                   primary={t("wt.guest.cta", "Create a free account")}
@@ -322,7 +322,7 @@ export function Walkthrough() {
                     ? t("wt.plan.titleTrial", "Everything is already unlocked for 14 days")
                     : t("wt.plan.title", "What's free, and what's not")} />
                 {onTrial && (
-                  <p style={BODY}>{t("wt.plan.trial", "Insights, Ask PocketCare and Statements are on right now — no card, nothing to set up. Use them and see whether they're worth it to you.")}</p>
+                  <p style={BODY}>{t("wt.plan.trial", "Insights, Ask Sanvya and Statements are on right now — no card, nothing to set up. Use them and see whether they're worth it to you.")}</p>
                 )}
                 <p style={BODY}>{t("wt.plan.free", "The basics stay free forever: your accounts, transactions, budgets and search.")}</p>
 
@@ -336,7 +336,7 @@ export function Walkthrough() {
                         </span>
                       </div>
                       <span className="muted" style={{ fontSize: 13.5 }}>
-                        {t("wt.plan.quota", { count: PLANS[id].quota, defaultValue: "{{count}} Ask PocketCare questions a month · everything else unlocked" })}
+                        {t("wt.plan.quota", { count: PLANS[id].quota, defaultValue: "{{count}} Ask Sanvya questions a month · everything else unlocked" })}
                       </span>
                     </div>
                   ))}

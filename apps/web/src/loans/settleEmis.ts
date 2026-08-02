@@ -13,7 +13,7 @@
  * would otherwise silently clear an EMI the user hasn't actually cleared.
  */
 
-import { effectivePaidEmis, emiDueDate } from "@pocketcare/finance";
+import { effectivePaidEmis, emiDueDate } from "@sanvya/finance";
 import { getDb } from "../powersync";
 import { updateRow } from "../write";
 

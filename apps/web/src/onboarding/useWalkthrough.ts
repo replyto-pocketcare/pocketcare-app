@@ -16,8 +16,8 @@ import { useInitialSyncPending } from "../sync";
 import { useSession } from "../account";
 import { trialWelcomeSeenKey } from "../ui/TrialNotice";
 
-const DONE_KEY = "pocketcare:walkthroughDone";
-const SKIP_KEY = "pocketcare:walkthroughSkipped"; // sessionStorage — this session only
+const DONE_KEY = "sanvya:walkthroughDone";
+const SKIP_KEY = "sanvya:walkthroughSkipped"; // sessionStorage — this session only
 
 const readLocal = (k: string) => {
   try { return localStorage.getItem(k) === "1"; } catch { return false; }

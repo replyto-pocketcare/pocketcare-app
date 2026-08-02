@@ -1,6 +1,6 @@
-# PocketCare Design System
+# Sanvya Design System
 
-Reference for the visual language (from `design rewamp/Split debt visualization design/PocketCare.dc.html`). Source of truth for tokens is `apps/web/app/globals.css` `:root`.
+Reference for the visual language (from `design rewamp/Split debt visualization design/Sanvya.dc.html`). Source of truth for tokens is `apps/web/app/globals.css` `:root`.
 
 ## Fonts
 - **Inter** (sans) — the single app typeface: headings, body, labels, buttons, nav, figures. Loaded via Google Fonts in `apps/web/app/layout.tsx`. Token: `--font`.

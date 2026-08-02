@@ -2,8 +2,8 @@
 // from PowerSync) and returns zero or more InsightCards. No I/O here — trivially
 // testable and portable to a backend later.
 
-import { money, format } from "@pocketcare/money";
-import type { CurrencyCode } from "@pocketcare/types";
+import { money, format } from "@sanvya/money";
+import type { CurrencyCode } from "@sanvya/types";
 import type { InsightCard, SeriesPoint } from "./types";
 
 // ---- Aggregate inputs (amounts in MINOR units unless noted) ----

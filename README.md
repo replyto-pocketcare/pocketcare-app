@@ -1,4 +1,4 @@
-# PocketCare
+# Sanvya
 
 Offline-first, cross-device (iOS / Android / Web), multi-currency, multi-language expense & wealth manager. Earthy, minimal design.
 
@@ -43,7 +43,7 @@ The financial logic runs and is tested in isolation — no Supabase/PowerSync re
 pnpm test:core
 ```
 
-This runs the `@pocketcare/money` and `@pocketcare/finance` test suites via Node's built-in test runner (TypeScript is type-stripped, no build step).
+This runs the `@sanvya/money` and `@sanvya/finance` test suites via Node's built-in test runner (TypeScript is type-stripped, no build step).
 
 ## Connect the backend (Supabase + PowerSync)
 
@@ -57,11 +57,11 @@ Phase 0 ships the client scaffold. To make it sync, wire up the two services:
 
 ```bash
 # Web
-pnpm --filter @pocketcare/web dev
+pnpm --filter @sanvya/web dev
 
 # Mobile (creates/uses a dev build)
-pnpm --filter @pocketcare/mobile prebuild
-pnpm --filter @pocketcare/mobile ios      # or: android
+pnpm --filter @sanvya/mobile prebuild
+pnpm --filter @sanvya/mobile ios      # or: android
 ```
 
 ## Financial-integrity rules (do not violate)

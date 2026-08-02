@@ -10,7 +10,7 @@
  */
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { isValidVpa, maskVpa, normalizeVpa } from "@pocketcare/upi";
+import { isValidVpa, maskVpa, normalizeVpa } from "@sanvya/upi";
 
 import { useSession } from "../account";
 import { useUserProfiles } from "../splits/hooks";
@@ -85,7 +85,7 @@ export function PaymentHandlePanel() {
         <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
           {t(
             "settings.intro",
-            "Add your UPI ID so friends can pay you back from inside PocketCare. Money goes straight to your bank — we never hold it.",
+            "Add your UPI ID so friends can pay you back from inside Sanvya. Money goes straight to your bank — we never hold it.",
           )}
         </p>
       </div>

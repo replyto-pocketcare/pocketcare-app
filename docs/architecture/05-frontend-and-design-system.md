@@ -24,7 +24,7 @@ Responsibilities of `AppShell`:
 
 ## State model
 
-PocketCare has very little global UI state — **the database is the state**. Reactive queries (`useQuery` from `@powersync/react`) re-render components when local SQLite changes.
+Sanvya has very little global UI state — **the database is the state**. Reactive queries (`useQuery` from `@powersync/react`) re-render components when local SQLite changes.
 
 ```mermaid
 flowchart LR

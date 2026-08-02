@@ -1,7 +1,7 @@
 # PWA & Offline
 
 ## Overview
-PocketCare installs as a **Progressive Web App** (home-screen icon, standalone window) and works fully offline. The service worker caches the app shell; PowerSync provides offline data (see [03 — Sync & Offline](../architecture/03-sync-and-offline.md)).
+Sanvya installs as a **Progressive Web App** (home-screen icon, standalone window) and works fully offline. The service worker caches the app shell; PowerSync provides offline data (see [03 — Sync & Offline](../architecture/03-sync-and-offline.md)).
 
 ## User flow
 ```mermaid

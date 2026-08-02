@@ -1,7 +1,7 @@
 # Sync recovery (fault tolerance)
 
 ## Overview
-PocketCare is offline-first: you write to local SQLite and PowerSync uploads later. That upload queue is **strictly ordered and retried forever**, which is exactly right when the network is down and exactly wrong when the server *refuses* a write. A rejected write can never succeed, so it retries forever — and everything queued behind it is frozen too. The app looks fine. Nothing saves.
+Sanvya is offline-first: you write to local SQLite and PowerSync uploads later. That upload queue is **strictly ordered and retried forever**, which is exactly right when the network is down and exactly wrong when the server *refuses* a write. A rejected write can never succeed, so it retries forever — and everything queued behind it is frozen too. The app looks fine. Nothing saves.
 
 That is not hypothetical; it happened, and recovering from it destroyed data.
 

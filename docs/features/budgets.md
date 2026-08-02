@@ -18,7 +18,7 @@ flowchart TD
 ```mermaid
 flowchart LR
     Budget["budgets + budget_categories + budget_labels"] --> Spent["spentThisPeriod()\n(sum matching transactions in window)"]
-    Spent --> Prog["budgetProgress(limit, spent, threshold)\n@pocketcare/budget"]
+    Spent --> Prog["budgetProgress(limit, spent, threshold)\n@sanvya/budget"]
     Prog --> Bar["Animated ProgressBar + tone"]
 ```
 
@@ -26,7 +26,7 @@ flowchart LR
 `budgets`, `budget_categories`, `budget_labels`, `transactions` (spend within the period window), `categories`/`labels`, `periods` lookup.
 
 ## Key files
-`app/budgets/`, `@pocketcare/budget` (`budgetProgress`), `src/ui/ProgressBar.tsx`.
+`app/budgets/`, `@sanvya/budget` (`budgetProgress`), `src/ui/ProgressBar.tsx`.
 
 ## Gating
 Free tier: a single simple budget. Premium: multiple budgets + threshold notifications.

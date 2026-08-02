@@ -17,8 +17,8 @@
  * user's sync, so the gate is deliberately not a runtime toggle.
  */
 import { useEffect, useState } from "react";
-import { getFaultInjection, setFaultInjection, type FaultInjection } from "@pocketcare/db";
-import { classifyFailure, explainForUser, MAX_PERMANENT_ATTEMPTS } from "@pocketcare/sync-policy";
+import { getFaultInjection, setFaultInjection, type FaultInjection } from "@sanvya/db";
+import { classifyFailure, explainForUser, MAX_PERMANENT_ATTEMPTS } from "@sanvya/sync-policy";
 
 /** The failures that have actually bitten us, plus the common transient ones. */
 const PRESETS: { label: string; code: string; status: number; note: string }[] = [

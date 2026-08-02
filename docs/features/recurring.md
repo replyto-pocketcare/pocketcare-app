@@ -43,7 +43,7 @@ in two SEPARATE transactions. A `NOT NULL` + `REFERENCES` template row arriving
 before its group row raises `23503`, retries 3×, then quarantines — the exact
 head-of-line block migration 0040 caused and 0042 had to remove. The invariant is
 enforced client-side, where the whole set is known at once, and made observable
-server-side by `pocketcare.audit_ungrouped_recurring()`.
+server-side by `sanvya.audit_ungrouped_recurring()`.
 
 ### Seeding is safe on two devices at once
 Default group ids are a deterministic UUID v5 of `(user_id, direction:slug)`, so

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
-import { money, fromMajor, toMajor } from "@pocketcare/money";
+import { money, fromMajor, toMajor } from "@sanvya/money";
 import { useBaseCurrency, useAccountBalances, useConvertAmount, useRates } from "../../src/hooks";
 import { updateRow, softDelete } from "../../src/write";
 import { FloatingInput } from "../../src/ui/FloatingInput";

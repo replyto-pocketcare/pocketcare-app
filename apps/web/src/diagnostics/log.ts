@@ -12,11 +12,11 @@
  * reload or a crash, fed by console.error/warn, window errors, unhandled
  * rejections, and explicit structured calls from the sync layer.
  *
- * EVERY entry is redacted on the way in (see @pocketcare/diagnostics). Nothing
+ * EVERY entry is redacted on the way in (see @sanvya/diagnostics). Nothing
  * unscrubbed is ever stored, so there is no path by which a support log leaks
  * someone's spending — not even if it's later attached to a bug report.
  */
-import { formatLog, makeEntry, type LogEntry, type LogLevel } from "@pocketcare/diagnostics";
+import { formatLog, makeEntry, type LogEntry, type LogLevel } from "@sanvya/diagnostics";
 
 /** Enough to cover a session's worth of trouble without bloating localStorage. */
 const MAX_ENTRIES = 150;

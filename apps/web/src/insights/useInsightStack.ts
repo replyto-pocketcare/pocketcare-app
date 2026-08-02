@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@powersync/react";
-import type { CurrencyCode } from "@pocketcare/types";
+import type { CurrencyCode } from "@sanvya/types";
 import { useBaseCurrency } from "../prefs";
 import { useRates } from "../hooks";
 import { computeDividendEvents, bucketize, dividendSummary, type HoldingLite, type DivRow } from "../market/dividends";

@@ -20,7 +20,7 @@ struct CreateGoalView: View {
                     HStack {
                         Text("₹")
                             .font(.headline)
-                            .foregroundColor(Theme.terracotta)
+                            .foregroundColor(Color.accent)
                         TextField("500000", text: $targetText)
                             .keyboardType(.numberPad)
                     }
@@ -30,7 +30,7 @@ struct CreateGoalView: View {
                     HStack {
                         Text("₹")
                             .font(.headline)
-                            .foregroundColor(Theme.sage)
+                            .foregroundColor(Color.positive)
                         TextField("0", text: $initialAllocationText)
                             .keyboardType(.numberPad)
                     }
@@ -44,9 +44,9 @@ struct CreateGoalView: View {
                             .font(.headline)
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(Theme.cream)
+                            .foregroundColor(Color.surface)
                     }
-                    .listRowBackground(Theme.terracotta)
+                    .listRowBackground(Color.accent)
                 }
             }
             .navigationTitle("New Goal")
@@ -54,7 +54,7 @@ struct CreateGoalView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(Theme.inkSoft)
+                        .foregroundColor(Color.text2)
                 }
             }
         }

@@ -158,7 +158,7 @@ export function summarizeQueue(ops: readonly QueuedOp[]): string {
     : `${ops.length} pending (${parts})`;
 }
 
-/** `pocketcare.split_group_members` -> `split_group_members`. */
+/** `sanvya.split_group_members` -> `split_group_members`. */
 export function stripSchema(table: string): string {
   const dot = table.lastIndexOf(".");
   return dot >= 0 ? table.slice(dot + 1) : table;

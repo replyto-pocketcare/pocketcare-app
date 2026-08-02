@@ -3,7 +3,7 @@
   "introPre": "Maak een back-up van je transacties naar een CSV-bestand, of haal gegevens binnen uit een CSV. ",
   "backToSettings": "Terug naar instellingen",
   "export": "Exporteren",
-  "exportNote": "Downloadt al je transacties als CSV in het eigen formaat van PocketCare — dat je hier altijd opnieuw kunt importeren.",
+  "exportNote": "Downloadt al je transacties als CSV in het eigen formaat van Sanvya — dat je hier altijd opnieuw kunt importeren.",
   "preparing": "Voorbereiden…",
   "exportBtn": "Transacties exporteren (CSV)",
   "noExport": "Nog geen transacties om te exporteren.",

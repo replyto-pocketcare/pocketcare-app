@@ -11,7 +11,7 @@
  * only the convenience is local.
  */
 
-const KEY = (loanId: string) => `pocketcare:loanFunding:${loanId}`;
+const KEY = (loanId: string) => `sanvya:loanFunding:${loanId}`;
 
 export function getLoanFundingAccount(loanId: string): string | null {
   try { return localStorage.getItem(KEY(loanId)); } catch { return null; }

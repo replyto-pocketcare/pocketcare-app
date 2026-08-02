@@ -37,7 +37,7 @@ import Domain
 // Phase 5 aggregation ships, reconcile the two.
 //
 // Table columns confirmed against the generated schema descriptor
-// (SanvyaSchema.swift, P2.1) and against
+// (PocketCareSchema.swift, P2.1) and against
 // supabase/migrations/0001_init.sql, not assumed.
 //
 // PowerSync Swift SDK call shapes (get/getOptional/getAll/execute/

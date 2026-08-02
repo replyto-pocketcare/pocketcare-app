@@ -198,7 +198,7 @@ test("buildIntentUrl: a name with punctuation is sanitised, not dropped", () => 
 
 test("buildIntentUrl: an empty name falls back rather than sending pn=", () => {
   const { url } = buildIntentUrl(params({ name: "   " }));
-  assert.equal(param(url, "pn"), "PocketCare");
+  assert.equal(param(url, "pn"), "Sanvya");
 });
 
 test("buildIntentUrl: unicode names survive encoding", () => {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
-import { money } from "@pocketcare/money";
+import { money } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { Modal } from "../../src/ui/Modal";
@@ -483,7 +483,7 @@ export default function SplitsPage() {
 
 /**
  * Headline patterns across every group you share. The ranking logic lives in
- * `@pocketcare/splits-insights` (pure + unit-tested); this only renders it.
+ * `@sanvya/splits-insights` (pure + unit-tested); this only renders it.
  *
  * Renders NOTHING when there isn't enough history — a section that says
  * "biggest lender: someone, ₹0" on a two-expense ledger teaches people to

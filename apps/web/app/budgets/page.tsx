@@ -3,9 +3,9 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { useQuery } from "@powersync/react";
-import { money, format, fromMajor, toMajor, type Money } from "@pocketcare/money";
-import { budgetProgress } from "@pocketcare/budget";
-import type { Period } from "@pocketcare/types";
+import { money, format, fromMajor, toMajor, type Money } from "@sanvya/money";
+import { budgetProgress } from "@sanvya/budget";
+import type { Period } from "@sanvya/types";
 import { getRepositories, getDb, getUserId } from "../../src/powersync";
 import { insertRow, updateRow, softDelete, uuid, nowIso } from "../../src/write";
 import { useBaseCurrency } from "../../src/hooks";
@@ -18,7 +18,7 @@ import { Modal } from "../../src/ui/Modal";
 import { useConfirm } from "../../src/ui/Confirm";
 import { ListSkeleton } from "../../src/ui/Skeleton";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, ReferenceLine, Tooltip } from "recharts";
-import type { BudgetLike } from "@pocketcare/data";
+import type { BudgetLike } from "@sanvya/data";
 
 const PERIODS: Period[] = ["daily", "weekly", "monthly", "yearly"];
 const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
