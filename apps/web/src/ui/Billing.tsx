@@ -25,8 +25,8 @@ export function Billing() {
   const { data: payments = [] } = useQuery<InvoicePayment>(
     "SELECT id, created_at, kind, amount, currency, credits_added, razorpay_payment_id, razorpay_order_id, status FROM payments WHERE status = 'captured' ORDER BY created_at DESC LIMIT 50",
   );
-  const { data: offers = [] } = useQuery<{ id: string; tier: string; cycle: string; price: number; label: string }>(
-    "SELECT id, tier, cycle, price, label FROM price_offers WHERE active = 1 AND (ends_at IS NULL OR ends_at > datetime('now'))",
+  const { data: offers = [] } = useQuery<{ id: string; tier: string; cycle: string; price: number; label: string; ends_at: string | null }>(
+    "SELECT id, tier, cycle, price, label, ends_at FROM price_offers WHERE active = 1 AND (ends_at IS NULL OR ends_at > datetime('now'))",
   );
   // Default to the user's ACTUAL plan/cycle (which may load after first render),
   // then stick to whatever they pick.
@@ -93,6 +93,7 @@ export function Billing() {
             <span className="muted" style={{ fontSize: 12 }}>/{cycle === "yearly" ? "yr" : "mo"}</span>
           </span>
         </div>
+        {offer?.ends_at && <div style={{ fontSize: 11, textAlign: "right", color: "var(--positive)", marginTop: -4 }}>Valid until {new Date(offer.ends_at).toLocaleDateString()}</div>}
         <div className="muted" style={{ fontSize: 12.5 }}>{p.blurb} <strong>{p.quota} AI prompts/mo.</strong></div>
         {isCurrent ? (
           <button className="chip" disabled style={{ justifySelf: "start", opacity: 0.7 }}>Current plan</button>
