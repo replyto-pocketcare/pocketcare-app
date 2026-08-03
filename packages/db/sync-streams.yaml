@@ -59,6 +59,14 @@ streams:
         SELECT pocketcare.audience_groups.* FROM pocketcare.audience_groups
         JOIN pocketcare.audience_group_members ON pocketcare.audience_groups.id = pocketcare.audience_group_members.group_id
         WHERE pocketcare.audience_group_members.user_id = auth.user_id()
+      # --- active price offers ---
+      - >
+        SELECT pocketcare.price_offers.* FROM pocketcare.price_offers
+        WHERE pocketcare.price_offers.active = true AND pocketcare.price_offers.segment_id IS NULL
+      - >
+        SELECT pocketcare.price_offers.* FROM pocketcare.price_offers
+        JOIN pocketcare.audience_group_members ON pocketcare.price_offers.segment_id = pocketcare.audience_group_members.group_id
+        WHERE pocketcare.price_offers.active = true AND pocketcare.audience_group_members.user_id = auth.user_id()
       # --- zero-trust encryption: wrapped keys, consent grants, audit (own rows) ---
       - SELECT *, user_id AS id FROM pocketcare.user_keys WHERE user_id = auth.user_id()
       - SELECT * FROM pocketcare.support_grants WHERE user_id = auth.user_id()
@@ -142,7 +150,6 @@ streams:
       - SELECT * FROM pocketcare.rate_modes
       - SELECT * FROM pocketcare.payment_methods
       - SELECT * FROM pocketcare.account_type_payment_methods
-      - SELECT * FROM pocketcare.price_offers WHERE active = true
 
   # Global reference data — same rates for everyone, read-only.
   # exchange_rates has a composite key, so synthesize the required text `id`.

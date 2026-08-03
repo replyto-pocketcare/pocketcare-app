@@ -25,9 +25,10 @@ export function Billing() {
   const { data: payments = [] } = useQuery<InvoicePayment>(
     "SELECT id, created_at, kind, amount, currency, credits_added, razorpay_payment_id, razorpay_order_id, status FROM payments WHERE status = 'captured' ORDER BY created_at DESC LIMIT 50",
   );
-  const { data: offers = [] } = useQuery<{ id: string; tier: string; cycle: string; price: number; label: string; ends_at: string | null }>(
-    "SELECT id, tier, cycle, price, label, ends_at FROM price_offers WHERE active = 1 AND (ends_at IS NULL OR ends_at > datetime('now'))",
+  const { data: allOffers = [] } = useQuery<{ id: string; tier: string; cycle: string; price: number; label: string; ends_at: string | null }>(
+    "SELECT id, tier, cycle, price, label, ends_at FROM price_offers WHERE active = 1",
   );
+  const offers = allOffers.filter(o => !o.ends_at || new Date(o.ends_at).getTime() > Date.now());
   // Default to the user's ACTUAL plan/cycle (which may load after first render),
   // then stick to whatever they pick.
   const [pickedCycle, setPickedCycle] = useState<Cycle | null>(null);
