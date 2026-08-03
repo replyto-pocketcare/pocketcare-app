@@ -156,6 +156,7 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
   ] },
   { title: "Growth", items: [
     { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "trending_up" },
+    { href: "/reflect", tkey: "nav.reflect", label: "Reflect", icon: "self_improvement" },
     { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "insights" },
     { href: "/statements", tkey: "nav.statements", label: "Statements", icon: "description" },
   ] },

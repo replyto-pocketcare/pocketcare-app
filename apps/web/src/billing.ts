@@ -64,11 +64,11 @@ function assertOnline(): void {
 }
 
 /** Start a recurring subscription; the webhook activates the plan shortly after. */
-export async function startSubscription(tier: PaidTier, cycle: Cycle): Promise<{ ok: boolean }> {
+export async function startSubscription(tier: PaidTier, cycle: Cycle, offer_id?: string): Promise<{ ok: boolean }> {
   assertOnline();
   await loadRazorpay();
   const { subscription_id, key_id } = await invoke<{ subscription_id: string; key_id: string }>(
-    "razorpay-subscription", { tier, cycle },
+    "razorpay-subscription", { tier, cycle, offer_id },
   );
   return openCheckout({ key: key_id, subscription_id, description: `Sanvya ${tier} (${cycle})`, prefill: await prefill() });
 }

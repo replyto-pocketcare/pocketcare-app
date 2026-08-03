@@ -25,6 +25,9 @@ export function Billing() {
   const { data: payments = [] } = useQuery<InvoicePayment>(
     "SELECT id, created_at, kind, amount, currency, credits_added, razorpay_payment_id, razorpay_order_id, status FROM payments WHERE status = 'captured' ORDER BY created_at DESC LIMIT 50",
   );
+  const { data: offers = [] } = useQuery<{ id: string; tier: string; cycle: string; price: number; label: string }>(
+    "SELECT id, tier, cycle, price, label FROM price_offers WHERE active = 1 AND (ends_at IS NULL OR ends_at > datetime('now'))",
+  );
   // Default to the user's ACTUAL plan/cycle (which may load after first render),
   // then stick to whatever they pick.
   const [pickedCycle, setPickedCycle] = useState<Cycle | null>(null);
@@ -72,6 +75,10 @@ export function Billing() {
     // than a cycle-switch) or a lower tier is already included in the active plan.
     const hasActiveSub = e.subscriptionStatus === "active" && e.tier !== "free";
     const isLower = hasActiveSub && RANK[tier] < RANK[e.tier];
+    const offer = offers.find((o) => o.tier === tier && o.cycle === cycle);
+    const regularPrice = price(tier, cycle);
+    const currentPrice = offer ? (offer.price / 100) : regularPrice;
+
     return (
       <div key={tier} className="card" role="button" tabIndex={0} onClick={() => setSelected(tier)}
         style={{ padding: 16, display: "grid", gap: 8, cursor: "pointer", background: "var(--surface-2)",
@@ -79,7 +86,12 @@ export function Billing() {
           boxShadow: isSelected ? "0 0 0 2px var(--accent-soft)" : "none" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <strong style={{ fontSize: 16 }}>{p.label}{isCurrent && <span className="muted" style={{ fontSize: 11, fontWeight: 400 }}> · current</span>}</strong>
-          <span><strong style={{ fontSize: 18 }}>₹{price(tier, cycle)}</strong><span className="muted" style={{ fontSize: 12 }}>/{cycle === "yearly" ? "yr" : "mo"}</span></span>
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {offer && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--positive)", background: "rgba(var(--positive-rgb, 46, 160, 67), 0.1)", padding: "2px 6px", borderRadius: 4 }}>{offer.label}</span>}
+            {offer && <strong className="muted" style={{ fontSize: 14, textDecoration: "line-through" }}>₹{regularPrice}</strong>}
+            <strong style={{ fontSize: 18, color: offer ? "var(--positive)" : "inherit" }}>₹{currentPrice}</strong>
+            <span className="muted" style={{ fontSize: 12 }}>/{cycle === "yearly" ? "yr" : "mo"}</span>
+          </span>
         </div>
         <div className="muted" style={{ fontSize: 12.5 }}>{p.blurb} <strong>{p.quota} AI prompts/mo.</strong></div>
         {isCurrent ? (
@@ -87,11 +99,11 @@ export function Billing() {
         ) : isLower ? (
           <button className="chip" disabled style={{ justifySelf: "start", opacity: 0.7 }}>Included in your plan</button>
         ) : isYourTier ? (
-          <button className="btn" disabled={!!busy} onClick={(ev) => { ev.stopPropagation(); run(tier, () => startSubscription(tier, cycle), "Payment received — your plan will update in a moment."); }}>
+          <button className="btn" disabled={!!busy} onClick={(ev) => { ev.stopPropagation(); run(tier, () => startSubscription(tier, cycle, offer?.id), "Payment received — your plan will update in a moment."); }}>
             {busy === tier ? "Opening…" : `Switch to ${cycle}`}
           </button>
         ) : (
-          <button className="btn" disabled={!!busy} onClick={(ev) => { ev.stopPropagation(); run(tier, () => startSubscription(tier, cycle), "Payment received — your plan will activate in a moment."); }}>
+          <button className="btn" disabled={!!busy} onClick={(ev) => { ev.stopPropagation(); run(tier, () => startSubscription(tier, cycle, offer?.id), "Payment received — your plan will activate in a moment."); }}>
             {busy === tier ? "Opening…" : `Upgrade to ${p.label}`}
           </button>
         )}

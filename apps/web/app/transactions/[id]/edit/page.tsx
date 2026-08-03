@@ -60,6 +60,7 @@ export default function EditTransactionPage() {
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [note, setNote] = useState("");
+  const [intent, setIntent] = useState<string | null>(null);
   const [date, setDate] = useState("");
   const [ready, setReady] = useState(false);
   const [labelsReady, setLabelsReady] = useState(false);
@@ -86,6 +87,7 @@ export default function EditTransactionPage() {
       } else {
         setNote(rawNote);
       }
+      setIntent(tx.intent ?? null);
       setDate(new Date(tx.occurred_at).toLocaleString("sv-SE", { timeZoneName: "short" }).substring(0, 16));
       setReady(true);
     }
@@ -168,6 +170,7 @@ export default function EditTransactionPage() {
         labels: selectedLabels,
         description: combinedDescription || null,
         payment_method: paymentMethod || null,
+        intent: type === "expense" ? intent : null,
         note: await encryptForWrite(note.trim() || null),
         occurred_at: new Date(date).toISOString(),
         items: type !== "transfer" ? (payloadItems ?? []) : null,
@@ -262,6 +265,16 @@ export default function EditTransactionPage() {
       <Field label={t("labels")}>
         <LabelPicker labels={labels} selected={selectedLabels} onChange={setSelectedLabels} />
       </Field>
+
+      {type === "expense" && (
+        <Field label="Intent (Mindfulness)">
+          <div style={chips}>
+            <button className="chip" data-active={intent === null} onClick={() => setIntent(null)}>Untagged</button>
+            <button className="chip" data-active={intent === "need"} onClick={() => setIntent("need")} style={intent === "need" ? { borderColor: "var(--positive)", color: "var(--positive)" } : {}}>Need</button>
+            <button className="chip" data-active={intent === "greed"} onClick={() => setIntent("greed")} style={intent === "greed" ? { borderColor: "var(--negative)", color: "var(--negative)" } : {}}>Greed</button>
+          </div>
+        </Field>
+      )}
 
       <Field label={t("note")}><input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("optionalNote")} /></Field>
       <Field label={t("date")}><input className="input" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} /></Field>

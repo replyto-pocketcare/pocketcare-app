@@ -255,10 +255,10 @@ export async function getAdminClientErrorUsers(fingerprint: string): Promise<Adm
   }
 }
 
-export async function getNotificationGroups(): Promise<AdminResult<Record<string, unknown>[]>> {
+export async function getAudienceGroups(): Promise<AdminResult<Record<string, unknown>[]>> {
   try {
     const supabase = getAdminClient();
-    const { data, error } = await supabase.from("notification_groups").select("id, name, description").order("name");
+    const { data, error } = await supabase.from("audience_groups").select("id, name, description, kind, sys_key").order("name");
     if (error) throw new Error(error.message);
     return { ok: true, data: data ?? [] };
   } catch (e) {
@@ -276,7 +276,7 @@ export async function getGroupMembers(groupId: string): Promise<AdminResult<Grou
   try {
     const supabase = getAdminClient();
     const { data: members, error: mErr } = await supabase
-      .from("notification_group_members")
+      .from("audience_group_members")
       .select("user_id")
       .eq("group_id", groupId);
     if (mErr) throw new Error(mErr.message);
@@ -310,10 +310,10 @@ export async function getGroupMembers(groupId: string): Promise<AdminResult<Grou
   }
 }
 
-export async function createNotificationGroup(name: string, description: string): Promise<AdminResult<any>> {
+export async function createAudienceGroup(name: string, description: string): Promise<AdminResult<any>> {
   try {
     const supabase = getAdminClient();
-    const { data, error } = await supabase.from("notification_groups").insert({ name, description }).select().single();
+    const { data, error } = await supabase.from("audience_groups").insert({ name, description, kind: 'manual' }).select().single();
     if (error) throw new Error(error.message);
     return { ok: true, data };
   } catch (e) {
@@ -328,10 +328,10 @@ export async function addUsersToGroupByEmail(groupId: string, emails: string[]):
     if (uErr) throw new Error(uErr.message);
     if (!users || users.length === 0) return { ok: true, data: 0 };
     
-    const rows = users.map(u => ({ group_id: groupId, user_id: u.id }));
+    const rows = users.map(u => ({ group_id: groupId, user_id: u.id, source: 'admin' }));
     
     // Upsert the users, ignoring duplicates
-    const { error: upsErr } = await supabase.from("notification_group_members")
+    const { error: upsErr } = await supabase.from("audience_group_members")
       .upsert(rows, { onConflict: "group_id,user_id", ignoreDuplicates: true });
     if (upsErr) throw new Error(upsErr.message);
     
@@ -354,10 +354,10 @@ export async function addUsersToGroupByDemographics(groupId: string, filters: { 
     if (uErr) throw new Error(uErr.message);
     if (!users || users.length === 0) return { ok: true, data: 0 };
     
-    const rows = users.map(u => ({ group_id: groupId, user_id: u.id }));
+    const rows = users.map(u => ({ group_id: groupId, user_id: u.id, source: 'admin' }));
     
     // Upsert the users, ignoring duplicates
-    const { error: upsErr } = await supabase.from("notification_group_members")
+    const { error: upsErr } = await supabase.from("audience_group_members")
       .upsert(rows, { onConflict: "group_id,user_id", ignoreDuplicates: true });
     if (upsErr) throw new Error(upsErr.message);
     
@@ -387,6 +387,42 @@ export async function sendBroadcastPush(payload: { group_id: string; title: stri
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Broadcast failed");
     return { ok: true, data };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function getPriceOffers(): Promise<AdminResult<any[]>> {
+  try {
+    const supabase = getAdminClient();
+    const { data, error } = await supabase.from("price_offers").select(`
+      id, tier, cycle, price, label, active, starts_at, ends_at, segment_id,
+      audience_groups ( name )
+    `).order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return { ok: true, data: data ?? [] };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function createPriceOffer(payload: { tier: string; cycle: string; price: number; label: string; segment_id?: string | null; ends_at?: string | null }): Promise<AdminResult<any>> {
+  try {
+    const supabase = getAdminClient();
+    const { data, error } = await supabase.from("price_offers").insert(payload).select().single();
+    if (error) throw new Error(error.message);
+    return { ok: true, data };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function togglePriceOffer(id: string, active: boolean): Promise<AdminResult<true>> {
+  try {
+    const supabase = getAdminClient();
+    const { error } = await supabase.from("price_offers").update({ active, updated_at: new Date().toISOString() }).eq("id", id);
+    if (error) throw new Error(error.message);
+    return { ok: true, data: true };
   } catch (e) {
     return fail(e);
   }

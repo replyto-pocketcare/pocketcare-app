@@ -5,6 +5,7 @@
 import { money, format } from "@sanvya/money";
 import type { CurrencyCode } from "@sanvya/types";
 import type { InsightCard, SeriesPoint } from "./types";
+import { computeTier1Insights, computeTier2Insights, type TransactionForInsight } from "@sanvya/mindfulness";
 
 // ---- Aggregate inputs (amounts in MINOR units unless noted) ----
 export interface DayAgg { day: string; income: number; expense: number }
@@ -63,6 +64,7 @@ export interface GenContext {
   /** Absent (or `holdings: 0`) for anyone who doesn't invest — see the interfaces above. */
   dividends?: DividendAgg | undefined;
   projection?: ProjectionAgg | undefined;
+  mindfulnessTxns?: TransactionForInsight[];
 }
 
 const fmt = (minor: number, ctx: GenContext) => format(money(Math.round(minor), ctx.currency as CurrencyCode), ctx.locale);
@@ -377,11 +379,35 @@ export function genProjection(ctx: GenContext): InsightCard[] {
   }];
 }
 
+// ---- mindfulness ----
+export function genMindfulness(ctx: GenContext): InsightCard[] {
+  if (!ctx.mindfulnessTxns) return [];
+  const t1 = computeTier1Insights(ctx.mindfulnessTxns);
+  const t2 = computeTier2Insights(ctx.mindfulnessTxns);
+  
+  const cards: InsightCard[] = [];
+  for (const i of [...t1, ...t2]) {
+    cards.push({
+      id: `mindfulness:${i.id}:${ctx.now.toISOString().slice(0, 10)}`,
+      type: "mindfulness",
+      theme: i.severity === 'warn' ? 'warning' : i.severity === 'success' ? 'positive' : 'neutral',
+      generatedAt: ctx.now.toISOString(),
+      period: { start: "", end: "" },
+      priority: i.type === "tier2" ? 80 : 45,
+      headline: i.title,
+      subhead: i.type === "tier2" ? "Need vs Greed" : "Spending Insight",
+      bullets: [i.body],
+      cadence: { key: `mindfulness:${i.id}`, frequency: "weekly" },
+    });
+  }
+  return cards;
+}
+
 const GENERATORS = [
   genBudgetWarnings, genCategorySpike, genMonthPace, genWeeklySummary, genSpendingTrend,
   genBiggestExpense, genSubscriptions, genCategoryBreakdown, genGoalProgress, genSavingsAchievement,
   genStreak, genLabelBreakdown, genAvgDaily, genWeekdayPattern, genNoSpendDays,
-  genDividends, genProjection,
+  genDividends, genProjection, genMindfulness,
 ];
 
 /** Run every generator, then rank + dedupe by cadence key, capped to `limit`. */

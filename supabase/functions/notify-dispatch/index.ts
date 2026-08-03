@@ -123,7 +123,7 @@ async function handleBroadcast(db: ReturnType<typeof createClient>, payload: any
   const { group_id, title, subtitle, body, image_url, href } = payload;
   if (!group_id || !title) return json({ error: "group_id and title required" }, 400);
 
-  const { data: members, error: memErr } = await db.from("notification_group_members").select("user_id").eq("group_id", group_id);
+  const { data: members, error: memErr } = await db.from("audience_group_members").select("user_id").eq("group_id", group_id);
   if (memErr) return json({ error: memErr.message }, 500);
   if (!members || members.length === 0) return json({ ok: true, sent: 0, msg: "empty group" });
 

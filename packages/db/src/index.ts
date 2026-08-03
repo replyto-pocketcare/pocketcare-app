@@ -99,6 +99,7 @@ const transactions = new Table(
     to_account_id: column.text,
     to_amount: column.integer,
     fx_rate: column.real,
+    intent: column.text,
     created_at: column.text,
     updated_at: column.text,
     deleted_at: column.text,
@@ -451,6 +452,20 @@ const coupons = new Table({
   created_at: column.text,
 });
 
+const price_offers = new Table({
+  id: column.text,
+  tier: column.text,
+  cycle: column.text,
+  price: column.integer,
+  label: column.text,
+  starts_at: column.text,
+  ends_at: column.text,
+  segment_id: column.text,
+  active: column.integer,
+  created_at: column.text,
+  updated_at: column.text,
+});
+
 // AI assistant persistence (chat history + per-user memory).
 const assistant_threads = new Table({
   user_id: column.text,
@@ -644,6 +659,22 @@ const notification_prefs = new Table({
   deleted_at: column.text,
 });
 
+const audience_groups = new Table({
+  id: column.text,
+  name: column.text,
+  description: column.text,
+  sys_key: column.text,
+  kind: column.text,
+  rule: column.text,
+  active: column.integer,
+  created_at: column.text,
+});
+
+const audience_group_members = new Table(
+  { group_id: column.text, user_id: column.text, joined_at: column.text, source: column.text },
+  { indexes: { by_group: ["group_id"], by_user: ["user_id"] } }
+);
+
 /**
  * DEAD-LETTER QUEUE (sync fault tolerance, layer 3).
  *
@@ -697,6 +728,8 @@ export const AppSchema = new Schema({
   profiles,
   notifications,
   notification_prefs,
+  audience_groups,
+  audience_group_members,
   entitlements,
   payments,
   accounts,
@@ -727,6 +760,7 @@ export const AppSchema = new Schema({
   bug_reports,
   coupons,
   promo_redemptions,
+  price_offers,
   assistant_threads,
   assistant_messages,
   assistant_memory,

@@ -8,6 +8,7 @@ import { useRates } from "../hooks";
 import { computeDividendEvents, bucketize, dividendSummary, type HoldingLite, type DivRow } from "../market/dividends";
 import { composeStack, type GenContext, type DayAgg, type MonthAgg, type CatAgg, type BudgetAgg, type TopExpense, type SubAgg, type GoalAgg, type DividendAgg, type ProjectionAgg } from "./generators";
 import type { InsightCard, SeriesPoint } from "./types";
+import type { TransactionForInsight } from "@sanvya/mindfulness";
 
 /** Fixed assumptions for the (static) projection card; /investments has the sliders. */
 const PROJ_GROWTH_PCT = 7;
@@ -67,6 +68,9 @@ export function useInsightStack() {
   );
   const { data: catMonthRows = [] } = useQuery<{ name: string | null; cid: string | null; ym: string; total: number }>(
     "SELECT c.name as name, t.category_id as cid, strftime('%Y-%m', t.occurred_at) as ym, SUM(t.amount) as total FROM transactions t LEFT JOIN categories c ON c.id = t.category_id WHERE t.deleted_at IS NULL AND t.type='expense' AND t.occurred_at >= date('now','-4 months') GROUP BY t.category_id, ym",
+  );
+  const { data: mindfulnessTxnRows = [] } = useQuery<TransactionForInsight>(
+    "SELECT id, amount, currency, occurred_at, intent, category_id FROM transactions WHERE deleted_at IS NULL AND type='expense' AND (occurred_at >= date('now','-30 days') OR intent IS NOT NULL)",
   );
 
   // ---- investments: holdings + dividend history + latest quotes ----
@@ -257,9 +261,10 @@ export function useInsightStack() {
       currency, now, days, months, cats, labels, budgets, streak, txnDays7,
       topExpenses, weekday, weekdayTop, subs, subsTotal, goals, pace, noSpend, avgDaily, catSpike,
       dividends: invest.dividends, projection: invest.projection,
+      mindfulnessTxns: mindfulnessTxnRows,
     };
     return composeStack(ctx);
-  }, [dayRows, monthRows, catRows, labelRows, budgetRows, budgetCatRows, activeDayRows, expDayRows, topExpRows, subRows, goalRows, catMonthRows, invest, currency, now, thisM]);
+  }, [dayRows, monthRows, catRows, labelRows, budgetRows, budgetCatRows, activeDayRows, expDayRows, topExpRows, subRows, goalRows, catMonthRows, invest, currency, now, thisM, mindfulnessTxnRows]);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const total = cards.length;
