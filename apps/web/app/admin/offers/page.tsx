@@ -16,6 +16,7 @@ export default function AdminOffers() {
   const [price, setPrice] = useState("");
   const [label, setLabel] = useState("");
   const [segmentId, setSegmentId] = useState("");
+  const [endsAt, setEndsAt] = useState("");
 
   const refresh = () => {
     getPriceOffers().then(res => res.ok ? setOffers(res.data) : setError(res.error));
@@ -30,11 +31,12 @@ export default function AdminOffers() {
     const p = parseInt(price, 10);
     if (!p || !label) return;
     const res = await createPriceOffer({
-      tier, cycle, price: p, label, segment_id: segmentId || null
+      tier, cycle, price: p, label, segment_id: segmentId || null, ends_at: endsAt ? new Date(endsAt).toISOString() : null
     });
     if (res.ok) {
       setPrice("");
       setLabel("");
+      setEndsAt("");
       refresh();
     } else {
       alert(res.error);
@@ -65,7 +67,11 @@ export default function AdminOffers() {
             <option value="">All Users (Global)</option>
             {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
           </select>
-          <button className="btn" onClick={handleCreate}>Create</button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span className="muted" style={{ fontSize: 11 }}>Valid until (optional)</span>
+            <input className="input" type="datetime-local" value={endsAt} onChange={e => setEndsAt(e.target.value)} />
+          </div>
+          <button className="btn" onClick={handleCreate} style={{ alignSelf: "flex-end", height: 38 }}>Create</button>
         </div>
       </div>
 
@@ -77,6 +83,7 @@ export default function AdminOffers() {
               <th style={{ padding: 16 }}>Plan</th>
               <th style={{ padding: 16 }}>Price</th>
               <th style={{ padding: 16 }}>Audience</th>
+              <th style={{ padding: 16 }}>Valid Until</th>
               <th style={{ padding: 16 }}>Status</th>
               <th style={{ padding: 16 }}>Actions</th>
             </tr>
@@ -88,6 +95,7 @@ export default function AdminOffers() {
                 <td style={{ padding: 16, textTransform: "capitalize" }}>{o.tier} {o.cycle}</td>
                 <td style={{ padding: 16 }}>{o.price / 100}</td>
                 <td style={{ padding: 16 }}>{o.audience_groups?.name || "Global"}</td>
+                <td style={{ padding: 16 }}>{o.ends_at ? new Date(o.ends_at).toLocaleDateString() : "Forever"}</td>
                 <td style={{ padding: 16 }}>{o.active ? <span style={{ color: "#2ea043" }}>Active</span> : "Inactive"}</td>
                 <td style={{ padding: 16 }}>
                   <button className="btn ghost" onClick={async () => {
