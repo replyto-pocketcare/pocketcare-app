@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { getRepositories } from "../../src/powersync";
 import { useIntentQueue } from "../../src/reflect/useIntentQueue";
 import { IntentCard } from "../../src/reflect/IntentCard";
 import { MaterialIcon } from "../../src/ui/MaterialIcon";
 
 export default function ReflectPage() {
-  const supabase = useSupabaseClient();
   const { queue, isLoading } = useIntentQueue();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [history, setHistory] = useState<string[]>([]); // tx ids
@@ -34,7 +33,7 @@ export default function ReflectPage() {
     setCurrentIndex(currentIndex + 1);
     
     // Server update
-    await supabase.from("transactions").update({ intent }).eq("id", id);
+    await getRepositories().transactions.update(id, { intent });
   };
 
   const handleSkip = () => {
@@ -48,7 +47,7 @@ export default function ReflectPage() {
     setHistory(history.slice(0, -1));
     setCurrentIndex(currentIndex - 1);
     
-    await supabase.from("transactions").update({ intent: null }).eq("id", lastId);
+    await getRepositories().transactions.update(lastId, { intent: null });
   };
 
   return (

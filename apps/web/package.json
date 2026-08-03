@@ -43,7 +43,8 @@
     "@sanvya/upi": "workspace:*",
     "@sanvya/diagnostics": "workspace:*",
     "@sanvya/sync-policy": "workspace:*",
-    "@sanvya/splits-insights": "workspace:*"
+    "@sanvya/splits-insights": "workspace:*",
+    "@sanvya/mindfulness": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
