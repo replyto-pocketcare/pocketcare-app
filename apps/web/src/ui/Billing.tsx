@@ -85,16 +85,34 @@ export function Billing() {
         style={{ padding: 16, display: "grid", gap: 8, cursor: "pointer", background: "var(--surface-2)",
           borderColor: isSelected ? "var(--accent)" : isCurrent ? "var(--accent-soft)" : "var(--border)",
           boxShadow: isSelected ? "0 0 0 2px var(--accent-soft)" : "none" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <strong style={{ fontSize: 16 }}>{p.label}{isCurrent && <span className="muted" style={{ fontSize: 11, fontWeight: 400 }}> · current</span>}</strong>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {offer && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--positive)", background: "rgba(var(--positive-rgb, 46, 160, 67), 0.1)", padding: "2px 6px", borderRadius: 4 }}>{offer.label}</span>}
-            {offer && <strong className="muted" style={{ fontSize: 14, textDecoration: "line-through" }}>₹{regularPrice}</strong>}
-            <strong style={{ fontSize: 18, color: offer ? "var(--positive)" : "inherit" }}>₹{currentPrice}</strong>
-            <span className="muted" style={{ fontSize: 12 }}>/{cycle === "yearly" ? "yr" : "mo"}</span>
-          </span>
+        <div style={{ display: "grid", gap: 6 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <strong style={{ fontSize: 16 }}>{p.label}{isCurrent && <span className="muted" style={{ fontSize: 11, fontWeight: 400 }}> · current</span>}</strong>
+            <span style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
+              {offer ? (
+                <>
+                  <strong className="muted" style={{ fontSize: 14, textDecoration: "line-through" }}>₹{regularPrice}</strong>
+                  <span className="muted" style={{ fontSize: 11, textDecoration: "line-through" }}>/{cycle === "yearly" ? "yr" : "mo"}</span>
+                </>
+              ) : (
+                <>
+                  <strong style={{ fontSize: 18 }}>₹{regularPrice}</strong>
+                  <span className="muted" style={{ fontSize: 12 }}>/{cycle === "yearly" ? "yr" : "mo"}</span>
+                </>
+              )}
+            </span>
+          </div>
+          {offer && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: "var(--positive)", background: "rgba(var(--positive-rgb, 46, 160, 67), 0.1)", padding: "4px 8px", borderRadius: 6, display: "inline-block" }}>{offer.label}</span>
+              <span style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
+                <strong style={{ fontSize: 18, color: "var(--positive)" }}>₹{currentPrice}</strong>
+                <span style={{ fontSize: 12, color: "var(--positive)" }}>/{cycle === "yearly" ? "yr" : "mo"}</span>
+              </span>
+            </div>
+          )}
+          {offer?.ends_at && <div style={{ fontSize: 11, textAlign: "right", color: "var(--positive)" }}>Valid until {new Date(offer.ends_at).toLocaleDateString()}</div>}
         </div>
-        {offer?.ends_at && <div style={{ fontSize: 11, textAlign: "right", color: "var(--positive)", marginTop: -4 }}>Valid until {new Date(offer.ends_at).toLocaleDateString()}</div>}
         <div className="muted" style={{ fontSize: 12.5 }}>{p.blurb} <strong>{p.quota} AI prompts/mo.</strong></div>
         {isCurrent ? (
           <button className="chip" disabled style={{ justifySelf: "start", opacity: 0.7 }}>Current plan</button>
