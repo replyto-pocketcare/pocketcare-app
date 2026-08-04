@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
@@ -47,6 +48,8 @@ interface Goal {
 
 export default function GoalsPage() {
   const { t } = useTranslation("goals");
+  const searchParams = useSearchParams();
+  const editId = searchParams?.get("edit");
   const base = useBaseCurrency();
   const { data: goals = [], isLoading: goalsLoading } = useQuery<Goal>(
     "SELECT id, name, target_amount, currency, is_emergency_fund, priority FROM goals WHERE deleted_at IS NULL ORDER BY is_emergency_fund DESC, priority",
@@ -98,7 +101,7 @@ export default function GoalsPage() {
       <div className="list-grid">
         {goals.map((g) => (
           <GoalCard key={g.id} goal={g} saved={saved(g.id)} savings={savings}
-            locked={!g.is_emergency_fund && !efFunded} base={base} onAchieved={onAchieved} />
+            locked={!g.is_emergency_fund && !efFunded} base={base} onAchieved={onAchieved} autoOpen={editId === g.id} />
         ))}
         {goals.length === 0 && (goalsLoading ? <ListSkeleton rows={3} /> : <p className="muted">{t("noGoals")}</p>)}
       </div>
@@ -126,9 +129,10 @@ export default function GoalsPage() {
   );
 }
 
-function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
+function GoalCard({ goal, saved, savings, locked, base, onAchieved, autoOpen }: {
   goal: Goal; saved: number; savings: { id: string; name: string; currency: string }[]; locked: boolean; base: string;
   onAchieved: (name: string) => void;
+  autoOpen?: boolean;
 }) {
   const { t } = useTranslation("goals");
   const confirm = useConfirm();
@@ -153,6 +157,14 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
   const [amount, setAmount] = useState("");
   const [srcId, setSrcId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    if (autoOpen) {
+      setEditing(true);
+      setTimeout(() => {
+        document.getElementById(goal.id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
+  }, [autoOpen, goal.id]);
   const [showAlloc, setShowAlloc] = useState(false);
   const [eName, setEName] = useState(goal.name);
   const [eTarget, setETarget] = useState(String(toMajor(money(goal.target_amount, goal.currency))));
@@ -182,7 +194,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved }: {
   const allocLabel = goal.is_emergency_fund ? t("addFunds") : t("blockFunds");
 
   return (
-    <div className="card" style={{
+    <div id={goal.id} className="card" style={{
       padding: 20, display: "grid", gap: 10, opacity: locked ? 0.55 : 1,
       ...(funded ? {
         background: "radial-gradient(130% 120% at 50% 0%, var(--accent-ghost), var(--surface) 68%)",

@@ -100,7 +100,10 @@ async function processUser(db: ReturnType<typeof createClient>, userId: string):
 
   const out: Notif[] = [];
   if (prefs.emi_due) out.push(...await emiDue(db, userId, prefs.emi_lead_days));
-  if (prefs.budget) out.push(...await budgetAlerts(db, userId));
+  if (prefs.budget) {
+    out.push(...await budgetAlerts(db, userId));
+    out.push(...await goalAlerts(db, userId));
+  }
   if (prefs.low_balance) out.push(...await lowBalance(db, userId, prefs.low_balance_threshold));
   if (prefs.outlier) out.push(...await outliers(db, userId));
 
@@ -213,7 +216,7 @@ async function emiDue(db: ReturnType<typeof createClient>, userId: string, lead:
         kind: "emi_due", severity: "info",
         title: `Payment due ${due === today ? "today" : `on ${due}`}`,
         body: `${b.name ?? "Scheduled payment"} · ${fmt(b.amount, b.currency)}`,
-        href: `/cashflow`,
+        href: `/recurring?edit=${b.id}`,
         dedupe_key: `bill:${b.id}:${due}`,
       });
     }
@@ -250,9 +253,40 @@ async function budgetAlerts(db: ReturnType<typeof createClient>, userId: string)
       kind: "budget", severity: level === "over" ? "urgent" : "warn",
       title: level === "over" ? `Over budget: ${bg.name}` : `${pct}% of ${bg.name} used`,
       body: `${fmt(spent, bg.currency)} of ${fmt(bg.limit_amount, bg.currency)}`,
-      href: `/budgets`,
+      href: `/budgets?edit=${bg.id}`,
       dedupe_key: `budget:${bg.id}:${from}:${level}`,
     });
+  }
+  return out;
+}
+
+async function goalAlerts(db: ReturnType<typeof createClient>, userId: string): Promise<Notif[]> {
+  const out: Notif[] = [];
+  const { data: goals } = await db.from("goals")
+    .select("id, name, target_amount, saved_amount, currency, target_date")
+    .eq("user_id", userId).eq("status", "active").is("deleted_at", null);
+  
+  const today = todayISO();
+  const nearFuture = addDays(today, 3);
+  
+  for (const g of goals ?? []) {
+    if (!g.target_date) continue;
+    const target = g.target_date.slice(0, 10);
+    
+    // Alert if goal is due within next 3 days, or overdue and not completed
+    if (target <= nearFuture) {
+      const isOverdue = target < today;
+      const pct = Math.round(((g.saved_amount ?? 0) / (g.target_amount ?? 1)) * 100);
+      if (pct >= 100) continue; // Completed (but maybe status not updated yet)
+      
+      out.push({
+        kind: "budget", severity: isOverdue ? "warn" : "info",
+        title: isOverdue ? `Goal overdue: ${g.name}` : `Goal due soon: ${g.name}`,
+        body: `${pct}% saved · Target was ${target}`,
+        href: `/goals?edit=${g.id}`,
+        dedupe_key: `goal:${g.id}:${target}`,
+      });
+    }
   }
   return out;
 }

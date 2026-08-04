@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor, type Money } from "@sanvya/money";
 import { budgetProgress } from "@sanvya/budget";
@@ -92,6 +93,8 @@ async function writeBudgetScope(budgetId: string, catIds: string[], labelNames: 
 
 export default function BudgetsPage() {
   const { t } = useTranslation("budgets");
+  const searchParams = useSearchParams();
+  const editId = searchParams?.get("edit");
   const base = useBaseCurrency();
   const { data: budgets = [], isLoading: budgetsLoading } = useQuery<BudgetLike>(
     "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
@@ -141,7 +144,7 @@ export default function BudgetsPage() {
 
       {budgets.length > 0 ? (
         <div className="list-grid">
-          {budgets.map((b) => <BudgetRow key={b.id} budget={b} cats={cats} labels={labels} catOptions={catOptions} />)}
+          {budgets.map((b) => <BudgetRow key={b.id} budget={b} cats={cats} labels={labels} catOptions={catOptions} autoOpen={editId === b.id} />)}
         </div>
       ) : budgetsLoading ? (
         <ListSkeleton rows={3} />
@@ -203,11 +206,12 @@ export default function BudgetsPage() {
   );
 }
 
-function BudgetRow({ budget, cats, labels, catOptions }: {
+function BudgetRow({ budget, cats, labels, catOptions, autoOpen }: {
   budget: BudgetLike;
   cats: { id: string; name: string }[];
   labels: { id: string; name: string; color: string | null }[];
   catOptions: { value: string; label: string }[];
+  autoOpen?: boolean;
 }) {
   const { t } = useTranslation("budgets");
   const [spent, setSpent] = useState<Money>(money(0, budget.currency));
@@ -241,6 +245,14 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
   const timeframe = budget.start_date && budget.end_date ? win.label : `${t(`period.${budget.period}`)} · ${win.label}`;
 
   const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    if (autoOpen) {
+      setEditing(true);
+      setTimeout(() => {
+        document.getElementById(budget.id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
+  }, [autoOpen, budget.id]);
   const [eName, setEName] = useState(budget.name ?? "");
   const [eLimit, setELimit] = useState(String(toMajor(limit)));
   const [ePeriod, setEPeriod] = useState<Period>(budget.period);
@@ -270,7 +282,7 @@ function BudgetRow({ budget, cats, labels, catOptions }: {
   }
 
   return (
-    <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
+    <div id={budget.id} className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
       {editing ? (
         <div style={{ display: "grid", gap: 8 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
