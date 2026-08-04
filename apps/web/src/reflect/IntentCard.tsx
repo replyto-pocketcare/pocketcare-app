@@ -82,7 +82,7 @@ export function IntentCard({
         position: 'absolute',
         top: 0, left: 0, right: 0, bottom: 0,
         borderRadius: 24,
-        background: "var(--surface-1)",
+        background: "var(--surface)",
         boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
         display: "flex", flexDirection: "column",
         overflow: "hidden",

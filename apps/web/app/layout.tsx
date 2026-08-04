@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AppShell } from "./AppShell";
+import { BudgetAlertMonitor } from "../src/ui/BudgetAlertMonitor";
 
 export const metadata = {
   title: "Sanvya",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <Providers>
           <AppShell>{children}</AppShell>
+          <BudgetAlertMonitor />
         </Providers>
       </body>
     </html>

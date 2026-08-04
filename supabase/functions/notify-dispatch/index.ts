@@ -103,6 +103,7 @@ async function processUser(db: ReturnType<typeof createClient>, userId: string):
   if (prefs.budget) {
     out.push(...await budgetAlerts(db, userId));
     out.push(...await goalAlerts(db, userId));
+    out.push(...await recurringRuleAlerts(db, userId));
   }
   if (prefs.low_balance) out.push(...await lowBalance(db, userId, prefs.low_balance_threshold));
   if (prefs.outlier) out.push(...await outliers(db, userId));
@@ -183,8 +184,11 @@ async function emiDue(db: ReturnType<typeof createClient>, userId: string, lead:
   const today = todayISO();
   const horizon = addDays(today, lead);
 
+  const d = new Date();
+  const currentUtcTime = `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+
   const { data: loans } = await db.from("loans")
-    .select("id, lender, emi_amount, emi_due_day, currency, tenure_months, emis_paid")
+    .select("id, lender, emi_amount, emi_due_day, currency, tenure_months, emis_paid, alert_time_utc")
     .eq("user_id", userId).is("deleted_at", null);
   const d = new Date();
   const y = d.getUTCFullYear(), m = d.getUTCMonth();
@@ -195,6 +199,9 @@ async function emiDue(db: ReturnType<typeof createClient>, userId: string, lead:
     const dueDay = Math.min(l.emi_due_day, dim);
     const due = new Date(Date.UTC(y, m, dueDay)).toISOString().slice(0, 10);
     if (due >= today && due <= horizon) {
+      const alertTime = l.alert_time_utc || "09:00";
+      if (due === today && currentUtcTime < alertTime) continue; // Not time yet today
+
       out.push({
         kind: "emi_due", severity: "warn",
         title: `EMI due ${due === today ? "today" : `on ${due}`}`,
@@ -216,8 +223,38 @@ async function emiDue(db: ReturnType<typeof createClient>, userId: string, lead:
         kind: "emi_due", severity: "info",
         title: `Payment due ${due === today ? "today" : `on ${due}`}`,
         body: `${b.name ?? "Scheduled payment"} · ${fmt(b.amount, b.currency)}`,
-        href: `/recurring?edit=${b.id}`,
+        href: `/recurring?edit=${b.id}`, // the frontend uses the same URL for planned cashflow edits usually
         dedupe_key: `bill:${b.id}:${due}`,
+      });
+    }
+  }
+  return out;
+}
+
+async function recurringRuleAlerts(db: ReturnType<typeof createClient>, userId: string): Promise<Notif[]> {
+  const out: Notif[] = [];
+  const today = todayISO();
+  const d = new Date();
+  const currentUtcTime = `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+
+  const { data: rules } = await db.from("recurring_rules")
+    .select(`id, next_due, alert_time_utc, transaction_templates!inner(name, amount, currency)`)
+    .eq("user_id", userId).eq("active", 1).is("deleted_at", null);
+
+  for (const r of rules ?? []) {
+    if (!r.next_due) continue;
+    const due = r.next_due.slice(0, 10);
+    if (due === today) {
+      const alertTime = r.alert_time_utc || "09:00";
+      if (currentUtcTime < alertTime) continue;
+
+      const tpl = (Array.isArray(r.transaction_templates) ? r.transaction_templates[0] : r.transaction_templates) || {};
+      out.push({
+        kind: "emi_due", severity: "info",
+        title: `Recurring item due today`,
+        body: `${tpl.name ?? "Scheduled item"} · ${fmt(tpl.amount, tpl.currency)}`,
+        href: `/recurring?edit=${r.id}`,
+        dedupe_key: `recurring:${r.id}:${due}`,
       });
     }
   }
@@ -226,15 +263,20 @@ async function emiDue(db: ReturnType<typeof createClient>, userId: string, lead:
 
 async function budgetAlerts(db: ReturnType<typeof createClient>, userId: string): Promise<Notif[]> {
   const out: Notif[] = [];
-  const { data: budgets } = await db.from("budgets")
-    .select("id, name, limit_amount, currency, start_date, end_date, threshold_pct")
-    .eq("user_id", userId).is("deleted_at", null);
   const today = todayISO();
+  const d = new Date();
+  const currentUtcTime = `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+
+  const { data: budgets } = await db.from("budgets")
+    .select("id, name, limit_amount, currency, start_date, end_date, threshold_pct, alert_time_utc")
+    .eq("user_id", userId).is("deleted_at", null);
   for (const bg of budgets ?? []) {
     if (!bg.limit_amount || bg.limit_amount <= 0) continue;
     const from = (bg.start_date ?? "").slice(0, 10) || addDays(today, -30);
     const to = (bg.end_date ?? "").slice(0, 10) || today;
     if (today < from || today > to) continue;
+    const alertTime = bg.alert_time_utc || "09:00";
+    if (currentUtcTime < alertTime) continue;
 
     const { data: cats } = await db.from("budget_categories").select("category_id").eq("budget_id", bg.id);
     const catIds = (cats ?? []).map((c: { category_id: string }) => c.category_id);
@@ -262,8 +304,12 @@ async function budgetAlerts(db: ReturnType<typeof createClient>, userId: string)
 
 async function goalAlerts(db: ReturnType<typeof createClient>, userId: string): Promise<Notif[]> {
   const out: Notif[] = [];
+  const today = todayISO();
+  const d = new Date();
+  const currentUtcTime = `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+
   const { data: goals } = await db.from("goals")
-    .select("id, name, target_amount, saved_amount, currency, target_date")
+    .select("id, name, target_amount, saved_amount, currency, target_date, alert_time_utc")
     .eq("user_id", userId).eq("status", "active").is("deleted_at", null);
   
   const today = todayISO();
@@ -275,6 +321,9 @@ async function goalAlerts(db: ReturnType<typeof createClient>, userId: string): 
     
     // Alert if goal is due within next 3 days, or overdue and not completed
     if (target <= nearFuture) {
+      const alertTime = g.alert_time_utc || "09:00";
+      if (target === today && currentUtcTime < alertTime) continue;
+
       const isOverdue = target < today;
       const pct = Math.round(((g.saved_amount ?? 0) / (g.target_amount ?? 1)) * 100);
       if (pct >= 100) continue; // Completed (but maybe status not updated yet)

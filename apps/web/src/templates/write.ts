@@ -105,10 +105,11 @@ export async function materializeTemplate(tpl: TemplateRow, occurredAtIso: strin
 }
 
 // ---- recurring rules ----
-export async function createRule(opts: { templateId: string; frequency: Freq; intervalCount?: number; firstDue: string; autoPost?: boolean }): Promise<string> {
+export async function createRule(opts: { templateId: string; frequency: Freq; intervalCount?: number; firstDue: string; autoPost?: boolean; alert_time_utc?: string | null }): Promise<string> {
   return insertRow("recurring_rules", {
     template_id: opts.templateId, frequency: opts.frequency, interval_count: opts.intervalCount ?? 1,
     next_due: opts.firstDue, last_generated: null, auto_post: opts.autoPost ? 1 : 0, active: 1,
+    alert_time_utc: opts.alert_time_utc ?? null,
   });
 }
 

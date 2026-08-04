@@ -15,6 +15,7 @@ import { useMoneyFmt } from "../../../src/ui/Money";
 import { FloatingInput } from "../../../src/ui/FloatingInput";
 import { Modal } from "../../../src/ui/Modal";
 import { useConfirm } from "../../../src/ui/Confirm";
+import { utcToLocalTime, localToUtcTime } from "../../../src/time";
 import { Pill, Field, EmiIcon } from "../../../src/loans/ui";
 
 interface Loan {
@@ -23,6 +24,7 @@ interface Loan {
   start_date: string | null; emis_paid: number | null; emi_payments: string | null;
   emi_due_day: number | null; auto_mark_paid: number | null;
   rate_type: string | null; emi_amounts: string | null;
+  alert_time_utc: string | null;
 }
 
 /** Parse the emi_payments JSON map { emiNo: paidOnISO }. */
@@ -411,6 +413,7 @@ function EditLoan({ loan, onDone }: { loan: Loan; onDone: () => void }) {
   const [tenure, setTenure] = useState(loan.tenure_months != null ? String(loan.tenure_months) : "");
   const [start, setStart] = useState(loan.start_date ?? new Date().toISOString().slice(0, 10));
   const [dueDay, setDueDay] = useState(loan.emi_due_day != null ? String(loan.emi_due_day) : "");
+  const [alertTime, setAlertTime] = useState(utcToLocalTime(loan.alert_time_utc));
 
   const principalMinor = fromMajor(Number(principal) || 0, cur).amount;
   const computedEmiMinor = rateType === "fixed" ? emiFromPrincipal(principalMinor, Number(rate) || 0, Number(tenure) || 0) : 0;
@@ -429,6 +432,7 @@ function EditLoan({ loan, onDone }: { loan: Loan; onDone: () => void }) {
       start_date: start || null,
       emi_due_day: dd,
       rate_type: rateType,
+      alert_time_utc: localToUtcTime(alertTime),
     });
     onDone();
   }
@@ -466,6 +470,9 @@ function EditLoan({ loan, onDone }: { loan: Loan; onDone: () => void }) {
           <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
         </label>
         <FloatingInput label={t("dueDay")} inputMode="numeric" value={dueDay} onChange={(v) => setDueDay(v.replace(/\D/g, "").slice(0, 2))} style={{ width: 150 }} />
+        <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 100 }}>Alert time
+          <input className="input" type="time" value={alertTime} onChange={(e) => setAlertTime(e.target.value)} />
+        </label>
       </div>
       <p className="muted" style={{ fontSize: 12, margin: 0 }}>{t("dueBlankHint")}</p>
       <div style={{ display: "flex", gap: 8 }}>

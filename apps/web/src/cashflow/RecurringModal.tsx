@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { Modal } from "../ui/Modal";
 import { FloatingInput } from "../ui/FloatingInput";
+import { utcToLocalTime, localToUtcTime } from "../time";
 import type { Freq } from "../templates/write";
 import { createRecurring, updateRecurring, type RecurringDirection, type RecurringItem } from "./recurring";
 import { useGroupsByDirection, createGroup } from "../recurring/groups";
@@ -45,6 +46,7 @@ export function RecurringModal({ direction, base, edit, prefill, onClose }: {
   const [categoryId, setCategoryId] = useState(edit?.category_id ?? "");
   const [freq, setFreq] = useState<Freq>((edit?.frequency as Freq) ?? prefill?.frequency ?? "monthly");
   const [firstDue, setFirstDue] = useState(edit?.next_due ?? new Date().toISOString().slice(0, 10));
+  const [alertTime, setAlertTime] = useState(utcToLocalTime(edit?.alert_time_utc));
   const [autoPost, setAutoPost] = useState(edit ? edit.auto_post === 1 : false);
   const [saving, setSaving] = useState(false);
 
@@ -83,6 +85,7 @@ export function RecurringModal({ direction, base, edit, prefill, onClose }: {
         accountId, toAccountId: isSaving ? toAccountId : null,
         categoryId: isPayment && categoryId ? categoryId : null,
         frequency: freq, firstDue, autoPost, groupId: gid,
+        alert_time_utc: localToUtcTime(alertTime),
       };
       if (edit) await updateRecurring(edit.ruleId, edit.templateId, input);
       else await createRecurring(input);
@@ -145,8 +148,11 @@ export function RecurringModal({ direction, base, edit, prefill, onClose }: {
               {FREQS.map((f) => <button key={f} className="chip" data-active={f === freq} onClick={() => setFreq(f)}>{t(`freq.${f}`)}</button>)}
             </div>
           </div>
-          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, width: 160 }}>{t("firstDue")}
+          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, width: 140 }}>{t("firstDue")}
             <input className="input" type="date" value={firstDue} onChange={(e) => setFirstDue(e.target.value)} />
+          </label>
+          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, width: 100 }}>Alert time
+            <input className="input" type="time" value={alertTime} onChange={(e) => setAlertTime(e.target.value)} />
           </label>
         </div>
 

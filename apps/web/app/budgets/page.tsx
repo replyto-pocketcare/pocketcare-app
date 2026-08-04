@@ -13,6 +13,7 @@ import { useBaseCurrency } from "../../src/hooks";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { useMoneyFmt } from "../../src/ui/Money";
+import { utcToLocalTime, localToUtcTime } from "../../src/time";
 import { MultiSelect } from "../../src/ui/MultiSelect";
 import { LabelPicker } from "../../src/ui/LabelPicker";
 import { Modal } from "../../src/ui/Modal";
@@ -97,7 +98,7 @@ export default function BudgetsPage() {
   const editId = searchParams?.get("edit");
   const base = useBaseCurrency();
   const { data: budgets = [], isLoading: budgetsLoading } = useQuery<BudgetLike>(
-    "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
+    "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct, alert_time_utc FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC",
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL AND kind='expense' ORDER BY name");
   const { data: labels = [] } = useQuery<{ id: string; name: string; color: string | null }>("SELECT id, name, color FROM labels WHERE deleted_at IS NULL ORDER BY name");
@@ -112,6 +113,7 @@ export default function BudgetsPage() {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [threshold, setThreshold] = useState("80");
+  const [alertTime, setAlertTime] = useState("09:00");
   const [currency, setCurrency] = useState(base);
   const [showNew, setShowNew] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -128,10 +130,11 @@ export default function BudgetsPage() {
       limit_amount: fromMajor(Number(limit), currency).amount,
       currency,
       threshold_pct: Math.min(100, Math.max(1, Number(threshold) || 80)),
+      alert_time_utc: localToUtcTime(alertTime),
       rollover: 0,
     });
     await writeBudgetScope(budgetId, selCats, selLabels);
-    setName(""); setLimit(""); setSelCats([]); setSelLabels([]); setStart(""); setEnd(""); setThreshold("80"); setCurrency(base);
+    setName(""); setLimit(""); setSelCats([]); setSelLabels([]); setStart(""); setEnd(""); setThreshold("80"); setAlertTime("09:00"); setCurrency(base);
     setShowNew(false);
   }
 
@@ -167,11 +170,17 @@ export default function BudgetsPage() {
               {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          <label className="muted" style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
-            {t("alertMeAt")}
-            <input className="input" style={{ width: 72 }} inputMode="numeric" value={threshold} onChange={(e) => setThreshold(e.target.value.replace(/\D/g, ""))} />
-            {t("percentOfLimit")}
-          </label>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <label className="muted" style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+              {t("alertMeAt")}
+              <input className="input" style={{ width: 72 }} inputMode="numeric" value={threshold} onChange={(e) => setThreshold(e.target.value.replace(/\D/g, ""))} />
+              {t("percentOfLimit")}
+            </label>
+            <label className="muted" style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+              at time
+              <input type="time" className="input" value={alertTime} onChange={(e) => setAlertTime(e.target.value)} />
+            </label>
+          </div>
 
           <span className="muted" style={{ fontSize: 13 }}>{t("categoriesOptional")}</span>
           <MultiSelect options={catOptions} selected={selCats} onChange={setSelCats} placeholder={t("addCategories")} />
@@ -257,6 +266,7 @@ function BudgetRow({ budget, cats, labels, catOptions, autoOpen }: {
   const [eLimit, setELimit] = useState(String(toMajor(limit)));
   const [ePeriod, setEPeriod] = useState<Period>(budget.period);
   const [eThreshold, setEThreshold] = useState(String(budget.threshold_pct));
+  const [eAlertTime, setEAlertTime] = useState(utcToLocalTime(budget.alert_time_utc));
   const [eCats, setECats] = useState<string[]>([]);
   const [eLabels, setELabels] = useState<string[]>([]);
 
@@ -265,6 +275,7 @@ function BudgetRow({ budget, cats, labels, catOptions, autoOpen }: {
     setELimit(String(toMajor(limit)));
     setEPeriod(budget.period);
     setEThreshold(String(budget.threshold_pct));
+    setEAlertTime(utcToLocalTime(budget.alert_time_utc));
     setECats(catIds);
     setELabels(labelNames);
     setEditing(true);
@@ -276,6 +287,7 @@ function BudgetRow({ budget, cats, labels, catOptions, autoOpen }: {
       limit_amount: fromMajor(Number(eLimit) || 0, budget.currency).amount,
       period: ePeriod,
       threshold_pct: Math.min(100, Math.max(1, Number(eThreshold) || 80)),
+      alert_time_utc: localToUtcTime(eAlertTime),
     });
     await writeBudgetScope(budget.id, eCats, eLabels);
     setEditing(false);
@@ -298,6 +310,7 @@ function BudgetRow({ budget, cats, labels, catOptions, autoOpen }: {
             <label className="muted" style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>{t("alertAt")}
               <input className="input" style={{ width: 70 }} inputMode="numeric" value={eThreshold} onChange={(e) => setEThreshold(e.target.value.replace(/\D/g, ""))} />%
             </label>
+            <input type="time" className="input" style={{ fontSize: 12 }} value={eAlertTime} onChange={(e) => setEAlertTime(e.target.value)} />
             <button className="btn" onClick={saveEdit}>{t("save")}</button>
             <button className="chip" onClick={() => setEditing(false)}>{t("cancel")}</button>
           </div>

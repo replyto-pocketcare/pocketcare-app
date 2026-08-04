@@ -6,10 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@powersync/react";
 import { money, format, fromMajor, toMajor } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
-import { insertRow, updateRow, softDelete } from "../../src/write";
 import type { CurrencyCode } from "@sanvya/types";
 import { ProgressBar } from "../../src/ui/ProgressBar";
 import { FloatingInput } from "../../src/ui/FloatingInput";
+import { utcToLocalTime, localToUtcTime } from "../../src/time";
 import { KebabMenu } from "../../src/ui/KebabMenu";
 import { Modal } from "../../src/ui/Modal";
 import { useConfirm } from "../../src/ui/Confirm";
@@ -51,8 +51,8 @@ export default function GoalsPage() {
   const searchParams = useSearchParams();
   const editId = searchParams?.get("edit");
   const base = useBaseCurrency();
-  const { data: goals = [], isLoading: goalsLoading } = useQuery<Goal>(
-    "SELECT id, name, target_amount, currency, is_emergency_fund, priority FROM goals WHERE deleted_at IS NULL ORDER BY is_emergency_fund DESC, priority",
+  const { data: goals = [], isLoading: goalsLoading } = useQuery<Goal & { alert_time_utc: string }>(
+    "SELECT id, name, target_amount, currency, is_emergency_fund, priority, alert_time_utc FROM goals WHERE deleted_at IS NULL ORDER BY is_emergency_fund DESC, priority",
   );
   const { data: allocs = [] } = useQuery<{ goal_id: string; amount_blocked: number }>(
     "SELECT goal_id, amount_blocked FROM goal_allocations WHERE deleted_at IS NULL",
@@ -69,6 +69,7 @@ export default function GoalsPage() {
   const [target, setTarget] = useState("");
   const [currency, setCurrency] = useState(base);
   const [isEf, setIsEf] = useState(false);
+  const [alertTime, setAlertTime] = useState("09:00");
   const [err, setErr] = useState<string | null>(null);
   const hasEf = !!ef;
 
@@ -85,8 +86,9 @@ export default function GoalsPage() {
       currency,
       is_emergency_fund: isEf && !hasEf ? 1 : 0,
       priority: goals.length,
+      alert_time_utc: localToUtcTime(alertTime),
     });
-    setName(""); setTarget(""); setCurrency(base); setIsEf(false);
+    setName(""); setTarget(""); setCurrency(base); setIsEf(false); setAlertTime("09:00");
   }
 
   return (
@@ -115,6 +117,10 @@ export default function GoalsPage() {
             {GOAL_CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
+        <label className="muted" style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
+          Alert time
+          <input type="time" className="input" value={alertTime} onChange={(e) => setAlertTime(e.target.value)} />
+        </label>
         {!hasEf && (
           <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
             <input type="checkbox" checked={isEf} onChange={(e) => setIsEf(e.target.checked)} /> {t("efCheckbox")}
@@ -130,7 +136,7 @@ export default function GoalsPage() {
 }
 
 function GoalCard({ goal, saved, savings, locked, base, onAchieved, autoOpen }: {
-  goal: Goal; saved: number; savings: { id: string; name: string; currency: string }[]; locked: boolean; base: string;
+  goal: Goal & { alert_time_utc: string }; saved: number; savings: { id: string; name: string; currency: string }[]; locked: boolean; base: string;
   onAchieved: (name: string) => void;
   autoOpen?: boolean;
 }) {
@@ -168,9 +174,14 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved, autoOpen }: 
   const [showAlloc, setShowAlloc] = useState(false);
   const [eName, setEName] = useState(goal.name);
   const [eTarget, setETarget] = useState(String(toMajor(money(goal.target_amount, goal.currency))));
+  const [eAlertTime, setEAlertTime] = useState(utcToLocalTime(goal.alert_time_utc));
 
   async function saveEdit() {
-    await updateRow("goals", goal.id, { name: eName.trim() || goal.name, target_amount: fromMajor(Number(eTarget) || 0, goal.currency).amount });
+    await updateRow("goals", goal.id, {
+      name: eName.trim() || goal.name,
+      target_amount: fromMajor(Number(eTarget) || 0, goal.currency).amount,
+      alert_time_utc: localToUtcTime(eAlertTime),
+    });
     setEditing(false);
   }
 
@@ -206,8 +217,14 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved, autoOpen }: 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           <FloatingInput label={t("goalName")} value={eName} onChange={setEName} style={{ flex: 1, minWidth: 140 }} />
           <FloatingInput label={t("target", { currency: goal.currency })} group currency={goal.currency} value={eTarget} onChange={setETarget} style={{ width: 140 }} />
-          <button className="btn" onClick={saveEdit}>{t("save")}</button>
-          <button className="chip" onClick={() => setEditing(false)}>{t("cancel")}</button>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <label className="muted" style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
+              Alert at
+              <input type="time" className="input" style={{ fontSize: 12 }} value={eAlertTime} onChange={(e) => setEAlertTime(e.target.value)} />
+            </label>
+            <button className="btn" onClick={saveEdit}>{t("save")}</button>
+            <button className="chip" onClick={() => setEditing(false)}>{t("cancel")}</button>
+          </div>
         </div>
       ) : (
         <div>
@@ -221,7 +238,7 @@ function GoalCard({ goal, saved, savings, locked, base, onAchieved, autoOpen }: 
             <KebabMenu
               label={t("goalActions", { name: goal.name })}
               items={[
-                { label: t("edit"), onClick: () => { setEName(goal.name); setETarget(String(toMajor(money(goal.target_amount, goal.currency)))); setEditing(true); } },
+                { label: t("edit"), onClick: () => { setEName(goal.name); setETarget(String(toMajor(money(goal.target_amount, goal.currency)))); setEAlertTime(utcToLocalTime(goal.alert_time_utc)); setEditing(true); } },
                 { label: t("delete"), danger: true, onClick: async () => { if (await confirm({ title: t("deleteTitle"), message: t("deleteMsg", { name: goal.name }) })) softDelete("goals", goal.id); } },
               ]}
             />

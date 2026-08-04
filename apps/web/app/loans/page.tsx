@@ -11,6 +11,7 @@ import { insertRow } from "../../src/write";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { FloatingInput } from "../../src/ui/FloatingInput";
 import { Modal } from "../../src/ui/Modal";
+import { utcToLocalTime, localToUtcTime } from "../../src/time";
 import { Pill, Field, loanRange } from "../../src/loans/ui";
 
 interface Loan {
@@ -122,6 +123,7 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
   const [rateType, setRateType] = useState<"fixed" | "variable">("fixed");
   const [start, setStart] = useState(new Date().toISOString().slice(0, 10));
   const [dueDay, setDueDay] = useState("");
+  const [alertTime, setAlertTime] = useState("09:00");
   const [autoMark, setAutoMark] = useState(false);
 
   /**
@@ -161,6 +163,7 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
       rate_type: rateType,
       funding_account_id: fundingId || null,
       emis_paid: 0,
+      alert_time_utc: localToUtcTime(alertTime),
     });
     onClose();
   }
@@ -206,6 +209,9 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
             <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
           </label>
           <FloatingInput label={t("dueDay")} inputMode="numeric" value={dueDay} onChange={(v) => setDueDay(v.replace(/\D/g, "").slice(0, 2))} style={{ width: 150 }} />
+          <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 100 }}>Alert time
+            <input className="input" type="time" value={alertTime} onChange={(e) => setAlertTime(e.target.value)} />
+          </label>
         </div>
         {/* Charged to what? A card here means the EMI lands in that card's due. */}
         <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4 }}>{t("chargedTo", "Where is this EMI charged?")}

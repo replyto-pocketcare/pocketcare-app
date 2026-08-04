@@ -206,6 +206,7 @@ const budgets = new Table({
   limit_amount: column.integer,
   currency: column.text,
   threshold_pct: column.integer,
+  alert_time_utc: column.text,
   rollover: column.integer,
   created_at: column.text,
   updated_at: column.text,
@@ -220,6 +221,7 @@ const goals = new Table({
   priority: column.integer,
   is_emergency_fund: column.integer,
   target_date: column.text,
+  alert_time_utc: column.text,
   created_at: column.text,
   updated_at: column.text,
   deleted_at: column.text,
@@ -284,6 +286,7 @@ const loans = new Table({
   // Drives posting a due EMI onto the card, so it must sync — see 0047.
   funding_account_id: column.text,
   emi_amounts: column.text, // JSON map { "<emiNo>": <amountMinor> } — per-month EMI for variable loans
+  alert_time_utc: column.text,
   created_at: column.text,
   updated_at: column.text,
   deleted_at: column.text,
@@ -627,6 +630,7 @@ const recurring_rules = new Table(
   {
     user_id: column.text, template_id: column.text, frequency: column.text, interval_count: column.integer,
     next_due: column.text, last_generated: column.text, auto_post: column.integer, active: column.integer,
+    alert_time_utc: column.text,
     created_at: column.text, updated_at: column.text, deleted_at: column.text,
   },
   { indexes: { by_user: ["user_id", "next_due"] } },

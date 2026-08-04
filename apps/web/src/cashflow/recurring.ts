@@ -30,6 +30,7 @@ export interface RecurringItem {
   category_id: string | null;
   group_id: string | null;
   auto_post: number;
+  alert_time_utc: string | null;
 }
 
 const directionOf = (type: string): RecurringDirection =>
@@ -41,7 +42,7 @@ export const typeForDirection = (d: RecurringDirection): "income" | "expense" | 
 interface Row {
   ruleId: string; templateId: string; type: string; name: string; amount: number | null; currency: string | null;
   account_id: string | null; to_account_id: string | null; category_id: string | null; group_id: string | null;
-  frequency: string; next_due: string; auto_post: number;
+  frequency: string; next_due: string; auto_post: number; alert_time_utc: string | null;
 }
 
 export function useRecurringItems(): RecurringItem[] {
@@ -49,7 +50,7 @@ export function useRecurringItems(): RecurringItem[] {
     `SELECT r.id AS ruleId, r.template_id AS templateId, t.type AS type, t.name AS name,
             t.amount AS amount, t.currency AS currency, t.account_id AS account_id,
             t.to_account_id AS to_account_id, t.category_id AS category_id, t.group_id AS group_id,
-            r.frequency AS frequency, r.next_due AS next_due, r.auto_post AS auto_post
+            r.frequency AS frequency, r.next_due AS next_due, r.auto_post AS auto_post, r.alert_time_utc AS alert_time_utc
      FROM recurring_rules r JOIN transaction_templates t ON t.id = r.template_id
      WHERE r.deleted_at IS NULL AND t.deleted_at IS NULL AND r.active = 1
      ORDER BY r.next_due`,
@@ -59,6 +60,7 @@ export function useRecurringItems(): RecurringItem[] {
     name: d.name, amount: d.amount ?? 0, currency: d.currency ?? "",
     frequency: d.frequency, next_due: d.next_due, account_id: d.account_id,
     to_account_id: d.to_account_id, category_id: d.category_id, group_id: d.group_id, auto_post: d.auto_post,
+    alert_time_utc: d.alert_time_utc,
   }));
 }
 
@@ -75,6 +77,7 @@ export interface RecurringInput {
   /** Required by the UI — nothing may be ungrouped. Nullable in Postgres only
    *  because a NOT NULL + FK would quarantine on incremental sync (see 0046). */
   groupId: string;
+  alert_time_utc: string | null;
 }
 
 /** Create a recurring item = a template + a recurring rule, in one step. */
@@ -88,7 +91,7 @@ export async function createRecurring(inp: RecurringInput): Promise<string> {
     categoryId: inp.categoryId ?? null,
     groupId: inp.groupId,
   });
-  return createRule({ templateId, frequency: inp.frequency, firstDue: inp.firstDue, autoPost: inp.autoPost });
+  return createRule({ templateId, frequency: inp.frequency, firstDue: inp.firstDue, autoPost: inp.autoPost, alert_time_utc: inp.alert_time_utc });
 }
 
 /** Update the template + rule behind a recurring item. */
@@ -102,7 +105,12 @@ export async function updateRecurring(ruleId: string, templateId: string, inp: R
     categoryId: inp.categoryId ?? null,
     groupId: inp.groupId,
   });
-  await updateRow("recurring_rules", ruleId, { frequency: inp.frequency, next_due: inp.firstDue, auto_post: inp.autoPost ? 1 : 0 });
+  await updateRow("recurring_rules", ruleId, { 
+    frequency: inp.frequency, 
+    next_due: inp.firstDue, 
+    auto_post: inp.autoPost ? 1 : 0,
+    alert_time_utc: inp.alert_time_utc 
+  });
 }
 
 /** Soft-delete both the rule and its template. */
