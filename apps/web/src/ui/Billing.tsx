@@ -132,7 +132,7 @@ export function Billing() {
   };
 
   return (
-    <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>
+    <section id="subscriptions" className="card" style={{ padding: 20, display: "grid", gap: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <h2>Plan &amp; billing</h2>
         <div style={{ display: "flex", gap: 6 }}>
