@@ -4,7 +4,7 @@ import { useState } from "react";
 import { getRepositories } from "../../src/powersync";
 import { useIntentQueue } from "../../src/reflect/useIntentQueue";
 import { IntentCard } from "../../src/reflect/IntentCard";
-import { MaterialIcon } from "../../src/ui/MaterialIcon";
+import { CheckCircleIcon, UndoIcon, SkipIcon } from "../../src/ui/icons";
 
 export default function ReflectPage() {
   const { queue, isLoading } = useIntentQueue();
@@ -20,8 +20,10 @@ export default function ReflectPage() {
   if (currentQueue.length === 0) {
     return (
       <div style={{ padding: 48, textAlign: "center" }}>
-        <MaterialIcon name="done_all" size={48} style={{ color: "var(--positive)", marginBottom: 16 }} />
-        <h2>All caught up!</h2>
+        <div style={{ color: "var(--positive)" }}>
+          <CheckCircleIcon size={48} />
+        </div>
+        <h2 style={{ marginTop: 16 }}>All caught up!</h2>
         <p className="muted">You have reviewed all your recent spending.</p>
       </div>
     );
@@ -88,10 +90,10 @@ export default function ReflectPage() {
 
       <footer style={{ marginTop: 32, display: "flex", justifyContent: "space-between" }}>
         <button className="btn ghost" onClick={handleUndo} disabled={history.length === 0} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <MaterialIcon name="undo" /> Undo
+          <UndoIcon size={18} /> Undo
         </button>
         <button className="btn ghost" onClick={handleSkip} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          Skip <MaterialIcon name="skip_next" />
+          Skip <SkipIcon size={18} />
         </button>
       </footer>
     </div>
