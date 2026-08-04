@@ -243,7 +243,7 @@ export default function SplitsPage() {
 
       {/* Groups & trips — tiled; an expanded group spans the full row. */}
       {!empty && groups.length > 0 && (
-        <section style={{ display: "grid", gap: 12 }}>
+        <section id="groups" style={{ display: "grid", gap: 12 }}>
           <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.groupsAndTrips")}</div>
           <div className="list-grid">
             {groups.map((g) => {
@@ -339,13 +339,13 @@ export default function SplitsPage() {
       {!empty && perPerson.length > 0 && (
         <section style={{ display: "grid", gap: 16 }}>
           {owedList.length > 0 && (
-            <div style={{ display: "grid", gap: 10 }}>
+            <div id="owed" style={{ display: "grid", gap: 10 }}>
               <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.owesYou")}</div>
               <div className="list-grid">{owedList.map((b) => <BalanceRow key={b.userId} b={b} name={name} amt={amt} onOpen={openPerson} />)}</div>
             </div>
           )}
           {oweList.length > 0 && (
-            <div style={{ display: "grid", gap: 10 }}>
+            <div id="owe" style={{ display: "grid", gap: 10 }}>
               <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.youOwe")}</div>
               <div className="list-grid">{oweList.map((b) => <BalanceRow key={b.userId} b={b} name={name} amt={amt} onOpen={openPerson} />)}</div>
             </div>
@@ -355,7 +355,7 @@ export default function SplitsPage() {
 
       {/* Friends — everyone you share a group with, settled or not. */}
       {everyone.length > 0 && (
-        <section style={{ display: "grid", gap: 10 }}>
+        <section id="friends" style={{ display: "grid", gap: 10 }}>
           <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.friends")}</div>
           <div className="list-grid">
             {everyone.map((b) => (

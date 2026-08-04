@@ -102,7 +102,7 @@ export default function SettingsPage() {
       <h1>{t("title")}</h1>
 
       {/* Account */}
-      <section className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
+      <section id="account" className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
         <h2>{t("account")}</h2>
         {session?.isGuest ? (
           <div style={{ padding: 12, borderRadius: 10, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", fontSize: 14 }}>
@@ -160,7 +160,7 @@ export default function SettingsPage() {
       </Modal>
 
       {/* Theme */}
-      <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
+      <section id="theme" className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>{t("appearance")}</h2>
         <div style={{ display: "flex", gap: 6 }}>
           <button className="chip" data-active={theme === "light"} onClick={() => setTheme("light")} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><SunIcon size={15} /> {t("light")}</button>
@@ -169,7 +169,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Privacy */}
-      <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
+      <section id="privacy" className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>{t("privacy")}</h2>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <span style={{ fontSize: 14 }}>
@@ -188,7 +188,7 @@ export default function SettingsPage() {
 
       <SecurityPanel />
 
-      <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
+      <section id="currency" className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>{t("baseCurrency")}</h2>
         <p className="muted" style={{ fontSize: 13, marginTop: -4 }}>{t("baseCurrencyDesc")}</p>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -196,14 +196,14 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
+      <section id="language" className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>{t("language")}</h2>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {SUPPORTED_LANGUAGES.map((l) => <button key={l.code} className="chip" data-active={l.code === lang} onClick={() => saveLang(l.code)}>{l.label}</button>)}
         </div>
       </section>
 
-      <section className="card" style={{ padding: 20, display: "grid", gap: 8 }}>
+      <section id="categories" className="card" style={{ padding: 20, display: "grid", gap: 8 }}>
         <h2>{t("catsLabels")}</h2>
         <p className="muted" style={{ fontSize: 13, marginTop: -2 }}>{t("catsLabelsDesc")}</p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
@@ -212,7 +212,7 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="card" style={{ padding: 20, display: "grid", gap: 8 }}>
+      <section id="data" className="card" style={{ padding: 20, display: "grid", gap: 8 }}>
         <h2>{t("importExport")}</h2>
         <p className="muted" style={{ fontSize: 13, marginTop: -2 }}>{t("importExportDesc")}</p>
         <div style={{ marginTop: 4 }}>
@@ -235,7 +235,7 @@ export default function SettingsPage() {
       <Billing />
 
       {/* Help & Support */}
-      <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
+      <section id="help" className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
         <h2>{t("help")}</h2>
         <div style={{ display: "grid", gap: 6 }}>
           <a href="mailto:support@sanvya.app" className="chip" style={{ justifySelf: "start" }}>{t("contactSupport")}</a>
@@ -245,7 +245,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Sign out and Delete */}
-      <section style={{ display: "flex", justifyContent: "center", gap: 16, paddingTop: 4, paddingBottom: 24, flexWrap: "wrap" }}>
+      <section id="danger" style={{ display: "flex", justifyContent: "center", gap: 16, paddingTop: 4, paddingBottom: 24, flexWrap: "wrap" }}>
         <button className="btn ghost" onClick={() => setConfirmSignout(true)}>{t("signOut")}</button>
         <button className="btn ghost" style={{ color: "var(--negative)", borderColor: "var(--negative)" }} onClick={() => setConfirmDelete(true)}>{t("deleteAccount")}</button>
       </section>

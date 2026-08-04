@@ -4,6 +4,18 @@ import { useState, useEffect } from "react";
 import { getAudienceGroups, sendBroadcastPush, createAudienceGroup, addUsersToGroupByEmail, addUsersToGroupByDemographics, getGroupMembers, GroupMember } from "../../../src/admin-actions";
 
 export default function AdminNotifications() {
+  const DEEP_LINK_TARGETS: Record<string, { label: string; sections: { id: string; label: string }[]; hasSpecificItem?: boolean }> = {
+    "/": { label: "Dashboard", sections: [] },
+    "/cashflow": { label: "Cashflow", sections: [{ id: "incomes", label: "Incomes" }, { id: "payments", label: "Payments" }, { id: "savings", label: "Savings & Invest" }, { id: "summary", label: "Summary" }] },
+    "/friends": { label: "Splits / Friends", sections: [{ id: "groups", label: "Groups & Trips" }, { id: "owed", label: "Owed to You" }, { id: "owe", label: "You Owe" }, { id: "friends", label: "Friends List" }] },
+    "/investments": { label: "Investments", sections: [{ id: "portfolio", label: "Portfolio" }, { id: "market", label: "Market Insights" }] },
+    "/settings": { label: "Settings", sections: [{ id: "account", label: "Account" }, { id: "theme", label: "Theme" }, { id: "privacy", label: "Privacy" }, { id: "profile", label: "Profile" }, { id: "currency", label: "Currency" }, { id: "language", label: "Language" }, { id: "categories", label: "Categories" }, { id: "data", label: "Data Import/Export" }, { id: "subscriptions", label: "Plan & Billing" }, { id: "help", label: "Help" }] },
+    "/assistant": { label: "Assistant", sections: [] },
+    "/goals": { label: "Goals", sections: [], hasSpecificItem: true },
+    "/budgets": { label: "Budgets", sections: [], hasSpecificItem: true },
+    "/recurring": { label: "Recurring", sections: [], hasSpecificItem: true },
+    "/loans": { label: "Loans", sections: [], hasSpecificItem: true },
+  };
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -17,7 +29,9 @@ export default function AdminNotifications() {
   const [subtitle, setSubtitle] = useState("");
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [href, setHref] = useState("");
+  const [selectedPage, setSelectedPage] = useState("/");
+  const [selectedSection, setSelectedSection] = useState("");
+  const [specificItem, setSpecificItem] = useState("");
 
   // Create Group State
   const [creatingGroup, setCreatingGroup] = useState(false);
@@ -69,11 +83,19 @@ export default function AdminNotifications() {
     e.preventDefault();
     if (!groupId || !title) return;
     setSending(true); setStatus(null);
-    const res = await sendBroadcastPush({ group_id: groupId, title, subtitle: subtitle || undefined, body: body || undefined, image_url: imageUrl || undefined, href: href || undefined });
+    let finalHref = selectedPage;
+    if (DEEP_LINK_TARGETS[selectedPage]?.hasSpecificItem && specificItem) {
+      finalHref = `${selectedPage}/${specificItem}`;
+    }
+    if (selectedSection) {
+      finalHref = `${finalHref}#${selectedSection}`;
+    }
+    
+    const res = await sendBroadcastPush({ group_id: groupId, title, subtitle: subtitle || undefined, body: body || undefined, image_url: imageUrl || undefined, href: finalHref || undefined });
     setSending(false);
     if (res.ok) {
       setStatus({ type: "success", msg: `Successfully queued push to ${res.data.users} members. Sent ${res.data.sent} pushes.` });
-      setTitle(""); setSubtitle(""); setBody(""); setImageUrl(""); setHref("");
+      setTitle(""); setSubtitle(""); setBody(""); setImageUrl(""); setSpecificItem(""); setSelectedSection("");
     } else {
       setStatus({ type: "error", msg: res.error });
     }
@@ -232,8 +254,32 @@ export default function AdminNotifications() {
             <label style={{ display: "block", marginBottom: 4, fontWeight: "bold" }}>Image URL</label>
             <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.png" style={inputStyle} />
 
-            <label style={{ display: "block", marginBottom: 4, fontWeight: "bold" }}>Deep Link (Href)</label>
-            <input type="text" value={href} onChange={(e) => setHref(e.target.value)} placeholder="e.g. /premium" style={inputStyle} />
+            <label style={{ display: "block", marginBottom: 4, fontWeight: "bold" }}>Deep Link Target Page</label>
+            <select value={selectedPage} onChange={(e) => { setSelectedPage(e.target.value); setSelectedSection(""); setSpecificItem(""); }} style={inputStyle}>
+              {Object.entries(DEEP_LINK_TARGETS).map(([path, target]) => (
+                <option key={path} value={path}>{target.label} ({path})</option>
+              ))}
+            </select>
+
+            {DEEP_LINK_TARGETS[selectedPage]?.hasSpecificItem && (
+              <>
+                <label style={{ display: "block", marginBottom: 4, fontWeight: "bold" }}>Specific Item ID (Optional)</label>
+                <input type="text" value={specificItem} onChange={(e) => setSpecificItem(e.target.value)} placeholder="e.g. 1234-abcd" style={inputStyle} />
+                <div className="muted" style={{ fontSize: 12, marginTop: -12, marginBottom: 16 }}>Appends /ID to the URL (e.g. {selectedPage}/1234-abcd)</div>
+              </>
+            )}
+
+            {DEEP_LINK_TARGETS[selectedPage]?.sections.length > 0 && (
+              <>
+                <label style={{ display: "block", marginBottom: 4, fontWeight: "bold" }}>Scroll to Section (Optional)</label>
+                <select value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)} style={inputStyle}>
+                  <option value="">None (Top of page)</option>
+                  {DEEP_LINK_TARGETS[selectedPage].sections.map(s => (
+                    <option key={s.id} value={s.id}>{s.label} (#{s.id})</option>
+                  ))}
+                </select>
+              </>
+            )}
 
             <StatusBox s={status} />
 

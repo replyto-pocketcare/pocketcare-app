@@ -107,7 +107,7 @@ export default function InvestmentsPage() {
         <>
           {/* Group tiles */}
           {groups.length > 0 ? (
-            <section style={{ display: "grid", gap: 12 }}>
+            <section id="portfolio" style={{ display: "grid", gap: 12 }}>
               <div className="eyebrow">{t("byExchangeScheme")}</div>
               <div className="list-grid">
                 {groups.map((g) => <GroupTile key={g.key} g={g} base={base} onOpen={() => setSelectedKey(g.key)} />)}
@@ -119,7 +119,7 @@ export default function InvestmentsPage() {
 
           {/* Insights */}
           {groups.length > 0 && (
-            <section style={{ display: "grid", gap: 12 }}>
+            <section id="market" style={{ display: "grid", gap: 12 }}>
               <div className="eyebrow">{t("insights")}</div>
               <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(min(320px,100%),1fr))" }}>
                 <div className="card pc-glass" style={{ padding: 18, display: "grid", gap: 8 }}>

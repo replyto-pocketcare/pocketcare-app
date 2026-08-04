@@ -57,7 +57,7 @@ export function ProfileTraits() {
   }
 
   return (
-    <section className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
+    <section id="profile" className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
       <div>
         <h2 style={{ margin: 0 }}>About you <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}>· optional</span></h2>
         <p className="muted" style={{ fontSize: 12, margin: "4px 0 0" }}>Helps us tailor offers and beta invites. Private — never shown to anyone else.</p>
