@@ -75,8 +75,8 @@ export default function ReflectPage() {
                 amountMinor={tx.amount}
                 currency={tx.currency}
                 occurredAt={tx.occurred_at}
-                categoryName={tx.category_id} // ideally joined name, but for now ID or missing
-                accountName={tx.account_id}
+                categoryName={tx.category_name} 
+                accountName={tx.account_name}
                 onJudged={(intent) => handleJudged(tx.id, intent)}
                 onSkip={handleSkip}
                 isTop={isTop}
