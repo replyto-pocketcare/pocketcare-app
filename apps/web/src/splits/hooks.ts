@@ -20,7 +20,7 @@ export interface UserProfile { id: string; name: string; email: string | null }
 /** All users we can see (self + co-members + connections), for display. */
 export function useUserProfiles(): Map<string, UserProfile> {
   const { data = [] } = useQuery<{ id: string; display_name: string | null; email: string | null }>(
-    "SELECT id, display_name, email FROM profiles",
+    "SELECT id, display_name, email FROM public_profiles UNION SELECT id, display_name, email FROM profiles",
   );
   return useMemo(() => {
     const m = new Map<string, UserProfile>();
@@ -35,7 +35,7 @@ export function useConnections(): UserProfile[] {
   const { data = [] } = useQuery<{ id: string; display_name: string | null; email: string | null }>(
     `SELECT p.id AS id, p.display_name AS display_name, p.email AS email
      FROM connections c
-     JOIN profiles p ON p.id = (CASE WHEN c.user_a = ? THEN c.user_b ELSE c.user_a END)
+     JOIN public_profiles p ON p.id = (CASE WHEN c.user_a = ? THEN c.user_b ELSE c.user_a END)
      WHERE c.deleted_at IS NULL AND (c.user_a = ? OR c.user_b = ?)`,
     [me, me, me],
   );

@@ -20,6 +20,14 @@ const profiles = new Table({
   updated_at: column.text,
 });
 
+const public_profiles = new Table({
+  id: column.text,
+  display_name: column.text,
+  email: column.text,
+  created_at: column.text,
+  updated_at: column.text,
+});
+
 // Shared promo-code redemptions (own rows).
 const promo_redemptions = new Table({
   code: column.text,
@@ -726,6 +734,7 @@ const sync_attempts = new Table(
 
 export const AppSchema = new Schema({
   profiles,
+  public_profiles,
   notifications,
   notification_prefs,
   audience_groups,
