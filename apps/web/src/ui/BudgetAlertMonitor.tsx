@@ -6,7 +6,7 @@ import { getDb } from "../powersync";
 import { money, format } from "@sanvya/money";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
-import { X } from "react-feather";
+import { MaterialIcon } from "./MaterialIcon";
 
 interface Budget {
   id: string;
@@ -116,7 +116,7 @@ export function BudgetAlertMonitor() {
               setAlerts(prev => prev.filter(a => a.id !== alert.id));
             }}
           >
-            <X size={18} />
+            <MaterialIcon name="close" size={18} />
           </button>
         </div>
       ))}
