@@ -8,5 +8,5 @@ FROM pocketcare.profiles;
 -- Grant permissions to PostgREST roles (and by extension PowerSync)
 GRANT SELECT ON pocketcare.public_profiles TO anon, authenticated, service_role;
 
--- Add the view to the powersync publication so it can be streamed
-ALTER PUBLICATION powersync ADD TABLE pocketcare.public_profiles;
+-- The underlying pocketcare.profiles table is already in the powersync publication,
+-- so PowerSync will automatically detect changes and stream this view.
