@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getNotificationGroups, sendBroadcastPush, createNotificationGroup, addUsersToGroupByEmail, addUsersToGroupByDemographics, getGroupMembers, GroupMember } from "../../../src/admin-actions";
+import { getAudienceGroups, sendBroadcastPush, createAudienceGroup, addUsersToGroupByEmail, addUsersToGroupByDemographics, getGroupMembers, GroupMember } from "../../../src/admin-actions";
 
 export default function AdminNotifications() {
   const [groups, setGroups] = useState<any[]>([]);
@@ -37,7 +37,7 @@ export default function AdminNotifications() {
   const [loadingMembers, setLoadingMembers] = useState(false);
 
   const loadGroups = async () => {
-    const res = await getNotificationGroups();
+    const res = await getAudienceGroups();
     if (res.ok) {
       setGroups(res.data);
       if (res.data.length > 0 && !groupId) setGroupId(String(res.data[0].id));
@@ -83,7 +83,7 @@ export default function AdminNotifications() {
     e.preventDefault();
     if (!newGroupName) return;
     setCreatingGroup(true); setGroupStatus(null);
-    const res = await createNotificationGroup(newGroupName, newGroupDesc);
+    const res = await createAudienceGroup(newGroupName, newGroupDesc);
     setCreatingGroup(false);
     if (res.ok) {
       setGroupStatus({ type: "success", msg: `Group "${res.data.name}" created successfully.` });
