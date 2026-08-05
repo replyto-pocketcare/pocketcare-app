@@ -38,6 +38,21 @@ Next up:       Budgets or Login/Auth are the next highest-leverage gaps (Dashboa
                always nil) is cheap and worth doing soon — it's now routed around in two places
                (Accounts, Transactions) rather than fixed once. Same rigor each time: read the real
                web source first, write docs/mobile/screen-specs/<name>.md, then port.
+2026-08-05 #2: User's own Android Studio build (first REAL, non-sandbox compiler signal this
+               engagement) caught a genuine bug in PrefsRepository.kt (pre-existing file, not touched
+               earlier this session) — db.watch(sql, listOf(userId)) and db.getOptional(sql,
+               listOf(userId)) both omitted the required `mapper` param (PowerSync Kotlin SDK has no
+               untyped-row overload), and updateNotificationPrefs called bare `execute(...)` inside
+               `db.writeTransaction { }` instead of `tx.execute(...)` on the transaction receiver.
+               Fixed to match LedgerRepository.kt's established pattern exactly: extracted a
+               `notificationPrefsMapper(cursor: SqlCursor)` using cursor.getString/getLongOptional,
+               passed as `mapper = ::notificationPrefsMapper` to both calls, and changed
+               `db.writeTransaction { }` to `db.writeTransaction { tx -> tx.execute(...) }`. Public API
+               (function signatures) unchanged, so SettingsViewModel.kt (only caller) needed no
+               changes. Still not verified by a real build from me (still no JDK/Gradle in this
+               sandbox) — ask for another real-compiler pass to confirm this specific fix, and if
+               other pre-existing repository files raise similar errors, they likely have the same
+               missing-mapper or bare-execute() root cause.
 Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec, (b) a real human/
                CI build (`./gradlew build test` / `xcodebuild test`) — this sandbox cannot run
                either; say so explicitly rather than claiming compiled/verified. Before touching any

@@ -1,6 +1,8 @@
 package com.sanvya.app.data.repository
 
 import com.powersync.PowerSyncDatabase
+import com.powersync.db.SqlCursor
+import com.powersync.db.getLongOptional
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -19,43 +21,38 @@ data class NotificationPrefs(
     val emi_lead_days: Long = 3
 )
 
+/** Row mapper shared by the watch/get variants below -- matches
+ * LedgerRepository's convention (docs.powersync.com Kotlin SDK requires an
+ * explicit `mapper` on every db.watch/get/getOptional/getAll call; there is
+ * no untyped Map<String,Any?> row overload to `.let{}` into). */
+private fun notificationPrefsMapper(cursor: SqlCursor): NotificationPrefs = NotificationPrefs(
+    user_id = cursor.getString("user_id"),
+    push_enabled = cursor.getLongOptional("push_enabled") ?: 0L,
+    emi_due = cursor.getLongOptional("emi_due") ?: 1L,
+    budget = cursor.getLongOptional("budget") ?: 1L,
+    low_balance = cursor.getLongOptional("low_balance") ?: 1L,
+    outlier = cursor.getLongOptional("outlier") ?: 1L,
+    group_invite = cursor.getLongOptional("group_invite") ?: 1L,
+    group_expense = cursor.getLongOptional("group_expense") ?: 1L,
+    low_balance_threshold = cursor.getLongOptional("low_balance_threshold") ?: 500L,
+    emi_lead_days = cursor.getLongOptional("emi_lead_days") ?: 3L
+)
+
 class PrefsRepository(private val db: PowerSyncDatabase) {
     fun watchNotificationPrefs(userId: String): Flow<NotificationPrefs?> {
-        return db.watch("SELECT * FROM notification_prefs WHERE user_id = ?", listOf(userId))
-            .map { result ->
-                result.firstOrNull()?.let { row ->
-                    NotificationPrefs(
-                        user_id = row["user_id"] as String,
-                        push_enabled = (row["push_enabled"] as? Long) ?: 0L,
-                        emi_due = (row["emi_due"] as? Long) ?: 1L,
-                        budget = (row["budget"] as? Long) ?: 1L,
-                        low_balance = (row["low_balance"] as? Long) ?: 1L,
-                        outlier = (row["outlier"] as? Long) ?: 1L,
-                        group_invite = (row["group_invite"] as? Long) ?: 1L,
-                        group_expense = (row["group_expense"] as? Long) ?: 1L,
-                        low_balance_threshold = (row["low_balance_threshold"] as? Long) ?: 500L,
-                        emi_lead_days = (row["emi_lead_days"] as? Long) ?: 3L
-                    )
-                }
-            }
+        return db.watch(
+            "SELECT * FROM notification_prefs WHERE user_id = ?",
+            parameters = listOf(userId),
+            mapper = ::notificationPrefsMapper,
+        ).map { it.firstOrNull() }
     }
 
     suspend fun getNotificationPrefs(userId: String): NotificationPrefs? {
-        val result = db.getOptional("SELECT * FROM notification_prefs WHERE user_id = ?", listOf(userId))
-        return result?.let { row ->
-            NotificationPrefs(
-                user_id = row["user_id"] as String,
-                push_enabled = (row["push_enabled"] as? Long) ?: 0L,
-                emi_due = (row["emi_due"] as? Long) ?: 1L,
-                budget = (row["budget"] as? Long) ?: 1L,
-                low_balance = (row["low_balance"] as? Long) ?: 1L,
-                outlier = (row["outlier"] as? Long) ?: 1L,
-                group_invite = (row["group_invite"] as? Long) ?: 1L,
-                group_expense = (row["group_expense"] as? Long) ?: 1L,
-                low_balance_threshold = (row["low_balance_threshold"] as? Long) ?: 500L,
-                emi_lead_days = (row["emi_lead_days"] as? Long) ?: 3L
-            )
-        }
+        return db.getOptional(
+            "SELECT * FROM notification_prefs WHERE user_id = ?",
+            parameters = listOf(userId),
+            mapper = ::notificationPrefsMapper,
+        )
     }
 
     suspend fun updateNotificationPrefs(userId: String, prefs: NotificationPrefs) {
@@ -75,10 +72,10 @@ class PrefsRepository(private val db: PowerSyncDatabase) {
             emi_lead_days = excluded.emi_lead_days
         """.trimIndent()
         
-        db.writeTransaction {
-            execute(
-                sql,
-                listOf(
+        db.writeTransaction { tx ->
+            tx.execute(
+                sql = sql,
+                parameters = listOf(
                     userId, prefs.push_enabled, prefs.emi_due, prefs.budget, prefs.low_balance,
                     prefs.outlier, prefs.group_invite, prefs.group_expense, prefs.low_balance_threshold, prefs.emi_lead_days
                 )
