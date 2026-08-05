@@ -53,6 +53,17 @@ Next up:       Budgets or Login/Auth are the next highest-leverage gaps (Dashboa
                sandbox) — ask for another real-compiler pass to confirm this specific fix, and if
                other pre-existing repository files raise similar errors, they likely have the same
                missing-mapper or bare-execute() root cause.
+2026-08-05 #3: Same file, second real-compiler round: `cursor.getString("user_id")` failed because
+               the name-based, non-null `com.powersync.db.getString` extension needs its OWN import
+               separate from `getLongOptional`/`getStringOptional` — without it, calls resolve to the
+               core `SqlCursor.getString(index: Int): String?` (column-index based) instead, which
+               explains both reported errors exactly (String? vs String, and String vs Int). Added
+               `import com.powersync.db.getString`. **New standing checklist item:** every bare/Optional
+               cursor accessor (`getString`, `getStringOptional`, `getLong`, `getLongOptional`,
+               `getDouble`, `getDoubleOptional`, `getBoolean`, `getBooleanOptional`, ...) used in a
+               PowerSync mapper needs its own explicit `import com.powersync.db.<name>` — grep the file
+               under construction against an already-build-green repository's import block rather than
+               assuming one import covers the family.
 Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec, (b) a real human/
                CI build (`./gradlew build test` / `xcodebuild test`) — this sandbox cannot run
                either; say so explicitly rather than claiming compiled/verified. Before touching any
