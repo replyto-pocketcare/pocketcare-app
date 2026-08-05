@@ -33,6 +33,20 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-05 #6: First real iOS build error this session: "Missing required module 'GRDBSQLite'".
+               `Data/Sources/Data/PrefsRepository.swift` (pre-existing, not written this session)
+               `import GRDB`ed and used GRDB.swift's FetchableRecord/PersistableRecord/`db.write{}`
+               API directly -- but GRDB isn't a declared dependency of the Data package
+               (Package.swift's approved set is PowerSync + supabase-swift + Factory only); it only
+               shows up in Package.resolved as powersync-swift's own internal SQLite driver.
+               Importing it from a target that doesn't declare it as a product dependency doesn't
+               expose GRDB's internal GRDBSQLite C target properly -- that's the real error. Rewrote
+               to the same PowerSync `Queries` convention every other file in this package already
+               uses (`db.watch/getOptional(sql:parameters:mapper:)`, `db.writeTransaction { tx in
+               try tx.execute(...) }`, a private `notificationPrefsMapper(cursor: SqlCursor)`).
+               `watchNotificationPrefs` now returns `AsyncThrowingStream` instead of GRDB's
+               `AsyncStream` -- confirmed via grep it has no caller today, safe signature change.
+               Not yet re-verified by a real build.
 Next up:       Budgets or Login/Auth are the next highest-leverage gaps (Dashboard/Accounts/
                Transactions now form a usable core loop on both platforms). P3.2c (iOS currentUserId
                always nil) is cheap and worth doing soon — it's now routed around in two places
