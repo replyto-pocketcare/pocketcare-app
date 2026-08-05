@@ -4,8 +4,9 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * Row models for the pre-existing Budgets/CreditCards/Goals/Insights/
- * Investments/Loans ViewModels (`ui/{budgets,creditcards,goals,insights,
- * investments,loans}/*ViewModel.kt`).
+ * Investments/Loans ViewModels (the "XViewModel.kt" file in each of
+ * ui/budgets, ui/creditcards, ui/goals, ui/insights, ui/investments,
+ * ui/loans).
  *
  * These types didn't exist anywhere in the tree -- the ViewModels imported
  * `com.sanvya.app.ui.<Name>UiModel` and constructed it, but no file defined
