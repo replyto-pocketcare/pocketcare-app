@@ -306,6 +306,7 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
     track("account_id", before.account_id, patch.account_id);
     track("amount", before.amount, patch.amount?.amount);
     track("category_id", before.category_id, patch.category_id);
+    track("intent", before.intent, patch.intent);
     track("note", before.note, patch.note);
     track("description", before.description, patch.description);
     track("payment_method", before.payment_method, patch.payment_method);

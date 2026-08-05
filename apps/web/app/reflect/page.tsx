@@ -8,10 +8,9 @@ import { CheckCircleIcon, UndoIcon, SkipIcon } from "../../src/ui/icons";
 
 export default function ReflectPage() {
   const { queue, isLoading } = useIntentQueue();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [history, setHistory] = useState<string[]>([]); // tx ids
+  const [history, setHistory] = useState<{ id: string; action: "skip" | "judge" }[]>([]); 
 
-  const currentQueue = queue.slice(currentIndex);
+  const currentQueue = queue.filter(tx => !history.some(h => h.id === tx.id));
   
   if (isLoading) {
     return <div style={{ padding: 24, textAlign: "center" }}>Loading...</div>;
@@ -30,26 +29,23 @@ export default function ReflectPage() {
   }
 
   const handleJudged = async (id: string, intent: 'need' | 'greed') => {
-    // Optimistic UI update
-    setHistory([...history, id]);
-    setCurrentIndex(currentIndex + 1);
-    
-    // Server update
+    setHistory([...history, { id, action: "judge" }]);
     await getRepositories().transactions.update(id, { intent });
   };
 
-  const handleSkip = () => {
-    setCurrentIndex(currentIndex + 1);
+  const handleSkip = (id: string) => {
+    setHistory([...history, { id, action: "skip" }]);
   };
 
   const handleUndo = async () => {
     if (history.length === 0) return;
-    const lastId = history[history.length - 1];
+    const last = history[history.length - 1];
     
     setHistory(history.slice(0, -1));
-    setCurrentIndex(currentIndex - 1);
     
-    await getRepositories().transactions.update(lastId, { intent: null });
+    if (last.action === "judge") {
+      await getRepositories().transactions.update(last.id, { intent: null });
+    }
   };
 
   return (
@@ -80,7 +76,7 @@ export default function ReflectPage() {
                 categoryName={tx.category_name} 
                 accountName={tx.account_name}
                 onJudged={(intent) => handleJudged(tx.id, intent)}
-                onSkip={handleSkip}
+                onSkip={() => handleSkip(tx.id)}
                 isTop={isTop}
               />
             </div>
@@ -92,7 +88,7 @@ export default function ReflectPage() {
         <button className="btn ghost" onClick={handleUndo} disabled={history.length === 0} style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <UndoIcon size={18} /> Undo
         </button>
-        <button className="btn ghost" onClick={handleSkip} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button className="btn ghost" onClick={() => handleSkip(currentQueue[currentQueue.length - 1]?.id)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
           Skip <SkipIcon size={18} />
         </button>
       </footer>

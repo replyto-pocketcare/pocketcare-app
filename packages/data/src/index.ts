@@ -63,6 +63,7 @@ export interface EditTransactionInput {
   account_id?: string;
   amount?: Money;
   category_id?: string | null;
+  intent?: string | null;
   /** When provided, replaces the transaction's labels (find-or-create + rewrite junction). */
   labels?: string[] | null;
   note?: string | null;
