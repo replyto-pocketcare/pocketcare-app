@@ -15,6 +15,25 @@ public struct NetWorthHeroState: Sendable {
     public var sparkline: [Float] = []
 }
 
+/// Dashboard's own minimal recent-activity row -- was relying on
+/// TransactionsViewModel.swift's TransactionUiModel until that file was
+/// rewritten (2026-08-05, real Transactions screens session) and dropped
+/// that type in favor of the richer TransactionListItem. Given a local
+/// definition here instead of adopting TransactionListItem directly: the
+/// Dashboard "Recent Activity" section is itself explicitly out of scope /
+/// deferred (tracked as P3.1c, the tile-catalog follow-up), so this keeps
+/// the exact same placeholder-category behavior it already had rather than
+/// pulling in real category/label logic as an unplanned scope change here.
+public struct DashboardTxnRow: Identifiable, Sendable {
+    public let id: String
+    public let description: String
+    public let amount: String
+    public let date: String
+    public let accountName: String
+    public let categoryName: String
+    public let isIncome: Bool
+}
+
 @Observable
 @MainActor
 public final class DashboardViewModel {
@@ -25,7 +44,7 @@ public final class DashboardViewModel {
     public var assetsFormatted: String = "₹0.00"
     public var liabilitiesFormatted: String = "₹0.00"
     public var accounts: [AccountWithBalance] = []
-    public var recentTransactions: [TransactionUiModel] = []
+    public var recentTransactions: [DashboardTxnRow] = []
     public var hero: NetWorthHeroState = NetWorthHeroState()
 
     /// Mirrors page.tsx's `showAvailable` local state (net-worth toggle).
@@ -144,7 +163,7 @@ public final class DashboardViewModel {
         let now = Date()
         let calendar = Calendar.current
         
-        let uiModels = txns.map { txn -> TransactionUiModel in
+        let uiModels = txns.map { txn -> DashboardTxnRow in
             let isIncome = txn.type == "income"
             let sign = isIncome ? "+" : "-"
             let amt = Double(txn.amount) / 100.0
@@ -167,7 +186,7 @@ public final class DashboardViewModel {
             
             let formattedAmt = self.formatter.string(from: NSNumber(value: amt)) ?? "₹0.00"
             
-            return TransactionUiModel(
+            return DashboardTxnRow(
                 id: txn.id,
                 description: txn.description ?? txn.note ?? "Transaction",
                 amount: "\(sign)\(formattedAmt.replacingOccurrences(of: "-", with: ""))",

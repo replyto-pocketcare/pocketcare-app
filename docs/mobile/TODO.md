@@ -5,49 +5,48 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-05 — Audit + Phase A/B + Dashboard + Accounts, both platforms. Dashboard part
-               (see git log for the earlier commit this session): fixed the falsely-DONE Android
-               Phase 3 rows, built the token generator, gave Android a working app shell (Application/
-               Koin/Prefs/NavHost, none existed), built DashboardScreen.kt for real, fixed iOS
-               DashboardView.swift's invented hero to match the real spec. Accounts part (this
-               commit): wrote docs/mobile/screen-specs/accounts.md from the 3 web source files:
-               (1) Android: built AccountsViewModel/Screen (list), CreateAccountViewModel/Screen
-               (new), EditAccountViewModel/Screen (edit — delete cascade-or-keep, balance-adjustment
-               tool), wired all into SanvyaNavHost + Dashboard's "Add first account"/"View all".
-               (2) iOS: AccountsView.swift/CreateAccountView.swift were BOTH fake — list had no
-               color/archived/net-worth-toggle/edit-nav, Create's Save button called dismiss() and
-               never wrote anything. Rewrote both for real, built a new EditAccountView.swift (iOS
-               had none). Extracted ACCOUNT_COLORS/colorForId to shared AccountColors.kt/.swift
-               (was inlined twice, violated the "component reuse" rule). (3) Found + fixed: iOS
-               Dashboard hero + accounts strip had NO hide-amounts wiring at all (Android did) — now
-               both use Prefs.shared.amountsHidden. (4) Found, NOT fixed (tracked P3.2c): iOS
-               AuthRepositoryImpl.currentUserId always returns nil — routed the new Accounts write
-               paths around it via ensureUser() (matches AppDelegate.swift's existing workaround),
-               but SettingsView.swift's push-token registration still silently no-ops on this.
-Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1, hero+accounts, tile catalog deferred to
-               P3.1c) + Accounts (P3.2, list/new/edit) real and wired into SanvyaNavHost. Everything
-               else in Phase 3 still TODO (no screens). NOT verified against a real Gradle build in
-               this sandbox (no JDK/Gradle here per plan §1.5) — next session or CI must run
-               `./gradlew build test` before trusting this compiles.
-iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard + Accounts now match the real web specs
-               (both were previously invented/fake in different ways). Every other screen (Create*/
-               New* forms especially — CreateTransactionView.swift etc. are the same "Save calls
-               dismiss(), writes nothing" pattern CreateAccountView.swift had) is still unverified
-               against source specs — do not assume parity, check screen by screen, and do not
-               assume a Create/New screen persists anything until you've checked.
+Last session: 2026-08-05 — Dashboard + Accounts + Transactions, both platforms (3 commits, see git
+               log). Dashboard/Accounts: see AUDIT_HISTORY.md's two prior entries this date.
+               Transactions (this commit): wrote docs/mobile/screen-specs/transactions.md from the 3
+               web source files + TransactionTile.tsx. Android: TransactionsViewModel.kt existed but
+               had no screen and a hardcoded "General" category — built real
+               TransactionsViewModel/Screen (list w/ search+type filter+avatar/tags),
+               CreateTransactionViewModel/Screen, EditTransactionViewModel/Screen (delete confirm,
+               intent chip), wired into SanvyaNavHost + a new Dashboard toolbar icon (no other entry
+               point existed). iOS: TransactionsView.swift had no edit navigation; CreateTransactionView
+               .swift had the exact same fake-Save-button bug as CreateAccountView.swift did
+               (dismiss(), never called the repository) — rewrote both, built EditTransactionView.swift
+               from scratch (didn't exist). Added watchCategories/watchLabels/watchPaymentMethods/
+               watchTransactionLabelNames + `intent` column support to both LedgerRepositorys. Found +
+               fixed a real bug while removing iOS's old TransactionUiModel: DashboardViewModel.swift
+               depended on that exact type name and would have failed to build — gave Dashboard its
+               own local DashboardTxnRow instead of silently coupling two unrelated screens' models.
+               Deferred (own new TODO rows P3.3c/d/e): edit-history audit modal, templates/Quick-Apply,
+               AI auto-categorization. Also deferred: split-expense creation (belongs to Splits,
+               P3.6/P3.10).
+Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3) real
+               and wired into SanvyaNavHost. Everything else in Phase 3 still TODO (no screens). NOT
+               verified against a real Gradle build in this sandbox (no JDK/Gradle here per plan
+               §1.5) — next session or CI must run `./gradlew build test` before trusting this compiles.
+iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions now match the
+               real web specs. Every other Create*/New* form is still suspect — CreateAccountView.swift
+               and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
+               bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
-Next up:       Transactions is the natural next screen (highest-leverage gap on both platforms now
-               that Dashboard/Accounts are real — Dashboard's "Recent Activity" needs it too, iOS's
-               is currently fake data). Then P3.2c (iOS currentUserId bug) is cheap and worth doing
-               before it causes a second silent-failure site. Same rigor each time: read the real
+Next up:       Budgets or Login/Auth are the next highest-leverage gaps (Dashboard/Accounts/
+               Transactions now form a usable core loop on both platforms). P3.2c (iOS currentUserId
+               always nil) is cheap and worth doing soon — it's now routed around in two places
+               (Accounts, Transactions) rather than fixed once. Same rigor each time: read the real
                web source first, write docs/mobile/screen-specs/<name>.md, then port.
 Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec, (b) a real human/
                CI build (`./gradlew build test` / `xcodebuild test`) — this sandbox cannot run
                either; say so explicitly rather than claiming compiled/verified. Before touching any
-               iOS "Create*View"/"New*View", check whether its Save button actually calls the
-               repository or just dismiss() — CreateAccountView.swift and CreateTransactionView.swift
-               both had this exact bug, there may be more. P2.7 still needs human-provisioned test
-               Supabase + PowerSync instance (Akhilesh confirmed doing this).
+               iOS "Create*View"/"New*View", check whether Save actually calls the repository or just
+               dismiss() — 2 for 2 so far on this bug. When deleting/renaming a shared model type
+               (e.g. TransactionUiModel this session), grep the whole App target first — Dashboard's
+               ViewModel depended on Transactions' model with zero indication from either file. P2.7
+               still needs human-provisioned test Supabase + PowerSync instance (Akhilesh confirmed
+               doing this).
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -109,7 +108,10 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 | P3.1c | Dashboard tile catalog (12 tiles: recent/spending/trends/splits/budgets/goals/subscriptions/cashflow/netTrend/byCategory/byLabel/monthCompare) + drag-reorder/resize/edit-mode, both platforms | [H] | P3.1 | TODO — new row, split out 2026-08-05 from P3.1 scope (see `docs/mobile/screen-specs/dashboard.md` "Explicitly deferred") |
 | P3.2a / P3.2b | UI Slice S1: Accounts view & Account edit/create screens | [M] | P3.1 | IN PROGRESS (2026-08-05) — both platforms: real list (color bar, archived toggle, per-account net-worth checkbox, unarchive, Edit nav), real create (name/type/currency/color/opening balance/include/allow-negative, actually persists — Android's prior version didn't exist, iOS's prior version was a Form mockup whose Save button called `dismiss()` and wrote nothing), real edit (name/type/color/include/allow-negative, delete w/ cascade-or-keep confirm, balance-adjustment tool w/ direct-vs-transaction modes) per `docs/mobile/screen-specs/accounts.md`. Deferred (spec's documented scope): credit-card/demat creation branches, `MultiCurrencyCard`. iOS-specific fixes same session: Dashboard hero + accounts strip were missing hide-amounts entirely (now wired to `Prefs.shared.amountsHidden`); found `AuthRepositoryImpl.currentUserId` always returns `nil` (pre-existing bug, also silently breaks `SettingsView.swift`'s push-token registration) — worked around in the new Accounts write paths via `authRepository.ensureUser()` (the same fallback `AppDelegate.swift` already uses), but the underlying bug is NOT fixed and should be, tracked below. Stays IN PROGRESS, not DONE: **not build-verified** — no JDK/Gradle or Xcode in this sandbox (plan §1.5); next session or CI must run `./gradlew build test` / `xcodebuild test` before trusting this compiles. |
 | P3.2c | Fix `AuthRepositoryImpl.currentUserId` (iOS) — always returns `nil` (`Data/Sources/Data/AuthRepository.swift`, see its own comment), silently breaking any caller that reads it synchronously (`SettingsView.swift` push-token registration, and the new Accounts write paths route around it via `ensureUser()` instead). Needs a cached/observed session value, not a bigger rewrite. | [S] | — | TODO — new row, split out 2026-08-05, found auditing Accounts |
-| P3.3a / P3.3b | UI Slice S1: Transactions list & Transaction creation flow | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `TransactionsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, TransactionsView.swift) |
+| P3.3a / P3.3b | UI Slice S1: Transactions list & Transaction creation flow | [M] | P3.1 | IN PROGRESS (2026-08-05) — both platforms: real list (search, all/income/expense/transfer filter, `TransactionTile`-equivalent rows w/ avatar/merchant-title/tags/account line, tap → edit), real create (expense/income/transfer, multi-item breakdown, account/to-account, cross-currency transfer amount, category, payment method, labels, note, date, investment-accounts-force-transfer rule — actually persists), real edit (same fields + `intent` Need/Greed chip + delete w/ confirm) per `docs/mobile/screen-specs/transactions.md`. Both platforms' prior versions were badly incomplete: Android had no Transactions screen at all (`TransactionsViewModel.kt` existed but had a hardcoded "General" category and no screen consumed it); iOS's `TransactionsView.swift` had no edit navigation and a "General" category placeholder, and `CreateTransactionView.swift` was the same fake-Save-button pattern found in Accounts (`dismiss()`, never called the repository). Added `watchCategories()`/`watchLabels()`/`watchPaymentMethods()`/`watchTransactionLabelNames()` + `intent` column support to both `LedgerRepository`s (list/create/update didn't have these reads before). Deferred (spec's documented scope, new rows below): split-expense creation, templates/Quick-Apply, AI auto-categorization, edit-history audit modal. Stays IN PROGRESS, not DONE: **not build-verified**. |
+| P3.3c | Transactions edit-history audit modal (reads `transaction_audit`, already written correctly by `updateTransaction` on both platforms — pure UI follow-up, no data-layer gap) | [S] | P3.3 | TODO — new row, split out 2026-08-05 from P3.3 scope (see `docs/mobile/screen-specs/transactions.md` "Deferred") |
+| P3.3d | Templates / "Quick Apply" for transaction creation (start-from-template dropdown, save-as-template, free-tier limit) | [M] | P3.3 | TODO — new row, split out 2026-08-05 (see `docs/mobile/screen-specs/transactions.md` "Deferred") — no mobile data layer for `templates` exists yet either |
+| P3.3e | AI auto-categorization on transaction create/edit (`useAutoCategorize`/`useLearnCategory`, entitlement-gated edge-function call) | [M] | P3.3, P5.1 (entitlements) | TODO — new row, split out 2026-08-05 (see `docs/mobile/screen-specs/transactions.md` "Deferred") |
 | P3.4a / P3.4b | UI Slice S2: Budgets list & Budget progress view with status indicators | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `BudgetsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, BudgetsView.swift) |
 | P3.5a / P3.5b | UI Slice S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | TODO — corrected 2026-08-05: falsely marked DONE, `GoalsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, GoalsView.swift) |
 | P3.6a / P3.6b | UI Slice S3: Splits view (Groups, Trips, 1:1 friends, split balance netting) | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `SplitsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, SplitsView.swift) |

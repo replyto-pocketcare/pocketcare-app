@@ -11,6 +11,9 @@ import com.sanvya.app.ui.accounts.AccountsScreen
 import com.sanvya.app.ui.accounts.CreateAccountScreen
 import com.sanvya.app.ui.accounts.EditAccountScreen
 import com.sanvya.app.ui.dashboard.DashboardScreen
+import com.sanvya.app.ui.transactions.CreateTransactionScreen
+import com.sanvya.app.ui.transactions.EditTransactionScreen
+import com.sanvya.app.ui.transactions.TransactionsScreen
 
 /**
  * Root nav graph. `MainActivity.kt` referenced this (unqualified,
@@ -20,13 +23,14 @@ import com.sanvya.app.ui.dashboard.DashboardScreen
  * mobile-pixel-parity-plan.md and the 2026-08-05 AUDIT_HISTORY.md entry).
  *
  * Routes to screens that are actually real: "dashboard", "settings",
- * "accounts", "accounts/new", "accounts/{accountId}/edit". Every other web
- * route (transactions, budgets, goals, splits, receipts, statements,
- * investments, credit cards, assistant, loans, onboarding/login) has no
- * Android screen yet — adding a placeholder/stub destination for those
- * would just be a smaller-scale repeat of the false-DONE problem. They get
- * added to this graph as their own screens land (docs/mobile/TODO.md
- * Phase 3 tracks each one).
+ * "accounts", "accounts/new", "accounts/{accountId}/edit", "transactions",
+ * "transactions/new", "transactions/{transactionId}/edit". Every other web
+ * route (budgets, goals, splits, receipts, statements, investments, credit
+ * cards, assistant, loans, onboarding/login) has no Android screen yet —
+ * adding a placeholder/stub destination for those would just be a
+ * smaller-scale repeat of the false-DONE problem. They get added to this
+ * graph as their own screens land (docs/mobile/TODO.md Phase 3 tracks each
+ * one).
  */
 @Composable
 fun SanvyaNavHost() {
@@ -37,6 +41,7 @@ fun SanvyaNavHost() {
                 onOpenSettings = { navController.navigate("settings") },
                 onAddAccount = { navController.navigate("accounts/new") },
                 onViewAccounts = { navController.navigate("accounts") },
+                onViewTransactions = { navController.navigate("transactions") },
             )
         }
         composable("settings") {
@@ -75,6 +80,30 @@ fun SanvyaNavHost() {
                     // lands back on.
                     navController.popBackStack("accounts", inclusive = true)
                 },
+            )
+        }
+        composable("transactions") {
+            TransactionsScreen(
+                onBack = { navController.popBackStack() },
+                onAddTransaction = { navController.navigate("transactions/new") },
+                onEditTransaction = { id -> navController.navigate("transactions/$id/edit") },
+            )
+        }
+        composable("transactions/new") {
+            CreateTransactionScreen(
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
+                onAddAccountFirst = { navController.navigate("accounts/new") },
+            )
+        }
+        composable(
+            "transactions/{transactionId}/edit",
+            arguments = listOf(navArgument("transactionId") { type = NavType.StringType }),
+        ) {
+            EditTransactionScreen(
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
+                onDeleted = { navController.popBackStack("transactions", inclusive = true) },
             )
         }
     }

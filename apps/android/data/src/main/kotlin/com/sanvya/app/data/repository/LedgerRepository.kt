@@ -106,7 +106,15 @@ data class TransactionRow(
     val toAccountId: String?,
     val toAmount: Long?,
     val fxRate: Double?,
+    /** Mindfulness tag, expense-only, edit-screen-only (never set at create
+     * time -- matches transactions/new/page.tsx not having this field at
+     * all, only transactions/[id]/edit/page.tsx does). "need" | "greed" | null. */
+    val intent: String? = null,
 )
+
+data class CategoryRow(val id: String, val name: String, val kind: String, val parentId: String?)
+data class LabelRow(val id: String, val name: String, val color: String?)
+data class PaymentMethodRow(val id: String, val label: String, val accountTypeId: String)
 
 data class TransactionItemInput(val description: String, val amount: Money)
 
@@ -178,6 +186,7 @@ private fun transactionMapper(cursor: com.powersync.db.SqlCursor): TransactionRo
     toAccountId = cursor.getStringOptional("to_account_id"),
     toAmount = cursor.getLongOptional("to_amount"),
     fxRate = cursor.getDoubleOptional("fx_rate"),
+    intent = cursor.getStringOptional("intent"),
 )
 
 private fun ledgerEntryMapper(cursor: com.powersync.db.SqlCursor): LedgerEntry = LedgerEntry(
@@ -345,6 +354,71 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
                 base = base,
             )
         }
+
+    /** All categories (reactive) -- matches transactions/new/page.tsx's
+     * categories query. Added 2026-08-05 for the Transactions screens
+     * (docs/mobile/screen-specs/transactions.md); nothing needed this read
+     * before Transactions. */
+    fun watchCategories(): Flow<List<CategoryRow>> = db.watch(
+        "SELECT id, name, kind, parent_id FROM categories WHERE deleted_at IS NULL ORDER BY name",
+        mapper = { cursor ->
+            CategoryRow(
+                id = cursor.getString("id"),
+                name = cursor.getString("name"),
+                kind = cursor.getString("kind"),
+                parentId = cursor.getStringOptional("parent_id"),
+            )
+        },
+    )
+
+    /** All labels (reactive) -- matches transactions/new/page.tsx's labels
+     * query. Added 2026-08-05 for the Transactions screens. */
+    fun watchLabels(): Flow<List<LabelRow>> = db.watch(
+        "SELECT id, name, color FROM labels WHERE deleted_at IS NULL ORDER BY name",
+        mapper = { cursor ->
+            LabelRow(
+                id = cursor.getString("id"),
+                name = cursor.getString("name"),
+                color = cursor.getStringOptional("color"),
+            )
+        },
+    )
+
+    /** Every (account_type, payment_method) pairing, unfiltered -- matches
+     * transactions/new/page.tsx's payMethodMap query. Callers filter to the
+     * selected account's type client-side (small, static-ish lookup table --
+     * not worth a parameterized watch per account-type change). Added
+     * 2026-08-05 for the Transactions screens. */
+    fun watchPaymentMethods(): Flow<List<PaymentMethodRow>> = db.watch(
+        """SELECT pm.id, pm.label, m.account_type_id
+            FROM account_type_payment_methods m JOIN payment_methods pm ON pm.id = m.payment_method_id
+            ORDER BY pm.sort""",
+        mapper = { cursor ->
+            PaymentMethodRow(
+                id = cursor.getString("id"),
+                label = cursor.getString("label"),
+                accountTypeId = cursor.getString("account_type_id"),
+            )
+        },
+    )
+
+    /** transaction_id -> ordered label names (reactive) -- used by the
+     * Transactions list (tag row) and Edit (seeding the label picker).
+     * Matches the list query's `GROUP_CONCAT(l.name)` but grouped in Kotlin
+     * instead of SQL, so the same flat join also works for the Edit screen's
+     * single-transaction lookup without a second query shape. Added
+     * 2026-08-05 for the Transactions screens. */
+    fun watchTransactionLabelNames(): Flow<Map<String, List<String>>> = db.watch(
+        """SELECT tl.transaction_id, l.name FROM transaction_labels tl
+            JOIN labels l ON l.id = tl.label_id ORDER BY l.name""",
+        mapper = { cursor ->
+            cursor.getString("transaction_id") to cursor.getString("name")
+        },
+    ).map { rows ->
+        val m = LinkedHashMap<String, MutableList<String>>()
+        for ((txnId, name) in rows) m.getOrPut(txnId) { mutableListOf() }.add(name)
+        m
+    }
 
     // ---- reads (one-shot, spec-matching) ----
 
@@ -650,6 +724,7 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
         track("occurred_at", before.occurredAt, "occurred_at")
         track("to_account_id", before.toAccountId, "to_account_id")
         track("to_amount", before.toAmount, "to_amount")
+        track("intent", before.intent, "intent")
 
         val touchItems = patch.containsKey("items")
         @Suppress("UNCHECKED_CAST")

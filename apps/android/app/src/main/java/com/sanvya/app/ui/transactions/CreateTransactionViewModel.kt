@@ -1,0 +1,212 @@
+package com.sanvya.app.ui.transactions
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.sanvya.app.data.auth.AuthRepository
+import com.sanvya.app.data.repository.Account
+import com.sanvya.app.data.repository.CategoryRow
+import com.sanvya.app.data.repository.LabelRow
+import com.sanvya.app.data.repository.LedgerRepository
+import com.sanvya.app.data.repository.PaymentMethodRow
+import com.sanvya.app.data.repository.TransactionItemInput
+import com.sanvya.app.domain.money.fromMajor
+import com.sanvya.app.domain.money.money
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import java.time.LocalDateTime
+import java.time.ZoneId
+
+typealias TxType = String // "expense" | "income" | "transfer"
+
+data class TxItemDraft(val id: String, val description: String, val value: String)
+
+private var itemCounter = 0
+private fun newDraftItem() = TxItemDraft(id = "i${++itemCounter}", description = "", value = "")
+
+data class CreateTransactionUiState(
+    val type: TxType = "expense",
+    val accountId: String? = null,
+    val toAccountId: String? = null,
+    val categoryId: String? = null,
+    val selectedLabels: List<String> = emptyList(),
+    val note: String = "",
+    val paymentMethod: String = "",
+    val items: List<TxItemDraft> = listOf(newDraftItem()),
+    val toValue: String = "",
+    /** Local wall-clock date+time the user picked, defaults to now --
+     * converted to an ISO instant at save time. Matches `date` on
+     * transactions/new/page.tsx (a `datetime-local` input, defaults to now). */
+    val occurredAt: LocalDateTime = LocalDateTime.now(),
+    val saving: Boolean = false,
+    val saved: Boolean = false,
+    val error: String? = null,
+)
+
+/** New transaction — ported from transactions/new/page.tsx's regular
+ * expense/income/transfer path per docs/mobile/screen-specs/transactions.md.
+ * Split-expense, templates, and AI auto-categorize are explicitly deferred
+ * (see spec's Scope section) -- not built, not faked. */
+class CreateTransactionViewModel : ViewModel(), KoinComponent {
+    private val ledgerRepository: LedgerRepository by inject()
+    private val authRepository: AuthRepository by inject()
+
+    private val ui = MutableStateFlow(CreateTransactionUiState())
+
+    val accounts: StateFlow<List<Account>> = ledgerRepository.watchAccounts(includeArchived = false)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val categories: StateFlow<List<CategoryRow>> = ledgerRepository.watchCategories()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val labels: StateFlow<List<LabelRow>> = ledgerRepository.watchLabels()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val paymentMethods: StateFlow<List<PaymentMethodRow>> = ledgerRepository.watchPaymentMethods()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val uiState: StateFlow<CreateTransactionUiState> = ui.asStateFlow()
+
+    /** Selected account, defaulting to the first real account -- matches
+     * `accounts.find(a => a.id === accountId) ?? accounts[0]`. */
+    val account: StateFlow<Account?> = combine(accounts, ui) { accts, state ->
+        accts.find { it.id == state.accountId } ?: accts.firstOrNull()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val toAccount: StateFlow<Account?> = combine(accounts, ui, account) { accts, state, acct ->
+        accts.find { it.id == state.toAccountId } ?: accts.firstOrNull { it.id != acct?.id }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val isInvestment: StateFlow<Boolean> = account
+        .map { it?.type in setOf("stocks", "mutual_funds") }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val relevantPaymentMethods: StateFlow<List<PaymentMethodRow>> = combine(paymentMethods, account) { methods, acct ->
+        methods.filter { it.accountTypeId == acct?.type }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val relevantCategories: StateFlow<List<CategoryRow>> = combine(categories, ui) { cats, state ->
+        val kind = if (state.type == "income") "income" else "expense"
+        cats.filter { it.kind == kind }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        // Investment accounts (stocks/mutual funds) can only move money via
+        // transfers -- matches the `isInvestment && type !== transfer` effect.
+        viewModelScope.launch {
+            isInvestment.collect { inv -> if (inv && ui.value.type != "transfer") setType("transfer") }
+        }
+        // Payment method resets to the first valid one whenever the account
+        // (or its type) changes -- matches the paymentMethods effect.
+        viewModelScope.launch {
+            relevantPaymentMethods.collect { methods ->
+                if (ui.value.paymentMethod !in methods.map { it.id }) {
+                    ui.value = ui.value.copy(paymentMethod = methods.firstOrNull()?.id ?: "")
+                }
+            }
+        }
+    }
+
+    fun setType(v: TxType) { ui.value = ui.value.copy(type = v) }
+    fun setAccountId(v: String) { ui.value = ui.value.copy(accountId = v) }
+    fun setToAccountId(v: String) { ui.value = ui.value.copy(toAccountId = v) }
+    fun setCategoryId(v: String?) { ui.value = ui.value.copy(categoryId = v) }
+    fun setPaymentMethod(v: String) { ui.value = ui.value.copy(paymentMethod = v) }
+    fun setNote(v: String) { ui.value = ui.value.copy(note = v) }
+    fun setToValue(v: String) { ui.value = ui.value.copy(toValue = v) }
+    fun setOccurredAt(v: LocalDateTime) { ui.value = ui.value.copy(occurredAt = v) }
+    fun toggleLabel(name: String) {
+        val cur = ui.value.selectedLabels
+        ui.value = ui.value.copy(selectedLabels = if (name in cur) cur - name else cur + name)
+    }
+    fun addNewLabel(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty() || trimmed in ui.value.selectedLabels) return
+        ui.value = ui.value.copy(selectedLabels = ui.value.selectedLabels + trimmed)
+    }
+
+    fun updateItem(id: String, description: String? = null, value: String? = null) {
+        ui.value = ui.value.copy(items = ui.value.items.map {
+            if (it.id != id) it else it.copy(
+                description = description ?: it.description,
+                value = value ?: it.value,
+            )
+        })
+    }
+    fun addItem() { ui.value = ui.value.copy(items = ui.value.items + newDraftItem()) }
+    fun removeItem(id: String) { ui.value = ui.value.copy(items = ui.value.items.filterNot { it.id == id }) }
+    /** Transfer uses a single amount field, mapped onto items[0].value so the
+     * same draft-item state backs both UIs (matches web reusing `items[0]`
+     * for the transfer amount input). */
+    fun setTransferAmount(v: String) {
+        val first = ui.value.items.firstOrNull() ?: newDraftItem()
+        ui.value = ui.value.copy(items = listOf(first.copy(value = v)))
+    }
+
+    fun totalMinor(currency: String): Long =
+        ui.value.items.sumOf { (it.value.toDoubleOrNull() ?: 0.0).let { v -> Math.round(v * 100) } }
+
+    fun canSave(): Boolean {
+        val state = ui.value
+        val acct = account.value ?: return false
+        val total = totalMinor(acct.currency)
+        if (total <= 0 || state.saving) return false
+        if (state.type == "transfer") {
+            val to = toAccount.value ?: return false
+            if (to.id == acct.id) return false
+        }
+        return true
+    }
+
+    /** Matches transactions/new/page.tsx's save() for the regular
+     * (non-split) path exactly. */
+    fun save() {
+        val acct = account.value ?: return
+        if (!canSave()) return
+        val state = ui.value
+        val userId = authRepository.currentUserId.value ?: return
+        ui.value = ui.value.copy(saving = true, error = null)
+        viewModelScope.launch {
+            try {
+                val total = totalMinor(acct.currency)
+                val occurredAt = state.occurredAt.atZone(ZoneId.systemDefault()).toInstant().toString()
+                if (state.type == "transfer") {
+                    val to = toAccount.value ?: error("Destination account required")
+                    val crossCurrency = to.currency != acct.currency
+                    ledgerRepository.createTransaction(
+                        userId = userId, accountId = acct.id, type = "transfer",
+                        amount = money(total, acct.currency), occurredAt = occurredAt,
+                        labels = state.selectedLabels.ifEmpty { null },
+                        toAccountId = to.id,
+                        toAmount = if (crossCurrency) fromMajor(state.toValue.toDoubleOrNull() ?: 0.0, to.currency) else null,
+                    )
+                } else {
+                    val nonZero = state.items.filter { (it.value.toDoubleOrNull() ?: 0.0) > 0 }
+                    val combinedDescription = nonZero.joinToString(", ") { it.description.trim() }.ifEmpty { null }
+                    val itemPayload = if (nonZero.size > 1) {
+                        nonZero.mapIndexed { i, it ->
+                            TransactionItemInput(
+                                description = it.description.trim().ifEmpty { "Item ${i + 1}" },
+                                amount = fromMajor(it.value.toDoubleOrNull() ?: 0.0, acct.currency),
+                            )
+                        }
+                    } else null
+                    ledgerRepository.createTransaction(
+                        userId = userId, accountId = acct.id, type = state.type,
+                        amount = money(total, acct.currency), occurredAt = occurredAt,
+                        categoryId = state.categoryId, labels = state.selectedLabels.ifEmpty { null },
+                        note = state.note.trim().ifEmpty { null }, description = combinedDescription,
+                        paymentMethod = state.paymentMethod.ifEmpty { null }, items = itemPayload,
+                    )
+                }
+                ui.value = ui.value.copy(saving = false, saved = true)
+            } catch (e: Exception) {
+                ui.value = ui.value.copy(saving = false, error = e.message ?: "Couldn't save this transaction")
+            }
+        }
+    }
+}

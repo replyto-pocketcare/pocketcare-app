@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -50,6 +51,7 @@ fun DashboardScreen(
     onOpenSettings: () -> Unit = {},
     onAddAccount: () -> Unit = {},
     onViewAccounts: () -> Unit = {},
+    onViewTransactions: () -> Unit = {},
     viewModel: DashboardViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -68,6 +70,9 @@ fun DashboardScreen(
                             contentDescription = if (amountsHidden) "Show amounts" else "Hide amounts",
                             tint = colors.text2,
                         )
+                    }
+                    IconButton(onClick = onViewTransactions) {
+                        Icon(Icons.Default.Receipt, contentDescription = "Transactions", tint = colors.text2)
                     }
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings", tint = colors.text2)

@@ -92,7 +92,15 @@ public struct TransactionRow: Sendable {
     public let toAccountId: String?
     public let toAmount: Int64?
     public let fxRate: Double?
+    /// Mindfulness tag, expense-only, edit-screen-only (never set at create
+    /// time -- matches transactions/new/page.tsx not having this field at
+    /// all, only transactions/[id]/edit/page.tsx does). "need" | "greed" | nil.
+    public let intent: String?
 }
+
+public struct CategoryRow: Sendable { public let id: String; public let name: String; public let kind: String; public let parentId: String? }
+public struct LabelRow: Sendable { public let id: String; public let name: String; public let color: String? }
+public struct PaymentMethodRow: Sendable { public let id: String; public let label: String; public let accountTypeId: String }
 
 public struct TransactionItemInput: Sendable {
     public let description: String
@@ -193,7 +201,8 @@ private func transactionMapper(_ cursor: SqlCursor) throws -> TransactionRow {
         transferGroupId: try cursor.getStringOptional(name: "transfer_group_id"),
         toAccountId: try cursor.getStringOptional(name: "to_account_id"),
         toAmount: try cursor.getInt64Optional(name: "to_amount"),
-        fxRate: try cursor.getDoubleOptional(name: "fx_rate")
+        fxRate: try cursor.getDoubleOptional(name: "fx_rate"),
+        intent: try cursor.getStringOptional(name: "intent")
     )
 }
 
@@ -308,6 +317,96 @@ public final class LedgerRepository: @unchecked Sendable {
             parameters: [],
             mapper: transactionMapper
         )
+    }
+
+    /// All categories (reactive) -- matches transactions/new/page.tsx's
+    /// categories query. Added 2026-08-05 for the Transactions screens
+    /// (docs/mobile/screen-specs/transactions.md); mirrors Android's
+    /// LedgerRepository.kt addition the same session.
+    public func watchCategories() throws -> AsyncThrowingStream<[CategoryRow], Error> {
+        try db.watch(
+            sql: "SELECT id, name, kind, parent_id FROM categories WHERE deleted_at IS NULL ORDER BY name",
+            parameters: [],
+            mapper: { cursor in
+                CategoryRow(
+                    id: try cursor.getString(name: "id"),
+                    name: try cursor.getString(name: "name"),
+                    kind: try cursor.getString(name: "kind"),
+                    parentId: try cursor.getStringOptional(name: "parent_id")
+                )
+            }
+        )
+    }
+
+    /// All labels (reactive). Added 2026-08-05 for the Transactions screens.
+    public func watchLabels() throws -> AsyncThrowingStream<[LabelRow], Error> {
+        try db.watch(
+            sql: "SELECT id, name, color FROM labels WHERE deleted_at IS NULL ORDER BY name",
+            parameters: [],
+            mapper: { cursor in
+                LabelRow(
+                    id: try cursor.getString(name: "id"),
+                    name: try cursor.getString(name: "name"),
+                    color: try cursor.getStringOptional(name: "color")
+                )
+            }
+        )
+    }
+
+    /// Every (account_type, payment_method) pairing, unfiltered -- callers
+    /// filter to the selected account's type client-side. Added 2026-08-05
+    /// for the Transactions screens.
+    public func watchPaymentMethods() throws -> AsyncThrowingStream<[PaymentMethodRow], Error> {
+        try db.watch(
+            sql: """
+                SELECT pm.id, pm.label, m.account_type_id
+                FROM account_type_payment_methods m JOIN payment_methods pm ON pm.id = m.payment_method_id
+                ORDER BY pm.sort
+                """,
+            parameters: [],
+            mapper: { cursor in
+                PaymentMethodRow(
+                    id: try cursor.getString(name: "id"),
+                    label: try cursor.getString(name: "label"),
+                    accountTypeId: try cursor.getString(name: "account_type_id")
+                )
+            }
+        )
+    }
+
+    /// transaction_id -> ordered label names (reactive) -- used by the
+    /// Transactions list (tag row) and Edit (seeding the label picker).
+    /// Added 2026-08-05 for the Transactions screens, mirrors Android's
+    /// watchTransactionLabelNames() (flat join, grouped client-side rather
+    /// than SQL GROUP_CONCAT, so the same query shape serves both the list
+    /// and a single-transaction lookup).
+    public func watchTransactionLabelNames() throws -> AsyncThrowingStream<[String: [String]], Error> {
+        struct Row: Sendable { let transactionId: String; let name: String }
+        let rows: AsyncThrowingStream<[Row], Error> = try db.watch(
+            sql: """
+                SELECT tl.transaction_id, l.name FROM transaction_labels tl
+                JOIN labels l ON l.id = tl.label_id ORDER BY l.name
+                """,
+            parameters: [],
+            mapper: { cursor in
+                Row(transactionId: try cursor.getString(name: "transaction_id"), name: try cursor.getString(name: "name"))
+            }
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await batch in rows {
+                        var map: [String: [String]] = [:]
+                        for row in batch { map[row.transactionId, default: []].append(row.name) }
+                        continuation.yield(map)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { @Sendable _ in task.cancel() }
+        }
     }
 
     // ---- reads (one-shot snapshots; see REACTIVITY NOTE above) ----
@@ -721,6 +820,7 @@ public final class LedgerRepository: @unchecked Sendable {
         track("occurred_at", before.occurredAt, "occurred_at")
         track("to_account_id", before.toAccountId, "to_account_id")
         track("to_amount", before.toAmount, "to_amount")
+        track("intent", before.intent, "intent")
 
         let touchItems = patch.keys.contains("items")
         let itemsVal = (patch["items"] ?? nil) as? [TransactionItemInput]
