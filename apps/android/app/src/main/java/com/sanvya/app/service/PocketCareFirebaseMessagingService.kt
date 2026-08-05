@@ -18,7 +18,7 @@ class PocketCareFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         serviceScope.launch {
-            val userId = authRepository.currentUserId
+            val userId = authRepository.currentUserId.value
             if (userId != null) {
                 try {
                     pushRepository.registerToken(token, "android", userId)

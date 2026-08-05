@@ -53,6 +53,42 @@ Next up:       Budgets or Login/Auth are the next highest-leverage gaps (Dashboa
                sandbox) — ask for another real-compiler pass to confirm this specific fix, and if
                other pre-existing repository files raise similar errors, they likely have the same
                missing-mapper or bare-execute() root cause.
+2026-08-05 #4: First real FULL `:app:compileDebugKotlin` run (previous rounds were `:data` only) —
+               ~65 errors across 13 files, all fixed same-session. Categories: (1) `AccountsScreen.kt`
+               imported `LazyVerticalGrid` from the wrong package (`...lazy.LazyVerticalGrid` instead
+               of `...lazy.grid.LazyVerticalGrid`), which cascaded into ~8 "unresolved reference"
+               errors inside its `items{}` block -- one import fix cleared all of them. (2) Compose BOM
+               2026.06.00's Material3 requires `@OptIn(ExperimentalMaterial3Api::class)` on every
+               composable using `TopAppBar`/`ExposedDropdownMenuBox`/`DatePicker`/`TimePicker` --
+               missing on 9 files (Accounts x3, Transactions x5, Dashboard x1); added throughout,
+               matching `SettingsScreen.kt`'s pre-existing convention. (3) `CategoryPicker.kt` imported
+               `androidx.compose.material3.ExposedDropdownMenu` as a top-level symbol -- in this BOM
+               it's a MEMBER of `ExposedDropdownMenuBoxScope`, not importable standalone; removed the
+               bad import, the call resolves via the implicit receiver inside `ExposedDropdownMenuBox{}`
+               already. (4) `AuthRepository.currentUserId` is `StateFlow<String?>` (real, reactive --
+               not the iOS always-nil bug) but `SettingsViewModel.kt`/`PocketCareFirebaseMessagingService
+               .kt` (pre-existing files) read it as a plain nullable String, missing `.value` -- fixed
+               to match the `.value` convention already used correctly in every other ViewModel this
+               session touched. (5) `SettingsScreen.kt` mixed `horizontal`+`bottom` named params across
+               two different `Modifier.padding()` overloads (invalid) -- switched to `start`+`end`.
+               (6) Android's own version of the TransactionUiModel bug already found on iOS:
+               `DashboardViewModel.kt` (Android) referenced `com.sanvya.app.ui.transactions
+               .TransactionUiModel`, which stopped existing when Transactions was rewritten this
+               session -- gave Dashboard its own local `DashboardTxnRow`, same fix shape as iOS's
+               `DashboardTxnRow`. (7) The big one: `BudgetsViewModel.kt`/`CreditCardsViewModel.kt`/
+               `GoalsViewModel.kt`/`InsightsViewModel.kt`/`InvestmentsViewModel.kt`/`LoansViewModel.kt`
+               all imported a `com.sanvya.app.ui.<X>UiModel` type that was defined NOWHERE in the repo
+               -- confirmed via grep. None of these 6 ViewModels has a consuming Screen.kt or a
+               SanvyaNavHost route, and all 6 use constructor injection (no Koin module registers
+               them), so they're unreachable dead code that happened to still be part of the compiled
+               source set -- exactly the "reported DONE, never real" pattern the Phase-3 audit already
+               found once for other Android files. Created `ui/UiModels.kt` with all 6 data classes,
+               fields reverse-engineered from each ViewModel's own construction call (documented in the
+               file's own header as a MINIMAL unblock, not a source-verified port -- no
+               docs/mobile/screen-specs/{budgets,creditcards,goals,insights,investments,loans}.md
+               exist). **These 6 screens remain fully TODO for real UI work** -- this pass only
+               stopped them from breaking the whole module's build. Not yet re-verified by a real
+               build.
 2026-08-05 #3: Same file, second real-compiler round: `cursor.getString("user_id")` failed because
                the name-based, non-null `com.powersync.db.getString` extension needs its OWN import
                separate from `getLongOptional`/`getStringOptional` — without it, calls resolve to the

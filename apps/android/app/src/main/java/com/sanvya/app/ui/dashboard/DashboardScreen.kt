@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.data.repository.AccountWithBalance
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
+import com.sanvya.app.ui.Prefs
 import com.sanvya.app.ui.accountColor
 import java.text.NumberFormat
 import java.util.Locale
@@ -46,6 +47,7 @@ import kotlin.math.abs
  * deferred, tracked separately in docs/mobile/TODO.md — NOT silently dropped,
  * NOT faked with a placeholder grid.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     onOpenSettings: () -> Unit = {},

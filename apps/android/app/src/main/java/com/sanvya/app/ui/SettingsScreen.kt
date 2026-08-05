@@ -139,7 +139,7 @@ fun SettingsScreen(
                             text = "Get alerted about bills, budgets, low balances and unusual spend.",
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp, bottom = 8.dp)
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
                         )
                         
                         NotificationToggleRow("Push notifications", notifPrefs!!.push_enabled == 1L) { v -> viewModel.updatePref { it.copy(push_enabled = if (v) 1 else 0) } }
@@ -155,7 +155,7 @@ fun SettingsScreen(
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp, bottom = 4.dp)
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp)
                         )
                         
                         NotificationToggleRow("Group activity", notifPrefs!!.group_invite == 1L) { v -> viewModel.updatePref { it.copy(group_invite = if (v) 1 else 0) } }

@@ -29,6 +29,7 @@ import com.sanvya.app.theme.LocalSanvyaColors
  * docs/mobile/screen-specs/accounts.md, regular-account path only (credit
  * card / demat branches explicitly deferred to those screens, see spec).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateAccountScreen(
     onBack: () -> Unit = {},

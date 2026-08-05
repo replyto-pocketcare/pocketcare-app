@@ -23,6 +23,7 @@ import com.sanvya.app.ui.accounts.ChipRow
  * New transaction — ported from transactions/new/page.tsx's regular
  * expense/income/transfer path per docs/mobile/screen-specs/transactions.md.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTransactionScreen(
     onBack: () -> Unit = {},

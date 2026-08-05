@@ -7,7 +7,6 @@ import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.NetWorth
 import com.sanvya.app.data.repository.TransactionRow
 import com.sanvya.app.domain.money.money
-import com.sanvya.app.ui.transactions.TransactionUiModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +27,29 @@ import java.time.ZoneId
  * (income - expense) in minor units, [sparkline] is the cumulative running
  * sum of (income - expense)/100 per month (last 8 months, oldest first).
  */
+/**
+ * Dashboard's own local row type for the (still-deferred, see
+ * docs/mobile/screen-specs/dashboard.md) "Recent Activity" section --
+ * deliberately NOT `com.sanvya.app.ui.transactions.TransactionListItem`.
+ * This mirrors a real bug found on iOS 2026-08-05: DashboardViewModel.swift
+ * depended on Transactions' `TransactionUiModel` type by name with zero
+ * indication the two screens were coupled; when the Transactions rewrite
+ * removed that type this file would have failed to build the same way iOS
+ * did (the Android build catching it now is standing evidence the coupling
+ * is real, not hypothetical -- see AUDIT_HISTORY.md). Giving Dashboard its
+ * own type avoids both the build break and pulling Transactions' full
+ * TransactionListItem shape into an out-of-scope section.
+ */
+data class DashboardTxnRow(
+    val id: String,
+    val description: String,
+    val amount: String,
+    val date: String,
+    val accountName: String,
+    val categoryName: String,
+    val isIncome: Boolean,
+)
+
 data class NetWorthHeroState(
     val net: com.sanvya.app.domain.money.Money = money(0, "INR"),
     val base: String = "INR",
@@ -42,7 +64,7 @@ data class DashboardUiState(
     val assetsFormatted: String = "₹0.00",
     val liabilitiesFormatted: String = "₹0.00",
     val accounts: List<AccountWithBalance> = emptyList(),
-    val recentTransactions: List<TransactionUiModel> = emptyList(),
+    val recentTransactions: List<DashboardTxnRow> = emptyList(),
     val hero: NetWorthHeroState = NetWorthHeroState(),
 )
 
@@ -99,7 +121,7 @@ class DashboardViewModel : ViewModel(), KoinComponent {
                 txn.occurredAt.take(10)
             }
 
-            TransactionUiModel(
+            DashboardTxnRow(
                 id = txn.id,
                 description = txn.description ?: txn.note ?: "Transaction",
                 amount = "$sign${numberFormat.format(amt)}",

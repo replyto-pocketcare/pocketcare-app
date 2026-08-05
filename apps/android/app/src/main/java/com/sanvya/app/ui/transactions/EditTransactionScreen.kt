@@ -23,6 +23,7 @@ import com.sanvya.app.ui.accounts.ChipRow
  * docs/mobile/screen-specs/transactions.md. Edit-history and the split
  * SplitBanner are explicitly deferred (see spec's Scope section).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTransactionScreen(
     onBack: () -> Unit = {},

@@ -30,6 +30,7 @@ import com.sanvya.app.theme.SanvyaRadius
  * Split-row collapsing (a Splits-feature concern) is explicitly deferred —
  * see spec's Scope section.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionsScreen(
     onBack: () -> Unit = {},

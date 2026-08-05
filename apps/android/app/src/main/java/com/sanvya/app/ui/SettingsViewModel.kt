@@ -24,7 +24,7 @@ class SettingsViewModel : ViewModel(), KoinComponent {
     }
 
     private fun loadPrefs() {
-        val userId = authRepository.currentUserId ?: return
+        val userId = authRepository.currentUserId.value ?: return
         viewModelScope.launch {
             try {
                 val existingPrefs = prefsRepository.getNotificationPrefs(userId)
@@ -43,7 +43,7 @@ class SettingsViewModel : ViewModel(), KoinComponent {
 
     fun updatePref(updater: (NotificationPrefs) -> NotificationPrefs) {
         val currentPrefs = _notifPrefs.value ?: return
-        val userId = authRepository.currentUserId ?: return
+        val userId = authRepository.currentUserId.value ?: return
         val newPrefs = updater(currentPrefs)
         _notifPrefs.value = newPrefs
         viewModelScope.launch {

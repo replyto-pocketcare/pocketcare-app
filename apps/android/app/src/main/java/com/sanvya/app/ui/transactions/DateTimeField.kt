@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +32,7 @@ private val DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd 
  * built-in TimePickerDialog (only DatePickerDialog), so the time step is a
  * plain TimePicker wrapped in an AlertDialog, chained after the date step.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateTimeField(value: LocalDateTime, onChange: (LocalDateTime) -> Unit, label: String = "Date") {
     var showDatePicker by remember { mutableStateOf(false) }

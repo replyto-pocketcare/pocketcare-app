@@ -28,6 +28,7 @@ import com.sanvya.app.theme.LocalSanvyaColors
  * editing, delete (cascade-or-keep, both soft-delete), and the balance-
  * adjustment tool (direct vs record-as-transaction).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditAccountScreen(
     onBack: () -> Unit = {},

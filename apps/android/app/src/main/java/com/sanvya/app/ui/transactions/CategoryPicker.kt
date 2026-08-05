@@ -2,7 +2,7 @@ package com.sanvya.app.ui.transactions
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -22,6 +22,7 @@ import com.sanvya.app.data.repository.CategoryRow
  * its own file per the Phase B "component reuse" rule — both screens need
  * this, and Accounts already caught one inline-duplication violation this
  * session, don't repeat it here. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryPicker(
     categories: List<CategoryRow>,
