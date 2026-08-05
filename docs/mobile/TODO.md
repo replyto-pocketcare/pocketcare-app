@@ -89,6 +89,15 @@ Next up:       Budgets or Login/Auth are the next highest-leverage gaps (Dashboa
                exist). **These 6 screens remain fully TODO for real UI work** -- this pass only
                stopped them from breaking the whole module's build. Not yet re-verified by a real
                build.
+2026-08-05 #5: `UiModels.kt` itself then failed with "Unclosed comment" -- its own header KDoc
+               contained a `/*ViewModel.kt` glob-style reference, and Kotlin (unlike Java/C) NESTS
+               block comments, so that inner `/*` opened a second comment that consumed the file's
+               real closing `*/`, swallowing every data class after it through EOF (explaining why
+               all 6 UiModel types read as unresolved even though they were textually present).
+               Reworded the comment to avoid any `/*` sequence. **New standing rule: never write a
+               literal `/*` inside a `/** */` KDoc block in Kotlin** (globs, file-path patterns,
+               regex snippets -- rephrase them, e.g. drop the leading slash or use inline code
+               spans instead).
 2026-08-05 #3: Same file, second real-compiler round: `cursor.getString("user_id")` failed because
                the name-based, non-null `com.powersync.db.getString` extension needs its OWN import
                separate from `getLongOptional`/`getStringOptional` — without it, calls resolve to the
