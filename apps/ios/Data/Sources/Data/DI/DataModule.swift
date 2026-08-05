@@ -89,7 +89,7 @@ public extension Container {
     }
 
     var prefsRepository: Factory<PrefsRepository> {
-        self { PrefsRepository(db: self.powerSyncDatabase() as! PowerSyncDatabase) }.singleton
+        self { PrefsRepository(db: self.powerSyncDatabase()) }.singleton
     }
 
     var pushRepository: Factory<PushRepository> {

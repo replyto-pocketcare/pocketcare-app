@@ -57,9 +57,9 @@ private func notificationPrefsMapper(cursor: SqlCursor) throws -> NotificationPr
 }
 
 public class PrefsRepository {
-    private let db: PowerSyncDatabase
+    private let db: PowerSyncDatabaseProtocol
 
-    public init(db: PowerSyncDatabase) {
+    public init(db: PowerSyncDatabaseProtocol) {
         self.db = db
     }
 
