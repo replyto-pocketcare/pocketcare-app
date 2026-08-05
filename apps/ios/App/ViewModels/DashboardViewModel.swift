@@ -1,6 +1,19 @@
 import Foundation
 import Observation
 import Data
+import Domain
+
+/// Net-worth hero content -- mirrors apps/web/app/page.tsx's NetWorthHero
+/// exactly (see docs/mobile/screen-specs/dashboard.md), and Android's
+/// NetWorthHeroState (DashboardViewModel.kt) added the same session.
+public struct NetWorthHeroState: Sendable {
+    public var net: Money = Money(amount: 0, currency: "INR")
+    public var base: String = "INR"
+    public var showAvailable: Bool = false
+    public var deltaMinor: Int64 = 0
+    public var hasTrend: Bool = false
+    public var sparkline: [Float] = []
+}
 
 @Observable
 @MainActor
@@ -13,6 +26,13 @@ public final class DashboardViewModel {
     public var liabilitiesFormatted: String = "₹0.00"
     public var accounts: [AccountWithBalance] = []
     public var recentTransactions: [TransactionUiModel] = []
+    public var hero: NetWorthHeroState = NetWorthHeroState()
+
+    /// Mirrors page.tsx's `showAvailable` local state (net-worth toggle).
+    public func toggleShowAvailable() {
+        hero.showAvailable.toggle()
+        Task { await refreshSnapshots() }
+    }
 
     private let formatter: NumberFormatter = {
         let fmt = NumberFormatter()
@@ -68,10 +88,12 @@ public final class DashboardViewModel {
         do {
             async let netWorthTask = ledgerRepository.netWorth(base: "INR")
             async let balancesTask = ledgerRepository.accountBalances(includeArchived: false)
-            
+            async let monthlyTask = ledgerRepository.monthlyIncomeExpense()
+
             let nw = try await netWorthTask
             let bal = try await balancesTask
-            
+            let monthly = try await monthlyTask
+
             self.accounts = bal
 
             let assets = bal.filter { $0.balance.amount > 0 && $0.account.includeInNetWorth }
@@ -82,6 +104,33 @@ public final class DashboardViewModel {
             self.netWorthFormatted = formatAmount(nw.total.amount)
             self.assetsFormatted = formatAmount(assets)
             self.liabilitiesFormatted = formatAmount(abs(liabilities))
+
+            // ---- Hero sparkline/delta -- matches page.tsx's NetWorthHero
+            // exactly (same algorithm as Android's DashboardViewModel.kt,
+            // ported the same session): fold (year-month, type) rows into
+            // per-month (inc, exp), last 8 months, delta = last month's
+            // (inc - exp), sparkline = cumulative running sum of (inc-exp)/100.
+            var byMonth: [String: (inc: Int64, exp: Int64)] = [:]
+            var order: [String] = []
+            for row in monthly {
+                if byMonth[row.yearMonth] == nil { order.append(row.yearMonth) }
+                var entry = byMonth[row.yearMonth] ?? (0, 0)
+                if row.type == "income" { entry.inc = row.total } else { entry.exp = row.total }
+                byMonth[row.yearMonth] = entry
+            }
+            let months = order.suffix(8).map { ($0, byMonth[$0]!) }
+            let deltaMinor: Int64 = months.last.map { $0.1.inc - $0.1.exp } ?? 0
+            var acc: Float = 0
+            let sparkline: [Float] = months.map { (_, v) in
+                acc += Float(v.inc - v.exp) / 100
+                return acc
+            }
+
+            self.hero.net = self.hero.showAvailable ? nw.available : nw.total
+            self.hero.base = nw.base
+            self.hero.deltaMinor = deltaMinor
+            self.hero.hasTrend = !months.isEmpty
+            self.hero.sparkline = sparkline
         } catch {
             print("Error refreshing snapshots: \(error)")
         }

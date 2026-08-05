@@ -8,46 +8,82 @@ import com.sanvya.app.data.repository.NetWorth
 import com.sanvya.app.data.repository.TransactionRow
 import com.sanvya.app.domain.money.money
 import com.sanvya.app.ui.transactions.TransactionUiModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.text.NumberFormat
 import java.util.Locale
 import java.time.format.DateTimeFormatter
 import java.time.OffsetDateTime
 import java.time.ZoneId
 
+/**
+ * Net-worth hero content — mirrors apps/web/app/page.tsx's NetWorthHero
+ * exactly (see docs/mobile/screen-specs/dashboard.md): [net] is total or
+ * available depending on the toggle, [deltaMinor] is last month's
+ * (income - expense) in minor units, [sparkline] is the cumulative running
+ * sum of (income - expense)/100 per month (last 8 months, oldest first).
+ */
+data class NetWorthHeroState(
+    val net: com.sanvya.app.domain.money.Money = money(0, "INR"),
+    val base: String = "INR",
+    val showAvailable: Boolean = false,
+    val deltaMinor: Long = 0,
+    val hasTrend: Boolean = false,
+    val sparkline: List<Float> = emptyList(),
+)
+
 data class DashboardUiState(
     val netWorthFormatted: String = "₹0.00",
     val assetsFormatted: String = "₹0.00",
     val liabilitiesFormatted: String = "₹0.00",
     val accounts: List<AccountWithBalance> = emptyList(),
-    val recentTransactions: List<TransactionUiModel> = emptyList()
+    val recentTransactions: List<TransactionUiModel> = emptyList(),
+    val hero: NetWorthHeroState = NetWorthHeroState(),
 )
 
-class DashboardViewModel(
-    private val ledgerRepository: LedgerRepository
-) : ViewModel() {
+/** No-arg constructor + KoinComponent/by inject() -- matches SettingsViewModel's
+ * established pattern in this codebase, so the default Compose `viewModel()`
+ * factory can construct it directly (no Koin viewModel-DSL module needed). */
+class DashboardViewModel : ViewModel(), KoinComponent {
+    private val ledgerRepository: LedgerRepository by inject()
 
     private val numberFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
         currency = java.util.Currency.getInstance("INR")
         maximumFractionDigits = 2
     }
 
+    /** Mirrors page.tsx's `showAvailable` local state (net-worth toggle). */
+    private val showAvailable = MutableStateFlow(false)
+
+    fun toggleShowAvailable() {
+        showAvailable.value = !showAvailable.value
+    }
+
     val uiState: StateFlow<DashboardUiState> = combine(
         ledgerRepository.watchNetWorth("INR"),
         ledgerRepository.watchAccountBalances(includeArchived = false),
-        ledgerRepository.watchRecentTransactions(limit = 10)
-    ) { netWorth, accounts, txns ->
+        ledgerRepository.watchRecentTransactions(limit = 10),
+        ledgerRepository.watchMonthlyIncomeExpense(),
+        showAvailable,
+    ) { netWorth: NetWorth,
+        accounts: List<AccountWithBalance>,
+        txns: List<TransactionRow>,
+        monthly: List<com.sanvya.app.data.repository.MonthlyIncomeExpense>,
+        showAvail: Boolean ->
+
         val accountMap = accounts.associateBy { it.account.id }
-        
+
         val recentUiTxns = txns.map { txn ->
             val isIncome = txn.type == "income"
             val sign = if (isIncome) "+" else "-"
             val amt = (txn.amount / 100.0)
             val account = accountMap[txn.accountId]?.account
-            
+
             val formattedDate = try {
                 val odt = OffsetDateTime.parse(txn.occurredAt)
                 val zdt = odt.atZoneSameInstant(ZoneId.systemDefault())
@@ -80,12 +116,39 @@ class DashboardViewModel(
         val liabilities = accounts.filter { it.balance.amount < 0 && it.account.includeInNetWorth }
             .sumOf { it.balance.amount }
 
+        // ---- Hero sparkline/delta -- matches page.tsx's NetWorthHero exactly:
+        // group by (year-month, type) is already done by the query; fold into
+        // per-month {inc, exp}, take the last 8 months, delta = last month's
+        // (inc - exp), sparkline = cumulative running sum of (inc-exp)/100.
+        val byMonth = LinkedHashMap<String, Pair<Long, Long>>() // ym -> (inc, exp)
+        for (row in monthly) {
+            val (inc, exp) = byMonth[row.yearMonth] ?: (0L to 0L)
+            byMonth[row.yearMonth] = if (row.type == "income") row.total to exp else inc to row.total
+        }
+        val months = byMonth.entries.toList().takeLast(8)
+        val deltaMinor = if (months.isNotEmpty()) {
+            val (inc, exp) = months.last().value
+            inc - exp
+        } else 0L
+        var acc = 0f
+        val sparkline = months.map { (_, v) -> acc += (v.first - v.second) / 100f; acc }
+
+        val net = if (showAvail) netWorth.available else netWorth.total
+
         DashboardUiState(
             netWorthFormatted = numberFormat.format(netWorth.total.amount / 100.0),
             assetsFormatted = numberFormat.format(assets / 100.0),
             liabilitiesFormatted = numberFormat.format(Math.abs(liabilities) / 100.0),
             accounts = accounts,
-            recentTransactions = recentUiTxns
+            recentTransactions = recentUiTxns,
+            hero = NetWorthHeroState(
+                net = net,
+                base = netWorth.base,
+                showAvailable = showAvail,
+                deltaMinor = deltaMinor,
+                hasTrend = months.isNotEmpty(),
+                sparkline = sparkline,
+            ),
         )
     }.stateIn(
         scope = viewModelScope,

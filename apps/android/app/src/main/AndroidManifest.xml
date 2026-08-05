@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:name=".android.SanvyaApp"
+        android:name=".SanvyaApplication"
         android:allowBackup="false"
         android:label="PocketCare"
         android:icon="@mipmap/ic_launcher"

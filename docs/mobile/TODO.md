@@ -5,24 +5,41 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-05 — AUDIT, not a build session. Verified Phase 3 status against the actual
-               filesystem: every Android (a-suffix) Phase 3 UI-slice row was falsely DONE (no
-               Compose screens exist beyond SettingsScreen.kt; MainActivity references
-               SanvyaTheme/SanvyaNavHost, neither defined — app doesn't compile). Reset those rows
-               to TODO with correction notes + banner. iOS rows left DONE (files real) but flagged
-               unverified for pixel/functional fidelity. Full findings + corrected plan:
-               docs/plans/mobile-pixel-parity-plan.md (now authoritative for real per-screen status).
-Android state: Phase 1-2 DONE (domain vectors, data layer code-complete/BLOCKED on P2.7). Phase 3
-               UI NOT built (was falsely marked DONE — see correction banner above Phase 3 table).
-               App does not currently compile (MainActivity dangling refs).
-iOS state:     Phase 1-2 DONE (same P2.7 blocker). Phase 3 screens exist and are wired to
-               ViewModels but are unverified against web source (never checked screen-by-screen).
-Vectors:       250/250 green on both platforms (unaffected by this audit). Core JS unit tests 290/290 green.
-Next up:       Phase B of mobile-pixel-parity-plan.md — design-token generator (globals.css →
-               Color.kt/Theme.swift) + per-screen source specs, then rebuild Android UI for real
-               and bring iOS screens to verified parity.
-Traps/notes:   Do not trust DONE status in Phase 3 tables at face value going forward without
-               checking the file exists — that's exactly how this happened. P2.7 still needs
+Last session: 2026-08-05 — Audit + Phase A/B + first real Android UI. (1) Verified Phase 3 status
+               against the filesystem: every Android Phase 3 row was falsely DONE — corrected all
+               to TODO w/ notes. (2) Built tools/parity/generate-tokens.mjs (globals.css -> Android
+               Color/Theme/Radius.kt + iOS Theme.swift) — caught iOS Theme.swift was missing
+               `warning` + 5 other tokens entirely. (3) Found Android had NO working app at all
+               beyond the theme fix: no SanvyaNavHost, no Application class (manifest pointed at
+               `.android.SanvyaApp`, never existed — Koin was never started anywhere), no Prefs
+               (SettingsScreen.kt referenced it unqualified, also never existed). Built all three
+               for real (SanvyaApplication.kt + Koin bootstrap, Prefs.kt local hide-amounts,
+               SanvyaNavHost.kt routing only to real screens). (4) Wrote first screen source spec
+               (docs/mobile/screen-specs/dashboard.md, read from apps/web/app/page.tsx) and built
+               DashboardScreen.kt for real (hero+accounts strip, tile catalog explicitly deferred
+               as new row P3.1c, not faked). Added LedgerRepository.watchMonthlyIncomeExpense()
+               (Android) + .monthlyIncomeExpense() (iOS) for the hero sparkline/delta, both
+               platforms. (5) Fixed iOS DashboardView.swift's hero, which was NOT web's design
+               (invented flat-accent Assets/Liabilities card) — now matches the real spec.
+               Added androidx.navigation-compose + lifecycle-viewmodel-compose to the version
+               catalog (first-party Jetpack, pre-approved per plan §0/§2, no human approval needed).
+Android state: Phase 1-2 DONE. Phase 3: Dashboard hero+accounts real and wired (P3.1 IN PROGRESS,
+               not DONE — tile catalog/nav shell still missing, see P3.1c). Everything else in
+               Phase 3 still TODO (no screens). NOT verified against a real Gradle build in this
+               sandbox (no JDK/Gradle here per plan §1.5) — next session or CI must run
+               `./gradlew build test` before trusting this compiles.
+iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard hero+accounts now matches the real
+               web spec (was invented before). Every other screen still unverified against source
+               specs (specs don't exist yet for them) — do not assume parity, check screen by screen.
+Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+Next up:       Write source specs (docs/mobile/screen-specs/) + build/verify remaining Phase 3
+               screens one at a time, same rigor as Dashboard this session. Accounts/Transactions/
+               Login are the next highest-leverage Android gaps (nothing else can be reached from
+               the app yet — nav graph only has dashboard+settings).
+Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec, (b) a real human/
+               CI build (`./gradlew build test` / `xcodebuild test`) — exactly the two things
+               skipped before that produced this session's cleanup. This sandbox cannot run either
+               build; say so explicitly rather than claiming compiled/verified. P2.7 still needs
                human-provisioned test Supabase + PowerSync instance (Akhilesh confirmed doing this).
 ```
 
@@ -81,7 +98,8 @@ Traps/notes:   Do not trust DONE status in Phase 3 tables at face value going fo
 ### Phase 3+ — UI slices (expanded 2026-07-31, plan §7)
 | ID | Task | Tag | Needs | Status |
 |---|---|---|---|---|
-| P3.1a / P3.1b | UI Slice S1: Dashboard-lite & Navigation Shell — Net Worth card, Quick Action buttons, Accounts list, Recent Activity | [M] | P2 (done) | TODO — corrected 2026-08-05: falsely marked DONE, `DashboardScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, DashboardView.swift) |
+| P3.1a / P3.1b | UI Slice S1: Dashboard-lite & Navigation Shell — Net Worth card, Quick Action buttons, Accounts list, Recent Activity | [M] | P2 (done) | IN PROGRESS (2026-08-05) — Android: real `DashboardScreen.kt` built this session per `docs/mobile/screen-specs/dashboard.md` (net-worth hero w/ gradient+sparkline+toggle, colored accounts strip, empty/populated states), wired to a real `SanvyaNavHost.kt` + `SanvyaApplication.kt` (Koin bootstrap — was also missing, app now actually launches to this screen). iOS: `DashboardView.swift`'s hero was NOT this design (flat accent card + invented Assets/Liabilities split not in web source) — replaced to match the spec exactly, accounts strip now uses colorForId chips matching web. **Both platforms still missing:** the 12-tile customizable grid (`apps/web/src/dashboard/tiles.tsx`, tracked as new follow-up P3.1c below), drag/resize/edit-mode, `Walkthrough` overlay, and a real nav shell (bottom tabs/drawer) beyond the two-route Android stub — so this row stays IN PROGRESS, not DONE. |
+| P3.1c | Dashboard tile catalog (12 tiles: recent/spending/trends/splits/budgets/goals/subscriptions/cashflow/netTrend/byCategory/byLabel/monthCompare) + drag-reorder/resize/edit-mode, both platforms | [H] | P3.1 | TODO — new row, split out 2026-08-05 from P3.1 scope (see `docs/mobile/screen-specs/dashboard.md` "Explicitly deferred") |
 | P3.2a / P3.2b | UI Slice S1: Accounts view & Account edit/create screens | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `AccountsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, AccountsView.swift) |
 | P3.3a / P3.3b | UI Slice S1: Transactions list & Transaction creation flow | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `TransactionsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, TransactionsView.swift) |
 | P3.4a / P3.4b | UI Slice S2: Budgets list & Budget progress view with status indicators | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `BudgetsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, BudgetsView.swift) |

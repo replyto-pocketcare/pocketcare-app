@@ -130,6 +130,17 @@ public struct NetWorth: Sendable {
     public let base: String
 }
 
+/// One (month, type) bucket from the income/expense grouping query -- `type`
+/// is always "income" or "expense", `total` is minor units. Mirrors Android's
+/// LedgerRepository.kt MonthlyIncomeExpense exactly (added same session,
+/// 2026-08-05, for the dashboard hero sparkline/delta -- see
+/// docs/mobile/screen-specs/dashboard.md).
+public struct MonthlyIncomeExpense: Sendable {
+    public let yearMonth: String
+    public let type: String
+    public let total: Int64
+}
+
 /// Thrown when a write would take a no-overdraft account below zero.
 /// Mirrors packages/data/src/powersync-repositories.ts's OverdraftError.
 public struct OverdraftError: Error, Sendable {
@@ -336,6 +347,28 @@ public final class LedgerRepository: @unchecked Sendable {
         var m: [String: Int64] = [:]
         for (accountId, amount) in rows { m[accountId, default: 0] += amount }
         return m
+    }
+
+    /// Income/expense totals grouped by month (all accounts, minor units) --
+    /// matches apps/web/app/page.tsx's NetWorthHero query exactly (same SQL,
+    /// same GROUP BY/ORDER BY). One-shot (matches this file's existing
+    /// snapshot pattern -- DashboardViewModel re-runs its snapshot refresh on
+    /// every account/transaction stream tick already).
+    public func monthlyIncomeExpense() async throws -> [MonthlyIncomeExpense] {
+        try await db.getAll(
+            sql: """
+                SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total
+                FROM transactions WHERE deleted_at IS NULL AND type IN ('income','expense')
+                GROUP BY ym, type ORDER BY ym
+                """,
+            parameters: []
+        ) { cursor in
+            MonthlyIncomeExpense(
+                yearMonth: try cursor.getString(name: "ym"),
+                type: try cursor.getString(name: "type"),
+                total: try cursor.getInt64(name: "total")
+            )
+        }
     }
 
     /// Latest FX rate per currency pair, as of now, as a RateLookup for aggregateNetWorth.

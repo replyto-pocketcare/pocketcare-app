@@ -130,6 +130,11 @@ data class AccountWithBalance(val account: Account, val balance: Money)
 
 data class NetWorth(val total: Money, val available: Money, val base: String)
 
+/** One (month, type) bucket from the income/expense grouping query -- [type] is
+ * always "income" or "expense" (query filters to those two), [total] is minor
+ * units. */
+data class MonthlyIncomeExpense(val yearMonth: String, val type: String, val total: Long)
+
 /** Thrown when a write would take a no-overdraft account below zero.
  * Mirrors packages/data/src/powersync-repositories.ts's OverdraftError. */
 class OverdraftError(val accountName: String, val shortfall: Money) : Exception(
@@ -242,6 +247,23 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
     fun watchAllTransactions(): Flow<List<TransactionRow>> = db.watch(
         "SELECT * FROM transactions WHERE deleted_at IS NULL ORDER BY occurred_at DESC",
         mapper = ::transactionMapper,
+    )
+
+    /** Income/expense totals grouped by month (all accounts, minor units) --
+     * matches apps/web/app/page.tsx's NetWorthHero query exactly (same SQL,
+     * same GROUP BY/ORDER BY), which the dashboard hero's sparkline + this-
+     * month delta are computed from. */
+    fun watchMonthlyIncomeExpense(): Flow<List<MonthlyIncomeExpense>> = db.watch(
+        """SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total
+            FROM transactions WHERE deleted_at IS NULL AND type IN ('income','expense')
+            GROUP BY ym, type ORDER BY ym""",
+        mapper = { cursor ->
+            MonthlyIncomeExpense(
+                yearMonth = cursor.getString("ym"),
+                type = cursor.getString("type"),
+                total = cursor.getLong("total"),
+            )
+        },
     )
 
     /** All accounts with their ledger-derived balances (reactive). */
