@@ -4,6 +4,11 @@ import Factory
 import Domain
 import Data
 
+/// Accounts list — ported from apps/web/app/accounts/page.tsx per
+/// docs/mobile/screen-specs/accounts.md. Rewritten 2026-08-05: the previous
+/// version only had id/name/typeLabel/balance -- missing color, archived
+/// state + toggle, per-account net-worth toggle, all required by the real
+/// screen. Mirrors Android's AccountsViewModel.kt.
 @Observable
 @MainActor
 public final class AccountsViewModel {
@@ -13,48 +18,91 @@ public final class AccountsViewModel {
     public struct AccountUiModel: Identifiable, Equatable {
         public let id: String
         public let name: String
-        public let typeLabel: String
+        public let type: String
+        public let currency: String
+        public let color: String?
         public let balanceFormatted: String
-        public let isNegative: Bool
+        public let isArchived: Bool
+        public let includeInNetWorth: Bool
     }
 
-    public var accounts: [AccountUiModel] = []
-    
+    public var visible: [AccountUiModel] = []
+    public var archivedCount: Int = 0
+    public var showArchived: Bool = false {
+        didSet { recompute() }
+    }
+
+    private var all: [AccountUiModel] = []
+
     private var numberFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "INR"
+        formatter.locale = Locale(identifier: "en_IN")
         formatter.maximumFractionDigits = 2
         return formatter
     }()
 
     public init() {
-        Task {
-            await startObserving()
-        }
+        Task { await startObserving() }
     }
 
     private func startObserving() async {
         do {
             let stream = try ledgerRepository.watchAccounts(includeArchived: true)
             for try await _ in stream {
-                let balances = try await ledgerRepository.accountBalances(includeArchived: true)
-                self.accounts = balances.map { accountWithBalance in
-                    let amt = Double(accountWithBalance.balance.amount) / 100.0
-                    let formatted = self.numberFormatter.string(from: NSNumber(value: abs(amt))) ?? "₹0.00"
-                    let sign = amt < 0 ? "-" : ""
-                    
-                    return AccountUiModel(
-                        id: accountWithBalance.account.id,
-                        name: accountWithBalance.account.name,
-                        typeLabel: "\(accountWithBalance.account.type.capitalized) • \(accountWithBalance.account.currency)",
-                        balanceFormatted: "\(sign)\(formatted)",
-                        isNegative: amt < 0
-                    )
-                }
+                await reload()
             }
         } catch {
             print("Failed to observe accounts: \(error)")
+        }
+    }
+
+    private func reload() async {
+        do {
+            let balances = try await ledgerRepository.accountBalances(includeArchived: true)
+            all = balances.map { acctWithBal in
+                let acct = acctWithBal.account
+                let major = Double(acctWithBal.balance.amount) / 100.0
+                return AccountUiModel(
+                    id: acct.id,
+                    name: acct.name,
+                    type: acct.type,
+                    currency: acct.currency,
+                    color: acct.color,
+                    balanceFormatted: numberFormatter.string(from: NSNumber(value: major)) ?? "₹0.00",
+                    isArchived: acct.isArchived,
+                    includeInNetWorth: acct.includeInNetWorth
+                )
+            }
+            recompute()
+        } catch {
+            print("Failed to load account balances: \(error)")
+        }
+    }
+
+    private func recompute() {
+        archivedCount = all.filter(\.isArchived).count
+        visible = showArchived ? all : all.filter { !$0.isArchived }
+    }
+
+    public func toggleShowArchived() {
+        showArchived.toggle()
+    }
+
+    /// Matches accounts/page.tsx's toggleNw() exactly -- direct update, no
+    /// confirmation.
+    public func toggleIncludeInNetWorth(id: String, current: Bool) {
+        Task {
+            try? await ledgerRepository.updateAccount(id: id, values: ["include_in_net_worth": !current])
+            await reload()
+        }
+    }
+
+    public func setArchived(id: String, archived: Bool) {
+        Task {
+            try? await ledgerRepository.setAccountArchived(id: id, archived: archived)
+            await reload()
         }
     }
 }

@@ -220,6 +220,16 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
         )
     }
 
+    /** Single account by id (reactive) -- matches accounts/[id]/edit/page.tsx's
+     * useQuery(single row, WHERE id = ?). Added 2026-08-05 for the Accounts
+     * edit screen (docs/mobile/screen-specs/accounts.md); nothing needed a
+     * single-account read before this. */
+    fun watchAccount(id: String): Flow<Account?> = db.watch(
+        "SELECT * FROM accounts WHERE id = ? AND deleted_at IS NULL",
+        parameters = listOf(id),
+        mapper = ::accountMapper,
+    ).map { it.firstOrNull() }
+
     /** Minimal ledger-entry projection for balance derivation -- matches
      * hooks.ts's useAccountBalances query exactly (5 columns, all non-deleted
      * transactions, no account filter -- deriveBalance itself filters by
@@ -420,6 +430,21 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
         updateRow(db, "accounts", id, mapOf("is_archived" to if (archived) 1L else 0L))
 
     suspend fun deleteAccount(id: String) = softDelete(db, "accounts", id)
+
+    /** Soft-delete every non-deleted transaction on [accountId] -- matches
+     * accounts/[id]/edit/page.tsx's "Delete everything" cascade path exactly
+     * (raw UPDATE, transactions first, then the account is soft-deleted
+     * separately by the caller via deleteAccount()). Added 2026-08-05 for the
+     * Accounts edit screen's delete-confirm modal (docs/mobile/screen-specs/
+     * accounts.md) -- web's "keep transactions" path is just deleteAccount()
+     * alone, no separate method needed for that one. */
+    suspend fun cascadeDeleteAccountTransactions(accountId: String) {
+        val ts = nowIso()
+        db.execute(
+            sql = "UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE account_id = ? AND deleted_at IS NULL",
+            parameters = listOf(ts, ts, accountId),
+        )
+    }
 
     // ---- writes: transactions ----
 

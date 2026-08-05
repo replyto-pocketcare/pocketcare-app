@@ -58,7 +58,13 @@ class MainActivity : ComponentActivity() {
             if (!task.isSuccessful) return@addOnCompleteListener
             val token = task.result
             lifecycleScope.launch {
-                val userId = authRepository.currentUserId
+                // authRepository.currentUserId is a StateFlow<String?>, not a
+                // plain property -- `val userId = authRepository.currentUserId`
+                // (missing `.value`) was a type mismatch that would never have
+                // compiled (StateFlow passed where registerToken() wants a
+                // String). Found + fixed 2026-08-05 while wiring Accounts,
+                // which needs the same currentUserId.value pattern.
+                val userId = authRepository.currentUserId.value
                 if (userId != null) {
                     try {
                         pushRepository.registerToken(token, "android", userId)

@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.data.repository.AccountWithBalance
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
+import com.sanvya.app.ui.accountColor
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.abs
@@ -47,6 +48,8 @@ import kotlin.math.abs
 @Composable
 fun DashboardScreen(
     onOpenSettings: () -> Unit = {},
+    onAddAccount: () -> Unit = {},
+    onViewAccounts: () -> Unit = {},
     viewModel: DashboardViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -75,7 +78,7 @@ fun DashboardScreen(
         },
     ) { padding ->
         if (uiState.accounts.isEmpty()) {
-            EmptyDashboard(modifier = Modifier.padding(padding))
+            EmptyDashboard(onAddAccount = onAddAccount, modifier = Modifier.padding(padding))
         } else {
             Column(
                 modifier = Modifier
@@ -95,6 +98,7 @@ fun DashboardScreen(
                     accounts = uiState.accounts,
                     hidden = amountsHidden,
                     colors = colors,
+                    onViewAll = onViewAccounts,
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
                 // Tile catalog (recent/spending/trends/budgets/goals/etc.) is
@@ -122,7 +126,7 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun EmptyDashboard(modifier: Modifier = Modifier) {
+private fun EmptyDashboard(onAddAccount: () -> Unit = {}, modifier: Modifier = Modifier) {
     val colors = LocalSanvyaColors.current
     Box(modifier = modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
         Card(
@@ -141,15 +145,10 @@ private fun EmptyDashboard(modifier: Modifier = Modifier) {
                     fontSize = 14.sp,
                     color = colors.text2,
                 )
-                // Disabled, not wired to a fake destination: /accounts/new's
-                // equivalent screen isn't built yet (tracked separately) --
-                // showing an enabled button that does nothing on tap would be
-                // the same false-affordance problem this whole audit exists
-                // to fix, just at the button level instead of the file level.
-                Button(onClick = {}, enabled = false) {
+                Button(onClick = onAddAccount) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Add your first account (screen ships next)")
+                    Text("Add your first account")
                 }
             }
         }
@@ -294,6 +293,7 @@ private fun AccountsCard(
     accounts: List<AccountWithBalance>,
     hidden: Boolean,
     colors: com.sanvya.app.theme.SanvyaColors,
+    onViewAll: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val numberFormat = remember {
@@ -315,7 +315,12 @@ private fun AccountsCard(
             ) {
                 Text("Accounts", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text)
                 val suffix = if (accounts.size > 8) " (${accounts.size})" else ""
-                Text("View all$suffix", fontSize = 13.sp, color = colors.accent)
+                Text(
+                    "View all$suffix",
+                    fontSize = 13.sp,
+                    color = colors.accent,
+                    modifier = Modifier.clickable(onClick = onViewAll),
+                )
             }
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(accounts.take(8)) { item ->
@@ -357,32 +362,6 @@ private fun AccountsCard(
     }
 }
 
-/** ACCOUNT_COLORS + colorForId, ported byte-for-byte from apps/web/src/colors.ts
- * per docs/mobile/screen-specs/dashboard.md -- do not substitute the earthy
- * SanvyaColors palette here, this is a deliberately distinct 18-color set
- * (includes jewel tones) used only for per-account chip coloring. */
-private val ACCOUNT_COLORS = listOf(
-    0xFF3E4A38, 0xFF5F6647, 0xFF6B7A4F, 0xFF9CAE8E, 0xFFB06A4F, 0xFFC98A72,
-    0xFFA8503A, 0xFF7C4A3A, 0xFF5F4636, 0xFFC9B79C, 0xFFC08A3E, 0xFF4F46E5,
-    0xFF6D5ACF, 0xFF3F5A8A, 0xFF2F6F6A, 0xFF7A4A6B, 0xFF4B5563, 0xFF2B2723,
-).map { Color(it or 0xFF000000) }
-
-private fun accountColor(explicit: String?, id: String): Color {
-    if (!explicit.isNullOrBlank()) {
-        return try {
-            Color(android.graphics.Color.parseColor(explicit))
-        } catch (e: IllegalArgumentException) {
-            colorForId(id)
-        }
-    }
-    return colorForId(id)
-}
-
-private fun colorForId(id: String?): Color {
-    if (id.isNullOrEmpty()) return Color(0xFF7C7264)
-    var h = 0L
-    for (c in id) {
-        h = (h * 31 + c.code) and 0xFFFFFFFFL
-    }
-    return ACCOUNT_COLORS[(h % ACCOUNT_COLORS.size).toInt()]
-}
+// accountColor()/colorForId() now shared -- see ui/AccountColors.kt
+// (extracted 2026-08-05 when the Accounts screen needed the same palette;
+// this file used to have its own private copy).

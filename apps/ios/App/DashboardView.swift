@@ -4,6 +4,12 @@ import Factory
 struct DashboardView: View {
     @Binding var isDrawerOpen: Bool
     @State private var viewModel = Container.shared.dashboardViewModel()
+    // Hide-amounts is a real, load-bearing toggle (Settings > "Hide Amounts",
+    // apps/web's useMoneyFmt()) -- was missing entirely from this screen
+    // until 2026-08-05 (found auditing for the Accounts screen pass, fixed
+    // here since it's the same hero/accounts-strip code this file already
+    // owns). Mirrors Android's Prefs.amountsHidden the same way.
+    @StateObject private var prefs = Prefs.shared
 
     var body: some View {
         NavigationStack {
@@ -17,6 +23,7 @@ struct DashboardView: View {
                     // see AUDIT_HISTORY.md).
                     NetWorthHeroView(
                         state: viewModel.hero,
+                        hidden: prefs.amountsHidden,
                         onToggle: { viewModel.toggleShowAvailable() }
                     )
 
@@ -53,7 +60,7 @@ struct DashboardView: View {
                                 // flat PocketCard -- matches web exactly.
                                 ForEach(viewModel.accounts.prefix(8), id: \.account.id) { acctWithBal in
                                     let balanceCents = acctWithBal.balance.amount
-                                    let balanceFormatted = formatCents(balanceCents)
+                                    let balanceFormatted = prefs.amountsHidden ? "••••••" : formatCents(balanceCents)
                                     VStack(alignment: .leading, spacing: 1) {
                                         Text(acctWithBal.account.type.replacingOccurrences(of: "_", with: " "))
                                             .font(.system(size: 10))
@@ -180,10 +187,13 @@ private func formatMinor(_ minor: Int64) -> String {
 
 struct NetWorthHeroView: View {
     let state: NetWorthHeroState
+    var hidden: Bool = false
     let onToggle: () -> Void
 
     var body: some View {
         let up = state.deltaMinor >= 0
+        let netText = hidden ? "••••••" : formatMinor(state.net.amount)
+        let deltaText = hidden ? "••••" : formatMinor(abs(state.deltaMinor))
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(state.showAvailable ? "AVAILABLE NET WORTH" : "NET WORTH")
@@ -201,14 +211,14 @@ struct NetWorthHeroView: View {
                         .clipShape(Capsule())
                 }
             }
-            Text(formatMinor(state.net.amount))
+            Text(netText)
                 .font(.system(size: 38, weight: .heavy))
                 .foregroundColor(Color(red: 0.945, green: 0.929, blue: 0.890)) // #f1ede3
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .padding(.top, 6)
             if state.hasTrend {
-                Text("\(up ? "+" : "−")\(formatMinor(abs(state.deltaMinor))) this month")
+                Text("\(up ? "+" : "−")\(deltaText) this month")
                     .font(.system(size: 12.5, weight: .semibold))
                     .foregroundColor(up ? Color(red: 0.867, green: 0.906, blue: 0.788) : Color(red: 0.941, green: 0.847, blue: 0.788))
                     .padding(.horizontal, 11)
@@ -279,58 +289,6 @@ struct SparklineView: View {
     }
 }
 
-// MARK: - Account chip color
-// ACCOUNT_COLORS + colorForId, ported byte-for-byte from
-// apps/web/src/colors.ts per docs/mobile/screen-specs/dashboard.md -- a
-// deliberately distinct 18-color palette (includes jewel tones), used only
-// for per-account chip coloring, not the earthy SanvyaColors design tokens.
-private let accountColors: [Color] = [
-    Color(red: 0x3E / 255, green: 0x4A / 255, blue: 0x38 / 255),
-    Color(red: 0x5F / 255, green: 0x66 / 255, blue: 0x47 / 255),
-    Color(red: 0x6B / 255, green: 0x7A / 255, blue: 0x4F / 255),
-    Color(red: 0x9C / 255, green: 0xAE / 255, blue: 0x8E / 255),
-    Color(red: 0xB0 / 255, green: 0x6A / 255, blue: 0x4F / 255),
-    Color(red: 0xC9 / 255, green: 0x8A / 255, blue: 0x72 / 255),
-    Color(red: 0xA8 / 255, green: 0x50 / 255, blue: 0x3A / 255),
-    Color(red: 0x7C / 255, green: 0x4A / 255, blue: 0x3A / 255),
-    Color(red: 0x5F / 255, green: 0x46 / 255, blue: 0x36 / 255),
-    Color(red: 0xC9 / 255, green: 0xB7 / 255, blue: 0x9C / 255),
-    Color(red: 0xC0 / 255, green: 0x8A / 255, blue: 0x3E / 255),
-    Color(red: 0x4F / 255, green: 0x46 / 255, blue: 0xE5 / 255),
-    Color(red: 0x6D / 255, green: 0x5A / 255, blue: 0xCF / 255),
-    Color(red: 0x3F / 255, green: 0x5A / 255, blue: 0x8A / 255),
-    Color(red: 0x2F / 255, green: 0x6F / 255, blue: 0x6A / 255),
-    Color(red: 0x7A / 255, green: 0x4A / 255, blue: 0x6B / 255),
-    Color(red: 0x4B / 255, green: 0x55 / 255, blue: 0x63 / 255),
-    Color(red: 0x2B / 255, green: 0x27 / 255, blue: 0x23 / 255),
-]
-
-private func colorForId(_ id: String?) -> Color {
-    guard let id, !id.isEmpty else { return Color(red: 0x7C / 255, green: 0x72 / 255, blue: 0x64 / 255) }
-    var h: UInt32 = 0
-    for scalar in id.unicodeScalars {
-        h = h &* 31 &+ scalar.value
-    }
-    return accountColors[Int(h % UInt32(accountColors.count))]
-}
-
-private func accountColor(explicit: String?, id: String) -> Color {
-    if let explicit, !explicit.isEmpty, let parsed = Color(hex: explicit) {
-        return parsed
-    }
-    return colorForId(id)
-}
-
-private extension Color {
-    /// Parses a "#RRGGBB" hex string (account.color as stored). Returns nil
-    /// on any malformed input so callers can fall back to colorForId.
-    init?(hex: String) {
-        var s = hex
-        if s.hasPrefix("#") { s.removeFirst() }
-        guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }
-        let r = Double((v >> 16) & 0xFF) / 255
-        let g = Double((v >> 8) & 0xFF) / 255
-        let b = Double(v & 0xFF) / 255
-        self.init(red: r, green: g, blue: b)
-    }
-}
+// accountColor()/colorForId()/Color(hex:) now shared -- see
+// AccountColors.swift (extracted 2026-08-05 when the Accounts screen needed
+// the same palette; this file used to have its own private copy).

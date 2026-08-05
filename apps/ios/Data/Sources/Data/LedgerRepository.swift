@@ -258,6 +258,31 @@ public final class LedgerRepository: @unchecked Sendable {
         return try db.watch(sql: "SELECT * FROM accounts WHERE \(where_) ORDER BY created_at", parameters: [], mapper: accountMapper)
     }
 
+    /// Single account by id (reactive) -- matches accounts/[id]/edit/page.tsx's
+    /// useQuery(single row, WHERE id = ?). Added 2026-08-05 for the Accounts
+    /// edit screen, mirrors Android's LedgerRepository.kt addition the same
+    /// session.
+    public func watchAccount(id: String) throws -> AsyncThrowingStream<Account?, Error> {
+        let upstream = try db.watch(
+            sql: "SELECT * FROM accounts WHERE id = ? AND deleted_at IS NULL",
+            parameters: [id],
+            mapper: accountMapper
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await rows in upstream {
+                        continuation.yield(rows.first)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
     /// Full transaction rows for one account, newest first (for a ledger/list UI).
     public func watchTransactions(accountId: String) throws -> AsyncThrowingStream<[TransactionRow], Error> {
         try db.watch(
@@ -484,6 +509,19 @@ public final class LedgerRepository: @unchecked Sendable {
 
     public func deleteAccount(id: String) async throws {
         try await softDelete(db: db, table: "accounts", id: id)
+    }
+
+    /// Soft-delete every non-deleted transaction on [accountId] -- matches
+    /// accounts/[id]/edit/page.tsx's "Delete everything" cascade path exactly
+    /// (raw UPDATE, transactions first; the account itself is soft-deleted
+    /// separately by the caller via deleteAccount()). Added 2026-08-05,
+    /// mirrors Android's LedgerRepository.kt addition the same session.
+    public func cascadeDeleteAccountTransactions(accountId: String) async throws {
+        let ts = nowIso()
+        try await db.execute(
+            sql: "UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE account_id = ? AND deleted_at IS NULL",
+            parameters: [ts, ts, accountId]
+        )
     }
 
     // ---- writes: transactions ----

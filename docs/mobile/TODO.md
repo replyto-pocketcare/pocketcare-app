@@ -5,42 +5,49 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-05 — Audit + Phase A/B + first real Android UI. (1) Verified Phase 3 status
-               against the filesystem: every Android Phase 3 row was falsely DONE — corrected all
-               to TODO w/ notes. (2) Built tools/parity/generate-tokens.mjs (globals.css -> Android
-               Color/Theme/Radius.kt + iOS Theme.swift) — caught iOS Theme.swift was missing
-               `warning` + 5 other tokens entirely. (3) Found Android had NO working app at all
-               beyond the theme fix: no SanvyaNavHost, no Application class (manifest pointed at
-               `.android.SanvyaApp`, never existed — Koin was never started anywhere), no Prefs
-               (SettingsScreen.kt referenced it unqualified, also never existed). Built all three
-               for real (SanvyaApplication.kt + Koin bootstrap, Prefs.kt local hide-amounts,
-               SanvyaNavHost.kt routing only to real screens). (4) Wrote first screen source spec
-               (docs/mobile/screen-specs/dashboard.md, read from apps/web/app/page.tsx) and built
-               DashboardScreen.kt for real (hero+accounts strip, tile catalog explicitly deferred
-               as new row P3.1c, not faked). Added LedgerRepository.watchMonthlyIncomeExpense()
-               (Android) + .monthlyIncomeExpense() (iOS) for the hero sparkline/delta, both
-               platforms. (5) Fixed iOS DashboardView.swift's hero, which was NOT web's design
-               (invented flat-accent Assets/Liabilities card) — now matches the real spec.
-               Added androidx.navigation-compose + lifecycle-viewmodel-compose to the version
-               catalog (first-party Jetpack, pre-approved per plan §0/§2, no human approval needed).
-Android state: Phase 1-2 DONE. Phase 3: Dashboard hero+accounts real and wired (P3.1 IN PROGRESS,
-               not DONE — tile catalog/nav shell still missing, see P3.1c). Everything else in
-               Phase 3 still TODO (no screens). NOT verified against a real Gradle build in this
-               sandbox (no JDK/Gradle here per plan §1.5) — next session or CI must run
+Last session: 2026-08-05 — Audit + Phase A/B + Dashboard + Accounts, both platforms. Dashboard part
+               (see git log for the earlier commit this session): fixed the falsely-DONE Android
+               Phase 3 rows, built the token generator, gave Android a working app shell (Application/
+               Koin/Prefs/NavHost, none existed), built DashboardScreen.kt for real, fixed iOS
+               DashboardView.swift's invented hero to match the real spec. Accounts part (this
+               commit): wrote docs/mobile/screen-specs/accounts.md from the 3 web source files:
+               (1) Android: built AccountsViewModel/Screen (list), CreateAccountViewModel/Screen
+               (new), EditAccountViewModel/Screen (edit — delete cascade-or-keep, balance-adjustment
+               tool), wired all into SanvyaNavHost + Dashboard's "Add first account"/"View all".
+               (2) iOS: AccountsView.swift/CreateAccountView.swift were BOTH fake — list had no
+               color/archived/net-worth-toggle/edit-nav, Create's Save button called dismiss() and
+               never wrote anything. Rewrote both for real, built a new EditAccountView.swift (iOS
+               had none). Extracted ACCOUNT_COLORS/colorForId to shared AccountColors.kt/.swift
+               (was inlined twice, violated the "component reuse" rule). (3) Found + fixed: iOS
+               Dashboard hero + accounts strip had NO hide-amounts wiring at all (Android did) — now
+               both use Prefs.shared.amountsHidden. (4) Found, NOT fixed (tracked P3.2c): iOS
+               AuthRepositoryImpl.currentUserId always returns nil — routed the new Accounts write
+               paths around it via ensureUser() (matches AppDelegate.swift's existing workaround),
+               but SettingsView.swift's push-token registration still silently no-ops on this.
+Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1, hero+accounts, tile catalog deferred to
+               P3.1c) + Accounts (P3.2, list/new/edit) real and wired into SanvyaNavHost. Everything
+               else in Phase 3 still TODO (no screens). NOT verified against a real Gradle build in
+               this sandbox (no JDK/Gradle here per plan §1.5) — next session or CI must run
                `./gradlew build test` before trusting this compiles.
-iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard hero+accounts now matches the real
-               web spec (was invented before). Every other screen still unverified against source
-               specs (specs don't exist yet for them) — do not assume parity, check screen by screen.
+iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard + Accounts now match the real web specs
+               (both were previously invented/fake in different ways). Every other screen (Create*/
+               New* forms especially — CreateTransactionView.swift etc. are the same "Save calls
+               dismiss(), writes nothing" pattern CreateAccountView.swift had) is still unverified
+               against source specs — do not assume parity, check screen by screen, and do not
+               assume a Create/New screen persists anything until you've checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
-Next up:       Write source specs (docs/mobile/screen-specs/) + build/verify remaining Phase 3
-               screens one at a time, same rigor as Dashboard this session. Accounts/Transactions/
-               Login are the next highest-leverage Android gaps (nothing else can be reached from
-               the app yet — nav graph only has dashboard+settings).
+Next up:       Transactions is the natural next screen (highest-leverage gap on both platforms now
+               that Dashboard/Accounts are real — Dashboard's "Recent Activity" needs it too, iOS's
+               is currently fake data). Then P3.2c (iOS currentUserId bug) is cheap and worth doing
+               before it causes a second silent-failure site. Same rigor each time: read the real
+               web source first, write docs/mobile/screen-specs/<name>.md, then port.
 Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec, (b) a real human/
-               CI build (`./gradlew build test` / `xcodebuild test`) — exactly the two things
-               skipped before that produced this session's cleanup. This sandbox cannot run either
-               build; say so explicitly rather than claiming compiled/verified. P2.7 still needs
-               human-provisioned test Supabase + PowerSync instance (Akhilesh confirmed doing this).
+               CI build (`./gradlew build test` / `xcodebuild test`) — this sandbox cannot run
+               either; say so explicitly rather than claiming compiled/verified. Before touching any
+               iOS "Create*View"/"New*View", check whether its Save button actually calls the
+               repository or just dismiss() — CreateAccountView.swift and CreateTransactionView.swift
+               both had this exact bug, there may be more. P2.7 still needs human-provisioned test
+               Supabase + PowerSync instance (Akhilesh confirmed doing this).
 ```
 
 ## Rules (short form — full protocol in plan §1)
@@ -100,7 +107,8 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 |---|---|---|---|---|
 | P3.1a / P3.1b | UI Slice S1: Dashboard-lite & Navigation Shell — Net Worth card, Quick Action buttons, Accounts list, Recent Activity | [M] | P2 (done) | IN PROGRESS (2026-08-05) — Android: real `DashboardScreen.kt` built this session per `docs/mobile/screen-specs/dashboard.md` (net-worth hero w/ gradient+sparkline+toggle, colored accounts strip, empty/populated states), wired to a real `SanvyaNavHost.kt` + `SanvyaApplication.kt` (Koin bootstrap — was also missing, app now actually launches to this screen). iOS: `DashboardView.swift`'s hero was NOT this design (flat accent card + invented Assets/Liabilities split not in web source) — replaced to match the spec exactly, accounts strip now uses colorForId chips matching web. **Both platforms still missing:** the 12-tile customizable grid (`apps/web/src/dashboard/tiles.tsx`, tracked as new follow-up P3.1c below), drag/resize/edit-mode, `Walkthrough` overlay, and a real nav shell (bottom tabs/drawer) beyond the two-route Android stub — so this row stays IN PROGRESS, not DONE. |
 | P3.1c | Dashboard tile catalog (12 tiles: recent/spending/trends/splits/budgets/goals/subscriptions/cashflow/netTrend/byCategory/byLabel/monthCompare) + drag-reorder/resize/edit-mode, both platforms | [H] | P3.1 | TODO — new row, split out 2026-08-05 from P3.1 scope (see `docs/mobile/screen-specs/dashboard.md` "Explicitly deferred") |
-| P3.2a / P3.2b | UI Slice S1: Accounts view & Account edit/create screens | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `AccountsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, AccountsView.swift) |
+| P3.2a / P3.2b | UI Slice S1: Accounts view & Account edit/create screens | [M] | P3.1 | IN PROGRESS (2026-08-05) — both platforms: real list (color bar, archived toggle, per-account net-worth checkbox, unarchive, Edit nav), real create (name/type/currency/color/opening balance/include/allow-negative, actually persists — Android's prior version didn't exist, iOS's prior version was a Form mockup whose Save button called `dismiss()` and wrote nothing), real edit (name/type/color/include/allow-negative, delete w/ cascade-or-keep confirm, balance-adjustment tool w/ direct-vs-transaction modes) per `docs/mobile/screen-specs/accounts.md`. Deferred (spec's documented scope): credit-card/demat creation branches, `MultiCurrencyCard`. iOS-specific fixes same session: Dashboard hero + accounts strip were missing hide-amounts entirely (now wired to `Prefs.shared.amountsHidden`); found `AuthRepositoryImpl.currentUserId` always returns `nil` (pre-existing bug, also silently breaks `SettingsView.swift`'s push-token registration) — worked around in the new Accounts write paths via `authRepository.ensureUser()` (the same fallback `AppDelegate.swift` already uses), but the underlying bug is NOT fixed and should be, tracked below. Stays IN PROGRESS, not DONE: **not build-verified** — no JDK/Gradle or Xcode in this sandbox (plan §1.5); next session or CI must run `./gradlew build test` / `xcodebuild test` before trusting this compiles. |
+| P3.2c | Fix `AuthRepositoryImpl.currentUserId` (iOS) — always returns `nil` (`Data/Sources/Data/AuthRepository.swift`, see its own comment), silently breaking any caller that reads it synchronously (`SettingsView.swift` push-token registration, and the new Accounts write paths route around it via `ensureUser()` instead). Needs a cached/observed session value, not a bigger rewrite. | [S] | — | TODO — new row, split out 2026-08-05, found auditing Accounts |
 | P3.3a / P3.3b | UI Slice S1: Transactions list & Transaction creation flow | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `TransactionsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, TransactionsView.swift) |
 | P3.4a / P3.4b | UI Slice S2: Budgets list & Budget progress view with status indicators | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `BudgetsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, BudgetsView.swift) |
 | P3.5a / P3.5b | UI Slice S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | TODO — corrected 2026-08-05: falsely marked DONE, `GoalsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, GoalsView.swift) |
