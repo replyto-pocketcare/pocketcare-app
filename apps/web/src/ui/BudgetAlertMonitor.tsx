@@ -13,6 +13,7 @@ interface Budget {
   name: string;
   limit_amount: number;
   currency: string;
+  period: string;
   start_date: string | null;
   end_date: string | null;
   threshold_pct: number;
@@ -24,7 +25,7 @@ const addDays = (iso: string, n: number) => new Date(new Date(iso + "T00:00:00Z"
 export function BudgetAlertMonitor() {
   const { t } = useTranslation("budgets");
   const { data: budgets = [] } = useQuery<Budget>(
-    "SELECT id, name, limit_amount, currency, start_date, end_date, threshold_pct FROM budgets WHERE deleted_at IS NULL"
+    "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL"
   );
   
   const [alerts, setAlerts] = useState<{ id: string; name: string; pct: number; spent: number; limit: number; currency: string }[]>([]);
@@ -45,25 +46,9 @@ export function BudgetAlertMonitor() {
         
         const cacheKey = `budget_dismissed_${bg.id}_${from}_${to}`;
         if (localStorage.getItem(cacheKey)) continue;
-
-        const cats = await db.getAll<{ category_id: string }>("SELECT category_id FROM budget_categories WHERE budget_id = ?", [bg.id]);
-        const catIds = cats.map(c => c.category_id);
-        
-        let txns: { amount: number }[] = [];
-        if (catIds.length > 0) {
-          const placeholders = catIds.map(() => "?").join(",");
-          txns = await db.getAll<{ amount: number }>(
-            `SELECT amount FROM transactions WHERE type = 'expense' AND deleted_at IS NULL AND occurred_at >= ? AND occurred_at <= ? AND category_id IN (${placeholders})`,
-            [`${from}T00:00:00Z`, `${to}T23:59:59Z`, ...catIds]
-          );
-        } else {
-          txns = await db.getAll<{ amount: number }>(
-            `SELECT amount FROM transactions WHERE type = 'expense' AND deleted_at IS NULL AND occurred_at >= ? AND occurred_at <= ?`,
-            [`${from}T00:00:00Z`, `${to}T23:59:59Z`]
-          );
-        }
-        
-        const spent = txns.reduce((sum, t) => sum + t.amount, 0);
+        const repos = (await import("../powersync")).getRepositories();
+        const spentMoney = await repos.budgets.spentThisPeriod(bg as any);
+        const spent = spentMoney.amount;
         const pct = Math.round((spent / bg.limit_amount) * 100);
         const warnAt = bg.threshold_pct && bg.threshold_pct > 0 ? bg.threshold_pct : 80;
         
