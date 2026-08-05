@@ -3,6 +3,7 @@ package com.sanvya.app.data.repository
 import com.powersync.PowerSyncDatabase
 import com.powersync.db.SqlCursor
 import com.powersync.db.getLongOptional
+import com.powersync.db.getString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
