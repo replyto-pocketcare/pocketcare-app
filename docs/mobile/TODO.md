@@ -12,6 +12,13 @@ Last session: 2026-08-06 — Loans (P3.8, task #27/#41/#42), both platforms, ful
                one-shot list()/reload() instead of a live db.watch() query -- fixed by adding
                watchGoals()/watchAllocations()/watchBudgets() to both repositories and rewiring both
                ViewModels. See #19 below and AUDIT_HISTORY.md's 2026-08-06 entries for both arcs.
+               Then a real Xcode error: iOS's new Domain/Sources/Domain/LoansModel.swift duplicated an
+               already-existing, golden-vector-tested Finance.swift port -- deleted the duplicate file
+               (moved its one new symbol, isoToday(), into Finance.swift), fixed 2 call sites needing
+               Finance.swift's stricter `manual:` label. Proactively found + fixed the identical
+               (silent, non-erroring) duplication on Android too: deleted domain/loans/LoansModel.kt,
+               repointed 4 files' imports to domain.finance.*. See #20 below. Both Loan domain-math
+               ports are now single-sourced from Finance.kt/.swift on both platforms.
                Investments (P3.10/P3.15, task #26) landed session #18 -- see that entry for its arc.
 Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3),
                Budgets (P3.4), Goals (P3.5a/b), Investments (P3.10a/P3.15a), Loans (P3.8a) real and
@@ -27,6 +34,27 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                stub) but had non-optional access on now-nullable fields (crash risk) and a non-
                functional mark-paid alert -- fully rewritten this session, not just audited.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #20: Real Xcode error pasted back: `LoansModel.swift` — "Invalid redeclaration of
+               'emiFromPrincipal'" (and AmortRow/Ymd/daysInMonth/emiDueDate/isDuePassed, plus
+               "is ambiguous for type lookup" x2 and one "Incorrect argument labels" cascading from the
+               same cause). Root cause: #19's new LoansModel.swift independently re-ported
+               packages/core/finance/src/index.ts, not knowing Domain/Sources/Domain/Finance.swift
+               already had a complete, golden-vector-tested port of the same functions (tagged P1.3b,
+               from Phase 1 -- long before Loans existed). Fixed: deleted LoansModel.swift entirely;
+               moved its one genuinely-new symbol, isoToday(), into Finance.swift; relabeled 2 call
+               sites (LoansViewModel.swift's paidCount(), LoanDetailViewModel.swift's buildUiModel())
+               from positional `effectivePaidEmis(manual, ...)` to Finance.swift's required
+               `effectivePaidEmis(manual: manual, ...)`. Checked Android for the same mistake before
+               closing this out: domain/loans/LoansModel.kt was an identical duplicate of the
+               pre-existing domain/finance/Finance.kt -- Kotlin's per-package namespacing meant this
+               hadn't caused a compile error (silent dead code / future-divergence risk instead).
+               Deleted it, repointed AddLoanScreen.kt/EditLoanScreen.kt/LoansViewModel.kt/
+               LoanDetailViewModel.kt's imports to com.sanvya.app.domain.finance.*; all call sites were
+               already positional so no Kotlin label fixes were needed. Lesson for future domain-math
+               work: grep Domain/domain for the target function names before writing a new port --
+               packages/core/finance was already ported wholesale in Phase 1 (P1.3a/P1.3b). Not yet
+               re-verified by a real Xcode/Gradle build beyond this specific error. Next: Insights
+               (task #28), pending Akhilesh's go-ahead or next real error.
 2026-08-06 #19: "continue with the next pages" (task #27, Loans), interrupted mid-Android-build by a
                real Xcode compiler error (AddHoldingView.swift missing from project.pbxproj — fixed,
                see #18's own registration precedent) and then by Akhilesh reporting a real runtime bug:

@@ -7,10 +7,10 @@ import com.sanvya.app.data.repository.EditLoanInput
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.Loan
 import com.sanvya.app.data.repository.LoansRepository
-import com.sanvya.app.domain.loans.amortizationSchedule
-import com.sanvya.app.domain.loans.effectivePaidEmis
-import com.sanvya.app.domain.loans.emiDueDate
-import com.sanvya.app.domain.loans.emiFromPrincipal
+import com.sanvya.app.domain.finance.amortizationSchedule
+import com.sanvya.app.domain.finance.effectivePaidEmis
+import com.sanvya.app.domain.finance.emiDueDate
+import com.sanvya.app.domain.finance.emiFromPrincipal
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.money.money
 import com.sanvya.app.ui.budgets.utcToLocalTime

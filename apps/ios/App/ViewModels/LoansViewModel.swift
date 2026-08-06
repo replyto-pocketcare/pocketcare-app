@@ -165,7 +165,7 @@ func paidCount(_ l: Loan, _ todayIso: String) -> Int {
     let tenure = l.tenureMonths ?? 0
     var manual = parseManualPaid(l.emiPayments)
     if manual.isEmpty, let n = l.emisPaid, n > 0 { manual = Array(1...n) }
-    return effectivePaidEmis(manual, totalEmis: tenure, autoMark: l.autoMarkPaid, startIso: l.startDate, dueDay: l.emiDueDay, asOfIso: todayIso).count
+    return effectivePaidEmis(manual: manual, totalEmis: tenure, autoMark: l.autoMarkPaid, startIso: l.startDate, dueDay: l.emiDueDay, asOfIso: todayIso).count
 }
 
 /// Parses the `emi_payments` JSON map `{ "1": "2026-01-05", "2": "" }` into

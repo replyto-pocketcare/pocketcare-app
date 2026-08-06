@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sanvya.app.domain.loans.emiFromPrincipal
+import com.sanvya.app.domain.finance.emiFromPrincipal
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.budgets.DatePickerDialogSimple

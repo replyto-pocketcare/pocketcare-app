@@ -366,3 +366,15 @@ public func effectivePaidEmis(
     }
     return out
 }
+
+/// Today's date as YYYY-MM-DD (UTC), matching the TS default's
+/// `new Date().toISOString().slice(0, 10)`. Added 2026-08-06 for Loans
+/// (task #27/#42) -- a fresh `DateFormatter` per call, not cached, matching
+/// this codebase's established non-Sendable-Foundation-formatter rule (see
+/// AUDIT_HISTORY.md's TransactionsViewModel.swift/DashboardView.swift entry).
+public func isoToday() -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.timeZone = TimeZone(identifier: "UTC")
+    return formatter.string(from: Date())
+}

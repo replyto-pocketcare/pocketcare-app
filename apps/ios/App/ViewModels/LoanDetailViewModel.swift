@@ -152,7 +152,7 @@ public final class LoanDetailViewModel {
         let variableMonths = isVariable ? Array(1...max(totalEmis, knownMax, 1)) : []
 
         let today = isoToday()
-        let effective = effectivePaidEmis(manual, totalEmis: totalEmis, autoMark: autoMark, startIso: l.startDate, dueDay: dueDay, asOfIso: today)
+        let effective = effectivePaidEmis(manual: manual, totalEmis: totalEmis, autoMark: autoMark, startIso: l.startDate, dueDay: dueDay, asOfIso: today)
         let manualSet = Set(manual)
         let monthsList = isVariable ? variableMonths : schedule.map { $0.month }
         let nextUnpaid = monthsList.first { !effective.contains($0) }

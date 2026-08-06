@@ -7,7 +7,7 @@ import com.sanvya.app.data.repository.Loan
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.LoansRepository
 import com.sanvya.app.data.repository.NewLoanInput
-import com.sanvya.app.domain.loans.effectivePaidEmis
+import com.sanvya.app.domain.finance.effectivePaidEmis
 import com.sanvya.app.domain.money.convert
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.money.money
