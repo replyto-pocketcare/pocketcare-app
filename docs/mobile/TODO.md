@@ -33,6 +33,15 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #10: "'fractionalIsoFormatter' is not concurrency-safe... non-'Sendable' type
+               'ISO8601DateFormatter'" in TransactionsViewModel.swift -- module-level cached
+               formatter hit Swift 6 strict concurrency (target builds SWIFT_VERSION=6). Same root
+               cause already fixed once in Domain/SplitsInsights.swift's parseIsoMillis (see its doc
+               comment for full reasoning) -- applied the same fix: allocate fresh per call instead
+               of caching globally. Also proactively fixed DashboardView.swift's heroNumberFormatter
+               (same cached-global-Formatter shape, not yet reported but near-certain to hit next).
+               Watch for: any other module-level `private let ...Formatter` in apps/ios will hit this
+               same wall -- grep -rn "^private let.*Formatter" apps/ios if more surface.
 2026-08-06 #9: Akhilesh: "Cannot find 'accountColorHex' in scope ios error." NEW bug class (not a
                language/API mistake like every prior fix) -- Sanvya.xcodeproj/project.pbxproj uses
                Xcode's classic explicit file-registration format, and 7 Swift files written via direct
