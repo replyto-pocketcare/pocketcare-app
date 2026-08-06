@@ -745,7 +745,7 @@ public final class LedgerRepository: @unchecked Sendable {
             id: id, accountId: accountId, type: type, amount: amount.amount, currency: amount.currency,
             categoryId: categoryId, note: note, description: description, paymentMethod: paymentMethod,
             occurredAt: occurredAt, transferGroupId: transferGroup, toAccountId: toAccountId,
-            toAmount: toAmount?.amount, fxRate: fxRate
+            toAmount: toAmount?.amount, fxRate: fxRate, intent: nil
         )
     }
 
