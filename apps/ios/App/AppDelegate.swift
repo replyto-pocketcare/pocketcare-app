@@ -31,13 +31,17 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         
         Task {
-            if let userId = authRepo.currentUserId ?? await authRepo.ensureUser() as String? {
-                do {
-                    try await pushRepo.registerToken(token: tokenString, platform: "ios", userId: userId)
-                    print("Successfully registered push token with Supabase")
-                } catch {
-                    print("Failed to register push token: \(error)")
+            do {
+                let userId: String
+                if let existing = authRepo.currentUserId {
+                    userId = existing
+                } else {
+                    userId = try await authRepo.ensureUser()
                 }
+                try await pushRepo.registerToken(token: tokenString, platform: "ios", userId: userId)
+                print("Successfully registered push token with Supabase")
+            } catch {
+                print("Failed to register push token: \(error)")
             }
         }
     }
