@@ -27,6 +27,17 @@ import Foundation
 public struct Money: Equatable, Sendable {
     public let amount: Int64
     public let currency: String
+
+    // Explicit public init required: a struct's compiler-synthesized
+    // memberwise initializer is only ever `internal`, even when the type
+    // and all its stored properties are `public` -- without this, callers
+    // outside the Domain module (e.g. App target's DashboardViewModel.swift)
+    // get "'Money' initializer is inaccessible due to 'internal' protection
+    // level" despite Money itself being public.
+    public init(amount: Int64, currency: String) {
+        self.amount = amount
+        self.currency = currency
+    }
 }
 
 public struct CurrencyMismatchError: Error, CustomStringConvertible, Sendable {
