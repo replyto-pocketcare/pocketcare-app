@@ -5,34 +5,55 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-05 — Dashboard + Accounts + Transactions, both platforms (3 commits, see git
-               log). Dashboard/Accounts: see AUDIT_HISTORY.md's two prior entries this date.
-               Transactions (this commit): wrote docs/mobile/screen-specs/transactions.md from the 3
-               web source files + TransactionTile.tsx. Android: TransactionsViewModel.kt existed but
-               had no screen and a hardcoded "General" category — built real
-               TransactionsViewModel/Screen (list w/ search+type filter+avatar/tags),
-               CreateTransactionViewModel/Screen, EditTransactionViewModel/Screen (delete confirm,
-               intent chip), wired into SanvyaNavHost + a new Dashboard toolbar icon (no other entry
-               point existed). iOS: TransactionsView.swift had no edit navigation; CreateTransactionView
-               .swift had the exact same fake-Save-button bug as CreateAccountView.swift did
-               (dismiss(), never called the repository) — rewrote both, built EditTransactionView.swift
-               from scratch (didn't exist). Added watchCategories/watchLabels/watchPaymentMethods/
-               watchTransactionLabelNames + `intent` column support to both LedgerRepositorys. Found +
-               fixed a real bug while removing iOS's old TransactionUiModel: DashboardViewModel.swift
-               depended on that exact type name and would have failed to build — gave Dashboard its
-               own local DashboardTxnRow instead of silently coupling two unrelated screens' models.
-               Deferred (own new TODO rows P3.3c/d/e): edit-history audit modal, templates/Quick-Apply,
-               AI auto-categorization. Also deferred: split-expense creation (belongs to Splits,
-               P3.6/P3.10).
-Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3) real
-               and wired into SanvyaNavHost. Everything else in Phase 3 still TODO (no screens). NOT
-               verified against a real Gradle build in this sandbox (no JDK/Gradle here per plan
-               §1.5) — next session or CI must run `./gradlew build test` before trusting this compiles.
-iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions now match the
-               real web specs. Every other Create*/New* form is still suspect — CreateAccountView.swift
-               and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
-               bug independently; assume any not-yet-audited one has it too until checked.
+Last session: 2026-08-06 — Budgets (P3.4), both platforms, fully wired + committed. See #16 below and
+               AUDIT_HISTORY.md's 2026-08-06 entry for the full arc (schema fix, repository CRUD, iOS
+               screens, Android screens). Also this session: 3 more real Xcode compiler errors fixed
+               (#12/#13, concurrency-safety), iOS Dashboard audited+fixed against web/Android
+               (empty-state, widgets card, hide/show — #14), a user correction removing invented
+               "Recent Activity" cruft from iOS Dashboard (#15). Next up: Goals (task #25) — same
+               8-screen treatment (spec already exists if written, else write it first, then
+               repository CRUD both platforms, Android screen, iOS audit, nav wiring, docs, commit).
+Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3),
+               Budgets (P3.4) real and wired into SanvyaNavHost. Everything else in Phase 3 still
+               TODO (no screens). NOT verified against a real Gradle build in this sandbox (no
+               JDK/Gradle here per plan §1.5) — next session or CI must run `./gradlew build test`
+               before trusting this compiles.
+iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions, Budgets now
+               match the real web specs. Every other Create*/New* form is still suspect —
+               CreateAccountView.swift and CreateTransactionView.swift BOTH had the "Save calls
+               dismiss(), persists nothing" bug independently; assume any not-yet-audited one has it
+               too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #16: "continue with the pages" (task #24, Budgets). Built BudgetRepository create/update/
+               delete + categoryIds/labelNames/writeScope (delete-then-reinsert junctions, matches
+               web's writeBudgetScope()) on both platforms. Found + fixed a systemic schema gap while
+               starting: `alert_time_utc` (real Postgres column, migration 0059) was missing from
+               BOTH native local schemas across budgets/goals/loans/recurring_rules (4 tables x 2
+               platforms) — exactly the CLAUDE.md "adding a column to a synced table" trap, would
+               have crashed with "table X has no column named alert_time_utc" the moment any code
+               touched it. Fixed all 8 before building on top. iOS: rewrote BudgetsViewModel.swift
+               (create/update/delete, periodWindow/periodLabel ported from web's page-local
+               function, budgetProgress() reused not recomputed), CreateBudgetView.swift (full field
+               set incl. category multi-select via new BudgetCategoryMultiSelect + FlowLayout reuse),
+               new EditBudgetView.swift (name/limit/threshold/alert-time/categories/labels editable,
+               period chips hidden for custom-dated per web's `!start_date` guard, delete
+               w/confirmationDialog), BudgetsView.swift now tappable → edit sheet. Registered
+               EditBudgetView.swift in project.pbxproj (4 sections, verified via the established
+               collision-check script). Self-caught the same `?? await` autoclosure bug that caused
+               #13's real AppDelegate.swift error, this time while writing new code, before it
+               shipped. Android: BudgetsViewModel.kt rewritten to the KoinComponent/by-inject()
+               convention (initially wrote constructor injection, self-corrected against
+               DashboardViewModel.kt's actual pattern before any screen consumed it), removed the
+               dead placeholder BudgetUiModel from UiModels.kt. Built BudgetsScreen.kt (list, empty
+               state, progress-bar card), CreateBudgetScreen.kt, EditBudgetScreen.kt (Material3
+               TimePicker/DatePicker dialogs, FlowRow category chips, reuses
+               transactions.LabelPickerRow cross-package via Kotlin's internal visibility). Wired
+               "budgets"/"budgets/new"/"budgets/{budgetId}/edit" into SanvyaNavHost.kt; NavDrawer.kt's
+               Budgets item now routes to "budgets" instead of comingSoonRoute. Corrected
+               BudgetsScreen.kt's own first draft mid-build: it initially used a hamburger/onOpenDrawer
+               header like Dashboard's, caught against AccountsScreen.kt's actual convention
+               (non-root drawer destinations get a back-arrow, not a hamburger) before wiring. NOT yet
+               re-verified by a real Gradle/Xcode build. Next: Goals (task #25), same treatment.
 2026-08-06 #15: Akhilesh, correcting #14's own writeup: "Remove recent activity section, we already
                have recent transactions section that would must have come when we copied all the
                widgets and the layout from web." Right -- re-checked, "recent" is one of the 12
@@ -304,7 +325,7 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 | P3.3c | Transactions edit-history audit modal (reads `transaction_audit`, already written correctly by `updateTransaction` on both platforms — pure UI follow-up, no data-layer gap) | [S] | P3.3 | TODO — new row, split out 2026-08-05 from P3.3 scope (see `docs/mobile/screen-specs/transactions.md` "Deferred") |
 | P3.3d | Templates / "Quick Apply" for transaction creation (start-from-template dropdown, save-as-template, free-tier limit) | [M] | P3.3 | TODO — new row, split out 2026-08-05 (see `docs/mobile/screen-specs/transactions.md` "Deferred") — no mobile data layer for `templates` exists yet either |
 | P3.3e | AI auto-categorization on transaction create/edit (`useAutoCategorize`/`useLearnCategory`, entitlement-gated edge-function call) | [M] | P3.3, P5.1 (entitlements) | TODO — new row, split out 2026-08-05 (see `docs/mobile/screen-specs/transactions.md` "Deferred") |
-| P3.4a / P3.4b | UI Slice S2: Budgets list & Budget progress view with status indicators | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `BudgetsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-07-31, BudgetsView.swift) |
+| P3.4a / P3.4b | UI Slice S2: Budgets list & Budget progress view with status indicators | [M] | P3.1 | DONE (2026-08-06, both platforms — see AUDIT_HISTORY.md) — NOT yet re-verified by a real Gradle/Xcode build |
 | P3.5a / P3.5b | UI Slice S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | TODO — corrected 2026-08-05: falsely marked DONE, `GoalsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, GoalsView.swift) |
 | P3.6a / P3.6b | UI Slice S3: Splits view (Groups, Trips, 1:1 friends, split balance netting) | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `SplitsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, SplitsView.swift) |
 | P3.7a / P3.7b | UI Slice S3: UPI Payment flow & manual copy fallback (PayViaUpi) | [M] | P3.6 | TODO — corrected 2026-08-05: falsely marked DONE, `PayViaUpiDialog.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, PayViaUpiSheet.swift) |

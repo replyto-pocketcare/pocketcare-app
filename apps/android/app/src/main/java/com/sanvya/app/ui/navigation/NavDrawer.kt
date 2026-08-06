@@ -94,7 +94,7 @@ val drawerNavGroups: List<DrawerNavGroup> = listOf(
         DrawerNavItem("Search", Icons.Default.Search, comingSoonRoute("Search")),
     )),
     DrawerNavGroup("Planning", listOf(
-        DrawerNavItem("Budgets", Icons.Default.DonutSmall, comingSoonRoute("Budgets")),
+        DrawerNavItem("Budgets", Icons.Default.DonutSmall, "budgets"),
         DrawerNavItem("Goals", Icons.Default.Flag, comingSoonRoute("Goals")),
         DrawerNavItem("Planned Cashflow", Icons.Default.WaterfallChart, comingSoonRoute("Planned Cashflow")),
         DrawerNavItem("Recurring", Icons.Default.Autorenew, comingSoonRoute("Recurring")),

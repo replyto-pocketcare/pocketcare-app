@@ -17,6 +17,9 @@ import com.sanvya.app.ui.SettingsScreen
 import com.sanvya.app.ui.accounts.AccountsScreen
 import com.sanvya.app.ui.accounts.CreateAccountScreen
 import com.sanvya.app.ui.accounts.EditAccountScreen
+import com.sanvya.app.ui.budgets.BudgetsScreen
+import com.sanvya.app.ui.budgets.CreateBudgetScreen
+import com.sanvya.app.ui.budgets.EditBudgetScreen
 import com.sanvya.app.ui.dashboard.DashboardScreen
 import com.sanvya.app.ui.transactions.CreateTransactionScreen
 import com.sanvya.app.ui.transactions.EditTransactionScreen
@@ -47,8 +50,9 @@ import kotlinx.coroutines.launch
  *
  * Routes to screens that are actually real: "dashboard", "settings",
  * "accounts", "accounts/new", "accounts/{accountId}/edit", "transactions",
- * "transactions/new", "transactions/{transactionId}/edit". Every drawer
- * item without a real screen yet routes to "coming_soon/{title}" (a
+ * "transactions/new", "transactions/{transactionId}/edit", "budgets",
+ * "budgets/new", "budgets/{budgetId}/edit". Every drawer item without a
+ * real screen yet routes to "coming_soon/{title}" (a
  * shared placeholder, matching iOS's own `PlaceholderView` for its
  * not-yet-built tabs) rather than a dead link or a silently-omitted menu
  * entry -- each one gets swapped for a real destination as its own screen
@@ -166,6 +170,31 @@ fun SanvyaNavHost() {
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
                 onDeleted = { navController.popBackStack("transactions", inclusive = true) },
+            )
+        }
+        composable("budgets") {
+            BudgetsScreen(
+                onBack = { navController.popBackStack() },
+                onAddBudget = { navController.navigate("budgets/new") },
+                onEditBudget = { id -> navController.navigate("budgets/$id/edit") },
+            )
+        }
+        composable("budgets/new") {
+            CreateBudgetScreen(
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
+            )
+        }
+        composable(
+            "budgets/{budgetId}/edit",
+            arguments = listOf(navArgument("budgetId") { type = NavType.StringType }),
+        ) { entry ->
+            val budgetId = entry.arguments?.getString("budgetId") ?: ""
+            EditBudgetScreen(
+                budgetId = budgetId,
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
+                onDeleted = { navController.popBackStack("budgets", inclusive = true) },
             )
         }
     }
