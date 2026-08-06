@@ -10,103 +10,135 @@ struct DashboardView: View {
     // here since it's the same hero/accounts-strip code this file already
     // owns). Mirrors Android's Prefs.amountsHidden the same way.
     @StateObject private var prefs = Prefs.shared
+    // Both the empty-state CTA and the header "+ Account" button open the
+    // same sheet -- matches AccountsView.swift's existing
+    // showingCreateSheet/CreateAccountView() pattern (no dedicated NavTab
+    // exists for "create account", so every other screen that offers this
+    // action does it the same way).
+    @State private var showingCreateAccountSheet = false
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Net-worth hero -- ported from apps/web/app/page.tsx's
-                    // NetWorthHero per docs/mobile/screen-specs/dashboard.md.
-                    // Replaces this file's previous flat Color.accent card
-                    // with an invented "Assets/Liabilities" split that never
-                    // existed in the web source (found + fixed 2026-08-05,
-                    // see AUDIT_HISTORY.md).
-                    NetWorthHeroView(
-                        state: viewModel.hero,
-                        hidden: prefs.amountsHidden,
-                        onToggle: { viewModel.toggleShowAvailable() }
-                    )
-
-                    // Quick Actions
-                    HStack(spacing: 16) {
-                        Spacer()
-                        QuickActionButtonView(icon: "plus", label: "Expense")
-                        Spacer()
-                        QuickActionButtonView(icon: "arrow.triangle.2.circlepath", label: "Transfer")
-                        Spacer()
-                        QuickActionButtonView(icon: "person.2", label: "Settle Up")
-                        Spacer()
-                    }
-
-                    // Accounts Section
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Text("Accounts")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundColor(Color.text)
-                            Spacer()
-                            Button(action: {}) {
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(Color.text2)
-                            }
-                        }
-
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                // Per docs/mobile/screen-specs/dashboard.md
-                                // "Accounts card": colored chip per account
-                                // (account.color or colorForId(id)), not a
-                                // flat PocketCard -- matches web exactly.
-                                ForEach(viewModel.accounts.prefix(8), id: \.account.id) { acctWithBal in
-                                    let balanceCents = acctWithBal.balance.amount
-                                    let balanceFormatted = prefs.amountsHidden ? "••••••" : formatCents(balanceCents)
-                                    VStack(alignment: .leading, spacing: 1) {
-                                        Text(acctWithBal.account.type.replacingOccurrences(of: "_", with: " "))
-                                            .font(.system(size: 10))
-                                            .foregroundColor(.white.opacity(0.85))
-                                            .lineLimit(1)
-                                        Text(acctWithBal.account.name)
-                                            .font(.system(size: 12, weight: .semibold))
-                                            .foregroundColor(.white)
-                                            .lineLimit(1)
-                                        Text(balanceFormatted)
-                                            .font(.system(size: 14.5, weight: .heavy))
-                                            .foregroundColor(.white)
-                                            .lineLimit(1)
-                                    }
-                                    .padding(.horizontal, 11)
-                                    .padding(.vertical, 9)
-                                    .frame(width: 112, alignment: .leading)
-                                    .background(accountColor(explicit: acctWithBal.account.color, id: acctWithBal.account.id))
-                                    .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusSm, style: .continuous))
-                                }
-                            }
-                        }
-                    }
-
-                    // Recent Activity Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Recent Activity")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color.text)
-
-                        ForEach(viewModel.recentTransactions) { txn in
-                            RowTile(
-                                title: txn.description,
-                                subtitle: txn.date,
-                                trailing: {
-                                    Text(txn.amount)
-                                        .font(.body)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(txn.isIncome ? Color.positive : Color.text)
-                                }
+            Group {
+                // Empty/onboarding state -- apps/web/app/page.tsx's
+                // `balances.length === 0` early return, matching Android's
+                // EmptyDashboard (DashboardScreen.kt). Was missing entirely
+                // on iOS (found 2026-08-06, Akhilesh: "if we don't have an
+                // account I am not getting the add your account first card
+                // like android") -- the populated layout below rendered
+                // unconditionally even with zero accounts, showing a ₹0.00
+                // hero with no sparkline (correctly per spec -- fewer than 2
+                // months of data -- but with nothing explaining why, since
+                // there was no accounts-yet messaging at all).
+                if viewModel.accounts.isEmpty {
+                    DashboardEmptyStateView(onAddAccount: { showingCreateAccountSheet = true })
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            // Net-worth hero -- ported from apps/web/app/page.tsx's
+                            // NetWorthHero per docs/mobile/screen-specs/dashboard.md.
+                            // Replaces this file's previous flat Color.accent card
+                            // with an invented "Assets/Liabilities" split that never
+                            // existed in the web source (found + fixed 2026-08-05,
+                            // see AUDIT_HISTORY.md).
+                            NetWorthHeroView(
+                                state: viewModel.hero,
+                                hidden: prefs.amountsHidden,
+                                onToggle: { viewModel.toggleShowAvailable() }
                             )
+
+                            // Accounts Section
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack {
+                                    Text("Accounts")
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(Color.text)
+                                    Spacer()
+                                    Button(action: {}) {
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(Color.text2)
+                                    }
+                                }
+
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 8) {
+                                        // Per docs/mobile/screen-specs/dashboard.md
+                                        // "Accounts card": colored chip per account
+                                        // (account.color or colorForId(id)), not a
+                                        // flat PocketCard -- matches web exactly.
+                                        ForEach(viewModel.accounts.prefix(8), id: \.account.id) { acctWithBal in
+                                            let balanceCents = acctWithBal.balance.amount
+                                            let balanceFormatted = prefs.amountsHidden ? "••••••" : formatCents(balanceCents)
+                                            VStack(alignment: .leading, spacing: 1) {
+                                                Text(acctWithBal.account.type.replacingOccurrences(of: "_", with: " "))
+                                                    .font(.system(size: 10))
+                                                    .foregroundColor(.white.opacity(0.85))
+                                                    .lineLimit(1)
+                                                Text(acctWithBal.account.name)
+                                                    .font(.system(size: 12, weight: .semibold))
+                                                    .foregroundColor(.white)
+                                                    .lineLimit(1)
+                                                Text(balanceFormatted)
+                                                    .font(.system(size: 14.5, weight: .heavy))
+                                                    .foregroundColor(.white)
+                                                    .lineLimit(1)
+                                            }
+                                            .padding(.horizontal, 11)
+                                            .padding(.vertical, 9)
+                                            .frame(width: 112, alignment: .leading)
+                                            .background(accountColor(explicit: acctWithBal.account.color, id: acctWithBal.account.id))
+                                            .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusSm, style: .continuous))
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Recent Activity Section -- NOTE: this is iOS-only
+                            // today. Real web's equivalent ("recent" tile) is
+                            // part of the explicitly-deferred 12-tile catalog
+                            // (docs/mobile/screen-specs/dashboard.md "Explicitly
+                            // deferred"); Android matches that deferral exactly
+                            // (just the "More widgets coming soon" card below,
+                            // no working recent-activity list). Left in place
+                            // rather than deleted -- it's real, working
+                            // functionality, and the fix for the 3-way
+                            // asymmetry is building Android's version to match,
+                            // not removing iOS's (tracked in TODO.md, not done
+                            // this pass).
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Recent Activity")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(Color.text)
+
+                                ForEach(viewModel.recentTransactions) { txn in
+                                    RowTile(
+                                        title: txn.description,
+                                        subtitle: txn.date,
+                                        trailing: {
+                                            Text(txn.amount)
+                                                .font(.body)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(txn.isIncome ? Color.positive : Color.text)
+                                        }
+                                    )
+                                }
+                            }
+
+                            // Tile catalog (recent/spending/trends/budgets/goals/
+                            // etc.) is explicitly deferred -- see
+                            // docs/mobile/screen-specs/dashboard.md "Explicitly
+                            // deferred". This card says so instead of silently
+                            // omitting the section or faking a grid -- matches
+                            // Android's DashboardScreen.kt card exactly (found
+                            // missing on iOS 2026-08-06, Akhilesh: "I don't see
+                            // an option to add widgets").
+                            WidgetsComingSoonCard()
                         }
+                        .padding(16)
                     }
                 }
-                .padding(16)
             }
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Sanvya")
@@ -121,7 +153,31 @@ struct DashboardView: View {
                             .imageScale(.large)
                     }
                 }
+                // Hide/Show -- apps/web/app/page.tsx's header chip row has
+                // Customize/Hide-Show/Account+; Android's toolbar
+                // (DashboardScreen.kt) only ported the hide/show eye-toggle
+                // of those three (plus Transactions/Settings icons, which
+                // duplicate paths the hamburger drawer already covers on
+                // both platforms). Matching Android's actual header exactly
+                // here rather than the fuller web spec, so the two mobile
+                // apps stay in lockstep -- "Customize" and a header
+                // "+Account" are both skipped for the same reason Android
+                // skipped them: account creation is already one tap away
+                // (empty-state CTA when there are none, Accounts screen's
+                // own "+" once there are some), and Customize has nothing
+                // to open until the tile catalog itself is built.
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        prefs.amountsHidden.toggle()
+                    } label: {
+                        Image(systemName: prefs.amountsHidden ? "eye" : "eye.slash")
+                            .foregroundColor(Color.text2)
+                    }
+                }
             }
+        }
+        .sheet(isPresented: $showingCreateAccountSheet) {
+            CreateAccountView()
         }
         .onAppear {
             viewModel.start()
@@ -130,7 +186,7 @@ struct DashboardView: View {
             viewModel.cancel()
         }
     }
-    
+
     private func formatCents(_ cents: Int64) -> String {
         let fmt = NumberFormatter()
         fmt.numberStyle = .currency
@@ -141,24 +197,68 @@ struct DashboardView: View {
     }
 }
 
-struct QuickActionButtonView: View {
-    let icon: String
-    let label: String
+/// Matches apps/web/app/page.tsx's `balances.length === 0` early return and
+/// Android's `EmptyDashboard` (DashboardScreen.kt) copy exactly -- see
+/// docs/mobile/screen-specs/dashboard.md "States" #2. Not gated on a
+/// separate loading flag (web distinguishes loading-skeleton vs. empty to
+/// avoid an initial-sync flash; Android's port already accepted that
+/// simplification -- see dashboard.md "Explicitly deferred" -- matching it
+/// here for cross-platform consistency rather than reintroducing a
+/// three-state gate on only one platform).
+struct DashboardEmptyStateView: View {
+    let onAddAccount: () -> Void
 
     var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(Color.accent)
-                .frame(width: 50, height: 50)
-                .background(Color.surface)
-                .clipShape(Circle())
-
-            Text(label)
-                .font(.caption)
-                .fontWeight(.medium)
+        VStack(spacing: 14) {
+            Text("Welcome to Sanvya")
+                .font(.system(size: 26, weight: .bold))
                 .foregroundColor(Color.text)
+                .multilineTextAlignment(.center)
+            Text("Start by adding your first account — just your own note of somewhere your money sits. Nothing here connects to your bank; you type the amounts in yourself.")
+                .font(.system(size: 14))
+                .foregroundColor(Color.text2)
+                .multilineTextAlignment(.center)
+            Button(action: onAddAccount) {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                    Text("Add your first account")
+                        .fontWeight(.semibold)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Color.accent)
+                .foregroundColor(Color.surface)
+                .clipShape(Capsule())
+            }
         }
+        .padding(36)
+        .frame(maxWidth: 460)
+        .background(Color.surface)
+        .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusLg, style: .continuous))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(24)
+        .background(Color.bg.ignoresSafeArea())
+    }
+}
+
+/// Stand-in for the deferred 12-tile customizable grid -- matches Android's
+/// DashboardScreen.kt "More widgets coming soon" card exactly (word for
+/// word), so the two platforms say the same thing rather than one being
+/// silent about it.
+struct WidgetsComingSoonCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("More widgets coming soon")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(Color.text)
+            Text("Spending, budgets, goals, and trend tiles are on the way.")
+                .font(.system(size: 13))
+                .foregroundColor(Color.text2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(Color.surface)
+        .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusLg, style: .continuous))
     }
 }
 
