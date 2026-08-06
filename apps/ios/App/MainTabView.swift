@@ -18,7 +18,7 @@ struct MainTabView: View {
                 case .accounts: AccountsView(isDrawerOpen: $isDrawerOpen)
                 case .transactions: TransactionsView(isDrawerOpen: $isDrawerOpen)
                 case .templates: TemplatesView(isDrawerOpen: $isDrawerOpen)
-                case .cards: CreditCardsView(isDrawerOpen: $isDrawerOpen)
+                case .cards: CreditCardsView(isDrawerOpen: $isDrawerOpen, currentTab: $currentTab)
                 case .splits: SplitsView(isDrawerOpen: $isDrawerOpen)
                 case .search: SearchView(isDrawerOpen: $isDrawerOpen)
                 

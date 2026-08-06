@@ -27,8 +27,11 @@ import com.powersync.db.getDoubleOptional
 import com.powersync.db.getLongOptional
 import com.powersync.db.getString
 import com.powersync.db.getStringOptional
+import com.sanvya.app.domain.finance.effectivePaidEmis
+import com.sanvya.app.domain.finance.emiDueDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.json.JSONObject
 
 data class Loan(
     val id: String,
@@ -158,4 +161,124 @@ class LoansRepository(private val db: PowerSyncDatabase) {
      * the real `funding_account_id` column, which is present on both
      * native schemas from day one. */
     suspend fun setFundingAccountId(id: String, accountId: String?) = updateRow(db, "loans", id, mapOf("funding_account_id" to accountId))
+
+    /** Loans whose EMI is charged to this card -- one-shot, matches web's
+     * settleEmis.ts (app-local orchestration, only read at the moment a
+     * settlement happens, not a live subscription). */
+    suspend fun loansByFundingAccount(accountId: String): List<Loan> = db.getAll(
+        sql = "SELECT * FROM loans WHERE deleted_at IS NULL AND funding_account_id = ?",
+        parameters = listOf(accountId),
+        mapper = ::loanMapper,
+    )
+
+    /**
+     * EMIs charged to [cardAccountId] that are due, unpaid, and fit inside
+     * [amountMinor] -- oldest first. Ports web's `settleEmis.ts`'s
+     * `findCoveredEmis` exactly: FIFO, bounded by the amount; an EMI too
+     * big for the remaining headroom STOPS the walk rather than being
+     * skipped (clearing a later, smaller EMI while an older one stays open
+     * would misrepresent the order things were paid).
+     */
+    suspend fun findCoveredEmis(cardAccountId: String, amountMinor: Long): List<CoveredEmi> {
+        if (amountMinor <= 0) return emptyList()
+        val loans = loansByFundingAccount(cardAccountId)
+        val nowIsoStr = nowIso()
+
+        val candidates = mutableListOf<CoveredEmi>()
+        for (loan in loans) {
+            val total = loan.tenureMonths ?: 0
+            if (total <= 0) continue
+            val manual = parsePaidOnMap(loan.emiPayments).keys
+            // Due-ness ignores auto_mark_paid -- we want what's OWED; only
+            // explicitly-marked EMIs count as already settled.
+            val due = effectivePaidEmis(
+                manual = emptyList(), totalEmis = total, autoMark = true,
+                startIso = loan.startDate, dueDay = loan.emiDueDay, asOfIso = nowIsoStr,
+            )
+            val amounts = parseAmountsMap(loan.emiAmounts)
+            for (n in due) {
+                if (manual.contains(n)) continue
+                val amount = amounts[n] ?: loan.emiAmount ?: 0L
+                if (amount <= 0) continue
+                // No start date -> no schedule, so nothing is due; emiDueDate
+                // returns null there rather than guessing a date.
+                val dueDate = emiDueDate(loan.startDate, loan.emiDueDay, n) ?: continue
+                candidates.add(CoveredEmi(loan.id, loan.lender, n, amount, dueDate))
+            }
+        }
+
+        candidates.sortWith(compareBy({ it.dueDate }, { it.emiNo }))
+
+        val covered = mutableListOf<CoveredEmi>()
+        var left = amountMinor
+        for (c in candidates) {
+            if (c.amount > left) break
+            covered.add(c)
+            left -= c.amount
+        }
+        return covered
+    }
+
+    /** Mark the confirmed EMIs paid, dated at the settlement. Re-reads each
+     * loan's `emi_payments` before merging -- another device may have
+     * marked one of these in between, and it's a whole-column JSON blob,
+     * so writing a stale copy would silently drop their change. */
+    suspend fun markEmisPaid(covered: List<CoveredEmi>, paidOnIso: String) {
+        if (covered.isEmpty()) return
+        val byLoan = covered.groupBy { it.loanId }
+        val day = paidOnIso.take(10)
+        for ((loanId, list) in byLoan) {
+            val row = db.getOptional(
+                sql = "SELECT emi_payments FROM loans WHERE id = ? AND deleted_at IS NULL",
+                parameters = listOf(loanId),
+                mapper = { cursor -> EmiPaymentsRow(cursor.getStringOptional("emi_payments")) },
+            ) ?: continue
+            val map = parsePaidOnMap(row.emiPayments).toMutableMap()
+            for (c in list) map[c.emiNo] = day
+            val json = JSONObject().apply { map.forEach { (k, v) -> put(k.toString(), v) } }.toString()
+            setManualPaid(loanId, json, map.size)
+        }
+    }
+}
+
+data class CoveredEmi(
+    val loanId: String,
+    val lender: String?,
+    val emiNo: Int,
+    val amount: Long,
+    val dueDate: String,
+)
+
+private data class EmiPaymentsRow(val emiPayments: String?)
+
+private fun parsePaidOnMap(json: String?): Map<Int, String> {
+    if (json.isNullOrBlank()) return emptyMap()
+    return try {
+        val obj = JSONObject(json)
+        val out = mutableMapOf<Int, String>()
+        obj.keys().forEach { k ->
+            val v = obj.optString(k)
+            val n = k.toIntOrNull()
+            if (n != null && v.isNotBlank()) out[n] = v
+        }
+        out
+    } catch (e: Exception) {
+        emptyMap()
+    }
+}
+
+private fun parseAmountsMap(json: String?): Map<Int, Long> {
+    if (json.isNullOrBlank()) return emptyMap()
+    return try {
+        val obj = JSONObject(json)
+        val out = mutableMapOf<Int, Long>()
+        obj.keys().forEach { k ->
+            val v = obj.optLong(k, -1)
+            val n = k.toIntOrNull()
+            if (n != null && v >= 0) out[n] = v
+        }
+        out
+    } catch (e: Exception) {
+        emptyMap()
+    }
 }

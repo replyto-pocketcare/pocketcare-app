@@ -5,7 +5,17 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Real Xcode error on InsightsViewModel.swift pasted back: 5x "actor-isolated
+Last session: 2026-08-06 — Credit Cards (task #29), both platforms: real billing-cycle math (reused
+               Budget.kt/.swift's existing billingCycle(), not re-ported), editable statement/due-day/
+               limit/last4 details, settle-up + covered-EMI confirm (new: findCoveredEmis/markEmisPaid
+               ported from settleEmis.ts onto LoansRepository, reusing Finance.kt/.swift's
+               effectivePaidEmis/emiDueDate). Android built CreditCardsScreen.kt from scratch (was dead
+               code, no screen existed); iOS fully rewrote CreditCardsViewModel.swift/CreditCardsView.swift
+               (old "Pay Bill" button was a no-op). Flagged docs/features/cards.md as stale (describes a
+               3D wallet that no longer exists; real page.tsx is a plain CSS list) -- not fixed, out of
+               scope. Akhilesh also asked to queue Auth (#45) and Onboarding (#46) screens next, both
+               platforms -- added to the task list, not started yet. See AUDIT_HISTORY.md.
+Previous session: 2026-08-06 — Real Xcode error on InsightsViewModel.swift pasted back: 5x "actor-isolated
                instance method... in a synchronous main actor-isolated context" for goalsRepository/
                investmentsRepository calls -- both are Swift `actor` types (unlike the other
                repositories used here), so every method call needs `await`. Retyped the watch<T>()
@@ -51,20 +61,38 @@ Previous session: 2026-08-06 — Loans (P3.8, task #27/#41/#42), both platforms,
                Investments (P3.10/P3.15, task #26) landed session #18 -- see that entry for its arc.
 Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3),
                Budgets (P3.4), Goals (P3.5a/b), Investments (P3.10a/P3.15a), Loans (P3.8a),
-               Insights (P3.x, task #28) real and wired into SanvyaNavHost. Everything else in
-               Phase 3 still TODO (no screens). NOT verified against a real Gradle build in this
-               sandbox (no JDK/Gradle here per plan §1.5) — next session or CI must run
-               `./gradlew build test` before trusting this compiles.
+               Insights (P3.x, task #28), Credit Cards (P3.9a, task #29) real and wired into
+               SanvyaNavHost. Everything else in Phase 3 still TODO (no screens). NOT verified
+               against a real Gradle build in this sandbox (no JDK/Gradle here per plan §1.5) —
+               next session or CI must run `./gradlew build test` before trusting this compiles.
 iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions, Budgets, Goals,
-               Investments (P3.10b/P3.15b), Loans (P3.8b), Insights (task #28) now match the real web
-               specs. Every other Create*/New* form is still suspect -- CreateAccountView.swift,
-               CreateTransactionView.swift, and CreateGoalView.swift ALL had the "Save calls
-               dismiss(), persists nothing" bug independently; assume any not-yet-audited one has it
-               too until checked. Loans'
+               Investments (P3.10b/P3.15b), Loans (P3.8b), Insights (task #28), Credit Cards (P3.9b,
+               task #29) now match the real web specs. Every other Create*/New* form is still
+               suspect -- CreateAccountView.swift, CreateTransactionView.swift, and
+               CreateGoalView.swift ALL had the "Save calls dismiss(), persists nothing" bug
+               independently; assume any not-yet-audited one has it too until checked. Loans'
                old LoansViewModel.swift/LoansView.swift were real and WIRED (unlike Android's dead-code
                stub) but had non-optional access on now-nullable fields (crash risk) and a non-
                functional mark-paid alert -- fully rewritten this session, not just audited.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #23: "continue with next pages" (task #29, Credit Cards) -- resumed the 8-screen queue.
+               Wrote docs/mobile/screen-specs/credit-cards.md; flagged docs/features/cards.md as stale
+               (describes a since-removed three.js 3D wallet; real page.tsx is a plain CSS list) but
+               left it uncorrected, out of scope. Ported settleEmis.ts's findCoveredEmis/markEmisPaid
+               (never on mobile before) onto LoansRepository both platforms, reusing Finance.kt/.swift's
+               effectivePaidEmis/emiDueDate and Budget.kt/.swift's already-ported billingCycle().
+               Extended CreditCardRepository both platforms: pendingDue/dueOn on CreditCardDetails,
+               watchAllDetails(), cycleSpend() (one-shot, not live -- same simplification as Budgets'
+               per-item spend), setCycleDetails(). Android: CreditCardsViewModel.kt rewritten to
+               KoinComponent/by-inject(), CreditCardsScreen.kt built from scratch (was dead code, no
+               screen existed at all), wired into SanvyaNavHost/NavDrawer, ui/UiModels.kt deleted (its
+               last placeholder was superseded). iOS: CreditCardsViewModel.swift + CreditCardsView.swift
+               fully rewritten (old "Pay Bill" button was a no-op `Button(action: {})`), added a
+               currentTab binding (Insights precedent) for the empty state's "Add account" CTA,
+               MainTabView.swift updated. Neither platform build-verified yet. Mid-build, Akhilesh asked
+               to queue Auth (task #45) and Onboarding (task #46) next, both platforms -- added to the
+               task list, not started (one-screen-at-a-time discipline). Next: Splits (task #30) or
+               Auth/Onboarding (#45/#46), pending Akhilesh's go-ahead or next real error.
 2026-08-06 #21: Real Android Gradle error pasted back: `:app:compileDebugKotlin` FAILED, 4 distinct
                issues in the Loans files. `LoanDetailScreen.kt:251` "No parameter with name
                'horizontalAlignment' found" -- a `Row` was given `horizontalAlignment` (Column-only
@@ -593,7 +621,7 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 | P3.6a / P3.6b | S1 leftover: Onboarding/walkthrough (keep the "not connected to your bank" copy faithfully) + auth screens (guest → OTP → Google; in-place guest upgrade UI) | [H] | P2.4 verified (P2.8) | TODO — corrected 2026-08-05: falsely marked DONE, `WalkthroughScreen.kt`/`LoginScreen.kt` do not exist in the repo (verified by direct file search) / DONE (2026-08-01, WalkthroughView.swift, LoginView.swift) |
 | P3.7a / P3.7b | S1 leftover: Settings-lite (currency, language, theme, hide-amounts) + the shared money formatter + premium **gate map port** (deferred from P1.7) wired via entitlements | [M] | P3.1 | DONE (2026-08-01, SettingsScreen.kt) / DONE (2026-08-01, SettingsView.swift) |
 | P3.8a / P3.8b | S2: Loans & recurring (EMI schedule view, mark-paid dialog, auto-post surfacing, recurring groups) | [M] | P3.5 | DONE (2026-08-06, task #27/#41 — real EMI schedule/mark-paid/auto-mark/CRUD, LoansScreen.kt + LoanDetailScreen.kt + AddLoanScreen.kt + EditLoanScreen.kt, wired into SanvyaNavHost; auto-post/recurring-groups deferred, see docs/mobile/screen-specs/loans.md) / DONE (2026-08-06, task #27/#42 — full rewrite of LoansView.swift/LoansViewModel.swift, was wired but read-only/broken before this pass) |
-| P3.9a / P3.9b | S2: Credit cards (native card list, cycle/limit/due, settle-bill flow incl. covered-EMI confirm) | [M] | P3.3 | TODO — corrected 2026-08-05: falsely marked DONE, `CreditCardsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, CreditCardsView.swift) |
+| P3.9a / P3.9b | S2: Credit cards (native card list, cycle/limit/due, settle-bill flow incl. covered-EMI confirm) | [M] | P3.3 | DONE (2026-08-06, task #29 — real billing-cycle math, editable details, settle-up + covered-EMI confirm, see docs/mobile/screen-specs/credit-cards.md) / DONE (2026-08-06, same scope, CreditCardsViewModel.swift + CreditCardsView.swift fully rewritten) |
 | P3.10a / P3.10b | S3: Splits & groups (friends screen, group detail, who-owes-whom, Patterns w/ thresholds, person sheet) | [M] | P3.3 | TODO — corrected 2026-08-05: falsely marked DONE, `SplitsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, SplitsView.swift) |
 | P3.11a / P3.11b | S3: Invite deep links — App Links / Universal Links for `/join?token=`, token survives auth, no redirect loop (needs real domain — see Decisions) | [H] | P3.6, P3.10 | DONE (2026-08-01, sanvya.app) |
 | P3.12a / P3.12b | S3: UPI settle-up — Android: real Intent + chooser + copy/QR fallback; iOS: copy-first + QR; two-sided confirmation states, optimistic pending netting, disputed excluded everywhere | [H] | P3.10 | TODO — corrected 2026-08-05: falsely marked DONE, `PayViaUpiDialog.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, PayViaUpiSheet.swift) |

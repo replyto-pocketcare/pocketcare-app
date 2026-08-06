@@ -209,4 +209,120 @@ public actor LoansRepository {
         let ts = nowIso()
         try await db.execute(sql: "UPDATE loans SET funding_account_id = ?, updated_at = ? WHERE id = ?", parameters: [accountId, ts, id])
     }
+
+    /// Loans whose EMI is charged to this card -- one-shot, matches web's
+    /// `settleEmis.ts` (app-local orchestration, only read at the moment a
+    /// settlement happens, not a live subscription).
+    public func loansByFundingAccount(accountId: String) async throws -> [Loan] {
+        try await db.getAll(
+            sql: "SELECT * FROM loans WHERE deleted_at IS NULL AND funding_account_id = ?",
+            parameters: [accountId],
+            mapper: loanMapper
+        )
+    }
+
+    /// EMIs charged to `cardAccountId` that are due, unpaid, and fit inside
+    /// `amountMinor` -- oldest first. Ports web's `settleEmis.ts`'s
+    /// `findCoveredEmis` exactly: FIFO, bounded by the amount; an EMI too
+    /// big for the remaining headroom STOPS the walk rather than being
+    /// skipped (clearing a later, smaller EMI while an older one stays
+    /// open would misrepresent the order things were paid).
+    public func findCoveredEmis(cardAccountId: String, amountMinor: Int64) async throws -> [CoveredEmi] {
+        guard amountMinor > 0 else { return [] }
+        let loans = try await loansByFundingAccount(accountId: cardAccountId)
+        let nowIsoStr = nowIso()
+
+        var candidates: [CoveredEmi] = []
+        for loan in loans {
+            let total = loan.tenureMonths ?? 0
+            guard total > 0 else { continue }
+            let manual = Set(parsePaidOnMap(loan.emiPayments).keys)
+            // Due-ness ignores auto_mark_paid -- we want what's OWED; only
+            // explicitly-marked EMIs count as already settled.
+            let due = effectivePaidEmis(manual: [], totalEmis: total, autoMark: true, startIso: loan.startDate, dueDay: loan.emiDueDay, asOfIso: nowIsoStr)
+            let amounts = parseAmountsMap(loan.emiAmounts)
+            for n in due {
+                if manual.contains(n) { continue }
+                let amount = amounts[n] ?? loan.emiAmount ?? 0
+                guard amount > 0 else { continue }
+                // No start date -> no schedule, so nothing is due; emiDueDate
+                // returns nil there rather than guessing a date.
+                guard let dueDate = emiDueDate(loan.startDate, loan.emiDueDay, n) else { continue }
+                candidates.append(CoveredEmi(loanId: loan.id, lender: loan.lender, emiNo: n, amount: amount, dueDate: dueDate))
+            }
+        }
+
+        candidates.sort { $0.dueDate == $1.dueDate ? $0.emiNo < $1.emiNo : $0.dueDate < $1.dueDate }
+
+        var covered: [CoveredEmi] = []
+        var left = amountMinor
+        for c in candidates {
+            if c.amount > left { break }
+            covered.append(c)
+            left -= c.amount
+        }
+        return covered
+    }
+
+    /// Mark the confirmed EMIs paid, dated at the settlement. Re-reads each
+    /// loan's `emi_payments` before merging -- another device may have
+    /// marked one of these in between, and it's a whole-column JSON blob,
+    /// so writing a stale copy would silently drop their change.
+    public func markEmisPaid(covered: [CoveredEmi], paidOnIso: String) async throws {
+        guard !covered.isEmpty else { return }
+        var byLoan: [String: [CoveredEmi]] = [:]
+        for c in covered { byLoan[c.loanId, default: []].append(c) }
+        let day = String(paidOnIso.prefix(10))
+
+        for (loanId, list) in byLoan {
+            let row: EmiPaymentsRow? = try await db.getOptional(
+                sql: "SELECT emi_payments FROM loans WHERE id = ? AND deleted_at IS NULL",
+                parameters: [loanId]
+            ) { cursor in EmiPaymentsRow(emiPayments: try cursor.getStringOptional(name: "emi_payments")) }
+            guard let row else { continue }
+            var map = parsePaidOnMap(row.emiPayments)
+            for c in list { map[c.emiNo] = day }
+            let json = jsonFromIntStringMap(map)
+            try await setManualPaid(id: loanId, emiPaymentsJson: json, emisPaidCount: map.count)
+        }
+    }
+}
+
+public struct CoveredEmi: Sendable {
+    public let loanId: String
+    public let lender: String?
+    public let emiNo: Int
+    public let amount: Int64
+    public let dueDate: String
+}
+
+private struct EmiPaymentsRow: Sendable { let emiPayments: String? }
+
+private func parsePaidOnMap(_ json: String?) -> [Int: String] {
+    guard let json, !json.isEmpty, let data = json.data(using: .utf8) else { return [:] }
+    guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
+    var out: [Int: String] = [:]
+    for (k, v) in obj {
+        guard let n = Int(k), let s = v as? String, !s.isEmpty else { continue }
+        out[n] = s
+    }
+    return out
+}
+
+private func parseAmountsMap(_ json: String?) -> [Int: Int64] {
+    guard let json, !json.isEmpty, let data = json.data(using: .utf8) else { return [:] }
+    guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
+    var out: [Int: Int64] = [:]
+    for (k, v) in obj {
+        guard let n = Int(k) else { continue }
+        if let num = v as? NSNumber { out[n] = num.int64Value }
+    }
+    return out
+}
+
+private func jsonFromIntStringMap(_ map: [Int: String]) -> String {
+    var obj: [String: String] = [:]
+    for (k, v) in map { obj[String(k)] = v }
+    guard let data = try? JSONSerialization.data(withJSONObject: obj) else { return "{}" }
+    return String(data: data, encoding: .utf8) ?? "{}"
 }
