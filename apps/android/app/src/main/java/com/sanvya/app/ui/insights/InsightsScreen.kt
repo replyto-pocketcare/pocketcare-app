@@ -177,7 +177,8 @@ private fun InsightCardView(card: InsightCard, colors: SanvyaColors, onCta: (Str
                 .padding(10.dp),
             contentAlignment = Alignment.Center,
         ) {
-            if (card.visual != null) VisualChart(card.visual, accent, colors) else {
+            val visual = card.visual
+            if (visual != null) VisualChart(visual, accent, colors) else {
                 Text(card.headline, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
@@ -196,10 +197,11 @@ private fun InsightCardView(card: InsightCard, colors: SanvyaColors, onCta: (Str
                 card.metric?.let { m ->
                     Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(m.display, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = accent)
-                        if (m.deltaPct != null) {
+                        val deltaPct = m.deltaPct
+                        if (deltaPct != null) {
                             val up = m.direction == "up"
                             Text(
-                                "${if (up) "▲" else "▼"} ${kotlin.math.abs(m.deltaPct)}%",
+                                "${if (up) "▲" else "▼"} ${kotlin.math.abs(deltaPct)}%",
                                 fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                                 color = if (up) colors.positive else colors.negative,
                             )

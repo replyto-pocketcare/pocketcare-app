@@ -5,7 +5,11 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Real Xcode errors on Insights.swift pasted back: missing `metric:` arg in
+Last session: 2026-08-06 — Real Gradle error on InsightsScreen.kt pasted back: 2x cross-module
+               smart-cast failure (card.visual, m.deltaPct -- domain-module properties read via
+               `if (x != null)` in the app module), same bug class as Loans' emiAmount fix -- bound
+               both to local vals first. See AUDIT_HISTORY.md.
+Previous session: 2026-08-06 — Real Xcode errors on Insights.swift pasted back: missing `metric:` arg in
                genWeekdayPattern's InsightCard(...) (fixed, added `metric: nil`) and GENERATORS'
                array-of-function-types not inferred Sendable under Swift 6 strict concurrency (fixed,
                annotated `[@Sendable (GenContext) -> [InsightCard]]`). See AUDIT_HISTORY.md. iOS
