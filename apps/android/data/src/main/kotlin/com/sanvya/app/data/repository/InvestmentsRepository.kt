@@ -27,10 +27,17 @@ import com.powersync.db.SqlCursor
 import com.powersync.db.getBooleanOptional
 import com.powersync.db.getDouble
 import com.powersync.db.getDoubleOptional
+import com.powersync.db.getLong
 import com.powersync.db.getLongOptional
 import com.powersync.db.getString
 import com.powersync.db.getStringOptional
 import kotlinx.coroutines.flow.Flow
+
+/** One `market_dividends` row (global, read-only market-sync table). */
+data class DividendRow(val symbol: String, val exchange: String?, val exDate: String, val payDate: String?, val amount: Long, val currency: String)
+
+/** One `market_quotes` row (global, read-only). */
+data class QuoteRow(val symbol: String, val exchange: String?, val price: Long, val currency: String)
 
 data class Holding(
     val id: String,
@@ -107,6 +114,31 @@ class InvestmentsRepository(private val db: PowerSyncDatabase) {
         sql = "SELECT * FROM holdings WHERE deleted_at IS NULL AND user_id = ? ORDER BY created_at DESC",
         parameters = listOf(userId),
         mapper = ::holdingMapper,
+    )
+
+    /** Global, read-only market-sync tables -- no user_id/deleted_at filter,
+     * matches web's own unscoped queries exactly. Added 2026-08-06 for
+     * Insights' dividend_income/portfolio_projection cards (task #28), the
+     * first mobile reader of either table. */
+    fun watchDividends(): Flow<List<DividendRow>> = db.watch(
+        sql = "SELECT symbol, exchange, ex_date, pay_date, amount, currency FROM market_dividends",
+        mapper = { cursor ->
+            DividendRow(
+                symbol = cursor.getString("symbol"), exchange = cursor.getStringOptional("exchange"),
+                exDate = cursor.getString("ex_date"), payDate = cursor.getStringOptional("pay_date"),
+                amount = cursor.getLong("amount"), currency = cursor.getString("currency"),
+            )
+        },
+    )
+
+    fun watchQuotes(): Flow<List<QuoteRow>> = db.watch(
+        sql = "SELECT symbol, exchange, price, currency FROM market_quotes",
+        mapper = { cursor ->
+            QuoteRow(
+                symbol = cursor.getString("symbol"), exchange = cursor.getStringOptional("exchange"),
+                price = cursor.getLong("price"), currency = cursor.getString("currency"),
+            )
+        },
     )
 
     /**

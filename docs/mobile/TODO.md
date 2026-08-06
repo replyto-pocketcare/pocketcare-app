@@ -5,7 +5,17 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Loans (P3.8, task #27/#41/#42), both platforms, fully wired + real EMI
+Last session: 2026-08-06 — Insights (P3.x, task #28), both platforms, full 18-generator port with
+               entitlement gate (first mobile call site ever), dividend/mindfulness domain math never
+               before on mobile, and 5 hand-drawn chart kinds (Canvas/Compose, Canvas/SwiftUI). Android
+               built from scratch (was dead-code behind comingSoonRoute). iOS's InsightsViewModel.swift
+               and InsightsView.swift fully rewritten -- the old ones were live-wired into MainTabView
+               with ZERO premium gate and read a fake "StreamTV" subscription + a "dining" keyword
+               heuristic. Added a resolveUserId() fallback to iOS's start() (GoalsViewModel precedent)
+               and a currentTab binding to InsightsView for CTA cross-tab nav (no prior precedent on
+               iOS -- MainTabView.swift updated to pass it). See AUDIT_HISTORY.md's 2026-08-06 Insights
+               entry for the full arc incl. 5 self-caught Swift bugs. Neither platform build-verified yet.
+Previous session: 2026-08-06 — Loans (P3.8, task #27/#41/#42), both platforms, fully wired + real EMI
                schedule/mark-paid/auto-mark/CRUD. Also fixed a real list-staleness bug found while
                testing: Goals/Budgets lists didn't show a new/edited item until the whole screen was
                torn down and recreated, because both ViewModels (both platforms) were driven by a
@@ -24,15 +34,17 @@ Last session: 2026-08-06 — Loans (P3.8, task #27/#41/#42), both platforms, ful
                see #21 below. iOS side of Loans still unverified by Xcode.
                Investments (P3.10/P3.15, task #26) landed session #18 -- see that entry for its arc.
 Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3),
-               Budgets (P3.4), Goals (P3.5a/b), Investments (P3.10a/P3.15a), Loans (P3.8a) real and
-               wired into SanvyaNavHost. Everything else in Phase 3 still TODO (no screens). NOT
-               verified against a real Gradle build in this sandbox (no JDK/Gradle here per plan §1.5)
-               — next session or CI must run `./gradlew build test` before trusting this compiles.
+               Budgets (P3.4), Goals (P3.5a/b), Investments (P3.10a/P3.15a), Loans (P3.8a),
+               Insights (P3.x, task #28) real and wired into SanvyaNavHost. Everything else in
+               Phase 3 still TODO (no screens). NOT verified against a real Gradle build in this
+               sandbox (no JDK/Gradle here per plan §1.5) — next session or CI must run
+               `./gradlew build test` before trusting this compiles.
 iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions, Budgets, Goals,
-               Investments (P3.10b/P3.15b), Loans (P3.8b) now match the real web specs. Every other
-               Create*/New* form is still suspect -- CreateAccountView.swift, CreateTransactionView.swift,
-               and CreateGoalView.swift ALL had the "Save calls dismiss(), persists nothing" bug
-               independently; assume any not-yet-audited one has it too until checked. Loans'
+               Investments (P3.10b/P3.15b), Loans (P3.8b), Insights (task #28) now match the real web
+               specs. Every other Create*/New* form is still suspect -- CreateAccountView.swift,
+               CreateTransactionView.swift, and CreateGoalView.swift ALL had the "Save calls
+               dismiss(), persists nothing" bug independently; assume any not-yet-audited one has it
+               too until checked. Loans'
                old LoansViewModel.swift/LoansView.swift were real and WIRED (unlike Android's dead-code
                stub) but had non-optional access on now-nullable fields (crash risk) and a non-
                functional mark-paid alert -- fully rewritten this session, not just audited.
@@ -55,6 +67,22 @@ Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 
                without a real compiler, caught only once Akhilesh ran a real `./gradlew` build. NOT yet
                re-verified end-to-end; iOS side of Loans still unverified by Xcode. Next: Insights
                (task #28), pending next real error or Akhilesh's go-ahead.
+2026-08-06 #22: "continue" (task #28, Insights) -- full scope per Akhilesh's explicit AskUserQuestion
+               choice ("Full port, all 18 generators + charts") over two smaller alternatives. Wrote
+               docs/mobile/screen-specs/insights.md, then built both platforms: entitlement gate
+               (isPaid, first mobile call site), Dividends.kt/.swift + Mindfulness.kt/.swift (never
+               before on mobile), Insights.kt/.swift (18 generators + composeStack), new
+               SubscriptionsRepository, dividend/quote reads on InvestmentsRepository, budgetCategories
+               read on BudgetRepository. Android: real InsightsViewModel.kt (13-flow combine()) +
+               InsightsScreen.kt (VerticalPager feed, 5 Canvas chart kinds) from scratch, wired into
+               SanvyaNavHost/NavDrawer. iOS: entirely rewrote InsightsViewModel.swift + InsightsView.swift
+               -- the old ones were live-wired into MainTabView with NO premium gate, reading a fake
+               "StreamTV" subscription. Added resolveUserId() fallback (GoalsViewModel precedent) and a
+               currentTab binding for CTA cross-tab nav (MainTabView.swift updated). 5 self-caught Swift
+               bugs along the way (enum-default-value, retain-cycle, Sendable/actor-isolation, 2 money-
+               rounding bugs) -- see AUDIT_HISTORY.md's 2026-08-06 Insights entry for the full writeup.
+               Neither platform build-verified yet. Next: Credit Cards (task #29), pending Akhilesh's
+               go-ahead or next real error.
 2026-08-06 #20: Real Xcode error pasted back: `LoansModel.swift` — "Invalid redeclaration of
                'emiFromPrincipal'" (and AmortRow/Ymd/daysInMonth/emiDueDate/isDuePassed, plus
                "is ambiguous for type lookup" x2 and one "Incorrect argument labels" cascading from the
@@ -556,7 +584,7 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 | P3.13a / P3.13b | S4: Receipt scan — CameraX+ML Kit / AVFoundation+Vision **with word bounding boxes** → ported line-rebuild + reconciliation gate UI (review must not save until Σ lines == total) | [H] | P3.3 | TODO — corrected 2026-08-05: falsely marked DONE, `ReceiptScanScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, ReceiptScanView.swift) |
 | P3.14a / P3.14b | S4: Statement import — file pick, PDF text extraction (PdfRenderer / PDFKit), column-aware parse, bulk import w/ dedupe preview | [H] | P3.3 | TODO — corrected 2026-08-05: falsely marked DONE, `StatementImportScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, StatementImportView.swift) |
 | P3.15a / P3.15b | S5: Investments (holdings, add-investment dialog, FD/SIP) | [M] | P3.1 | DONE (2026-08-06, task #26 — add-investment dialog scoped down: real funding-transaction writes kept, live catalog picker + SIP recurring-transfer deferred, see docs/mobile/screen-specs/investments.md) / DONE (2026-08-06, same scope, AddHoldingView.swift) |
-| P3.16a / P3.16b | S5: Insights cards + month comparison (respect hide-amounts in every chart — the historical leak class) | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `InsightsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, InsightsView.swift) |
+| P3.16a / P3.16b | S5: Insights cards + month comparison (respect hide-amounts in every chart — the historical leak class) | [M] | P3.1 | DONE (2026-08-06, task #28 — full 18-generator port, entitlement gate, dividend/mindfulness math, 5 Canvas chart kinds, see docs/mobile/screen-specs/insights.md) / DONE (2026-08-06, same scope, InsightsViewModel.swift + InsightsView.swift fully rewritten from the old fake predecessor) |
 | P3.17a / P3.17b | S5: Statements (premium, printable/share) + Search | [M] | P3.3, P3.7 | TODO — corrected 2026-08-05: falsely marked DONE, `StatementsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, StatementsView.swift) |
 | P3.18a / P3.18b | S6 (optional, last): Assistant — same edge function, native chat UI, SpeechRecognizer / SFSpeechRecognizer input | [M] | P3.7 | TODO — corrected 2026-08-05: falsely marked DONE, `AssistantScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, AssistantView.swift) |
 | P3.19a / P3.19b | **R1 retrofit audit** (plan §7 R1, added after S1/S2 were built): audit Dashboard/Accounts/Transactions/Budgets/Goals screens for lifecycle compliance — Android: state → ViewModel(+SavedStateHandle), scroll/fields → rememberSaveable, layouts → WindowSizeClass, NO configChanges opt-outs; iOS: tab/nav/search → @SceneStorage, draft-save on scenePhase.background; both: transaction-form draft persistence. Fix gaps; prove with LIFE-1..4 runs (foldable emulator posture + "Don't keep activities" / terminate-while-suspended) | [M] | P3.4 | PARTIAL (2026-08-06, see AUDIT_HISTORY.md — Android config-change/fold retrofit done for Budgets/Goals/shared Transactions components via rememberSaveable; Accounts/Transactions/Dashboard already ViewModel-backed, needed no change) / NOT STARTED — iOS's per-screen @State already survives size-class/multitasking resize by construction (view identity doesn't reset on trait change, unlike Android's Activity-recreation model), so no equivalent fold-loses-data bug exists there; LIFE-4 process-death draft persistence (@SceneStorage / DataStore draft-save) is NOT done on either platform — that's the larger remaining piece of this row |

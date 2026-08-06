@@ -103,7 +103,7 @@ val drawerNavGroups: List<DrawerNavGroup> = listOf(
     DrawerNavGroup("Growth", listOf(
         DrawerNavItem("Investments", Icons.Default.TrendingUp, "investments"),
         DrawerNavItem("Reflect", Icons.Default.SelfImprovement, comingSoonRoute("Reflect")),
-        DrawerNavItem("Insights", Icons.Default.Insights, comingSoonRoute("Insights")),
+        DrawerNavItem("Insights", Icons.Default.Insights, "insights"),
         DrawerNavItem("Statements", Icons.Default.Description, comingSoonRoute("Statements")),
     )),
     DrawerNavGroup("", listOf(

@@ -142,6 +142,15 @@ class BudgetRepository(private val db: PowerSyncDatabase) {
 
     suspend fun delete(id: String) = softDelete(db, "budgets", id)
 
+    /** All (budget_id, category_id) pairs across every budget, reactive --
+     * added 2026-08-06 for Insights' genBudgetWarnings/its own budgets
+     * aggregation (task #28), which needs every budget's scoped categories
+     * up front rather than one categoryIds(id) call per budget. */
+    fun watchBudgetCategories(): Flow<List<Pair<String, String>>> = db.watch(
+        sql = "SELECT budget_id, category_id FROM budget_categories",
+        mapper = { cursor -> cursor.getString("budget_id") to cursor.getString("category_id") },
+    )
+
     suspend fun categoryIds(budgetId: String): List<String> = db.getAll(
         sql = "SELECT category_id FROM budget_categories WHERE budget_id = ?",
         parameters = listOf(budgetId),

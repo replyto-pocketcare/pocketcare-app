@@ -26,6 +26,7 @@ import com.sanvya.app.ui.goals.EditGoalScreen
 import com.sanvya.app.ui.goals.GoalsScreen
 import com.sanvya.app.ui.investments.AddHoldingScreen
 import com.sanvya.app.ui.investments.InvestmentsScreen
+import com.sanvya.app.ui.insights.InsightsScreen
 import com.sanvya.app.ui.loans.AddLoanScreen
 import com.sanvya.app.ui.loans.LoanDetailScreen
 import com.sanvya.app.ui.loans.LoansScreen
@@ -276,6 +277,12 @@ fun SanvyaNavHost() {
                 loanId = loanId,
                 onBack = { navController.popBackStack() },
                 onDeleted = { navController.popBackStack("loans", inclusive = true) },
+            )
+        }
+        composable("insights") {
+            InsightsScreen(
+                onNavigate = { route -> navController.navigate(route) },
+                onUpgrade = { navController.navigate("settings") },
             )
         }
     }

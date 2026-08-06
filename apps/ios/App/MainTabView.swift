@@ -30,7 +30,7 @@ struct MainTabView: View {
                 
                 case .investments: InvestmentsView(isDrawerOpen: $isDrawerOpen)
                 case .reflect: ReflectView(isDrawerOpen: $isDrawerOpen)
-                case .insights: InsightsView(isDrawerOpen: $isDrawerOpen)
+                case .insights: InsightsView(isDrawerOpen: $isDrawerOpen, currentTab: $currentTab)
                 case .statements: StatementsView(isDrawerOpen: $isDrawerOpen)
 
                 case .settings: SettingsView(isDrawerOpen: $isDrawerOpen)

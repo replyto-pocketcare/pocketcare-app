@@ -21,6 +21,24 @@ import PowerSync
 /// `off_list` (functionally significant -- gates the "untracked" display,
 /// see Domain/InvestmentsModel.swift's `holdingLabel`/`valuation`),
 /// `source_account_id`, `planned_id`.
+/// One `market_dividends` row (global, read-only market-sync table).
+public struct DividendRow: Sendable {
+    public let symbol: String
+    public let exchange: String?
+    public let exDate: String
+    public let payDate: String?
+    public let amount: Int64
+    public let currency: String
+}
+
+/// One `market_quotes` row (global, read-only).
+public struct QuoteRow: Sendable {
+    public let symbol: String
+    public let exchange: String?
+    public let price: Int64
+    public let currency: String
+}
+
 public struct Holding: Identifiable, Sendable {
     public let id: String
     public let userId: String
@@ -112,6 +130,37 @@ public actor InvestmentsRepository {
             parameters: [userId],
             mapper: holdingMapper
         )
+    }
+
+    /// Global, read-only market-sync tables -- no user_id/deleted_at filter,
+    /// matches web's own unscoped queries exactly. Added 2026-08-06 for
+    /// Insights' dividend_income/portfolio_projection cards (task #28), the
+    /// first mobile reader of either table (mirrors Android's
+    /// InvestmentsRepository.kt watchDividends()/watchQuotes() added the
+    /// same session).
+    public func watchDividends() throws -> AsyncThrowingStream<[DividendRow], Error> {
+        try db.watch(
+            sql: "SELECT symbol, exchange, ex_date, pay_date, amount, currency FROM market_dividends",
+            parameters: []
+        ) { cursor in
+            DividendRow(
+                symbol: try cursor.getString(name: "symbol"), exchange: try cursor.getStringOptional(name: "exchange"),
+                exDate: try cursor.getString(name: "ex_date"), payDate: try cursor.getStringOptional(name: "pay_date"),
+                amount: try cursor.getInt64(name: "amount"), currency: try cursor.getString(name: "currency")
+            )
+        }
+    }
+
+    public func watchQuotes() throws -> AsyncThrowingStream<[QuoteRow], Error> {
+        try db.watch(
+            sql: "SELECT symbol, exchange, price, currency FROM market_quotes",
+            parameters: []
+        ) { cursor in
+            QuoteRow(
+                symbol: try cursor.getString(name: "symbol"), exchange: try cursor.getStringOptional(name: "exchange"),
+                price: try cursor.getInt64(name: "price"), currency: try cursor.getString(name: "currency")
+            )
+        }
     }
 
     /// Adds a holding -- matches write.ts's addHolding() exactly: funds

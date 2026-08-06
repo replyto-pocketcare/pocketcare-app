@@ -55,3 +55,38 @@ public func canUse(_ feature: String, _ tier: String) -> Bool {
 public func isPremiumFeature(_ feature: String) -> Bool {
     !FREE_FEATURES.contains(feature)
 }
+
+/// Ported from apps/web/src/entitlement.ts's useEntitlement() -- the
+/// "isPaid" half only (quota/trial-days-left display isn't needed by any
+/// mobile screen yet). Added 2026-08-06 for Insights (task #28), the first
+/// mobile screen to gate on entitlement at all. Mirrors Android's
+/// domain/entitlements/Entitlements.kt isPaid() added the same session.
+/// tier is compared post-normalisation: "premium"/"pro" -> pro, "lite" ->
+/// lite, else free; a redeemed coupon's compTier wins over the base tier
+/// while compUntil is still in the future; a 14-day-old-or-less
+/// premiumTrialStartDate grants paid access even on the free tier.
+public func isPaid(tier: String?, premiumTrialStartDate: String?, compTier: String?, compUntil: String?, now: Date) -> Bool {
+    func normalize(_ t: String?) -> Int {
+        switch t { case "pro", "premium": return 2; case "lite": return 1; default: return 0 }
+    }
+    // A fresh formatter per call (not cached) -- matches this codebase's
+    // established non-Sendable-Foundation-formatter rule; tries fractional
+    // seconds first, falls back to the no-fraction variant.
+    func parseIso(_ s: String) -> Date? {
+        let withFraction = ISO8601DateFormatter()
+        withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = withFraction.date(from: s) { return d }
+        return ISO8601DateFormatter().date(from: s)
+    }
+    let baseRank = normalize(tier)
+    let compActive: Bool = {
+        guard let compUntil, let compDate = parseIso(compUntil) else { return false }
+        return compDate > now
+    }()
+    let compRank = compActive ? normalize(compTier) : 0
+    let effectiveRank = max(baseRank, compRank)
+    if effectiveRank > 0 { return true }
+    guard let premiumTrialStartDate, let trialStart = parseIso(premiumTrialStartDate) else { return false }
+    let days = ceil(now.timeIntervalSince(trialStart) / 86_400.0)
+    return days <= 14
+}

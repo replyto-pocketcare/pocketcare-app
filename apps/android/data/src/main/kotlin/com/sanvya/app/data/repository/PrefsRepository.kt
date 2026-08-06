@@ -4,6 +4,7 @@ import com.powersync.PowerSyncDatabase
 import com.powersync.db.SqlCursor
 import com.powersync.db.getLongOptional
 import com.powersync.db.getString
+import com.powersync.db.getStringOptional
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -39,7 +40,28 @@ private fun notificationPrefsMapper(cursor: SqlCursor): NotificationPrefs = Noti
     emi_lead_days = cursor.getLongOptional("emi_lead_days") ?: 3L
 )
 
+/** The 4 columns Insights' entitlement gate (domain.entitlements.isPaid)
+ * needs -- see that function's doc comment. Added 2026-08-06, task #28. */
+data class EntitlementRow(val tier: String?, val premiumTrialStartDate: String?, val compTier: String?, val compUntil: String?)
+
+private fun entitlementMapper(cursor: SqlCursor): EntitlementRow = EntitlementRow(
+    tier = cursor.getStringOptional("tier"),
+    premiumTrialStartDate = cursor.getStringOptional("premium_trial_start_date"),
+    compTier = cursor.getStringOptional("comp_tier"),
+    compUntil = cursor.getStringOptional("comp_until"),
+)
+
 class PrefsRepository(private val db: PowerSyncDatabase) {
+    /** Single entitlements row for the current user (there is exactly one
+     * per web's `SELECT ... FROM entitlements LIMIT 1` -- no user_id filter
+     * needed, PowerSync's sync rules already scope it to the signed-in
+     * user). Real db.watch() so Insights' premium gate reacts immediately
+     * to a plan change synced down from Supabase. */
+    fun watchEntitlement(): Flow<EntitlementRow?> = db.watch(
+        "SELECT tier, premium_trial_start_date, comp_tier, comp_until FROM entitlements LIMIT 1",
+        mapper = ::entitlementMapper,
+    ).map { it.firstOrNull() }
+
     fun watchNotificationPrefs(userId: String): Flow<NotificationPrefs?> {
         return db.watch(
             "SELECT * FROM notification_prefs WHERE user_id = ?",

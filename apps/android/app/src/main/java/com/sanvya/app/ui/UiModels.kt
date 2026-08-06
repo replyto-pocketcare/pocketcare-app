@@ -46,10 +46,3 @@ data class CreditCardUiModel(
     val gradientColors: List<Color>,
 )
 
-data class InsightUiModel(
-    val id: String,
-    val title: String,
-    val description: String,
-    val highlightAmount: String?,
-    val isPositive: Boolean,
-)

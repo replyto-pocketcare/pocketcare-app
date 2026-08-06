@@ -194,6 +194,20 @@ public final class BudgetRepository: @unchecked Sendable {
         try await softDelete(db: db, table: "budgets", id: id)
     }
 
+    /// All (budget_id, category_id) pairs across every budget, reactive --
+    /// added 2026-08-06 for Insights' budgets aggregation (task #28), which
+    /// needs every budget's scoped categories up front rather than one
+    /// categoryIds(id) call per budget. Mirrors Android's
+    /// BudgetRepository.kt watchBudgetCategories() added the same session.
+    public func watchBudgetCategories() throws -> AsyncThrowingStream<[(budgetId: String, categoryId: String)], Error> {
+        try db.watch(
+            sql: "SELECT budget_id, category_id FROM budget_categories",
+            parameters: []
+        ) { cursor in
+            (budgetId: try cursor.getString(name: "budget_id"), categoryId: try cursor.getString(name: "category_id"))
+        }
+    }
+
     public func categoryIds(budgetId: String) async throws -> [String] {
         try await db.getAll(
             sql: "SELECT category_id FROM budget_categories WHERE budget_id = ?",

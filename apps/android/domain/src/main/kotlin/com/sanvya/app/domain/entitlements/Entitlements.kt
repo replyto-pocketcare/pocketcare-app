@@ -52,3 +52,27 @@ fun canUse(feature: String, tier: String): Boolean {
 
 /** True if the feature sits behind the paywall regardless of current tier. */
 fun isPremiumFeature(feature: String): Boolean = !FREE_FEATURES.contains(feature)
+
+/**
+ * Ported from apps/web/src/entitlement.ts's useEntitlement() -- the "isPaid"
+ * half only (quota/trial-days-left display isn't needed by any mobile
+ * screen yet). Added 2026-08-06 for Insights (task #28), the first mobile
+ * screen to gate on entitlement at all (canUse()/Feature above have zero
+ * other call sites in the app). tier is compared post-normalisation:
+ * "premium"/"pro" -> pro, "lite" -> lite, else free; a redeemed coupon's
+ * comp_tier wins over the base tier while compUntil is still in the future;
+ * a 14-day-old-or-less premium_trial_start_date grants paid access even on
+ * the free tier.
+ */
+fun isPaid(tier: String?, premiumTrialStartDate: String?, compTier: String?, compUntil: String?, nowMillis: Long): Boolean {
+    fun normalize(t: String?): Int = when (t) { "pro", "premium" -> 2; "lite" -> 1; else -> 0 } // rank: free=0, lite=1, pro=2
+    val baseRank = normalize(tier)
+    val compActive = compUntil != null && runCatching { java.time.Instant.parse(compUntil).toEpochMilli() }.getOrDefault(0L) > nowMillis
+    val compRank = if (compActive) normalize(compTier) else 0
+    val effectiveRank = kotlin.math.max(baseRank, compRank)
+    if (effectiveRank > 0) return true
+    if (premiumTrialStartDate == null) return false
+    val trialStart = runCatching { java.time.Instant.parse(premiumTrialStartDate).toEpochMilli() }.getOrNull() ?: return false
+    val days = Math.ceil((nowMillis - trialStart) / 86_400_000.0)
+    return days <= 14
+}

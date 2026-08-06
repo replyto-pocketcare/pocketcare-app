@@ -95,4 +95,8 @@ public extension Container {
     var pushRepository: Factory<PushRepository> {
         self { SupabasePushRepository(client: self.supabaseClient()) }.singleton
     }
+
+    var subscriptionsRepository: Factory<SubscriptionsRepository> {
+        self { SubscriptionsRepository(db: self.powerSyncDatabase()) }.singleton
+    }
 }

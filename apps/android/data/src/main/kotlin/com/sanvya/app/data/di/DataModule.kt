@@ -17,6 +17,7 @@ import com.sanvya.app.data.repository.GoalsRepository
 import com.sanvya.app.data.repository.InvestmentsRepository
 import com.sanvya.app.data.repository.LoansRepository
 import com.sanvya.app.data.repository.SplitsRepository
+import com.sanvya.app.data.repository.SubscriptionsRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -51,6 +52,7 @@ val dataModule = module {
     single { InvestmentsRepository(get()) }
     single { LoansRepository(get()) }
     single { SplitsRepository(get(), get()) }
+    single { SubscriptionsRepository(get()) }
     single { com.sanvya.app.data.repository.PrefsRepository(get()) }
     single<com.sanvya.app.domain.repository.PushRepository> { com.sanvya.app.data.repository.SupabasePushRepository(get()) }
 }

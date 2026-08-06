@@ -56,11 +56,54 @@ private func notificationPrefsMapper(cursor: SqlCursor) throws -> NotificationPr
     )
 }
 
+/// The 4 columns Insights' entitlement gate (Domain.isPaid) needs -- see
+/// that function's doc comment. Added 2026-08-06, task #28. Mirrors
+/// Android's PrefsRepository.kt EntitlementRow added the same session.
+public struct EntitlementRow: Sendable {
+    public let tier: String?
+    public let premiumTrialStartDate: String?
+    public let compTier: String?
+    public let compUntil: String?
+}
+
+private func entitlementMapper(_ cursor: SqlCursor) throws -> EntitlementRow {
+    EntitlementRow(
+        tier: try cursor.getStringOptional(name: "tier"),
+        premiumTrialStartDate: try cursor.getStringOptional(name: "premium_trial_start_date"),
+        compTier: try cursor.getStringOptional(name: "comp_tier"),
+        compUntil: try cursor.getStringOptional(name: "comp_until")
+    )
+}
+
 public final class PrefsRepository: @unchecked Sendable {
     private let db: PowerSyncDatabaseProtocol
 
     public init(db: PowerSyncDatabaseProtocol) {
         self.db = db
+    }
+
+    /// Single entitlements row for the current user -- there is exactly
+    /// one per web's `SELECT ... FROM entitlements LIMIT 1` (no user_id
+    /// filter needed, PowerSync's sync rules already scope it). Real
+    /// db.watch() so Insights' premium gate reacts immediately to a plan
+    /// change synced down from Supabase.
+    public func watchEntitlement() throws -> AsyncThrowingStream<EntitlementRow?, Error> {
+        let upstream = try db.watch(
+            sql: "SELECT tier, premium_trial_start_date, comp_tier, comp_until FROM entitlements LIMIT 1",
+            parameters: [],
+            mapper: entitlementMapper
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await rows in upstream { continuation.yield(rows.first) }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
     }
 
     public func watchNotificationPrefs(userId: String) throws -> AsyncThrowingStream<NotificationPrefs?, Error> {
