@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -54,13 +55,17 @@ fun EditGoalScreen(
         return
     }
 
-    var name by remember(goal.id) { mutableStateOf(goal.rawName) }
-    var targetText by remember(goal.id) { mutableStateOf(goal.targetMajor) }
-    var alertTime by remember(goal.id) { mutableStateOf(goal.alertTimeLocal) }
-    var saving by remember { mutableStateOf(false) }
-    var errorText by remember { mutableStateOf<String?>(null) }
-    var showTimePicker by remember { mutableStateOf(false) }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
+    // rememberSaveable (not remember): survives configuration change
+    // (fold/unfold, rotation) without losing in-progress edits -- see
+    // docs/plans/native-mobile-apps.md's R1 / LIFE-1..2, retrofitted
+    // 2026-08-06 (P3.19).
+    var name by rememberSaveable(goal.id) { mutableStateOf(goal.rawName) }
+    var targetText by rememberSaveable(goal.id) { mutableStateOf(goal.targetMajor) }
+    var alertTime by rememberSaveable(goal.id) { mutableStateOf(goal.alertTimeLocal) }
+    var saving by rememberSaveable { mutableStateOf(false) }
+    var errorText by rememberSaveable { mutableStateOf<String?>(null) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    var showDeleteConfirm by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = colors.bg,

@@ -121,7 +121,7 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
                 }
                 BudgetUiModel(
                     id = b.id,
-                    title = if (!b.name.isNullOrBlank()) b.name else scopeLabel,
+                    title = b.name?.takeIf { it.isNotBlank() } ?: scopeLabel,
                     timeframeText = timeframeText,
                     scopeLabel = scopeLabel,
                     spentFormatted = "Spent ${formatMoney(spent)}",

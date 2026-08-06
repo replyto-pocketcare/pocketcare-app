@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -43,15 +44,19 @@ fun CreateGoalScreen(
     val goals by viewModel.goals.collectAsState()
     val hasEmergencyFund = goals.any { it.isEmergencyFund }
 
-    var name by remember { mutableStateOf("") }
-    var targetText by remember { mutableStateOf("") }
-    var currency by remember { mutableStateOf("INR") }
-    var currencyExpanded by remember { mutableStateOf(false) }
-    var isEmergencyFund by remember { mutableStateOf(false) }
-    var alertTime by remember { mutableStateOf("09:00") }
-    var saving by remember { mutableStateOf(false) }
-    var errorText by remember { mutableStateOf<String?>(null) }
-    var showTimePicker by remember { mutableStateOf(false) }
+    // rememberSaveable (not remember): survives configuration change
+    // (fold/unfold, rotation) without losing in-progress input -- see
+    // docs/plans/native-mobile-apps.md's R1 / LIFE-1..2, retrofitted
+    // 2026-08-06 (P3.19).
+    var name by rememberSaveable { mutableStateOf("") }
+    var targetText by rememberSaveable { mutableStateOf("") }
+    var currency by rememberSaveable { mutableStateOf("INR") }
+    var currencyExpanded by rememberSaveable { mutableStateOf(false) }
+    var isEmergencyFund by rememberSaveable { mutableStateOf(false) }
+    var alertTime by rememberSaveable { mutableStateOf("09:00") }
+    var saving by rememberSaveable { mutableStateOf(false) }
+    var errorText by rememberSaveable { mutableStateOf<String?>(null) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = colors.bg,

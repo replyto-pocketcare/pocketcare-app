@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -16,13 +17,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
+import com.sanvya.app.ui.StringListSaver
 import com.sanvya.app.ui.transactions.LabelPickerRow
 import kotlinx.coroutines.launch
 
 private val BUDGET_CURRENCIES = listOf("INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED")
 private val BUDGET_PERIODS = listOf("daily", "weekly", "monthly", "yearly")
 
-private fun periodChipLabel(p: String) = when (p) {
+internal fun periodChipLabel(p: String) = when (p) {
     "daily" -> "Daily"
     "weekly" -> "Weekly"
     "yearly" -> "Yearly"
@@ -46,23 +48,29 @@ fun CreateBudgetScreen(
     val labelNames by viewModel.labelNames.collectAsState()
     val scope = rememberCoroutineScope()
 
-    var name by remember { mutableStateOf("") }
-    var limitText by remember { mutableStateOf("") }
-    var currency by remember { mutableStateOf("INR") }
-    var currencyExpanded by remember { mutableStateOf(false) }
-    var thresholdText by remember { mutableStateOf("80") }
-    var alertTime by remember { mutableStateOf("09:00") }
-    var selectedCategoryIds by remember { mutableStateOf(listOf<String>()) }
-    var selectedLabels by remember { mutableStateOf(listOf<String>()) }
-    var isCustomDated by remember { mutableStateOf(false) }
-    var period by remember { mutableStateOf("monthly") }
-    var startDate by remember { mutableStateOf("") }
-    var endDate by remember { mutableStateOf("") }
-    var saving by remember { mutableStateOf(false) }
-    var errorText by remember { mutableStateOf<String?>(null) }
-    var showTimePicker by remember { mutableStateOf(false) }
-    var showStartDatePicker by remember { mutableStateOf(false) }
-    var showEndDatePicker by remember { mutableStateOf(false) }
+    // rememberSaveable (not remember): this whole form's state must survive
+    // a configuration change (fold/unfold, rotation) without losing
+    // in-progress input -- see docs/plans/native-mobile-apps.md's R1 /
+    // LIFE-1..2, retrofitted 2026-08-06 (P3.19). `saving`/errorText and the
+    // dialog-open booleans are included too, matching LIFE-2's "dialogs
+    // stay open" requirement.
+    var name by rememberSaveable { mutableStateOf("") }
+    var limitText by rememberSaveable { mutableStateOf("") }
+    var currency by rememberSaveable { mutableStateOf("INR") }
+    var currencyExpanded by rememberSaveable { mutableStateOf(false) }
+    var thresholdText by rememberSaveable { mutableStateOf("80") }
+    var alertTime by rememberSaveable { mutableStateOf("09:00") }
+    var selectedCategoryIds by rememberSaveable(stateSaver = StringListSaver) { mutableStateOf(listOf<String>()) }
+    var selectedLabels by rememberSaveable(stateSaver = StringListSaver) { mutableStateOf(listOf<String>()) }
+    var isCustomDated by rememberSaveable { mutableStateOf(false) }
+    var period by rememberSaveable { mutableStateOf("monthly") }
+    var startDate by rememberSaveable { mutableStateOf("") }
+    var endDate by rememberSaveable { mutableStateOf("") }
+    var saving by rememberSaveable { mutableStateOf(false) }
+    var errorText by rememberSaveable { mutableStateOf<String?>(null) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    var showStartDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showEndDatePicker by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = colors.bg,

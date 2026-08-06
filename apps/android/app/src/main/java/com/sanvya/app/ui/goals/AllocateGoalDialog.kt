@@ -3,6 +3,7 @@ package com.sanvya.app.ui.goals
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -25,11 +26,15 @@ fun AllocateGoalDialog(goal: GoalUiModel, viewModel: GoalsViewModel, onDismiss: 
     val savingsAccounts by viewModel.savingsAccounts.collectAsState()
     val scope = rememberCoroutineScope()
 
-    var sourceAccountId by remember { mutableStateOf(savingsAccounts.firstOrNull()?.id ?: "") }
-    var amountText by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-    var saving by remember { mutableStateOf(false) }
-    var errorText by remember { mutableStateOf<String?>(null) }
+    // rememberSaveable: keeps the entered amount/picked account across a
+    // configuration change while this dialog is open -- see
+    // docs/plans/native-mobile-apps.md's R1 / LIFE-2 ("dialogs stay open"),
+    // retrofitted 2026-08-06 (P3.19).
+    var sourceAccountId by rememberSaveable { mutableStateOf(savingsAccounts.firstOrNull()?.id ?: "") }
+    var amountText by rememberSaveable { mutableStateOf("") }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var saving by rememberSaveable { mutableStateOf(false) }
+    var errorText by rememberSaveable { mutableStateOf<String?>(null) }
 
     val actionLabel = if (goal.isEmergencyFund) "Add" else "Block"
     val remainingMajor = goal.remainingMinor / 100.0

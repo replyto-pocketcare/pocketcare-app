@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
+import com.sanvya.app.ui.StringListSaver
 import com.sanvya.app.ui.transactions.LabelPickerRow
 import kotlinx.coroutines.launch
 
@@ -58,17 +60,21 @@ fun EditBudgetScreen(
         return
     }
 
-    var name by remember(budget.id) { mutableStateOf(budget.rawName) }
-    var limitText by remember(budget.id) { mutableStateOf(budget.limitMajor) }
-    var thresholdText by remember(budget.id) { mutableStateOf(budget.thresholdPct.toString()) }
-    var alertTime by remember(budget.id) { mutableStateOf(budget.alertTimeLocal) }
-    var selectedCategoryIds by remember(budget.id) { mutableStateOf(budget.categoryIds) }
-    var selectedLabels by remember(budget.id) { mutableStateOf(budget.labelNames) }
-    var period by remember(budget.id) { mutableStateOf(budget.period) }
-    var saving by remember { mutableStateOf(false) }
-    var errorText by remember { mutableStateOf<String?>(null) }
-    var showTimePicker by remember { mutableStateOf(false) }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
+    // rememberSaveable (not remember): survives configuration change
+    // (fold/unfold, rotation) without losing in-progress edits -- see
+    // docs/plans/native-mobile-apps.md's R1 / LIFE-1..2, retrofitted
+    // 2026-08-06 (P3.19).
+    var name by rememberSaveable(budget.id) { mutableStateOf(budget.rawName) }
+    var limitText by rememberSaveable(budget.id) { mutableStateOf(budget.limitMajor) }
+    var thresholdText by rememberSaveable(budget.id) { mutableStateOf(budget.thresholdPct.toString()) }
+    var alertTime by rememberSaveable(budget.id) { mutableStateOf(budget.alertTimeLocal) }
+    var selectedCategoryIds by rememberSaveable(budget.id, stateSaver = StringListSaver) { mutableStateOf(budget.categoryIds) }
+    var selectedLabels by rememberSaveable(budget.id, stateSaver = StringListSaver) { mutableStateOf(budget.labelNames) }
+    var period by rememberSaveable(budget.id) { mutableStateOf(budget.period) }
+    var saving by rememberSaveable { mutableStateOf(false) }
+    var errorText by rememberSaveable { mutableStateOf<String?>(null) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    var showDeleteConfirm by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = colors.bg,

@@ -15,7 +15,7 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,9 +35,14 @@ private val DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateTimeField(value: LocalDateTime, onChange: (LocalDateTime) -> Unit, label: String = "Date") {
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-    var pendingDate by remember { mutableStateOf(value) }
+    // rememberSaveable: keeps the picker dialogs open (and the in-progress
+    // date pick, mid-flow between the date and time steps) across a
+    // configuration change -- see docs/plans/native-mobile-apps.md's R1 /
+    // LIFE-2 ("dialogs stay open"), retrofitted 2026-08-06 (P3.19).
+    // LocalDateTime is Serializable, so the default saver handles it.
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    var pendingDate by rememberSaveable { mutableStateOf(value) }
 
     OutlinedTextField(
         value = value.format(DISPLAY_FORMAT),

@@ -10,7 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.sanvya.app.data.repository.CategoryRow
@@ -29,7 +29,7 @@ fun CategoryPicker(
     selectedId: String?,
     onSelect: (String?) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     val roots = categories.filter { it.parentId == null }
     val label = categories.find { it.id == selectedId }?.let { cat ->
         val parent = categories.find { it.id == cat.parentId }

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -47,7 +48,14 @@ fun GoalsScreen(
 ) {
     val goals by viewModel.goals.collectAsState()
     val colors = LocalSanvyaColors.current
-    var allocatingGoal by remember { mutableStateOf<GoalUiModel?>(null) }
+    // Holds just the id (Bundle-savable), not the GoalUiModel itself (a
+    // plain data class isn't directly saveable) -- resolved back to the
+    // live model from `goals` below, so the allocate dialog stays open
+    // with the right goal across a configuration change. See
+    // docs/plans/native-mobile-apps.md's R1 / LIFE-2, retrofitted
+    // 2026-08-06 (P3.19).
+    var allocatingGoalId by rememberSaveable { mutableStateOf<String?>(null) }
+    val allocatingGoal = goals.find { it.id == allocatingGoalId }
 
     Scaffold(
         containerColor = colors.bg,
@@ -105,7 +113,7 @@ fun GoalsScreen(
                     GoalRowCard(
                         goal = goal,
                         onClick = { onEditGoal(goal.id) },
-                        onAllocate = { allocatingGoal = goal },
+                        onAllocate = { allocatingGoalId = goal.id },
                     )
                 }
             }
@@ -113,7 +121,7 @@ fun GoalsScreen(
     }
 
     allocatingGoal?.let { goal ->
-        AllocateGoalDialog(goal = goal, viewModel = viewModel, onDismiss = { allocatingGoal = null })
+        AllocateGoalDialog(goal = goal, viewModel = viewModel, onDismiss = { allocatingGoalId = null })
     }
 }
 
