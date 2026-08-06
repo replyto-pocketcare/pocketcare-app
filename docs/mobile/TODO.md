@@ -33,6 +33,21 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #9: Akhilesh: "Cannot find 'accountColorHex' in scope ios error." NEW bug class (not a
+               language/API mistake like every prior fix) -- Sanvya.xcodeproj/project.pbxproj uses
+               Xcode's classic explicit file-registration format, and 7 Swift files written via direct
+               filesystem writes (AccountColors, AccountFormComponents, AppDelegate, EditAccountView,
+               EditTransactionView, TransactionFormComponents, TransactionTileLogic) were never
+               registered in its PBXBuildFile/PBXFileReference/PBXGroup/PBXSourcesBuildPhase sections
+               -- meaning they were never compiled at all despite existing in git (confirmed
+               AppDelegate.swift is live code, referenced by SanvyaApp.swift's
+               @UIApplicationDelegateAdaptor, not dead weight). Fixed by hand-editing all 4 pbxproj
+               sections (14 new unique object IDs, zero collisions verified). Also confirmed a second
+               empty PocketCare.xcodeproj exists (no project.pbxproj) -- not the active project, leave
+               alone. Verified: brace/paren balance, reference-count pattern matches existing files,
+               zero remaining unregistered .swift files under App/. NOT yet re-verified by a real
+               Xcode build. New standing risk: every future Claude-authored .swift file in apps/ios
+               needs this same manual registration or it silently won't compile.
 2026-08-05 #8: Wrote docs/mobile/screen-specs/budgets.md from the real apps/web/app/budgets/page.tsx
                (392 lines) -- full create/edit field set (name, limit+currency, category/label
                multi-select, recurring-period-vs-custom-dates toggle, threshold%+alert-time w/
