@@ -362,11 +362,6 @@ private fun fmtDateLong(iso: String?): String = try {
     "—"
 }
 
-private fun formatMajorPlain(minor: Long): String {
-    val major = minor / 100.0
-    return if (major == Math.floor(major)) major.toLong().toString() else major.toString()
-}
-
 /** 1 -> "1st", 2 -> "2nd", ... day-of-month ordinal -- matches web's ordinal(). */
 private fun ordinal(n: Int): String {
     val v = n % 100

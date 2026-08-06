@@ -248,7 +248,7 @@ private fun EmiRowCard(
             }
             HorizontalDivider()
             if (isVariable) {
-                Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("EMI this month", fontSize = 11.sp, color = colors.text2)
                     OutlinedTextField(
                         value = amountText,
@@ -306,6 +306,7 @@ private fun Chip(text: String, tint: androidx.compose.ui.graphics.Color, onClick
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MarkPaidDialog(
     month: Int,

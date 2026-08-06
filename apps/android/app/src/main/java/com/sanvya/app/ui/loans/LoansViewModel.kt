@@ -90,8 +90,9 @@ class LoansViewModel : ViewModel(), KoinComponent {
                     val closed = tenure > 0 && remaining == 0
                     val range = loanRange(l.startDate, tenure)
                     val cur = l.currency.ifBlank { BASE_CURRENCY }
-                    if (l.emiAmount != null) {
-                        totalEmiBase += if (cur == BASE_CURRENCY) l.emiAmount else convert(money(l.emiAmount, cur), BASE_CURRENCY, rates(cur, BASE_CURRENCY)).amount
+                    val emiAmount = l.emiAmount
+                    if (emiAmount != null) {
+                        totalEmiBase += if (cur == BASE_CURRENCY) emiAmount else convert(money(emiAmount, cur), BASE_CURRENCY, rates(cur, BASE_CURRENCY)).amount
                     }
                     LoanUiModel(
                         id = l.id,

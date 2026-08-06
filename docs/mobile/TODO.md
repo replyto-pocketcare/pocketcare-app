@@ -18,7 +18,10 @@ Last session: 2026-08-06 — Loans (P3.8, task #27/#41/#42), both platforms, ful
                Finance.swift's stricter `manual:` label. Proactively found + fixed the identical
                (silent, non-erroring) duplication on Android too: deleted domain/loans/LoansModel.kt,
                repointed 4 files' imports to domain.finance.*. See #20 below. Both Loan domain-math
-               ports are now single-sourced from Finance.kt/.swift on both platforms.
+               ports are now single-sourced from Finance.kt/.swift on both platforms. Then a real
+               `./gradlew` failure in the Loans files (Row/horizontalAlignment, missing @OptIn on
+               MarkPaidDialog, duplicate formatMajorPlain, cross-module Long? smart-cast) -- fixed,
+               see #21 below. iOS side of Loans still unverified by Xcode.
                Investments (P3.10/P3.15, task #26) landed session #18 -- see that entry for its arc.
 Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3),
                Budgets (P3.4), Goals (P3.5a/b), Investments (P3.10a/P3.15a), Loans (P3.8a) real and
@@ -34,6 +37,24 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                stub) but had non-optional access on now-nullable fields (crash risk) and a non-
                functional mark-paid alert -- fully rewritten this session, not just audited.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #21: Real Android Gradle error pasted back: `:app:compileDebugKotlin` FAILED, 4 distinct
+               issues in the Loans files. `LoanDetailScreen.kt:251` "No parameter with name
+               'horizontalAlignment' found" -- a `Row` was given `horizontalAlignment` (Column-only
+               param); removed it. `LoanDetailScreen.kt:344/348/350` "experimental Material API" x3 --
+               `MarkPaidDialog` (a private composable) used ExposedDropdownMenuBox/Menu without its own
+               `@OptIn(ExperimentalMaterial3Api::class)` (the outer screen's opt-in doesn't propagate to
+               sibling composables); added the annotation directly on MarkPaidDialog.
+               `LoanDetailViewModel.kt:173/214/215/365` "Overload resolution ambiguity"/"Conflicting
+               overloads" for `formatMajorPlain` -- it declared its own private copy, colliding with
+               AddLoanScreen.kt's package-level `internal fun formatMajorPlain` (same package, same
+               signature); deleted the duplicate. `LoansViewModel.kt:94` "Long?  but Long expected" /
+               "Smart cast impossible... different module" -- `l.emiAmount` (nullable, declared in the
+               `data` module) can't be smart-cast across the module boundary even inside a null check;
+               bound it to a local `val` first. All 4 are from the same Loans build pass (task
+               #27/#41/#42), same root cause as most of this arc's post-build bugs -- self-reviewed
+               without a real compiler, caught only once Akhilesh ran a real `./gradlew` build. NOT yet
+               re-verified end-to-end; iOS side of Loans still unverified by Xcode. Next: Insights
+               (task #28), pending next real error or Akhilesh's go-ahead.
 2026-08-06 #20: Real Xcode error pasted back: `LoansModel.swift` — "Invalid redeclaration of
                'emiFromPrincipal'" (and AmortRow/Ymd/daysInMonth/emiDueDate/isDuePassed, plus
                "is ambiguous for type lookup" x2 and one "Incorrect argument labels" cascading from the
