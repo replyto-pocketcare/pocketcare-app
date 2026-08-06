@@ -24,6 +24,8 @@ import com.sanvya.app.ui.dashboard.DashboardScreen
 import com.sanvya.app.ui.goals.CreateGoalScreen
 import com.sanvya.app.ui.goals.EditGoalScreen
 import com.sanvya.app.ui.goals.GoalsScreen
+import com.sanvya.app.ui.investments.AddHoldingScreen
+import com.sanvya.app.ui.investments.InvestmentsScreen
 import com.sanvya.app.ui.transactions.CreateTransactionScreen
 import com.sanvya.app.ui.transactions.EditTransactionScreen
 import com.sanvya.app.ui.transactions.TransactionsScreen
@@ -55,7 +57,8 @@ import kotlinx.coroutines.launch
  * "accounts", "accounts/new", "accounts/{accountId}/edit", "transactions",
  * "transactions/new", "transactions/{transactionId}/edit", "budgets",
  * "budgets/new", "budgets/{budgetId}/edit", "goals", "goals/new",
- * "goals/{goalId}/edit". Every drawer item without a real screen yet
+ * "goals/{goalId}/edit", "investments", "investments/new?groupKey={groupKey}"
+ * (2026-08-06, task #26). Every drawer item without a real screen yet
  * routes to "coming_soon/{title}" (a
  * shared placeholder, matching iOS's own `PlaceholderView` for its
  * not-yet-built tabs) rather than a dead link or a silently-omitted menu
@@ -224,6 +227,25 @@ fun SanvyaNavHost() {
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
                 onDeleted = { navController.popBackStack("goals", inclusive = true) },
+            )
+        }
+        composable("investments") {
+            InvestmentsScreen(
+                onBack = { navController.popBackStack() },
+                onAddInvestment = { groupKey ->
+                    navController.navigate(if (groupKey != null) "investments/new?groupKey=$groupKey" else "investments/new")
+                },
+                onNoInvestmentAccount = { navController.navigate("accounts/new") },
+            )
+        }
+        composable(
+            "investments/new?groupKey={groupKey}",
+            arguments = listOf(navArgument("groupKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
+        ) { entry ->
+            AddHoldingScreen(
+                initialGroupKey = entry.arguments?.getString("groupKey"),
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
             )
         }
     }

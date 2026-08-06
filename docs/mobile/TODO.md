@@ -5,22 +5,78 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Goals (P3.5a/b), both platforms, fully wired + committed. See #17 below
-               and AUDIT_HISTORY.md's 2026-08-06 entry for the full arc (repository CRUD, iOS screens,
-               Android screens, "Planned Cashflow" split out as its own TODO row P3.5c after finding
-               it was wrongly merged into iOS's old GoalsView.swift). Budgets (P3.4) landed the prior
-               session (#16) -- see that entry for its own arc. Next up: Investments (task #26).
+Last session: 2026-08-06 — Investments (P3.10/P3.15, task #26), both platforms, fully wired + real
+               grouping/CRUD/funding writes. See #18 below and AUDIT_HISTORY.md's 2026-08-06 entry for
+               the full arc. Also: a lifecycle/rememberSaveable retrofit across Budgets/Goals (fold
+               config-change form-data loss), and two rounds of real Kotlin/Swift compiler-error fixes
+               pasted back by Akhilesh. Goals (P3.5a/b) landed session #17, Budgets (P3.4) session #16
+               -- see those entries for their own arcs.
 Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3),
-               Budgets (P3.4), Goals (P3.5a/b) real and wired into SanvyaNavHost. Everything else in
-               Phase 3 still TODO (no screens). NOT verified against a real Gradle build in this
-               sandbox (no JDK/Gradle here per plan §1.5) — next session or CI must run
-               `./gradlew build test` before trusting this compiles.
-iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions, Budgets, Goals
-               now match the real web specs. Every other Create*/New* form is still suspect --
-               CreateAccountView.swift, CreateTransactionView.swift, and CreateGoalView.swift ALL had
-               the "Save calls dismiss(), persists nothing" bug independently; assume any
-               not-yet-audited one has it too until checked.
+               Budgets (P3.4), Goals (P3.5a/b), Investments (P3.10a/P3.15a) real and wired into
+               SanvyaNavHost. Everything else in Phase 3 still TODO (no screens). NOT verified against
+               a real Gradle build in this sandbox (no JDK/Gradle here per plan §1.5) — next session or
+               CI must run `./gradlew build test` before trusting this compiles. Two real compile
+               errors (SaverUtils.kt generic-inference + wrong declared Saver type) were fixed via
+               Akhilesh's own Android Studio paste-backs this session, same loop expected for
+               Investments.
+iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions, Budgets, Goals,
+               Investments (P3.10b/P3.15b) now match the real web specs. Every other Create*/New* form
+               is still suspect -- CreateAccountView.swift, CreateTransactionView.swift, and
+               CreateGoalView.swift ALL had the "Save calls dismiss(), persists nothing" bug
+               independently; assume any not-yet-audited one has it too until checked. Investments'
+               old InvestmentsViewModel.swift/InvestmentsView.swift were real and WIRED (unlike
+               Android's dead-code stub) but read-only/ungrouped with a no-op "+" button -- fully
+               rewritten this session, not just audited.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #18: "continue with next changes" (task #26, Investments), interleaved with real Kotlin/
+               Swift compiler errors pasted back by Akhilesh mid-session. Wrote docs/mobile/
+               screen-specs/investments.md from apps/web/app/investments/page.tsx (321 lines) +
+               src/investments/model.ts + src/investments/write.ts + src/investments/AddDialog.tsx.
+               Found a real bug on BOTH platforms' pre-existing InvestmentsRepository.kt/.swift:
+               exchange/instrument_type/avg_cost were mapped as non-nullable via non-optional cursor
+               getters despite the schema and web's own HoldingRow treating all three as nullable --
+               fixed, and added the off_list/source_account_id/planned_id columns the Holding
+               struct/data class was missing entirely (schema already had them, no AppSchema/
+               PocketCareSchema change needed). Added domain/investments/InvestmentsModel.kt (Android)
+               and Domain/Sources/Domain/InvestmentsModel.swift (iOS): pure ports of buildGroups/
+               portfolioTotals/valuation/groupKeyOf/holdingLabel -- exchange-for-stocks /
+               asset-class-for-everything-else grouping, matching web exactly. Both repositories
+               gained addHolding/updateHolding/deleteHolding, with addHolding writing a REAL
+               transfer/adjustment transactions row (existing-vs-new funding choice), matching
+               write.ts's addHolding() -- not a cosmetic port, since skipping it would break ledger
+               integrity for any holding added on mobile (CLAUDE.md golden rule: balances derive from
+               an append-only ledger). Deferred (own TODO note in the spec): live market quotes/LTP
+               (so valuation always falls back to current_value ?? cost, same as an off-list holding
+               on web), the instrument catalog picker (every mobile-added holding is off_list=true),
+               SIP recurring-transfer setup, the dividend/projection panels, and the
+               allocation-donut/gain-bar charts.
+               Android: replaced the dead-code InvestmentsViewModel.kt (constructor-injected, no
+               Screen, no nav route -- same "reported DONE, actually never real" pattern as Budgets/
+               Goals' old ViewModels) with a real KoinComponent/by-inject() one; removed HoldingUiModel
+               from ui/UiModels.kt. Built InvestmentsScreen.kt (grand-total card, group tiles, in-screen
+               drill-in, inline edit/delete) and AddHoldingScreen.kt from scratch. Wired "investments"/
+               "investments/new?groupKey={groupKey}" into SanvyaNavHost.kt; NavDrawer.kt's Investments
+               item now routes there instead of comingSoonRoute.
+               iOS: InvestmentsView.swift/InvestmentsViewModel.swift were already real and wired into
+               MainTabView.swift (unlike Android) but read-only/ungrouped with a no-op "+" button --
+               fully rewritten, not just audited. New AddHoldingView.swift (Form-based sheet, mirrors
+               CreateGoalView.swift's pattern) presented via `.sheet(isPresented:)`; drill-in is local
+               `@State`, matching Android's own in-screen (not pushed-route) approach. Real compiler
+               errors caught mid-session on the OLD stub (Int64?/String? now-nullable-field mismatches,
+               a `Duration` vs `Double` ternary-inference error) were resolved by finishing the planned
+               full rewrite rather than patching the stub in place.
+               Separately this session (before Investments): a lifecycle/rememberSaveable retrofit
+               across CreateBudgetScreen.kt/EditBudgetScreen.kt/CreateGoalScreen.kt/EditGoalScreen.kt/
+               AllocateGoalDialog.kt + shared Transactions components (Akhilesh: "for a foldable phone
+               the text entered in the form must maintain the data across folds") -- Android
+               config-change recreates the Activity by default and bare `remember{}` doesn't survive
+               that, only `rememberSaveable`/ViewModel-backed state does; new SaverUtils.kt
+               (StringListSaver, a `listSaver<List<String>, Any>`) for the two multi-select list
+               fields. iOS assessed architecturally safe by default (SwiftUI `@State` is keyed to view
+               identity, survives trait-collection changes automatically -- confirmed via SwiftUI's
+               documented model, not per-screen testing). LIFE-4 (full process-death persistence, a
+               larger separate requirement) explicitly NOT done on either platform -- still open,
+               tracked in P3.19a/P3.19b below.
 2026-08-06 #17: "continue" (task #25, Goals). Wrote docs/mobile/screen-specs/goals.md from the real
                apps/web/app/goals/page.tsx (290 lines) + src/goals/GoalCelebration.tsx. Found iOS's
                pre-existing GoalsView.swift had invented a "Goals & Cashflow" combined segmented-tab
@@ -370,7 +426,7 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 | P3.7a / P3.7b | UI Slice S3: UPI Payment flow & manual copy fallback (PayViaUpi) | [M] | P3.6 | TODO — corrected 2026-08-05: falsely marked DONE, `PayViaUpiDialog.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, PayViaUpiSheet.swift) |
 | P3.8a / P3.8b | UI Slice S4: Receipt scanning & line-item participant allocation screen | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `ReceiptScanScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, ReceiptScanView.swift) |
 | P3.9a / P3.9b | UI Slice S4: Bank statement import & reconcile screen | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `StatementImportScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, StatementImportView.swift) |
-| P3.10a / P3.10b | UI Slice S5: Investment Portfolios & Holdings breakdown screen | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `InvestmentsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, InvestmentsView.swift) |
+| P3.10a / P3.10b | UI Slice S5: Investment Portfolios & Holdings breakdown screen | [M] | P3.1 | DONE (2026-08-06, task #26 — real grouped list/drill-in, InvestmentsScreen.kt + InvestmentsViewModel.kt, wired into SanvyaNavHost) / DONE (2026-08-06, real rewrite of InvestmentsView.swift/InvestmentsViewModel.swift — was wired but read-only/ungrouped before this pass) |
 | P3.11a / P3.11b | UI Slice S5: Credit Cards view & CreditCard.tsx face design mirror | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `CreditCardsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, CreditCardsView.swift) |
 | P3.12a / P3.12b | UI Slice S6: AI Financial Assistant chat interface & MicButton voice dictation | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `AssistantScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, AssistantView.swift) |
 
@@ -399,7 +455,7 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 | P3.12a / P3.12b | S3: UPI settle-up — Android: real Intent + chooser + copy/QR fallback; iOS: copy-first + QR; two-sided confirmation states, optimistic pending netting, disputed excluded everywhere | [H] | P3.10 | TODO — corrected 2026-08-05: falsely marked DONE, `PayViaUpiDialog.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, PayViaUpiSheet.swift) |
 | P3.13a / P3.13b | S4: Receipt scan — CameraX+ML Kit / AVFoundation+Vision **with word bounding boxes** → ported line-rebuild + reconciliation gate UI (review must not save until Σ lines == total) | [H] | P3.3 | TODO — corrected 2026-08-05: falsely marked DONE, `ReceiptScanScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, ReceiptScanView.swift) |
 | P3.14a / P3.14b | S4: Statement import — file pick, PDF text extraction (PdfRenderer / PDFKit), column-aware parse, bulk import w/ dedupe preview | [H] | P3.3 | TODO — corrected 2026-08-05: falsely marked DONE, `StatementImportScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, StatementImportView.swift) |
-| P3.15a / P3.15b | S5: Investments (holdings, add-investment dialog, FD/SIP) | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `InvestmentsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, InvestmentsView.swift) |
+| P3.15a / P3.15b | S5: Investments (holdings, add-investment dialog, FD/SIP) | [M] | P3.1 | DONE (2026-08-06, task #26 — add-investment dialog scoped down: real funding-transaction writes kept, live catalog picker + SIP recurring-transfer deferred, see docs/mobile/screen-specs/investments.md) / DONE (2026-08-06, same scope, AddHoldingView.swift) |
 | P3.16a / P3.16b | S5: Insights cards + month comparison (respect hide-amounts in every chart — the historical leak class) | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `InsightsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, InsightsView.swift) |
 | P3.17a / P3.17b | S5: Statements (premium, printable/share) + Search | [M] | P3.3, P3.7 | TODO — corrected 2026-08-05: falsely marked DONE, `StatementsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, StatementsView.swift) |
 | P3.18a / P3.18b | S6 (optional, last): Assistant — same edge function, native chat UI, SpeechRecognizer / SFSpeechRecognizer input | [M] | P3.7 | TODO — corrected 2026-08-05: falsely marked DONE, `AssistantScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, AssistantView.swift) |

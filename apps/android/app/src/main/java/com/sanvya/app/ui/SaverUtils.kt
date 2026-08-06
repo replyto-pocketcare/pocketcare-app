@@ -17,7 +17,7 @@ import androidx.compose.runtime.saveable.listSaver
  * `listSaver` stores/restores as a plain `List<String>`, which Compose's
  * Bundle-backed registry can hold directly.
  */
-val StringListSaver: Saver<List<String>, String> = listSaver(
-    save = { it },
-    restore = { it },
+val StringListSaver: Saver<List<String>, Any> = listSaver(
+    save = { list: List<String> -> list },
+    restore = { saved: List<String> -> saved },
 )
