@@ -26,6 +26,9 @@ import com.sanvya.app.ui.goals.EditGoalScreen
 import com.sanvya.app.ui.goals.GoalsScreen
 import com.sanvya.app.ui.investments.AddHoldingScreen
 import com.sanvya.app.ui.investments.InvestmentsScreen
+import com.sanvya.app.ui.loans.AddLoanScreen
+import com.sanvya.app.ui.loans.LoanDetailScreen
+import com.sanvya.app.ui.loans.LoansScreen
 import com.sanvya.app.ui.transactions.CreateTransactionScreen
 import com.sanvya.app.ui.transactions.EditTransactionScreen
 import com.sanvya.app.ui.transactions.TransactionsScreen
@@ -58,7 +61,10 @@ import kotlinx.coroutines.launch
  * "transactions/new", "transactions/{transactionId}/edit", "budgets",
  * "budgets/new", "budgets/{budgetId}/edit", "goals", "goals/new",
  * "goals/{goalId}/edit", "investments", "investments/new?groupKey={groupKey}"
- * (2026-08-06, task #26). Every drawer item without a real screen yet
+ * (2026-08-06, task #26), "loans", "loans/new", "loans/{loanId}"
+ * (2026-08-06, task #27 -- edit happens inline on the detail screen, not a
+ * separate route, matching web's [id]/page.tsx). Every drawer item without
+ * a real screen yet
  * routes to "coming_soon/{title}" (a
  * shared placeholder, matching iOS's own `PlaceholderView` for its
  * not-yet-built tabs) rather than a dead link or a silently-omitted menu
@@ -246,6 +252,30 @@ fun SanvyaNavHost() {
                 initialGroupKey = entry.arguments?.getString("groupKey"),
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
+            )
+        }
+        composable("loans") {
+            LoansScreen(
+                onBack = { navController.popBackStack() },
+                onAddLoan = { navController.navigate("loans/new") },
+                onOpenLoan = { id -> navController.navigate("loans/$id") },
+            )
+        }
+        composable("loans/new") {
+            AddLoanScreen(
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
+            )
+        }
+        composable(
+            "loans/{loanId}",
+            arguments = listOf(navArgument("loanId") { type = NavType.StringType }),
+        ) { entry ->
+            val loanId = entry.arguments?.getString("loanId") ?: ""
+            LoanDetailScreen(
+                loanId = loanId,
+                onBack = { navController.popBackStack() },
+                onDeleted = { navController.popBackStack("loans", inclusive = true) },
             )
         }
     }

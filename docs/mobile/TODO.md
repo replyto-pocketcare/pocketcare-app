@@ -5,29 +5,80 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Investments (P3.10/P3.15, task #26), both platforms, fully wired + real
-               grouping/CRUD/funding writes. See #18 below and AUDIT_HISTORY.md's 2026-08-06 entry for
-               the full arc. Also: a lifecycle/rememberSaveable retrofit across Budgets/Goals (fold
-               config-change form-data loss), and two rounds of real Kotlin/Swift compiler-error fixes
-               pasted back by Akhilesh. Goals (P3.5a/b) landed session #17, Budgets (P3.4) session #16
-               -- see those entries for their own arcs.
+Last session: 2026-08-06 — Loans (P3.8, task #27/#41/#42), both platforms, fully wired + real EMI
+               schedule/mark-paid/auto-mark/CRUD. Also fixed a real list-staleness bug found while
+               testing: Goals/Budgets lists didn't show a new/edited item until the whole screen was
+               torn down and recreated, because both ViewModels (both platforms) were driven by a
+               one-shot list()/reload() instead of a live db.watch() query -- fixed by adding
+               watchGoals()/watchAllocations()/watchBudgets() to both repositories and rewiring both
+               ViewModels. See #19 below and AUDIT_HISTORY.md's 2026-08-06 entries for both arcs.
+               Investments (P3.10/P3.15, task #26) landed session #18 -- see that entry for its arc.
 Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3),
-               Budgets (P3.4), Goals (P3.5a/b), Investments (P3.10a/P3.15a) real and wired into
-               SanvyaNavHost. Everything else in Phase 3 still TODO (no screens). NOT verified against
-               a real Gradle build in this sandbox (no JDK/Gradle here per plan §1.5) — next session or
-               CI must run `./gradlew build test` before trusting this compiles. Two real compile
-               errors (SaverUtils.kt generic-inference + wrong declared Saver type) were fixed via
-               Akhilesh's own Android Studio paste-backs this session, same loop expected for
-               Investments.
+               Budgets (P3.4), Goals (P3.5a/b), Investments (P3.10a/P3.15a), Loans (P3.8a) real and
+               wired into SanvyaNavHost. Everything else in Phase 3 still TODO (no screens). NOT
+               verified against a real Gradle build in this sandbox (no JDK/Gradle here per plan §1.5)
+               — next session or CI must run `./gradlew build test` before trusting this compiles.
 iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions, Budgets, Goals,
-               Investments (P3.10b/P3.15b) now match the real web specs. Every other Create*/New* form
-               is still suspect -- CreateAccountView.swift, CreateTransactionView.swift, and
-               CreateGoalView.swift ALL had the "Save calls dismiss(), persists nothing" bug
-               independently; assume any not-yet-audited one has it too until checked. Investments'
-               old InvestmentsViewModel.swift/InvestmentsView.swift were real and WIRED (unlike
-               Android's dead-code stub) but read-only/ungrouped with a no-op "+" button -- fully
-               rewritten this session, not just audited.
+               Investments (P3.10b/P3.15b), Loans (P3.8b) now match the real web specs. Every other
+               Create*/New* form is still suspect -- CreateAccountView.swift, CreateTransactionView.swift,
+               and CreateGoalView.swift ALL had the "Save calls dismiss(), persists nothing" bug
+               independently; assume any not-yet-audited one has it too until checked. Loans'
+               old LoansViewModel.swift/LoansView.swift were real and WIRED (unlike Android's dead-code
+               stub) but had non-optional access on now-nullable fields (crash risk) and a non-
+               functional mark-paid alert -- fully rewritten this session, not just audited.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #19: "continue with the next pages" (task #27, Loans), interrupted mid-Android-build by a
+               real Xcode compiler error (AddHoldingView.swift missing from project.pbxproj — fixed,
+               see #18's own registration precedent) and then by Akhilesh reporting a real runtime bug:
+               "When we come back from any form on any page the item does not show up instantly... on
+               android and ios". Investigated: DI is correctly singleton-scoped on both platforms (no
+               duplicate PowerSyncDatabase instances), writes are properly awaited before navigating
+               back, and Investments/Loans/Accounts/Dashboard/Transactions all use genuine db.watch()
+               reactive queries and were unaffected. Root cause isolated to GoalsViewModel.kt/.swift and
+               BudgetsViewModel.kt/.swift specifically: both were driven by a one-shot
+               list()/reload() suspend call, run once at init and again after each mutation on THAT
+               ViewModel instance only — since Add/Edit Goal/Budget are separate nav routes (Android) or
+               `.sheet(...)` presentations (iOS) with their OWN ViewModel instance, a save there never
+               reached the list screen's own instance, and (on iOS specifically) SwiftUI doesn't
+               reliably fire `.onDisappear`/`.onAppear` across a sheet's presentation/dismissal either,
+               so `start()`'s own `reload()` often never re-ran. Fixed on both platforms: added
+               `watchGoals()`/`watchAllocations()` to GoalsRepository and `watchBudgets()` to
+               BudgetRepository (real `db.watch()`, matching Investments/Loans' existing convention),
+               rewired both ViewModels to be driven by those live streams instead of an explicit
+               reload — a write from any screen now shows up immediately, no dependency on which
+               ViewModel instance performed it or on appear/disappear timing. Per-budget spend
+               (spentThisPeriod/categoryIds/labelNames) is still a one-shot read per row, recomputed on
+               every `budgets`-table change — covers create/edit/delete; a bare new transaction alone
+               won't retrigger it without a `budgets` row also changing (pre-existing scope, unrelated
+               to this fix, not attempted here).
+               Then resumed Loans (task #27/#41/#42) with the same live-watch pattern built in from the
+               start (no retrofit needed there — LoansViewModel/LoanDetailViewModel were already
+               combine()/collect()-driven from real watchLoans()/watchLoan()). Wrote domain/loans/
+               LoansModel.kt + Domain/Sources/Domain/LoansModel.swift (pure ports of emiFromPrincipal/
+               amortizationSchedule/emiDueDate/effectivePaidEmis from packages/core/finance/src/
+               index.ts). Fixed the same non-nullable-cursor-getter bug class (tenure_months/
+               emi_amount/start_date/emis_paid/emi_due_day/rate_type) in both LoansRepository.kt/.swift,
+               and added the emi_payments/emi_amounts/funding_account_id/alert_time_utc fields the
+               Loan model/struct was missing entirely (schema already had them). Android: real
+               LoansViewModel.kt (list + create) and new LoanDetailViewModel.kt (parameterless +
+               `select(id)` re-subscribe, matching the Budgets/Goals "Compose viewModel() takes no
+               constructor args" convention), LoansScreen.kt, AddLoanScreen.kt, LoanDetailScreen.kt,
+               EditLoanScreen.kt built from scratch; wired "loans"/"loans/new"/"loans/{loanId}" into
+               SanvyaNavHost.kt, NavDrawer.kt's Loans item now routes there. iOS: LoansViewModel.swift/
+               LoansView.swift were real+wired but broken (non-optional access on now-nullable fields,
+               non-functional mark-paid alert, a "Loans & Recurring" title that looks like invented
+               drift merging with a separate unbuilt "Recurring" item) — fully rewritten, not just
+               audited, plus new LoanDetailViewModel.swift/AddLoanView.swift/EditLoanView.swift;
+               detail is in-screen `@State`, matching Investments' own drill-in convention rather than
+               a pushed NavigationStack destination. Registered the 3 new Swift files in
+               project.pbxproj's 4 sections (verified via the established collision/reference-count
+               script). Wrote docs/mobile/screen-specs/loans.md from apps/web/app/loans/page.tsx (244
+               lines) + [id]/page.tsx (484 lines) + src/loans/ui.tsx + src/loans/funding.ts +
+               packages/core/finance/src/index.ts. Deferred, own TODO note in the spec: autoPost.ts
+               (background EMI auto-posting — no reliable background execution context on mobile
+               without additional infra) and settleEmis.ts (card-settlement-to-EMI matching — needs
+               Credit Cards, task #29, first). NOT yet re-verified by a real Gradle/Xcode build. Next:
+               Insights (task #28).
 2026-08-06 #18: "continue with next changes" (task #26, Investments), interleaved with real Kotlin/
                Swift compiler errors pasted back by Akhilesh mid-session. Wrote docs/mobile/
                screen-specs/investments.md from apps/web/app/investments/page.tsx (321 lines) +
@@ -448,7 +499,7 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 | P3.5a / P3.5b | S2: Financial Goals screen | [M] | P3.4 | DONE (2026-08-06, both platforms — see AUDIT_HISTORY.md) — NOT yet re-verified by a real Gradle/Xcode build (see P3.5c above for the split-out Planned Cashflow row; this duplicate table row predates that split) |
 | P3.6a / P3.6b | S1 leftover: Onboarding/walkthrough (keep the "not connected to your bank" copy faithfully) + auth screens (guest → OTP → Google; in-place guest upgrade UI) | [H] | P2.4 verified (P2.8) | TODO — corrected 2026-08-05: falsely marked DONE, `WalkthroughScreen.kt`/`LoginScreen.kt` do not exist in the repo (verified by direct file search) / DONE (2026-08-01, WalkthroughView.swift, LoginView.swift) |
 | P3.7a / P3.7b | S1 leftover: Settings-lite (currency, language, theme, hide-amounts) + the shared money formatter + premium **gate map port** (deferred from P1.7) wired via entitlements | [M] | P3.1 | DONE (2026-08-01, SettingsScreen.kt) / DONE (2026-08-01, SettingsView.swift) |
-| P3.8a / P3.8b | S2: Loans & recurring (EMI schedule view, mark-paid dialog, auto-post surfacing, recurring groups) | [M] | P3.5 | TODO — corrected 2026-08-05: falsely marked DONE, `LoansScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, LoansView.swift) |
+| P3.8a / P3.8b | S2: Loans & recurring (EMI schedule view, mark-paid dialog, auto-post surfacing, recurring groups) | [M] | P3.5 | DONE (2026-08-06, task #27/#41 — real EMI schedule/mark-paid/auto-mark/CRUD, LoansScreen.kt + LoanDetailScreen.kt + AddLoanScreen.kt + EditLoanScreen.kt, wired into SanvyaNavHost; auto-post/recurring-groups deferred, see docs/mobile/screen-specs/loans.md) / DONE (2026-08-06, task #27/#42 — full rewrite of LoansView.swift/LoansViewModel.swift, was wired but read-only/broken before this pass) |
 | P3.9a / P3.9b | S2: Credit cards (native card list, cycle/limit/due, settle-bill flow incl. covered-EMI confirm) | [M] | P3.3 | TODO — corrected 2026-08-05: falsely marked DONE, `CreditCardsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, CreditCardsView.swift) |
 | P3.10a / P3.10b | S3: Splits & groups (friends screen, group detail, who-owes-whom, Patterns w/ thresholds, person sheet) | [M] | P3.3 | TODO — corrected 2026-08-05: falsely marked DONE, `SplitsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, SplitsView.swift) |
 | P3.11a / P3.11b | S3: Invite deep links — App Links / Universal Links for `/join?token=`, token survives auth, no redirect loop (needs real domain — see Decisions) | [H] | P3.6, P3.10 | DONE (2026-08-01, sanvya.app) |

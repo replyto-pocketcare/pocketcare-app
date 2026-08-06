@@ -84,6 +84,20 @@ public final class BudgetRepository: @unchecked Sendable {
         self.db = db
     }
 
+    private func budgetMapper(_ cursor: SqlCursor) throws -> BudgetLike {
+        BudgetLike(
+            id: try cursor.getString(name: "id"),
+            name: try cursor.getStringOptional(name: "name"),
+            period: try cursor.getString(name: "period"),
+            startDate: try cursor.getStringOptional(name: "start_date"),
+            endDate: try cursor.getStringOptional(name: "end_date"),
+            limitAmount: try cursor.getInt64(name: "limit_amount"),
+            currency: try cursor.getString(name: "currency"),
+            thresholdPct: Int(try cursor.getInt64(name: "threshold_pct")),
+            alertTimeUtc: try cursor.getStringOptional(name: "alert_time_utc")
+        )
+    }
+
     public func list() async throws -> [BudgetLike] {
         try await db.getAll(
             sql: """
@@ -91,19 +105,24 @@ public final class BudgetRepository: @unchecked Sendable {
                 FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC
                 """,
             parameters: []
-        ) { cursor in
-            BudgetLike(
-                id: try cursor.getString(name: "id"),
-                name: try cursor.getStringOptional(name: "name"),
-                period: try cursor.getString(name: "period"),
-                startDate: try cursor.getStringOptional(name: "start_date"),
-                endDate: try cursor.getStringOptional(name: "end_date"),
-                limitAmount: try cursor.getInt64(name: "limit_amount"),
-                currency: try cursor.getString(name: "currency"),
-                thresholdPct: Int(try cursor.getInt64(name: "threshold_pct")),
-                alertTimeUtc: try cursor.getStringOptional(name: "alert_time_utc")
-            )
-        }
+        ) { cursor in try self.budgetMapper(cursor) }
+    }
+
+    /// Live version of [list] -- re-emits on any local write to `budgets`,
+    /// regardless of which repository/ViewModel instance performed it.
+    /// Added 2026-08-06 to fix a list-staleness bug: the list screen used
+    /// to only refresh via an explicit `reload()` call from `.onAppear`,
+    /// which doesn't reliably re-fire across a `.sheet(...)` presentation/
+    /// dismissal in SwiftUI -- see AUDIT_HISTORY.md's 2026-08-06 entry.
+    public func watchBudgets() throws -> AsyncThrowingStream<[BudgetLike], Error> {
+        try db.watch(
+            sql: """
+                SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct, alert_time_utc
+                FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC
+                """,
+            parameters: [],
+            mapper: budgetMapper
+        )
     }
 
     // ---- writes ----

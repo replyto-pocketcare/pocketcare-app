@@ -38,6 +38,9 @@
 		9CD5DB1010504C904AC2D74D /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = CE17BFC806BF2E37894779BA /* Domain */; };
 		9F5482EBFE2794C08BCB6F62 /* InvestmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76D85FFF529896EDB5EAE57 /* InvestmentsView.swift */; };
 		266E95C5981990EA5EAABDFB /* AddHoldingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044841749A5D243390B2ACA8 /* AddHoldingView.swift */; };
+		E6263931BE427FD37FF47BC6 /* AddLoanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54900F3951B6727A69A6B2D /* AddLoanView.swift */; };
+		66285737F7530E6FA2B2D0B7 /* EditLoanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3852DD501C24712241819ABC /* EditLoanView.swift */; };
+		D6B970C37259BB032F44536B /* LoanDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40071E38768FF286EC83B869 /* LoanDetailViewModel.swift */; };
 		A21C0BABF7B08BF4B5D50E12 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FEB87EED1AD674B697784C4 /* MainTabView.swift */; };
 		A76E503A6CD81070F114F655 /* AppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B906CF274F8B2527E5F4A51A /* AppTests.swift */; };
 		A7A15245AD2081AAF09B2B41 /* AppModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = E37DD678765D9BB5AFF503CA /* AppModule.swift */; };
@@ -112,6 +115,9 @@
 		9AF03F3005C2859DAC8D4803 /* CreditCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditCardsView.swift; sourceTree = "<group>"; };
 		A76D85FFF529896EDB5EAE57 /* InvestmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentsView.swift; sourceTree = "<group>"; };
 		044841749A5D243390B2ACA8 /* AddHoldingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddHoldingView.swift; sourceTree = "<group>"; };
+		E54900F3951B6727A69A6B2D /* AddLoanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLoanView.swift; sourceTree = "<group>"; };
+		3852DD501C24712241819ABC /* EditLoanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditLoanView.swift; sourceTree = "<group>"; };
+		40071E38768FF286EC83B869 /* LoanDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoanDetailViewModel.swift; sourceTree = "<group>"; };
 		B3E9F8A6320B3216BC615990 /* LoansView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoansView.swift; sourceTree = "<group>"; };
 		B7B68564BB9C98C1EE594700 /* CreditCardsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditCardsViewModel.swift; sourceTree = "<group>"; };
 		B906CF274F8B2527E5F4A51A /* AppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTests.swift; sourceTree = "<group>"; };
@@ -175,6 +181,7 @@
 				90BA57C3B649E1E876D3D892 /* GoalsViewModel.swift */,
 				3925D6D56F247855D435CD0C /* InsightsViewModel.swift */,
 				3798E16CDCFD2A7C67011126 /* InvestmentsViewModel.swift */,
+				40071E38768FF286EC83B869 /* LoanDetailViewModel.swift */,
 				7ECBBB8B29E0FB71E5C6B2B7 /* LoansViewModel.swift */,
 				E23B5B611431A99EE080D739 /* SplitsViewModel.swift */,
 				D297DDA0E17C04F845BDF20D /* TransactionsViewModel.swift */,
@@ -227,6 +234,8 @@
 				C9D7AE1214A8F14892C18B14 /* InsightsView.swift */,
 				A76D85FFF529896EDB5EAE57 /* InvestmentsView.swift */,
 				044841749A5D243390B2ACA8 /* AddHoldingView.swift */,
+				E54900F3951B6727A69A6B2D /* AddLoanView.swift */,
+				3852DD501C24712241819ABC /* EditLoanView.swift */,
 				B3E9F8A6320B3216BC615990 /* LoansView.swift */,
 				2007CD601C653012EF90181D /* LoginView.swift */,
 				4FEB87EED1AD674B697784C4 /* MainTabView.swift */,
@@ -434,6 +443,9 @@
 				30D5CDDB1869D8FDF140F80B /* InvestmentsViewModel.swift in Sources */,
 				D9BDBB714DE26C5F90685BFC /* LoansView.swift in Sources */,
 				9159B4204F2293A06349F22A /* LoansViewModel.swift in Sources */,
+				E6263931BE427FD37FF47BC6 /* AddLoanView.swift in Sources */,
+				66285737F7530E6FA2B2D0B7 /* EditLoanView.swift in Sources */,
+				D6B970C37259BB032F44536B /* LoanDetailViewModel.swift in Sources */,
 				125EF445DFE578514E91705D /* LoginView.swift in Sources */,
 				A21C0BABF7B08BF4B5D50E12 /* MainTabView.swift in Sources */,
 				3B2866B4A6AA1A8D848ABF3C /* NavModels.swift in Sources */,

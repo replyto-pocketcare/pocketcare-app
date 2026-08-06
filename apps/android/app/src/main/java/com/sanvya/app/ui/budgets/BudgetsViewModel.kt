@@ -90,12 +90,27 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             ledgerRepository.watchLabels().collect { rows -> _labelNames.value = rows.map { it.name } }
         }
-        viewModelScope.launch { reload() }
+        viewModelScope.launch {
+            budgetRepository.watchBudgets().collect { list -> rebuild(list) }
+        }
     }
 
-    suspend fun reload() {
+    /** Recomputes the list's UI rows (spend/scope/progress) whenever
+     * [budgetRepository]'s live `budgets` watch emits -- i.e. on any local
+     * write from any screen, not just this ViewModel's own instance. Fixed
+     * 2026-08-06: this used to be a suspend `reload()` called once at init
+     * and again explicitly after each mutation, which only ever updated
+     * THIS instance -- since Add/Edit Budget are separate nav routes with
+     * their own BudgetsViewModel, a save there never reached the list
+     * screen's instance, so new/edited budgets didn't appear until the
+     * whole "budgets" route was torn down and recreated. Per-budget spend
+     * (spentThisPeriod/categoryIds/labelNames) is still a one-shot suspend
+     * read per row -- it recomputes on every `budgets`-table change, which
+     * covers create/edit/delete, but won't itself react to a new
+     * transaction changing spend without a `budgets` row also changing
+     * (pre-existing scope, unrelated to this fix). */
+    private suspend fun rebuild(list: List<BudgetLike>) {
         try {
-            val list = budgetRepository.list()
             val today = LocalDate.now(ZoneOffset.UTC)
             val uis = list.map { b ->
                 val spent = budgetRepository.spentThisPeriod(b, today)
@@ -180,7 +195,6 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
                 alertTimeUtc = localToUtcTime(alertTimeLocal),
             )
             budgetRepository.writeScope(userId, id, categoryIds, labelNamesInput)
-            reload()
             null
         } catch (e: Exception) {
             "Couldn't create the budget: ${e.message}"
@@ -213,7 +227,6 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
                 alertTimeUtc = localToUtcTime(alertTimeLocal),
             )
             budgetRepository.writeScope(userId, id, categoryIds, labelNamesInput)
-            reload()
             null
         } catch (e: Exception) {
             "Couldn't save changes: ${e.message}"
@@ -224,7 +237,6 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             try {
                 budgetRepository.delete(id)
-                reload()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

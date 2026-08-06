@@ -3,12 +3,15 @@ package com.sanvya.app.ui.goals
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.auth.AuthRepository
+import com.sanvya.app.data.repository.Goal
+import com.sanvya.app.data.repository.GoalAllocation
 import com.sanvya.app.data.repository.GoalsRepository
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.ui.budgets.localToUtcTime
 import com.sanvya.app.ui.budgets.utcToLocalTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -50,8 +53,19 @@ data class SavingsAccountOption(val id: String, val name: String)
  * reactive subscription to allocation changes. Rewritten to
  * KoinComponent/by-inject() (matches BudgetsViewModel.kt's established
  * convention -- constructor injection doesn't work with this app's plain
- * `viewModel()` Compose default factory) with one-shot suspend reads +
- * explicit reload(), matching BudgetsViewModel.kt's reload() pattern.
+ * `viewModel()` Compose default factory).
+ *
+ * Fixed 2026-08-06 (list staleness bug): this used to run one-shot suspend
+ * reads (`goalsRepository.list()`/`listAllocations()`) once at init and on
+ * an explicit `reload()` call after each mutation. Since Add/Edit Goal are
+ * separate nav routes with their own GoalsViewModel instance, saving there
+ * called reload() on THAT instance, not this list screen's -- so a new/
+ * edited goal never appeared here until the whole "goals" route was torn
+ * down and recreated (e.g. by navigating elsewhere and back). Now driven
+ * entirely by GoalsRepository.watchGoals()/watchAllocations() (real
+ * db.watch(), same pattern as InvestmentsViewModel/LoansViewModel), so any
+ * write from any screen shows up here immediately without an explicit
+ * reload.
  */
 class GoalsViewModel : ViewModel(), KoinComponent {
     private val goalsRepository: GoalsRepository by inject()
@@ -68,18 +82,20 @@ class GoalsViewModel : ViewModel(), KoinComponent {
 
     init {
         viewModelScope.launch {
-            ledgerRepository.watchAccounts(includeArchived = false).collect { rows ->
-                _savingsAccounts.value = rows.filter { it.type == "savings" }.map { SavingsAccountOption(it.id, it.name) }
+            val userId = authRepository.currentUserId.value ?: return@launch
+            combine(
+                goalsRepository.watchGoals(userId),
+                goalsRepository.watchAllocations(userId),
+                ledgerRepository.watchAccounts(includeArchived = false),
+            ) { goals, allocs, accounts -> Triple(goals, allocs, accounts) }.collect { (dbGoals, allocs, accounts) ->
+                _savingsAccounts.value = accounts.filter { it.type == "savings" }.map { SavingsAccountOption(it.id, it.name) }
+                buildGoalsUi(dbGoals, allocs)
             }
         }
-        viewModelScope.launch { reload() }
     }
 
-    suspend fun reload() {
-        val userId = authRepository.currentUserId.value ?: return
+    private fun buildGoalsUi(dbGoals: List<Goal>, allocs: List<GoalAllocation>) {
         try {
-            val dbGoals = goalsRepository.list(userId)
-            val allocs = goalsRepository.listAllocations(userId)
             fun saved(goalId: String): Long = allocs.filter { it.goalId == goalId }.sumOf { it.amountBlocked }
 
             val ef = dbGoals.firstOrNull { it.isEmergencyFund }
@@ -128,7 +144,6 @@ class GoalsViewModel : ViewModel(), KoinComponent {
                 priority = _goals.value.size.toLong(),
                 alertTimeUtc = localToUtcTime(alertTimeLocal),
             )
-            reload()
             null
         } catch (e: Exception) {
             "Couldn't create the goal: ${e.message}"
@@ -145,7 +160,6 @@ class GoalsViewModel : ViewModel(), KoinComponent {
                 targetAmount = Math.round(targetMajor * 100),
                 alertTimeUtc = localToUtcTime(alertTimeLocal),
             )
-            reload()
             null
         } catch (e: Exception) {
             "Couldn't save changes: ${e.message}"
@@ -158,7 +172,6 @@ class GoalsViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             try {
                 goalsRepository.delete(id)
-                reload()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -176,7 +189,6 @@ class GoalsViewModel : ViewModel(), KoinComponent {
         if (capped <= 0) return null
         return try {
             goalsRepository.createAllocation(userId, goalId, sourceAccountId, capped)
-            reload()
             null
         } catch (e: Exception) {
             "Couldn't allocate funds: ${e.message}"

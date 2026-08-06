@@ -21,6 +21,7 @@ import com.powersync.db.getStringOptional
 import com.sanvya.app.domain.budget.periodBounds
 import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.money
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.ZoneOffset
 
@@ -44,24 +45,40 @@ private fun isoMidnight(date: LocalDate): String =
 
 class BudgetRepository(private val db: PowerSyncDatabase) {
 
+    private val budgetMapper: (com.powersync.db.SqlCursor) -> BudgetLike = { cursor ->
+        BudgetLike(
+            id = cursor.getString("id"),
+            name = cursor.getStringOptional("name"),
+            period = cursor.getString("period"),
+            startDate = cursor.getStringOptional("start_date"),
+            endDate = cursor.getStringOptional("end_date"),
+            limitAmount = cursor.getLong("limit_amount"),
+            currency = cursor.getString("currency"),
+            thresholdPct = cursor.getLong("threshold_pct").toInt(),
+            alertTimeUtc = cursor.getStringOptional("alert_time_utc"),
+        )
+    }
+
     suspend fun list(): List<BudgetLike> = db.getAll(
         sql = """
             SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct, alert_time_utc
             FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC
             """.trimIndent(),
-        mapper = { cursor ->
-            BudgetLike(
-                id = cursor.getString("id"),
-                name = cursor.getStringOptional("name"),
-                period = cursor.getString("period"),
-                startDate = cursor.getStringOptional("start_date"),
-                endDate = cursor.getStringOptional("end_date"),
-                limitAmount = cursor.getLong("limit_amount"),
-                currency = cursor.getString("currency"),
-                thresholdPct = cursor.getLong("threshold_pct").toInt(),
-                alertTimeUtc = cursor.getStringOptional("alert_time_utc"),
-            )
-        },
+        mapper = budgetMapper,
+    )
+
+    /** Live version of [list] -- re-emits on any local write to `budgets`,
+     * regardless of which ViewModel/repository instance performed it.
+     * Added 2026-08-06 to fix a list-staleness bug: the list screen used to
+     * only refresh via an explicit `reload()` call, which the separate Add/
+     * Edit Budget screen's own BudgetsViewModel instance never triggered on
+     * this one -- see AUDIT_HISTORY.md's 2026-08-06 entry. */
+    fun watchBudgets(): Flow<List<BudgetLike>> = db.watch(
+        sql = """
+            SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct, alert_time_utc
+            FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC
+            """.trimIndent(),
+        mapper = budgetMapper,
     )
 
     // ---- writes ----

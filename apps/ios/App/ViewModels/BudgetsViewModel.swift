@@ -11,6 +11,20 @@ import Data
 /// (see BudgetRepository.swift), so this ViewModel reads real category/label
 /// names via LedgerRepository.watchCategories()/watchLabels() (same pattern
 /// TransactionsViewModel already established) instead of faking them.
+///
+/// Fixed 2026-08-06 (list staleness bug): `budgets` used to be populated by
+/// a one-shot `reload()` called from `.onAppear { viewModel.start() }`.
+/// Add/Edit Budget are `.sheet(...)` presentations -- SwiftUI does not
+/// reliably fire `.onDisappear`/`.onAppear` on the presenting view across a
+/// sheet's presentation/dismissal, so `start()` (and its `reload()`) often
+/// never ran again after the sheet closed, leaving a newly created/edited
+/// budget invisible until the whole screen was torn down and recreated some
+/// other way. Now `budgets` is driven by BudgetRepository.watchBudgets()
+/// (real db.watch()) -- per-budget spend/scope (spentThisPeriod/
+/// categoryIds/labelNames) is still a one-shot read per row, recomputed on
+/// every `budgets`-table change (covers create/edit/delete; a new
+/// transaction alone won't retrigger this without a `budgets` row also
+/// changing -- pre-existing scope, unrelated to this fix).
 @Observable
 @MainActor
 public final class BudgetsViewModel {
@@ -72,7 +86,6 @@ public final class BudgetsViewModel {
 
     public func start() {
         cancel()
-        Task { await reload() }
         let catTask = Task {
             do {
                 for try await rows in try ledgerRepository.watchCategories() {
@@ -91,7 +104,17 @@ public final class BudgetsViewModel {
                 print("Error watching labels: \(error)")
             }
         }
-        tasks = [catTask, labelTask]
+        let budgetsTask = Task {
+            do {
+                for try await list in try budgetRepository.watchBudgets() {
+                    await rebuild(list)
+                }
+            } catch {
+                print("Failed to watch budgets: \(error)")
+                self.errorMessage = "Couldn't load budgets."
+            }
+        }
+        tasks = [catTask, labelTask, budgetsTask]
     }
 
     public func cancel() {
@@ -99,9 +122,11 @@ public final class BudgetsViewModel {
         tasks.removeAll()
     }
 
-    public func reload() async {
+    /// Recomputes the list's UI rows (spend/scope/progress) whenever
+    /// BudgetRepository's live `budgets` watch emits -- see the type doc
+    /// comment.
+    private func rebuild(_ list: [BudgetLike]) async {
         do {
-            let list = try await budgetRepository.list()
             let today = todayYmd()
             var uis: [BudgetUiModel] = []
             for b in list {
@@ -195,7 +220,6 @@ public final class BudgetsViewModel {
                 alertTimeUtc: localToUtcTime(alertTimeLocal)
             )
             try await budgetRepository.writeScope(userId: userId, budgetId: id, categoryIds: categoryIds, labelNames: labelNames)
-            await reload()
             return nil
         } catch {
             return "Couldn't create the budget: \(error.localizedDescription)"
@@ -230,7 +254,6 @@ public final class BudgetsViewModel {
                 alertTimeUtc: localToUtcTime(alertTimeLocal)
             )
             try await budgetRepository.writeScope(userId: userId, budgetId: id, categoryIds: categoryIds, labelNames: labelNames)
-            await reload()
             return nil
         } catch {
             return "Couldn't save changes: \(error.localizedDescription)"
@@ -240,7 +263,6 @@ public final class BudgetsViewModel {
     public func delete(id: String) async {
         do {
             try await budgetRepository.delete(id: id)
-            await reload()
         } catch {
             print("Failed to delete budget: \(error)")
         }

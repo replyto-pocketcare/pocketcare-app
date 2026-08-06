@@ -4,12 +4,20 @@ import PowerSync
 /// Read/write facade over goals + goal_allocations, matching
 /// apps/web/app/goals/page.tsx per docs/mobile/screen-specs/goals.md. Was
 /// read-only (watchGoals/watchGoalAllocations only, no create/update/
-/// delete/allocate) before this pass (2026-08-06, task #25). Mirrors
-/// Android's GoalsRepository.kt field-for-field, including the switch from
-/// per-goal watchGoalAllocations (an N+1 pattern the old ViewModel called
-/// with `.firstOrNull()`-equivalent, i.e. never actually reactive) to a
-/// single one-shot list(userId)/listAllocations(userId) pair driven by an
-/// explicit reload(), matching BudgetsViewModel's established convention.
+/// delete/allocate) before this pass (2026-08-06, task #25), then briefly
+/// switched to a one-shot list(userId)/listAllocations(userId) pair driven
+/// by an explicit reload() (matching BudgetsViewModel's convention at the
+/// time). That reload()-only approach turned out to be the root cause of a
+/// real bug found 2026-08-06: since Add/Edit Goal are separate screens with
+/// their own GoalsViewModel instance, saving there never called reload() on
+/// the list screen's own (different) instance, so a new/edited goal didn't
+/// appear until the whole Goals screen was torn down and recreated (e.g. by
+/// navigating elsewhere and back). Fixed by adding real
+/// watchGoals/watchAllocations (db.watch, same pattern as
+/// InvestmentsRepository/LoansRepository) so the list is driven by a live
+/// query against the actual table instead of a manually-triggered snapshot
+/// -- see AUDIT_HISTORY.md's 2026-08-06 "list staleness" entry. Mirrors
+/// Android's GoalsRepository.kt field-for-field.
 public struct Goal: Identifiable, Sendable {
     public let id: String
     public let userId: String
@@ -36,13 +44,39 @@ public actor GoalsRepository {
         self.db = db
     }
 
+    private func goalMapper(cursor: SqlCursor) throws -> Goal {
+        Goal(
+            id: try cursor.getString(name: "id"),
+            userId: try cursor.getString(name: "user_id"),
+            name: try cursor.getString(name: "name"),
+            targetAmount: try cursor.getInt64(name: "target_amount"),
+            currency: try cursor.getString(name: "currency"),
+            priority: try cursor.getInt64(name: "priority"),
+            isEmergencyFund: (try cursor.getBooleanOptional(name: "is_emergency_fund")) ?? false,
+            alertTimeUtc: try cursor.getStringOptional(name: "alert_time_utc")
+        )
+    }
+
+    private func allocationMapper(cursor: SqlCursor) throws -> GoalAllocation {
+        GoalAllocation(
+            id: try cursor.getString(name: "id"),
+            userId: try cursor.getString(name: "user_id"),
+            goalId: try cursor.getString(name: "goal_id"),
+            sourceAccountId: try cursor.getString(name: "source_account_id"),
+            amountBlocked: try cursor.getInt64(name: "amount_blocked")
+        )
+    }
+
     /// Matches web's `ORDER BY is_emergency_fund DESC, priority` (EF goal
     /// always first). Construction is inlined in the trailing closure
-    /// (rather than a separate actor-isolated private mapper method called
-    /// via `self.`) matching BudgetRepository.swift's `list()` -- the only
+    /// (rather than calling the actor-isolated `goalMapper` via `self.`)
+    /// matching BudgetRepository.swift's `list()` -- the only
     /// confirmed-working `db.getAll` call shape in this package; `getAll`
     /// takes a trailing closure, not a labeled `mapper:` (unlike `db.watch`,
-    /// which does, see `LoansRepository.swift`'s `watchLoans`).
+    /// which does and is fine calling a bare actor-isolated method
+    /// reference, see `LoansRepository.swift`'s `watchLoans`/this file's
+    /// `watchGoals` below -- kept deliberately separate from `getAll`'s
+    /// closure shape rather than unifying them, since that's untested).
     public func list(userId: String) async throws -> [Goal] {
         try await db.getAll(
             sql: "SELECT * FROM goals WHERE deleted_at IS NULL AND user_id = ? ORDER BY is_emergency_fund DESC, priority",
@@ -77,6 +111,27 @@ public actor GoalsRepository {
                 amountBlocked: try cursor.getInt64(name: "amount_blocked")
             )
         }
+    }
+
+    /// Live version of [list] -- re-emits on any local write to `goals`,
+    /// regardless of which repository/ViewModel instance performed it.
+    /// Added 2026-08-06 to fix list staleness (see the type doc comment).
+    public func watchGoals(userId: String) throws -> AsyncThrowingStream<[Goal], Error> {
+        try db.watch(
+            sql: "SELECT * FROM goals WHERE deleted_at IS NULL AND user_id = ? ORDER BY is_emergency_fund DESC, priority",
+            parameters: [userId],
+            mapper: goalMapper
+        )
+    }
+
+    /// Live version of [listAllocations]. Added 2026-08-06 to fix list
+    /// staleness (see [watchGoals]).
+    public func watchAllocations(userId: String) throws -> AsyncThrowingStream<[GoalAllocation], Error> {
+        try db.watch(
+            sql: "SELECT * FROM goal_allocations WHERE deleted_at IS NULL AND user_id = ?",
+            parameters: [userId],
+            mapper: allocationMapper
+        )
     }
 
     /// Matches web's addGoal(): priority = caller-supplied (current goal

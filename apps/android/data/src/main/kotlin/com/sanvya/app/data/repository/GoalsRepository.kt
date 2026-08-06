@@ -6,6 +6,7 @@ import com.powersync.db.getBooleanOptional
 import com.powersync.db.getLong
 import com.powersync.db.getString
 import com.powersync.db.getStringOptional
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Read/write facade over goals + goal_allocations, matching
@@ -13,10 +14,18 @@ import com.powersync.db.getStringOptional
  * Was list()-free (only per-goal `watchGoalAllocations`, called in an N+1
  * loop by the old placeholder GoalsViewModel using `.firstOrNull()` --
  * meaning it never actually re-observed allocation changes) before this
- * pass (2026-08-06, task #25). Switched to one-shot suspend reads +
- * explicit ViewModel-driven reload(), matching BudgetRepository's own
- * convention exactly, rather than a Flow the old code wasn't using
- * reactively anyway.
+ * pass (2026-08-06, task #25), then briefly used one-shot suspend reads +
+ * explicit ViewModel-driven reload() (matching BudgetRepository's own
+ * convention). That reload()-only approach turned out to be the root
+ * cause of a real bug found 2026-08-06: since Add/Edit Goal are separate
+ * nav routes with their own GoalsViewModel instance, a save there never
+ * called reload() on the LIST screen's own (different) instance, so new/
+ * edited goals didn't appear until the whole "goals" route was torn down
+ * and recreated (e.g. by navigating elsewhere and back). Fixed by adding
+ * real `watchGoals`/`watchAllocations` (db.watch, same pattern as
+ * InvestmentsRepository/LoansRepository) so the list is driven by a live
+ * query against the actual table instead of a manually-triggered snapshot
+ * -- see AUDIT_HISTORY.md's 2026-08-06 "list staleness" entry.
  */
 data class Goal(
     val id: String,
@@ -70,6 +79,24 @@ class GoalsRepository(private val db: PowerSyncDatabase) {
      * (a single `goal_allocations` query, `saved(goalId)` filters+reduces
      * client-side), avoiding the old N+1-per-goal pattern. */
     suspend fun listAllocations(userId: String): List<GoalAllocation> = db.getAll(
+        sql = "SELECT * FROM goal_allocations WHERE deleted_at IS NULL AND user_id = ?",
+        parameters = listOf(userId),
+        mapper = ::allocationMapper,
+    )
+
+    /** Live version of [list] -- re-emits on any local write to `goals`,
+     * regardless of which ViewModel/repository instance performed it
+     * (single db.watch() subscription against the real table, not a
+     * cached snapshot). Added 2026-08-06 to fix list staleness. */
+    fun watchGoals(userId: String): Flow<List<Goal>> = db.watch(
+        sql = "SELECT * FROM goals WHERE deleted_at IS NULL AND user_id = ? ORDER BY is_emergency_fund DESC, priority",
+        parameters = listOf(userId),
+        mapper = ::goalMapper,
+    )
+
+    /** Live version of [listAllocations]. Added 2026-08-06 to fix list
+     * staleness (see [watchGoals]). */
+    fun watchAllocations(userId: String): Flow<List<GoalAllocation>> = db.watch(
         sql = "SELECT * FROM goal_allocations WHERE deleted_at IS NULL AND user_id = ?",
         parameters = listOf(userId),
         mapper = ::allocationMapper,

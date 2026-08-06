@@ -17,6 +17,20 @@ import Data
 /// web feature/drawer item with no source read yet, out of scope here
 /// (see the spec's header note; same class of drift as the removed
 /// Dashboard "Recent Activity" section).
+///
+/// Fixed 2026-08-06 (list staleness bug): `goals` used to be populated by a
+/// one-shot `reload()` called from `init()` and again from `.onAppear {
+/// viewModel.start() }`. Add/Edit/Allocate Goal are `.sheet(...)`
+/// presentations in GoalsView -- SwiftUI does not reliably fire
+/// `.onDisappear`/`.onAppear` on the presenting view across a sheet's
+/// presentation/dismissal, so `start()` (and its `reload()`) often never
+/// ran again after the sheet closed, leaving a newly created/edited goal
+/// invisible until the whole screen was torn down and recreated some other
+/// way (e.g. navigating elsewhere and back). Now `goals`/`savingsAccounts`
+/// are driven entirely by GoalsRepository.watchGoals()/watchAllocations()
+/// (real db.watch(), same pattern as InvestmentsViewModel/LoansViewModel),
+/// so any write from any screen/sheet shows up here immediately, with no
+/// dependency on SwiftUI appear/disappear timing.
 @Observable
 @MainActor
 public final class GoalsViewModel {
@@ -53,15 +67,48 @@ public final class GoalsViewModel {
     public var savingsAccounts: [SavingsAccountOption] = []
     public var hasEmergencyFund: Bool { goals.contains(where: \.isEmergencyFund) }
 
+    private var goalsTask: Task<Void, Never>?
+    private var allocsTask: Task<Void, Never>?
     private var accountsTask: Task<Void, Never>?
+    private var latestGoals: [Goal] = []
+    private var latestAllocs: [GoalAllocation] = []
 
     public init() {
-        Task { await reload() }
+        start()
     }
 
+    /// Idempotent -- safe to call from every `.onAppear` even though the
+    /// live subscriptions started here no longer need re-triggering to
+    /// pick up writes (see the type doc comment). Guarded by `goalsTask`
+    /// alone so all three tasks are always started/stopped together.
     public func start() {
-        Task { await reload() }
-        accountsTask?.cancel()
+        guard goalsTask == nil else { return }
+        goalsTask = Task { [weak self] in
+            guard let self else { return }
+            guard let userId = await self.resolveUserId() else { return }
+            do {
+                let stream = try await self.goalsRepository.watchGoals(userId: userId)
+                for try await dbGoals in stream {
+                    self.latestGoals = dbGoals
+                    self.rebuildGoalsUi()
+                }
+            } catch {
+                print("Failed to watch goals: \(error)")
+            }
+        }
+        allocsTask = Task { [weak self] in
+            guard let self else { return }
+            guard let userId = await self.resolveUserId() else { return }
+            do {
+                let stream = try await self.goalsRepository.watchAllocations(userId: userId)
+                for try await allocs in stream {
+                    self.latestAllocs = allocs
+                    self.rebuildGoalsUi()
+                }
+            } catch {
+                print("Failed to watch goal allocations: \(error)")
+            }
+        }
         accountsTask = Task { [weak self] in
             guard let self else { return }
             guard let stream = try? self.ledgerRepository.watchAccounts(includeArchived: false) else { return }
@@ -78,43 +125,43 @@ public final class GoalsViewModel {
     }
 
     public func cancel() {
-        accountsTask?.cancel()
+        goalsTask?.cancel(); goalsTask = nil
+        allocsTask?.cancel(); allocsTask = nil
+        accountsTask?.cancel(); accountsTask = nil
     }
 
-    public func reload() async {
-        guard let userId = await resolveUserId() else { return }
-        do {
-            let dbGoals = try await goalsRepository.list(userId: userId)
-            let allocs = try await goalsRepository.listAllocations(userId: userId)
-            func saved(_ goalId: String) -> Int64 {
-                allocs.filter { $0.goalId == goalId }.reduce(0) { $0 + $1.amountBlocked }
-            }
-            let ef = dbGoals.first(where: \.isEmergencyFund)
-            let efFunded = ef.map { saved($0.id) >= $0.targetAmount } ?? true
+    /// Recomputes `goals` from the latest cached emissions of both live
+    /// streams -- called whenever either one fires, so a change to just
+    /// `goals` or just `goal_allocations` alone is reflected immediately.
+    private func rebuildGoalsUi() {
+        let dbGoals = latestGoals
+        let allocs = latestAllocs
+        func saved(_ goalId: String) -> Int64 {
+            allocs.filter { $0.goalId == goalId }.reduce(0) { $0 + $1.amountBlocked }
+        }
+        let ef = dbGoals.first(where: \.isEmergencyFund)
+        let efFunded = ef.map { saved($0.id) >= $0.targetAmount } ?? true
 
-            goals = dbGoals.map { g in
-                let savedAmount = saved(g.id)
-                let pct = g.targetAmount > 0 ? min(1.0, Double(savedAmount) / Double(g.targetAmount)) : 0
-                let funded = g.targetAmount > 0 && savedAmount >= g.targetAmount
-                let remaining = max(0, g.targetAmount - savedAmount)
-                return GoalUiModel(
-                    id: g.id,
-                    name: g.name,
-                    savedFormatted: compactMoney(savedAmount, g.currency),
-                    targetFormatted: compactMoney(g.targetAmount, g.currency),
-                    progress: pct,
-                    funded: funded,
-                    isEmergencyFund: g.isEmergencyFund,
-                    locked: !g.isEmergencyFund && !efFunded,
-                    remainingMinor: remaining,
-                    rawName: g.name,
-                    targetMajor: formatMajorPlain(g.targetAmount),
-                    currency: g.currency,
-                    alertTimeLocal: utcToLocalTime(g.alertTimeUtc)
-                )
-            }
-        } catch {
-            print("Failed to load goals: \(error)")
+        goals = dbGoals.map { g in
+            let savedAmount = saved(g.id)
+            let pct = g.targetAmount > 0 ? min(1.0, Double(savedAmount) / Double(g.targetAmount)) : 0
+            let funded = g.targetAmount > 0 && savedAmount >= g.targetAmount
+            let remaining = max(0, g.targetAmount - savedAmount)
+            return GoalUiModel(
+                id: g.id,
+                name: g.name,
+                savedFormatted: compactMoney(savedAmount, g.currency),
+                targetFormatted: compactMoney(g.targetAmount, g.currency),
+                progress: pct,
+                funded: funded,
+                isEmergencyFund: g.isEmergencyFund,
+                locked: !g.isEmergencyFund && !efFunded,
+                remainingMinor: remaining,
+                rawName: g.name,
+                targetMajor: formatMajorPlain(g.targetAmount),
+                currency: g.currency,
+                alertTimeLocal: utcToLocalTime(g.alertTimeUtc)
+            )
         }
     }
 
@@ -134,7 +181,6 @@ public final class GoalsViewModel {
                 priority: Int64(goals.count),
                 alertTimeUtc: localToUtcTime(alertTimeLocal)
             )
-            await reload()
             return nil
         } catch {
             return "Couldn't create the goal: \(error.localizedDescription)"
@@ -151,7 +197,6 @@ public final class GoalsViewModel {
                 targetAmount: Int64((targetMajor * 100).rounded()),
                 alertTimeUtc: localToUtcTime(alertTimeLocal)
             )
-            await reload()
             return nil
         } catch {
             return "Couldn't save changes: \(error.localizedDescription)"
@@ -163,7 +208,6 @@ public final class GoalsViewModel {
     public func delete(id: String) async {
         do {
             try await goalsRepository.delete(id: id)
-            await reload()
         } catch {
             print("Failed to delete goal: \(error)")
         }
@@ -179,7 +223,6 @@ public final class GoalsViewModel {
         guard capped > 0 else { return nil }
         do {
             try await goalsRepository.createAllocation(userId: userId, goalId: goalId, sourceAccountId: sourceAccountId, amountBlocked: capped)
-            await reload()
             return nil
         } catch {
             return "Couldn't allocate funds: \(error.localizedDescription)"
