@@ -33,6 +33,14 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #11: AppDelegate.swift:34, 4 compiler errors from one broken expression:
+               `authRepo.currentUserId ?? await authRepo.ensureUser() as String?`. Root causes:
+               ensureUser() is async throws so needed `try`; `??`'s RHS is an @autoclosure and
+               Swift's parser rejects `await`/`as` composed inside it this way regardless of
+               try-marking; trailing `as String?` was redundant (ensureUser() already returns
+               non-optional String). Rewrote as explicit if/else assigning `let userId: String`
+               before the pushRepo call. grep confirms `?? await` appears nowhere else in apps/ios.
+               Not yet re-verified by a real build.
 2026-08-06 #10: "'fractionalIsoFormatter' is not concurrency-safe... non-'Sendable' type
                'ISO8601DateFormatter'" in TransactionsViewModel.swift -- module-level cached
                formatter hit Swift 6 strict concurrency (target builds SWIFT_VERSION=6). Same root
