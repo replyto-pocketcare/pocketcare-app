@@ -3,9 +3,9 @@ package com.sanvya.app.ui
 import androidx.compose.ui.graphics.Color
 
 /**
- * Row models for the pre-existing CreditCards/Goals/Insights/Investments/
- * Loans ViewModels (the "XViewModel.kt" file in each of ui/creditcards,
- * ui/goals, ui/insights, ui/investments, ui/loans).
+ * Row models for the pre-existing CreditCards/Insights/Investments/Loans
+ * ViewModels (the "XViewModel.kt" file in each of ui/creditcards,
+ * ui/insights, ui/investments, ui/loans).
  *
  * These types didn't exist anywhere in the tree -- the ViewModels imported
  * `com.sanvya.app.ui.<Name>UiModel` and constructed it, but no file defined
@@ -22,14 +22,17 @@ import androidx.compose.ui.graphics.Color
  * This file is the MINIMAL fix to unblock the build: field shapes below
  * are reverse-engineered from each ViewModel's own construction call,
  * nothing more. It is explicitly NOT a source-verified port (no
- * docs/mobile/screen-specs/<name>.md exists for any of these 5 screens) --
- * treat CreditCards/Goals/Insights/Investments/Loans as still fully TODO
- * for real UI work, tracked in docs/mobile/TODO.md.
+ * docs/mobile/screen-specs/<name>.md exists for any of these 4 screens) --
+ * treat CreditCards/Insights/Investments/Loans as still fully TODO for
+ * real UI work, tracked in docs/mobile/TODO.md.
  *
- * BudgetUiModel used to live here too -- moved to ui/budgets/
- * BudgetsViewModel.kt 2026-08-06 when Budgets got its real create/update/
- * delete/scope port (docs/mobile/screen-specs/budgets.md), replacing this
- * placeholder shape entirely.
+ * BudgetUiModel and GoalUiModel used to live here too -- moved to
+ * ui/budgets/BudgetsViewModel.kt (2026-08-06) and ui/goals/
+ * GoalsViewModel.kt (2026-08-06) once each screen got its real
+ * create/update/delete port (docs/mobile/screen-specs/budgets.md,
+ * docs/mobile/screen-specs/goals.md), replacing these placeholder shapes
+ * entirely. GoalUiModel's old `targetDate` field read a real-but-unused DB
+ * column -- confirmed nowhere in the real Goals UI, see the spec.
  */
 
 data class CreditCardUiModel(
@@ -41,15 +44,6 @@ data class CreditCardUiModel(
     val availableLimitFormatted: String,
     val dueDate: String,
     val gradientColors: List<Color>,
-)
-
-data class GoalUiModel(
-    val id: String,
-    val name: String,
-    val currentFormatted: String,
-    val targetFormatted: String,
-    val targetDate: String,
-    val progress: Float,
 )
 
 data class InsightUiModel(

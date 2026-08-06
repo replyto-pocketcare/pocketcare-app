@@ -5,25 +5,63 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Budgets (P3.4), both platforms, fully wired + committed. See #16 below and
-               AUDIT_HISTORY.md's 2026-08-06 entry for the full arc (schema fix, repository CRUD, iOS
-               screens, Android screens). Also this session: 3 more real Xcode compiler errors fixed
-               (#12/#13, concurrency-safety), iOS Dashboard audited+fixed against web/Android
-               (empty-state, widgets card, hide/show — #14), a user correction removing invented
-               "Recent Activity" cruft from iOS Dashboard (#15). Next up: Goals (task #25) — same
-               8-screen treatment (spec already exists if written, else write it first, then
-               repository CRUD both platforms, Android screen, iOS audit, nav wiring, docs, commit).
+Last session: 2026-08-06 — Goals (P3.5a/b), both platforms, fully wired + committed. See #17 below
+               and AUDIT_HISTORY.md's 2026-08-06 entry for the full arc (repository CRUD, iOS screens,
+               Android screens, "Planned Cashflow" split out as its own TODO row P3.5c after finding
+               it was wrongly merged into iOS's old GoalsView.swift). Budgets (P3.4) landed the prior
+               session (#16) -- see that entry for its own arc. Next up: Investments (task #26).
 Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3),
-               Budgets (P3.4) real and wired into SanvyaNavHost. Everything else in Phase 3 still
-               TODO (no screens). NOT verified against a real Gradle build in this sandbox (no
-               JDK/Gradle here per plan §1.5) — next session or CI must run `./gradlew build test`
-               before trusting this compiles.
-iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions, Budgets now
-               match the real web specs. Every other Create*/New* form is still suspect —
-               CreateAccountView.swift and CreateTransactionView.swift BOTH had the "Save calls
-               dismiss(), persists nothing" bug independently; assume any not-yet-audited one has it
-               too until checked.
+               Budgets (P3.4), Goals (P3.5a/b) real and wired into SanvyaNavHost. Everything else in
+               Phase 3 still TODO (no screens). NOT verified against a real Gradle build in this
+               sandbox (no JDK/Gradle here per plan §1.5) — next session or CI must run
+               `./gradlew build test` before trusting this compiles.
+iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions, Budgets, Goals
+               now match the real web specs. Every other Create*/New* form is still suspect --
+               CreateAccountView.swift, CreateTransactionView.swift, and CreateGoalView.swift ALL had
+               the "Save calls dismiss(), persists nothing" bug independently; assume any
+               not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #17: "continue" (task #25, Goals). Wrote docs/mobile/screen-specs/goals.md from the real
+               apps/web/app/goals/page.tsx (290 lines) + src/goals/GoalCelebration.tsx. Found iOS's
+               pre-existing GoalsView.swift had invented a "Goals & Cashflow" combined segmented-tab
+               screen fed by a dummy CashflowUiModel with no real source anywhere -- same class of
+               drift as the removed Dashboard "Recent Activity" section (#15). Planned Cashflow is a
+               real, separate web feature/drawer item with no source read yet; split out as its own
+               TODO row (P3.5c) and left as comingSoonRoute/placeholder on both platforms -- this pass
+               is Goals-only, matching the real web page. GoalsRepository (both platforms) gained
+               create/update/delete + createAllocation, and switched list()/listAllocations() to
+               one-shot suspend reads (matching BudgetRepository's convention) from the old N+1
+               per-goal `watchGoalAllocations(goal.id).firstOrNull()` pattern, which was never
+               actually reactive despite living inside a `collectLatest`. Also dropped `target_date`
+               from the Goal model -- a real DB column but confirmed unused anywhere in the real Goals
+               UI (only the AI assistant's tool schema touches it). iOS: rewrote GoalsRepository.swift
+               (caught mid-build: its first draft called `db.getAll(..., mapper: someMethod)` -- a
+               labeled `mapper:` parameter, which is `db.watch`'s signature, not `db.getAll`'s;
+               `getAll` only takes a trailing closure, confirmed against BudgetRepository.swift's own
+               working `list()` -- fixed by inlining construction in the closure instead of a
+               separate actor-isolated private mapper method), rewrote GoalsViewModel.swift (real
+               create/update/delete/allocate, EF-lock logic ported from web's `saved()`/`efFunded`
+               math, compactMoney() approximating web's Intl compact-notation formatter), rewrote
+               CreateGoalView.swift (was the same "Save calls dismiss(), persists nothing" bug plus
+               invented fields -- free-text "Target Date", a nonexistent "Initial Allocation" concept
+               -- replaced with the real field set), built EditGoalView.swift and AllocateGoalView.swift
+               from scratch (neither existed; edit had no screen, allocate had no path at all).
+               Registered both new files in project.pbxproj's 4 sections (verified via the established
+               collision/reference-count script). Android: rewrote GoalsViewModel.kt to the
+               KoinComponent/by-inject() convention (was constructor-injected placeholder dead code,
+               same shape Budgets' old ViewModel was in), removed GoalUiModel from ui/UiModels.kt.
+               Built GoalsScreen.kt, CreateGoalScreen.kt, EditGoalScreen.kt, AllocateGoalDialog.kt
+               (Material3 AlertDialog, since web's allocate is itself a modal, not a separate route).
+               Both platforms' utcToLocalTime/localToUtcTime are reused rather than reimplemented a
+               third time: iOS calls BudgetsViewModel.swift's already-internal top-level functions
+               directly (same module, no import needed); Android imports them from
+               ui.budgets.BudgetsViewModel.kt explicitly (Kotlin's per-package visibility has no
+               same-module shortcut). Wired "goals"/"goals/new"/"goals/{goalId}/edit" into
+               SanvyaNavHost.kt; NavDrawer.kt's Goals item now routes there instead of
+               comingSoonRoute. Deferred, own TODO note in the spec: GoalCelebration's 3D
+               CSS cake/confetti animation (the "Funded" badge/tinted-card information itself is
+               NOT deferred, only the celebratory overlay). NOT yet re-verified by a real Gradle/Xcode
+               build. Next: Investments (task #26), same treatment.
 2026-08-06 #16: "continue with the pages" (task #24, Budgets). Built BudgetRepository create/update/
                delete + categoryIds/labelNames/writeScope (delete-then-reinsert junctions, matches
                web's writeBudgetScope()) on both platforms. Found + fixed a systemic schema gap while
@@ -326,7 +364,8 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 | P3.3d | Templates / "Quick Apply" for transaction creation (start-from-template dropdown, save-as-template, free-tier limit) | [M] | P3.3 | TODO — new row, split out 2026-08-05 (see `docs/mobile/screen-specs/transactions.md` "Deferred") — no mobile data layer for `templates` exists yet either |
 | P3.3e | AI auto-categorization on transaction create/edit (`useAutoCategorize`/`useLearnCategory`, entitlement-gated edge-function call) | [M] | P3.3, P5.1 (entitlements) | TODO — new row, split out 2026-08-05 (see `docs/mobile/screen-specs/transactions.md` "Deferred") |
 | P3.4a / P3.4b | UI Slice S2: Budgets list & Budget progress view with status indicators | [M] | P3.1 | DONE (2026-08-06, both platforms — see AUDIT_HISTORY.md) — NOT yet re-verified by a real Gradle/Xcode build |
-| P3.5a / P3.5b | UI Slice S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | TODO — corrected 2026-08-05: falsely marked DONE, `GoalsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, GoalsView.swift) |
+| P3.5a / P3.5b | UI Slice S2: Financial Goals screen | [M] | P3.4 | DONE (2026-08-06, both platforms — see AUDIT_HISTORY.md) — NOT yet re-verified by a real Gradle/Xcode build |
+| P3.5c | Planned Cashflow screen (separate real web feature/drawer item — NOT part of Goals; split out 2026-08-06 after finding iOS's old GoalsView.swift had wrongly merged the two into one "Goals & Cashflow" tab screen fed by dummy data) | [M] | P3.1 | TODO — no source spec written yet, no repository, still `comingSoonRoute("Planned Cashflow")` / placeholder tab on both platforms |
 | P3.6a / P3.6b | UI Slice S3: Splits view (Groups, Trips, 1:1 friends, split balance netting) | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `SplitsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, SplitsView.swift) |
 | P3.7a / P3.7b | UI Slice S3: UPI Payment flow & manual copy fallback (PayViaUpi) | [M] | P3.6 | TODO — corrected 2026-08-05: falsely marked DONE, `PayViaUpiDialog.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, PayViaUpiSheet.swift) |
 | P3.8a / P3.8b | UI Slice S4: Receipt scanning & line-item participant allocation screen | [M] | P3.1 | TODO — corrected 2026-08-05: falsely marked DONE, `ReceiptScanScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, ReceiptScanView.swift) |
@@ -350,7 +389,7 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 
 | ID | Task | Tag | Needs | Status |
 |---|---|---|---|---|
-| P3.5a / P3.5b | S2: Financial Goals & Planned Cashflow screens | [M] | P3.4 | TODO — corrected 2026-08-05: falsely marked DONE, `GoalsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, GoalsView.swift) |
+| P3.5a / P3.5b | S2: Financial Goals screen | [M] | P3.4 | DONE (2026-08-06, both platforms — see AUDIT_HISTORY.md) — NOT yet re-verified by a real Gradle/Xcode build (see P3.5c above for the split-out Planned Cashflow row; this duplicate table row predates that split) |
 | P3.6a / P3.6b | S1 leftover: Onboarding/walkthrough (keep the "not connected to your bank" copy faithfully) + auth screens (guest → OTP → Google; in-place guest upgrade UI) | [H] | P2.4 verified (P2.8) | TODO — corrected 2026-08-05: falsely marked DONE, `WalkthroughScreen.kt`/`LoginScreen.kt` do not exist in the repo (verified by direct file search) / DONE (2026-08-01, WalkthroughView.swift, LoginView.swift) |
 | P3.7a / P3.7b | S1 leftover: Settings-lite (currency, language, theme, hide-amounts) + the shared money formatter + premium **gate map port** (deferred from P1.7) wired via entitlements | [M] | P3.1 | DONE (2026-08-01, SettingsScreen.kt) / DONE (2026-08-01, SettingsView.swift) |
 | P3.8a / P3.8b | S2: Loans & recurring (EMI schedule view, mark-paid dialog, auto-post surfacing, recurring groups) | [M] | P3.5 | TODO — corrected 2026-08-05: falsely marked DONE, `LoansScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, LoansView.swift) |
