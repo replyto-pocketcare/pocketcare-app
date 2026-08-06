@@ -37,6 +37,7 @@
 		9A6CB3340B4E846655B0FFF5 /* StatementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97A0CCFF323017A4F6F251CB /* StatementsView.swift */; };
 		9CD5DB1010504C904AC2D74D /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = CE17BFC806BF2E37894779BA /* Domain */; };
 		9F5482EBFE2794C08BCB6F62 /* InvestmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76D85FFF529896EDB5EAE57 /* InvestmentsView.swift */; };
+		266E95C5981990EA5EAABDFB /* AddHoldingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044841749A5D243390B2ACA8 /* AddHoldingView.swift */; };
 		A21C0BABF7B08BF4B5D50E12 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FEB87EED1AD674B697784C4 /* MainTabView.swift */; };
 		A76E503A6CD81070F114F655 /* AppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B906CF274F8B2527E5F4A51A /* AppTests.swift */; };
 		A7A15245AD2081AAF09B2B41 /* AppModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = E37DD678765D9BB5AFF503CA /* AppModule.swift */; };
@@ -110,6 +111,7 @@
 		97A0CCFF323017A4F6F251CB /* StatementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementsView.swift; sourceTree = "<group>"; };
 		9AF03F3005C2859DAC8D4803 /* CreditCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditCardsView.swift; sourceTree = "<group>"; };
 		A76D85FFF529896EDB5EAE57 /* InvestmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentsView.swift; sourceTree = "<group>"; };
+		044841749A5D243390B2ACA8 /* AddHoldingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddHoldingView.swift; sourceTree = "<group>"; };
 		B3E9F8A6320B3216BC615990 /* LoansView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoansView.swift; sourceTree = "<group>"; };
 		B7B68564BB9C98C1EE594700 /* CreditCardsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditCardsViewModel.swift; sourceTree = "<group>"; };
 		B906CF274F8B2527E5F4A51A /* AppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTests.swift; sourceTree = "<group>"; };
@@ -224,6 +226,7 @@
 				EF72024A2E1298FD8A2DC9F5 /* GoalsView.swift */,
 				C9D7AE1214A8F14892C18B14 /* InsightsView.swift */,
 				A76D85FFF529896EDB5EAE57 /* InvestmentsView.swift */,
+				044841749A5D243390B2ACA8 /* AddHoldingView.swift */,
 				B3E9F8A6320B3216BC615990 /* LoansView.swift */,
 				2007CD601C653012EF90181D /* LoginView.swift */,
 				4FEB87EED1AD674B697784C4 /* MainTabView.swift */,
@@ -427,6 +430,7 @@
 				CF6AAF8ED5331C186F37F61C /* InsightsView.swift in Sources */,
 				6112034FAFE5904EA5115520 /* InsightsViewModel.swift in Sources */,
 				9F5482EBFE2794C08BCB6F62 /* InvestmentsView.swift in Sources */,
+				266E95C5981990EA5EAABDFB /* AddHoldingView.swift in Sources */,
 				30D5CDDB1869D8FDF140F80B /* InvestmentsViewModel.swift in Sources */,
 				D9BDBB714DE26C5F90685BFC /* LoansView.swift in Sources */,
 				9159B4204F2293A06349F22A /* LoansViewModel.swift in Sources */,
