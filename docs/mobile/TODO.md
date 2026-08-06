@@ -33,6 +33,21 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-05 #7: Akhilesh: "dashboard does not have the hamburger menu... is dashboard done? If yes we
+               missed it." Correct -- bigger than Dashboard: Android had NO drawer shell at all
+               (SanvyaNavHost was plain push/pop). iOS's existing MainTabView/DrawerMenuView (pre-
+               existing) has one, but checked against the real source (apps/web/app/AppShell.tsx's
+               NAV_GROUPS) and found it was ALSO incomplete -- missing "Notifications" and "Reflect".
+               Wrote docs/mobile/screen-specs/navigation-drawer.md from web, fixed both platforms
+               against it. Android: new NavDrawer.kt (18 items/5 groups + separate Notifications row,
+               matches web exactly) + ComingSoonScreen.kt placeholder, SanvyaNavHost wrapped in
+               ModalNavigationDrawer, Dashboard gets hamburger (root dest.), Accounts/Transactions
+               keep back-arrow (non-root, standard Android drawer convention). iOS: added missing
+               .reflect/.notifications NavTab cases + views. User then chose full scope (not just the
+               drawer): also build real Android screens for Budgets/Goals/Investments/Loans/Insights/
+               CreditCards/Splits/Statements, matching iOS's existing (pre-session, unverified-against-
+               web) versions -- tracked as 8 new work items below, same source-verification rigor as
+               Dashboard/Accounts/Transactions.
 2026-08-05 #6: First real iOS build error this session: "Missing required module 'GRDBSQLite'".
                `Data/Sources/Data/PrefsRepository.swift` (pre-existing, not written this session)
                `import GRDB`ed and used GRDB.swift's FetchableRecord/PersistableRecord/`db.write{}`
