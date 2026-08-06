@@ -33,6 +33,19 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #12: Two more real errors, same "missing a convention every sibling already has" shape.
+               (1) SettingsView.swift "Sending 'self.prefsRepo' risks causing data races" x3 --
+               PrefsRepository (rewritten 08-05 for the GRDB fix) never got the `@unchecked Sendable`
+               conformance all 9 other repository classes have. Fixed: `public final class
+               PrefsRepository: @unchecked Sendable`. (2) DashboardViewModel.swift:10 "'Money'
+               initializer is inaccessible due to 'internal' protection level" -- Domain.Money has no
+               explicit public init, so its compiler-synthesized memberwise init is `internal`-only
+               (classic Swift trap: applies even when the struct + all properties are public). Added
+               `public init(amount:currency:)`. Swept Domain/Data for the same pattern (~50 public
+               structs w/ no explicit init) x-checked against App-target direct construction -- Money
+               was the only one actually hit today; watch for this again if App code starts
+               constructing any of the others directly (SplitGroup, Account, TransactionRow, Goal,
+               Loan, Holding, etc.) instead of going through a repository method.
 2026-08-06 #11: AppDelegate.swift:34, 4 compiler errors from one broken expression:
                `authRepo.currentUserId ?? await authRepo.ensureUser() as String?`. Root causes:
                ensureUser() is async throws so needed `try`; `??`'s RHS is an @autoclosure and
