@@ -33,6 +33,21 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #14: Akhilesh (first non-compiler feedback this session): iOS Dashboard missing graph/
+               widgets-option/empty-state, "let's strictly keep all three UI in sync." Re-verified
+               against real web + Android fresh. Sparkline code + ViewModel math were already correct
+               -- real bug was DashboardView.swift had NO empty-state gate at all, so 0 accounts ->
+               flat populated layout with correctly-empty hero (0 months data = no sparkline by
+               design) and nothing explaining why. Fixed: DashboardEmptyStateView (matches web/Android
+               copy exactly), WidgetsComingSoonCard (matches Android's placeholder exactly), header
+               hide/show eye-toggle (matches Android's TopAppBar action). Also removed an iOS-only
+               "Quick Actions" row (Expense/Transfer/Settle Up) found while auditing -- no counterpart
+               in web or Android, wasn't sourced from anything. Deliberately did NOT add a "Customize"
+               entry point (opens nothing yet) or a header "+Account" button (web has one, Android's
+               header doesn't -- matched Android instead to keep the 2 native apps in lockstep).
+               Tracked, not fixed: "Recent Activity" is real iOS-only functionality Android lacks
+               (Android defers the "recent" tile same as its other 11) -- fix is building it on
+               Android, not deleting from iOS. Not yet re-verified by a real build.
 2026-08-06 #13: AppDelegate.swift:41 "Sending value of non-Sendable type 'any PushRepository' risks
                causing data races" -- same shape as #12's PrefsRepository fix but one level up: the
                PROTOCOL, not just the concrete class, needs `: Sendable` for `any PushRepository`
