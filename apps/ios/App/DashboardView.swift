@@ -94,38 +94,6 @@ struct DashboardView: View {
                                 }
                             }
 
-                            // Recent Activity Section -- NOTE: this is iOS-only
-                            // today. Real web's equivalent ("recent" tile) is
-                            // part of the explicitly-deferred 12-tile catalog
-                            // (docs/mobile/screen-specs/dashboard.md "Explicitly
-                            // deferred"); Android matches that deferral exactly
-                            // (just the "More widgets coming soon" card below,
-                            // no working recent-activity list). Left in place
-                            // rather than deleted -- it's real, working
-                            // functionality, and the fix for the 3-way
-                            // asymmetry is building Android's version to match,
-                            // not removing iOS's (tracked in TODO.md, not done
-                            // this pass).
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Recent Activity")
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(Color.text)
-
-                                ForEach(viewModel.recentTransactions) { txn in
-                                    RowTile(
-                                        title: txn.description,
-                                        subtitle: txn.date,
-                                        trailing: {
-                                            Text(txn.amount)
-                                                .font(.body)
-                                                .fontWeight(.bold)
-                                                .foregroundColor(txn.isIncome ? Color.positive : Color.text)
-                                        }
-                                    )
-                                }
-                            }
-
                             // Tile catalog (recent/spending/trends/budgets/goals/
                             // etc.) is explicitly deferred -- see
                             // docs/mobile/screen-specs/dashboard.md "Explicitly
