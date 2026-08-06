@@ -161,12 +161,19 @@ public final class TransactionsViewModel {
 /// Tries with-fractional-seconds first, falls back to the plain ISO8601
 /// format -- matches the flexible-parse pattern already used in this file's
 /// predecessor.
-private let fractionalIsoFormatter: ISO8601DateFormatter = {
-    let f = ISO8601DateFormatter()
-    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return f
-}()
-
+///
+/// A fresh formatter is allocated per call rather than cached in a global
+/// `let` -- a cached instance hit the same real Swift 6 build error already
+/// documented in `Domain/Sources/Domain/SplitsInsights.swift`'s
+/// `parseIsoMillis` ("not concurrency-safe because non-Sendable type
+/// 'ISO8601DateFormatter' may have shared mutable state"). Same fix here for
+/// the same reason: this can genuinely be called from concurrent Swift
+/// Tasks, ISO8601DateFormatter's thread-safety for concurrent reads isn't
+/// documented as guaranteed, and this isn't a hot loop (per-row transaction
+/// formatting, not a tight numeric kernel) -- so allocating per call
+/// sidesteps the question instead of asserting an unverified safety claim.
 func parseOccurredAt(_ s: String) -> Date? {
-    fractionalIsoFormatter.date(from: s) ?? ISO8601DateFormatter().date(from: s)
+    let fractional = ISO8601DateFormatter()
+    fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return fractional.date(from: s) ?? ISO8601DateFormatter().date(from: s)
 }

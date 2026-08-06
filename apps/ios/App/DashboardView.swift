@@ -172,17 +172,21 @@ struct QuickActionButtonView: View {
 // docs/mobile/screen-specs/dashboard.md. Same design, same source, as
 // Android's NetWorthHero composable (DashboardScreen.kt), added same session.
 
-private let heroNumberFormatter: NumberFormatter = {
+// A fresh formatter is allocated per call rather than cached in a global
+// `let` -- caching hit a real Swift 6 build error in TransactionsViewModel
+// .swift's near-identical `fractionalIsoFormatter` ("not concurrency-safe
+// because non-Sendable type '...' may have shared mutable state"; same root
+// cause documented in Domain/Sources/Domain/SplitsInsights.swift's
+// `parseIsoMillis`). `NumberFormatter` is a Foundation class formatter, same
+// non-Sendable shape as `ISO8601DateFormatter` -- fixed preemptively here to
+// the same pattern before the real compiler hits it too.
+private func formatMinor(_ minor: Int64) -> String {
     let fmt = NumberFormatter()
     fmt.numberStyle = .currency
     fmt.currencyCode = "INR"
     fmt.maximumFractionDigits = 2
     fmt.locale = Locale(identifier: "en_IN")
-    return fmt
-}()
-
-private func formatMinor(_ minor: Int64) -> String {
-    heroNumberFormatter.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "₹0.00"
+    return fmt.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "₹0.00"
 }
 
 struct NetWorthHeroView: View {
