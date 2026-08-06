@@ -33,6 +33,19 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-05 #8: Wrote docs/mobile/screen-specs/budgets.md from the real apps/web/app/budgets/page.tsx
+               (392 lines) -- full create/edit field set (name, limit+currency, category/label
+               multi-select, recurring-period-vs-custom-dates toggle, threshold%+alert-time w/
+               UTC conversion), list row (title/timeframe/progress/spent-remaining), spend-vs-limit
+               chart deferred (own TODO row, same precedent as Dashboard's tile catalog). NOT yet
+               built -- Android's BudgetsViewModel.kt only supports the list read path with a
+               hardcoded "All" categories placeholder (no labels, no create/update/delete, no real
+               scope-junction read); iOS's BudgetsView.swift needs the same audit-against-spec
+               Accounts/Transactions got, not yet done either. This is the first of the 8 screens
+               from the #7 scope decision below -- next session should build BudgetRepository
+               create/update/delete + scope junction read/write (both platforms, matching
+               LedgerRepository's established db.watch/writeTransaction conventions), then the
+               screens themselves.
 2026-08-05 #7: Akhilesh: "dashboard does not have the hamburger menu... is dashboard done? If yes we
                missed it." Correct -- bigger than Dashboard: Android had NO drawer shell at all
                (SanvyaNavHost was plain push/pop). iOS's existing MainTabView/DrawerMenuView (pre-
