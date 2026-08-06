@@ -55,3 +55,17 @@ struct HelpView: View {
     @Binding var isDrawerOpen: Bool
     var body: some View { PlaceholderView(title: "Help & FAQ", isDrawerOpen: $isDrawerOpen) }
 }
+
+// Added 2026-08-05 alongside the drawer-parity fix: both are real web
+// routes (apps/web/app/{reflect,notifications}/page.tsx) that this drawer
+// was missing entirely, not just missing a built screen for -- see
+// docs/mobile/screen-specs/navigation-drawer.md.
+struct ReflectView: View {
+    @Binding var isDrawerOpen: Bool
+    var body: some View { PlaceholderView(title: "Reflect", isDrawerOpen: $isDrawerOpen) }
+}
+
+struct NotificationsPlaceholderView: View {
+    @Binding var isDrawerOpen: Bool
+    var body: some View { PlaceholderView(title: "Notifications", isDrawerOpen: $isDrawerOpen) }
+}

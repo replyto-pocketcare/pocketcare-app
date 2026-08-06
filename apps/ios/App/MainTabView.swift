@@ -29,11 +29,13 @@ struct MainTabView: View {
                 case .loans: LoansView(isDrawerOpen: $isDrawerOpen)
                 
                 case .investments: InvestmentsView(isDrawerOpen: $isDrawerOpen)
+                case .reflect: ReflectView(isDrawerOpen: $isDrawerOpen)
                 case .insights: InsightsView(isDrawerOpen: $isDrawerOpen)
                 case .statements: StatementsView(isDrawerOpen: $isDrawerOpen)
-                
+
                 case .settings: SettingsView(isDrawerOpen: $isDrawerOpen)
                 case .help: HelpView(isDrawerOpen: $isDrawerOpen)
+                case .notifications: NotificationsPlaceholderView(isDrawerOpen: $isDrawerOpen)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

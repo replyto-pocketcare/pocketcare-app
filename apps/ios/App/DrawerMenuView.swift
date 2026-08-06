@@ -23,6 +23,21 @@ struct DrawerMenuView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
+                    // Notifications renders above the titled groups, matching
+                    // web's AppShell.tsx:303 (a standalone row before
+                    // NAV_GROUPS, not inside one) and Android's separate
+                    // notificationsDrawerItem. Added 2026-08-05 -- this drawer
+                    // was missing it entirely until checked against the real
+                    // web source.
+                    DrawerItemRow(
+                        item: NavItem(tab: .notifications, label: "Notifications", icon: "bell"),
+                        isSelected: currentTab == .notifications
+                    ) {
+                        currentTab = .notifications
+                        withAnimation(.spring()) {
+                            isDrawerOpen = false
+                        }
+                    }
                     ForEach(navGroups) { group in
                         if !group.title.isEmpty {
                             Text(group.title.uppercased())

@@ -3,26 +3,33 @@ import Foundation
 enum NavTab: String, CaseIterable, Equatable {
     case dashboard
     case assistant
-    
+
     case accounts
     case transactions
     case templates
     case cards
     case splits
     case search
-    
+
     case budgets
     case goals
     case cashflow
     case recurring
     case loans
-    
+
     case investments
+    case reflect
     case insights
     case statements
-    
+
     case settings
     case help
+
+    /// Renders as its own row ABOVE the titled groups (web AppShell.tsx:303,
+    /// Android's separate `notificationsDrawerItem`), not inside `navGroups`
+    /// -- still a real NavTab/destination, just a different position in the
+    /// drawer's layout. See DrawerMenuView.swift.
+    case notifications
 }
 
 struct NavItem: Identifiable, Equatable {
@@ -60,6 +67,7 @@ let navGroups: [NavGroup] = [
     ]),
     NavGroup(title: "Growth", items: [
         NavItem(tab: .investments, label: "Investments", icon: "chart.bar"),
+        NavItem(tab: .reflect, label: "Reflect", icon: "figure.mind.and.body"),
         NavItem(tab: .insights, label: "Insights", icon: "lightbulb"),
         NavItem(tab: .statements, label: "Statements", icon: "doc.plaintext")
     ]),

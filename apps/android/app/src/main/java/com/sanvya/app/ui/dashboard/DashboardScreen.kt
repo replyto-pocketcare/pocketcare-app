@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
@@ -50,6 +51,7 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
+    onOpenDrawer: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onAddAccount: () -> Unit = {},
     onViewAccounts: () -> Unit = {},
@@ -65,6 +67,11 @@ fun DashboardScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Dashboard", fontWeight = FontWeight.Bold, color = colors.text) },
+                navigationIcon = {
+                    IconButton(onClick = onOpenDrawer) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = colors.text2)
+                    }
+                },
                 actions = {
                     IconButton(onClick = { Prefs.setAmountsHidden(!amountsHidden) }) {
                         Icon(
