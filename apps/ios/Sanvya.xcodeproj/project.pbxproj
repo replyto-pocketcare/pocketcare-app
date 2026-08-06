@@ -64,6 +64,8 @@
 		0A3DB1A473A5D731EEEF94F8 /* TransactionFormComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC74757DE964A01BA3A7153 /* TransactionFormComponents.swift */; };
 		8E24F6FDF998742BB321A30D /* TransactionTileLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1E30B6D68F193D212BA468 /* TransactionTileLogic.swift */; };
 		3D43536547B03F6DE7C2491D /* EditBudgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C7DE5147E3E96E0FD7F185 /* EditBudgetView.swift */; };
+		A302D6D8D2A10439B1885A72 /* EditGoalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506D6E8D4AD3660DAA95A8E3 /* EditGoalView.swift */; };
+		3D4DC81333420B84D3C2AFC4 /* AllocateGoalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D1AE06611EC9B61087AE0F /* AllocateGoalView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -135,6 +137,8 @@
 		4AC74757DE964A01BA3A7153 /* TransactionFormComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionFormComponents.swift; sourceTree = "<group>"; };
 		AB1E30B6D68F193D212BA468 /* TransactionTileLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionTileLogic.swift; sourceTree = "<group>"; };
 		D7C7DE5147E3E96E0FD7F185 /* EditBudgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditBudgetView.swift; sourceTree = "<group>"; };
+		506D6E8D4AD3660DAA95A8E3 /* EditGoalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGoalView.swift; sourceTree = "<group>"; };
+		76D1AE06611EC9B61087AE0F /* AllocateGoalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllocateGoalView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -214,6 +218,8 @@
 				95C904EBD72A17B6A646D283 /* DrawerMenuView.swift */,
 				9B5948EF4210BBA10FC6D733 /* EditAccountView.swift */,
 				D7C7DE5147E3E96E0FD7F185 /* EditBudgetView.swift */,
+				506D6E8D4AD3660DAA95A8E3 /* EditGoalView.swift */,
+				76D1AE06611EC9B61087AE0F /* AllocateGoalView.swift */,
 				924E79E700998A20CB08B376 /* EditTransactionView.swift */,
 				EF72024A2E1298FD8A2DC9F5 /* GoalsView.swift */,
 				C9D7AE1214A8F14892C18B14 /* InsightsView.swift */,
@@ -413,6 +419,8 @@
 				7FAF2FEE09CB2B07A67F6A63 /* DrawerMenuView.swift in Sources */,
 				BD58672692694F0CF9E51C30 /* EditAccountView.swift in Sources */,
 				3D43536547B03F6DE7C2491D /* EditBudgetView.swift in Sources */,
+				A302D6D8D2A10439B1885A72 /* EditGoalView.swift in Sources */,
+				3D4DC81333420B84D3C2AFC4 /* AllocateGoalView.swift in Sources */,
 				49D543415A1A173FDD83E97F /* EditTransactionView.swift in Sources */,
 				6DDDC54822A1B201DBB69FFA /* GoalsView.swift in Sources */,
 				93807D6AD8D4878E1E56A0DE /* GoalsViewModel.swift in Sources */,
