@@ -33,6 +33,17 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #15: Akhilesh, correcting #14's own writeup: "Remove recent activity section, we already
+               have recent transactions section that would must have come when we copied all the
+               widgets and the layout from web." Right -- re-checked, "recent" is one of the 12
+               explicitly-deferred tiles in dashboard.md, Android correctly has no recent-activity
+               list either; this was iOS-only invented UI, not real functionality Android was missing.
+               Removed DashboardView.swift's section + DashboardViewModel.swift's DashboardTxnRow/
+               recentTransactions/refreshRecentTransactions. Also removed netWorthFormatted/
+               assetsFormatted/liabilitiesFormatted -- found already-dead (leftover from the pre-08-05
+               invented Assets/Liabilities hero, unused since that hero was replaced). Kept the
+               transaction-change watcher as a pure refreshSnapshots() trigger. Deleted the "Build
+               Android Recent Activity" follow-up task -- premise was wrong.
 2026-08-06 #14: Akhilesh (first non-compiler feedback this session): iOS Dashboard missing graph/
                widgets-option/empty-state, "let's strictly keep all three UI in sync." Re-verified
                against real web + Android fresh. Sparkline code + ViewModel math were already correct
