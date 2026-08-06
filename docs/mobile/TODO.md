@@ -33,6 +33,14 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                and CreateTransactionView.swift BOTH had the "Save calls dismiss(), persists nothing"
                bug independently; assume any not-yet-audited one has it too until checked.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-06 #13: AppDelegate.swift:41 "Sending value of non-Sendable type 'any PushRepository' risks
+               causing data races" -- same shape as #12's PrefsRepository fix but one level up: the
+               PROTOCOL, not just the concrete class, needs `: Sendable` for `any PushRepository`
+               (the existential @Injected resolves to) to be provably safe across await boundaries --
+               the concrete SupabasePushRepository was already @unchecked Sendable and correct.
+               AuthRepository already had `: Sendable`; PushRepository didn't. Fixed: `public protocol
+               PushRepository: Sendable`. Grep confirms these are the only 2 public protocols in
+               Domain/Data -- nothing else of this shape left.
 2026-08-06 #12: Two more real errors, same "missing a convention every sibling already has" shape.
                (1) SettingsView.swift "Sending 'self.prefsRepo' risks causing data races" x3 --
                PrefsRepository (rewritten 08-05 for the GRDB fix) never got the `@unchecked Sendable`
