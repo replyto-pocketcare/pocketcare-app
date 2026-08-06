@@ -5,7 +5,12 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Insights (P3.x, task #28), both platforms, full 18-generator port with
+Last session: 2026-08-06 — Real Xcode errors on Insights.swift pasted back: missing `metric:` arg in
+               genWeekdayPattern's InsightCard(...) (fixed, added `metric: nil`) and GENERATORS'
+               array-of-function-types not inferred Sendable under Swift 6 strict concurrency (fixed,
+               annotated `[@Sendable (GenContext) -> [InsightCard]]`). See AUDIT_HISTORY.md. iOS
+               Insights still otherwise unverified beyond these two errors.
+Previous session: 2026-08-06 — Insights (P3.x, task #28), both platforms, full 18-generator port with
                entitlement gate (first mobile call site ever), dividend/mindfulness domain math never
                before on mobile, and 5 hand-drawn chart kinds (Canvas/Compose, Canvas/SwiftUI). Android
                built from scratch (was dead-code behind comingSoonRoute). iOS's InsightsViewModel.swift

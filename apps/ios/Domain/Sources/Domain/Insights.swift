@@ -305,6 +305,7 @@ public func genWeekdayPattern(_ ctx: GenContext) -> [InsightCard] {
         generatedAt: ctx.nowIso, periodStart: "", periodEnd: "", priority: 50,
         headline: "\(ctx.weekdayTop) is your priciest day", subhead: "Average spend by weekday · last 60 days",
         bullets: ["You spend most on \(ctx.weekdayTop)s", "Around \(fmtL(ctx, top.value * 100)) on an average \(ctx.weekdayTop)"],
+        metric: nil,
         visual: .bars(series: ctx.weekday, unit: nil, horizontal: false), cta: nil, cadenceKey: "weekday_pattern", cadenceFrequency: "weekly"
     )]
 }
@@ -459,7 +460,13 @@ public func genMindfulness(_ ctx: GenContext) -> [InsightCard] {
     }
 }
 
-private let GENERATORS: [(GenContext) -> [InsightCard]] = [
+// Explicitly `@Sendable` -- a bare `(GenContext) -> [InsightCard]` function-type
+// element isn't inferred Sendable, so Swift 6 strict concurrency flags this
+// global `let` array as possibly holding shared mutable state even though
+// every element is a top-level function with no captures (trivially
+// Sendable). Every genXxx below is a free function, so the annotation costs
+// nothing at the call sites.
+private let GENERATORS: [@Sendable (GenContext) -> [InsightCard]] = [
     genBudgetWarnings, genCategorySpike, genMonthPace, genWeeklySummary, genSpendingTrend,
     genBiggestExpense, genSubscriptions, genCategoryBreakdown, genGoalProgress, genSavingsAchievement,
     genStreak, genLabelBreakdown, genAvgDaily, genWeekdayPattern, genNoSpendDays,
