@@ -5,7 +5,11 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Credit Cards (task #29), both platforms: real billing-cycle math (reused
+Last session: 2026-08-06 — Real Xcode error on LoansRepository.swift pasted back: "Cannot find
+               'effectivePaidEmis'/'emiDueDate' in scope" -- the Credit Cards pass's new
+               findCoveredEmis()/markEmisPaid() call both (Domain/Finance.swift), but the file was
+               missing `import Domain`. Added it. See AUDIT_HISTORY.md.
+Previous session: 2026-08-06 — Credit Cards (task #29), both platforms: real billing-cycle math (reused
                Budget.kt/.swift's existing billingCycle(), not re-ported), editable statement/due-day/
                limit/last4 details, settle-up + covered-EMI confirm (new: findCoveredEmis/markEmisPaid
                ported from settleEmis.ts onto LoansRepository, reusing Finance.kt/.swift's

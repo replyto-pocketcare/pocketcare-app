@@ -1,5 +1,6 @@
 import Foundation
 import PowerSync
+import Domain
 
 /// Loans (EMI) repository -- P3.11/P3.16 (task #27), read/write. Mirrors
 /// apps/web/app/loans/page.tsx's `AddLoan.save()` and [id]/page.tsx's
