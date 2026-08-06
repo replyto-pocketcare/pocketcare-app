@@ -18,8 +18,9 @@ public struct BudgetLike: Sendable {
     public let limitAmount: Int64
     public let currency: String
     public let thresholdPct: Int
+    public let alertTimeUtc: String?
 
-    public init(id: String, name: String?, period: String, startDate: String?, endDate: String?, limitAmount: Int64, currency: String, thresholdPct: Int) {
+    public init(id: String, name: String?, period: String, startDate: String?, endDate: String?, limitAmount: Int64, currency: String, thresholdPct: Int, alertTimeUtc: String? = nil) {
         self.id = id
         self.name = name
         self.period = period
@@ -28,6 +29,7 @@ public struct BudgetLike: Sendable {
         self.limitAmount = limitAmount
         self.currency = currency
         self.thresholdPct = thresholdPct
+        self.alertTimeUtc = alertTimeUtc
     }
 }
 
@@ -84,7 +86,10 @@ public final class BudgetRepository: @unchecked Sendable {
 
     public func list() async throws -> [BudgetLike] {
         try await db.getAll(
-            sql: "SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct FROM budgets WHERE deleted_at IS NULL",
+            sql: """
+                SELECT id, name, period, start_date, end_date, limit_amount, currency, threshold_pct, alert_time_utc
+                FROM budgets WHERE deleted_at IS NULL ORDER BY created_at DESC
+                """,
             parameters: []
         ) { cursor in
             BudgetLike(
@@ -95,9 +100,143 @@ public final class BudgetRepository: @unchecked Sendable {
                 endDate: try cursor.getStringOptional(name: "end_date"),
                 limitAmount: try cursor.getInt64(name: "limit_amount"),
                 currency: try cursor.getString(name: "currency"),
-                thresholdPct: Int(try cursor.getInt64(name: "threshold_pct"))
+                thresholdPct: Int(try cursor.getInt64(name: "threshold_pct")),
+                alertTimeUtc: try cursor.getStringOptional(name: "alert_time_utc")
             )
         }
+    }
+
+    // ---- writes ----
+    // Matches apps/web/app/budgets/page.tsx's addBudget()/saveEdit()/
+    // writeBudgetScope()/resolveLabelIds() exactly: budgets rows use the
+    // create/update/soft-delete shape established by LedgerRepository's
+    // createAccount()/updateAccount()/deleteAccount() (explicit raw SQL,
+    // newId()/nowIso(), userId passed in by the caller -- no repository here
+    // holds its own AuthRepository reference, matching every other
+    // repository in this package); the category/label scope is a
+    // delete-then-reinsert of both junction tables per write, same as web
+    // (PowerSync's incremental per-row upload queue means this can't be a
+    // single cross-table constraint -- CLAUDE.md golden rule: "never write a
+    // cross-row constraint on a synced table").
+
+    /// Creates a budget row. [startDate]/[endDate] are both non-nil for a
+    /// custom-dated budget, both nil for a recurring one -- matches web's
+    /// `timeMode === "custom" ? start || null : null` exactly (never a mix).
+    @discardableResult
+    public func create(
+        userId: String,
+        name: String?,
+        period: String,
+        startDate: String?,
+        endDate: String?,
+        limitAmount: Int64,
+        currency: String,
+        thresholdPct: Int,
+        alertTimeUtc: String
+    ) async throws -> String {
+        let id = newId()
+        let ts = nowIso()
+        try await db.execute(
+            sql: """
+                INSERT INTO budgets
+                (id,user_id,name,period,start_date,end_date,limit_amount,currency,threshold_pct,alert_time_utc,rollover,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """,
+            parameters: [id, userId, name, period, startDate, endDate, limitAmount, currency, thresholdPct, alertTimeUtc, 0, ts, ts]
+        )
+        return id
+    }
+
+    /// Updates a budget's editable fields. Matches web's saveEdit(): name,
+    /// limit_amount, period, threshold_pct, alert_time_utc only -- currency,
+    /// start_date/end_date are NOT editable after creation (web's edit form
+    /// has no currency picker; the period chips are hidden entirely for a
+    /// custom-dated budget, per dashboard.md's port notes -- callers must
+    /// not pass a changed [period] for a custom-dated budget).
+    public func update(
+        id: String,
+        name: String?,
+        limitAmount: Int64,
+        period: String,
+        thresholdPct: Int,
+        alertTimeUtc: String
+    ) async throws {
+        let ts = nowIso()
+        try await db.execute(
+            sql: """
+                UPDATE budgets SET name = ?, limit_amount = ?, period = ?, threshold_pct = ?, alert_time_utc = ?, updated_at = ?
+                WHERE id = ?
+                """,
+            parameters: [name, limitAmount, period, thresholdPct, alertTimeUtc, ts, id]
+        )
+    }
+
+    public func delete(id: String) async throws {
+        try await softDelete(db: db, table: "budgets", id: id)
+    }
+
+    public func categoryIds(budgetId: String) async throws -> [String] {
+        try await db.getAll(
+            sql: "SELECT category_id FROM budget_categories WHERE budget_id = ?",
+            parameters: [budgetId]
+        ) { cursor in try cursor.getString(name: "category_id") }
+    }
+
+    public func labelNames(budgetId: String) async throws -> [String] {
+        try await db.getAll(
+            sql: "SELECT l.name AS name FROM budget_labels bl JOIN labels l ON l.id = bl.label_id WHERE bl.budget_id = ?",
+            parameters: [budgetId]
+        ) { cursor in try cursor.getString(name: "name") }
+    }
+
+    /// Rewrites a budget's category/label scope via the junction tables --
+    /// delete-then-reinsert, matching web's writeBudgetScope() exactly.
+    /// [labelNames] are find-or-created by name (case-insensitive dedupe),
+    /// matching web's resolveLabelIds().
+    public func writeScope(userId: String, budgetId: String, categoryIds: [String], labelNames: [String]) async throws {
+        try await db.execute(sql: "DELETE FROM budget_categories WHERE budget_id = ?", parameters: [budgetId])
+        try await db.execute(sql: "DELETE FROM budget_labels WHERE budget_id = ?", parameters: [budgetId])
+        for cid in Set(categoryIds) {
+            try await db.execute(
+                sql: "INSERT INTO budget_categories (id,user_id,budget_id,category_id) VALUES (?,?,?,?)",
+                parameters: [newId(), userId, budgetId, cid]
+            )
+        }
+        let labelIds = try await resolveLabelIds(userId: userId, names: labelNames)
+        for lid in labelIds {
+            try await db.execute(
+                sql: "INSERT INTO budget_labels (id,user_id,budget_id,label_id) VALUES (?,?,?,?)",
+                parameters: [newId(), userId, budgetId, lid]
+            )
+        }
+    }
+
+    /// Find-or-create label rows by name, returning their ids -- matches
+    /// web's resolveLabelIds() exactly (case-insensitive dedupe within the
+    /// call, trims whitespace, skips blanks).
+    private func resolveLabelIds(userId: String, names: [String]) async throws -> [String] {
+        var ids: [String] = []
+        var seen: Set<String> = []
+        for raw in names {
+            let name = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty, !seen.contains(name.lowercased()) else { continue }
+            seen.insert(name.lowercased())
+            if let found = try await db.getOptional(
+                sql: "SELECT id FROM labels WHERE user_id = ? AND name = ? AND deleted_at IS NULL",
+                parameters: [userId, name]
+            ) { cursor in try cursor.getString(name: "id") } {
+                ids.append(found)
+            } else {
+                let id = newId()
+                let ts = nowIso()
+                try await db.execute(
+                    sql: "INSERT INTO labels (id,user_id,name,color,created_at,updated_at) VALUES (?,?,?,?,?,?)",
+                    parameters: [id, userId, name, nil, ts, ts]
+                )
+                ids.append(id)
+            }
+        }
+        return ids
     }
 
     /// Sum of expenses in the budget's window, honoring its category/label
