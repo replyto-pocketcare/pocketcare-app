@@ -1,53 +1,41 @@
 import SwiftUI
 
+/// Ported from apps/web/app/budgets/page.tsx's list + docs/mobile/
+/// screen-specs/budgets.md. Was list-read-only (hardcoded "All" category,
+/// no tap-to-edit, CreateBudgetView's Save button never touched the
+/// repository) before this pass (2026-08-06, task #24) -- now backed by
+/// BudgetsViewModel's real create/update/delete.
+///
+/// Web's edit affordance is an in-place expand within the same card, not a
+/// separate screen -- this uses a sheet-based EditBudgetView instead,
+/// matching the native idiom already established for Accounts/Transactions
+/// on both platforms (translate the logic, not the exact widget shape).
 struct BudgetsView: View {
     @Binding var isDrawerOpen: Bool
     @State private var showingCreateSheet = false
+    @State private var editingBudget: BudgetsViewModel.BudgetUiModel?
     @State private var viewModel = BudgetsViewModel()
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
-                    ForEach(viewModel.budgets) { budget in
-                        PocketCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(budget.name)
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(Color.text)
-
-                                        Text("\(budget.period.capitalized) • \(budget.categories.joined(separator: ", "))")
-                                            .font(.caption)
-                                            .foregroundColor(Color.text2)
-                                    }
-                                    Spacer()
-                                    BudgetStatusBadge(progress: Double(budget.progress))
+            Group {
+                if viewModel.budgets.isEmpty {
+                    emptyState
+                } else {
+                    ScrollView {
+                        VStack(spacing: 14) {
+                            ForEach(viewModel.budgets) { budget in
+                                Button {
+                                    editingBudget = budget
+                                } label: {
+                                    BudgetRowCard(budget: budget)
                                 }
-
-                                ProgressView(value: min(Double(budget.progress), 1.0))
-                                    .tint(budget.progress > 1.0 ? Color.accent : (budget.progress > 0.8 ? Color.orange : Color.positive))
-                                    .scaleEffect(x: 1, y: 1.5, anchor: .center)
-                                    .padding(.vertical, 4)
-
-                                HStack {
-                                    Text("Spent: \(budget.spentFormatted)")
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(Color.text)
-                                    Spacer()
-                                    Text("Limit: \(budget.limitFormatted)")
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(Color.text2)
-                                }
+                                .buttonStyle(.plain)
                             }
                         }
+                        .padding(16)
                     }
                 }
-                .padding(16)
             }
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Budgets")
@@ -62,8 +50,6 @@ struct BudgetsView: View {
                             .imageScale(.large)
                     }
                 }
-            }
-            .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {
                         Image(systemName: "plus")
@@ -75,33 +61,87 @@ struct BudgetsView: View {
             .sheet(isPresented: $showingCreateSheet) {
                 CreateBudgetView()
             }
+            .sheet(item: $editingBudget) { budget in
+                EditBudgetView(budget: budget, viewModel: viewModel)
+            }
+            .onAppear { viewModel.start() }
+            .onDisappear { viewModel.cancel() }
         }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 10) {
+            Text("◔").font(.system(size: 26))
+            Text("No budgets yet").font(.title3).fontWeight(.bold).foregroundColor(Color.text)
+            Text("Set a spending limit to get alerts before you go over.")
+                .font(.subheadline)
+                .foregroundColor(Color.text2)
+                .multilineTextAlignment(.center)
+            Button(action: { showingCreateSheet = true }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                    Text("Create first budget").fontWeight(.semibold)
+                }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(Color.accent)
+                .foregroundColor(Color.surface)
+                .clipShape(Capsule())
+            }
+            .padding(.top, 4)
+        }
+        .padding(32)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-struct BudgetStatusBadge: View {
-    let progress: Double
+private struct BudgetRowCard: View {
+    let budget: BudgetsViewModel.BudgetUiModel
 
     var body: some View {
-        let (label, bg, fg) = statusInfo
+        PocketCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(budget.title)
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color.text)
+                        Text(budget.timeframeText)
+                            .font(.caption)
+                            .foregroundColor(Color.text2)
+                    }
+                    Spacer()
+                    Text("\(Int((budget.progress * 100).rounded()))%")
+                        .font(.caption)
+                        .foregroundColor(Color.text2)
+                }
 
-        Text(label)
-            .font(.caption2)
-            .fontWeight(.bold)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(bg)
-            .foregroundColor(fg)
-            .cornerRadius(8)
+                ProgressView(value: min(budget.progress, 1.0))
+                    .tint(progressTint)
+                    .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                    .padding(.vertical, 4)
+
+                HStack {
+                    Text(budget.spentFormatted)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color.text)
+                    Spacer()
+                    Text(budget.remainingOrOverText)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(progressTint)
+                }
+            }
+        }
     }
 
-    private var statusInfo: (String, Color, Color) {
-        if progress > 1.0 {
-            return ("Over Budget", Color.accentSoft, Color.surface)
-        } else if progress > 0.8 {
-            return ("Near Limit", Color.orange.opacity(0.3), Color.text)
-        } else {
-            return ("On Track", Color.positive.opacity(0.3), Color.text)
+    private var progressTint: Color {
+        switch budget.progressColor {
+        case .positive: return Color.positive
+        case .warning: return Color.warning
+        case .negative: return Color.negative
         }
     }
 }
