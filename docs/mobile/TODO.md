@@ -5,7 +5,14 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Real Gradle error on InsightsScreen.kt pasted back: 2x cross-module
+Last session: 2026-08-06 — Real Xcode error on InsightsViewModel.swift pasted back: 5x "actor-isolated
+               instance method... in a synchronous main actor-isolated context" for goalsRepository/
+               investmentsRepository calls -- both are Swift `actor` types (unlike the other
+               repositories used here), so every method call needs `await`. Retyped the watch<T>()
+               helper's makeStream closure as `async throws` and added `try await` to the 5 actor
+               calls (GoalsViewModel.swift's own existing calls confirm the pattern). See
+               AUDIT_HISTORY.md.
+Previous session: 2026-08-06 — Real Gradle error on InsightsScreen.kt pasted back: 2x cross-module
                smart-cast failure (card.visual, m.deltaPct -- domain-module properties read via
                `if (x != null)` in the app module), same bug class as Loans' emiAmount fix -- bound
                both to local vals first. See AUDIT_HISTORY.md.

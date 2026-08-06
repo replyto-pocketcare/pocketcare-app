@@ -99,11 +99,20 @@ public final class InsightsViewModel {
     }
 
     private func startWatching(userId: String) {
-        func watch<T>(_ label: String, _ makeStream: @escaping (InsightsViewModel) throws -> AsyncThrowingStream<T, Error>, _ onValue: @escaping (InsightsViewModel, T) -> Void) -> Task<Void, Never> {
+        // `makeStream` is `async throws` (not just `throws`) specifically so
+        // the goals/holdings/dividends/quotes closures below can `await`
+        // into GoalsRepository/InvestmentsRepository -- both are Swift
+        // `actor` types (unlike BudgetRepository/LedgerRepository/etc,
+        // which are plain `@unchecked Sendable` classes), so even their
+        // synchronous, non-throwing-async methods require a suspension
+        // point to call from here. The non-actor repositories' calls below
+        // stay plain `try $0....` -- a sync throwing call needs no `await`
+        // just because it's inside an `async` closure.
+        func watch<T>(_ label: String, _ makeStream: @escaping (InsightsViewModel) async throws -> AsyncThrowingStream<T, Error>, _ onValue: @escaping (InsightsViewModel, T) -> Void) -> Task<Void, Never> {
             Task { [weak self] in
                 guard let self else { return }
                 do {
-                    let stream = try makeStream(self)
+                    let stream = try await makeStream(self)
                     for try await v in stream {
                         onValue(self, v)
                         await self.rebuild()
@@ -120,12 +129,12 @@ public final class InsightsViewModel {
             watch("labelNames", { try $0.ledgerRepository.watchTransactionLabelNames() }, { $0.latestLabelMap = $1 }),
             watch("budgets", { try $0.budgetRepository.watchBudgets() }, { $0.latestBudgets = $1 }),
             watch("budgetCategories", { try $0.budgetRepository.watchBudgetCategories() }, { $0.latestBudgetCats = $1 }),
-            watch("goals", { try $0.goalsRepository.watchGoals(userId: userId) }, { $0.latestGoals = $1 }),
-            watch("allocations", { try $0.goalsRepository.watchAllocations(userId: userId) }, { $0.latestAllocs = $1 }),
+            watch("goals", { try await $0.goalsRepository.watchGoals(userId: userId) }, { $0.latestGoals = $1 }),
+            watch("allocations", { try await $0.goalsRepository.watchAllocations(userId: userId) }, { $0.latestAllocs = $1 }),
             watch("subscriptions", { try $0.subscriptionsRepository.watchActive() }, { $0.latestSubs = $1 }),
-            watch("holdings", { try $0.investmentsRepository.watchHoldings(userId: userId) }, { $0.latestHoldings = $1 }),
-            watch("dividends", { try $0.investmentsRepository.watchDividends() }, { $0.latestDividends = $1 }),
-            watch("quotes", { try $0.investmentsRepository.watchQuotes() }, { $0.latestQuotes = $1 }),
+            watch("holdings", { try await $0.investmentsRepository.watchHoldings(userId: userId) }, { $0.latestHoldings = $1 }),
+            watch("dividends", { try await $0.investmentsRepository.watchDividends() }, { $0.latestDividends = $1 }),
+            watch("quotes", { try await $0.investmentsRepository.watchQuotes() }, { $0.latestQuotes = $1 }),
             watch("entitlement", { try $0.prefsRepository.watchEntitlement() }, { $0.latestEntitlement = $1; $0.entitlementLoaded = true }),
         ]
     }
