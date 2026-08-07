@@ -1,48 +1,66 @@
 import SwiftUI
 
+/// Real port of web's "New Group" modal (task #30). Was previously a dead
+/// mockup -- `Create` just called `dismiss()`, no member picker, no
+/// currency, nothing persisted.
 struct CreateGroupView: View {
     @Environment(\.dismiss) private var dismiss
+    let viewModel: SplitsViewModel
+    let onCreated: (String) -> Void
 
     @State private var name: String = ""
-    @State private var kind: String = "trip"
-    @State private var startDate: String = ""
-    @State private var endDate: String = ""
-    @State private var autoSplit: Bool = false
+    @State private var kind: String = "group"
+    @State private var currency: String = "INR"
+    @State private var selectedMembers: Set<String> = []
+    @State private var error: String?
+    @State private var saving = false
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     Picker("Kind", selection: $kind) {
-                        Text("Trip").tag("trip")
                         Text("Group").tag("group")
+                        Text("Trip").tag("trip")
                     }
                     .pickerStyle(.segmented)
                 }
 
                 Section(header: Text("Details")) {
-                    TextField(kind == "trip" ? "Trip Name (e.g. Goa Trip)" : "Group Name (e.g. Roommates)", text: $name)
+                    TextField(kind == "trip" ? "Trip name (e.g. Goa Trip)" : "Group name (e.g. Roommates)", text: $name)
+                    Picker("Currency", selection: $currency) {
+                        Text("INR").tag("INR")
+                        Text("USD").tag("USD")
+                        Text("EUR").tag("EUR")
+                    }
                 }
 
-                Section(header: Text("Dates (Optional)")) {
-                    TextField("Start Date", text: $startDate)
-                    TextField("End Date", text: $endDate)
+                Section(header: Text("Add members")) {
+                    if viewModel.connections.isEmpty {
+                        Text("No connections yet — you can add members later.").font(.caption).foregroundColor(.text2)
+                    } else {
+                        ForEach(viewModel.connections, id: \.id) { c in
+                            Button(action: { toggle(c.id) }) {
+                                HStack {
+                                    Text(c.name).foregroundColor(.text)
+                                    Spacer()
+                                    if selectedMembers.contains(c.id) { Image(systemName: "checkmark").foregroundColor(.accent) }
+                                }
+                            }
+                        }
+                    }
                 }
+
+                if let error { Text(error).foregroundColor(.negative).font(.caption) }
 
                 Section {
-                    Toggle("Auto-split expenses during trip dates", isOn: $autoSplit)
-                }
-
-                Section {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Text("Create \(kind.capitalized)")
-                            .font(.headline)
-                            .fontWeight(.bold)
+                    Button(action: create) {
+                        Text(saving ? "Creating\u{2026}" : "Create \(kind.capitalized)")
+                            .font(.headline).fontWeight(.bold)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .foregroundColor(Color.surface)
                     }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || saving)
                     .listRowBackground(Color.accent)
                 }
             }
@@ -56,8 +74,25 @@ struct CreateGroupView: View {
             }
         }
     }
+
+    private func toggle(_ id: String) {
+        if selectedMembers.contains(id) { selectedMembers.remove(id) } else { selectedMembers.insert(id) }
+    }
+
+    private func create() {
+        saving = true
+        Task {
+            let id = await viewModel.createGroup(name: name.trimmingCharacters(in: .whitespaces), kind: kind, currency: currency, memberIds: Array(selectedMembers))
+            saving = false
+            if let id {
+                onCreated(id)
+            } else {
+                error = "Couldn't create the group."
+            }
+        }
+    }
 }
 
 #Preview {
-    CreateGroupView()
+    CreateGroupView(viewModel: SplitsViewModel(), onCreated: { _ in })
 }

@@ -8,6 +8,13 @@ struct PayViaUpiSheet: View {
     let vpa: String
     let amountMinor: Int64
     var note: String = "Sanvya settle-up"
+    /// Called with the built intent's `tr=` reference just before dismissing,
+    /// when the user taps "I've paid — tell them" -- added task #30 so
+    /// Splits' settle-up flow can record a "pending" settlement the payee
+    /// still has to confirm (matches PayViaUpi.tsx's own `onPaid: (ref:
+    /// string) => void` prop). Optional/no-op default so this stays a
+    /// source-compatible change for any other future caller.
+    var onPaid: (String) -> Void = { _ in }
 
     @State private var showFallback = false
     @State private var copiedNotice: String? = nil
@@ -118,6 +125,7 @@ struct PayViaUpiSheet: View {
                 Spacer()
 
                 Button(action: {
+                    onPaid(builtIntent?.ref ?? "")
                     dismiss()
                 }) {
                     Text("I've paid — tell them")

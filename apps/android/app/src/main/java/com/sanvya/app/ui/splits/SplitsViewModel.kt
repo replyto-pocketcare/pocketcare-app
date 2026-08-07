@@ -140,6 +140,23 @@ class SplitsViewModel : ViewModel(), KoinComponent {
      * since [groups] and [friends] both already carry a `net` field. */
     fun everyone(): List<FriendEdgeUiModel> = _friends.value
 
+    /** Friends aren't groups in the UI, but ARE one underneath (a hidden
+     * `is_direct` group per pair, matching `getOrCreateDirectGroup()`) --
+     * tapping a friend reuses GroupDetailScreen against that hidden group
+     * rather than a second, near-duplicate "person ledger" screen. */
+    fun openOrCreateDirectGroup(otherUserId: String, currency: String, onDone: (String?) -> Unit) {
+        val uid = userId ?: return onDone(null)
+        viewModelScope.launch {
+            try {
+                val id = splitsRepository.getOrCreateDirectGroup(uid, otherUserId, nameOf(otherUserId), currency)
+                onDone(id)
+            } catch (e: Exception) {
+                _error.value = e.message
+                onDone(null)
+            }
+        }
+    }
+
     fun createGroup(name: String, kind: String, currency: String, memberIds: List<String>, onDone: (String?) -> Unit) {
         val uid = userId ?: return
         if (name.isBlank()) { onDone(null); return }

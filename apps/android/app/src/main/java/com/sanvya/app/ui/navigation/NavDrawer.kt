@@ -90,7 +90,7 @@ val drawerNavGroups: List<DrawerNavGroup> = listOf(
         DrawerNavItem("Transactions", Icons.Default.SwapHoriz, "transactions"),
         DrawerNavItem("Templates", Icons.Default.Bookmarks, comingSoonRoute("Templates")),
         DrawerNavItem("Cards", Icons.Default.CreditCard, "cards"),
-        DrawerNavItem("Splits & groups", Icons.Default.Groups, comingSoonRoute("Splits & groups")),
+        DrawerNavItem("Splits & groups", Icons.Default.Groups, "splits"),
         DrawerNavItem("Search", Icons.Default.Search, comingSoonRoute("Search")),
     )),
     DrawerNavGroup("Planning", listOf(

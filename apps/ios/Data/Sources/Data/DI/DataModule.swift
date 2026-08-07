@@ -76,6 +76,10 @@ public extension Container {
         self { SplitsRepository(db: self.powerSyncDatabase(), ledger: self.ledgerRepository()) }.singleton
     }
 
+    var upiRepository: Factory<UpiRepository> {
+        self { UpiRepository(client: self.supabaseClient()) }.singleton
+    }
+
     var goalsRepository: Factory<GoalsRepository> {
         self { GoalsRepository(db: self.powerSyncDatabase()) }.singleton
     }

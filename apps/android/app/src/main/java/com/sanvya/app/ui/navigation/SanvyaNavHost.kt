@@ -31,6 +31,8 @@ import com.sanvya.app.ui.creditcards.CreditCardsScreen
 import com.sanvya.app.ui.loans.AddLoanScreen
 import com.sanvya.app.ui.loans.LoanDetailScreen
 import com.sanvya.app.ui.loans.LoansScreen
+import com.sanvya.app.ui.splits.GroupDetailScreen
+import com.sanvya.app.ui.splits.SplitsScreen
 import com.sanvya.app.ui.transactions.CreateTransactionScreen
 import com.sanvya.app.ui.transactions.EditTransactionScreen
 import com.sanvya.app.ui.transactions.TransactionsScreen
@@ -65,7 +67,10 @@ import kotlinx.coroutines.launch
  * "goals/{goalId}/edit", "investments", "investments/new?groupKey={groupKey}"
  * (2026-08-06, task #26), "loans", "loans/new", "loans/{loanId}"
  * (2026-08-06, task #27 -- edit happens inline on the detail screen, not a
- * separate route, matching web's [id]/page.tsx). Every drawer item without
+ * separate route, matching web's [id]/page.tsx), "cards" (task #29),
+ * "splits", "splits/{groupId}" (2026-08-07, task #30 -- a friend's row
+ * routes here too, against their hidden 1:1 group; see
+ * docs/mobile/screen-specs/splits.md). Every drawer item without
  * a real screen yet
  * routes to "coming_soon/{title}" (a
  * shared placeholder, matching iOS's own `PlaceholderView` for its
@@ -290,6 +295,22 @@ fun SanvyaNavHost() {
             CreditCardsScreen(
                 onBack = { navController.popBackStack() },
                 onAddAccount = { navController.navigate("accounts/new") },
+            )
+        }
+        composable("splits") {
+            SplitsScreen(
+                onOpenDrawer = { scope.launch { drawerState.open() } },
+                onOpenGroup = { id -> navController.navigate("splits/$id") },
+            )
+        }
+        composable(
+            "splits/{groupId}",
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType }),
+        ) { entry ->
+            val groupId = entry.arguments?.getString("groupId") ?: ""
+            GroupDetailScreen(
+                groupId = groupId,
+                onBack = { navController.popBackStack() },
             )
         }
     }

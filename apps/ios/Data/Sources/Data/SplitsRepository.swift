@@ -337,6 +337,20 @@ public final class SplitsRepository: @unchecked Sendable {
         )
     }
 
+    /// Single group by id, one-shot -- added task #30 (Splits screen) for
+    /// the group-detail screen; every other read here composes the full
+    /// list, which the detail screen doesn't need.
+    public func getGroup(groupId: String) async throws -> SplitGroup? {
+        try await db.getOptional(
+            sql: """
+                SELECT id, created_by, name, kind, is_direct, start_date, end_date, auto_split, default_mode, currency
+                FROM split_groups WHERE id = ? AND deleted_at IS NULL
+                """,
+            parameters: [groupId],
+            mapper: groupMapper
+        )
+    }
+
     // ---- reads (one-shot; see REACTIVITY NOTE above) ----
 
     /// Global per-user balances across all of [userId]'s groups.

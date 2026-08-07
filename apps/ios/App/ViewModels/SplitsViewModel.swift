@@ -5,14 +5,26 @@ import Domain
 import Data
 import Supabase
 
+/// Real port of apps/web/app/friends/page.tsx's hub (task #30). See
+/// docs/mobile/screen-specs/splits.md. Replaces the previous version's
+/// `"Friend" // Placeholder` name bug -- names are now resolved via a real
+/// connections join, matching web's `profiles.get(id)?.name ?? "Someone"`.
+///
+/// Multi-Task watch pattern (each `watch*` stream its own long-running
+/// Task, recomputing shared UI state on every emission) matches
+/// TransactionsViewModel's established convention -- deliberately NOT a
+/// one-shot "take the first value" extraction, since abandoning an
+/// AsyncThrowingStream early mid-loop is unverified behavior against this
+/// project's PowerSync SDK version and no other ViewModel in this codebase
+/// does it.
 @Observable
 @MainActor
 public final class SplitsViewModel {
     @ObservationIgnored
     @Injected(\.splitsRepository) private var splitsRepository
-    
+
     @ObservationIgnored
-    @Injected(\.supabaseClient) private var supabaseClient
+    @Injected(\.authRepository) private var authRepository
 
     public struct SplitGroupUiModel: Identifiable, Equatable {
         public let id: String
@@ -20,6 +32,7 @@ public final class SplitsViewModel {
         public let kind: String
         public let memberCount: Int
         public let dateRange: String?
+        public let net: Int64
         public let netBalanceFormatted: String
         public let isOwed: Bool
     }
@@ -27,80 +40,123 @@ public final class SplitsViewModel {
     public struct FriendEdgeUiModel: Identifiable, Equatable {
         public let id: String
         public let name: String
-        public let vpa: String?
+        public let net: Int64
         public let balanceFormatted: String
         public let isOwed: Bool
     }
 
+    public struct OverviewUiModel: Equatable {
+        public let netPositionFormatted: String
+        public let netPositive: Bool
+        public let owedFormatted: String
+        public let oweFormatted: String
+    }
+
     public var groups: [SplitGroupUiModel] = []
     public var friends: [FriendEdgeUiModel] = []
+    public var overview: OverviewUiModel?
+    public var connections: [UserProfile] = []
+    public var loaded = false
+    public var errorMessage: String?
 
-    private var numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "INR"
-        formatter.maximumFractionDigits = 2
-        return formatter
-    }()
+    private var namesById: [String: String] = [:]
+    private var userId: String?
+    private var tasks: [Task<Void, Never>] = []
 
     public init() {
-        Task {
-            await startObserving()
-        }
+        Task { await start() }
     }
 
-    private func startObserving() async {
-        guard let userId = try? await supabaseClient.auth.session.user.id.uuidString else {
-            return
-        }
+    private func resolveUserId() async -> String? {
+        if let existing = authRepository.currentUserId { return existing }
+        return try? await authRepository.ensureUser()
+    }
 
-        do {
-            // First fetch the overview to populate immediately
-            try await refreshOverview(userId: userId)
-            
-            // Watch for changes on groups, triggering a refresh
-            let stream = try await splitsRepository.watchGroups(includeDirect: false)
-            for try await _ in stream {
-                try await refreshOverview(userId: userId)
+    private func start() async {
+        guard let userId = await resolveUserId() else { loaded = true; return }
+        self.userId = userId
+
+        tasks.append(Task {
+            do {
+                for try await conns in try splitsRepository.watchConnections(userId: userId) {
+                    self.connections = conns
+                    self.namesById = Dictionary(uniqueKeysWithValues: conns.map { ($0.id, $0.name) })
+                    await self.refreshOverviewSafely(userId: userId)
+                }
+            } catch { self.errorMessage = error.localizedDescription }
+        })
+
+        tasks.append(Task {
+            do {
+                let stream = try splitsRepository.watchGroups(includeDirect: false)
+                for try await _ in stream {
+                    await self.refreshOverviewSafely(userId: userId)
+                    self.loaded = true
+                }
+            } catch {
+                self.errorMessage = error.localizedDescription
+                self.loaded = true
             }
+        })
+    }
+
+    private func refreshOverviewSafely(userId: String) async {
+        do { try await refreshOverview(userId: userId) } catch { errorMessage = error.localizedDescription }
+    }
+
+    private func nameOf(_ id: String) -> String { namesById[id] ?? "Someone" }
+
+    private func refreshOverview(userId: String) async throws {
+        let ov = try await splitsRepository.splitOverview(userId: userId)
+
+        self.overview = OverviewUiModel(
+            netPositionFormatted: (ov.netPosition >= 0 ? "+" : "\u{2212}") + formatMoney(abs(ov.netPosition), "INR"),
+            netPositive: ov.netPosition >= 0,
+            owedFormatted: formatMoney(ov.owed, "INR"),
+            oweFormatted: formatMoney(ov.owe, "INR")
+        )
+
+        self.groups = ov.groups.map { g in
+            let isOwed = g.net > 0
+            let text: String
+            if g.net == 0 { text = "Settled up" }
+            else if isOwed { text = "You are owed \(formatMoney(g.net, g.group.currency))" }
+            else { text = "You owe \(formatMoney(-g.net, g.group.currency))" }
+            return SplitGroupUiModel(id: g.group.id, name: g.group.name, kind: g.group.kind, memberCount: g.peopleCount, dateRange: g.group.startDate, net: g.net, netBalanceFormatted: text, isOwed: isOwed)
+        }
+
+        self.friends = ov.direct.map { bal in
+            let isOwed = bal.net > 0
+            return FriendEdgeUiModel(id: bal.userId, name: nameOf(bal.userId), net: bal.net, balanceFormatted: formatMoney(abs(bal.net), "INR"), isOwed: isOwed)
+        }.sorted { abs($0.net) > abs($1.net) }
+    }
+
+    public func createGroup(name: String, kind: String, currency: String, memberIds: [String]) async -> String? {
+        guard let userId = userId ?? (await resolveUserId()), !name.isEmpty else { return nil }
+        do {
+            return try await splitsRepository.createGroup(userId: userId, name: name, kind: kind, currency: currency, memberUserIds: memberIds)
         } catch {
-            print("Failed to observe splits: \(error)")
+            errorMessage = error.localizedDescription
+            return nil
         }
     }
-    
-    private func refreshOverview(userId: String) async throws {
-        let overview = try await splitsRepository.splitOverview(userId: userId)
-        
-        self.groups = overview.groups.map { grpOverview in
-            let isOwed = grpOverview.net > 0
-            let amt = Double(abs(grpOverview.net)) / 100.0
-            let formatted = self.numberFormatter.string(from: NSNumber(value: amt)) ?? "₹0.00"
-            let netStr = grpOverview.net == 0 ? "Settled up" : (isOwed ? "You are owed \(formatted)" : "You owe \(formatted)")
-            
-            return SplitGroupUiModel(
-                id: grpOverview.group.id,
-                name: grpOverview.group.name,
-                kind: grpOverview.group.kind,
-                memberCount: grpOverview.peopleCount,
-                dateRange: grpOverview.group.startDate,
-                netBalanceFormatted: netStr,
-                isOwed: isOwed
-            )
+
+    /// Friends aren't groups in the UI, but ARE one underneath (a hidden
+    /// `is_direct` group per pair) -- tapping a friend reuses
+    /// GroupDetailView against that hidden group rather than a second,
+    /// near-duplicate "person ledger" screen.
+    public func openOrCreateDirectGroup(otherUserId: String, currency: String) async -> String? {
+        guard let userId = userId ?? (await resolveUserId()) else { return nil }
+        do {
+            return try await splitsRepository.getOrCreateDirectGroup(userId: userId, otherUserId: otherUserId, otherName: nameOf(otherUserId), currency: currency)
+        } catch {
+            errorMessage = error.localizedDescription
+            return nil
         }
-        
-        self.friends = overview.direct.map { bal in
-            let isOwed = bal.net > 0
-            let amt = Double(abs(bal.net)) / 100.0
-            let formatted = self.numberFormatter.string(from: NSNumber(value: amt)) ?? "₹0.00"
-            let netStr = isOwed ? "Owes you \(formatted)" : "You owe \(formatted)"
-            
-            return FriendEdgeUiModel(
-                id: bal.userId,
-                name: "Friend", // Placeholder
-                vpa: nil,
-                balanceFormatted: netStr,
-                isOwed: isOwed
-            )
-        }
+    }
+
+    public func cancel() {
+        tasks.forEach { $0.cancel() }
+        tasks.removeAll()
     }
 }
