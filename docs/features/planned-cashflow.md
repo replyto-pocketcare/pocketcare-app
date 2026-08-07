@@ -57,8 +57,18 @@ flowchart LR
 
 **Savings ↔ Investments:** adding a **SIP** on the Investments page creates a recurring **transfer** rule (debit account → investment account, with a next-SIP date), so it appears under [Recurring](recurring.md) and in the Savings totals here. The Savings section also shows a read-only **invested-portfolio summary** card (current value + invested, from `holdings`) that links to `/investments`. See [features/investments](investments.md).
 
+## Lifetime spend on a subscription
+Each subscription row shows roughly what it has cost since it started — *"~₹5,988 since Mar 2024"*.
+
+**This is an estimate, and the UI says so.** Nothing links a transaction to a subscription (there is no `subscriptions.id` on `transactions`), so `estimatedSpentToDate` multiplies the **current** price by the number of billing dates that have passed. It therefore assumes the price never changed and that no charge was missed, paused or refunded. The tilde, the word "Estimated" in the tooltip, and the explicit caveat are load-bearing: presenting a derived figure as observed spend is how a user stops trusting every other number in the app.
+
+- **Calendar arithmetic, never 30-day months.** A subscription started on the 31st bills on Feb 28 (clamped, same rule as `emiDueDate`). Approximating a month as 30 days drifts an extra charge roughly every five years, which on a lifetime total is exactly the error someone notices.
+- **The signup-day charge counts.** You pay when you subscribe, so a subscription started today shows one charge, not zero.
+- **Start date** is `purchased_on`, falling back to `created_at` when it's absent (the field is optional and many rows predate it). That undercounts a subscription that was running before it was added here — the tooltip names the date used so the number is interpretable.
+- The dashboard Subscriptions tile shows the same figure summed across active subscriptions.
+
 ## Key files
-`app/cashflow/page.tsx`, `src/cashflow/model.ts` (buckets, templates, aggregation), `src/cashflow/Charts.tsx` (recharts, token colors), `src/cashflow/Projections.tsx` (sliders + engine), `@sanvya/finance` (`projectCashflow`, `yearlyEquivalent`, `timeframeTotal`).
+`app/cashflow/page.tsx`, `src/cashflow/model.ts` (buckets, templates, aggregation), `src/cashflow/Charts.tsx` (recharts, token colors), `src/cashflow/Projections.tsx` (sliders + engine), `@sanvya/finance` (`projectCashflow`, `yearlyEquivalent`, `timeframeTotal`, `chargesToDate`, `estimatedSpentToDate`).
 
 ## Gating
 Free basics; the AI projection engine runs fully client-side (offline, no API cost).
@@ -68,3 +78,6 @@ Free basics; the AI projection engine runs fully client-side (offline, no API co
 - Deep-link `/cashflow#payments` (from the dashboard subscriptions tile) scrolls to the payments section with a retry while synced data loads.
 - Old `/subscriptions` and `/loans` routes now redirect here.
 - BETA badges appear on the page, AI panel, add-modal, and sidebar item.
+- A subscription with a **future** start date shows no lifetime figure at all (0 charges), rather than a misleading ₹0.
+- An absent or unparseable start date yields 0, never `NaN` — this feeds a currency display, where `NaN` would render as garbage.
+- The dashboard tile sums lifetime spend **raw across currencies**, exactly as it already does for the monthly figure. If that tile gains real FX conversion, both numbers need it together.

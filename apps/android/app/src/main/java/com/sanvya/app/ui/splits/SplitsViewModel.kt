@@ -2,18 +2,23 @@ package com.sanvya.app.ui.splits
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sanvya.app.data.repository.SplitsRepository
 import com.sanvya.app.data.auth.AuthRepository
-
-import kotlinx.coroutines.flow.SharingStarted
+import com.sanvya.app.data.repository.SplitsRepository
+import com.sanvya.app.data.repository.UserProfile
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.text.NumberFormat
+import java.util.Currency
 import java.util.Locale
+
+/** Real port of apps/web/app/friends/page.tsx's hub (task #30). See
+ * docs/mobile/screen-specs/splits.md. Replaces the previous version's
+ * `"Friend" // Placeholder` name bug -- names are now resolved via a real
+ * connections join, matching web's `profiles.get(id)?.name ?? "Someone"`. */
 
 data class SplitGroupUiModel(
     val id: String,
@@ -21,93 +26,140 @@ data class SplitGroupUiModel(
     val kind: String, // "trip" or "group"
     val memberCount: Int,
     val dateRange: String?,
+    val net: Long,
     val netBalanceFormatted: String,
-    val isOwed: Boolean
+    val isOwed: Boolean,
 )
 
 data class FriendEdgeUiModel(
     val id: String,
     val name: String,
-    val vpa: String?,
+    val net: Long,
     val balanceFormatted: String,
-    val isOwed: Boolean
+    val isOwed: Boolean,
 )
 
-class SplitsViewModel(
-    private val splitsRepository: SplitsRepository,
-    private val authRepository: AuthRepository
-) : ViewModel() {
+data class SplitOverviewUiModel(
+    val netPositionFormatted: String,
+    val netPositive: Boolean,
+    val owedFormatted: String,
+    val oweFormatted: String,
+)
 
-    private val numberFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-        currency = java.util.Currency.getInstance("INR")
-        maximumFractionDigits = 2
-    }
+class SplitsViewModel : ViewModel(), KoinComponent {
+    private val splitsRepository: SplitsRepository by inject()
+    private val authRepository: AuthRepository by inject()
 
     private val userId: String?
         get() = authRepository.currentUserId.value
 
-    private val _groups = kotlinx.coroutines.flow.MutableStateFlow<List<SplitGroupUiModel>>(emptyList())
+    private val _groups = MutableStateFlow<List<SplitGroupUiModel>>(emptyList())
     val groups: StateFlow<List<SplitGroupUiModel>> = _groups
 
-    private val _friends = kotlinx.coroutines.flow.MutableStateFlow<List<FriendEdgeUiModel>>(emptyList())
+    private val _friends = MutableStateFlow<List<FriendEdgeUiModel>>(emptyList())
     val friends: StateFlow<List<FriendEdgeUiModel>> = _friends
+
+    private val _overview = MutableStateFlow<SplitOverviewUiModel?>(null)
+    val overview: StateFlow<SplitOverviewUiModel?> = _overview
+
+    /** Sourced from `connections` -- the pool of people a new group's
+     * member picker offers, matching web's implicit assumption that group
+     * members come from your connections. */
+    private val _connections = MutableStateFlow<List<UserProfile>>(emptyList())
+    val connections: StateFlow<List<UserProfile>> = _connections
+
+    private val _loaded = MutableStateFlow(false)
+    val loaded: StateFlow<Boolean> = _loaded
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
+
+    private var namesById: Map<String, String> = emptyMap()
 
     init {
         viewModelScope.launch {
             val uid = userId ?: return@launch
             try {
-                // Initial fetch
+                val conns = splitsRepository.watchConnections(uid).first()
+                _connections.value = conns
+                namesById = conns.associate { it.id to it.name }
+
                 refreshOverview(uid)
-                
-                // Watch for changes to trigger refresh
                 splitsRepository.watchGroups().collect {
                     refreshOverview(uid)
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                _error.value = e.message
+            } finally {
+                _loaded.value = true
             }
         }
     }
 
+    private fun nameOf(id: String): String = namesById[id] ?: "Someone"
+
     private suspend fun refreshOverview(uid: String) {
-        val overview = splitsRepository.splitOverview(uid)
-        
-        _groups.value = overview.groups.map { grpOverview ->
-            val isOwed = grpOverview.net > 0
-            val formatted = numberFormat.format(Math.abs(grpOverview.net / 100.0))
-            val netStr = if (grpOverview.net == 0L) "Settled up" else (if (isOwed) "You are owed $formatted" else "You owe $formatted")
-            
+        val ov = splitsRepository.splitOverview(uid)
+
+        _overview.value = SplitOverviewUiModel(
+            netPositionFormatted = (if (ov.netPosition >= 0) "+" else "−") + formatMoney(kotlin.math.abs(ov.netPosition)),
+            netPositive = ov.netPosition >= 0,
+            owedFormatted = formatMoney(ov.owed),
+            oweFormatted = formatMoney(ov.owe),
+        )
+
+        _groups.value = ov.groups.map { g ->
+            val isOwed = g.net > 0
             SplitGroupUiModel(
-                id = grpOverview.group.id,
-                name = grpOverview.group.name,
-                kind = grpOverview.group.kind,
-                memberCount = grpOverview.peopleCount,
-                dateRange = grpOverview.group.startDate,
-                netBalanceFormatted = netStr,
-                isOwed = isOwed
+                id = g.group.id,
+                name = g.group.name,
+                kind = g.group.kind,
+                memberCount = g.peopleCount,
+                dateRange = g.group.startDate,
+                net = g.net,
+                netBalanceFormatted = if (g.net == 0L) "Settled up" else (if (isOwed) "You are owed ${formatMoney(g.net)}" else "You owe ${formatMoney(-g.net)}"),
+                isOwed = isOwed,
             )
         }
 
-        // To get friend names, we'd need to fetch connections, but for now we'll just use the ID or a placeholder.
-        // Or we can use watchFriendBalances which does not give names either unless joined.
-        // We will fetch connections once.
-        var connections = emptyMap<String, String>()
-        try {
-            // we don't have a one-shot getConnections, we'd have to collect the flow
-        } catch (e: Exception) {}
-
-        _friends.value = overview.direct.map { bal ->
+        _friends.value = ov.direct.map { bal ->
             val isOwed = bal.net > 0
-            val formatted = numberFormat.format(Math.abs(bal.net / 100.0))
-            val netStr = if (isOwed) "Owes you $formatted" else "You owe $formatted"
-            
             FriendEdgeUiModel(
                 id = bal.userId,
-                name = "Friend", // Placeholder
-                vpa = null,
-                balanceFormatted = netStr,
-                isOwed = isOwed
+                name = nameOf(bal.userId),
+                net = bal.net,
+                balanceFormatted = formatMoney(kotlin.math.abs(bal.net)),
+                isOwed = isOwed,
             )
+        }.sortedByDescending { kotlin.math.abs(it.net) }
+    }
+
+    /** Everyone the caller shares a group with, settled or not -- matches
+     * `everyone` on web (the "Friends" directory, a superset of the
+     * owed/owe lists which drop settled people). Cheap to compute here
+     * since [groups] and [friends] both already carry a `net` field. */
+    fun everyone(): List<FriendEdgeUiModel> = _friends.value
+
+    fun createGroup(name: String, kind: String, currency: String, memberIds: List<String>, onDone: (String?) -> Unit) {
+        val uid = userId ?: return
+        if (name.isBlank()) { onDone(null); return }
+        viewModelScope.launch {
+            try {
+                val id = splitsRepository.createGroup(userId = uid, name = name, kind = kind, currency = currency, memberUserIds = memberIds)
+                onDone(id)
+            } catch (e: Exception) {
+                _error.value = e.message
+                onDone(null)
+            }
         }
     }
+}
+
+internal fun formatMoney(minor: Long, currency: String = "INR"): String = try {
+    NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
+        this.currency = Currency.getInstance(currency)
+        maximumFractionDigits = 2
+    }.format(minor / 100.0)
+} catch (e: Exception) {
+    "$currency ${minor / 100.0}"
 }

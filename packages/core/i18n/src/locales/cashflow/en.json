@@ -46,6 +46,8 @@
   "autoPosts": "auto-posts",
   "confirm": "confirm",
   "subscription": "Subscription",
+  "spentSoFar": "~{{amount}} since {{date}}",
+  "spentTooltip": "Estimated from {{count}} payments since {{date}} at the current price. Actual charges may differ if the price changed or a payment was missed.",
   "loanSubtitle": "Loan / EMI · principal {{amount}} · view schedule →",
   "emiPerMonth": "EMI / mo",
   "loanFallback": "Loan",

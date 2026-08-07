@@ -46,6 +46,8 @@
   "autoPosts": "boekt automatisch",
   "confirm": "bevestigen",
   "subscription": "Abonnement",
+  "spentSoFar": "~{{amount}} sinds {{date}}",
+  "spentTooltip": "Geschat op basis van {{count}} betalingen sinds {{date}} tegen de huidige prijs. De werkelijke kosten kunnen afwijken als de prijs is gewijzigd of een betaling is gemist.",
   "loanSubtitle": "Lening / EMI · hoofdsom {{amount}} · schema bekijken →",
   "emiPerMonth": "EMI / mnd",
   "loanFallback": "Lening",

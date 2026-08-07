@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { money, format, toMajor, type Money } from "@sanvya/money";
 import { budgetProgress } from "@sanvya/budget";
-import { monthlyEquivalent, emiDueDate } from "@sanvya/finance";
+import { monthlyEquivalent, emiDueDate, estimatedSpentToDate } from "@sanvya/finance";
 import type { BudgetLike } from "@sanvya/data";
 import type { Transaction, Period } from "@sanvya/types";
 import { getRepositories } from "../powersync";
@@ -430,10 +430,17 @@ function GoalsTile() {
 function SubscriptionsTile() {
   const base = useBaseCurrency();
   const hidden = useAmountsHidden();
-  const { data: subs = [] } = useQuery<{ name: string; amount: number; currency: string; billing_cycle: string; next_renewal: string | null }>(
-    "SELECT name, amount, currency, billing_cycle, next_renewal FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY next_renewal",
+  const { data: subs = [] } = useQuery<{ name: string; amount: number; currency: string; billing_cycle: string; next_renewal: string | null; purchased_on: string | null; created_at: string | null }>(
+    "SELECT name, amount, currency, billing_cycle, next_renewal, purchased_on, created_at FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY next_renewal",
   );
   const monthly = subs.reduce((s, x) => s + monthlyEquivalent(x.amount, x.billing_cycle as Period), 0);
+  // Estimated lifetime spend across active subscriptions — see estimatedSpentToDate.
+  // Summed raw and shown in base currency, exactly as `monthly` above already
+  // does; if this tile ever gains proper FX conversion, both need it together.
+  const lifetime = subs.reduce(
+    (s, x) => s + estimatedSpentToDate(x.amount, x.purchased_on || x.created_at, x.billing_cycle as Period),
+    0,
+  );
   const fmt = (m: number, c: string = base) => (hidden ? "••••" : format(money(Math.round(m), c), "en-US"));
   const renewing = subs.filter((x) => x.next_renewal);
   const { ref, fit } = useFitRows<HTMLDivElement>(20, { gap: 8, max: 8 });
@@ -448,6 +455,14 @@ function SubscriptionsTile() {
           <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize: 32, fontWeight: 750 }}>{fmt(monthly)}<span style={{ fontSize: 15, fontWeight: 600, color: HERO_MUTED }}> /mo</span></div>
             <div style={{ fontSize: 13, color: HERO_MUTED, marginTop: 4 }}>{subs.length} active {subs.length === 1 ? "subscription" : "subscriptions"}</div>
+            {lifetime > 0 && (
+              <div
+                style={{ fontSize: 13, color: HERO_MUTED, marginTop: 2 }}
+                title="Estimated from each subscription's price and how long it's been running. Actual charges may differ."
+              >
+                ~{fmt(lifetime)} spent so far
+              </div>
+            )}
           </div>
           {/* The border/padding live on the outer box so the measured element's
               clientHeight is pure row space (clientHeight includes padding). */}

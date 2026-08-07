@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@powersync/react";
 import { money, fromMajor, toMajor } from "@sanvya/money";
-import { monthlyEquivalent } from "@sanvya/finance";
+import { monthlyEquivalent, chargesToDate, estimatedSpentToDate } from "@sanvya/finance";
 import type { Period } from "@sanvya/types";
 import { useBaseCurrency, useConvert, useConvertAmount } from "../../src/hooks";
 import { insertRow, updateRow, softDelete } from "../../src/write";
@@ -50,7 +50,14 @@ function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-interface Sub { id: string; name: string; amount: number; currency: string; billing_cycle: Period; next_renewal: string | null }
+interface Sub {
+  id: string; name: string; amount: number; currency: string; billing_cycle: Period;
+  next_renewal: string | null;
+  /** When the subscription actually started. Optional — many rows predate the field. */
+  purchased_on: string | null;
+  /** Fallback start: when it was added here. Undercounts a sub that predates the app. */
+  created_at: string | null;
+}
 interface Loan { id: string; lender: string; principal: number; currency: string; emi_amount: number | null }
 
 /** Next monthly due date from a start date (simple monthly roll for display). */
@@ -74,7 +81,7 @@ export default function CashflowPage() {
     "SELECT id, name, direction, bucket, amount, currency, frequency, timeframe, next_due, expected_return, is_active FROM planned_cashflow WHERE deleted_at IS NULL AND is_active = 1 ORDER BY created_at",
   );
   const { data: subs = [] } = useQuery<Sub>(
-    "SELECT id, name, amount, currency, billing_cycle, next_renewal FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY created_at",
+    "SELECT id, name, amount, currency, billing_cycle, next_renewal, purchased_on, created_at FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY created_at",
   );
   const { data: loans = [] } = useQuery<Loan>(
     "SELECT id, lender, principal, currency, emi_amount FROM loans WHERE deleted_at IS NULL ORDER BY created_at",
@@ -310,7 +317,7 @@ function Legend({ items }: { items: { label: string; color: string }[] }) {
   );
 }
 
-function RowShell({ icon, title, subtitle, right, actions, href }: { icon: string; title: string; subtitle: string; right: React.ReactNode; actions: React.ReactNode; href?: string }) {
+function RowShell({ icon, title, subtitle, right, actions, href, meta }: { icon: string; title: string; subtitle: string; right: React.ReactNode; actions: React.ReactNode; href?: string; meta?: React.ReactNode }) {
   const info = (
     <>
       <span className="pc-row-icon">{icon}</span>
@@ -319,6 +326,9 @@ function RowShell({ icon, title, subtitle, right, actions, href }: { icon: strin
           <strong style={{ fontSize: 14.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</strong>
         </div>
         <div className="muted" style={{ fontSize: 12 }}>{subtitle}</div>
+        {/* Third line, on the left where there's width — the right column is
+            money-aligned and a long "since Mar 2024" would crowd it. */}
+        {meta}
       </div>
     </>
   );
@@ -433,11 +443,41 @@ function SubRow({ sub, base }: { sub: Sub; base: string }) {
   const monthly = monthlyEquivalent(sub.amount, sub.billing_cycle);
   const due = nextMonthly(sub.next_renewal);
   const cur = sub.currency || base;
+
+  // Lifetime spend. Deliberately an ESTIMATE: nothing links a transaction to a
+  // subscription, so this is price × billing dates passed. It assumes the price
+  // never changed and no charge was missed or paused — hence the "est." label.
+  // Falling back to created_at undercounts a subscription that predates the app,
+  // which is why the tooltip says which date it used.
+  const start = sub.purchased_on || sub.created_at;
+  const charges = chargesToDate(start, sub.billing_cycle);
+  const spent = estimatedSpentToDate(sub.amount, start, sub.billing_cycle);
+  const startLabel = start
+    ? new Date(start).toLocaleDateString(undefined, { month: "short", year: "numeric" })
+    : "";
+
   return (
     <RowShell
       icon="↻"
       title={sub.name}
       subtitle={`${t("subscription")} · ${t(`freq.${sub.billing_cycle}`, sub.billing_cycle)}${due ? ` · ${t("next", { date: due })}` : ""}`}
+      meta={charges > 0 ? (
+        <div
+          className="muted"
+          style={{ fontSize: 11.5, marginTop: 2 }}
+          title={t("spentTooltip", {
+            count: charges,
+            defaultValue: "Estimated from {{count}} payments since {{date}} at the current price. Actual charges may differ if the price changed or a payment was missed.",
+            date: startLabel,
+          })}
+        >
+          {t("spentSoFar", {
+            amount: fmt(conv(money(spent, cur))),
+            date: startLabel,
+            defaultValue: "~{{amount}} since {{date}}",
+          })}
+        </div>
+      ) : undefined}
       right={<>
         <span style={{ fontWeight: 650, fontSize: 14 }}>{fmt(conv(money(sub.amount, cur)))}</span>
         <span className="muted" style={{ fontSize: 11 }}>{fmt(conv(money(monthly, cur)))}{t("perMonth")}</span>

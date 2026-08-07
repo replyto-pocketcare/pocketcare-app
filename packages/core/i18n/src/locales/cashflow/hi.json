@@ -46,6 +46,8 @@
   "autoPosts": "स्वतः पोस्ट",
   "confirm": "पुष्टि करें",
   "subscription": "सदस्यता",
+  "spentSoFar": "{{date}} से ~{{amount}}",
+  "spentTooltip": "{{date}} से {{count}} भुगतानों के आधार पर, वर्तमान कीमत पर अनुमानित। कीमत बदलने या भुगतान छूटने पर वास्तविक राशि भिन्न हो सकती है।",
   "loanSubtitle": "लोन / ईएमआई · मूलधन {{amount}} · शेड्यूल देखें →",
   "emiPerMonth": "ईएमआई / माह",
   "loanFallback": "लोन",

@@ -73,7 +73,7 @@ Three maintained apps: Android (Kotlin 2.x + Compose + Glance), iOS (Swift 6 + S
 - Mobile session logs → AUDIT_HISTORY.md "Mobile change log". Feature parity table lives in `docs/mobile/TODO.md`.
 
 ## Testing
-`pnpm test:core` — 290 tests, Node `node:test` + type-stripping (sandbox: `node --test --experimental-strip-types packages/core/*/src/*.test.ts`). Web: `pnpm --filter @sanvya/web typecheck`. Full strategy + ~100-case catalog: `docs/plans/full-test-plan.md`. Money/domain tests go in `packages/core` (the spec), never duplicated per app.
+`pnpm test:core` — 303 tests, Node `node:test` + type-stripping (sandbox: `node --test --experimental-strip-types packages/core/*/src/*.test.ts`). Web: `pnpm --filter @sanvya/web typecheck`. Full strategy + ~100-case catalog: `docs/plans/full-test-plan.md`. Money/domain tests go in `packages/core` (the spec), never duplicated per app.
 
 ## Docs maintenance (MANDATORY on feature changes — full rule in CLAUDE.md)
 Feature doc in `docs/features/`, Mermaid diagrams updated, indexes updated, **dated entry in `AUDIT_HISTORY.md`** (not here), regenerate PDF if architecture changed.

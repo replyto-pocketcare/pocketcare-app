@@ -343,6 +343,76 @@ export function isDuePassed(dueIso: string | null, asOfIso: string): boolean {
 }
 
 /**
+ * How many times a recurring charge has been billed, from `startIso` to `asOfIso`.
+ *
+ * The charge on the start date counts as the first one — you pay a subscription
+ * when you sign up, not a month later — so a subscription started today returns
+ * 1, not 0.
+ *
+ * Monthly and yearly use CALENDAR arithmetic, never a fixed 30/365 days. A
+ * subscription started on the 31st bills on the 28th in February (clamped, same
+ * as `emiDueDate`), and approximating months as 30 days drifts a full extra
+ * charge roughly every five years — on a lifetime total that is exactly the
+ * error someone would notice and distrust.
+ *
+ * Returns 0 for an absent, unparseable, or future start date.
+ */
+export function chargesToDate(
+  startIso: string | null | undefined,
+  period: Period,
+  asOfIso?: string,
+): number {
+  const start = ymd(startIso);
+  if (!start) return 0;
+  const asOf = ymd((asOfIso ?? new Date().toISOString()).slice(0, 10));
+  if (!asOf) return 0;
+
+  const startKey = isoOf(start.y, start.m, start.d);
+  const asOfKey = isoOf(asOf.y, asOf.m, asOf.d);
+  if (asOfKey < startKey) return 0; // starts in the future — nothing billed yet
+
+  switch (period) {
+    case "daily":
+    case "weekly": {
+      const days = Math.floor((Date.UTC(asOf.y, asOf.m, asOf.d) - Date.UTC(start.y, start.m, start.d)) / 86_400_000);
+      return Math.floor(days / (period === "weekly" ? 7 : 1)) + 1;
+    }
+    case "monthly": {
+      let months = (asOf.y - start.y) * 12 + (asOf.m - start.m);
+      // Not yet reached this month's billing day → the last one hasn't happened.
+      // Clamped, so a 31st subscription bills on the 28th in February.
+      if (asOf.d < Math.min(start.d, daysInMonth(asOf.y, asOf.m))) months--;
+      return Math.max(0, months) + 1;
+    }
+    case "yearly": {
+      let years = asOf.y - start.y;
+      const anniversary = isoOf(asOf.y, start.m, start.d);
+      if (asOfKey < anniversary) years--;
+      return Math.max(0, years) + 1;
+    }
+  }
+}
+
+/**
+ * Estimated total billed for a recurring charge since it started.
+ *
+ * **This is a projection, not observed spend.** Nothing links a transaction to
+ * a subscription, so this multiplies the current price by the number of billing
+ * dates that have passed. It assumes the price never changed and that no charge
+ * was missed, paused, or refunded. Anywhere it surfaces must say so — presenting
+ * a derived figure as fact is the kind of thing that makes someone stop trusting
+ * every other number in the app.
+ */
+export function estimatedSpentToDate(
+  amount: number,
+  startIso: string | null | undefined,
+  period: Period,
+  asOfIso?: string,
+): number {
+  return amount * chargesToDate(startIso, period, asOfIso);
+}
+
+/**
  * The set of EMI numbers that count as paid, given manually-marked EMIs and an
  * optional "auto-mark past-due" policy. Derived (not persisted) so toggling
  * `autoMark` off instantly reverts the auto ones; manual marks always win.

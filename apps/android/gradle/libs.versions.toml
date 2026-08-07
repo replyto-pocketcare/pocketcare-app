@@ -71,6 +71,10 @@ powersync-core = { group = "com.powersync", name = "core", version.ref = "powerS
 supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabaseBom" }
 supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
 supabase-auth = { group = "io.github.jan-tennert.supabase", name = "auth-kt" }
+# P3.9 (Splits settle-up): Edge Function invocation (payment-handle) — BOM-managed, same as
+# postgrest/auth above. Real API verified against supabase-kt's own functions-invoke reference
+# before use (client.functions.invoke(function, body) -> response.body<T>()).
+supabase-functions = { group = "io.github.jan-tennert.supabase", name = "functions-kt" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }

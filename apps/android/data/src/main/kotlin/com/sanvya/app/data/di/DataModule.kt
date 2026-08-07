@@ -10,6 +10,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.functions.Functions
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.BudgetRepository
 import com.sanvya.app.data.repository.CreditCardRepository
@@ -32,6 +33,7 @@ val dataModule = module {
         ) {
             install(Auth)
             install(Postgrest)
+            install(Functions)
         }
     }
 
@@ -53,6 +55,7 @@ val dataModule = module {
     single { InvestmentsRepository(get()) }
     single { LoansRepository(get()) }
     single { SplitsRepository(get(), get()) }
+    single { com.sanvya.app.data.repository.UpiRepository(get()) }
     single { SubscriptionsRepository(get()) }
     single { com.sanvya.app.data.repository.PrefsRepository(get()) }
     single<com.sanvya.app.domain.repository.PushRepository> { com.sanvya.app.data.repository.SupabasePushRepository(get()) }

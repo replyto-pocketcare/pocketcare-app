@@ -6,6 +6,8 @@ import {
   periodsToGoal,
   monthlyEquivalent,
   recurringMonthlyTotal,
+  chargesToDate,
+  estimatedSpentToDate,
   percentOfIncome,
   subscriptionImpact,
   projectCashflow,
@@ -247,4 +249,68 @@ test("effectivePaidEmis: autoMark adds every past-due EMI, keeps manual future o
 test("effectivePaidEmis: autoMark before the first due date paints nothing", () => {
   const p = effectivePaidEmis([], 12, { autoMark: true, startIso: "2026-01-05", dueDay: 5, asOfIso: "2026-01-01" });
   assert.equal(p.size, 0);
+});
+
+// ---------------------------------------------------------------------------
+// chargesToDate / estimatedSpentToDate — lifetime subscription spend
+// ---------------------------------------------------------------------------
+
+test("chargesToDate: the signup-day charge counts as the first one", () => {
+  // You pay when you subscribe, so day zero is 1 charge, not 0.
+  assert.equal(chargesToDate("2026-06-01", "monthly", "2026-06-01"), 1);
+  assert.equal(chargesToDate("2026-06-01", "yearly", "2026-06-01"), 1);
+});
+
+test("chargesToDate: monthly counts only billing days that have passed", () => {
+  assert.equal(chargesToDate("2026-01-15", "monthly", "2026-04-14"), 3); // Jan, Feb, Mar
+  assert.equal(chargesToDate("2026-01-15", "monthly", "2026-04-15"), 4); // April's just billed
+});
+
+test("chargesToDate: a 31st subscription bills on Feb 28, not March", () => {
+  // The billing day is clamped to the month. Treating February as 'not yet the
+  // 31st' would skip a charge the user was really billed for.
+  assert.equal(chargesToDate("2026-01-31", "monthly", "2026-02-28"), 2);
+  assert.equal(chargesToDate("2026-01-31", "monthly", "2026-02-27"), 1);
+});
+
+test("chargesToDate: yearly respects the anniversary, including Feb 29", () => {
+  // In a non-leap year the anniversary clamps to Feb 28, so it HAS billed —
+  // consistent with a 31st monthly subscription billing on Feb 28.
+  assert.equal(chargesToDate("2024-02-29", "yearly", "2025-02-28"), 2);
+  assert.equal(chargesToDate("2024-02-29", "yearly", "2025-02-27"), 1); // still year one
+  assert.equal(chargesToDate("2024-02-29", "yearly", "2026-03-01"), 3);
+});
+
+test("chargesToDate: months are calendar months, never 30 days", () => {
+  // 30-day months would drift an extra charge every ~5 years. Over a lifetime
+  // total that's the error someone spots and stops trusting the number.
+  assert.equal(chargesToDate("2020-01-01", "monthly", "2030-01-01"), 121);
+});
+
+test("chargesToDate: weekly and daily", () => {
+  assert.equal(chargesToDate("2026-06-01", "weekly", "2026-06-07"), 1);
+  assert.equal(chargesToDate("2026-06-01", "weekly", "2026-06-08"), 2);
+  assert.equal(chargesToDate("2026-06-01", "daily", "2026-06-10"), 10);
+});
+
+test("chargesToDate: a future start has billed nothing", () => {
+  assert.equal(chargesToDate("2027-01-01", "monthly", "2026-06-01"), 0);
+});
+
+test("chargesToDate: missing or unparseable start yields 0, never NaN", () => {
+  // These feed a money display; NaN would render as garbage next to a currency.
+  assert.equal(chargesToDate(null, "monthly", "2026-06-01"), 0);
+  assert.equal(chargesToDate(undefined, "monthly", "2026-06-01"), 0);
+  assert.equal(chargesToDate("", "monthly", "2026-06-01"), 0);
+  assert.equal(chargesToDate("not a date", "monthly", "2026-06-01"), 0);
+});
+
+test("chargesToDate: accepts a full ISO timestamp, not just YYYY-MM-DD", () => {
+  assert.equal(chargesToDate("2026-01-15T09:30:00.000Z", "monthly", "2026-04-15"), 4);
+});
+
+test("estimatedSpentToDate: price × charges, exact in minor units", () => {
+  // ₹499/mo since 15 Jan, as of 15 Apr → 4 charges.
+  assert.equal(estimatedSpentToDate(49900, "2026-01-15", "monthly", "2026-04-15"), 199600);
+  assert.equal(estimatedSpentToDate(49900, null, "monthly", "2026-04-15"), 0);
 });

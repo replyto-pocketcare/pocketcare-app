@@ -286,6 +286,16 @@ class SplitsRepository(
         return combine(parts, setts) { p, s -> computeBalances(p, s, userId) }
     }
 
+    /** Single group by id, one-shot -- added P3.9 (Splits screen, task #30)
+     * for the group-detail screen; every other read in this class composes
+     * the full list, which the detail screen doesn't need. */
+    suspend fun getGroup(groupId: String): SplitGroup? = db.getOptional(
+        sql = """SELECT id, created_by, name, kind, is_direct, start_date, end_date, auto_split, default_mode, currency
+            FROM split_groups WHERE id = ? AND deleted_at IS NULL""",
+        parameters = listOf(groupId),
+        mapper = ::groupMapper,
+    )
+
     // ---- reads (one-shot; these compose 3-4 queries into derived screen
     // data -- kept one-shot on BOTH platforms, not just iOS, since the
     // combine-of-N-queries wiring would otherwise roughly triple this
