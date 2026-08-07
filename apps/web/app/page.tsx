@@ -17,6 +17,7 @@ import { Modal } from "../src/ui/Modal";
 import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSizes, setTileSize, W_COLS, H_ROWS, nextDim, type TileId, type TileSize } from "../src/dashboard";
 import { TILE_CATALOG, TileView, tileMeta, TILE_HREF } from "../src/dashboard/tiles";
 import { Walkthrough } from "../src/onboarding/Walkthrough";
+import { Suggestions } from "../src/dashboard/Suggestions";
 
 // Sensible default size per tile (content-heavy tiles start taller/wider).
 const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
@@ -164,6 +165,11 @@ export default function Dashboard() {
 
       {/* Net worth hero — rich green-gradient tile with trend sparkline */}
       <NetWorthHero net={net} base={base} fmt={fmt} showAvailable={showAvailable} onToggle={() => setShowAvailable((v) => !v)} />
+
+      {/* Features they haven't tried. Renders nothing until there's enough
+          history for a suggestion to be an observation rather than a pitch —
+          so a brand-new user sees the walkthrough below and nothing here. */}
+      <Suggestions />
 
       {/* First-run hand-holding — auto-hides once done / dismissed / for Pro */}
       <Walkthrough />

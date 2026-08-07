@@ -32,8 +32,8 @@ apps/web                  Next.js app. Pages/AppShell in app/; logic in src/ (wr
                           sync/{repair,deadletter}, splits/, cashflow/, categorize/, diagnostics/, onboarding/)
 apps/android              pure-native Kotlin app — :app :domain :data modules (Compose); domain vector-green
 apps/ios                  pure-native Swift app — App/Domain/Data/Generated (SwiftUI); Domain vector-green
-packages/core/*           14 pure-TS domain pkgs (money finance ledger budget entitlements guardrail reconcile
-                          crypto receipts upi diagnostics sync-policy splits-insights i18n) — 290 tests, THE SPEC
+packages/core/*           15 pure-TS domain pkgs (money finance ledger budget entitlements guardrail reconcile
+                          crypto receipts upi diagnostics sync-policy splits-insights suggestions i18n) — 317 tests, THE SPEC
 packages/db               AppSchema + SupabaseConnector (op-coalescing, fault injection) + quarantine + auth
 packages/data             repository interfaces + PowerSync implementations
 packages/{types,ui-tokens}
@@ -73,7 +73,7 @@ Three maintained apps: Android (Kotlin 2.x + Compose + Glance), iOS (Swift 6 + S
 - Mobile session logs → AUDIT_HISTORY.md "Mobile change log". Feature parity table lives in `docs/mobile/TODO.md`.
 
 ## Testing
-`pnpm test:core` — 303 tests, Node `node:test` + type-stripping (sandbox: `node --test --experimental-strip-types packages/core/*/src/*.test.ts`). Web: `pnpm --filter @sanvya/web typecheck`. Full strategy + ~100-case catalog: `docs/plans/full-test-plan.md`. Money/domain tests go in `packages/core` (the spec), never duplicated per app.
+`pnpm test:core` — 317 tests, Node `node:test` + type-stripping (sandbox: `node --test --experimental-strip-types packages/core/*/src/*.test.ts`). Web: `pnpm --filter @sanvya/web typecheck`. Full strategy + ~100-case catalog: `docs/plans/full-test-plan.md`. Money/domain tests go in `packages/core` (the spec), never duplicated per app.
 
 ## Docs maintenance (MANDATORY on feature changes — full rule in CLAUDE.md)
 Feature doc in `docs/features/`, Mermaid diagrams updated, indexes updated, **dated entry in `AUDIT_HISTORY.md`** (not here), regenerate PDF if architecture changed.

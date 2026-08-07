@@ -44,7 +44,8 @@
     "@sanvya/diagnostics": "workspace:*",
     "@sanvya/sync-policy": "workspace:*",
     "@sanvya/splits-insights": "workspace:*",
-    "@sanvya/mindfulness": "workspace:*"
+    "@sanvya/mindfulness": "workspace:*",
+    "@sanvya/suggestions": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

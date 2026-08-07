@@ -25,6 +25,7 @@ Each feature has a dedicated doc with: **Overview**, **User flow** (Mermaid), **
 | Pay friends via UPI | [upi-settle-up](upi-settle-up.md) | `/friends`, `/settings` |
 | Diagnostics (support log) | [diagnostics](diagnostics.md) | `/settings` |
 | Sync recovery (fault tolerance) | [sync-recovery](sync-recovery.md) | `/settings` |
+| Feature suggestions ("Worth a look") | [suggestions](suggestions.md) | `/` (dashboard) |
 | Search | [search](search.md) | `/search` |
 | Insights | [insights](insights.md) | `/insights` |
 | Statements | [statements](statements.md) | `/statements` |

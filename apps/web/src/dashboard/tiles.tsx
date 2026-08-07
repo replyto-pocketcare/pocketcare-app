@@ -454,15 +454,17 @@ function SubscriptionsTile() {
         <>
           <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize: 32, fontWeight: 750 }}>{fmt(monthly)}<span style={{ fontSize: 15, fontWeight: 600, color: HERO_MUTED }}> /mo</span></div>
-            <div style={{ fontSize: 13, color: HERO_MUTED, marginTop: 4 }}>{subs.length} active {subs.length === 1 ? "subscription" : "subscriptions"}</div>
-            {lifetime > 0 && (
-              <div
-                style={{ fontSize: 13, color: HERO_MUTED, marginTop: 2 }}
-                title="Estimated from each subscription's price and how long it's been running. Actual charges may differ."
-              >
-                ~{fmt(lifetime)} spent so far
-              </div>
-            )}
+            {/* Lifetime spend rides on the EXISTING line rather than adding a
+                third. Dashboard tiles clip at a fixed height and `useFitRows`
+                divides up whatever is left, so every extra header line costs a
+                renewal row — or the "+N more" link — below the divider. */}
+            <div
+              style={{ fontSize: 13, color: HERO_MUTED, marginTop: 4 }}
+              title={lifetime > 0 ? "Spend so far is estimated from each subscription's price and how long it's been running. Actual charges may differ." : undefined}
+            >
+              {subs.length} active {subs.length === 1 ? "subscription" : "subscriptions"}
+              {lifetime > 0 ? ` · ~${fmt(lifetime)} so far` : ""}
+            </div>
           </div>
           {/* The border/padding live on the outer box so the measured element's
               clientHeight is pure row space (clientHeight includes padding). */}
