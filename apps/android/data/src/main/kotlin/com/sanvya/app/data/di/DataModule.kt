@@ -16,6 +16,7 @@ import com.sanvya.app.data.repository.CreditCardRepository
 import com.sanvya.app.data.repository.GoalsRepository
 import com.sanvya.app.data.repository.InvestmentsRepository
 import com.sanvya.app.data.repository.LoansRepository
+import com.sanvya.app.data.repository.RepairRepository
 import com.sanvya.app.data.repository.SplitsRepository
 import com.sanvya.app.data.repository.SubscriptionsRepository
 import org.koin.android.ext.koin.androidContext
@@ -55,4 +56,8 @@ val dataModule = module {
     single { SubscriptionsRepository(get()) }
     single { com.sanvya.app.data.repository.PrefsRepository(get()) }
     single<com.sanvya.app.domain.repository.PushRepository> { com.sanvya.app.data.repository.SupabasePushRepository(get()) }
+    single {
+        val auth: AuthRepository = get()
+        RepairRepository(db = get(), client = get(), getUserId = { auth.currentUserId.value ?: "" })
+    }
 }

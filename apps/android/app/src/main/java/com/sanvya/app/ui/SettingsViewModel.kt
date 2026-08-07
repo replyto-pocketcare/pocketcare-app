@@ -3,24 +3,160 @@ package com.sanvya.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.auth.AuthRepository
+import com.sanvya.app.data.auth.isGuest as authIsGuest
+import com.sanvya.app.data.diagnostics.QueuedOp
+import com.sanvya.app.data.diagnostics.currentDiagnosticsEntries
+import com.sanvya.app.data.diagnostics.diagnosticsReport
+import com.sanvya.app.data.diagnostics.discardOps
+import com.sanvya.app.data.diagnostics.failingTableFrom
+import com.sanvya.app.data.diagnostics.inspectQueue
+import com.sanvya.app.data.diagnostics.summarizeQueue
+import com.sanvya.app.data.repository.FailedWriteItem
 import com.sanvya.app.data.repository.NotificationPrefs
 import com.sanvya.app.data.repository.PrefsRepository
+import com.sanvya.app.data.repository.RepairRepository
+import com.sanvya.app.data.repository.RepairScanResult
+import com.sanvya.app.data.repository.StrandedRow
+import com.sanvya.app.data.repository.insertRow
+import com.sanvya.app.data.repository.updateRow
+import com.sanvya.app.domain.diagnostics.LogEntry
+import com.sanvya.app.domain.entitlements.isPaid
+import com.powersync.PowerSyncDatabase
+import com.powersync.db.getLong
+import com.powersync.db.getStringOptional
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+
+/**
+ * Settings screen state + actions (task #47).
+ *
+ * Ports the functional pieces of apps/web/app/settings/page.tsx that have a
+ * real mobile counterpart. Deliberately excludes (see settings.md spec for
+ * the full reasoning): Security & encryption (E2E crypto, its own future
+ * task), UPI Payment Handle (bundles with Splits #30 where it's actually
+ * used), Categories/Labels/Import-Export (no mobile screens exist yet to
+ * link to -- queued as their own tasks), Language (no i18n on mobile), and
+ * Fault Injection (dev-only per the web source's own gating comment -- a
+ * shipped build with this visible would be a way to break a real user's sync).
+ */
+
+data class SessionInfo(
+    val email: String?,
+    val isGuest: Boolean,
+    val username: String,
+    /** Days until a guest's data is deleted. Null once registered. */
+    val daysLeft: Int?,
+)
+
+data class EntitlementUi(val tier: String, val isPaid: Boolean)
+
+/** DELETE/upload op failed against the given error text -- used by repairStranded's UI. */
+data class RepairFailure(val table: String, val id: String, val error: String)
 
 class SettingsViewModel : ViewModel(), KoinComponent {
     private val prefsRepository: PrefsRepository by inject()
     private val authRepository: AuthRepository by inject()
+    private val repairRepository: RepairRepository by inject()
+    private val client: SupabaseClient by inject()
+    private val db: PowerSyncDatabase by inject()
 
+    // ---- Notifications (existing, unchanged) ----
     private val _notifPrefs = MutableStateFlow<NotificationPrefs?>(null)
     val notifPrefs: StateFlow<NotificationPrefs?> = _notifPrefs.asStateFlow()
 
+    // ---- Account / session ----
+    private val _session = MutableStateFlow<SessionInfo?>(null)
+    val session: StateFlow<SessionInfo?> = _session.asStateFlow()
+
+    private val _usernameSaved = MutableStateFlow(false)
+    val usernameSaved: StateFlow<Boolean> = _usernameSaved.asStateFlow()
+
+    // ---- Plan & billing (display-only; no native IAP checkout yet) ----
+    val entitlement: StateFlow<EntitlementUi> = prefsRepository.watchEntitlement()
+        .map { row ->
+            val tier = row?.tier ?: "free"
+            EntitlementUi(
+                tier = tier,
+                isPaid = isPaid(row?.tier, row?.premiumTrialStartDate, row?.compTier, row?.compUntil, System.currentTimeMillis()),
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), EntitlementUi("free", false))
+
+    // ---- About you (profile traits) ----
+    private val _profileGender = MutableStateFlow("")
+    val profileGender: StateFlow<String> = _profileGender.asStateFlow()
+    private val _profileCountry = MutableStateFlow("")
+    val profileCountry: StateFlow<String> = _profileCountry.asStateFlow()
+    private var profileExists = false
+    private val _profileMsg = MutableStateFlow<String?>(null)
+    val profileMsg: StateFlow<String?> = _profileMsg.asStateFlow()
+
+    // ---- Diagnostics ----
+    private val _diagnosticsEntries = MutableStateFlow<List<LogEntry>>(emptyList())
+    val diagnosticsEntries: StateFlow<List<LogEntry>> = _diagnosticsEntries.asStateFlow()
+    private val _queueOps = MutableStateFlow<List<QueuedOp>>(emptyList())
+    val queueOps: StateFlow<List<QueuedOp>> = _queueOps.asStateFlow()
+    private val _queueDepth = MutableStateFlow<Int?>(null)
+    val queueDepth: StateFlow<Int?> = _queueDepth.asStateFlow()
+    private val _discardingStuck = MutableStateFlow(false)
+    val discardingStuck: StateFlow<Boolean> = _discardingStuck.asStateFlow()
+
+    // ---- Problems syncing (dead-letter queue) ----
+    private val _failedWrites = MutableStateFlow<List<FailedWriteItem>>(emptyList())
+    val failedWrites: StateFlow<List<FailedWriteItem>> = _failedWrites.asStateFlow()
+    private val _problemsBusy = MutableStateFlow<String?>(null) // item.id, or "all"
+    val problemsBusy: StateFlow<String?> = _problemsBusy.asStateFlow()
+
+    // ---- Check for unsynced data (repair) ----
+    private val _repairStage = MutableStateFlow("idle") // idle|scanning|found|clean|repairing|done|error
+    val repairStage: StateFlow<String> = _repairStage.asStateFlow()
+    private val _strandedRows = MutableStateFlow<List<StrandedRow>>(emptyList())
+    val strandedRows: StateFlow<List<StrandedRow>> = _strandedRows.asStateFlow()
+    private val _repairUnchecked = MutableStateFlow<List<String>>(emptyList())
+    val repairUnchecked: StateFlow<List<String>> = _repairUnchecked.asStateFlow()
+    private val _repairUploaded = MutableStateFlow(0)
+    val repairUploaded: StateFlow<Int> = _repairUploaded.asStateFlow()
+    private val _repairFailed = MutableStateFlow<List<RepairFailure>>(emptyList())
+    val repairFailed: StateFlow<List<RepairFailure>> = _repairFailed.asStateFlow()
+    private val _repairError = MutableStateFlow<String?>(null)
+    val repairError: StateFlow<String?> = _repairError.asStateFlow()
+
+    // ---- Sync status (minimal -- see refreshDiagnostics doc comment) ----
+    private val _syncConnected = MutableStateFlow(false)
+    val syncConnected: StateFlow<Boolean> = _syncConnected.asStateFlow()
+    private val _syncLastSyncedAt = MutableStateFlow<String?>(null)
+    val syncLastSyncedAt: StateFlow<String?> = _syncLastSyncedAt.asStateFlow()
+
+    // ---- Local device prefs (theme/base currency/hide-amounts) ----
+    val theme: StateFlow<String> get() = Prefs.theme
+    val baseCurrency: StateFlow<String> get() = Prefs.baseCurrency
+
+    // ---- Delete account ----
+    private val _deleting = MutableStateFlow(false)
+    val deleting: StateFlow<Boolean> = _deleting.asStateFlow()
+    private val _deleteError = MutableStateFlow<String?>(null)
+    val deleteError: StateFlow<String?> = _deleteError.asStateFlow()
+
     init {
         loadPrefs()
+        loadSession()
+        loadProfile()
+        refreshDiagnostics()
+        refreshFailedWrites()
     }
 
     private fun loadPrefs() {
@@ -51,6 +187,287 @@ class SettingsViewModel : ViewModel(), KoinComponent {
                 prefsRepository.updateNotificationPrefs(userId, newPrefs)
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    private fun loadSession() {
+        viewModelScope.launch {
+            try {
+                val user = client.auth.currentSessionOrNull()?.user ?: run { _session.value = null; return@launch }
+                val guest = authIsGuest(client)
+                val username = ((user.userMetadata?.get("username")) as? JsonPrimitive)?.content ?: ""
+                val createdAtMs = try { user.createdAt?.toEpochMilliseconds() } catch (_: Exception) { null }
+                val daysLeft = if (guest && createdAtMs != null) {
+                    val remainMs = createdAtMs + 3L * 86_400_000L - System.currentTimeMillis()
+                    kotlin.math.max(0, kotlin.math.ceil(remainMs / 86_400_000.0).toInt())
+                } else null
+                _session.value = SessionInfo(email = user.email, isGuest = guest, username = username, daysLeft = daysLeft)
+            } catch (_: Exception) {
+                // Offline / transient -- keep whatever we had, don't blank it out.
+            }
+        }
+    }
+
+    fun saveUsername(name: String) {
+        viewModelScope.launch {
+            try {
+                client.auth.updateUser { data = buildJsonObject { put("username", name) } }
+                _session.value = _session.value?.copy(username = name)
+                _usernameSaved.value = true
+            } catch (_: Exception) {
+                // Offline -- kept locally on next successful call, matches web's swallow.
+            }
+        }
+    }
+
+    fun clearUsernameSaved() {
+        _usernameSaved.value = false
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            try {
+                authRepository.signOut()
+            } catch (_: Exception) {
+                /* best effort */
+            }
+        }
+    }
+
+    // ---- About you (profiles.gender / profiles.country) ----
+
+    private fun loadProfile() {
+        val userId = authRepository.currentUserId.value ?: return
+        viewModelScope.launch {
+            try {
+                val row = db.getOptional(
+                    sql = "SELECT gender, country FROM profiles WHERE id = ? LIMIT 1",
+                    parameters = listOf(userId),
+                    mapper = { c ->
+                        (c.getStringOptional("gender") ?: "") to (c.getStringOptional("country") ?: "")
+                    },
+                )
+                if (row != null) {
+                    profileExists = true
+                    _profileGender.value = row.first
+                    _profileCountry.value = row.second
+                }
+            } catch (_: Exception) {
+                /* profiles row may not exist yet -- fine, save() will insert it */
+            }
+        }
+    }
+
+    fun saveProfile(gender: String, country: String) {
+        val userId = authRepository.currentUserId.value ?: return
+        viewModelScope.launch {
+            _profileMsg.value = null
+            try {
+                if (profileExists) {
+                    updateRow(db, "profiles", userId, mapOf("gender" to gender.ifEmpty { null }, "country" to country.ifEmpty { null }))
+                } else {
+                    insertRow(db, "profiles", userId, mapOf("id" to userId, "gender" to gender.ifEmpty { null }, "country" to country.ifEmpty { null }))
+                    profileExists = true
+                }
+                _profileGender.value = gender
+                _profileCountry.value = country
+                _profileMsg.value = "Saved."
+            } catch (e: Exception) {
+                _profileMsg.value = e.message ?: "Couldn't save. Please try again."
+            }
+        }
+    }
+
+    // ---- Diagnostics ----
+
+    /**
+     * Deliberately minimal: only `.connected` and `.lastSyncedAt` off
+     * `db.currentStatus`, the two SyncStatus fields confirmed against the
+     * SDK's own docs (docs.powersync.com / the JS SDK's SyncStatus reference,
+     * which the Kotlin/Swift SDKs mirror). `dataFlowStatus.uploading/
+     * downloading` and any error surface exist too but their exact Kotlin
+     * shape isn't verified here -- "waiting to upload" below comes from a
+     * direct `ps_crud` count instead, which is what web's DiagnosticsPanel
+     * falls back to as well.
+     */
+    fun refreshDiagnostics() {
+        _diagnosticsEntries.value = currentDiagnosticsEntries()
+        try {
+            val status = db.currentStatus
+            _syncConnected.value = status.connected
+            _syncLastSyncedAt.value = status.lastSyncedAt?.toString()
+        } catch (_: Exception) {
+            /* leave last-known values */
+        }
+        viewModelScope.launch {
+            try {
+                _queueDepth.value = db.getOptional(
+                    sql = "SELECT COUNT(*) AS n FROM ps_crud",
+                    parameters = emptyList(),
+                    mapper = { c -> c.getLong("n").toInt() },
+                )
+            } catch (_: Exception) {
+                _queueDepth.value = null
+            }
+            val failingTable = failingTableFrom(_diagnosticsEntries.value)
+            _queueOps.value = try { inspectQueue(db, failingTable) } catch (_: Exception) { emptyList() }
+        }
+    }
+
+    fun diagnosticsShareText(): String {
+        val errors = _diagnosticsEntries.value.count { it.level == "error" }
+        val context = linkedMapOf(
+            "queuedWrites" to (_queueDepth.value?.toString() ?: "unknown"),
+            "queue" to summarizeQueue(_queueOps.value),
+            "errorsLogged" to errors.toString(),
+        )
+        return diagnosticsReport(context)
+    }
+
+    fun discardStuck() {
+        val stuck = _queueOps.value.filter { it.orphaned }
+        if (stuck.isEmpty()) return
+        viewModelScope.launch {
+            _discardingStuck.value = true
+            try {
+                discardOps(db, stuck.map { it.id })
+                refreshDiagnostics()
+            } finally {
+                _discardingStuck.value = false
+            }
+        }
+    }
+
+    // ---- Problems syncing ----
+
+    fun refreshFailedWrites() {
+        viewModelScope.launch {
+            _failedWrites.value = repairRepository.listFailedWrites()
+        }
+    }
+
+    fun retryFailedWrite(item: FailedWriteItem) {
+        viewModelScope.launch {
+            _problemsBusy.value = item.id
+            repairRepository.retryFailedWrite(item)
+            _problemsBusy.value = null
+            refreshFailedWrites()
+        }
+    }
+
+    fun retryAllFailedWrites() {
+        viewModelScope.launch {
+            _problemsBusy.value = "all"
+            // Sequential: these often depend on each other (a parent succeeding
+            // is frequently what makes the child's retry work).
+            for (item in _failedWrites.value) repairRepository.retryFailedWrite(item)
+            _problemsBusy.value = null
+            refreshFailedWrites()
+        }
+    }
+
+    fun discardFailedWrite(item: FailedWriteItem) {
+        viewModelScope.launch {
+            _problemsBusy.value = item.id
+            repairRepository.discardFailedWrite(item)
+            _problemsBusy.value = null
+            refreshFailedWrites()
+        }
+    }
+
+    fun exportFailedWritesJson(items: List<FailedWriteItem> = _failedWrites.value): String =
+        repairRepository.exportFailedWritesJson(items)
+
+    // ---- Check for unsynced data ----
+
+    fun scanForStranded() {
+        viewModelScope.launch {
+            _repairStage.value = "scanning"
+            _repairError.value = null
+            try {
+                val res: RepairScanResult = repairRepository.scanForStranded()
+                _strandedRows.value = res.stranded
+                _repairUnchecked.value = res.unchecked
+                _repairStage.value = if (res.stranded.isNotEmpty()) "found" else "clean"
+            } catch (e: Exception) {
+                _repairError.value = e.message ?: "Couldn't check right now."
+                _repairStage.value = "error"
+            }
+        }
+    }
+
+    fun repairStrandedNow() {
+        viewModelScope.launch {
+            _repairStage.value = "repairing"
+            try {
+                val (uploaded, failed) = repairRepository.repairStranded(_strandedRows.value)
+                _repairUploaded.value = uploaded
+                _repairFailed.value = failed.map { RepairFailure(it.first, it.second, it.third) }
+                _repairStage.value = "done"
+            } catch (e: Exception) {
+                _repairError.value = e.message ?: "Couldn't repair right now."
+                _repairStage.value = "error"
+            }
+        }
+    }
+
+    fun resetRepair() {
+        _repairStage.value = "idle"
+        _strandedRows.value = emptyList()
+        _repairUnchecked.value = emptyList()
+        _repairFailed.value = emptyList()
+        _repairUploaded.value = 0
+        _repairError.value = null
+    }
+
+    fun exportStrandedJson(): String = repairRepository.exportStrandedJson(_strandedRows.value)
+
+    // ---- Local device prefs ----
+
+    fun setTheme(value: String) = Prefs.setTheme(value)
+    fun setBaseCurrency(value: String) = Prefs.setBaseCurrency(value)
+
+    // ---- Delete account ----
+
+    /**
+     * The RPC lives in the `pocketcare` schema (matches SupabaseConnector's
+     * DB_SCHEMA and every direct-write call in RepairRepository -- NOT the
+     * `sanvya` schema used elsewhere in this codebase's own naming; verified
+     * against apps/web/app/settings/page.tsx's own identical call and
+     * supabase/migrations/0006_delete_account_rpc.sql's real `create or
+     * replace function pocketcare.delete_user_account(...)` before assuming
+     * otherwise).
+     *
+     * `Postgrest.rpc()` has no schema PARAMETER (only from(schema, table)
+     * does) -- confirmed against supabase-kt's real source
+     * (Postgrest.kt/PostgrestImpl.kt/PostgrestRequestBuilder.kt on GitHub,
+     * supabase-community/supabase-kt): RpcRequestBuilder extends
+     * PostgrestRequestBuilder, which exposes a mutable `var schema` defaulting
+     * to `config.defaultSchema` ("public", since DataModule.kt's client never
+     * sets it) -- so the schema override has to happen inside the `request`
+     * lambda, not as an argument.
+     */
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _deleting.value = true
+            _deleteError.value = null
+            try {
+                client.postgrest.rpc(
+                    function = "delete_user_account",
+                    parameters = buildJsonObject { put("orphan_records", false) },
+                    request = { schema = "pocketcare" },
+                )
+                try {
+                    db.disconnectAndClear()
+                } catch (_: Exception) {
+                    /* best-effort local clear; sign-out proceeds regardless */
+                }
+                authRepository.signOut()
+            } catch (e: Exception) {
+                _deleteError.value = e.message ?: "Something went wrong. Please try again."
+            } finally {
+                _deleting.value = false
             }
         }
     }

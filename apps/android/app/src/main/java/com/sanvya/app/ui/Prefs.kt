@@ -22,6 +22,10 @@ import org.koin.core.component.inject
 object Prefs : KoinComponent {
     private const val PREFS_NAME = "sanvya_prefs"
     private const val HIDE_KEY = "amountsHidden"
+    private const val THEME_KEY = "theme"
+    private const val CURRENCY_KEY = "baseCurrency"
+    private const val DEFAULT_THEME = "light"
+    private const val DEFAULT_CURRENCY = "INR"
 
     private val context: Context by inject()
 
@@ -39,5 +43,38 @@ object Prefs : KoinComponent {
     fun setAmountsHidden(hidden: Boolean) {
         sharedPrefs.edit().putBoolean(HIDE_KEY, hidden).apply()
         _amountsHidden.value = hidden
+    }
+
+    /**
+     * "light" | "dark" -- mirrors apps/web/src/theme.ts's localStorage-backed
+     * useTheme/setTheme (same key name, same default). Settings-screen only
+     * for now: nothing else in the app reads this yet to switch
+     * MaterialTheme's color scheme -- that propagation is a follow-up (see
+     * AUDIT_HISTORY.md, Settings entry).
+     */
+    private val _theme: MutableStateFlow<String> by lazy {
+        MutableStateFlow(sharedPrefs.getString(THEME_KEY, DEFAULT_THEME) ?: DEFAULT_THEME)
+    }
+    val theme: StateFlow<String> get() = _theme
+
+    fun setTheme(value: String) {
+        sharedPrefs.edit().putString(THEME_KEY, value).apply()
+        _theme.value = value
+    }
+
+    /**
+     * Mirrors apps/web/src/prefs.ts's useBaseCurrency/setBaseCurrency (same
+     * key, same "INR" default). Persisted and reactive here; wiring it into
+     * every screen's money formatting (today all hardcode "INR", matching
+     * formatMoney's default param) is a follow-up, not part of this change.
+     */
+    private val _baseCurrency: MutableStateFlow<String> by lazy {
+        MutableStateFlow(sharedPrefs.getString(CURRENCY_KEY, DEFAULT_CURRENCY) ?: DEFAULT_CURRENCY)
+    }
+    val baseCurrency: StateFlow<String> get() = _baseCurrency
+
+    fun setBaseCurrency(value: String) {
+        sharedPrefs.edit().putString(CURRENCY_KEY, value).apply()
+        _baseCurrency.value = value
     }
 }

@@ -5,7 +5,20 @@
 ## 🤝 Handover (rewrite at end of EVERY session — max 15 lines)
 
 ```
-Last session: 2026-08-06 — Real Xcode error on LoansRepository.swift pasted back: "Cannot find
+Last session: 2026-08-07 — Settings screen (task #47), both platforms. Scope: Account/Appearance
+               (theme now persisted)/Privacy/About-you(new)/Notifications/Base-Currency(now
+               persisted)/Plan&Billing(real entitlement display)/Problems-syncing/Check-for-unsynced-
+               data/Diagnostics/Help. Deferred on purpose (own future tasks, see settings.md):
+               Security/E2E-crypto, Payment Handle (bundles with Splits #30), Categories/Labels/
+               Import-Export (no mobile screens exist yet), Language (no i18n), Fault Injection
+               (dev-only per the web source's own gating comment). Found mid-session:
+               RepairRepository/Quarantine/DiagnosticsLog already existed AND were already live on
+               both platforms (wired into SupabaseConnector's failure path from an earlier phase) --
+               just missing the network-facing repair half + UI, both added. iOS's Prefs class was
+               fixed to persist via UserDefaults (was in-memory-only before). See AUDIT_HISTORY.md's
+               2026-08-07 entry for full API-verification detail. NOT yet build-verified by a real
+               compiler.
+Previous session: 2026-08-06 — Real Xcode error on LoansRepository.swift pasted back: "Cannot find
                'effectivePaidEmis'/'emiDueDate' in scope" -- the Credit Cards pass's new
                findCoveredEmis()/markEmisPaid() call both (Domain/Finance.swift), but the file was
                missing `import Domain`. Added it. See AUDIT_HISTORY.md.
@@ -65,13 +78,13 @@ Previous session: 2026-08-06 — Loans (P3.8, task #27/#41/#42), both platforms,
                Investments (P3.10/P3.15, task #26) landed session #18 -- see that entry for its arc.
 Android state: Phase 1-2 DONE. Phase 3: Dashboard (P3.1), Accounts (P3.2), Transactions (P3.3),
                Budgets (P3.4), Goals (P3.5a/b), Investments (P3.10a/P3.15a), Loans (P3.8a),
-               Insights (P3.x, task #28), Credit Cards (P3.9a, task #29) real and wired into
-               SanvyaNavHost. Everything else in Phase 3 still TODO (no screens). NOT verified
-               against a real Gradle build in this sandbox (no JDK/Gradle here per plan §1.5) —
+               Insights (P3.x, task #28), Credit Cards (P3.9a, task #29), Settings (task #47) real
+               and wired into SanvyaNavHost. Everything else in Phase 3 still TODO (no screens). NOT
+               verified against a real Gradle build in this sandbox (no JDK/Gradle here per plan §1.5) —
                next session or CI must run `./gradlew build test` before trusting this compiles.
 iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transactions, Budgets, Goals,
                Investments (P3.10b/P3.15b), Loans (P3.8b), Insights (task #28), Credit Cards (P3.9b,
-               task #29) now match the real web specs. Every other Create*/New* form is still
+               task #29), Settings (task #47) now match the real web specs. Every other Create*/New* form is still
                suspect -- CreateAccountView.swift, CreateTransactionView.swift, and
                CreateGoalView.swift ALL had the "Save calls dismiss(), persists nothing" bug
                independently; assume any not-yet-audited one has it too until checked. Loans'
@@ -79,6 +92,14 @@ iOS state:     Phase 1-2 DONE (same P2.7 blocker). Dashboard, Accounts, Transact
                stub) but had non-optional access on now-nullable fields (crash risk) and a non-
                functional mark-paid alert -- fully rewritten this session, not just audited.
 Vectors:       250/250 green on both platforms (unaffected). Core JS unit tests 290/290 green.
+2026-08-07 #24: "continue and also add settings page completion for both andorid and ios" (task #47,
+               Settings). Full screen on both platforms -- see AUDIT_HISTORY.md's 2026-08-07 entry for
+               the complete arc (scope decisions, the RepairRepository/Quarantine/DiagnosticsLog
+               already-live discovery, real supabase-kt/supabase-swift API verification against
+               source). Wrote docs/mobile/screen-specs/settings.md. New task queue entries added for
+               explicitly-deferred scope: Security/E2E-encryption (own future task), Categories/Labels/
+               Import-Export screens (own future tasks; Payment Handle stays bundled with Splits #30
+               per the settings.md decision). Neither platform build-verified by a real compiler yet.
 2026-08-06 #23: "continue with next pages" (task #29, Credit Cards) -- resumed the 8-screen queue.
                Wrote docs/mobile/screen-specs/credit-cards.md; flagged docs/features/cards.md as stale
                (describes a since-removed three.js 3D wallet; real page.tsx is a plain CSS list) but
@@ -623,7 +644,7 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 |---|---|---|---|---|
 | P3.5a / P3.5b | S2: Financial Goals screen | [M] | P3.4 | DONE (2026-08-06, both platforms — see AUDIT_HISTORY.md) — NOT yet re-verified by a real Gradle/Xcode build (see P3.5c above for the split-out Planned Cashflow row; this duplicate table row predates that split) |
 | P3.6a / P3.6b | S1 leftover: Onboarding/walkthrough (keep the "not connected to your bank" copy faithfully) + auth screens (guest → OTP → Google; in-place guest upgrade UI) | [H] | P2.4 verified (P2.8) | TODO — corrected 2026-08-05: falsely marked DONE, `WalkthroughScreen.kt`/`LoginScreen.kt` do not exist in the repo (verified by direct file search) / DONE (2026-08-01, WalkthroughView.swift, LoginView.swift) |
-| P3.7a / P3.7b | S1 leftover: Settings-lite (currency, language, theme, hide-amounts) + the shared money formatter + premium **gate map port** (deferred from P1.7) wired via entitlements | [M] | P3.1 | DONE (2026-08-01, SettingsScreen.kt) / DONE (2026-08-01, SettingsView.swift) |
+| P3.7a / P3.7b | S1 leftover: Settings-lite (currency, language, theme, hide-amounts) + the shared money formatter + premium **gate map port** (deferred from P1.7) wired via entitlements | [M] | P3.1 | DONE (2026-08-07, task #47 — the 2026-08-01 "DONE" mark was another false claim in this doc's pre-2026-08-05-audit pattern: theme/currency were static labels, hide-amounts was the only real piece. Now: theme + base currency real and persisted (SharedPreferences), hide-amounts unchanged, real entitlement-tier display. Language explicitly out of scope, no i18n on mobile. See docs/mobile/screen-specs/settings.md) / DONE (2026-08-07, same scope + fixed Prefs being in-memory-only for amountsHidden, now UserDefaults-backed like Android) |
 | P3.8a / P3.8b | S2: Loans & recurring (EMI schedule view, mark-paid dialog, auto-post surfacing, recurring groups) | [M] | P3.5 | DONE (2026-08-06, task #27/#41 — real EMI schedule/mark-paid/auto-mark/CRUD, LoansScreen.kt + LoanDetailScreen.kt + AddLoanScreen.kt + EditLoanScreen.kt, wired into SanvyaNavHost; auto-post/recurring-groups deferred, see docs/mobile/screen-specs/loans.md) / DONE (2026-08-06, task #27/#42 — full rewrite of LoansView.swift/LoansViewModel.swift, was wired but read-only/broken before this pass) |
 | P3.9a / P3.9b | S2: Credit cards (native card list, cycle/limit/due, settle-bill flow incl. covered-EMI confirm) | [M] | P3.3 | DONE (2026-08-06, task #29 — real billing-cycle math, editable details, settle-up + covered-EMI confirm, see docs/mobile/screen-specs/credit-cards.md) / DONE (2026-08-06, same scope, CreditCardsViewModel.swift + CreditCardsView.swift fully rewritten) |
 | P3.10a / P3.10b | S3: Splits & groups (friends screen, group detail, who-owes-whom, Patterns w/ thresholds, person sheet) | [M] | P3.3 | TODO — corrected 2026-08-05: falsely marked DONE, `SplitsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, SplitsView.swift) |
@@ -635,6 +656,9 @@ Traps/notes:   Do NOT mark a Phase 3 row DONE without (a) a written source spec,
 | P3.16a / P3.16b | S5: Insights cards + month comparison (respect hide-amounts in every chart — the historical leak class) | [M] | P3.1 | DONE (2026-08-06, task #28 — full 18-generator port, entitlement gate, dividend/mindfulness math, 5 Canvas chart kinds, see docs/mobile/screen-specs/insights.md) / DONE (2026-08-06, same scope, InsightsViewModel.swift + InsightsView.swift fully rewritten from the old fake predecessor) |
 | P3.17a / P3.17b | S5: Statements (premium, printable/share) + Search | [M] | P3.3, P3.7 | TODO — corrected 2026-08-05: falsely marked DONE, `StatementsScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, StatementsView.swift) |
 | P3.18a / P3.18b | S6 (optional, last): Assistant — same edge function, native chat UI, SpeechRecognizer / SFSpeechRecognizer input | [M] | P3.7 | TODO — corrected 2026-08-05: falsely marked DONE, `AssistantScreen.kt` does not exist in the repo (verified by direct file search) / DONE (2026-08-01, AssistantView.swift) |
+| P3.19a / P3.19b | Security & encryption panel (E2E passphrase setup/unlock/lock, recovery code, native Keychain/Keystore key storage, support-grant issue/revoke) — mirrors `apps/web/src/crypto/SecurityPanel.tsx`, ported from `packages/core` crypto session/support modules | [H] | P3.7 | TODO — new row, split out 2026-08-07 from Settings scope (task #47, see docs/mobile/screen-specs/settings.md "Explicitly deferred") — a standalone crypto feature, not a Settings-screen UI task |
+| P3.20a / P3.20b | Categories & Labels management screens (`apps/web/app/settings/categories`, `.../labels`) | [M] | P3.7 | TODO — new row, split out 2026-08-07 from Settings scope (task #47) — no mobile screen exists to link to yet, web's Settings page just links out |
+| P3.21a / P3.21b | Import/Export (CSV) screen (`apps/web/app/data`) | [M] | P3.7 | TODO — new row, split out 2026-08-07 from Settings scope (task #47) — same reasoning as P3.20 |
 | P3.19a / P3.19b | **R1 retrofit audit** (plan §7 R1, added after S1/S2 were built): audit Dashboard/Accounts/Transactions/Budgets/Goals screens for lifecycle compliance — Android: state → ViewModel(+SavedStateHandle), scroll/fields → rememberSaveable, layouts → WindowSizeClass, NO configChanges opt-outs; iOS: tab/nav/search → @SceneStorage, draft-save on scenePhase.background; both: transaction-form draft persistence. Fix gaps; prove with LIFE-1..4 runs (foldable emulator posture + "Don't keep activities" / terminate-while-suspended) | [M] | P3.4 | PARTIAL (2026-08-06, see AUDIT_HISTORY.md — Android config-change/fold retrofit done for Budgets/Goals/shared Transactions components via rememberSaveable; Accounts/Transactions/Dashboard already ViewModel-backed, needed no change) / NOT STARTED — iOS's per-screen @State already survives size-class/multitasking resize by construction (view identity doesn't reset on trait change, unlike Android's Activity-recreation model), so no equivalent fold-loses-data bug exists there; LIFE-4 process-death draft persistence (@SceneStorage / DataStore draft-save) is NOT done on either platform — that's the larger remaining piece of this row |
 
 ### Phase 4 — native surfaces (expanded 2026-07-31, plan §7 "P4.x")

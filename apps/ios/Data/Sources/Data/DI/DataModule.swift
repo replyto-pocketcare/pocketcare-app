@@ -92,6 +92,17 @@ public extension Container {
         self { PrefsRepository(db: self.powerSyncDatabase()) }.singleton
     }
 
+    var repairRepository: Factory<RepairRepository> {
+        self {
+            let auth = self.authRepository()
+            return RepairRepository(
+                db: self.powerSyncDatabase(),
+                client: self.supabaseClient(),
+                getUserId: { auth.currentUserId ?? "" }
+            )
+        }.singleton
+    }
+
     var pushRepository: Factory<PushRepository> {
         self { SupabasePushRepository(client: self.supabaseClient()) }.singleton
     }
