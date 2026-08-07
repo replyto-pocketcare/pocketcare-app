@@ -15,4 +15,10 @@ public extension Container {
     var transactionsViewModel: Factory<TransactionsViewModel> {
         self { MainActor.assumeIsolated { TransactionsViewModel(ledgerRepository: self.ledgerRepository()) } }
     }
+
+    // Task #62's ReceiptCaptureViewModel/ReceiptReviewViewModel are NOT
+    // registered here -- they follow GroupDetailViewModel/SplitsViewModel's
+    // newer convention instead (`@Injected(\.xRepository)` property wrapper
+    // + a plain `ViewModel()` init at the call site), not this file's older
+    // constructor-injection-via-Factory pattern. See those two files.
 }

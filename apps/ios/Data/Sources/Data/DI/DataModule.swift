@@ -114,4 +114,15 @@ public extension Container {
     var subscriptionsRepository: Factory<SubscriptionsRepository> {
         self { SubscriptionsRepository(db: self.powerSyncDatabase()) }.singleton
     }
+
+    // Task #62 (Receipt Scan capture) -- ReceiptsRepository itself already
+    // existed (P2.5) but was never registered here, so nothing could ever
+    // resolve it via DI. That's why the old ReceiptScanView.swift was a
+    // hardcoded fixture with no repository wiring at all.
+    var receiptsRepository: Factory<ReceiptsRepository> {
+        self {
+            let auth = self.authRepository()
+            return ReceiptsRepository(db: self.powerSyncDatabase(), getUserId: { auth.currentUserId ?? "" })
+        }.singleton
+    }
 }

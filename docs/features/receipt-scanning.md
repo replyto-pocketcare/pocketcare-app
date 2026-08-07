@@ -171,3 +171,32 @@ Written down because these are the non-obvious decisions that make or break accu
 1. `supabase db push` (migration 0040).
 2. **Redeploy `packages/db/sync-streams.yaml` in the PowerSync dashboard.** Without this, group members silently see no line items.
 3. `supabase functions deploy receipt-scan` (needs `ANTHROPIC_API_KEY`; optionally `RECEIPT_MODEL` to pin a newer vision model).
+
+## Mobile status (Android + iOS, task #62)
+Everything above is the web spec. Mobile ships a deliberately smaller slice
+of it — see `docs/mobile/screen-specs/receipt-scan.md` for the full list of
+scope cuts and why each one is a documented cut, not an oversight. In brief:
+
+- **Capture**: camera-only (no PDF/gallery upload), on-device OCR (ML Kit
+  Text Recognition on Android, Vision `VNRecognizeTextRequest` on iOS),
+  **text-only** parsing (`parseReceiptText`, not the word-box
+  `groupIntoLines` path) — same `preparing → reading → understanding → done`
+  pipeline as web, minus the AI-escalation stage entirely.
+- **Review**: full parity — editable header fields, editable line table,
+  the reconciliation banner with both one-tap fixes, "Save transaction".
+  Category auto-suggest is not wired in yet (pairs with task #65).
+- **"Split this bill"**: shown but disabled. The itemized per-line
+  assignment screen (web's `/receipts/split`) is intentionally deferred to
+  pair with the BLE proximity split-detection feature (task #63/64) instead
+  of being built twice.
+- **No AI fallback** ("Improve with AI") — that requires wiring the
+  `entitlements` quota UI + edge-function image upload on mobile, out of
+  scope for this pass.
+- **Entry point**: a Dashboard speed-dial FAB was added on both platforms
+  to reach this at all — neither mobile Dashboard had any quick-add control
+  before this pass.
+- **receipt_scans persistence** (`ReceiptsRepository.{kt,swift}`) and the
+  full parse/reconcile/allocate domain logic were already ported and
+  golden-vector-tested before this pass (P1.5a/P1.5b, P2.5) — this pass
+  built the missing capture/OCR/review UI and wired it up, it didn't port
+  new pure logic.

@@ -122,6 +122,25 @@ fun SanvyaNavHost() {
                 onAddAccount = { navController.navigate("accounts/new") },
                 onViewAccounts = { navController.navigate("accounts") },
                 onViewTransactions = { navController.navigate("transactions") },
+                onAddTransaction = { navController.navigate("transactions/new") },
+                onScanReceipt = { navController.navigate("receipts/new") },
+            )
+        }
+        composable("receipts/new") {
+            com.sanvya.app.ui.receipts.ReceiptCaptureScreen(
+                onBack = { navController.popBackStack() },
+                onScanned = { scanId -> navController.navigate("receipts/review/$scanId") { popUpTo("receipts/new") { inclusive = true } } },
+            )
+        }
+        composable(
+            "receipts/review/{scanId}",
+            arguments = listOf(navArgument("scanId") { type = NavType.StringType }),
+        ) { entry ->
+            val scanId = entry.arguments?.getString("scanId") ?: ""
+            com.sanvya.app.ui.receipts.ReceiptReviewScreen(
+                scanId = scanId,
+                onBack = { navController.popBackStack() },
+                onSaved = { transactionId -> navController.navigate("transactions/$transactionId/edit") { popUpTo("dashboard") } },
             )
         }
         composable("settings") {

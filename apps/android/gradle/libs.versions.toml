@@ -47,6 +47,16 @@ koin = "4.0.0"
 # 1.0 also exists but is a newer/less-established API; staying on the
 # well-documented 2.9.x line for a from-scratch nav graph).
 navigationCompose = "2.9.8"
+# Task #62 (Receipt Scan capture) -- first use of CameraX/ML Kit in this
+# app. CameraX 1.6.0 verified as latest stable via web search 2026-08-07
+# (androidx.camera release notes); ML Kit text-recognition 16.0.1 is the
+# BUNDLED-model artifact (com.google.mlkit, not the Play-Services-backed
+# com.google.android.gms:play-services-mlkit-text-recognition variant) --
+# deliberately chosen so OCR keeps working with no Play Services download
+# step and no network call, matching the feature's "read on your device"
+# privacy claim (docs/mobile/screen-specs/receipt-scan.md).
+cameraX = "1.6.0"
+mlkitTextRecognition = "16.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -79,6 +89,12 @@ ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.r
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+# Task #62 -- receipt capture camera preview + in-memory frame capture.
+camerax-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraX" }
+camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraX" }
+camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraX" }
+camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

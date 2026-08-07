@@ -56,6 +56,8 @@ fun DashboardScreen(
     onAddAccount: () -> Unit = {},
     onViewAccounts: () -> Unit = {},
     onViewTransactions: () -> Unit = {},
+    onAddTransaction: () -> Unit = {},
+    onScanReceipt: () -> Unit = {},
     viewModel: DashboardViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -89,6 +91,33 @@ fun DashboardScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )
+        },
+        floatingActionButton = {
+            // Speed dial -- real port of AddSpeedDial (apps/web/app/
+            // AppShell.tsx), Dashboard-only on web (`pathname === "/"`), and
+            // the first quick-add control on either mobile platform (task
+            // #62 -- verified by grep, no FAB/SpeedDial symbol existed
+            // before this). See docs/mobile/screen-specs/receipt-scan.md.
+            var speedDialOpen by remember { mutableStateOf(false) }
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (speedDialOpen) {
+                    ExtendedFloatingActionButton(
+                        onClick = { speedDialOpen = false; onScanReceipt() },
+                        containerColor = colors.surface,
+                        icon = { Icon(Icons.Default.Receipt, contentDescription = null, tint = colors.text) },
+                        text = { Text("Scan bill / receipt", color = colors.text) },
+                    )
+                    ExtendedFloatingActionButton(
+                        onClick = { speedDialOpen = false; onAddTransaction() },
+                        containerColor = colors.surface,
+                        icon = { Icon(Icons.Default.Add, contentDescription = null, tint = colors.text) },
+                        text = { Text("Add transaction", color = colors.text) },
+                    )
+                }
+                FloatingActionButton(onClick = { speedDialOpen = !speedDialOpen }, containerColor = colors.accent) {
+                    Icon(Icons.Default.Add, contentDescription = if (speedDialOpen) "Close" else "Add", tint = colors.surface)
+                }
+            }
         },
     ) { padding ->
         if (uiState.accounts.isEmpty()) {

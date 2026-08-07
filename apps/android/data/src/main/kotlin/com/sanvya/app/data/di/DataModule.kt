@@ -17,6 +17,7 @@ import com.sanvya.app.data.repository.CreditCardRepository
 import com.sanvya.app.data.repository.GoalsRepository
 import com.sanvya.app.data.repository.InvestmentsRepository
 import com.sanvya.app.data.repository.LoansRepository
+import com.sanvya.app.data.repository.ReceiptsRepository
 import com.sanvya.app.data.repository.RepairRepository
 import com.sanvya.app.data.repository.SplitsRepository
 import com.sanvya.app.data.repository.SubscriptionsRepository
@@ -58,6 +59,10 @@ val dataModule = module {
     single { com.sanvya.app.data.repository.UpiRepository(get()) }
     single { SubscriptionsRepository(get()) }
     single { com.sanvya.app.data.repository.PrefsRepository(get()) }
+    single {
+        val auth: AuthRepository = get()
+        ReceiptsRepository(db = get(), getUserId = { auth.currentUserId.value ?: "" })
+    }
     single<com.sanvya.app.domain.repository.PushRepository> { com.sanvya.app.data.repository.SupabasePushRepository(get()) }
     single {
         val auth: AuthRepository = get()

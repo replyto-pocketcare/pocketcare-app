@@ -71,7 +71,15 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.navigation.compose)
-    
+
+    // Task #62 (Receipt Scan capture): camera preview + in-memory frame
+    // capture, on-device OCR. See docs/mobile/screen-specs/receipt-scan.md.
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
+    implementation(libs.mlkit.text.recognition)
+
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-messaging")

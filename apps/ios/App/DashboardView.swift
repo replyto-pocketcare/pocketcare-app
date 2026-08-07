@@ -1,6 +1,13 @@
 import SwiftUI
 import Factory
 
+/// Wraps a `String` for `.fullScreenCover(item:)`, which needs `Identifiable`
+/// -- used to present ReceiptReviewView keyed by scan id (task #62).
+private struct IdentifiableString: Identifiable {
+    let value: String
+    var id: String { value }
+}
+
 struct DashboardView: View {
     @Binding var isDrawerOpen: Bool
     @State private var viewModel = Container.shared.dashboardViewModel()
@@ -16,6 +23,15 @@ struct DashboardView: View {
     // exists for "create account", so every other screen that offers this
     // action does it the same way).
     @State private var showingCreateAccountSheet = false
+    // Speed dial -- real port of AddSpeedDial (apps/web/app/AppShell.tsx),
+    // Dashboard-only on web (`pathname === "/"`), and the first quick-add
+    // control on either mobile platform (task #62 -- verified by grep, no
+    // FAB/SpeedDial symbol existed before this). See
+    // docs/mobile/screen-specs/receipt-scan.md.
+    @State private var speedDialOpen = false
+    @State private var showingAddTransactionSheet = false
+    @State private var showingReceiptCapture = false
+    @State private var reviewingScanId: String?
 
     var body: some View {
         NavigationStack {
@@ -144,14 +160,76 @@ struct DashboardView: View {
                 }
             }
         }
+        .overlay(alignment: .bottomTrailing) { speedDial }
         .sheet(isPresented: $showingCreateAccountSheet) {
             CreateAccountView()
+        }
+        .sheet(isPresented: $showingAddTransactionSheet) {
+            CreateTransactionView()
+        }
+        .fullScreenCover(isPresented: $showingReceiptCapture) {
+            ReceiptCaptureView(
+                onScanned: { scanId in
+                    showingReceiptCapture = false
+                    reviewingScanId = scanId
+                },
+                onCancel: { showingReceiptCapture = false }
+            )
+        }
+        .fullScreenCover(item: Binding(
+            get: { reviewingScanId.map { IdentifiableString(value: $0) } },
+            set: { reviewingScanId = $0?.value }
+        )) { wrapped in
+            ReceiptReviewView(
+                scanId: wrapped.value,
+                onSaved: { _ in reviewingScanId = nil },
+                onCancel: { reviewingScanId = nil }
+            )
         }
         .onAppear {
             viewModel.start()
         }
         .onDisappear {
             viewModel.cancel()
+        }
+    }
+
+    @ViewBuilder
+    private var speedDial: some View {
+        VStack(alignment: .trailing, spacing: 10) {
+            if speedDialOpen {
+                speedDialAction(icon: "doc.text.viewfinder", label: "Scan bill / receipt") {
+                    speedDialOpen = false
+                    showingReceiptCapture = true
+                }
+                speedDialAction(icon: "plus", label: "Add transaction") {
+                    speedDialOpen = false
+                    showingAddTransactionSheet = true
+                }
+            }
+            Button(action: { withAnimation(.spring()) { speedDialOpen.toggle() } }) {
+                Image(systemName: speedDialOpen ? "xmark" : "plus")
+                    .font(.title3.weight(.semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 56, height: 56)
+                    .background(Color.accent)
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+            }
+        }
+        .padding(20)
+    }
+
+    private func speedDialAction(icon: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Text(label).font(.caption).fontWeight(.semibold).foregroundColor(.text)
+                Image(systemName: icon).foregroundColor(.text)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 10)
+            .background(Color.surface)
+            .clipShape(Capsule())
+            .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
         }
     }
 
