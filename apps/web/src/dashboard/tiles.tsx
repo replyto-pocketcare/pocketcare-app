@@ -241,7 +241,7 @@ function RecentTile() {
   const { data: recent = [] } = useQuery<Transaction & { labels: string | null }>(
     `SELECT t.*,
        (SELECT GROUP_CONCAT(l.name, ', ') FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id WHERE tl.transaction_id = t.id) AS labels
-     FROM transactions t WHERE t.deleted_at IS NULL AND t.type != 'opening_balance' ORDER BY t.occurred_at DESC LIMIT 16`,
+     FROM transactions t WHERE t.deleted_at IS NULL AND t.type != 'opening_balance' ORDER BY t.occurred_at DESC LIMIT 24`,
   );
   const { data: cats = [] } = useQuery<{ id: string; name: string }>("SELECT id, name FROM categories WHERE deleted_at IS NULL");
   const catName = (cid: string | null) => cats.find((c) => c.id === cid)?.name ?? "Uncategorised";
@@ -250,8 +250,9 @@ function RecentTile() {
   // How many rows actually fit this tile at its current size (it clips, never
   // scrolls). 46px = the dense TransactionTile: a 28px avatar + 8px padding
   // top and bottom, whichever of avatar/text is taller.
-  const { ref, fit } = useFitRows<HTMLDivElement>(46, { gap: 6, max: 16 });
-  const collapsed = all.slice(0, fit);
+  // Cap at the last 10 (mobile shows all 10; a short desktop tile clips to fit).
+  const { ref, fit } = useFitRows<HTMLDivElement>(46, { gap: 6, max: 10 });
+  const collapsed = all.slice(0, Math.min(fit, 10));
   const extra = all.length - collapsed.length;
 
   return (
@@ -294,13 +295,16 @@ function SpendingTile() {
   const total = pieData.reduce((s, d) => s + d.value, 0);
   const pct = (v: number) => (total > 0 ? (v / total) * 100 : 0);
   const cfmt = chartMoney(hidden, base);
+  // Month-to-date total across ALL categories (not just the charted top 7).
+  const monthTotalMinor = spend.reduce((s, x) => s + x.total, 0);
+  const monthTotal = hidden ? "••••" : format(money(monthTotalMinor, base), "en-US");
   // Chart and legend each take a fixed share of the tile so neither depends on
   // the other's content height — that's what makes the legend fit measurable.
   const { ref, fit } = useFitRows<HTMLDivElement>(19, { gap: 4, max: 7 });
   const legend = pieData.slice(0, fit);
 
   return (
-    <TileCard title="Spending this month">
+    <TileCard title="Spending this month" action={pieData.length ? <span style={{ fontSize: 15, fontWeight: 750, letterSpacing: "-0.01em" }}>{monthTotal}</span> : undefined}>
       {pieData.length ? (
         <>
           <div className="tile-chart" style={{ flex: "1 1 58%", minHeight: 0 }}>
@@ -430,26 +434,27 @@ function GoalsTile() {
 function SubscriptionsTile() {
   const base = useBaseCurrency();
   const hidden = useAmountsHidden();
-  const { data: subs = [] } = useQuery<{ name: string; amount: number; currency: string; billing_cycle: string; next_renewal: string | null; purchased_on: string | null; created_at: string | null }>(
-    "SELECT name, amount, currency, billing_cycle, next_renewal, purchased_on, created_at FROM subscriptions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY next_renewal",
+  // Subscriptions now live in Planned Cashflow (payments bucketed "subscription"),
+  // not the legacy `subscriptions` table — read them from there so the tile
+  // reflects what the user actually manages under /cashflow.
+  const { data: subs = [] } = useQuery<{ name: string; amount: number; currency: string; frequency: string; next_due: string | null; created_at: string | null }>(
+    "SELECT name, amount, currency, frequency, next_due, created_at FROM planned_cashflow WHERE deleted_at IS NULL AND direction = 'payment' AND bucket = 'subscription' AND IFNULL(is_active,1) = 1 ORDER BY next_due",
   );
-  const monthly = subs.reduce((s, x) => s + monthlyEquivalent(x.amount, x.billing_cycle as Period), 0);
+  const monthly = subs.reduce((s, x) => s + monthlyEquivalent(x.amount, x.frequency as Period), 0);
   // Estimated lifetime spend across active subscriptions — see estimatedSpentToDate.
-  // Summed raw and shown in base currency, exactly as `monthly` above already
-  // does; if this tile ever gains proper FX conversion, both need it together.
   const lifetime = subs.reduce(
-    (s, x) => s + estimatedSpentToDate(x.amount, x.purchased_on || x.created_at, x.billing_cycle as Period),
+    (s, x) => s + estimatedSpentToDate(x.amount, x.created_at, x.frequency as Period),
     0,
   );
   const fmt = (m: number, c: string = base) => (hidden ? "••••" : format(money(Math.round(m), c), "en-US"));
-  const renewing = subs.filter((x) => x.next_renewal);
+  const renewing = subs.filter((x) => x.next_due);
   const { ref, fit } = useFitRows<HTMLDivElement>(20, { gap: 8, max: 8 });
   const upcoming = renewing.slice(0, fit);
   const extra = renewing.length - upcoming.length;
   return (
     <HeroTile title="Subscriptions" grad={HERO.subs.grad} glow={HERO.subs.glow} action={heroLink("/cashflow#payments", "Manage")}>
       {subs.length === 0 ? (
-        <p style={{ margin: 0, color: HERO_MUTED }}>No active subscriptions. <Link href="/subscriptions" style={{ color: "#fff", textDecoration: "underline" }}>Add one</Link>.</p>
+        <p style={{ margin: 0, color: HERO_MUTED }}>No active subscriptions. <Link href="/cashflow#payments" style={{ color: "#fff", textDecoration: "underline" }}>Add one</Link>.</p>
       ) : (
         <>
           <div style={{ flexShrink: 0 }}>
@@ -469,18 +474,16 @@ function SubscriptionsTile() {
           {/* The border/padding live on the outer box so the measured element's
               clientHeight is pure row space (clientHeight includes padding). */}
           {renewing.length > 0 && (
-            <div className="tile-flex" style={{ display: "flex", flexDirection: "column", borderTop: "1px solid rgba(255,255,255,0.16)", paddingTop: 12 }}>
-            <div ref={ref} style={{ flex: 1, minHeight: 0, display: "grid", gap: 8, alignContent: "start", overflow: "hidden" }}>
+            <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 8, alignContent: "start", overflow: "hidden", borderTop: "1px solid rgba(255,255,255,0.16)", marginTop: 12, paddingTop: 12 }}>
               {upcoming.map((x, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13 }}>
                   <span style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.name}</span>
-                  <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(x.amount, x.currency)}{x.next_renewal ? ` · ${new Date(x.next_renewal).toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : ""}</span>
+                  <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(x.amount, x.currency)}{x.next_due ? ` · ${new Date(x.next_due).toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : ""}</span>
                 </div>
               ))}
-            </div>
-            {extra > 0 && (
-              <Link href="/cashflow#payments" style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)", flexShrink: 0, paddingTop: 6 }}>+{extra} more →</Link>
-            )}
+              {extra > 0 && (
+                <Link href="/cashflow#payments" style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)" }}>+{extra} more →</Link>
+              )}
             </div>
           )}
         </>
@@ -618,14 +621,14 @@ function UpcomingTile() {
         </p>
       ) : (
         <>
-          <div style={{ flexShrink: 0 }}>
+          {/* Header owns the divider + spacing so the measured grid below is pure
+              row space (clientHeight includes padding) — and so the mobile
+              auto-height tile can't collapse a nested flex child to zero. */}
+          <div style={{ flexShrink: 0, paddingBottom: 10, marginBottom: 10, borderBottom: "1px solid var(--border)" }}>
             <div className="muted" style={{ fontSize: 12 }}>Due in the next 30 days</div>
             <div style={{ fontSize: 26, fontWeight: 750 }}>{fmt(due30)}</div>
           </div>
-          {/* Border/padding on the outer box: the measured element's clientHeight
-              must be pure row space, since clientHeight includes padding. */}
-          <div className="tile-flex" style={{ display: "flex", flexDirection: "column", borderTop: "1px solid var(--border)", paddingTop: 10 }}>
-          <div ref={ref} style={{ flex: 1, minHeight: 0, display: "grid", gap: 8, alignContent: "start", overflow: "hidden" }}>
+          <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 8, alignContent: "start", overflow: "hidden" }}>
             {shown.map((x) => {
               const overdue = x.date < today;
               return (
@@ -639,10 +642,9 @@ function UpcomingTile() {
                 </div>
               );
             })}
-          </div>
-          {items.length > shown.length && (
-            <Link href="/cashflow#payments" className="muted" style={{ fontSize: 12, flexShrink: 0, paddingTop: 6 }}>+{items.length - shown.length} more →</Link>
-          )}
+            {items.length > shown.length && (
+              <Link href="/cashflow#payments" className="muted" style={{ fontSize: 12 }}>+{items.length - shown.length} more →</Link>
+            )}
           </div>
         </>
       )}

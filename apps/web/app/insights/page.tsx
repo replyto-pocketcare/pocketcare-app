@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEntitlement } from "../../src/entitlement";
 import { LockIcon } from "../../src/ui/icons";
 import { InsightFeed } from "../../src/ui/feed/InsightFeed";
+import { ErrorBoundary } from "../../src/ui/ErrorBoundary";
 
 /**
  * Insights is the card feed and nothing else — no page title, no side panels.
@@ -43,5 +44,17 @@ export default function InsightsPage() {
     );
   }
 
-  return <InsightFeed />;
+  return (
+    <ErrorBoundary label="Insights feed" fallback={
+      <div className="fade-up" style={{ display: "grid", gap: 12, maxWidth: 560, padding: "8px 4px" }}>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
+        <div className="card" style={{ padding: 24, display: "grid", gap: 8 }}>
+          <strong style={{ fontSize: 15 }}>Insights couldn’t load</strong>
+          <span className="muted" style={{ fontSize: 13 }}>We hit a snag building your insights. Your data is safe — please try again shortly.</span>
+        </div>
+      </div>
+    }>
+      <InsightFeed />
+    </ErrorBoundary>
+  );
 }

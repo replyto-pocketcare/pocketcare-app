@@ -75,6 +75,7 @@ export default function GoalsPage() {
 
   const [celebrate, setCelebrate] = useState<string | null>(null);
   const onAchieved = useCallback((goalName: string) => setCelebrate(goalName), []);
+  const [addOpen, setAddOpen] = useState(false);
 
   async function addGoal() {
     setErr(null);
@@ -89,11 +90,15 @@ export default function GoalsPage() {
       alert_time_utc: localToUtcTime(alertTime),
     });
     setName(""); setTarget(""); setCurrency(base); setIsEf(false); setAlertTime("09:00");
+    setAddOpen(false);
   }
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <h1>{t("title")}</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
+        <button className="btn" onClick={() => { setErr(null); setAddOpen(true); }}>+ {t("addGoal")}</button>
+      </div>
       {ef && !efFunded && (
         <div className="card" style={{ padding: 14, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)" }}>
           {t("efFirst")}
@@ -108,27 +113,32 @@ export default function GoalsPage() {
         {goals.length === 0 && (goalsLoading ? <ListSkeleton rows={3} /> : <p className="muted">{t("noGoals")}</p>)}
       </div>
 
-      <div className="card" style={{ padding: 20, display: "grid", gap: 10, maxWidth: 460 }}>
-        <h2>{t("newGoal")}</h2>
-        <FloatingInput label={t("goalName")} value={name} onChange={setName} />
-        <div style={{ display: "flex", gap: 8 }}>
-          <FloatingInput label={t("target", { currency })} group currency={currency} value={target} onChange={setTarget} style={{ flex: 1 }} />
-          <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 96 }}>
-            {GOAL_CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <label className="muted" style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
-          Alert time
-          <input type="time" className="input" value={alertTime} onChange={(e) => setAlertTime(e.target.value)} />
-        </label>
-        {!hasEf && (
-          <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
-            <input type="checkbox" checked={isEf} onChange={(e) => setIsEf(e.target.checked)} /> {t("efCheckbox")}
+      <Modal open={addOpen} onClose={() => setAddOpen(false)}>
+        <div style={{ display: "grid", gap: 10 }}>
+          <h2 style={{ margin: 0 }}>{t("newGoal")}</h2>
+          <FloatingInput label={t("goalName")} value={name} onChange={setName} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <FloatingInput label={t("target", { currency })} group currency={currency} value={target} onChange={setTarget} style={{ flex: 1 }} />
+            <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 96 }}>
+              {GOAL_CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <label className="muted" style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
+            Alert time
+            <input type="time" className="input" value={alertTime} onChange={(e) => setAlertTime(e.target.value)} />
           </label>
-        )}
-        {err && <div className="card" style={{ padding: "8px 12px", background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)", fontSize: 13 }}>{err}</div>}
-        <button className="btn" onClick={addGoal}>{t("addGoal")}</button>
-      </div>
+          {!hasEf && (
+            <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
+              <input type="checkbox" checked={isEf} onChange={(e) => setIsEf(e.target.checked)} /> {t("efCheckbox")}
+            </label>
+          )}
+          {err && <div className="card" style={{ padding: "8px 12px", background: "var(--surface-2)", border: "1px solid var(--negative)", color: "var(--negative)", fontSize: 13 }}>{err}</div>}
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
+            <button className="btn ghost" onClick={() => setAddOpen(false)}>{t("cancel", "Cancel")}</button>
+            <button className="btn" onClick={addGoal}>{t("addGoal")}</button>
+          </div>
+        </div>
+      </Modal>
 
       {celebrate && <GoalCelebration name={celebrate} onClose={() => setCelebrate(null)} />}
     </div>
