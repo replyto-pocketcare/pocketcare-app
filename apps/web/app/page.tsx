@@ -177,13 +177,7 @@ export default function Dashboard() {
       <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           <h2 style={{ margin: 0 }}>Accounts</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Link href="/accounts" className="chip" style={{ fontSize: 13 }}>View all{balances.length > 8 ? ` (${balances.length})` : ""}</Link>
-            <Link href="/accounts/new" aria-label="Add account" className="chip" title="Add account"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, padding: 0 }}>
-              <PlusIcon size={16} />
-            </Link>
-          </div>
+          <Link href="/accounts" className="chip" style={{ fontSize: 13 }}>View all{balances.length > 8 ? ` (${balances.length})` : ""}</Link>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(112px, 100%), 1fr))", gap: 8 }}>
           {balances.slice(0, 8).map(({ account, balance }) => {
@@ -196,6 +190,14 @@ export default function Dashboard() {
               </Link>
             );
           })}
+          {/* Add-account tile: same footprint as an account, dashed outline. */}
+          <Link href="/accounts/new" aria-label="Add account" style={{
+            border: "1.5px dashed var(--border-strong)", color: "var(--text-2)", borderRadius: 12, padding: "9px 11px",
+            display: "grid", placeItems: "center", gap: 4, minWidth: 0, minHeight: 58,
+          }}>
+            <PlusIcon size={18} />
+            <span style={{ fontSize: 12, fontWeight: 600 }}>Add</span>
+          </Link>
         </div>
       </section>
 

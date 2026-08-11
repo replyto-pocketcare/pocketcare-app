@@ -132,6 +132,15 @@ function CardPanel({ account, owed, detail, sources }: {
   );
   const newSpend = cycleRows[0]?.total ?? 0;
 
+  // Charges that make up the outstanding balance — newest first.
+  const { data: cardTxns = [] } = useQuery<{ id: string; description: string | null; amount: number; occurred_at: string }>(
+    `SELECT id, description, amount, occurred_at FROM transactions
+      WHERE account_id = ? AND deleted_at IS NULL AND type = 'expense' ORDER BY occurred_at DESC LIMIT 200`,
+    [account.id],
+  );
+  const chargesTotal = cardTxns.reduce((s, x) => s + x.amount, 0);
+  const [showTxns, setShowTxns] = useState(false);
+
   const [stmt, setStmt] = useState(String(detail?.statement_day ?? 1));
   const [due, setDue] = useState(String(detail?.due_day ?? 20));
   const [creditLimit, setCreditLimit] = useState(detail?.credit_limit ? String(toMajor(money(detail.credit_limit, account.currency))) : "");
@@ -227,9 +236,16 @@ function CardPanel({ account, owed, detail, sources }: {
           </div>
         ) : null}
         {cycle && !editing && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <div className="muted" style={{ fontSize: 11 }}>{t("statement", { date: cycle.statementDate.toLocaleDateString() })}</div>
-            <button className="chip" style={{ padding: "2px 8px", fontSize: 11 }} onClick={() => setEditing(true)}>{t("editDetails")}</button>
+            <div style={{ display: "flex", gap: 6 }}>
+              {cardTxns.length > 0 && (
+                <button className="chip" style={{ padding: "2px 8px", fontSize: 11 }} onClick={(e) => { e.preventDefault(); setShowTxns(true); }}>
+                  {t("viewTransactions", { count: cardTxns.length, defaultValue: "View transactions" })}
+                </button>
+              )}
+              <button className="chip" style={{ padding: "2px 8px", fontSize: 11 }} onClick={() => setEditing(true)}>{t("editDetails")}</button>
+            </div>
           </div>
         )}
 
@@ -271,6 +287,28 @@ function CardPanel({ account, owed, detail, sources }: {
           </div>
         </div>
       </div>
+
+      {/* Charges that add up to the amount due — newest first. */}
+      <Modal open={showTxns} onClose={() => setShowTxns(false)} label={t("cardTxnsTitle", "Card transactions")}>
+        <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+            <h2 style={{ margin: 0 }}>{t("cardTxnsTitle", "Card transactions")}</h2>
+            <span className="muted" style={{ fontSize: 13 }}>{t("cardTxnsTotal", { amount: fmt(money(chargesTotal, account.currency)), defaultValue: "Total {{amount}}" })}</span>
+          </div>
+          <div className="card" style={{ padding: 0, overflow: "hidden", maxHeight: "60vh", overflowY: "auto" }}>
+            {cardTxns.map((tx, i) => (
+              <div key={tx.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 14px", borderTop: i === 0 ? "none" : "1px solid var(--border)", minWidth: 0 }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.description || t("uncategorised", "Transaction")}</div>
+                  <div className="muted" style={{ fontSize: 11.5 }}>{new Date(tx.occurred_at).toLocaleDateString()}</div>
+                </div>
+                <strong style={{ flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(money(tx.amount, account.currency))}</strong>
+              </div>
+            ))}
+            {cardTxns.length === 0 && <p className="muted" style={{ padding: 14, margin: 0 }}>{t("noCardTxns", "No charges on this card yet.")}</p>}
+          </div>
+        </div>
+      </Modal>
 
       {/* EMIs charged to this card that the payment just covered. Asked, never
           assumed — see src/loans/settleEmis.ts. */}

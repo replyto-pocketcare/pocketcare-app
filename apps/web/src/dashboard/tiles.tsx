@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
 import {
-  ResponsiveContainer, PieChart, Pie, Cell, Tooltip, CartesianGrid,
+  ResponsiveContainer, Tooltip, CartesianGrid,
   BarChart, Bar, AreaChart, Area, XAxis, YAxis, LabelList,
 } from "recharts";
 import { money, format, toMajor, type Money } from "@sanvya/money";
@@ -294,42 +294,41 @@ function SpendingTile() {
   const pieData = spend.slice(0, 7).map((s) => ({ name: catName(s.category_id), value: major(s.total) }));
   const total = pieData.reduce((s, d) => s + d.value, 0);
   const pct = (v: number) => (total > 0 ? (v / total) * 100 : 0);
-  const cfmt = chartMoney(hidden, base);
   // Month-to-date total across ALL categories (not just the charted top 7).
   const monthTotalMinor = spend.reduce((s, x) => s + x.total, 0);
   const monthTotal = hidden ? "••••" : format(money(monthTotalMinor, base), "en-US");
-  // Chart and legend each take a fixed share of the tile so neither depends on
-  // the other's content height — that's what makes the legend fit measurable.
-  const { ref, fit } = useFitRows<HTMLDivElement>(19, { gap: 4, max: 7 });
-  const legend = pieData.slice(0, fit);
+  // Ranked horizontal bars — a calmer, more legible read than a donut: category,
+  // a proportional bar, and its share/amount. Bars are sized against the largest
+  // category so the leader always fills the track (stable, professional look).
+  const { ref, fit } = useFitRows<HTMLDivElement>(38, { gap: 12, max: 7 });
+  const bars = pieData.slice(0, fit);
+  const maxVal = pieData.reduce((m, d) => Math.max(m, d.value), 0);
 
   return (
     <TileCard title="Spending this month" action={pieData.length ? <span style={{ fontSize: 15, fontWeight: 750, letterSpacing: "-0.01em" }}>{monthTotal}</span> : undefined}>
       {pieData.length ? (
-        <>
-          <div className="tile-chart" style={{ flex: "1 1 58%", minHeight: 0 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                {/* minAngle guarantees even tiny categories get a visible slice next to a big one */}
-                <Pie data={pieData} dataKey="value" nameKey="name" innerRadius="55%" outerRadius="88%" paddingAngle={2} minAngle={6} {...ANIM}>
-                  {pieData.map((_, i) => <Cell key={i} fill={PIE[i % PIE.length]} />)}
-                </Pie>
-                {chartTooltip((v) => `${cfmt(v)} · ${pct(v).toFixed(1)}%`, false)}
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div ref={ref} style={{ flex: "1 1 42%", minHeight: 0, display: "grid", gap: 4, alignContent: "start", overflow: "hidden" }}>
-            {legend.map((d, i) => (
-              <div key={d.name} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, gap: 8 }}>
-                <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><span style={{ color: PIE[i % PIE.length] }}>●</span> {d.name}</span>
-                <span className="muted" style={{ flexShrink: 0 }}>{pct(d.value).toFixed(1)}%{hidden ? "" : ` · ${toMajor(money(Math.round(d.value * 100), base)).toFixed(2)}`}</span>
+        <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 12, alignContent: "start", minWidth: 0, overflow: "hidden" }}>
+          {bars.map((d, i) => {
+            const share = pct(d.value);
+            const fillPct = maxVal > 0 ? Math.max(3, (d.value / maxVal) * 100) : 0;
+            return (
+              <div key={d.name} style={{ display: "grid", gap: 5, minWidth: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, minWidth: 0 }}>
+                  <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500 }}>{d.name}</span>
+                  <span className="muted" style={{ flexShrink: 0 }}>
+                    {hidden ? `${share.toFixed(0)}%` : `${toMajor(money(Math.round(d.value * 100), base)).toFixed(0)} · ${share.toFixed(0)}%`}
+                  </span>
+                </div>
+                <div style={{ height: 7, borderRadius: 999, background: "var(--surface-2)", overflow: "hidden" }}>
+                  <div style={{ width: `${fillPct}%`, height: "100%", borderRadius: 999, background: PIE[i % PIE.length], transition: "width 0.3s ease" }} />
+                </div>
               </div>
-            ))}
-            {pieData.length > legend.length && (
-              <Link href="/insights" className="muted" style={{ fontSize: 12 }}>+{pieData.length - legend.length} more →</Link>
-            )}
-          </div>
-        </>
+            );
+          })}
+          {pieData.length > bars.length && (
+            <Link href="/insights" className="muted" style={{ fontSize: 12 }}>+{pieData.length - bars.length} more →</Link>
+          )}
+        </div>
       ) : (
         <p className="muted">No spending recorded this month.</p>
       )}
@@ -434,11 +433,18 @@ function GoalsTile() {
 function SubscriptionsTile() {
   const base = useBaseCurrency();
   const hidden = useAmountsHidden();
-  // Subscriptions now live in Planned Cashflow (payments bucketed "subscription"),
-  // not the legacy `subscriptions` table — read them from there so the tile
-  // reflects what the user actually manages under /cashflow.
+  // Subscriptions live under the "Subscription" group of recurring *payments*
+  // (recurring_rules → transaction_templates → recurring_groups) — the same list
+  // the user manages on /recurring.
   const { data: subs = [] } = useQuery<{ name: string; amount: number; currency: string; frequency: string; next_due: string | null; created_at: string | null }>(
-    "SELECT name, amount, currency, frequency, next_due, created_at FROM planned_cashflow WHERE deleted_at IS NULL AND direction = 'payment' AND bucket = 'subscription' AND IFNULL(is_active,1) = 1 ORDER BY next_due",
+    `SELECT t.name AS name, COALESCE(t.amount, 0) AS amount, COALESCE(t.currency, '') AS currency,
+            r.frequency AS frequency, r.next_due AS next_due, r.created_at AS created_at
+     FROM recurring_rules r
+     JOIN transaction_templates t ON t.id = r.template_id
+     JOIN recurring_groups g ON g.id = t.group_id
+     WHERE r.deleted_at IS NULL AND t.deleted_at IS NULL AND g.deleted_at IS NULL
+       AND r.active = 1 AND g.direction = 'payment' AND lower(g.name) = 'subscription'
+     ORDER BY r.next_due`,
   );
   const monthly = subs.reduce((s, x) => s + monthlyEquivalent(x.amount, x.frequency as Period), 0);
   // Estimated lifetime spend across active subscriptions — see estimatedSpentToDate.
@@ -452,9 +458,9 @@ function SubscriptionsTile() {
   const upcoming = renewing.slice(0, fit);
   const extra = renewing.length - upcoming.length;
   return (
-    <HeroTile title="Subscriptions" grad={HERO.subs.grad} glow={HERO.subs.glow} action={heroLink("/cashflow#payments", "Manage")}>
+    <HeroTile title="Subscriptions" grad={HERO.subs.grad} glow={HERO.subs.glow} action={heroLink("/recurring", "Manage")}>
       {subs.length === 0 ? (
-        <p style={{ margin: 0, color: HERO_MUTED }}>No active subscriptions. <Link href="/cashflow#payments" style={{ color: "#fff", textDecoration: "underline" }}>Add one</Link>.</p>
+        <p style={{ margin: 0, color: HERO_MUTED }}>No active subscriptions. <Link href="/recurring" style={{ color: "#fff", textDecoration: "underline" }}>Add one</Link>.</p>
       ) : (
         <>
           <div style={{ flexShrink: 0 }}>
@@ -478,11 +484,11 @@ function SubscriptionsTile() {
               {upcoming.map((x, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13 }}>
                   <span style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.name}</span>
-                  <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(x.amount, x.currency)}{x.next_due ? ` · ${new Date(x.next_due).toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : ""}</span>
+                  <span style={{ color: HERO_MUTED, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(x.amount, x.currency || base)}{x.next_due ? ` · ${new Date(x.next_due).toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : ""}</span>
                 </div>
               ))}
               {extra > 0 && (
-                <Link href="/cashflow#payments" style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)" }}>+{extra} more →</Link>
+                <Link href="/recurring" style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(246,240,231,0.9)" }}>+{extra} more →</Link>
               )}
             </div>
           )}
@@ -628,17 +634,17 @@ function UpcomingTile() {
             <div className="muted" style={{ fontSize: 12 }}>Due in the next 30 days</div>
             <div style={{ fontSize: 26, fontWeight: 750 }}>{fmt(due30)}</div>
           </div>
-          <div ref={ref} className="tile-flex" style={{ display: "grid", gap: 8, alignContent: "start", overflow: "hidden" }}>
+          <div ref={ref} className="tile-flex" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 8, alignContent: "start", minWidth: 0, overflow: "hidden" }}>
             {shown.map((x) => {
               const overdue = x.date < today;
               return (
-                <div key={x.key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div key={x.key} style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                   <span aria-hidden style={{ width: 26, height: 26, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 8, background: "var(--surface-2)", fontSize: 13, color: "var(--text-2)" }}>{x.icon}</span>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.name}</div>
-                    <div className="muted" style={{ fontSize: 11.5 }}>{x.sub} · <span style={{ color: overdue ? "var(--negative)" : "var(--text-2)" }}>{overdue ? "overdue" : whenLabel(x.date, today)}</span></div>
+                    <div className="muted" style={{ fontSize: 11.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.sub} · <span style={{ color: overdue ? "var(--negative)" : "var(--text-2)" }}>{overdue ? "overdue" : whenLabel(x.date, today)}</span></div>
                   </div>
-                  <div style={{ fontSize: 13.5, fontWeight: 650, flexShrink: 0 }}>{fmt(x.amountBase)}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 650, flexShrink: 0, whiteSpace: "nowrap" }}>{fmt(x.amountBase)}</div>
                 </div>
               );
             })}
