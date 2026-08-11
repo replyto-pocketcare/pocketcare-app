@@ -508,6 +508,13 @@ body[data-fullbleed="true"] .shell-main { padding: 0 !important; max-width: none
   h1 { font-size: 22px; }
 }
 
+/* Compact header controls on phones: collapse chip buttons to their icon so the
+   dashboard title row stays on one line (Customize/Show-Hide, etc.). */
+@media (max-width: 560px) {
+  .btn-txt { display: none; }
+  .chip { padding-left: 8px; padding-right: 8px; }
+}
+
 .hamburger {
   display: inline-flex; align-items: center; justify-content: center;
   width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);

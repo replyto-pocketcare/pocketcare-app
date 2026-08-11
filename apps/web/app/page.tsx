@@ -151,14 +151,13 @@ export default function Dashboard() {
             <button className="btn" onClick={() => setEditing(false)} style={{ gap: 7, background: "var(--positive)", boxShadow: "0 10px 24px -12px rgba(95,102,71,0.9)" }}><CheckIcon /> Done</button>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
             <button className="chip" onClick={() => setEditing(true)} title="Customize tiles" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <SlidersIcon size={16} /> Customize
+              <SlidersIcon size={16} /> <span className="btn-txt">Customize</span>
             </button>
             <button className="chip" onClick={() => setAmountsHidden(!hidden)} title={hidden ? "Show amounts" : "Hide amounts"} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              {hidden ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />} {hidden ? "Show" : "Hide"}
+              {hidden ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />} <span className="btn-txt">{hidden ? "Show" : "Hide"}</span>
             </button>
-            <Link href="/accounts/new" className="btn ghost" style={{ gap: 6 }}><PlusIcon size={16} /> Account</Link>
           </div>
         )}
       </div>
@@ -178,7 +177,13 @@ export default function Dashboard() {
       <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           <h2 style={{ margin: 0 }}>Accounts</h2>
-          <Link href="/accounts" className="chip" style={{ fontSize: 13 }}>View all{balances.length > 8 ? ` (${balances.length})` : ""}</Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Link href="/accounts" className="chip" style={{ fontSize: 13 }}>View all{balances.length > 8 ? ` (${balances.length})` : ""}</Link>
+            <Link href="/accounts/new" aria-label="Add account" className="chip" title="Add account"
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, padding: 0 }}>
+              <PlusIcon size={16} />
+            </Link>
+          </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(112px, 100%), 1fr))", gap: 8 }}>
           {balances.slice(0, 8).map(({ account, balance }) => {
