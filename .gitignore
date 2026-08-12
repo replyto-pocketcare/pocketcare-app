@@ -35,3 +35,4 @@ coverage/
 # Support key material — NEVER commit
 support-key/
 *.share
+_tmp_*
