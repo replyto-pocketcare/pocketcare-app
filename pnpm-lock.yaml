@@ -24,57 +24,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@pocketcare/budget':
-        specifier: workspace:*
-        version: link:../../packages/core/budget
-      '@pocketcare/crypto':
-        specifier: workspace:*
-        version: link:../../packages/core/crypto
-      '@pocketcare/data':
-        specifier: workspace:*
-        version: link:../../packages/data
-      '@pocketcare/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@pocketcare/diagnostics':
-        specifier: workspace:*
-        version: link:../../packages/core/diagnostics
-      '@pocketcare/entitlements':
-        specifier: workspace:*
-        version: link:../../packages/core/entitlements
-      '@pocketcare/finance':
-        specifier: workspace:*
-        version: link:../../packages/core/finance
-      '@pocketcare/i18n':
-        specifier: workspace:*
-        version: link:../../packages/core/i18n
-      '@pocketcare/ledger':
-        specifier: workspace:*
-        version: link:../../packages/core/ledger
-      '@pocketcare/money':
-        specifier: workspace:*
-        version: link:../../packages/core/money
-      '@pocketcare/receipts':
-        specifier: workspace:*
-        version: link:../../packages/core/receipts
-      '@pocketcare/reconcile':
-        specifier: workspace:*
-        version: link:../../packages/core/reconcile
-      '@pocketcare/splits-insights':
-        specifier: workspace:*
-        version: link:../../packages/core/splits-insights
-      '@pocketcare/sync-policy':
-        specifier: workspace:*
-        version: link:../../packages/core/sync-policy
-      '@pocketcare/types':
-        specifier: workspace:*
-        version: link:../../packages/types
-      '@pocketcare/ui-tokens':
-        specifier: workspace:*
-        version: link:../../packages/ui-tokens
-      '@pocketcare/upi':
-        specifier: workspace:*
-        version: link:../../packages/core/upi
       '@powersync/react':
         specifier: ^1.5.0
         version: 1.10.0(@powersync/common@1.57.0)(react@18.3.1)
@@ -87,6 +36,63 @@ importers:
       '@react-three/fiber':
         specifier: ^8.17.0
         version: 8.18.0(@types/react@18.3.31)(expo-asset@10.0.10(expo@51.0.39(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react-native@0.74.5(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.3.1))(react@18.3.1)))(expo-file-system@17.0.1(expo@51.0.39(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react-native@0.74.5(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.3.1))(react@18.3.1)))(expo@51.0.39(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react-native@0.74.5(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react-native@0.74.5(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.3.1))(react@18.3.1)(three@0.169.0)
+      '@sanvya/budget':
+        specifier: workspace:*
+        version: link:../../packages/core/budget
+      '@sanvya/crypto':
+        specifier: workspace:*
+        version: link:../../packages/core/crypto
+      '@sanvya/data':
+        specifier: workspace:*
+        version: link:../../packages/data
+      '@sanvya/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@sanvya/diagnostics':
+        specifier: workspace:*
+        version: link:../../packages/core/diagnostics
+      '@sanvya/entitlements':
+        specifier: workspace:*
+        version: link:../../packages/core/entitlements
+      '@sanvya/finance':
+        specifier: workspace:*
+        version: link:../../packages/core/finance
+      '@sanvya/i18n':
+        specifier: workspace:*
+        version: link:../../packages/core/i18n
+      '@sanvya/ledger':
+        specifier: workspace:*
+        version: link:../../packages/core/ledger
+      '@sanvya/mindfulness':
+        specifier: workspace:*
+        version: link:../../packages/core/mindfulness
+      '@sanvya/money':
+        specifier: workspace:*
+        version: link:../../packages/core/money
+      '@sanvya/receipts':
+        specifier: workspace:*
+        version: link:../../packages/core/receipts
+      '@sanvya/reconcile':
+        specifier: workspace:*
+        version: link:../../packages/core/reconcile
+      '@sanvya/splits-insights':
+        specifier: workspace:*
+        version: link:../../packages/core/splits-insights
+      '@sanvya/suggestions':
+        specifier: workspace:*
+        version: link:../../packages/core/suggestions
+      '@sanvya/sync-policy':
+        specifier: workspace:*
+        version: link:../../packages/core/sync-policy
+      '@sanvya/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      '@sanvya/ui-tokens':
+        specifier: workspace:*
+        version: link:../../packages/ui-tokens
+      '@sanvya/upi':
+        specifier: workspace:*
+        version: link:../../packages/core/upi
       '@supabase/supabase-js':
         specifier: ^2.45.0
         version: 2.110.0
@@ -133,10 +139,10 @@ importers:
 
   packages/core/budget:
     dependencies:
-      '@pocketcare/money':
+      '@sanvya/money':
         specifier: workspace:*
         version: link:../money
-      '@pocketcare/types':
+      '@sanvya/types':
         specifier: workspace:*
         version: link:../../types
 
@@ -146,13 +152,13 @@ importers:
 
   packages/core/entitlements:
     dependencies:
-      '@pocketcare/types':
+      '@sanvya/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/core/finance:
     dependencies:
-      '@pocketcare/types':
+      '@sanvya/types':
         specifier: workspace:*
         version: link:../../types
 
@@ -169,25 +175,41 @@ importers:
 
   packages/core/ledger:
     dependencies:
-      '@pocketcare/money':
+      '@sanvya/money':
         specifier: workspace:*
         version: link:../money
-      '@pocketcare/types':
+      '@sanvya/types':
         specifier: workspace:*
         version: link:../../types
 
+  packages/core/mindfulness:
+    dependencies:
+      '@sanvya/money':
+        specifier: workspace:*
+        version: link:../money
+      '@sanvya/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+
   packages/core/money:
     dependencies:
-      '@pocketcare/types':
+      '@sanvya/types':
         specifier: workspace:*
         version: link:../../types
 
   packages/core/receipts:
     dependencies:
-      '@pocketcare/money':
+      '@sanvya/money':
         specifier: workspace:*
         version: link:../money
-      '@pocketcare/types':
+      '@sanvya/types':
         specifier: workspace:*
         version: link:../../types
 
@@ -195,36 +217,38 @@ importers:
 
   packages/core/splits-insights: {}
 
+  packages/core/suggestions: {}
+
   packages/core/sync-policy: {}
 
   packages/core/upi: {}
 
   packages/data:
     dependencies:
-      '@pocketcare/budget':
-        specifier: workspace:*
-        version: link:../core/budget
-      '@pocketcare/ledger':
-        specifier: workspace:*
-        version: link:../core/ledger
-      '@pocketcare/money':
-        specifier: workspace:*
-        version: link:../core/money
-      '@pocketcare/types':
-        specifier: workspace:*
-        version: link:../types
       '@powersync/common':
         specifier: ^1.20.0
         version: 1.57.0
+      '@sanvya/budget':
+        specifier: workspace:*
+        version: link:../core/budget
+      '@sanvya/ledger':
+        specifier: workspace:*
+        version: link:../core/ledger
+      '@sanvya/money':
+        specifier: workspace:*
+        version: link:../core/money
+      '@sanvya/types':
+        specifier: workspace:*
+        version: link:../types
 
   packages/db:
     dependencies:
-      '@pocketcare/sync-policy':
-        specifier: workspace:*
-        version: link:../core/sync-policy
       '@powersync/common':
         specifier: ^1.20.0
         version: 1.57.0
+      '@sanvya/sync-policy':
+        specifier: workspace:*
+        version: link:../core/sync-policy
       '@supabase/supabase-js':
         specifier: ^2.45.0
         version: 2.110.0

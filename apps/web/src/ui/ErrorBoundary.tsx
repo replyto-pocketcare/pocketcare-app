@@ -11,17 +11,17 @@ interface Props { children: ReactNode; label?: string; fallback?: ReactNode }
 interface State { error: Error | null }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null };
+  override state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
   }
 
-  componentDidCatch(error: Error, info: unknown) {
+  override componentDidCatch(error: Error, info: unknown) {
     console.error(`[PocketCare] ${this.props.label ?? "component"} crashed:`, error, info);
   }
 
-  render() {
+  override render() {
     if (this.state.error) {
       if (this.props.fallback) return this.props.fallback;
       return (

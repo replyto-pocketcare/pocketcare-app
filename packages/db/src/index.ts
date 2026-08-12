@@ -313,6 +313,7 @@ const planned_cashflow = new Table(
     account_id: column.text,
     notes: column.text,
     is_active: column.integer,
+    migrated_at: column.text, // set when ported to recurring_items / holdings (cashflow removal)
     created_at: column.text,
     updated_at: column.text,
     deleted_at: column.text,
@@ -338,6 +339,10 @@ const holdings = new Table({
   maturity_date: column.text, // FD maturity date (ISO)
   source_account_id: column.text, // savings/bank account that funded a NEW investment (null = tracking existing)
   planned_id: column.text, // linked planned_cashflow saving row (for SIPs)
+  sip_amount: column.integer, // amount-based SIP: monthly amount (minor units)
+  sip_start_date: column.text, // amount-based SIP: date it began (ISO)
+  sip_day: column.integer, // amount-based SIP: day-of-month (1–28) the amount is debited to invest
+  total_invested: column.integer, // running sum of contributions (minor units)
   created_at: column.text,
   updated_at: column.text,
   deleted_at: column.text,
@@ -630,7 +635,20 @@ const recurring_rules = new Table(
   {
     user_id: column.text, template_id: column.text, frequency: column.text, interval_count: column.integer,
     next_due: column.text, last_generated: column.text, auto_post: column.integer, active: column.integer,
-    alert_time_utc: column.text,
+    alert_time_utc: column.text, migrated_at: column.text,
+    created_at: column.text, updated_at: column.text, deleted_at: column.text,
+  },
+  { indexes: { by_user: ["user_id", "next_due"] } },
+);
+
+// Dedicated recurring incomes & expenses (replaces templates+rules for tracking).
+const recurring_items = new Table(
+  {
+    user_id: column.text, direction: column.text, group_id: column.text, name: column.text,
+    amount: column.integer, currency: column.text, frequency: column.text, interval_count: column.integer,
+    next_due: column.text, account_id: column.text, category_id: column.text,
+    auto_post: column.integer, active: column.integer, alert_time_utc: column.text,
+    source_table: column.text, source_id: column.text,
     created_at: column.text, updated_at: column.text, deleted_at: column.text,
   },
   { indexes: { by_user: ["user_id", "next_due"] } },
@@ -795,6 +813,7 @@ export const AppSchema = new Schema({
   transaction_templates,
   recurring_groups,
   recurring_rules,
+  recurring_items,
   category_rules,
   // Lookup / reference tables
   account_types,

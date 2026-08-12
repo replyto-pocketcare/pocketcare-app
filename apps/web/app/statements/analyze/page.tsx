@@ -171,7 +171,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
   async function addRecurring(key: string, label: string, amountMinor: number, cadence: string) {
     const freq = cadence === "weekly" ? "weekly" : cadence === "yearly" ? "yearly" : "monthly";
     const groupId = await resolveGroupForImport("payment", label);
-    await createRecurring({ direction: "payment", name: label.slice(0, 40), amount: amountMinor / 100, accountId: accountId || null, frequency: freq, firstDue: new Date().toISOString().slice(0, 10), autoPost: false, groupId });
+    await createRecurring({ direction: "payment", name: label.slice(0, 40), amount: amountMinor / 100, accountId: accountId || null, frequency: freq, firstDue: new Date().toISOString().slice(0, 10), autoPost: false, groupId, alert_time_utc: null });
     setAddedRecurring((prev) => new Set(prev).add(key));
   }
 

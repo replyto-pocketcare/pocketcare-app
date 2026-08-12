@@ -42,8 +42,9 @@ export interface AddHoldingInput {
   autoFetch: boolean;
   funding: { mode: "existing" } | { mode: "new"; sourceAccountId: string };
   /** When present, sets up a recurring SIP transfer (debit account → this investment
-   *  account) that posts on `firstDue` and each period — shows under Recurring / Planned Cashflow. */
-  sip?: { amount: number; frequency: Period; firstDue: string; sourceAccountId: string } | null;
+   *  account) that posts on `firstDue` and each period. `startDate` is when the SIP
+   *  began and `day` is the day-of-month it's debited — both stored on the holding. */
+  sip?: { amount: number; frequency: Period; firstDue: string; sourceAccountId: string; startDate: string; day: number } | null;
 }
 
 export async function addHolding(inp: AddHoldingInput): Promise<string> {
@@ -106,9 +107,13 @@ export async function addHolding(inp: AddHoldingInput): Promise<string> {
     current_value: inp.currentValue,
     annual_rate: inp.annualRate,
     maturity_date: inp.maturityDate,
-    source_account_id: inp.funding.mode === "new" ? inp.funding.sourceAccountId : null,
+    source_account_id: inp.sip ? inp.sip.sourceAccountId : (inp.funding.mode === "new" ? inp.funding.sourceAccountId : null),
     planned_id: plannedId,
     off_list: inp.offList ? 1 : 0,
     auto_fetch: inp.autoFetch ? 1 : 0,
+    // Amount-based SIP fields (see migration 0061).
+    sip_amount: inp.sip ? inp.sip.amount : null,
+    sip_start_date: inp.sip ? inp.sip.startDate : null,
+    sip_day: inp.sip ? inp.sip.day : null,
   });
 }

@@ -49,8 +49,9 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
   const [maturity, setMaturity] = useState("");
   const [sipAmt, setSipAmt] = useState("");
   const [sipFreq, setSipFreq] = useState<Period>("monthly");
-  const [sipDate, setSipDate] = useState(new Date().toISOString().slice(0, 10)); // first debit date
-  const [sipSource, setSipSource] = useState(fundingAccounts[0]?.id ?? "");        // account debited each SIP
+  const [sipStart, setSipStart] = useState(new Date().toISOString().slice(0, 10));  // when the SIP began
+  const [sipDay, setSipDay] = useState(String(Math.min(28, new Date().getDate())));  // monthly debit day (1–28)
+  const [sipSource, setSipSource] = useState(fundingAccounts[0]?.id ?? "");          // account debited each SIP
   // Funding: "existing" = already own it (track only); "new" = fund from an account.
   const [funding, setFunding] = useState<"existing" | "new">("existing");
   const [sourceId, setSourceId] = useState(fundingAccounts[0]?.id ?? "");
@@ -80,7 +81,8 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
   // amount/qty and existing-vs-new funding section don't gate it.
   const amountOk = isSip ? !!sipAmt : (isLump ? !!cost : !!qty);
   const fundingOk = isSip ? !!sipSource : (funding === "existing" || (!!sourceId && !overFunds));
-  const sipOk = !isSip || (!!sipAmt && !!sipDate && !!sipSource);
+  const sipDayNum = Math.min(28, Math.max(1, Number(sipDay) || 0));
+  const sipOk = !isSip || (!!sipAmt && !!sipStart && sipDayNum >= 1 && !!sipSource);
   const canAdd = !!acc && nameOk && amountOk && fundingOk && sipOk;
 
   async function submit() {
@@ -105,7 +107,7 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
         autoFetch: useCatalogPicker,
         // SIP tracks any current holding as already-owned; the scheduled debits are the recurring transfer.
         funding: (!isSip && funding === "new") ? { mode: "new", sourceAccountId: sourceId } : { mode: "existing" },
-        sip: isSip && sipAmt && sipSource ? { amount: fromMajor(Number(sipAmt), cur).amount, frequency: sipFreq, firstDue: sipDate, sourceAccountId: sipSource } : null,
+        sip: isSip && sipAmt && sipSource ? { amount: fromMajor(Number(sipAmt), cur).amount, frequency: sipFreq, firstDue: sipStart, sourceAccountId: sipSource, startDate: sipStart, day: sipDayNum } : null,
       });
       onClose();
     } finally {
@@ -157,13 +159,14 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
           <FloatingInput label={t("nameLabel", { type: meta.label })} value={name} onChange={setName} />
         )}
 
-        {/* Amount / quantity */}
-        {isLump ? (
+        {/* Amount / quantity — SIP is amount-based (collected below), so it never
+            asks for units / NAV / price here. */}
+        {isSip ? null : isLump ? (
           <FloatingInput label={t("amountInvested", { cur })} group currency={cur} value={cost} onChange={setCost} />
         ) : (
           <div style={{ display: "flex", gap: 8 }}>
-            <FloatingInput label={cls === "mf" || cls === "sip" ? t("units") : meta.unitWord ? meta.unitWord.replace(/^./, (c) => c.toUpperCase()) : t("qty")} inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
-            <FloatingInput label={cls === "mf" || cls === "sip" ? t("navAvgCost", { cur }) : t("avgCost", { cur })} group currency={cur} value={cost} onChange={setCost} style={{ flex: 1 }} />
+            <FloatingInput label={cls === "mf" ? t("units") : meta.unitWord ? meta.unitWord.replace(/^./, (c) => c.toUpperCase()) : t("qty")} inputMode="decimal" value={qty} onChange={(v) => setQty(v.replace(/[^0-9.]/g, ""))} style={{ flex: 1 }} />
+            <FloatingInput label={cls === "mf" ? t("navAvgCost", { cur }) : t("avgCost", { cur })} group currency={cur} value={cost} onChange={setCost} style={{ flex: 1 }} />
           </div>
         )}
 
@@ -183,8 +186,11 @@ export function AddInvestmentDialog({ ctx, accounts, availableOf, fundingAccount
               <div style={{ display: "flex", gap: 6 }}>{SIP_CYCLES.map((c) => <button key={c} className="chip" data-active={c === sipFreq} onClick={() => setSipFreq(c)}>{t(`sipFreq.${c}`)}</button>)}</div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 150 }}>{t("nextSipDate")}
-                <input className="input" type="date" value={sipDate} onChange={(e) => setSipDate(e.target.value)} />
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 130 }}>{t("sipStartDate", "Start date")}
+                <input className="input" type="date" value={sipStart} onChange={(e) => setSipStart(e.target.value)} />
+              </label>
+              <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, width: 120 }}>{t("sipDebitDay", "Debit day")}
+                <input className="input" inputMode="numeric" value={sipDay} onChange={(e) => setSipDay(e.target.value.replace(/\D/g, "").slice(0, 2))} placeholder="1–28" />
               </label>
               <label className="muted" style={{ fontSize: 12, display: "grid", gap: 4, flex: 1, minWidth: 170 }}>{t("debitsFrom")}
                 {fundingAccounts.length === 0

@@ -245,90 +245,40 @@ export default function SplitsPage() {
       {!empty && groups.length > 0 && (
         <section id="groups" style={{ display: "grid", gap: 12 }}>
           <div className="muted" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>{t("sections.groupsAndTrips")}</div>
-          <div className="list-grid">
+          {/* Account-style colored tiles: kind + avatars on top, name, member
+              line, and your net balance. Tap → the group page (per-person
+              breakdown + add-expense live there). */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(150px, 100%), 1fr))", gap: 10 }}>
             {groups.map((g) => {
-              const isOpen = expanded.has(g.group.id);
+              const kindLabel = t(g.group.kind === "trip" ? "kind.trip" : "kind.group");
               const shown = g.memberIds.slice(0, 4);
               const extra = g.memberIds.length - shown.length;
-              const netTone = g.net > 0 ? "var(--positive)" : g.net < 0 ? "var(--negative)" : "var(--text-2)";
-              const gOwed = g.perUser.reduce((s, b) => s + Math.max(0, b.net), 0);
-              const gOwe = g.perUser.reduce((s, b) => s + Math.max(0, -b.net), 0);
               return (
-                <div
+                <Link
                   key={g.group.id}
-                  className={isOpen ? "card" : "card lift"}
-                  style={{ padding: 0, overflow: "hidden", gridColumn: isOpen ? "1 / -1" : "auto", background: isOpen ? "var(--accent-ghost)" : "var(--surface)", transition: "background 0.15s" }}
+                  href={`/groups/${g.group.id}`}
+                  className="lift"
+                  style={{ background: colorFor(g.group.id), color: "#fff", borderRadius: 16, padding: 14, display: "grid", gap: 8, minWidth: 0, minHeight: 118, alignContent: "space-between", boxShadow: "0 8px 20px -14px rgba(43,39,35,0.75)" }}
                 >
-                  {/* EMI/loan-style tile: avatars top-left, arrow top-right,
-                      title + count bottom-left, amount bottom-right. */}
-                  <button
-                    onClick={() => toggle(g.group.id)}
-                    style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: 16, display: "grid", gap: 14, textAlign: "left" }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-                      <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
-                        {shown.map((uid, i) => (
-                          <span key={uid} style={{ marginLeft: i === 0 ? 0 : -10 }}><Avatar id={uid} name={name(uid)} size={30} ring /></span>
-                        ))}
-                        {extra > 0 && (
-                          <span style={{ marginLeft: -10, width: 30, height: 30, borderRadius: 999, background: "var(--border)", color: "var(--text-2)", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 11, boxShadow: "0 0 0 2px var(--bg)", flexShrink: 0 }}>+{extra}</span>
-                        )}
-                      </div>
-                      <span className="muted" aria-hidden style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s", fontSize: 12, flexShrink: 0 }}>▾</span>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12 }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.group.name}</div>
-                        <div className="muted" style={{ fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t("membersLine", { count: g.peopleCount, kind: t(g.group.kind === "trip" ? "kind.trip" : "kind.group") })}</div>
-                      </div>
-                      <span style={{ fontWeight: 750, fontSize: 19, whiteSpace: "nowrap", flexShrink: 0, color: netTone }}>
-                        {g.net === 0 ? amt(0) : (g.net > 0 ? "" : "−") + amt(g.net)}
-                      </span>
-                    </div>
-                    {/* Both directions, not just the net: inside one trip you can
-                        be owed by two people and owe a third, and a single net
-                        figure hides that entirely. */}
-                    {(gOwed > 0 || gOwe > 0) && (
-                      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: 12.5 }}>
-                        {gOwed > 0 && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "var(--positive)" }}>
-                            <MaterialIcon name="trending_up" size={14} />{t("owedInGroup", { amount: amt(gOwed) })}
-                          </span>
-                        )}
-                        {gOwe > 0 && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "var(--negative)" }}>
-                            <MaterialIcon name="payments" size={14} />{t("oweInGroup", { amount: amt(gOwe) })}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </button>
-                  {isOpen && (
-                    <div style={{ padding: "12px 16px 14px", display: "grid", gap: 10, borderTop: "1px solid var(--border)" }}>
-                      {/* The two things you actually want from an open group:
-                          record a shared expense in it, or go to the group. */}
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <Link href={`/transactions/new?split=${g.group.id}`} className="btn" style={{ gap: 6, padding: "7px 14px", minHeight: 0 }}>
-                          <MaterialIcon name="add" size={15} /> {t("addExpense")}
-                        </Link>
-                        <Link href={`/groups/${g.group.id}`} className="btn ghost" style={{ gap: 6, padding: "7px 14px", minHeight: 0 }}>
-                          <MaterialIcon name="chevron_right" size={15} /> {t("openGroup")}
-                        </Link>
-                      </div>
-                      {g.perUser.length === 0 && <div className="muted" style={{ fontSize: 13 }}>{t("settledUp")}</div>}
-                      {g.perUser.map((b) => (
-                        <button key={b.userId} className="tap-row" onClick={() => openPerson(b.userId, b.net)}
-                          style={{ background: "none", border: "none", cursor: "pointer", padding: "6px 8px", margin: "0 -8px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, textAlign: "left", color: "inherit" }}>
-                          <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                            <Avatar id={b.userId} name={name(b.userId)} size={28} />
-                            <span style={{ fontSize: 15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name(b.userId)}</span>
-                          </span>
-                          <span style={{ fontWeight: 700, fontSize: 15, flexShrink: 0, color: b.net > 0 ? "var(--positive)" : "var(--negative)" }}>{amt(b.net)}</span>
-                        </button>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", opacity: 0.85 }}>{kindLabel}</span>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      {shown.map((uid, i) => (
+                        <span key={uid} style={{ marginLeft: i === 0 ? 0 : -8 }}><Avatar id={uid} name={name(uid)} size={22} ring /></span>
                       ))}
+                      {extra > 0 && (
+                        <span style={{ marginLeft: -8, width: 22, height: 22, borderRadius: 999, background: "rgba(255,255,255,0.28)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 9, boxShadow: "0 0 0 2px var(--bg)", flexShrink: 0 }}>+{extra}</span>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 15.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.group.name}</div>
+                    <div style={{ fontSize: 11.5, opacity: 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t("membersLine", { count: g.peopleCount, kind: kindLabel })}</div>
+                    <div style={{ fontSize: 16.5, fontWeight: 800, marginTop: 4, textShadow: "0 1px 2px rgba(0,0,0,0.22)" }}>
+                      {g.net === 0 ? amt(0) : (g.net > 0 ? "" : "−") + amt(g.net)}
+                    </div>
+                  </div>
+                </Link>
               );
             })}
           </div>
