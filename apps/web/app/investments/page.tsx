@@ -21,6 +21,7 @@ import {
 } from "../../src/investments/model";
 import { AllocationDonut, GainBars } from "../../src/investments/Charts";
 import { AddInvestmentDialog } from "../../src/investments/AddDialog";
+import { ImportDialog } from "../../src/investments/ImportDialog";
 import { DividendPanel } from "../../src/market/DividendPanel";
 import { ProjectionPanel } from "../../src/market/ProjectionPanel";
 
@@ -47,6 +48,7 @@ export default function InvestmentsPage() {
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [addCtx, setAddCtx] = useState<{ assetClass?: AssetClass; exchange?: string | null; accountId?: string } | null>(null);
+  const [importing, setImporting] = useState(false);
 
   const quoteLite = (h: HoldingRow) => {
     const q = h.off_list ? undefined : market.quote(h.symbol, h.exchange);
@@ -86,10 +88,15 @@ export default function InvestmentsPage() {
             value={`${totals.gain >= 0 ? "+" : "−"}${fmt(money(Math.round(Math.abs(totals.gain)), base))} (${totals.gain >= 0 ? "+" : "−"}${Math.abs(totals.gainPct).toFixed(1)}%)`}
             color={totals.gain >= 0 ? "var(--positive)" : "var(--negative)"} />
         </div>
-        <div className="muted" style={{ fontSize: 12 }}>
-          {market.hasData
-            ? t("eodNote", { asOf: market.latestAsOf ? t("asOf", { date: market.latestAsOf }) : "" })
-            : t("syncNote")}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div className="muted" style={{ fontSize: 12 }}>
+            {market.hasData
+              ? t("eodNote", { asOf: market.latestAsOf ? t("asOf", { date: market.latestAsOf }) : "" })
+              : t("syncNote")}
+          </div>
+          <button type="button" className="chip" onClick={() => setImporting(true)} style={{ flexShrink: 0 }}>
+            {t("importHoldings", "Import from broker")}
+          </button>
         </div>
       </section>
 
@@ -161,6 +168,12 @@ export default function InvestmentsPage() {
           <ProjectionPanel />
         </>
       )}
+
+      <ImportDialog
+        open={importing}
+        onClose={() => setImporting(false)}
+        accountId={invAccounts[0]?.account.id ?? null}
+      />
 
       {addCtx && (
         <AddInvestmentDialog
