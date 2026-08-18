@@ -95,9 +95,10 @@ function SyncProblemsBanner() {
   );
 }
 
-/** Notification bell, with unread badge. Lives in the in-flow utility row, not
- *  fixed — so it can never overlap a page's own content, at any width. */
-function NotifBell() {
+/** Notification bell, with unread badge. Lives in the in-flow utility row (or,
+ *  on the dashboard, its own row under the header controls) — never fixed, so
+ *  it can never overlap a page's own content, at any width. */
+export function NotifBell() {
   const unread = useUnreadCount();
   return (
     <Link href="/notifications" aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`} className="press util-btn" style={{ position: "relative" }}>
@@ -289,6 +290,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   // of this one, shared, in-flow utility row.
   const FLOW_ROOTS = ["/receipts/new", "/receipts/review", "/receipts/split"];
   const showBack = pathname.split("/").filter(Boolean).length >= 2 || FLOW_ROOTS.includes(pathname);
+  // The dashboard has no back button and places its own greeting + bell —
+  // skip the shared utility row there entirely so nothing sits above the
+  // greeting, which the dashboard now renders as the very first element.
+  const isDashboard = pathname === "/";
 
   // Onboarding / login render full-screen without the app chrome.
   if (bare) return <div style={{ minHeight: "100vh" }}><OfflineBanner />{children}</div>;
@@ -320,16 +325,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* One in-flow row for both the (optional) back button and the
               notification bell — always in normal document flow, never a
               `position: fixed` overlay, so it can't collide with a page's
-              own header controls at any width. */}
-          <div className="util-row">
-            {showBack ? (
-              <button onClick={() => router.back()} className="press util-btn util-back" aria-label={t("common.back", "Back")}>
-                <MaterialIcon name="arrow_back" size={18} />
-                <span>{t("common.back", "Back")}</span>
-              </button>
-            ) : <span />}
-            <NotifBell />
-          </div>
+              own header controls at any width. Skipped on the dashboard,
+              which has no back button and places its own bell lower down. */}
+          {!isDashboard && (
+            <div className="util-row">
+              {showBack ? (
+                <button onClick={() => router.back()} className="press util-btn util-back" aria-label={t("common.back", "Back")}>
+                  <MaterialIcon name="arrow_back" size={18} />
+                  <span>{t("common.back", "Back")}</span>
+                </button>
+              ) : <span />}
+              <NotifBell />
+            </div>
+          )}
 
           {(() => {
             const m = syncMessage(sync);
