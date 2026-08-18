@@ -158,18 +158,20 @@ export default function Dashboard() {
             <h1 style={{ margin: 0, fontSize: "clamp(24px, 6.5vw, 30px)" }}>{displayName}</h1>
           </div>
           {editing ? (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <button className="btn ghost" onClick={() => setShowAdd(true)} style={{ gap: 6 }}><PlusIcon size={16} /> Widget</button>
               <button className="btn" onClick={() => setEditing(false)} style={{ gap: 7, background: "var(--positive)", boxShadow: "0 10px 24px -12px rgba(95,102,71,0.9)" }}><CheckIcon /> Done</button>
+              <NotifBell />
             </div>
           ) : (
-            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
               <button className="chip" onClick={() => setEditing(true)} title="Customize tiles" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <SlidersIcon size={16} /> <span className="btn-txt">Customize</span>
               </button>
               <button className="chip" onClick={() => setAmountsHidden(!hidden)} title={hidden ? "Show amounts" : "Hide amounts"} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 {hidden ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />} <span className="btn-txt">{hidden ? "Show" : "Hide"}</span>
               </button>
+              <NotifBell />
             </div>
           )}
         </div>
@@ -178,10 +180,6 @@ export default function Dashboard() {
             Reorder with the ▲▼ arrows (or drag on desktop) · handles resize
           </div>
         )}
-
-        <div className="dash-bell-row">
-          <NotifBell />
-        </div>
       </div>
 
       <div className="dash-divider" aria-hidden="true" />
