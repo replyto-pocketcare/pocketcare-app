@@ -22,6 +22,7 @@ import { Suggestions } from "../src/dashboard/Suggestions";
 import { NotifBell } from "./AppShell";
 import { useIsDesktop } from "../src/ui/desktop/useIsDesktop";
 import { StatRow } from "../src/ui/desktop/StatRow";
+import { AssistantWidget } from "../src/ui/desktop/AssistantWidget";
 
 // Sensible default size per tile (content-heavy tiles start taller/wider).
 const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
@@ -191,8 +192,17 @@ export default function Dashboard() {
           hero below in a smaller font) and never run its query. */}
       {isDesktop && <StatRow net={net} base={base} fmt={fmt} hidden={hidden} />}
 
-      {/* Net worth hero — rich green-gradient tile with trend sparkline */}
-      <NetWorthHero net={net} base={base} fmt={fmt} showAvailable={showAvailable} onToggle={() => setShowAvailable((v) => !v)} />
+      {/* Net worth hero — rich green-gradient tile with trend sparkline.
+          On desktop it shares a row with the assistant, mirroring the
+          "headline card + right rail" shape of a conventional dashboard. */}
+      {isDesktop ? (
+        <div className="dash-hero-row">
+          <NetWorthHero net={net} base={base} fmt={fmt} showAvailable={showAvailable} onToggle={() => setShowAvailable((v) => !v)} />
+          <AssistantWidget />
+        </div>
+      ) : (
+        <NetWorthHero net={net} base={base} fmt={fmt} showAvailable={showAvailable} onToggle={() => setShowAvailable((v) => !v)} />
+      )}
 
       {/* Features they haven't tried. Renders nothing until there's enough
           history for a suggestion to be an observation rather than a pitch —

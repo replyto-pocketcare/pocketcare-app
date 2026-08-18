@@ -347,6 +347,24 @@ export default function AssistantPage() {
 
   const send = () => sendText(input);
 
+  // Deep link: /assistant?q=... asks the question straight away. This is how
+  // the desktop dashboard's Ask Sanvya card hands off, so that card never
+  // needs its own chat implementation. Read off location rather than
+  // useSearchParams() to avoid forcing a Suspense boundary on this route.
+  const deepLinked = useRef(false);
+  useEffect(() => {
+    if (deepLinked.current || busy || pending) return;
+    const q = new URLSearchParams(window.location.search).get("q")?.trim();
+    if (!q) return;
+    deepLinked.current = true;
+    // Drop the param so a refresh (or back) doesn't silently re-ask and
+    // re-spend the user's quota.
+    window.history.replaceState(null, "", window.location.pathname);
+    setView("chat");
+    void sendText(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const currentTool = pending?.queue[0];
 
   if (!isPremiumUser && !hasActiveTrial) {

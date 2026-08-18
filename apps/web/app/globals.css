@@ -953,3 +953,80 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
   .pc-seg-btn { flex: 1; padding: 8px 8px; }
   .pc-netline > div > div { font-size: 28px !important; }
 }
+
+/* ---- Assistant orb ---------------------------------------------------------
+   Layered HTML rather than one animated SVG: every rotation/scale is about a
+   true centre (SVG transform-origin support is inconsistent), and each layer
+   composites on its own, so the idle loop costs no main-thread work. */
+.orb { position: relative; display: grid; place-items: center; flex-shrink: 0; }
+.orb-halo, .orb-orbit { position: absolute; inset: 0; border-radius: 999px; }
+.orb-halo {
+  background: radial-gradient(circle at 50% 50%, var(--accent) 0%, transparent 68%);
+  filter: blur(6px);
+}
+.orb-halo-2 { background: radial-gradient(circle at 50% 50%, var(--accent-soft) 0%, transparent 62%); }
+.orb-seed {
+  position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px;
+  border-radius: 999px; background: var(--accent-soft); box-shadow: 0 0 10px -1px var(--accent);
+}
+.orb-seed-sm { width: 6px; height: 6px; margin: -3px 0 0 -3px; opacity: 0.75; }
+/* In flow (not absolute) so the grid centres it — leaving `transform` free for
+   framer-motion's scale, which would otherwise fight a centring translate. */
+.orb-core {
+  position: relative; z-index: 2; width: 62%; height: 62%; border-radius: 999px;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 34% 28%, var(--accent-soft) 0%, var(--accent) 62%, var(--accent-hover) 100%);
+  box-shadow: 0 14px 30px -12px var(--accent),
+              inset 0 -6px 14px -8px rgba(0, 0, 0, 0.45),
+              inset 0 4px 10px -6px rgba(255, 255, 255, 0.7);
+}
+.orb-leaf { width: 58%; height: 58%; overflow: visible; }
+
+/* ---- Ask Sanvya: dashboard card <-> docked panel ---- */
+.ai-card { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+.ai-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ai-head h2 { font-size: 15px; }
+.ai-expand {
+  width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.ai-expand:hover { color: var(--accent); border-color: var(--accent-soft); }
+.ai-stage { display: grid; place-items: center; padding: 4px 0 2px; }
+.ai-quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ai-quick-col { grid-template-columns: minmax(0, 1fr); }
+.ai-chip {
+  display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--surface-2); cursor: pointer;
+  font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--text); text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ai-chip:hover { border-color: var(--accent-soft); background: var(--surface); }
+.ai-chip-ico { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; flex-shrink: 0; }
+.ai-chip-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-composer {
+  display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--border); transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ai-composer:focus-within { border-color: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-ghost); }
+.ai-composer input {
+  flex: 1 1 auto; min-width: 0; border: none; background: none; outline: none;
+  font-family: inherit; font-size: 13px; color: var(--text);
+}
+.ai-send {
+  width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; flex-shrink: 0;
+  border: none; background: var(--accent); color: #fff; cursor: pointer;
+}
+.ai-send:disabled { opacity: 0.45; cursor: default; }
+.ai-scrim { position: fixed; inset: 0; z-index: 58; background: rgba(43, 39, 35, 0.28); backdrop-filter: blur(2px); }
+.ai-panel {
+  position: fixed; right: 17px; top: 17px; bottom: 17px; width: 396px; z-index: 59;
+  display: flex; flex-direction: column; gap: 14px; padding: 20px; box-sizing: border-box;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 25px;
+  box-shadow: var(--shadow-lg); overflow-y: auto;
+}
+.ai-foot { margin-top: auto; font-size: 11.5px; color: var(--text-3); text-align: center; }
+
+/* Hero + assistant sit side by side on desktop; the wrapper is only rendered
+   above the breakpoint, so this never affects phones. */
+.dash-hero-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: 20px; align-items: stretch; }
