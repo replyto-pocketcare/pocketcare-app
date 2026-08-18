@@ -94,7 +94,6 @@ export default function AnalyzeStatementPage() {
     return (
       <div style={{ display: "grid", gap: 20, maxWidth: 640 }} className="fade-up">
         <div>
-          <h1 style={{ margin: 0 }}>{t("title")}</h1>
           <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>{t("introPre")}<strong>{t("introBold")}</strong>{t("introMid")}<Link href="/statements">{t("introLink")}</Link>{t("introPost")}</p>
         </div>
         <section className="card" style={{ padding: 20, display: "grid", gap: 14 }}>

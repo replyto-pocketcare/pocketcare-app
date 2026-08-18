@@ -182,7 +182,6 @@ function ReviewInner() {
   return (
     <div style={{ display: "grid", gap: 16, maxWidth: 780 }}>
       <div>
-        <h1 style={{ margin: 0 }}>{t("review.title", "Check the details")}</h1>
         <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
           {t("review.intro", "We read this off the receipt — fix anything that looks wrong before saving.")}
         </p>

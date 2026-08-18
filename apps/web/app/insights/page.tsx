@@ -29,7 +29,6 @@ export default function InsightsPage() {
   if (!isPaid) {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
-        <h1>{t("title")}</h1>
         <div className="card" style={{ position: "relative", padding: 28, display: "grid", gap: 12, textAlign: "center", overflow: "hidden" }}>
           <div aria-hidden style={{ position: "absolute", inset: 0, filter: "blur(7px)", opacity: 0.5, pointerEvents: "none",
             background: "radial-gradient(60% 40% at 30% 25%, var(--accent) 0, transparent 60%), radial-gradient(50% 40% at 75% 70%, var(--positive) 0, transparent 60%)" }} />
@@ -47,7 +46,6 @@ export default function InsightsPage() {
   return (
     <ErrorBoundary label="Insights feed" fallback={
       <div className="fade-up" style={{ display: "grid", gap: 12, maxWidth: 560, padding: "8px 4px" }}>
-        <h1 style={{ margin: 0 }}>{t("title")}</h1>
         <div className="card" style={{ padding: 24, display: "grid", gap: 8 }}>
           <strong style={{ fontSize: 15 }}>Insights couldn’t load</strong>
           <span className="muted" style={{ fontSize: 13 }}>We hit a snag building your insights. Your data is safe — please try again shortly.</span>

@@ -29,7 +29,6 @@ export default function AccountsPage() {
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1>{t("title")}</h1>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {archivedCount > 0 && (
             <button className="chip" data-active={showArchived} onClick={() => setShowArchived((v) => !v)}>

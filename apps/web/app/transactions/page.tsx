@@ -43,8 +43,7 @@ export default function TransactionsPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-        <h1 style={{ margin: 0 }}>{t("title")}</h1>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
         <Link href="/transactions/new" className="btn">＋ {t("add")}</Link>
       </div>
 

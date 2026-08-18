@@ -401,28 +401,64 @@ input[type="radio"]:disabled { opacity: 0.5; cursor: default; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
 
 /* ---------------- Responsive shell ---------------- */
-.shell { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
-/* Grid children must be allowed to shrink, or wide content (charts, tables,
-   long strings) forces the whole page to scroll horizontally. */
-.shell > * { min-width: 0; }
-/* Defensive: only the sidebar and main are meant to occupy columns. Anything
-   else that ends up as a direct child spans the full width rather than
-   stealing a column — a `position: sticky` banner placed here once claimed
-   cell 1 and pushed <main> off-screen entirely. */
-.shell > :not(.sidebar):not(.shell-main) { grid-column: 1 / -1; }
-.shell-main { min-width: 0; }
+/* No sidebar, no top app bar: navigation lives entirely in the floating
+   bottom bar + the floating notification button, on every breakpoint. */
+.shell { display: block; min-height: 100vh; }
+.shell-main {
+  min-width: 0; margin: 0 auto;
+  /* Bottom room for the floating nav bar on ALL widths, not just mobile. */
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+}
 /* Full-bleed routes (e.g. /insights): the page IS the content, so drop the
    shell's padding and width cap. Set via document.body.dataset.fullbleed —
    same pattern as data-dash-edit / data-dash-empty. */
-body[data-fullbleed="true"] .shell-main { padding: 0 !important; max-width: none !important; }
-.sidebar {
-  position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
-  padding: 18px 14px; border-right: 1px solid var(--border-strong); background: var(--sidebar);
-  overflow-y: auto;                          /* long nav scrolls within the sidebar */
-  overscroll-behavior: contain;
+body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-right: 0 !important; max-width: none !important; }
+
+/* Floating notification button — top-right, on every page, no app bar around it. */
+.top-float {
+  position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; z-index: 50;
+  width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center;
+  border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-lg); color: var(--text);
 }
-.topbar { display: none; }
-.scrim { display: none; }
+
+/* Floating bottom navigation bar. */
+.bottom-nav {
+  position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  z-index: 50; display: flex; align-items: center; gap: 2px;
+  padding: 6px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  max-width: calc(100vw - 24px);
+}
+.bottom-nav-item {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; width: 58px; height: 52px; border: none; background: transparent; cursor: pointer;
+  border-radius: 999px; color: var(--text-2); font-size: 10px; font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+}
+.bottom-nav-item span { max-width: 54px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bottom-nav-item.active { color: var(--accent); background: var(--accent-ghost); }
+.bottom-nav-item:hover { color: var(--accent); }
+.bottom-nav-add {
+  display: grid; place-items: center; width: 52px; height: 52px; margin: -14px 4px 0;
+  border: 3px solid var(--surface); border-radius: 999px; background: var(--accent); color: #fff;
+  box-shadow: var(--shadow-accent); cursor: pointer;
+}
+.bottom-nav-add:hover { background: var(--accent-hover); }
+
+/* Backdrop for the quick-add popover: transparent (the popover itself already
+   floats above the dimmed-nothing page) — just a big tap target to dismiss. */
+.scrim-clear { position: fixed; inset: 0; z-index: 49; background: transparent; }
+.add-popover {
+  position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  z-index: 51; display: grid; gap: 8px; padding: 10px; border-radius: 18px;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  min-width: 220px;
+}
+.add-popover-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px;
+  color: var(--text); font-weight: 600; font-size: 14px; white-space: nowrap;
+}
+.add-popover-item:hover { background: var(--surface-2); }
 
 /* Customizable dashboard tile grid.
    Fixed 4-column track with a fixed row unit (proportional to viewport height)
@@ -461,25 +497,7 @@ body[data-fullbleed="true"] .shell-main { padding: 0 !important; max-width: none
 }
 
 @media (max-width: 860px) {
-  /* Topbar = content height, main fills the rest. Without explicit rows the
-     grid stretches the topbar row on short pages, leaving a huge gap. */
-  .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; align-content: start; }
-  .sidebar {
-    position: fixed; top: 0; left: 0; bottom: 0;
-    height: 100vh; height: 100dvh;          /* full height incl. dynamic browser UI */
-    width: min(82vw, 320px);                 /* proper drawer covering the left side */
-    max-width: 320px; z-index: 60;
-    overflow-y: auto;                        /* long nav lists scroll instead of cutting off */
-    transform: translateX(-100%); transition: transform 0.26s cubic-bezier(0.2, 0, 0, 1);
-  }
-  .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
-  .topbar {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 12px 16px; border-bottom: 1px solid var(--border);
-    background: var(--surface); position: sticky; top: 0; z-index: 30;
-  }
-  .shell-main { padding: 16px 16px 96px !important; } /* bottom room for the FAB */
-  .scrim { display: block; position: fixed; inset: 0; background: rgba(43, 39, 35, 0.42); z-index: 55; }
+  .shell-main { padding: 16px 16px calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
   .dash-cols { grid-template-columns: 1fr !important; }
   /* On phones: single column, natural content heights (no fixed grid).
      NOTE: the tile body deliberately keeps `overflow: hidden` from the base
@@ -515,15 +533,9 @@ body[data-fullbleed="true"] .shell-main { padding: 0 !important; max-width: none
   .chip { padding-left: 8px; padding-right: 8px; }
 }
 
-.hamburger {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);
-  background: var(--surface); cursor: pointer; font-size: 18px;
-}
-
 /* Print: statement-only view (hide the app chrome). */
 @media print {
-  aside, .no-print { display: none !important; }
+  .bottom-nav, .top-float, .no-print { display: none !important; }
   main { padding: 0 !important; max-width: none !important; }
   body { background: #fff; }
   .card { box-shadow: none; border-color: #ddd; }

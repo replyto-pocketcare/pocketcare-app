@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { format, money, type Money } from "@sanvya/money";
 import { useNetWorth, useAccountBalances, useAccountsLoading } from "../src/hooks";
+import { useSession } from "../src/account";
 import { HeroSkeleton, Skeleton } from "../src/ui/Skeleton";
 import { useEntitlement } from "../src/entitlement";
 import { useInitialSyncPending } from "../src/sync";
@@ -54,6 +55,16 @@ const moveBtn: React.CSSProperties = {
   display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 6px 14px -6px rgba(43,39,35,0.5)",
 };
 
+/** Good morning / afternoon / evening — read once per render, cheap enough. */
+function timeGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 5) return "Good night";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 21) return "Good evening";
+  return "Good night";
+}
+
 export default function Dashboard() {
   const { total, available, base } = useNetWorth();
   const balances = useAccountBalances();
@@ -65,6 +76,9 @@ export default function Dashboard() {
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState(false);
   const { t } = useTranslation();
+  const session = useSession();
+  const displayName = session?.username || (session?.email ? session.email.split("@")[0] : "") || t("dashboard.greetingFallback", "there");
+  const greeting = timeGreeting();
   const net = showAvailable ? available : total;
   const accountsLoading = useAccountsLoading();
   const syncPending = useInitialSyncPending();
@@ -138,7 +152,8 @@ export default function Dashboard() {
     <div style={{ display: "grid", gap: 24, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1>{t("pages.dashboard", "Dashboard")}</h1>
+          <p className="eyebrow" style={{ margin: "0 0 4px" }}>{greeting}</p>
+          <h1 style={{ margin: 0 }}>{displayName}</h1>
           {editing && (
             <div style={{ fontSize: 12.5, color: "var(--accent)", marginTop: 5 }}>
               Reorder with the ▲▼ arrows (or drag on desktop) · handles resize

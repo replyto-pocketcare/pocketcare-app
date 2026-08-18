@@ -72,7 +72,6 @@ export default function RecurringPage() {
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ margin: 0 }}>{t("title")}</h1>
           <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>{t("subtitlePre")}<Link href="/cashflow">{t("subtitleLink")}</Link>.</p>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

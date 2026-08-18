@@ -114,7 +114,6 @@ export default function HelpPage() {
   return (
     <div style={{ display: "grid", gap: 20, maxWidth: 760 }} className="fade-up">
       <div>
-        <h1 style={{ margin: 0 }}>{t("title")}</h1>
         <p className="muted" style={{ marginTop: 6 }}>{t("subtitlePre")}<Link href="/assistant">{t("subtitleLink")}</Link>{t("subtitlePost")}</p>
       </div>
 

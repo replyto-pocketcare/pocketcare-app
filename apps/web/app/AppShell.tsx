@@ -9,9 +9,8 @@ import { useSession, useAuthStatus } from "../src/account";
 import { useSyncStatus, syncMessage } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
-import { MenuIcon, PlusIcon, DownloadIcon, BellIcon, ReceiptIcon } from "../src/ui/icons";
+import { PlusIcon, DownloadIcon, BellIcon, ReceiptIcon, CloseIcon } from "../src/ui/icons";
 import { MaterialIcon, type MaterialIconName } from "../src/ui/MaterialIcon";
-import { AddSpeedDial } from "../src/ui/AddSpeedDial";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
 import { TrialNotice } from "../src/ui/TrialNotice";
 import { runRecurring } from "../src/templates/write";
@@ -93,16 +92,19 @@ function SyncProblemsBanner() {
   );
 }
 
-/** Bell + unread badge (top-bar icon button), links to the notification inbox. */
-function NotifBell({ onNavigate = () => {} }: { onNavigate?: () => void }) {
+/** Floating notification bell (top-right), with unread badge. No page chrome around it. */
+function FloatingBell() {
   const unread = useUnreadCount();
   return (
-    <Link href="/notifications" aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`} onClick={onNavigate}
-      style={{ position: "relative", width: 40, height: 40, display: "grid", placeItems: "center", color: "inherit" }}>
-      <BellIcon size={20} />
+    <Link
+      href="/notifications"
+      aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}
+      className="top-float press"
+    >
+      <BellIcon size={19} />
       {unread > 0 && (
         <span style={{
-          position: "absolute", top: 5, right: 5, minWidth: 15, height: 15, padding: "0 3px",
+          position: "absolute", top: 3, right: 3, minWidth: 15, height: 15, padding: "0 3px",
           borderRadius: 999, background: "var(--negative)", color: "#fff", fontSize: 9.5, fontWeight: 700,
           display: "grid", placeItems: "center", lineHeight: 1,
         }}>{unread > 9 ? "9+" : unread}</span>
@@ -111,20 +113,20 @@ function NotifBell({ onNavigate = () => {} }: { onNavigate?: () => void }) {
   );
 }
 
-/** Full-width sidebar row (desktop nav): bell + label + unread pill. */
-function NotifNavItem({ active, onNavigate }: { active: boolean; onNavigate: () => void }) {
-  const unread = useUnreadCount();
-  const { t } = useTranslation();
+/** Row inside the "More" sheet: icon + label + optional unread pill. */
+function MoreNavItem({ href, icon, label, active, badge, onNavigate }: {
+  href: string; icon: MaterialIconName; label: string; active: boolean; badge?: number; onNavigate: () => void;
+}) {
   return (
-    <Link href="/notifications" onClick={onNavigate} style={navItem(active)}>
-      <MaterialIcon name="notifications" size={20} />
-      {t("nav.notifications", "Notifications")}
-      {unread > 0 && (
+    <Link href={href} onClick={onNavigate} style={navItem(active)}>
+      <MaterialIcon name={icon} size={20} />
+      {label}
+      {!!badge && (
         <span style={{
           marginLeft: "auto", minWidth: 18, height: 18, padding: "0 5px", borderRadius: 999,
           background: "var(--negative)", color: "#fff", fontSize: 10.5, fontWeight: 700,
           display: "grid", placeItems: "center", lineHeight: 1,
-        }}>{unread > 9 ? "9+" : unread}</span>
+        }}>{badge > 9 ? "9+" : badge}</span>
       )}
     </Link>
   );
@@ -133,10 +135,6 @@ function NotifNavItem({ active, onNavigate }: { active: boolean; onNavigate: () 
 const APP_VERSION = "0.1.0";
 
 const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: string; icon: MaterialIconName; beta?: boolean }[] }[] = [
-  { title: "", items: [
-    { href: "/", tkey: "nav.home", label: "Dashboard", icon: "space_dashboard" },
-    { href: "/assistant", tkey: "nav.assistant", label: "Ask Sanvya", icon: "auto_awesome" },
-  ] },
   { title: "Money", items: [
     { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "account_balance" },
     { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "swap_horiz" },
@@ -156,14 +154,26 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
   ] },
   { title: "Growth", items: [
     { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "trending_up" },
-    { href: "/reflect", tkey: "nav.reflect", label: "Reflect", icon: "self_improvement" },
+    { href: "/reflect", tkey: "nav.reflect", label: "Reflect", icon: "health_and_safety" },
     { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "insights" },
     { href: "/statements", tkey: "nav.statements", label: "Statements", icon: "description" },
   ] },
   { title: "", items: [
+    { href: "/assistant", tkey: "nav.assistant", label: "Ask Sanvya", icon: "auto_awesome" },
     { href: "/settings", tkey: "nav.settings", label: "Settings", icon: "settings" },
     { href: "/help", tkey: "nav.help", label: "Help & FAQ", icon: "help" },
   ] },
+];
+
+// The five slots that live permanently in the floating bottom bar. Everything
+// else (13 more destinations) sits one tap away behind "More" — a bottom bar
+// that tried to hold all of NAV_GROUPS would just be the old sidebar turned
+// sideways.
+const BOTTOM_ITEMS: { href: string; tkey: string; label: string; icon: MaterialIconName }[] = [
+  { href: "/", tkey: "nav.home", label: "Home", icon: "space_dashboard" },
+  { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "swap_horiz" },
+  { href: "/friends", tkey: "nav.friends", label: "Splits", icon: "groups" },
+  { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "insights" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -172,10 +182,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { standalone } = useInstallPrompt();
   const [showInstall, setShowInstall] = useState(false);
   const [showBug, setShowBug] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const session = useSession();
   const authStatus = useAuthStatus();
   const sync = useSyncStatus();
+  const unread = useUnreadCount();
   const { t } = useTranslation();
 
   // Full-screen routes with no app chrome.
@@ -257,11 +269,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, [pathname]);
 
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  // Show a Back affordance on sub-pages (anything nested below a top-level section).
-  const showBack = pathname.split("/").filter(Boolean).length >= 2;
+  // Close the "More" sheet / speed-dial automatically on navigation.
+  useEffect(() => { setMoreOpen(false); setAddOpen(false); }, [pathname]);
 
-  // Onboarding / login render full-screen without the sidebar.
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  // Show a single Back affordance on sub-pages (anything nested below a
+  // top-level section) plus a few single-segment routes that are really
+  // steps in a flow, not nav destinations, and so have nowhere else to go
+  // back from. Pages get at most ONE back button: this chip, or (for
+  // /assistant's in-page chat view) that view's own "Chats" toggle — never
+  // both, and every page-local "back to X" link has been removed in favour
+  // of this one.
+  const FLOW_ROOTS = ["/receipts/new", "/receipts/review", "/receipts/split"];
+  const showBack = pathname.split("/").filter(Boolean).length >= 2 || FLOW_ROOTS.includes(pathname);
+
+  // Onboarding / login render full-screen without the app chrome.
   if (bare) return <div style={{ minHeight: "100vh" }}><OfflineBanner />{children}</div>;
 
   // While resolving auth / redirecting to onboarding, show a spinner (no app flash).
@@ -271,145 +293,169 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {/* App-wide banners must NOT be children of `.shell`.
-          `.shell` is `display: grid; grid-template-columns: 248px 1fr`, and both
-          banners are `position: sticky` — which, unlike `fixed`, still
-          participates in grid flow. So a rendered banner claimed the first grid
-          cell and pushed the sidebar into column 2 and `<main>` off-screen
-          entirely. It only reproduced when a banner was actually visible (a
-          sync problem, or simply going offline), which is why it survived this
-          long. Rendering them above the grid also reads better: a global
-          message should span the full width, not sit beside the nav. */}
+      {/* App-wide banners sit above everything else — a full-width strip, not
+          part of the page content, so they read as system messages. */}
       <OfflineBanner />
       <SyncProblemsBanner />
       <div className="shell">
-        {/* Safe inside the grid: `position: fixed` children are taken out of
-            flow and never form a grid area. */}
         <GlobalLoader />
-      {/* Mobile top bar */}
-      <div className="topbar">
-        <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen(true)}><MenuIcon /></button>
-        <Logo size={26} />
-        <NotifBell />
-      </div>
 
-      {menuOpen && <div className="scrim" onClick={() => setMenuOpen(false)} />}
+        <FloatingBell />
 
-      <aside className={`sidebar${menuOpen ? " open" : ""}`}>
-        <div style={{ padding: "4px 12px 20px" }}>
-          <Logo size={30} />
-        </div>
-        <nav style={{ display: "grid", gap: 4 }}>
-          <NotifNavItem active={isActive("/notifications")} onNavigate={() => setMenuOpen(false)} />
-          {NAV_GROUPS.map((g, gi) => (
-            <div key={gi} style={{ display: "grid", gap: 2, marginTop: gi ? 10 : 0 }}>
-              {g.title && (
-                <div style={{ padding: "2px 12px", fontSize: 10.5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text-2)", opacity: 0.65 }}>{g.title}</div>
-              )}
-              {g.items.map((n) => (
-                <Link key={n.href} href={n.href} style={navItem(isActive(n.href))} onClick={() => setMenuOpen(false)}>
-                  <MaterialIcon name={n.icon} size={20} />
-                  {t(n.tkey, n.label)}
-                  {n.beta && <span className="beta-badge sm" style={{ marginLeft: "auto" }}>BETA</span>}
-                </Link>
-              ))}
-            </div>
-          ))}
-        </nav>
-        <div style={{ marginTop: "auto", display: "grid", gap: 8, paddingTop: 12 }}>
-          {session?.isGuest && (
-            <Link href="/login" style={{ padding: "10px 12px", borderRadius: 10, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", fontSize: 12.5 }}>
-              <strong>Guest</strong>{session.daysLeft !== null ? ` · ${session.daysLeft}d until data is deleted` : ""}
-              <div style={{ color: "var(--accent)", marginTop: 2 }}>Create account →</div>
-            </Link>
-          )}
-          <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => { setShowBug(true); setMenuOpen(false); }}>
-            <MaterialIcon name="chat_bubble" size={16} /> Feedback
-          </button>
-          {!standalone && (
-            <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => setShowInstall(true)}>
-              <DownloadIcon size={16} /> Install app
+        <main className="shell-main" style={{ padding: "28px 20px", maxWidth: 720, overflowX: "hidden" }}>
+          {showBack && (
+            <button
+              onClick={() => router.back()}
+              className="chip"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16 }}
+            >
+              <MaterialIcon name="arrow_back" size={16} /> Back
             </button>
           )}
-          <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-2)", opacity: 0.7, paddingTop: 2 }}>
-            Sanvya v{APP_VERSION}
-          </div>
-        </div>
-      </aside>
-
-      <Modal open={showInstall} onClose={() => setShowInstall(false)}>
-        <h2 style={{ margin: "0 0 12px" }}>Install Sanvya</h2>
-        <InstallGuide />
-      </Modal>
-
-      <BugReportModal open={showBug} onClose={() => setShowBug(false)} />
-
-      <main className="shell-main" style={{ padding: "32px 40px", maxWidth: 1180, overflowX: "hidden" }}>
-        {showBack && (
-          <button
-            onClick={() => router.back()}
-            className="chip"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16 }}
-          >
-            <MaterialIcon name="arrow_back" size={16} /> Back
-          </button>
-        )}
-        {(() => {
-          const m = syncMessage(sync);
-          if (!m) return null;
-          const warn = m.tone === "warn";
-          return (
-            <div style={{ padding: "9px 14px", marginBottom: 16, borderRadius: 10, fontSize: 13, display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center",
-              border: `1px solid ${warn ? "var(--warning)" : "var(--border)"}`,
-              background: warn ? "var(--accent-ghost)" : "var(--surface-2)",
-              color: warn ? "var(--text)" : "var(--text-2)" }}>
-              <div style={{ display: "flex", gap: 8, alignItems: "center", flex: "1 1 auto" }}>
-                <span style={{ width: 8, height: 8, borderRadius: 999, flexShrink: 0, background: warn ? "var(--warning)" : "var(--text-2)" }} />
-                <span>{m.text}</span>
-              </div>
-              {m.action === "force-sync" && (
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <button className="btn" style={{ padding: "4px 10px", fontSize: 12, minHeight: 0, height: 28 }} onClick={async () => {
-                    const { forceSync } = await import("../src/powersync");
-                    await forceSync();
-                  }}>
-                    Force Sync
-                  </button>
-                  <a href="mailto:support@sanvya.app?subject=Sync%20Issue" className="btn ghost" style={{ padding: "4px 10px", fontSize: 12, minHeight: 0, height: 28 }}>
-                    Report Issue
-                  </a>
+          {(() => {
+            const m = syncMessage(sync);
+            if (!m) return null;
+            const warn = m.tone === "warn";
+            return (
+              <div style={{ padding: "9px 14px", marginBottom: 16, borderRadius: 10, fontSize: 13, display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center",
+                border: `1px solid ${warn ? "var(--warning)" : "var(--border)"}`,
+                background: warn ? "var(--accent-ghost)" : "var(--surface-2)",
+                color: warn ? "var(--text)" : "var(--text-2)" }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flex: "1 1 auto" }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 999, flexShrink: 0, background: warn ? "var(--warning)" : "var(--text-2)" }} />
+                  <span>{m.text}</span>
                 </div>
-              )}
-            </div>
-          );
-        })()}
-        <TrialNotice />
-        {children}
-      </main>
+                {m.action === "force-sync" && (
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button className="btn" style={{ padding: "4px 10px", fontSize: 12, minHeight: 0, height: 28 }} onClick={async () => {
+                      const { forceSync } = await import("../src/powersync");
+                      await forceSync();
+                    }}>
+                      Force Sync
+                    </button>
+                    <a href="mailto:support@sanvya.app?subject=Sync%20Issue" className="btn ghost" style={{ padding: "4px 10px", fontSize: 12, minHeight: 0, height: 28 }}>
+                      Report Issue
+                    </a>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          <TrialNotice />
+          {children}
+        </main>
 
-      {/* Quick add — only on the dashboard (other pages have their own
-          contextual add buttons). A speed dial: tapping the pill reveals
-          "Add transaction" and "Scan bill / receipt" stacked above it. */}
-      {pathname === "/" && (
-        <AddSpeedDial
-          label={t("fab.add", "Add")}
-          closeLabel={t("fab.close", "Close")}
-          actions={[
-            {
-              key: "transaction",
-              label: t("fab.addTransaction", "Add transaction"),
-              href: "/transactions/new",
-              icon: <PlusIcon size={18} />,
-            },
-            {
-              key: "receipt",
-              label: t("fab.scanReceipt", "Scan bill / receipt"),
-              href: "/receipts/new",
-              icon: <ReceiptIcon size={18} />,
-            },
-          ]}
-        />
-      )}
+        {/* Floating bottom nav — replaces the old sidebar/topbar entirely. */}
+        <nav className="bottom-nav" aria-label="Primary">
+          {BOTTOM_ITEMS.slice(0, 2).map((n) => (
+            <Link key={n.href} href={n.href} className={`bottom-nav-item${isActive(n.href) ? " active" : ""}`} aria-label={t(n.tkey, n.label)}>
+              <MaterialIcon name={n.icon} size={22} />
+              <span>{t(n.tkey, n.label)}</span>
+            </Link>
+          ))}
+
+          <button
+            type="button"
+            className="bottom-nav-add press"
+            aria-label={t("fab.add", "Add")}
+            aria-expanded={addOpen}
+            onClick={() => setAddOpen((v) => !v)}
+          >
+            <PlusIcon size={24} />
+          </button>
+
+          {BOTTOM_ITEMS.slice(2).map((n) => (
+            <Link key={n.href} href={n.href} className={`bottom-nav-item${isActive(n.href) ? " active" : ""}`} aria-label={t(n.tkey, n.label)}>
+              <MaterialIcon name={n.icon} size={22} />
+              <span>{t(n.tkey, n.label)}</span>
+            </Link>
+          ))}
+
+          <button
+            type="button"
+            className={`bottom-nav-item${moreOpen ? " active" : ""}`}
+            aria-label={t("nav.more", "More")}
+            aria-expanded={moreOpen}
+            onClick={() => setMoreOpen(true)}
+          >
+            <MaterialIcon name="more_horiz" size={22} />
+            <span>{t("nav.more", "More")}</span>
+            {unread > 0 && (
+              <span style={{
+                position: "absolute", top: 2, right: "22%", minWidth: 8, height: 8, borderRadius: 999,
+                background: "var(--negative)",
+              }} />
+            )}
+          </button>
+        </nav>
+
+        {/* Quick-add popover above the bottom bar's center button. */}
+        {addOpen && (
+          <>
+            <div className="scrim-clear" onClick={() => setAddOpen(false)} />
+            <div className="add-popover" role="menu" aria-label={t("fab.add", "Add")}>
+              <Link href="/transactions/new" className="add-popover-item" role="menuitem" onClick={() => setAddOpen(false)}>
+                <PlusIcon size={17} /> {t("fab.addTransaction", "Add transaction")}
+              </Link>
+              <Link href="/receipts/new" className="add-popover-item" role="menuitem" onClick={() => setAddOpen(false)}>
+                <ReceiptIcon size={17} /> {t("fab.scanReceipt", "Scan bill / receipt")}
+              </Link>
+            </div>
+          </>
+        )}
+
+        {/* "More" — every other destination, grouped, opened from the bottom bar. */}
+        <Modal open={moreOpen} onClose={() => setMoreOpen(false)} label={t("nav.more", "More")}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <Logo size={26} />
+            <button className="press" aria-label={t("common.close", "Close")} onClick={() => setMoreOpen(false)} style={{ width: 34, height: 34, borderRadius: 999, display: "grid", placeItems: "center", border: "1px solid var(--border)", background: "var(--surface-2)" }}>
+              <CloseIcon size={16} />
+            </button>
+          </div>
+          <div style={{ display: "grid", gap: 4, maxHeight: "60vh", overflowY: "auto" }}>
+            <MoreNavItem href="/notifications" icon="notifications" label={t("nav.notifications", "Notifications")} active={isActive("/notifications")} badge={unread} onNavigate={() => setMoreOpen(false)} />
+            {NAV_GROUPS.map((g, gi) => (
+              <div key={gi} style={{ display: "grid", gap: 2, marginTop: 10 }}>
+                {g.title && (
+                  <div style={{ padding: "2px 12px", fontSize: 10.5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text-2)", opacity: 0.65 }}>{g.title}</div>
+                )}
+                {g.items.map((n) => (
+                  <Link key={n.href} href={n.href} style={navItem(isActive(n.href))} onClick={() => setMoreOpen(false)}>
+                    <MaterialIcon name={n.icon} size={20} />
+                    {t(n.tkey, n.label)}
+                    {n.beta && <span className="beta-badge sm" style={{ marginLeft: "auto" }}>BETA</span>}
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 14, display: "grid", gap: 8, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+            {session?.isGuest && (
+              <Link href="/login" onClick={() => setMoreOpen(false)} style={{ padding: "10px 12px", borderRadius: 10, background: "var(--accent-ghost)", border: "1px solid var(--accent-soft)", fontSize: 12.5 }}>
+                <strong>Guest</strong>{session.daysLeft !== null ? ` · ${session.daysLeft}d until data is deleted` : ""}
+                <div style={{ color: "var(--accent)", marginTop: 2 }}>Create account →</div>
+              </Link>
+            )}
+            <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => { setShowBug(true); setMoreOpen(false); }}>
+              <MaterialIcon name="chat_bubble" size={16} /> Feedback
+            </button>
+            {!standalone && (
+              <button className="btn ghost" style={{ justifyContent: "center", gap: 8 }} onClick={() => setShowInstall(true)}>
+                <DownloadIcon size={16} /> Install app
+              </button>
+            )}
+            <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-2)", opacity: 0.7, paddingTop: 2 }}>
+              Sanvya v{APP_VERSION}
+            </div>
+          </div>
+        </Modal>
+
+        <Modal open={showInstall} onClose={() => setShowInstall(false)}>
+          <h2 style={{ margin: "0 0 12px" }}>Install Sanvya</h2>
+          <InstallGuide />
+        </Modal>
+
+        <BugReportModal open={showBug} onClose={() => setShowBug(false)} />
       </div>
     </>
   );

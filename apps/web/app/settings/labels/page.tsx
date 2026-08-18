@@ -27,9 +27,6 @@ export default function ManageLabelsPage() {
 
   return (
     <div style={{ display: "grid", gap: 18, maxWidth: 720 }} className="fade-up">
-      <Link href="/settings" className="muted" style={{ fontSize: 13 }}>{t("backToSettings")}</Link>
-      <h1>{t("title")}</h1>
-
       <div className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
         <FloatingInput label={t("searchPlaceholder")} value={search} onChange={setSearch} />
         <div style={{ display: "grid", gap: 8, marginTop: 8 }}>

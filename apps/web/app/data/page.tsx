@@ -65,7 +65,6 @@ export default function DataPage() {
   return (
     <div style={{ display: "grid", gap: 20, maxWidth: 760 }} className="fade-up">
       <div>
-        <h1>{t("title")}</h1>
         <p className="muted" style={{ fontSize: 14, marginTop: 4 }}>
           {t("introPre")}<Link href="/settings">{t("backToSettings")}</Link>
         </p>

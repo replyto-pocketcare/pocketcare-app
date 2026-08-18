@@ -118,7 +118,6 @@ export default function EditAccountPage() {
 
   return (
     <div style={{ maxWidth: 520, display: "grid", gap: 14 }} className="fade-up">
-      <h1>{t("editTitle")}</h1>
       <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("accountName")} />
 
       <span className="muted" style={{ fontSize: 13 }}>{t("typeLabel")}</span>

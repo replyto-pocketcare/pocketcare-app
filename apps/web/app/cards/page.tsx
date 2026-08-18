@@ -34,7 +34,6 @@ export default function CardsPage() {
   if (cards.length === 0 && accountsLoading) {
     return (
       <div style={{ display: "grid", gap: 16 }}>
-        <h1>{t("title")}</h1>
         <Skeleton h={92} r={18} />
         <CardsSkeleton count={2} minWidth={300} />
       </div>
@@ -44,7 +43,6 @@ export default function CardsPage() {
   if (cards.length === 0) {
     return (
       <div className="fade-up">
-        <h1>{t("title")}</h1>
         <p className="muted">{t("emptyBody")}</p>
         <a href="/accounts/new" className="btn" style={{ marginTop: 12 }}>＋ {t("newAccount")}</a>
       </div>
@@ -53,8 +51,7 @@ export default function CardsPage() {
 
   return (
     <div className="fade-up" style={{ display: "grid", gap: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>{t("title")}</h1>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
         <Link href="/accounts/new" className="btn">＋ {t("addCard")}</Link>
       </div>
       <p className="muted" style={{ marginBottom: 8 }}>{t("subtitle")}</p>

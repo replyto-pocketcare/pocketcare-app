@@ -208,7 +208,6 @@ function SplitInner() {
   return (
     <div style={{ display: "grid", gap: 16, maxWidth: 820, paddingBottom: 96 }}>
       <div>
-        <h1 style={{ margin: 0 }}>{t("split.title", "Who had what?")}</h1>
         <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
           {t("split.intro", "Assign each item, then choose how tax and service charge are shared.")}
           {group ? ` · ${group.name}` : ""}

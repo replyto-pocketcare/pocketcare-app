@@ -32,8 +32,7 @@ export default function NotificationsPage() {
 
   return (
     <div style={{ display: "grid", gap: 16, maxWidth: 640 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0 }}>Notifications</h1>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 8 }}>
           {unread > 0 && <button className="chip" onClick={() => void markAllRead()}>Mark all read</button>}
           <Link href="/settings" className="chip">Settings</Link>

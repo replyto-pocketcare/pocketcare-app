@@ -63,8 +63,7 @@ export default function InvestmentsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0 }}>{t("title")}</h1>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         {invAccounts.length > 0 && <button className="btn" onClick={() => setAddCtx({})}>+ {t("addInvestment")}</button>}
       </div>
 

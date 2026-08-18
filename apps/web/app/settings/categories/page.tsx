@@ -35,9 +35,6 @@ export default function ManageCategoriesPage() {
 
   return (
     <div style={{ display: "grid", gap: 18, maxWidth: 720 }} className="fade-up">
-      <Link href="/settings" className="muted" style={{ fontSize: 13 }}>{t("backToSettings")}</Link>
-      <h1>{t("title")}</h1>
-
       <AutoCategorizeCard categories={categories} />
 
 

@@ -150,7 +150,6 @@ export default function CashflowPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <h1 style={{ margin: 0 }}>{t("title")}</h1>
             <span className="beta-badge">BETA</span>
           </div>
           <p className="muted" style={{ margin: "4px 0 0", fontSize: 13.5, maxWidth: 560 }}>

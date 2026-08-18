@@ -81,7 +81,6 @@ export default function SearchPage() {
 
   return (
     <div style={{ display: "grid", gap: 18, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
-      <h1>{t("title")}</h1>
 
       <input className="input" placeholder={t("searchEverything")} value={q} onChange={(e) => setQ(e.target.value)} />
 

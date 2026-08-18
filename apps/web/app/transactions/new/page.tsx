@@ -333,7 +333,6 @@ export default function NewTransactionPage() {
   if (accounts.length === 0) {
     return (
       <div className="fade-up">
-        <h1>{t("addTitle")}</h1>
         <p className="muted">{t("createAccountFirst")}</p>
         <a href="/accounts/new" className="btn" style={{ marginTop: 12 }}>＋ {t("newAccountCta")}</a>
       </div>
@@ -344,8 +343,7 @@ export default function NewTransactionPage() {
 
   return (
     <div style={{ maxWidth: 620, display: "grid", gap: 16 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0 }}>{t("addTitle")}</h1>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         {templates.length > 0 && (
           <select className="input" style={{ maxWidth: 220 }} value="" onChange={(e) => { const tpl = templates.find((x) => x.id === e.target.value); if (tpl) applyTemplate(tpl); }}>
             <option value="">{t("startFromTemplate")}</option>

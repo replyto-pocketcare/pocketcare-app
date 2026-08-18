@@ -439,7 +439,6 @@ function EditLoan({ loan, onDone }: { loan: Loan; onDone: () => void }) {
 
   return (
     <div style={{ display: "grid", gap: 14, maxWidth: 520 }} className="fade-up">
-      <h1 style={{ margin: 0 }}>{t("editTitle")}</h1>
       <FloatingInput label={t("lender")} value={lender} onChange={setLender} />
       <div style={{ display: "grid", gap: 4 }}>
         <span className="muted" style={{ fontSize: 12 }}>{t("interestType")}</span>

@@ -352,7 +352,6 @@ export default function AssistantPage() {
   if (!isPremiumUser && !hasActiveTrial) {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
-        <h1>{t("title")}</h1>
         <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
           <h2>{t("premiumFeature")}</h2>
@@ -369,7 +368,6 @@ export default function AssistantPage() {
       <div className="fade-up" style={{ display: "grid", gap: 20, maxWidth: 760, marginInline: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <h1>{t("title")}</h1>
             {quota && (
               <div className="chip" style={{ fontSize: 11, cursor: "default", background: isOutOfQuota ? "var(--negative-ghost)" : "var(--surface-2)" }}>
                 {planLeft} / {quota.monthly_quota_total}{purchasedCredits > 0 ? t("creditsSuffix", { n: purchasedCredits }) : ""} {t("queries")}
