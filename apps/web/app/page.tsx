@@ -20,6 +20,8 @@ import { TILE_CATALOG, TileView, tileMeta, TILE_HREF } from "../src/dashboard/ti
 import { Walkthrough } from "../src/onboarding/Walkthrough";
 import { Suggestions } from "../src/dashboard/Suggestions";
 import { NotifBell } from "./AppShell";
+import { useIsDesktop } from "../src/ui/desktop/useIsDesktop";
+import { StatRow } from "../src/ui/desktop/StatRow";
 
 // Sensible default size per tile (content-heavy tiles start taller/wider).
 const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
@@ -83,6 +85,7 @@ export default function Dashboard() {
   const net = showAvailable ? available : total;
   const accountsLoading = useAccountsLoading();
   const syncPending = useInitialSyncPending();
+  const isDesktop = useIsDesktop();
 
   const fmt = (m: Money) => (hidden ? "••••••" : format(m, "en-US"));
 
@@ -183,6 +186,10 @@ export default function Dashboard() {
       </div>
 
       <div className="dash-divider" aria-hidden="true" />
+
+      {/* Desktop KPI strip. Phones skip it entirely (it would just repeat the
+          hero below in a smaller font) and never run its query. */}
+      {isDesktop && <StatRow net={net} base={base} fmt={fmt} hidden={hidden} />}
 
       {/* Net worth hero — rich green-gradient tile with trend sparkline */}
       <NetWorthHero net={net} base={base} fmt={fmt} showAvailable={showAvailable} onToggle={() => setShowAvailable((v) => !v)} />

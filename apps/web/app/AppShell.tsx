@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { applySavedTheme } from "../src/theme";
+import { applySavedTheme, setTheme, useTheme } from "../src/theme";
 import { useSession, useAuthStatus } from "../src/account";
 import { useSyncStatus, syncMessage } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
@@ -111,6 +111,47 @@ export function NotifBell() {
         }}>{unread > 9 ? "9+" : unread}</span>
       )}
     </Link>
+  );
+}
+
+/** Desktop top bar: global search on the left, utilities on the right.
+ *  CSS hides this entirely below the desktop breakpoint, where the same
+ *  destinations are reached from the bottom bar and the in-page utility row. */
+function TopBar() {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const unread = useUnreadCount();
+  const session = useSession();
+  const dark = theme === "dark";
+  const initial = (session?.username || session?.email || "?").trim().charAt(0).toUpperCase();
+
+  return (
+    <div className="top-bar">
+      <Link href="/search" className="top-search">
+        <MaterialIcon name="search" size={17} />
+        <span>{t("nav.searchAnything", "Search anything…")}</span>
+        <kbd>⌘K</kbd>
+      </Link>
+      <div className="top-actions">
+        <button
+          type="button"
+          className="top-icon press"
+          onClick={() => setTheme(dark ? "light" : "dark")}
+          aria-label={dark ? t("theme.light", "Switch to light theme") : t("theme.dark", "Switch to dark theme")}
+        >
+          {dark ? (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+          ) : (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4.2" /><path d="M12 2v2.2M12 19.8V22M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2 12h2.2M19.8 12H22M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" /></svg>
+          )}
+        </button>
+        <Link href="/notifications" className="top-icon press" aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}>
+          <BellIcon size={17} />
+          {unread > 0 && <span className="top-dot" />}
+        </Link>
+        <Link href="/settings" className="top-avatar" aria-label={t("nav.settings", "Settings")}>{initial}</Link>
+      </div>
+    </div>
   );
 }
 
@@ -280,6 +321,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Close the "More" sheet / speed-dial automatically on navigation.
   useEffect(() => { setMoreOpen(false); setAddOpen(false); }, [pathname]);
 
+  // ⌘K / Ctrl-K jumps to search. The desktop top bar advertises this shortcut,
+  // so it has to actually work — bound app-wide rather than to that bar, since
+  // a keyboard shortcut the user has learned should not depend on which
+  // breakpoint they happen to be at. Ignored while typing in a field.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "k" && e.key !== "K") return;
+      if (!e.metaKey && !e.ctrlKey) return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      e.preventDefault();
+      router.push("/search");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [router]);
+
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   // Show a single Back affordance on sub-pages (anything nested below a
   // top-level section) plus a few single-segment routes that are really
@@ -383,6 +441,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </aside>
 
         <main className="shell-main" style={{ padding: "20px 20px 0", maxWidth: 720, overflowX: "hidden" }}>
+          <TopBar />
           {/* One in-flow row for both the (optional) back button and the
               notification bell — always in normal document flow, never a
               `position: fixed` overlay, so it can't collide with a page's
