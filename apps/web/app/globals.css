@@ -426,13 +426,13 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
 }
 .util-back { width: auto; padding: 0 14px 0 12px; gap: 6px; font-size: 13.5; font-weight: 600; color: var(--text); }
 
-/* Dashboard-only header: greeting sits first (top of the page — the shared
-   util-row is skipped on this route), controls (Customize/Hide) come next,
-   and the notification bell gets its own row below them so nothing crowds
-   the top-right corner. A soft fade-edge divider closes the block off from
-   the net-worth hero beneath it. */
+/* Dashboard-only header: greeting + name sit inline with the Customize/Hide
+   controls on one row (the shared util-row is skipped on this route, so this
+   is the very top of the page), and the notification bell gets its own row
+   below so nothing crowds the top-right corner. A soft fade-edge divider
+   closes the block off from the net-worth hero beneath it. */
 .dash-header { display: flex; flex-direction: column; gap: 10px; }
-.dash-controls-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.dash-controls-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .dash-bell-row { display: flex; align-items: center; justify-content: flex-end; }
 .dash-divider {
   height: 1px; margin: 2px 0 -4px; border: none;

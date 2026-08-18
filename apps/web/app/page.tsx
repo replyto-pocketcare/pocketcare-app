@@ -152,31 +152,32 @@ export default function Dashboard() {
   return (
     <div style={{ display: "grid", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <div className="dash-header">
-        <p className="eyebrow" style={{ margin: "0 0 4px" }}>{greeting}</p>
-        <h1 style={{ margin: 0, fontSize: "clamp(24px, 6.5vw, 30px)" }}>{displayName}</h1>
-        {editing && (
-          <div style={{ fontSize: 12.5, color: "var(--accent)", marginTop: 5 }}>
-            Reorder with the ▲▼ arrows (or drag on desktop) · handles resize
-          </div>
-        )}
-
         <div className="dash-controls-row">
+          <div>
+            <p className="eyebrow" style={{ margin: "0 0 4px" }}>{greeting}</p>
+            <h1 style={{ margin: 0, fontSize: "clamp(24px, 6.5vw, 30px)" }}>{displayName}</h1>
+          </div>
           {editing ? (
-            <>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button className="btn ghost" onClick={() => setShowAdd(true)} style={{ gap: 6 }}><PlusIcon size={16} /> Widget</button>
               <button className="btn" onClick={() => setEditing(false)} style={{ gap: 7, background: "var(--positive)", boxShadow: "0 10px 24px -12px rgba(95,102,71,0.9)" }}><CheckIcon /> Done</button>
-            </>
+            </div>
           ) : (
-            <>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
               <button className="chip" onClick={() => setEditing(true)} title="Customize tiles" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <SlidersIcon size={16} /> <span className="btn-txt">Customize</span>
               </button>
               <button className="chip" onClick={() => setAmountsHidden(!hidden)} title={hidden ? "Show amounts" : "Hide amounts"} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 {hidden ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />} <span className="btn-txt">{hidden ? "Show" : "Hide"}</span>
               </button>
-            </>
+            </div>
           )}
         </div>
+        {editing && (
+          <div style={{ fontSize: 12.5, color: "var(--accent)", marginTop: -2 }}>
+            Reorder with the ▲▼ arrows (or drag on desktop) · handles resize
+          </div>
+        )}
 
         <div className="dash-bell-row">
           <NotifBell />
