@@ -288,14 +288,14 @@ function NetWorthHero({ net, base, fmt, showAvailable, onToggle }: {
   const up = deltaMinor >= 0;
 
   return (
-    <section style={{ position: "relative", overflow: "hidden", borderRadius: 24, padding: "26px 28px", color: "#f1ede3", background: "linear-gradient(150deg, #5f6647 0%, #3e4a38 100%)", boxShadow: "0 20px 44px -22px rgba(62,74,56,0.7)", minWidth: 0, maxWidth: "100%", boxSizing: "border-box" }}>
+    <section className="nw-hero" style={{ position: "relative", overflow: "hidden", borderRadius: 24, padding: "26px 28px", color: "#f1ede3", background: "linear-gradient(150deg, #5f6647 0%, #3e4a38 100%)", boxShadow: "0 20px 44px -22px rgba(62,74,56,0.7)", minWidth: 0, maxWidth: "100%", boxSizing: "border-box" }}>
       <button onClick={onToggle} className="press" style={{ position: "absolute", top: 18, right: 18, zIndex: 2, border: "none", cursor: "pointer", background: "rgba(255,255,255,0.14)", color: "#eaf0da", fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 999 }}>
         {showAvailable ? "Excluding blocked" : "Including blocked"}
       </button>
       <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#c6cdb3" }}>
         {showAvailable ? "Available net worth" : "Net worth"}
       </div>
-      <div style={{ fontSize: "clamp(30px, 9vw, 46px)", fontWeight: 750, letterSpacing: "-0.01em", marginTop: 6, overflowWrap: "anywhere" }}>{fmt(net)}</div>
+      <div className="nw-value tabular-nums" style={{ fontSize: "clamp(30px, 9vw, 46px)", fontWeight: 750, letterSpacing: "-0.01em", marginTop: 6, overflowWrap: "anywhere" }}>{fmt(net)}</div>
       {months.length > 0 && (
         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, padding: "4px 11px", borderRadius: 999, background: "rgba(255,255,255,0.14)", fontSize: 12.5, fontWeight: 600, color: up ? "#dde7c9" : "#f0d8c9" }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={up ? "#dde7c9" : "#f0d8c9"} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d={up ? "M5 15l7-7 7 7" : "M5 9l7 7 7-7"} /></svg>

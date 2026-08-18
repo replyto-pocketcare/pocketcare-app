@@ -560,6 +560,33 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
   h1 { font-size: 22px; }
 }
 
+/* Wide-desktop: use the extra horizontal room instead of centering a narrow
+   phone-width column in the middle of the screen. The shell itself widens
+   (overrides AppShell's inline maxWidth:720), the dashboard grid gets taller
+   rows so tiles/charts read as real widgets instead of thumbnails, and a
+   handful of "instrument panel" touches (tighter corners, tabular figures)
+   give it more of a conventional analytics-dashboard feel. Mobile (below
+   this breakpoint) is completely untouched. */
+@media (min-width: 1024px) {
+  .shell-main { max-width: 1360px !important; padding-left: 32px !important; padding-right: 32px !important; }
+
+  /* Same 4-column track (tile w/h spans in src/dashboard.ts assume 4 cols) —
+     just taller rows and more breathing room, so a chart tile is genuinely
+     bigger, not just wider. */
+  .dash-grid { grid-auto-rows: clamp(96px, 12vh, 152px); gap: 24px; }
+
+  /* Sharper, less rounded corners read as a denser data console rather than
+     a phone-app card stack — scoped to desktop only. */
+  .card, .dash-tile-body, .dash-tile-body > section, .nw-hero { border-radius: 16px; }
+
+  h1 { font-size: 30px; }
+  .nw-value { font-size: clamp(40px, 3.4vw, 60px) !important; }
+
+  /* Figures read like a ledger, not prose — fixed-width digits so columns of
+     numbers actually line up. */
+  .tabular-nums, .nw-value { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+}
+
 /* Compact header controls on phones: collapse chip buttons to their icon so the
    dashboard title row stays on one line (Customize/Show-Hide, etc.). */
 @media (max-width: 560px) {
