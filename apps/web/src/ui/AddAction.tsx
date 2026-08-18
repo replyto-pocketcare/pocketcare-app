@@ -29,8 +29,33 @@ export type AddAction =
 
 const SetterContext = createContext<((a: AddAction | null) => void) | null>(null);
 
-export function AddActionProvider({ value, children }: { value: (a: AddAction | null) => void; children: ReactNode }) {
-  return <SetterContext.Provider value={value}>{children}</SetterContext.Provider>;
+/** Fires whatever action is currently registered. Optionally takes the element
+ *  that triggered it, so a menu-type action can anchor its popover there. */
+export type AddRunner = (anchor?: HTMLElement | null) => void;
+const RunnerContext = createContext<AddRunner | null>(null);
+
+export function AddActionProvider({ setter, run, children }: {
+  setter: (a: AddAction | null) => void; run: AddRunner; children: ReactNode;
+}) {
+  return (
+    <SetterContext.Provider value={setter}>
+      <RunnerContext.Provider value={run}>{children}</RunnerContext.Provider>
+    </SetterContext.Provider>
+  );
+}
+
+/**
+ * Trigger the shell's contextual add action from inside a page.
+ *
+ * This exists because the desktop layout moved the add affordance OUT of the
+ * shell chrome and into the dashboard's own header row, while phones keep it
+ * on the bottom bar. Both surfaces must run the same action — a page that
+ * registered a bespoke "+" should not behave differently depending on which
+ * button you press — so the page borrows the shell's runner rather than
+ * reimplementing it. Null outside a shell (tests, storybook).
+ */
+export function useAddRunner(): AddRunner | null {
+  return useContext(RunnerContext);
 }
 
 /**

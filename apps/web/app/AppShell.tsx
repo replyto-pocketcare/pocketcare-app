@@ -127,11 +127,6 @@ function TopBar() {
 
   return (
     <div className="top-bar">
-      <Link href="/search" className="top-search">
-        <MaterialIcon name="search" size={17} />
-        <span>{t("nav.searchAnything", "Search anything…")}</span>
-        <kbd>⌘K</kbd>
-      </Link>
       <div className="top-actions">
         <button
           type="button"
@@ -228,6 +223,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [addAnchor, setAddAnchor] = useState<DOMRect | null>(null);
   const [pageAction, setPageAction] = useState<AddAction | null>(null);
   const session = useSession();
   const authStatus = useAuthStatus();
@@ -364,11 +360,47 @@ export function AppShell({ children }: { children: ReactNode }) {
   const action = pageAction ?? defaultAddAction(t);
   const menuItems = action.type === "menu" ? action.items : null;
 
-  const runAdd = () => {
+  const runAdd = (anchor?: HTMLElement | null) => {
     if (action.type === "link") { router.push(action.href); return; }
     if (action.type === "button") { action.onClick(); return; }
+    // Remember where it was fired from so the menu opens next to the button
+    // that opened it. Only the desktop header button passes an anchor: the
+    // bottom bar's "+" sits at the foot of the screen, where "below the
+    // trigger" is off-screen, so it keeps the CSS placement that floats the
+    // menu above the bar.
+    setAddAnchor(anchor ? anchor.getBoundingClientRect() : null);
     setAddOpen((v) => !v);
   };
+
+  // Pages call this through context, which must keep a stable identity or every
+  // consumer re-renders on each shell render. The ref keeps the latest closure
+  // (which changes whenever `action` does) behind an unchanging wrapper.
+  const runAddRef = useRef(runAdd);
+  runAddRef.current = runAdd;
+  const runAddStable = useCallback((anchor?: HTMLElement | null) => runAddRef.current(anchor), []);
+
+  // A fixed-position menu pinned to a rect would drift away from its button as
+  // soon as the page moved, so it closes instead of chasing it.
+  useEffect(() => {
+    if (!addOpen || !addAnchor) return;
+    const close = () => setAddOpen(false);
+    window.addEventListener("scroll", close, { passive: true });
+    window.addEventListener("resize", close);
+    return () => { window.removeEventListener("scroll", close); window.removeEventListener("resize", close); };
+  }, [addOpen, addAnchor]);
+
+  // Right-align the menu under its trigger, clamped so it can never hang off
+  // either edge of the viewport.
+  const MENU_W = 232;
+  const addAnchorStyle: React.CSSProperties | undefined = addAnchor
+    ? {
+        left: Math.round(Math.min(Math.max(12, addAnchor.right - MENU_W), window.innerWidth - MENU_W - 12)),
+        top: Math.round(addAnchor.bottom + 8),
+        bottom: "auto",
+        transform: "none",
+        minWidth: MENU_W,
+      }
+    : undefined;
 
   return (
     <>
@@ -389,10 +421,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link href="/" aria-label={t("nav.home", "Home")}><Logo size={26} /></Link>
           </div>
 
-          <button type="button" className="side-nav-add press" onClick={runAdd} aria-label={action.label} aria-expanded={action.type === "menu" ? addOpen : undefined}>
-            <PlusIcon size={17} />
-            <span>{action.label}</span>
-          </button>
+          {/* Search sits where a primary action would normally go: on desktop
+              the add affordance moved into the dashboard's own header row, and
+              search is the thing reached from every screen. */}
+          <Link href="/search" className="side-nav-search">
+            <MaterialIcon name="search" size={16} />
+            <span>{t("nav.searchAnything", "Search anything…")}</span>
+            <kbd>⌘K</kbd>
+          </Link>
 
           <div className="side-nav-scroll hide-scrollbar">
             <Link href="/" className={`side-nav-item${isActive("/") ? " active" : ""}`}>
@@ -489,7 +525,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             );
           })()}
           <TrialNotice />
-          <AddActionProvider value={setPageActionStable}>{children}</AddActionProvider>
+          <AddActionProvider setter={setPageActionStable} run={runAddStable}>{children}</AddActionProvider>
         </main>
 
         {/* Floating bottom nav — replaces the old sidebar/topbar entirely.
@@ -516,7 +552,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="bottom-nav-add press"
             aria-label={action.label}
             aria-expanded={action.type === "menu" ? addOpen : undefined}
-            onClick={runAdd}
+            onClick={() => runAdd()}
           >
             <PlusIcon size={24} />
           </button>
@@ -553,7 +589,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {addOpen && menuItems && (
           <>
             <div className="scrim-clear" onClick={() => setAddOpen(false)} />
-            <div className="add-popover" role="menu" aria-label={action.label}>
+            <div className="add-popover" role="menu" aria-label={action.label} style={addAnchorStyle}>
               {menuItems.map((item) =>
                 item.href ? (
                   <Link key={item.key} href={item.href} className="add-popover-item" role="menuitem" onClick={() => setAddOpen(false)}>

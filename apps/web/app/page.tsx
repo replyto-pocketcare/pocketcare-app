@@ -23,6 +23,7 @@ import { NotifBell } from "./AppShell";
 import { useIsDesktop } from "../src/ui/desktop/useIsDesktop";
 import { StatRow } from "../src/ui/desktop/StatRow";
 import { AssistantWidget } from "../src/ui/desktop/AssistantWidget";
+import { useAddRunner } from "../src/ui/AddAction";
 
 // Sensible default size per tile (content-heavy tiles start taller/wider).
 const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
@@ -87,6 +88,7 @@ export default function Dashboard() {
   const accountsLoading = useAccountsLoading();
   const syncPending = useInitialSyncPending();
   const isDesktop = useIsDesktop();
+  const runAdd = useAddRunner();
 
   const fmt = (m: Money) => (hidden ? "••••••" : format(m, "en-US"));
 
@@ -169,6 +171,14 @@ export default function Dashboard() {
             </div>
           ) : (
             <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+              {/* Desktop only. Phones keep this on the bottom bar's "+", so the
+                  affordance appears exactly once at any width. Same runner
+                  either way, so the receipt/transaction choice is identical. */}
+              {isDesktop && (
+                <button className="btn press" onClick={(e) => runAdd?.(e.currentTarget)} style={{ gap: 7, flexShrink: 0 }}>
+                  <PlusIcon size={16} /> {t("dashboard.recordTransaction", "Record a Transaction")}
+                </button>
+              )}
               <button className="chip" onClick={() => setEditing(true)} title="Customize tiles" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <SlidersIcon size={16} /> <span className="btn-txt">Customize</span>
               </button>
