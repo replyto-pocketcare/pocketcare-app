@@ -153,7 +153,7 @@ export default function Dashboard() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
         <div>
           <p className="eyebrow" style={{ margin: "0 0 4px" }}>{greeting}</p>
-          <h1 style={{ margin: 0 }}>{displayName}</h1>
+          <h1 style={{ margin: 0, fontSize: "clamp(24px, 6.5vw, 30px)" }}>{displayName}</h1>
           {editing && (
             <div style={{ fontSize: 12.5, color: "var(--accent)", marginTop: 5 }}>
               Reorder with the ▲▼ arrows (or drag on desktop) · handles resize

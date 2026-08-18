@@ -419,7 +419,7 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
 /* In-flow utility row: Back (left, only on sub-pages) + notification bell
    (right, always). Ordinary block content — it just sits above whatever the
    page renders, so it can never collide with a page's own header. */
-.util-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; min-height: 40px; }
+.util-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; min-height: 40px; }
 .util-btn {
   width: 40px; height: 40px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; flex-shrink: 0;
@@ -443,7 +443,7 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
   border-radius: 999px; color: var(--text-2); font-size: 10px; font-weight: 600;
   transition: background 0.15s, color 0.15s;
 }
-.bottom-nav-item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bottom-nav-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bottom-nav-item.active { color: var(--accent); background: var(--accent-ghost); }
 .bottom-nav-item:hover { color: var(--accent); }
 .bottom-nav-add {
@@ -456,9 +456,13 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
 /* Icons-only on phones — matches a native tab bar and keeps 6 items (3 either
    side of "+") from ever crowding a narrow screen. Labels stay for anyone
    with the room (tablet/desktop); a11y label is unaffected either way since
-   it's `aria-label` on the element, not the visible text. */
+   it's `aria-label` on the element, not the visible text.
+   IMPORTANT: this must target `.bottom-nav-label` specifically, not a bare
+   `span` — the icon itself (`.msym`, from MaterialIcon) is *also* a <span>,
+   and a blanket `span { display: none }` here silently hid the icons too,
+   leaving empty circles. */
 @media (max-width: 640px) {
-  .bottom-nav-item span { display: none; }
+  .bottom-nav-label { display: none; }
   .bottom-nav-item { height: 46px; }
   .bottom-nav-add { width: 48px; height: 48px; }
 }
@@ -516,7 +520,7 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
 }
 
 @media (max-width: 860px) {
-  .shell-main { padding: 16px 16px calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
+  .shell-main { padding: 10px 16px calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
   .dash-cols { grid-template-columns: 1fr !important; }
   /* On phones: single column, natural content heights (no fixed grid).
      NOTE: the tile body deliberately keeps `overflow: hidden` from the base

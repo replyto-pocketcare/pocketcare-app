@@ -373,13 +373,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav className="bottom-nav" aria-label="Primary">
           <Link href="/" className={`bottom-nav-item${isActive("/") ? " active" : ""}`} aria-label={t("nav.home", "Home")}>
             <MaterialIcon name="space_dashboard" size={22} />
-            <span>{t("nav.home", "Home")}</span>
+            <span className="bottom-nav-label">{t("nav.home", "Home")}</span>
           </Link>
 
           {navItems.slice(0, 2).map((n) => (
             <Link key={n.id} href={n.href} className={`bottom-nav-item${isActive(n.href) ? " active" : ""}`} aria-label={t(n.tkey, n.label)}>
               <MaterialIcon name={n.icon} size={22} />
-              <span>{t(n.tkey, n.label)}</span>
+              <span className="bottom-nav-label">{t(n.tkey, n.label)}</span>
             </Link>
           ))}
 
@@ -396,7 +396,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {navItems.slice(2, 4).map((n) => (
             <Link key={n.id} href={n.href} className={`bottom-nav-item${isActive(n.href) ? " active" : ""}`} aria-label={t(n.tkey, n.label)}>
               <MaterialIcon name={n.icon} size={22} />
-              <span>{t(n.tkey, n.label)}</span>
+              <span className="bottom-nav-label">{t(n.tkey, n.label)}</span>
             </Link>
           ))}
 
@@ -408,7 +408,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setMoreOpen(true)}
           >
             <MaterialIcon name="more_horiz" size={22} />
-            <span>{t("nav.more", "More")}</span>
+            <span className="bottom-nav-label">{t("nav.more", "More")}</span>
             {unread > 0 && (
               <span style={{
                 position: "absolute", top: 2, right: "22%", minWidth: 8, height: 8, borderRadius: 999,
