@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { money } from "@sanvya/money";
 import { useAccountBalances, useAccountsLoading, useCurrencyBreakdown } from "../../src/hooks";
 import { useInitialSyncPending } from "../../src/sync";
@@ -19,6 +21,8 @@ export default function AccountsPage() {
   const accountsLoading = useAccountsLoading();
   const syncPending = useInitialSyncPending();
 
+  useRegisterAddAction({ type: "link", href: "/accounts/new", label: t("newAccount") }, [t]);
+
   async function toggleNw(id: string, current: boolean) {
     await getDb()?.execute("UPDATE accounts SET include_in_net_worth = ?, updated_at = ? WHERE id = ?", [current ? 0 : 1, new Date().toISOString(), id]);
   }
@@ -29,6 +33,7 @@ export default function AccountsPage() {
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1>{t("title")}</h1>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {archivedCount > 0 && (
             <button className="chip" data-active={showArchived} onClick={() => setShowArchived((v) => !v)}>

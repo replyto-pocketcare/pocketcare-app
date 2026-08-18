@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
@@ -34,6 +36,13 @@ export default function InvestmentsPage() {
   const { data: dividends = [] } = useQuery<DivRow>("SELECT symbol, exchange, ex_date, pay_date, amount, currency FROM market_dividends");
   const balances = useAccountBalances();
   const invAccounts = useMemo(() => balances.filter((b) => DEMAT_TYPES.includes(b.account.type)), [balances]);
+
+  useRegisterAddAction(
+    invAccounts.length > 0
+      ? { type: "button", onClick: () => setAddCtx({}), label: t("addInvestment") }
+      : { type: "link", href: "/accounts/new", label: t("addInvAccount") },
+    [invAccounts.length, t],
+  );
   const market = useMarketData();
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -63,7 +72,8 @@ export default function InvestmentsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
         {invAccounts.length > 0 && <button className="btn" onClick={() => setAddCtx({})}>+ {t("addInvestment")}</button>}
       </div>
 

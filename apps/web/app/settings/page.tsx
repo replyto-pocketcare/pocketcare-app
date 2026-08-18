@@ -99,6 +99,7 @@ export default function SettingsPage() {
 
   return (
     <div style={{ display: "grid", gap: 24, maxWidth: 700 }} className="fade-up">
+      <h1>{t("title")}</h1>
 
       {/* Account */}
       <section id="account" className="card" style={{ padding: 20, display: "grid", gap: 12 }}>

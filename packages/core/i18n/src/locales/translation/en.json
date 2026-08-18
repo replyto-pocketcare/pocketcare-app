@@ -11,7 +11,9 @@
     "remove": "Remove",
     "done": "Done",
     "clear": "Clear",
-    "settings": "Settings"
+    "settings": "Settings",
+    "back": "Back",
+    "close": "Close"
   },
   "nav": {
     "home": "Dashboard",
@@ -28,7 +30,11 @@
     "investments": "Investments",
     "settings": "Settings",
     "assistant": "Ask Sanvya",
-    "friends": "Splits & groups"
+    "friends": "Splits & groups",
+    "more": "More",
+    "notifications": "Notifications",
+    "customize": "Customize bottom bar",
+    "customizeHint": "Pick {{n}} to keep one tap away. Home and More always stay put."
   },
   "pages": {
     "dashboard": "Dashboard",

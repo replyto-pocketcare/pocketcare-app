@@ -188,7 +188,8 @@ export default function EditTransactionPage() {
 
   return (
     <div style={{ maxWidth: 620, display: "grid", gap: 14 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        <h1>{t("editTitle")}</h1>
         {audit.length > 0 && (
           <KebabMenu label={t("txOptions")} items={[
             { label: t("viewHistory"), onClick: () => setShowHistory(true) },

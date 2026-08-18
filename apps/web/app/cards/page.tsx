@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -31,9 +33,12 @@ export default function CardsPage() {
   const { data: details = [] } = useQuery<CardDetail>("SELECT account_id, statement_day, due_day, credit_limit, card_last4, pending_due, due_on FROM credit_card_details");
   const detailFor = (id: string) => details.find((d) => d.account_id === id);
 
+  useRegisterAddAction({ type: "link", href: "/accounts/new", label: t("addCard") }, [t]);
+
   if (cards.length === 0 && accountsLoading) {
     return (
       <div style={{ display: "grid", gap: 16 }}>
+        <h1>{t("title")}</h1>
         <Skeleton h={92} r={18} />
         <CardsSkeleton count={2} minWidth={300} />
       </div>
@@ -43,6 +48,7 @@ export default function CardsPage() {
   if (cards.length === 0) {
     return (
       <div className="fade-up">
+        <h1>{t("title")}</h1>
         <p className="muted">{t("emptyBody")}</p>
         <a href="/accounts/new" className="btn" style={{ marginTop: 12 }}>＋ {t("newAccount")}</a>
       </div>
@@ -51,7 +57,8 @@ export default function CardsPage() {
 
   return (
     <div className="fade-up" style={{ display: "grid", gap: 8 }}>
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>{t("title")}</h1>
         <Link href="/accounts/new" className="btn">＋ {t("addCard")}</Link>
       </div>
       <p className="muted" style={{ marginBottom: 8 }}>{t("subtitle")}</p>

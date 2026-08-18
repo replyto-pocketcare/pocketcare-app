@@ -124,6 +124,7 @@ export default function NewReceiptPage() {
   return (
     <div style={{ display: "grid", gap: 16, maxWidth: 640 }}>
       <div>
+        <h1 style={{ margin: 0 }}>{t("capture.title", "Scan a bill or receipt")}</h1>
         <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
           {t("capture.intro", "Photograph a restaurant bill or grocery receipt and we'll turn it into a transaction — item by item.")}
         </p>

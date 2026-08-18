@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@powersync/react";
@@ -116,6 +118,8 @@ export default function BudgetsPage() {
   const [alertTime, setAlertTime] = useState("09:00");
   const [currency, setCurrency] = useState(base);
   const [showNew, setShowNew] = useState(false);
+
+  useRegisterAddAction({ type: "button", onClick: () => setShowNew(true), label: t("newBudget") }, [t]);
   const [err, setErr] = useState<string | null>(null);
 
   async function addBudget() {
@@ -140,7 +144,8 @@ export default function BudgetsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
         <button className="btn" onClick={() => setShowNew(true)}>+ {t("newBudget")}</button>
       </div>
 

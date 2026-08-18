@@ -88,6 +88,7 @@ export default function NewAccountPage() {
 
   return (
     <div style={{ maxWidth: 520, display: "grid", gap: 14 }} className="fade-up">
+      <h1>{t("newTitle")}</h1>
       {/* The walkthrough covers the FIRST account; anyone adding a second one
           arrives straight here, where "Savings / Current / Credit card" reads
           as bank onboarding. Say what this isn't, permanently, at the point the

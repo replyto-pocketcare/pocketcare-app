@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@powersync/react";
@@ -78,6 +80,8 @@ export default function GoalsPage() {
   const onAchieved = useCallback((goalName: string) => setCelebrate(goalName), []);
   const [addOpen, setAddOpen] = useState(false);
 
+  useRegisterAddAction({ type: "button", onClick: () => { setErr(null); setAddOpen(true); }, label: t("addGoal") }, [t]);
+
   async function addGoal() {
     setErr(null);
     if (!name.trim()) { setErr(t("errName")); return; }
@@ -96,7 +100,8 @@ export default function GoalsPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
         <button className="btn" onClick={() => { setErr(null); setAddOpen(true); }}>+ {t("addGoal")}</button>
       </div>
       {ef && !efFunded && (

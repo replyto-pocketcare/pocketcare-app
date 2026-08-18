@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -22,6 +22,9 @@ import { useUnreadCount } from "../src/notifications/hooks";
 import { installDiagnostics, setDiagnosticsRoute } from "../src/diagnostics/log";
 import { startErrorReporting } from "../src/diagnostics/report";
 import { listFailedWrites } from "../src/sync/deadletter";
+import { AddActionProvider, type AddAction } from "../src/ui/AddAction";
+import { BottomNavCustomizer } from "../src/ui/BottomNavCustomizer";
+import { useBottomNavIds, navItemsFor } from "../src/navPrefs";
 
 /** Persistent banner shown whenever the device is offline. */
 function OfflineBanner() {
@@ -92,15 +95,12 @@ function SyncProblemsBanner() {
   );
 }
 
-/** Floating notification bell (top-right), with unread badge. No page chrome around it. */
-function FloatingBell() {
+/** Notification bell, with unread badge. Lives in the in-flow utility row, not
+ *  fixed — so it can never overlap a page's own content, at any width. */
+function NotifBell() {
   const unread = useUnreadCount();
   return (
-    <Link
-      href="/notifications"
-      aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}
-      className="top-float press"
-    >
+    <Link href="/notifications" aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`} className="press util-btn" style={{ position: "relative" }}>
       <BellIcon size={19} />
       {unread > 0 && (
         <span style={{
@@ -154,7 +154,7 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
   ] },
   { title: "Growth", items: [
     { href: "/investments", tkey: "nav.investments", label: "Investments", icon: "trending_up" },
-    { href: "/reflect", tkey: "nav.reflect", label: "Reflect", icon: "health_and_safety" },
+    { href: "/reflect", tkey: "nav.reflect", label: "Reflect", icon: "volunteer_activism" },
     { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "insights" },
     { href: "/statements", tkey: "nav.statements", label: "Statements", icon: "description" },
   ] },
@@ -165,16 +165,17 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
   ] },
 ];
 
-// The five slots that live permanently in the floating bottom bar. Everything
-// else (13 more destinations) sits one tap away behind "More" — a bottom bar
-// that tried to hold all of NAV_GROUPS would just be the old sidebar turned
-// sideways.
-const BOTTOM_ITEMS: { href: string; tkey: string; label: string; icon: MaterialIconName }[] = [
-  { href: "/", tkey: "nav.home", label: "Home", icon: "space_dashboard" },
-  { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "swap_horiz" },
-  { href: "/friends", tkey: "nav.friends", label: "Splits", icon: "groups" },
-  { href: "/insights", tkey: "nav.insights", label: "Insights", icon: "insights" },
-];
+// The default "+" action for pages that haven't registered anything more
+// specific via useRegisterAddAction — a transaction (or a scanned receipt,
+// which becomes one) is the one thing that's always relevant on a money app.
+const defaultAddAction = (t: (k: string, d: string) => string): AddAction => ({
+  type: "menu",
+  label: t("fab.add", "Add"),
+  items: [
+    { key: "transaction", label: t("fab.addTransaction", "Add transaction"), href: "/transactions/new", icon: <PlusIcon size={17} /> },
+    { key: "receipt", label: t("fab.scanReceipt", "Scan bill / receipt"), href: "/receipts/new", icon: <ReceiptIcon size={17} /> },
+  ],
+});
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -183,12 +184,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [showInstall, setShowInstall] = useState(false);
   const [showBug, setShowBug] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [pageAction, setPageAction] = useState<AddAction | null>(null);
   const session = useSession();
   const authStatus = useAuthStatus();
   const sync = useSyncStatus();
   const unread = useUnreadCount();
   const { t } = useTranslation();
+  const navIds = useBottomNavIds();
+  const navItems = navItemsFor(navIds);
+
+  const setPageActionStable = useCallback((a: AddAction | null) => setPageAction(a), []);
 
   // Full-screen routes with no app chrome.
   const bare = pathname === "/onboarding" || pathname === "/login" || pathname === "/join" || pathname.startsWith("/admin");
@@ -276,10 +283,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Show a single Back affordance on sub-pages (anything nested below a
   // top-level section) plus a few single-segment routes that are really
   // steps in a flow, not nav destinations, and so have nowhere else to go
-  // back from. Pages get at most ONE back button: this chip, or (for
+  // back from. Pages get at most ONE back button: this button, or (for
   // /assistant's in-page chat view) that view's own "Chats" toggle — never
   // both, and every page-local "back to X" link has been removed in favour
-  // of this one.
+  // of this one, shared, in-flow utility row.
   const FLOW_ROOTS = ["/receipts/new", "/receipts/review", "/receipts/split"];
   const showBack = pathname.split("/").filter(Boolean).length >= 2 || FLOW_ROOTS.includes(pathname);
 
@@ -291,6 +298,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}><Spinner size={34} /></div>;
   }
 
+  const action = pageAction ?? defaultAddAction(t);
+  const menuItems = action.type === "menu" ? action.items : null;
+
+  const runAdd = () => {
+    if (action.type === "link") { router.push(action.href); return; }
+    if (action.type === "button") { action.onClick(); return; }
+    setAddOpen((v) => !v);
+  };
+
   return (
     <>
       {/* App-wide banners sit above everything else — a full-width strip, not
@@ -300,18 +316,21 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="shell">
         <GlobalLoader />
 
-        <FloatingBell />
+        <main className="shell-main" style={{ padding: "20px 20px 0", maxWidth: 720, overflowX: "hidden" }}>
+          {/* One in-flow row for both the (optional) back button and the
+              notification bell — always in normal document flow, never a
+              `position: fixed` overlay, so it can't collide with a page's
+              own header controls at any width. */}
+          <div className="util-row">
+            {showBack ? (
+              <button onClick={() => router.back()} className="press util-btn util-back" aria-label={t("common.back", "Back")}>
+                <MaterialIcon name="arrow_back" size={18} />
+                <span>{t("common.back", "Back")}</span>
+              </button>
+            ) : <span />}
+            <NotifBell />
+          </div>
 
-        <main className="shell-main" style={{ padding: "28px 20px", maxWidth: 720, overflowX: "hidden" }}>
-          {showBack && (
-            <button
-              onClick={() => router.back()}
-              className="chip"
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16 }}
-            >
-              <MaterialIcon name="arrow_back" size={16} /> Back
-            </button>
-          )}
           {(() => {
             const m = syncMessage(sync);
             if (!m) return null;
@@ -342,30 +361,38 @@ export function AppShell({ children }: { children: ReactNode }) {
             );
           })()}
           <TrialNotice />
-          {children}
+          <AddActionProvider value={setPageActionStable}>{children}</AddActionProvider>
         </main>
 
-        {/* Floating bottom nav — replaces the old sidebar/topbar entirely. */}
+        {/* Floating bottom nav — replaces the old sidebar/topbar entirely.
+            2 customizable slots either side of the center "+" (Home and More
+            are fixed); widths are flexible so it never overflows a narrow
+            phone, and it centers within whatever room the viewport has. */}
         <nav className="bottom-nav" aria-label="Primary">
-          {BOTTOM_ITEMS.slice(0, 2).map((n) => (
-            <Link key={n.href} href={n.href} className={`bottom-nav-item${isActive(n.href) ? " active" : ""}`} aria-label={t(n.tkey, n.label)}>
-              <MaterialIcon name={n.icon} size={22} />
-              <span>{t(n.tkey, n.label)}</span>
+          <Link href="/" className={`bottom-nav-item${isActive("/") ? " active" : ""}`} aria-label={t("nav.home", "Home")}>
+            <MaterialIcon name="space_dashboard" size={22} />
+            <span>{t("nav.home", "Home")}</span>
+          </Link>
+
+          {navItems[0] && (
+            <Link href={navItems[0].href} className={`bottom-nav-item${isActive(navItems[0].href) ? " active" : ""}`} aria-label={t(navItems[0].tkey, navItems[0].label)}>
+              <MaterialIcon name={navItems[0].icon} size={22} />
+              <span>{t(navItems[0].tkey, navItems[0].label)}</span>
             </Link>
-          ))}
+          )}
 
           <button
             type="button"
             className="bottom-nav-add press"
-            aria-label={t("fab.add", "Add")}
-            aria-expanded={addOpen}
-            onClick={() => setAddOpen((v) => !v)}
+            aria-label={action.label}
+            aria-expanded={action.type === "menu" ? addOpen : undefined}
+            onClick={runAdd}
           >
             <PlusIcon size={24} />
           </button>
 
-          {BOTTOM_ITEMS.slice(2).map((n) => (
-            <Link key={n.href} href={n.href} className={`bottom-nav-item${isActive(n.href) ? " active" : ""}`} aria-label={t(n.tkey, n.label)}>
+          {navItems.slice(1).map((n) => (
+            <Link key={n.id} href={n.href} className={`bottom-nav-item${isActive(n.href) ? " active" : ""}`} aria-label={t(n.tkey, n.label)}>
               <MaterialIcon name={n.icon} size={22} />
               <span>{t(n.tkey, n.label)}</span>
             </Link>
@@ -389,17 +416,25 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </nav>
 
-        {/* Quick-add popover above the bottom bar's center button. */}
-        {addOpen && (
+        {/* Contextual quick-add popover — only for pages with more than one
+            reasonable "+" action (dashboard's transaction/receipt choice, or
+            a page that registered its own `type: "menu"`). A single-action
+            page (link or button) just fires immediately, no popover. */}
+        {addOpen && menuItems && (
           <>
             <div className="scrim-clear" onClick={() => setAddOpen(false)} />
-            <div className="add-popover" role="menu" aria-label={t("fab.add", "Add")}>
-              <Link href="/transactions/new" className="add-popover-item" role="menuitem" onClick={() => setAddOpen(false)}>
-                <PlusIcon size={17} /> {t("fab.addTransaction", "Add transaction")}
-              </Link>
-              <Link href="/receipts/new" className="add-popover-item" role="menuitem" onClick={() => setAddOpen(false)}>
-                <ReceiptIcon size={17} /> {t("fab.scanReceipt", "Scan bill / receipt")}
-              </Link>
+            <div className="add-popover" role="menu" aria-label={action.label}>
+              {menuItems.map((item) =>
+                item.href ? (
+                  <Link key={item.key} href={item.href} className="add-popover-item" role="menuitem" onClick={() => setAddOpen(false)}>
+                    {item.icon} {item.label}
+                  </Link>
+                ) : (
+                  <button key={item.key} type="button" className="add-popover-item" role="menuitem" onClick={() => { item.onClick?.(); setAddOpen(false); }}>
+                    {item.icon} {item.label}
+                  </button>
+                ),
+              )}
             </div>
           </>
         )}
@@ -408,9 +443,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Modal open={moreOpen} onClose={() => setMoreOpen(false)} label={t("nav.more", "More")}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <Logo size={26} />
-            <button className="press" aria-label={t("common.close", "Close")} onClick={() => setMoreOpen(false)} style={{ width: 34, height: 34, borderRadius: 999, display: "grid", placeItems: "center", border: "1px solid var(--border)", background: "var(--surface-2)" }}>
-              <CloseIcon size={16} />
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="press" aria-label={t("nav.customize", "Customize bottom bar")} title={t("nav.customize", "Customize bottom bar")} onClick={() => { setMoreOpen(false); setCustomizeOpen(true); }} style={{ width: 34, height: 34, borderRadius: 999, display: "grid", placeItems: "center", border: "1px solid var(--border)", background: "var(--surface-2)" }}>
+                <MaterialIcon name="edit" size={15} />
+              </button>
+              <button className="press" aria-label={t("common.close", "Close")} onClick={() => setMoreOpen(false)} style={{ width: 34, height: 34, borderRadius: 999, display: "grid", placeItems: "center", border: "1px solid var(--border)", background: "var(--surface-2)" }}>
+                <CloseIcon size={16} />
+              </button>
+            </div>
           </div>
           <div style={{ display: "grid", gap: 4, maxHeight: "60vh", overflowY: "auto" }}>
             <MoreNavItem href="/notifications" icon="notifications" label={t("nav.notifications", "Notifications")} active={isActive("/notifications")} badge={unread} onNavigate={() => setMoreOpen(false)} />
@@ -449,6 +489,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </div>
         </Modal>
+
+        <BottomNavCustomizer open={customizeOpen} onClose={() => setCustomizeOpen(false)} current={navIds} />
 
         <Modal open={showInstall} onClose={() => setShowInstall(false)}>
           <h2 style={{ margin: "0 0 12px" }}>Install Sanvya</h2>

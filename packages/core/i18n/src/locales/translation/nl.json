@@ -11,7 +11,9 @@
     "remove": "Verwijderen",
     "done": "Klaar",
     "clear": "Wissen",
-    "settings": "Instellingen"
+    "settings": "Instellingen",
+    "back": "Terug",
+    "close": "Sluiten"
   },
   "nav": {
     "home": "Dashboard",
@@ -28,7 +30,11 @@
     "investments": "Beleggingen",
     "settings": "Instellingen",
     "assistant": "Vraag Sanvya",
-    "friends": "Splits & groepen"
+    "friends": "Splits & groepen",
+    "more": "Meer",
+    "notifications": "Meldingen",
+    "customize": "Onderste balk aanpassen",
+    "customizeHint": "Kies {{n}} om altijd binnen handbereik te houden. Start en Meer blijven vast."
   },
   "pages": {
     "dashboard": "Dashboard",

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { useQuery } from "@powersync/react";
 import { money } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
@@ -98,6 +100,8 @@ export default function SplitsPage() {
       modal overlay already scrolls. */
   const [showAllLines, setShowAllLines] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
+
+  useRegisterAddAction({ type: "button", onClick: () => setNewGroup(true), label: t("newGroupCta") }, [t]);
   const [payAnyone, setPayAnyone] = useState(false);
 
   function openPerson(userId: string, net: number) {

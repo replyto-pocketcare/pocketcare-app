@@ -401,8 +401,10 @@ input[type="radio"]:disabled { opacity: 0.5; cursor: default; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
 
 /* ---------------- Responsive shell ---------------- */
-/* No sidebar, no top app bar: navigation lives entirely in the floating
-   bottom bar + the floating notification button, on every breakpoint. */
+/* No sidebar, no top app bar: navigation lives in the floating bottom bar.
+   Back + notifications sit in a slim IN-FLOW utility row at the top of each
+   page's own content — never `position: fixed`, so nothing can ever overlap
+   a page's own header controls (that was the old top-float bell's bug). */
 .shell { display: block; min-height: 100vh; }
 .shell-main {
   min-width: 0; margin: 0 auto;
@@ -414,32 +416,38 @@ input[type="radio"]:disabled { opacity: 0.5; cursor: default; }
    same pattern as data-dash-edit / data-dash-empty. */
 body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-right: 0 !important; max-width: none !important; }
 
-/* Floating notification button — top-right, on every page, no app bar around it. */
-.top-float {
-  position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; z-index: 50;
-  width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center;
-  border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-lg); color: var(--text);
+/* In-flow utility row: Back (left, only on sub-pages) + notification bell
+   (right, always). Ordinary block content — it just sits above whatever the
+   page renders, so it can never collide with a page's own header. */
+.util-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; min-height: 40px; }
+.util-btn {
+  width: 40px; height: 40px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; flex-shrink: 0;
 }
+.util-back { width: auto; padding: 0 14px 0 12px; gap: 6px; font-size: 13.5; font-weight: 600; color: var(--text); }
 
-/* Floating bottom navigation bar. */
+/* Floating bottom navigation bar. Anchored with left/right (not a fixed px
+   width) and a max-width cap, so it always sizes to the *available* width —
+   full-bleed on a narrow phone, capped and centred on a tablet/desktop —
+   and its item slots flex evenly rather than clumping to one side. */
 .bottom-nav {
-  position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  position: fixed; left: 16px; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  margin: 0 auto; max-width: 460px;
   z-index: 50; display: flex; align-items: center; gap: 2px;
-  padding: 6px; border-radius: 999px;
+  padding: 6px 8px; border-radius: 999px;
   background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-lg);
-  max-width: calc(100vw - 24px);
 }
 .bottom-nav-item {
-  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 2px; width: 58px; height: 52px; border: none; background: transparent; cursor: pointer;
+  position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; height: 52px; border: none; background: transparent; cursor: pointer;
   border-radius: 999px; color: var(--text-2); font-size: 10px; font-weight: 600;
   transition: background 0.15s, color 0.15s;
 }
-.bottom-nav-item span { max-width: 54px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bottom-nav-item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bottom-nav-item.active { color: var(--accent); background: var(--accent-ghost); }
 .bottom-nav-item:hover { color: var(--accent); }
 .bottom-nav-add {
-  display: grid; place-items: center; width: 52px; height: 52px; margin: -14px 4px 0;
+  flex: 0 0 auto; display: grid; place-items: center; width: 52px; height: 52px; margin: -14px 6px 0;
   border: 3px solid var(--surface); border-radius: 999px; background: var(--accent); color: #fff;
   box-shadow: var(--shadow-accent); cursor: pointer;
 }
@@ -452,11 +460,12 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
   position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
   z-index: 51; display: grid; gap: 8px; padding: 10px; border-radius: 18px;
   background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-lg);
-  min-width: 220px;
+  min-width: 220px; max-width: calc(100vw - 32px);
 }
 .add-popover-item {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px;
-  color: var(--text); font-weight: 600; font-size: 14px; white-space: nowrap;
+  border: none; background: none; width: 100%; box-sizing: border-box; text-align: left;
+  color: var(--text); font-weight: 600; font-size: 14px; white-space: nowrap; cursor: pointer;
 }
 .add-popover-item:hover { background: var(--surface-2); }
 
@@ -535,7 +544,7 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
 
 /* Print: statement-only view (hide the app chrome). */
 @media print {
-  .bottom-nav, .top-float, .no-print { display: none !important; }
+  .bottom-nav, .util-row, .no-print { display: none !important; }
   main { padding: 0 !important; max-width: none !important; }
   body { background: #fff; }
   .card { box-shadow: none; border-color: #ddd; }

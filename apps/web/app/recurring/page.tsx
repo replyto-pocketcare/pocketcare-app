@@ -11,6 +11,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { money } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
@@ -36,6 +38,15 @@ export default function RecurringPage() {
   const items = useRecurringItems();
   const due = useDueRules();
   const [modal, setModal] = useState<ModalState | null>(null);
+
+  useRegisterAddAction({
+    type: "menu",
+    label: t("payment"),
+    items: [
+      { key: "payment", label: t("payment"), icon: <PlusIcon size={17} />, onClick: () => setModal({ direction: "payment" }) },
+      { key: "income", label: t("income"), icon: <PlusIcon size={17} />, onClick: () => setModal({ direction: "income" }) },
+    ],
+  }, [t]);
   const groupsByDir = useGroupsByDirection();
 
   // Seed the default groups on first visit. Idempotent and deterministic-id'd,
@@ -72,6 +83,7 @@ export default function RecurringPage() {
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div>
+          <h1 style={{ margin: 0 }}>{t("title")}</h1>
           <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>{t("subtitlePre")}<Link href="/cashflow">{t("subtitleLink")}</Link>.</p>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

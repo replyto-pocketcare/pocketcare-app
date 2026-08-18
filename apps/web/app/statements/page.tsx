@@ -41,6 +41,7 @@ export default function StatementsPage() {
   if (!isPaid) {
     return (
       <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
+        <h1>{t("title")}</h1>
         <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
           <h2>{t("premiumTitle")}</h2>
@@ -54,7 +55,8 @@ export default function StatementsPage() {
   return (
     <div style={{ display: "grid", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
       <div className="no-print" style={{ display: "grid", gap: 14 }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap", minWidth: 0 }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", minWidth: 0 }}>
+          <h1 style={{ minWidth: 0 }}>{t("title")}</h1>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
             <Link href="/statements/analyze" className="btn ghost">{t("analyze")}</Link>
             <button className="btn" onClick={() => window.print()}>{t("print")}</button>

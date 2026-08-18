@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { insertRow, updateRow, softDelete } from "../../../src/write";
@@ -35,6 +34,8 @@ export default function ManageCategoriesPage() {
 
   return (
     <div style={{ display: "grid", gap: 18, maxWidth: 720 }} className="fade-up">
+      <h1>{t("title")}</h1>
+
       <AutoCategorizeCard categories={categories} />
 
 

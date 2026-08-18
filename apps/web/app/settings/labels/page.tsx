@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { insertRow, updateRow, softDelete } from "../../../src/write";
@@ -27,6 +26,8 @@ export default function ManageLabelsPage() {
 
   return (
     <div style={{ display: "grid", gap: 18, maxWidth: 720 }} className="fade-up">
+      <h1>{t("title")}</h1>
+
       <div className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
         <FloatingInput label={t("searchPlaceholder")} value={search} onChange={setSearch} />
         <div style={{ display: "grid", gap: 8, marginTop: 8 }}>

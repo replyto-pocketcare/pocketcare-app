@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { useQuery } from "@powersync/react";
 import { money, fromMajor, toMajor } from "@sanvya/money";
 import { effectivePaidEmis, emiFromPrincipal } from "@sanvya/finance";
@@ -45,11 +47,14 @@ export default function LoansPage() {
   const { data: loans = [] } = useQuery<Loan>("SELECT id, lender, principal, currency, emi_amount, tenure_months, emis_paid, interest_rate, start_date, emi_payments, emi_due_day, auto_mark_paid, rate_type FROM loans WHERE deleted_at IS NULL ORDER BY created_at");
   const [adding, setAdding] = useState(false);
 
+  useRegisterAddAction({ type: "button", onClick: () => setAdding(true), label: t("addLoan") }, [t]);
+
   const totalEmi = loans.reduce((s, l) => s + (l.emi_amount ? conv(money(l.emi_amount, l.currency || base)).amount : 0), 0);
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
         <button className="btn" onClick={() => setAdding(true)}>+ {t("addLoan")}</button>
       </div>
 

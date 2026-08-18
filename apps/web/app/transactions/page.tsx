@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@powersync/react";
@@ -18,6 +20,8 @@ export default function TransactionsPage() {
   const syncPending = useInitialSyncPending();
   const [q, setQ] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
+
+  useRegisterAddAction({ type: "link", href: "/transactions/new", label: t("add") }, [t]);
 
   const like = `%${q}%`;
   const { data: rows = [], isLoading: rowsLoading } = useQuery<Transaction & { labels: string | null; method_label: string | null }>(
@@ -43,7 +47,8 @@ export default function TransactionsPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0, maxWidth: "100%", overflowX: "hidden" }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
         <Link href="/transactions/new" className="btn">＋ {t("add")}</Link>
       </div>
 

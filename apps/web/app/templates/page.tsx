@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useRegisterAddAction } from "../../src/ui/AddAction";
+import { PlusIcon } from "../../src/ui/icons";
 import { useQuery } from "@powersync/react";
 import { money } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
@@ -44,6 +46,8 @@ export default function TemplatesPage() {
     if (atLimit) { setShowUpgrade(true); return; }
     setEditTpl(null); setTName(""); setTType("expense"); setTAmount(""); setTAccount(""); setTDesc(""); setShowT(true);
   }
+
+  useRegisterAddAction({ type: "button", onClick: openNew, label: t("newTemplate") }, [openNew, t]);
   function openEdit(t: Template) {
     setEditTpl(t); setTName(t.name); setTType(t.type === "income" ? "income" : "expense");
     setTAmount(t.amount != null ? String(t.amount / 100) : ""); setTAccount(t.account_id ?? ""); setTDesc(t.description ?? ""); setShowT(true);
@@ -68,7 +72,8 @@ export default function TemplatesPage() {
 
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0 }}>{t("title")}</h1>
         <button className="btn" onClick={openNew}>+ {t("newTemplate")}</button>
       </div>
 

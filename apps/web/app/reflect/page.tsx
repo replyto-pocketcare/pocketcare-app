@@ -50,7 +50,8 @@ export default function ReflectPage() {
 
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 16px", height: "100dvh", display: "flex", flexDirection: "column" }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 32 }}>
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
+        <h1 style={{ margin: 0, fontSize: 24 }}>Reflect</h1>
         <div className="muted" style={{ fontSize: 14 }}>
           {currentQueue.length} left
         </div>
