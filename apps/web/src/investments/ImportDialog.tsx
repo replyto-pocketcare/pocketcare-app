@@ -6,9 +6,10 @@ import { useMoneyFmt } from "../ui/Money";
 import { money } from "@sanvya/money";
 import { getBaseCurrency } from "../prefs";
 import {
-  parseHoldingsFile, templateCsv, isExampleRow, TEMPLATE_HEADERS,
+  parseHoldingRows, splitRows, templateCsv, isExampleRow, TEMPLATE_HEADERS,
   type ColumnMap, type HoldingField, type ParseResult,
 } from "./importFormats";
+import { readXlsxSheets, canReadXlsx, type SheetData } from "./xlsx";
 import { importHoldingsBulk, type HoldingImportResult } from "./importBulk";
 
 /** Fields the user can re-point if the guess was wrong. Order = display order. */
@@ -40,7 +41,8 @@ export function ImportDialog({ open, onClose, accountId, onDone }: {
   const fmt = useMoneyFmt();
   const base = getBaseCurrency();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [text, setText] = useState<string | null>(null);
+  const [sheets, setSheets] = useState<SheetData[] | null>(null);
+  const [sheetIdx, setSheetIdx] = useState(0);
   const [fileName, setFileName] = useState("");
   const [override, setOverride] = useState<ColumnMap>({});
   const [onConflict, setOnConflict] = useState<"update" | "skip">("update");
@@ -48,28 +50,42 @@ export function ImportDialog({ open, onClose, accountId, onDone }: {
   const [result, setResult] = useState<HoldingImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const sheet = sheets?.[sheetIdx] ?? null;
   const parsed: ParseResult | null = useMemo(
-    () => (text === null ? null : parseHoldingsFile(text, Object.keys(override).length ? override : undefined)),
-    [text, override],
+    () => (sheet === null ? null : parseHoldingRows(sheet.rows, Object.keys(override).length ? override : undefined)),
+    [sheet, override],
   );
 
   const rows = parsed?.holdings.filter((h) => !isExampleRow(h)) ?? [];
   const droppedExamples = (parsed?.holdings.length ?? 0) - rows.length;
 
   const reset = () => {
-    setText(null); setFileName(""); setOverride({}); setResult(null); setError(null);
+    setSheets(null); setSheetIdx(0); setFileName(""); setOverride({}); setResult(null); setError(null);
     if (fileRef.current) fileRef.current.value = "";
   };
 
   const pick = async (f: File | undefined) => {
     if (!f) return;
-    setError(null); setResult(null); setOverride({});
-    if (/\.(xlsx|xls)$/i.test(f.name)) {
-      setError("This looks like an Excel file. Open it and use File → Save as → CSV, then upload that.");
-      return;
+    setError(null); setResult(null); setOverride({}); setSheetIdx(0);
+    try {
+      if (/\.xlsx$/i.test(f.name)) {
+        if (!canReadXlsx()) throw new Error("This browser can't read .xlsx — please save the file as CSV and try again.");
+        const all = await readXlsxSheets(await f.arrayBuffer());
+        // Brokers split equity / MF / F&O across tabs, so open on the first
+        // sheet that actually yields holdings rather than always sheet 1.
+        const firstUsable = all.findIndex((sh) => parseHoldingRows(sh.rows).holdings.length > 0);
+        setSheets(all);
+        setSheetIdx(firstUsable >= 0 ? firstUsable : 0);
+      } else if (/\.xls$/i.test(f.name)) {
+        // .xls is a completely different (pre-2007, OLE2) format, not a ZIP.
+        throw new Error("This is an old .xls file. Open it and re-save as .xlsx or CSV, then upload that.");
+      } else {
+        setSheets([{ name: f.name, rows: splitRows(await f.text()) }]);
+      }
+      setFileName(f.name);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not read that file");
     }
-    setFileName(f.name);
-    setText(await f.text());
   };
 
   const run = async () => {
@@ -93,18 +109,18 @@ export function ImportDialog({ open, onClose, accountId, onDone }: {
       <h2 style={{ margin: "0 0 4px" }}>Import investments</h2>
       <p className="muted" style={{ fontSize: 13, margin: "0 0 16px", lineHeight: 1.55 }}>
         Upload a holdings or P&amp;L export from Zerodha, Groww, Paytm Money or any other broker.
-        Columns are matched by name, so most exports work as-is — and you can correct the match below
-        if something lands in the wrong place. Save Excel exports as CSV first.
+        Excel (.xlsx) and CSV both work. Columns are matched by name, so most exports import as-is —
+        and you can correct the match below if something lands in the wrong place.
       </p>
 
       {!parsed && (
         <div style={{ display: "grid", gap: 12 }}>
           <label className="btn" style={{ justifyContent: "center", cursor: "pointer" }}>
-            Choose a CSV file
+            Choose a file (.xlsx or .csv)
             <input
               ref={fileRef}
               type="file"
-              accept=".csv,.tsv,.txt,text/csv"
+              accept=".csv,.tsv,.txt,.xlsx,text/csv"
               style={{ display: "none" }}
               onChange={(e) => void pick(e.target.files?.[0])}
             />
@@ -114,7 +130,7 @@ export function ImportDialog({ open, onClose, accountId, onDone }: {
             Download a blank template
           </button>
           <p className="muted" style={{ fontSize: 12, margin: 0, lineHeight: 1.5 }}>
-            No export, or a PDF-only one? Download the template, fill in your holdings
+            PDF-only export, or a broker we can\u2019t read? Download the template, fill in your holdings
             ({TEMPLATE_HEADERS.join(", ")}) and upload it here.
           </p>
         </div>
@@ -136,6 +152,21 @@ export function ImportDialog({ open, onClose, accountId, onDone }: {
             </div>
             <button type="button" className="chip" onClick={reset}>Choose another file</button>
           </div>
+
+          {sheets && sheets.length > 1 && (
+            <label style={{ display: "grid", gap: 5, fontSize: 12.5 }}>
+              <span className="muted">Sheet</span>
+              <select
+                value={sheetIdx}
+                onChange={(e) => { setSheetIdx(Number(e.target.value)); setOverride({}); }}
+                style={{ padding: "7px 9px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: 12.5 }}
+              >
+                {sheets.map((sh, i) => (
+                  <option key={i} value={i}>{sh.name} ({parseHoldingRows(sh.rows).holdings.length} holdings)</option>
+                ))}
+              </select>
+            </label>
+          )}
 
           {rows.length === 0 ? (
             <div style={{ padding: "12px 14px", borderRadius: 10, fontSize: 13, background: "var(--surface-2)" }}>

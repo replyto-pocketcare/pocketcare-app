@@ -177,7 +177,14 @@ function classFrom(text: string, fallback: AssetClass): AssetClass {
  * escape hatch for a format we guessed wrong.
  */
 export function parseHoldingsFile(text: string, override?: ColumnMap): ParseResult {
-  const rows = splitRows(text).filter((r) => r.some((c) => c.trim() !== ""));
+  return parseHoldingRows(splitRows(text), override);
+}
+
+/** Same parser, fed pre-split rows — the path .xlsx sheets take, since they
+ *  arrive as cells already and must not be round-tripped through CSV text
+ *  (a name containing a comma would split into two columns). */
+export function parseHoldingRows(input: string[][], override?: ColumnMap): ParseResult {
+  const rows = input.filter((r) => r.some((c) => (c ?? "").trim() !== ""));
   const rejected: { row: number; reason: string }[] = [];
   if (rows.length === 0) {
     return { broker: null, headers: [], mapping: {}, holdings: [], rejected: [{ row: 0, reason: "File is empty" }] };
