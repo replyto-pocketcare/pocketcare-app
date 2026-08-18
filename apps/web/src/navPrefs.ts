@@ -3,8 +3,9 @@
 import { useSyncExternalStore } from "react";
 import type { MaterialIconName } from "./ui/MaterialIcon";
 
-/** Everything eligible for one of the two customizable bottom-bar slots.
- *  Home and "More" are fixed — they're not in this catalog. */
+/** Everything eligible for one of the four customizable bottom-bar slots
+ *  (2 on each side of the center "+", so the bar reads as a balanced 3-and-3
+ *  with Home/More). Home and "More" are fixed — they're not in this catalog. */
 export interface NavCatalogItem {
   id: string;
   href: string;
@@ -31,8 +32,8 @@ export const NAV_CATALOG: NavCatalogItem[] = [
   { id: "settings", href: "/settings", tkey: "nav.settings", label: "Settings", icon: "settings" },
 ];
 
-export const DEFAULT_NAV_IDS = ["transactions", "friends", "insights"];
-export const NAV_SLOTS = 3;
+export const DEFAULT_NAV_IDS = ["transactions", "accounts", "friends", "insights"];
+export const NAV_SLOTS = 4;
 const KEY = "pc_bottomNav";
 const listeners = new Set<() => void>();
 
@@ -40,7 +41,17 @@ function sanitize(ids: unknown): string[] {
   if (!Array.isArray(ids)) return DEFAULT_NAV_IDS;
   const valid = ids.filter((id): id is string => typeof id === "string" && NAV_CATALOG.some((c) => c.id === id));
   const deduped = [...new Set(valid)].slice(0, NAV_SLOTS);
-  return deduped.length ? deduped : DEFAULT_NAV_IDS;
+  if (deduped.length === 0) return DEFAULT_NAV_IDS;
+  if (deduped.length < NAV_SLOTS) {
+    // A save from before the bar grew to 4 slots (or a corrupted/short list) —
+    // top it up with defaults rather than leaving one side of the bar short,
+    // which is what actually caused the "unbalanced" layout this replaces.
+    for (const id of DEFAULT_NAV_IDS) {
+      if (deduped.length >= NAV_SLOTS) break;
+      if (!deduped.includes(id)) deduped.push(id);
+    }
+  }
+  return deduped;
 }
 
 export function getBottomNavIds(): string[] {

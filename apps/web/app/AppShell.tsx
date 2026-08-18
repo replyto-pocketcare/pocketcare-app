@@ -365,21 +365,23 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
 
         {/* Floating bottom nav — replaces the old sidebar/topbar entirely.
-            2 customizable slots either side of the center "+" (Home and More
-            are fixed); widths are flexible so it never overflows a narrow
-            phone, and it centers within whatever room the viewport has. */}
+            Balanced 3-and-3 around the center "+": Home + 2 customizable
+            slots on the left, 2 more + More on the right. Labels show on
+            wider screens; on phones (see globals.css) it's icons only, like
+            a native tab bar. Widths are flexible so it never overflows a
+            narrow phone, and it centers within whatever room there is. */}
         <nav className="bottom-nav" aria-label="Primary">
           <Link href="/" className={`bottom-nav-item${isActive("/") ? " active" : ""}`} aria-label={t("nav.home", "Home")}>
             <MaterialIcon name="space_dashboard" size={22} />
             <span>{t("nav.home", "Home")}</span>
           </Link>
 
-          {navItems[0] && (
-            <Link href={navItems[0].href} className={`bottom-nav-item${isActive(navItems[0].href) ? " active" : ""}`} aria-label={t(navItems[0].tkey, navItems[0].label)}>
-              <MaterialIcon name={navItems[0].icon} size={22} />
-              <span>{t(navItems[0].tkey, navItems[0].label)}</span>
+          {navItems.slice(0, 2).map((n) => (
+            <Link key={n.id} href={n.href} className={`bottom-nav-item${isActive(n.href) ? " active" : ""}`} aria-label={t(n.tkey, n.label)}>
+              <MaterialIcon name={n.icon} size={22} />
+              <span>{t(n.tkey, n.label)}</span>
             </Link>
-          )}
+          ))}
 
           <button
             type="button"
@@ -391,7 +393,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <PlusIcon size={24} />
           </button>
 
-          {navItems.slice(1).map((n) => (
+          {navItems.slice(2, 4).map((n) => (
             <Link key={n.id} href={n.href} className={`bottom-nav-item${isActive(n.href) ? " active" : ""}`} aria-label={t(n.tkey, n.label)}>
               <MaterialIcon name={n.icon} size={22} />
               <span>{t(n.tkey, n.label)}</span>

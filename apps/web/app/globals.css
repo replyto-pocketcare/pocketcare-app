@@ -453,6 +453,16 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
 }
 .bottom-nav-add:hover { background: var(--accent-hover); }
 
+/* Icons-only on phones — matches a native tab bar and keeps 6 items (3 either
+   side of "+") from ever crowding a narrow screen. Labels stay for anyone
+   with the room (tablet/desktop); a11y label is unaffected either way since
+   it's `aria-label` on the element, not the visible text. */
+@media (max-width: 640px) {
+  .bottom-nav-item span { display: none; }
+  .bottom-nav-item { height: 46px; }
+  .bottom-nav-add { width: 48px; height: 48px; }
+}
+
 /* Backdrop for the quick-add popover: transparent (the popover itself already
    floats above the dimmed-nothing page) — just a big tap target to dismiss. */
 .scrim-clear { position: fixed; inset: 0; z-index: 49; background: transparent; }
