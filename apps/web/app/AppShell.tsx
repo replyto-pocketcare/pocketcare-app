@@ -321,6 +321,67 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="shell">
         <GlobalLoader />
 
+        {/* Desktop-only left sidebar. Hidden below 1024px, where the floating
+            bottom bar remains the only nav — so the phone experience is
+            completely unchanged. Above it, the bottom bar hides and this takes
+            over, which is what makes wide screens read as an analytics console
+            rather than a phone layout stretched sideways. */}
+        <aside className="side-nav" aria-label={t("nav.primary", "Primary")}>
+          <div className="side-nav-brand">
+            <Link href="/" aria-label={t("nav.home", "Home")}><Logo size={26} /></Link>
+          </div>
+
+          <button type="button" className="side-nav-add press" onClick={runAdd} aria-label={action.label} aria-expanded={action.type === "menu" ? addOpen : undefined}>
+            <PlusIcon size={17} />
+            <span>{action.label}</span>
+          </button>
+
+          <div className="side-nav-scroll hide-scrollbar">
+            <Link href="/" className={`side-nav-item${isActive("/") ? " active" : ""}`}>
+              <MaterialIcon name="space_dashboard" size={19} />
+              <span>{t("nav.home", "Home")}</span>
+            </Link>
+            <Link href="/notifications" className={`side-nav-item${isActive("/notifications") ? " active" : ""}`}>
+              <MaterialIcon name="notifications" size={19} />
+              <span>{t("nav.notifications", "Notifications")}</span>
+              {unread > 0 && <span className="side-nav-badge">{unread > 9 ? "9+" : unread}</span>}
+            </Link>
+
+            {NAV_GROUPS.map((g, gi) => (
+              <div key={gi} className="side-nav-group">
+                {g.title && <div className="side-nav-title">{g.title}</div>}
+                {g.items.map((n) => (
+                  <Link key={n.href} href={n.href} className={`side-nav-item${isActive(n.href) ? " active" : ""}`}>
+                    <MaterialIcon name={n.icon} size={19} />
+                    <span>{t(n.tkey, n.label)}</span>
+                    {n.beta && <span className="beta-badge sm" style={{ marginLeft: "auto" }}>BETA</span>}
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          <div className="side-nav-foot">
+            {session?.isGuest && (
+              <Link href="/login" className="side-nav-guest">
+                <strong>Guest</strong>{session.daysLeft !== null ? ` · ${session.daysLeft}d left` : ""}
+                <div style={{ color: "var(--accent)", marginTop: 2 }}>Create account →</div>
+              </Link>
+            )}
+            <button type="button" className="side-nav-item" onClick={() => setShowBug(true)}>
+              <MaterialIcon name="chat_bubble" size={19} />
+              <span>Feedback</span>
+            </button>
+            {!standalone && (
+              <button type="button" className="side-nav-item" onClick={() => setShowInstall(true)}>
+                <DownloadIcon size={17} />
+                <span>Install app</span>
+              </button>
+            )}
+            <div className="side-nav-ver">Sanvya v{APP_VERSION}</div>
+          </div>
+        </aside>
+
         <main className="shell-main" style={{ padding: "20px 20px 0", maxWidth: 720, overflowX: "hidden" }}>
           {/* One in-flow row for both the (optional) back button and the
               notification bell — always in normal document flow, never a

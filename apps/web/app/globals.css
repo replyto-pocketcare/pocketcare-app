@@ -567,8 +567,65 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
    handful of "instrument panel" touches (tighter corners, tabular figures)
    give it more of a conventional analytics-dashboard feel. Mobile (below
    this breakpoint) is completely untouched. */
+/* The desktop sidebar does not exist below the breakpoint at all. */
+.side-nav { display: none; }
+
 @media (min-width: 1024px) {
-  .shell-main { max-width: 1360px !important; padding-left: 32px !important; padding-right: 32px !important; }
+  /* Nav swaps: floating bottom bar out, persistent sidebar in. */
+  .bottom-nav { display: none !important; }
+
+  .side-nav {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 252px; z-index: 40;
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 18px 14px 14px; box-sizing: border-box;
+    background: var(--sidebar); border-right: 1px solid var(--border);
+  }
+  .side-nav-brand { padding: 2px 8px 14px; }
+  .side-nav-add {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 14px; margin-bottom: 12px; border: none; border-radius: 12px;
+    background: var(--accent); color: #fff; font-size: 14px; font-weight: 650;
+    cursor: pointer; box-shadow: var(--shadow-accent); transition: background 0.15s;
+  }
+  .side-nav-add:hover { background: var(--accent-hover); }
+  .side-nav-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+  .side-nav-group { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; }
+  .side-nav-title {
+    padding: 2px 10px; font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-2); opacity: 0.65;
+  }
+  .side-nav-item {
+    display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;
+    padding: 9px 10px; border: none; background: none; border-radius: 10px;
+    font-family: inherit; font-size: 13.5px; font-weight: 500; text-align: left;
+    color: var(--text); cursor: pointer; transition: background 0.15s, color 0.15s;
+  }
+  .side-nav-item:hover { background: var(--surface-2); }
+  .side-nav-item.active { background: var(--accent-ghost); color: var(--accent); font-weight: 650; }
+  .side-nav-badge {
+    margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+    background: var(--negative); color: #fff; font-size: 10.5px; font-weight: 700;
+    display: grid; place-items: center; line-height: 1;
+  }
+  .side-nav-foot { flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .side-nav-guest {
+    padding: 9px 10px; margin-bottom: 4px; border-radius: 10px; font-size: 12.5px;
+    background: var(--accent-ghost); border: 1px solid var(--accent-soft);
+  }
+  .side-nav-ver { padding: 6px 10px 0; font-size: 11px; color: var(--text-2); opacity: 0.7; }
+
+  /* Content sits beside the sidebar and uses the full remaining width — no
+     bottom-bar clearance needed now that the bottom bar is gone. */
+  .shell-main {
+    margin-left: 252px !important; margin-right: 0 !important;
+    max-width: 1440px !important;
+    padding: 24px 32px 40px !important;
+  }
+  body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-right: 0 !important; }
+
+  /* Quick-add menu anchors under the sidebar's Add button instead of floating
+     at the bottom of the screen where the bottom bar used to be. */
+  .add-popover { left: 268px; top: 116px; bottom: auto; transform: none; }
 
   /* Same 4-column track (tile w/h spans in src/dashboard.ts assume 4 cols) —
      just taller rows and more breathing room, so a chart tile is genuinely
@@ -596,8 +653,8 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
 
 /* Print: statement-only view (hide the app chrome). */
 @media print {
-  .bottom-nav, .util-row, .no-print { display: none !important; }
-  main { padding: 0 !important; max-width: none !important; }
+  .bottom-nav, .side-nav, .util-row, .no-print { display: none !important; }
+  main { padding: 0 !important; max-width: none !important; margin-left: 0 !important; }
   body { background: #fff; }
   .card { box-shadow: none; border-color: #ddd; }
 }
