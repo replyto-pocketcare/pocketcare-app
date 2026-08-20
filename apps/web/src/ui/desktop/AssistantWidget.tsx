@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { MaterialIcon, type MaterialIconName } from "../MaterialIcon";
 import { ArrowUpIcon } from "../icons";
 import { AssistantOrb } from "./AssistantOrb";
+import { AssistantChat } from "../../assistant/AssistantChat";
 
 /**
  * "Ask Sanvya" on the desktop dashboard: a card that morphs into a docked
@@ -17,10 +17,11 @@ import { AssistantOrb } from "./AssistantOrb";
  * normal document flow become a `position: fixed` panel without the jump you
  * get from animating `position` directly.
  *
- * The composer doesn't answer inline: it hands off to /assistant with the
- * question prefilled, so there is exactly ONE chat implementation (threads,
- * tools, quota, confirmations all live there) instead of a second, thinner
- * one that quietly behaves differently.
+ * Asking never leaves the dashboard. The expanded panel mounts the real
+ * AssistantChat (threads, tools, quota, confirmations), so there is still
+ * exactly ONE chat implementation -- it is embedded here rather than
+ * navigated to. The collapsed card is only a launcher: whatever you type or
+ * tap there becomes the panel's opening question.
  */
 interface Quick {
   key: string;
@@ -47,7 +48,7 @@ function ExpandIcon({ open }: { open: boolean }) {
   );
 }
 
-function Body({ open, onAsk }: { open: boolean; onAsk: (text: string) => void }) {
+function Body({ onAsk }: { onAsk: (text: string) => void }) {
   const [q, setQ] = useState("");
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,11 +59,11 @@ function Body({ open, onAsk }: { open: boolean; onAsk: (text: string) => void })
   return (
     <>
       <div className="ai-stage">
-        <AssistantOrb size={open ? 150 : 116} />
+        <AssistantOrb size={116} />
       </div>
 
-      <div className={`ai-quick${open ? " ai-quick-col" : ""}`}>
-        {(open ? QUICK : QUICK.slice(0, 4)).map((qa) => (
+      <div className="ai-quick">
+        {QUICK.map((qa) => (
           <button key={qa.key} type="button" className="ai-chip press" onClick={() => onAsk(qa.prompt)}>
             <span className="ai-chip-ico" style={{ background: `color-mix(in srgb, ${qa.tint} 16%, transparent)`, color: qa.tint }}>
               <MaterialIcon name={qa.icon} size={14} />
@@ -88,8 +89,9 @@ function Body({ open, onAsk }: { open: boolean; onAsk: (text: string) => void })
 }
 
 export function AssistantWidget() {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+  // The question that opened the panel, handed to the chat as its first turn.
+  const [opening, setOpening] = useState<string | undefined>(undefined);
 
   // Escape closes the panel — a docked overlay that can only be dismissed by
   // hitting a small target is a trap for keyboard users.
@@ -100,7 +102,11 @@ export function AssistantWidget() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const ask = (text: string) => router.push(`/assistant?q=${encodeURIComponent(text)}`);
+  const ask = (text: string) => { setOpening(text); setOpen(true); };
+
+  // Remount the chat per question so a new one from the collapsed card starts
+  // a fresh turn rather than being swallowed as a duplicate initial prompt.
+  const chatKey = opening ?? "blank";
 
   const spring = { type: "spring" as const, stiffness: 240, damping: 30 };
 
@@ -110,11 +116,11 @@ export function AssistantWidget() {
         <motion.section layoutId="ai-shell" transition={spring} className="ai-card card">
           <div className="ai-head">
             <h2>Ask Sanvya</h2>
-            <button type="button" className="ai-expand press" onClick={() => setOpen(true)} aria-label="Expand assistant">
+            <button type="button" className="ai-expand press" onClick={() => { setOpening(undefined); setOpen(true); }} aria-label="Expand assistant">
               <ExpandIcon open={false} />
             </button>
           </div>
-          <Body open={false} onAsk={ask} />
+          <Body onAsk={ask} />
         </motion.section>
       )}
 
@@ -143,8 +149,9 @@ export function AssistantWidget() {
                   <ExpandIcon open />
                 </button>
               </div>
-              <Body open onAsk={ask} />
-              <p className="ai-foot">Answers use your own figures, on this device.</p>
+              <div className="ai-panel-chat">
+                <AssistantChat key={chatKey} embedded initialPrompt={opening} />
+              </div>
             </motion.aside>
           </>
         )}
