@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { MaterialIcon, type MaterialIconName } from "../MaterialIcon";
 import { ArrowUpIcon } from "../icons";
@@ -10,6 +11,15 @@ import { AssistantChat } from "../../assistant/AssistantChat";
 /**
  * "Ask Sanvya" on the desktop dashboard: a card that morphs into a docked
  * side panel.
+ *
+ * The overlay is PORTALLED to document.body. `position: fixed` resolves
+ * against the nearest ancestor with a transform, not the viewport — and this
+ * widget sits inside the dashboard's `.fade-up`, whose `animation-fill-mode:
+ * both` leaves a transform on it permanently once the intro finishes. That
+ * made the panel size itself to the dashboard's full scroll height, so the
+ * chat ran off the bottom of the page no matter how the flexbox inside was
+ * arranged. A portal is the fix that keeps working regardless of what any
+ * future host page does to its own transforms.
  *
  * The morph is a shared `layoutId` between the two elements rather than a
  * width/height transition on one. Only one is ever mounted, and framer-motion
@@ -90,6 +100,9 @@ function Body({ onAsk }: { onAsk: (text: string) => void }) {
 
 export function AssistantWidget() {
   const [open, setOpen] = useState(false);
+  // document.body isn't there during SSR, so the portal mounts after hydration.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   // The question that opened the panel, handed to the chat as its first turn.
   const [opening, setOpening] = useState<string | undefined>(undefined);
 
@@ -124,6 +137,7 @@ export function AssistantWidget() {
         </motion.section>
       )}
 
+      {mounted && createPortal(
       <AnimatePresence>
         {open && (
           <>
@@ -155,7 +169,8 @@ export function AssistantWidget() {
             </motion.aside>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body)}
     </>
   );
 }
