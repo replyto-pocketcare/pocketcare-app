@@ -108,10 +108,25 @@ export interface BudgetLike {
   threshold_pct: number;
 }
 
+/** One expense counted against a budget, joined for display. */
+export interface BudgetTxn {
+  id: string;
+  occurred_at: string;
+  amount: number;
+  currency: CurrencyCode;
+  description: string | null;
+  note: string | null;
+  category_name: string | null;
+  account_name: string | null;
+}
+
 export interface BudgetRepository {
   list(): Promise<BudgetLike[]>;
   /** Money spent in the budget's current period window, honoring its scope. */
   spentThisPeriod(budget: BudgetLike, asOf?: Date): Promise<Money>;
+  /** The expenses making up that figure, newest first. Same scope, so these
+   *  always sum to `spentThisPeriod`. */
+  transactionsThisPeriod(budget: BudgetLike, asOf?: Date): Promise<BudgetTxn[]>;
 }
 
 export interface CreditCardDetails {

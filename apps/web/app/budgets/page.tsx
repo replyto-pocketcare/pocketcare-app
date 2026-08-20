@@ -20,6 +20,7 @@ import { MultiSelect } from "../../src/ui/MultiSelect";
 import { LabelPicker } from "../../src/ui/LabelPicker";
 import { Modal } from "../../src/ui/Modal";
 import { useConfirm } from "../../src/ui/Confirm";
+import { SpentBreakdown } from "../../src/budgets/SpentBreakdown";
 import { ListSkeleton } from "../../src/ui/Skeleton";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, ReferenceLine, Tooltip } from "recharts";
 import type { BudgetLike } from "@sanvya/data";
@@ -258,6 +259,7 @@ function BudgetRow({ budget, cats, labels, catOptions, autoOpen }: {
   const timeframe = budget.start_date && budget.end_date ? win.label : `${t(`period.${budget.period}`)} · ${win.label}`;
 
   const [editing, setEditing] = useState(false);
+  const [showSpent, setShowSpent] = useState(false);
   useEffect(() => {
     if (autoOpen) {
       setEditing(true);
@@ -334,10 +336,23 @@ function BudgetRow({ budget, cats, labels, catOptions, autoOpen }: {
         </div>
       )}
       <ProgressBar pct={p.pct} color={color} />
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }} className="muted">
-        <span>{t("spent", { amount: fmt(spent) })}</span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, fontSize: 13 }} className="muted">
+        {/* The spent figure is the drill-down: tapping the number you're
+            questioning is where people look for the answer. */}
+        <button
+          type="button"
+          onClick={() => setShowSpent(true)}
+          className="press"
+          style={{ border: "none", background: "none", padding: 0, font: "inherit", color: "inherit",
+                   cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted",
+                   textUnderlineOffset: 3, textAlign: "left" }}
+          aria-label={t("viewSpentAria", "View the transactions behind this figure")}
+        >
+          {t("spent", { amount: fmt(spent) })}
+        </button>
         <span>{p.overLimit ? t("over", { amount: fmt(money(spent.amount - limit.amount, budget.currency)) }) : t("left", { amount: fmt(remaining) })}</span>
       </div>
+      <SpentBreakdown open={showSpent} onClose={() => setShowSpent(false)} budget={budget} spent={spent} title={title} />
       {!editing && <BudgetSpendChart budget={budget} catIds={catIds} labelNames={labelNames} win={win} limitMajor={toMajor(limit)} color={color} />}
     </div>
   );

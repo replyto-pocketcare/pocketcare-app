@@ -14,6 +14,7 @@ import type {
   BalanceRepository,
   BudgetRepository,
   BudgetLike,
+  BudgetTxn,
   CreditCardRepository,
   CreditCardDetails,
   NewTransactionInput,
@@ -428,8 +429,17 @@ export class PowerSyncBudgetRepository implements BudgetRepository {
     );
   }
 
-  /** Sum of expenses in the budget's window (custom range or current period), honoring its category/label junctions. */
-  async spentThisPeriod(budget: BudgetLike, asOf = new Date()): Promise<Money> {
+  /**
+   * The single definition of "what counts against this budget": window,
+   * currency, and the category/label junctions it tracks.
+   *
+   * Extracted so the total and the drill-down list are built from the SAME
+   * clause. A second hand-written query for the list would be a standing
+   * invitation for the two to disagree — and a list that doesn't add up to the
+   * figure above it is worse than no list at all, because it makes the user
+   * doubt the number rather than the screen.
+   */
+  private async scopeClause(budget: BudgetLike, asOf: Date): Promise<{ where: string; params: (string | number)[] }> {
     let start: Date;
     let endExclusive: Date;
     if (budget.start_date && budget.end_date) {
@@ -480,11 +490,35 @@ export class PowerSyncBudgetRepository implements BudgetRepository {
     }
     if (ors.length) where.push(`(${ors.join(" OR ")})`);
     // No categories/labels selected → overall (all expenses).
+    return { where: where.join(" AND "), params };
+  }
+
+  /** Sum of expenses in the budget's window (custom range or current period), honoring its category/label junctions. */
+  async spentThisPeriod(budget: BudgetLike, asOf = new Date()): Promise<Money> {
+    const { where, params } = await this.scopeClause(budget, asOf);
     const row = await this.db.get<{ total: number | null }>(
-      `SELECT COALESCE(SUM(t.amount), 0) AS total FROM transactions t WHERE ${where.join(" AND ")}`,
+      `SELECT COALESCE(SUM(t.amount), 0) AS total FROM transactions t WHERE ${where}`,
       params,
     );
     return money(row.total ?? 0, budget.currency);
+  }
+
+  /**
+   * The individual expenses behind `spentThisPeriod`, newest first — same
+   * scope, same window, so the rows always sum to the total.
+   */
+  async transactionsThisPeriod(budget: BudgetLike, asOf = new Date()): Promise<BudgetTxn[]> {
+    const { where, params } = await this.scopeClause(budget, asOf);
+    return this.db.getAll<BudgetTxn>(
+      `SELECT t.id, t.occurred_at, t.amount, t.currency, t.description, t.note,
+              c.name AS category_name, a.name AS account_name
+         FROM transactions t
+         LEFT JOIN categories c ON c.id = t.category_id
+         LEFT JOIN accounts a ON a.id = t.account_id
+        WHERE ${where}
+        ORDER BY t.occurred_at DESC, t.created_at DESC`,
+      params,
+    );
   }
 }
 
