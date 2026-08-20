@@ -497,10 +497,16 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
 /* Customizable dashboard tile grid.
    Fixed 4-column track with a fixed row unit (proportional to viewport height)
    and dense packing, so tiles snap to discrete sizes and backfill gaps. */
+/* Rows are a FINE unit, not a tile-sized one: each tile spans however many
+   units its measured content needs (see DraggableGrid in app/page.tsx), so a
+   short tile takes a short slot instead of padding itself out to a fixed
+   height. `dense` then backfills the gaps, which is what lets two short tiles
+   sit alongside one tall one. Keep these two values in sync with ROW_UNIT /
+   ROW_GAP there — the span arithmetic depends on them. */
 .dash-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-rows: clamp(80px, 10.5vh, 118px);
+  grid-auto-rows: 8px;
   grid-auto-flow: row dense;
   gap: 20px;
 }
@@ -511,14 +517,22 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
    doesn't fit is designed out instead: lists cap at `useFitRows()` + a
    "+N more" link, and charts flex to the remaining space. */
 .dash-tile { min-width: 0; min-height: 0; border-radius: 24px; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-.dash-tile-body { height: 100%; min-height: 0; border-radius: 24px; overflow: hidden; }
+/* height:auto is load-bearing — this element is what ResizeObserver measures
+   to compute the tile's row span. Give it a height derived from the grid and
+   the measurement feeds back into itself. */
+.dash-tile-body { height: auto; min-height: 0; border-radius: 24px; overflow: hidden; }
 .dash-tile-body > section {
-  height: 100%; box-sizing: border-box; min-height: 0;
-  display: flex; flex-direction: column;   /* lets the chart area flex + shrink */
+  height: auto; box-sizing: border-box; min-height: 0;
+  display: flex; flex-direction: column;
   overflow: hidden;
 }
 /* The flex child that holds a chart: must be allowed to shrink below content. */
 .tile-flex { flex: 1 1 auto; min-height: 0; }
+/* Charts are <ResponsiveContainer height="100%">, which needs a containing
+   block with a DEFINITE height. That used to come from the fixed grid row;
+   now that tiles size to content, the chart states its own height instead —
+   which is also what makes "size to content" meaningful for a chart tile. */
+.tile-chart { height: 210px; flex: none; }
 
 /* Subscriptions: list + add/simulator side column. Single column on narrow. */
 .subs-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
@@ -533,7 +547,8 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
 @media (max-width: 860px) {
   .shell-main { padding: 10px 16px calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
   .dash-cols { grid-template-columns: 1fr !important; }
-  /* On phones: single column, natural content heights (no fixed grid).
+  /* On phones: single column, natural content heights. Tiles ignore both the
+     measured row spans and the chosen widths here — one column, stacked.
      NOTE: the tile body deliberately keeps `overflow: hidden` from the base
      rule — it is NOT overridden back to `visible` here. Two behaviours meant
      the scroll-trapping bug could return on one form factor only, and the
@@ -543,20 +558,6 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
   .dash-grid .dash-tile { grid-column: auto !important; grid-row: auto !important; }
   .dash-tile-body { height: auto; }
   .dash-tile-body > section { height: auto; }
-  /* Charts are `<ResponsiveContainer height="100%">`, which needs a containing
-     block with a DEFINITE height. On desktop the grid row supplies one; here
-     the tile is `height: auto`, so the chart measured 0 and vanished.
-
-     It must be a real `height`, not `min-height`: a percentage height resolves
-     against the containing block's COMPUTED height, and `auto` makes it `auto`
-     too. `min-height` only changes the parent's USED height — which is why the
-     first attempt reserved blank space in the card but still drew no chart.
-     `flex: none` stops the column's `flex: 1 1 auto` collapsing it again.
-
-     `!important` because one wrapper sets `minHeight: 0` inline (it has to
-     shrink inside the desktop grid) and a normal rule loses to an inline style.
-     Scoped to `.tile-chart`, so list tiles still size to their content. */
-  .tile-chart { height: 220px !important; min-height: 220px !important; flex: none !important; }
   h1 { font-size: 22px; }
 }
 

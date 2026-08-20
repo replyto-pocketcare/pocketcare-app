@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -15,7 +15,7 @@ import { useAmountsHidden, setAmountsHidden } from "../src/prefs";
 import { colorForId } from "../src/colors";
 import { EyeIcon, EyeOffIcon, PlusIcon, SlidersIcon, LockIcon } from "../src/ui/icons";
 import { Modal } from "../src/ui/Modal";
-import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSizes, setTileSize, W_COLS, H_ROWS, nextDim, type TileId, type TileSize } from "../src/dashboard";
+import { useDashboardTiles, setTileEnabled, reorderTiles, useTileSizes, setTileSize, W_COLS, nextDim, type TileId, type TileSize } from "../src/dashboard";
 import { TILE_CATALOG, TileView, tileMeta, TILE_HREF } from "../src/dashboard/tiles";
 import { Walkthrough } from "../src/onboarding/Walkthrough";
 import { Suggestions } from "../src/dashboard/Suggestions";
@@ -40,13 +40,14 @@ const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
   byLabel: { w: "md", h: "md" },
   monthCompare: { w: "lg", h: "md" },
 };
+/** Fine row unit + gap the dashboard grid runs on. Must match .dash-grid. */
+const ROW_UNIT = 8;
+const ROW_GAP = 20;
+
 const defaultSize = (id: TileId): TileSize => DEFAULT_SIZE[id] ?? { w: "md", h: "md" };
 
 const WidthIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12H3M7 8l-4 4 4 4M17 8l4 4-4 4" /></svg>
-);
-const HeightIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4" /></svg>
 );
 const CheckIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
@@ -364,6 +365,49 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
 
   const clearHold = () => { if (hold.current) { clearTimeout(hold.current); hold.current = undefined; } };
 
+  /**
+   * Tile heights are MEASURED, not chosen.
+   *
+   * The grid used to give every tile a fixed row span, so a tile whose content
+   * ran short (a "Spending this month" with three categories, say) still
+   * reserved five rows and left the rest blank. Now the grid runs on a fine
+   * row unit and each tile spans however many units its content actually
+   * needs, which — with `grid-auto-flow: dense` — lets two short tiles pack
+   * alongside one tall one instead of leaving holes.
+   *
+   * Safe against feedback loops because the observed element is height:auto:
+   * its height drives the span, never the other way round. (If .dash-tile-body
+   * were height:100% again this would oscillate.)
+   */
+  const [spans, setSpans] = useState<Record<string, number>>({});
+  const bodies = useRef<Map<TileId, HTMLElement>>(new Map());
+  const obs = useRef<ResizeObserver | null>(null);
+
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return;
+    const measure = (el: HTMLElement) => {
+      const id = el.dataset.tileId as TileId | undefined;
+      if (!id) return;
+      const h = el.getBoundingClientRect().height;
+      if (h <= 0) return;
+      // Rows are ROW_UNIT tall with ROW_GAP between, so N rows cover
+      // N*unit + (N-1)*gap — solve for the smallest N that fits.
+      const span = Math.max(2, Math.ceil((h + ROW_GAP) / (ROW_UNIT + ROW_GAP)));
+      setSpans((prev) => (prev[id] === span ? prev : { ...prev, [id]: span }));
+    };
+    const ro = new ResizeObserver((entries) => entries.forEach((e) => measure(e.target as HTMLElement)));
+    obs.current = ro;
+    bodies.current.forEach((el) => { ro.observe(el); measure(el); });
+    return () => { ro.disconnect(); obs.current = null; };
+  }, []);
+
+  const bodyRef = useCallback((id: TileId) => (el: HTMLElement | null) => {
+    const prev = bodies.current.get(id);
+    if (prev && prev !== el) obs.current?.unobserve(prev);
+    if (el) { bodies.current.set(id, el); obs.current?.observe(el); }
+    else bodies.current.delete(id);
+  }, []);
+
   function moveBy(id: TileId, dir: -1 | 1) {
     setOrder((prev) => {
       const i = prev.indexOf(id), j = i + dir;
@@ -461,7 +505,7 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
               onPointerCancel={() => up()}
               style={{
                 gridColumn: `span ${W_COLS[sz.w]}`,
-                gridRow: `span ${H_ROWS[sz.h]}`,
+                gridRow: `span ${spans[id] ?? 14}`,
                 position: "relative",
                 touchAction: isDrag ? "none" : "auto",
                 cursor: editing ? (isDrag ? "grabbing" : "grab") : "pointer",
@@ -479,11 +523,6 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
                         onClick={() => setTileSize(id, { ...sz, w: nextDim(sz.w) })}
                         style={sizeBtn}
                       ><WidthIcon /></button>
-                      <button
-                        aria-label="Cycle height" title={`Height: ${sz.h}`}
-                        onClick={() => setTileSize(id, { ...sz, h: nextDim(sz.h) })}
-                        style={sizeBtn}
-                      ><HeightIcon /></button>
                     </div>
                   )}
                   {editing && (
@@ -501,7 +540,12 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
                     </div>
                   )}
                   {/* Freeze interactions inside the tile while editing so drags don't trigger links. */}
-                  <div className="dash-tile-body" style={{ pointerEvents: editing ? "none" : "auto" }}>
+                  <div
+                    className="dash-tile-body"
+                    data-tile-id={id}
+                    ref={bodyRef(id)}
+                    style={{ pointerEvents: editing ? "none" : "auto" }}
+                  >
                     <TileView id={id} />
                   </div>
                 </>
