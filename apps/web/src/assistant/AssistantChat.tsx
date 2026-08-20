@@ -468,7 +468,23 @@ export function AssistantChat({ embedded = false, initialPrompt }: {
   // ---------- Chat: fixed-height frame — header · scrollable thread · pinned composer ----------
   return (
     <div ref={pageRef} className="assist-page" style={embedded
-      ? { width: "100%", height: "100%", minHeight: 0, display: "flex", flexDirection: "column" }
+      ? {
+          // Embedded, height comes from the host box by FLEX, never from a
+          // viewport unit: the stylesheet's `calc(100dvh - 80px)` is measured
+          // against the screen, so inside an inset panel it is always taller
+          // than the space available and the thread runs out of the bottom.
+          // `height: auto` + `flex: 1 1 auto` + `min-height: 0` lets this
+          // shrink to whatever the panel actually gives it.
+          width: "100%",
+          height: "auto",
+          flex: "1 1 auto",
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+          // In chat view the thread is the scroller, so nothing should scroll
+          // out here. The landing view has no inner scroller, so it needs one.
+          overflowY: view === "chat" ? "hidden" : "auto",
+        }
       : { maxWidth: 760, width: "100%", marginInline: "auto" }}>
       {!disclaimerAcked && (
         <Modal open onClose={ackDisclaimer}>
