@@ -468,9 +468,8 @@ function SubscriptionsTile() {
           <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize: 32, fontWeight: 750 }}>{fmt(monthly)}<span style={{ fontSize: 15, fontWeight: 600, color: HERO_MUTED }}> /mo</span></div>
             {/* Lifetime spend rides on the EXISTING line rather than adding a
-                third. Dashboard tiles clip at a fixed height and `useFitRows`
-                divides up whatever is left, so every extra header line costs a
-                renewal row — or the "+N more" link — below the divider. */}
+                third: a header line is a line the reader pays for on a tile
+                whose whole job is to show renewals. */}
             <div
               style={{ fontSize: 13, color: HERO_MUTED, marginTop: 4 }}
               title={lifetime > 0 ? "Spend so far is estimated from each subscription's price and how long it's been running. Actual charges may differ." : undefined}
@@ -910,10 +909,11 @@ const ellipsisTick = (v: string, n = 14) => (v.length > n ? `${v.slice(0, n - 1)
 
 /**
  * Horizontal bar tile. It used to size itself from its data
- * (`height={Math.max(180, data.length * 34)}`), which grew to 272px inside a cell
- * whose row unit is `clamp(80px, 10.5vh, 118px)` — the overflow that made the old
- * nested scrollbar necessary. Now the chart fills the tile and the *bar count*
- * comes from `useFitRows`, so it shrinks with the tile instead of pushing past it.
+ * (`height={Math.max(180, data.length * 34)}`), which overflowed the fixed-height
+ * cell tiles used to have — the overflow that made the old nested scrollbar
+ * necessary. Tiles are now sized to their content, so the chart states its own
+ * height (.tile-chart) and the tile grows to it; the bar count is a fixed budget
+ * from useFitRows rather than something measured against the cell.
  */
 function HBarTile({ title, data, empty, href = "/insights" }: { title: string; data: { name: string; value: number }[]; empty: string; href?: string }) {
   const cfmt = useChartMoney();

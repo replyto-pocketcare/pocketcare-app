@@ -1,38 +1,34 @@
 "use client";
 
 /**
- * How many list rows fit the space a dashboard tile actually has.
+ * How many list rows a dashboard tile should render.
  *
- * Dashboard tiles are user-resizable (`grid-column: span W` / `grid-row: span H`)
- * and they **clip** — they never scroll, because a nested scroller captures the
- * wheel/swipe and refuses to chain it back to the page. So a hard-coded "show 4
- * rows" is wrong at every size but one: too few rows wastes a tall tile, too many
- * get silently cut off by `overflow: hidden`.
+ * HISTORY, because this hook used to do something quite different and the
+ * reason it stopped matters:
  *
- * `useFitRows` observes the list container and returns `floor(available / rowH)`.
- * Callers render `items.slice(0, fit)` plus a "+N more →" link.
+ * Tiles were once fixed-height (`grid-row: span H` against a tile-sized row
+ * unit), so a list had a known amount of room and the job was to fit rows into
+ * it — observe the container, return `floor(available / rowH)`, clip the rest
+ * behind a "+N more" link. That required an invariant, documented here in
+ * capitals at the time: the measured container's height must NOT come from its
+ * children, or `fit` feeds back into its own measurement and settles at 1 row.
  *
- * Two things worth knowing before you change this:
+ * Tiles are now sized to their CONTENT (see DraggableGrid in app/page.tsx),
+ * which breaks that invariant by design — the tile's height is derived from
+ * the list, so the list can no longer derive itself from the tile. Keeping the
+ * observer would collapse every list to a single row, which is exactly what it
+ * did until this was fixed.
  *
- * 1. **The container must have a height that does not come from its children** —
- *    i.e. it must be the `.tile-flex` child (`flex: 1; min-height: 0`) of the
- *    tile's flex column. If its height were content-derived, `fit` would feed
- *    back into the measurement and settle at 1 row.
- * 2. **Below 860px tiles have natural height** (see the media query in
- *    globals.css: single column, `grid-auto-rows: auto`). There is nothing to fit
- *    into there, so the hook returns `max` and the list renders in full. This is
- *    the *same* width condition the layout already uses — not a second, divergent
- *    behaviour of the kind that let the scroll bug survive on one form factor.
+ * So the responsibility is inverted: the list renders up to `max` rows and the
+ * tile grows to fit them. This is what the hook already did below 860px, where
+ * tiles have always had natural height — that special case is simply now the
+ * only case.
  *
- * The initial value is `max`, so the first paint over-renders and then shrinks.
- * That direction is safe (the tile clips); starting small and growing would flash
- * an empty tile on every mount.
+ * Kept as a hook, rather than deleted, so callers keep their `ref` and their
+ * `max` row budget in one place, and so this note survives next to them.
  */
 
-import { useEffect, useRef, useState } from "react";
-
-/** Matches the `@media (max-width: 860px)` block in globals.css. */
-const NATURAL_HEIGHT_QUERY = "(max-width: 860px)";
+import { useRef } from "react";
 
 export interface FitRowsOptions {
   /** Vertical gap between rows, in px (defaults to the 8px most tiles use). */
@@ -44,31 +40,12 @@ export interface FitRowsOptions {
 }
 
 export function useFitRows<T extends HTMLElement = HTMLDivElement>(
-  rowHeight: number,
-  { gap = 8, min = 1, max = 24 }: FitRowsOptions = {},
+  _rowHeight: number,
+  { max = 24 }: FitRowsOptions = {},
 ) {
+  // No measurement: a content-sized tile takes its height from this list, so
+  // measuring the list against the tile would be circular. `max` is the row
+  // budget each tile chooses for itself.
   const ref = useRef<T | null>(null);
-  const [fit, setFit] = useState(max);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const mq = typeof window.matchMedia === "function" ? window.matchMedia(NATURAL_HEIGHT_QUERY) : null;
-
-    const measure = () => {
-      if (mq?.matches) { setFit(max); return; }
-      const h = el.clientHeight;
-      if (h <= 0) return; // not laid out yet (or hidden) — keep the last value
-      const n = Math.floor((h + gap) / (rowHeight + gap));
-      setFit(Math.max(min, Math.min(max, n)));
-    };
-
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    measure();
-    mq?.addEventListener("change", measure);
-    return () => { ro.disconnect(); mq?.removeEventListener("change", measure); };
-  }, [rowHeight, gap, min, max]);
-
-  return { ref, fit };
+  return { ref, fit: max };
 }
