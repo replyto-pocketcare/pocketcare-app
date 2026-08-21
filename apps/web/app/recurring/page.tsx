@@ -84,8 +84,7 @@ export default function RecurringPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ margin: 0 }}>{t("title")}</h1>
-          <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>{t("subtitlePre")}<Link href="/cashflow">{t("subtitleLink")}</Link>.</p>
-        </div>
+                  </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button className="btn ghost" onClick={() => setModal({ direction: "income" })}>+ {t("income")}</button>
           <button className="btn" onClick={() => setModal({ direction: "payment" })}>+ {t("payment")}</button>
@@ -136,7 +135,6 @@ export default function RecurringPage() {
           edit={modal.edit ?? null}
           prefill={modal.prefill ?? null}
           onClose={(saved) => {
-            if (saved && modal.convertFrom) softDelete("planned_cashflow", modal.convertFrom);
             setModal(null);
           }}
         />

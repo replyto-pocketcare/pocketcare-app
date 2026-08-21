@@ -64,10 +64,22 @@ test("credit cards are suggested only to someone who holds one", () => {
 
 test("premium features are never suggested to a free user", () => {
   // Suggesting something they'd have to pay to touch is an ad, not a tip.
+  //
+  // Asserted against the rule table rather than one named feature: Planned
+  // Cashflow was the only premium suggestion and it has been removed, so
+  // naming a feature here would have meant deleting this test and leaving the
+  // gating in pickSuggestions untested until someone marked something premium
+  // again. Written this way it passes vacuously today and starts biting the
+  // moment a premium rule reappears.
+  const premiumIds = RULES.filter((r) => r.premium).map((r) => r.id);
   const free = pickSuggestions({ ...ACTIVE, transactions: 200 }, { isPaid: false, max: 99 });
-  assert.ok(!free.includes("cashflow"));
+  for (const id of premiumIds) {
+    assert.ok(!free.includes(id), `premium feature ${id} was suggested to a free user`);
+  }
   const paid = pickSuggestions({ ...ACTIVE, transactions: 200 }, { isPaid: true, max: 99 });
-  assert.ok(paid.includes("cashflow"));
+  for (const id of premiumIds) {
+    assert.ok(paid.includes(id), `premium feature ${id} should be suggested to a paid user`);
+  }
 });
 
 test("a fully-explored user is suggested nothing", () => {
@@ -75,7 +87,6 @@ test("a fully-explored user is suggested nothing", () => {
     accounts: 3, transactions: 500,
     subscriptions: 1, loans: 1, budgets: 1, goals: 1, splitGroups: 1, receipts: 1,
     recurring: 1, holdings: 1, creditCards: 1, creditCardAccounts: 1,
-    plannedCashflow: 1,
   };
   assert.deepEqual(pickSuggestions(done, { isPaid: true, max: 99 }), []);
 });

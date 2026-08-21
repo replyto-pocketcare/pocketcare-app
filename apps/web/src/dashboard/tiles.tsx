@@ -63,13 +63,13 @@ export const tileMeta = (id: TileId): TileMeta => TILE_CATALOG.find((t) => t.id 
 export const TILE_HREF: Record<TileId, string> = {
   recent: "/transactions",
   spending: "/transactions",
-  upcoming: "/cashflow#payments",
+  upcoming: "/recurring",
   trends: "/insights",
   splits: "/friends",
   budgets: "/budgets",
   goals: "/goals",
-  subscriptions: "/cashflow#payments",
-  cashflow: "/cashflow",
+  subscriptions: "/recurring",
+  cashflow: "/insights",
   netTrend: "/insights",
   byCategory: "/insights",
   byLabel: "/insights",
@@ -547,17 +547,22 @@ function useUpcomingPayments(): Upcoming[] {
   const { data: loans = [] } = useQuery<{ id: string; lender: string; emi_amount: number | null; currency: string; start_date: string | null; emi_due_day: number | null; tenure_months: number | null; emis_paid: number | null }>(
     "SELECT id, lender, emi_amount, currency, start_date, emi_due_day, tenure_months, emis_paid FROM loans WHERE deleted_at IS NULL",
   );
+  // Reads recurring_items, the table migration 0060 consolidated BOTH
+  // planned_cashflow and the recurring_rules/transaction_templates pair into.
+  // Those two sources used to be queried separately here; each row carries its
+  // source_table/source_id, so a migrated item appears exactly once.
   const { data: planned = [] } = useQuery<{ id: string; name: string; direction: string; bucket: string; amount: number; currency: string; frequency: string; next_due: string | null }>(
-    "SELECT id, name, direction, bucket, amount, currency, frequency, next_due FROM planned_cashflow WHERE deleted_at IS NULL AND is_active = 1 AND direction IN ('payment','saving')",
+    `SELECT id, name, direction, '' AS bucket, amount, currency, frequency, next_due
+       FROM recurring_items
+      WHERE deleted_at IS NULL AND active = 1 AND direction = 'expense'`,
   );
   const { data: cards = [] } = useQuery<{ account_id: string; name: string; currency: string; pending_due: number | null; due_on: string | null }>(
     "SELECT cd.account_id AS account_id, a.name AS name, a.currency AS currency, cd.pending_due AS pending_due, cd.due_on AS due_on FROM credit_card_details cd JOIN accounts a ON a.id = cd.account_id WHERE a.deleted_at IS NULL",
   );
-  const { data: rules = [] } = useQuery<{ id: string; name: string; type: string; amount: number | null; currency: string | null; frequency: string; next_due: string }>(
-    `SELECT r.id AS id, t.name AS name, t.type AS type, t.amount AS amount, t.currency AS currency, r.frequency AS frequency, r.next_due AS next_due
-     FROM recurring_rules r JOIN transaction_templates t ON t.id = r.template_id
-     WHERE r.deleted_at IS NULL AND t.deleted_at IS NULL AND r.active = 1 AND t.type IN ('expense','transfer')`,
-  );
+  // Deliberately empty: recurring_rules + transaction_templates were folded into
+  // recurring_items by 0060, so keeping this query alongside the one above would
+  // list every migrated commitment twice.
+  const rules: { id: string; name: string; type: string; amount: number | null; currency: string | null; frequency: string; next_due: string }[] = [];
 
   return useMemo(() => {
     const today = startOfToday();
@@ -622,10 +627,10 @@ function UpcomingTile() {
   const shown = items.slice(0, fit);
 
   return (
-    <TileCard title="Upcoming payments" action={<Link href="/cashflow#payments" className="muted" style={{ fontSize: 13 }}>Manage →</Link>}>
+    <TileCard title="Upcoming payments" action={<Link href="/recurring" className="muted" style={{ fontSize: 13 }}>Manage →</Link>}>
       {items.length === 0 ? (
         <p className="muted" style={{ fontSize: 13, margin: 0 }}>
-          No scheduled payments yet. Add subscriptions, loan EMIs, SIPs or bills from <Link href="/cashflow#payments">Planned Cashflow</Link>.
+          No scheduled payments yet. Add subscriptions, loan EMIs or bills from <Link href="/recurring">Recurring</Link>.
         </p>
       ) : (
         <>
@@ -651,7 +656,7 @@ function UpcomingTile() {
               );
             })}
             {items.length > shown.length && (
-              <Link href="/cashflow#payments" className="muted" style={{ fontSize: 12 }}>+{items.length - shown.length} more →</Link>
+              <Link href="/recurring" className="muted" style={{ fontSize: 12 }}>+{items.length - shown.length} more →</Link>
             )}
           </div>
         </>

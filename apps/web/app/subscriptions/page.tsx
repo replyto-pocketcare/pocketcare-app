@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 
-// Subscriptions merged into the unified Planned Cashflow hub (BETA).
-// Kept as a redirect so existing links (dashboard tiles, insights CTAs) still land.
+// Subscriptions are managed as recurring payments. This redirect predates that
+// move (it used to point at the Planned Cashflow hub, now removed) and is kept
+// so old links — dashboard tiles, insights CTAs, bookmarks — still land.
 export default function SubscriptionsRedirect() {
-  redirect("/cashflow");
+  redirect("/recurring");
 }

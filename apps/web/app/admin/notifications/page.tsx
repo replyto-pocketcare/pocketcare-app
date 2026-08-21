@@ -6,7 +6,6 @@ import { getAudienceGroups, sendBroadcastPush, createAudienceGroup, addUsersToGr
 export default function AdminNotifications() {
   const DEEP_LINK_TARGETS: Record<string, { label: string; sections: { id: string; label: string }[]; hasSpecificItem?: boolean }> = {
     "/": { label: "Dashboard", sections: [] },
-    "/cashflow": { label: "Cashflow", sections: [{ id: "incomes", label: "Incomes" }, { id: "payments", label: "Payments" }, { id: "savings", label: "Savings & Invest" }, { id: "summary", label: "Summary" }] },
     "/friends": { label: "Splits / Friends", sections: [{ id: "groups", label: "Groups & Trips" }, { id: "owed", label: "Owed to You" }, { id: "owe", label: "You Owe" }, { id: "friends", label: "Friends List" }] },
     "/investments": { label: "Investments", sections: [{ id: "portfolio", label: "Portfolio" }, { id: "market", label: "Market Insights" }] },
     "/settings": { label: "Settings", sections: [{ id: "account", label: "Account" }, { id: "theme", label: "Theme" }, { id: "privacy", label: "Privacy" }, { id: "profile", label: "Profile" }, { id: "currency", label: "Currency" }, { id: "language", label: "Language" }, { id: "categories", label: "Categories" }, { id: "data", label: "Data Import/Export" }, { id: "subscriptions", label: "Plan & Billing" }, { id: "help", label: "Help" }] },

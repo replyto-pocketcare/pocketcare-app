@@ -185,7 +185,6 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
   { title: "Planning", items: [
     { href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "donut_small" },
     { href: "/goals", tkey: "nav.goals", label: "Goals", icon: "flag" },
-    { href: "/cashflow", tkey: "nav.cashflow", label: "Planned Cashflow", icon: "waterfall_chart", beta: true },
     { href: "/recurring", tkey: "nav.recurring", label: "Recurring", icon: "autorenew" },
     { href: "/loans", tkey: "nav.loans", label: "Loans", icon: "request_quote" },
   ] },

@@ -21,7 +21,6 @@ export const NAV_CATALOG: NavCatalogItem[] = [
   { id: "accounts", href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "account_balance" },
   { id: "budgets", href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "donut_small" },
   { id: "goals", href: "/goals", tkey: "nav.goals", label: "Goals", icon: "flag" },
-  { id: "cashflow", href: "/cashflow", tkey: "nav.cashflow", label: "Cashflow", icon: "waterfall_chart" },
   { id: "recurring", href: "/recurring", tkey: "nav.recurring", label: "Recurring", icon: "autorenew" },
   { id: "loans", href: "/loans", tkey: "nav.loans", label: "Loans", icon: "request_quote" },
   { id: "investments", href: "/investments", tkey: "nav.investments", label: "Investments", icon: "trending_up" },

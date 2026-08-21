@@ -51,7 +51,6 @@ const REPAIR_ORDER: readonly string[] = [
   "loans",
   "subscriptions",
   "recurring_commitments",
-  "planned_cashflow",
   "holdings",
   "receipt_scans",
 ];

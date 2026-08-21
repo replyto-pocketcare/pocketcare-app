@@ -115,13 +115,6 @@ const CARDS: Record<FeatureId, Card> = {
     cta: "Add a holding",
     href: "/investments",
   },
-  cashflow: {
-    icon: "waterfall_chart",
-    title: "Plan ahead",
-    body: "Map income against commitments and project a year forward.",
-    cta: "Open planner",
-    href: "/cashflow",
-  },
 };
 
 /** Persisted dismissals, filtered through `isFeatureId` so a stale id can't linger. */
@@ -167,7 +160,6 @@ export function Suggestions() {
       (SELECT COUNT(*) FROM recurring_rules WHERE deleted_at IS NULL) AS recurring,
       (SELECT COUNT(*) FROM holdings WHERE deleted_at IS NULL) AS holdings,
       (SELECT COUNT(*) FROM credit_card_details WHERE deleted_at IS NULL) AS creditCards,
-      (SELECT COUNT(*) FROM planned_cashflow WHERE deleted_at IS NULL) AS plannedCashflow
   `);
 
   const dismiss = useCallback((id: FeatureId) => {

@@ -32,7 +32,6 @@ export const FEATURES = [
   "recurring",
   "investments",
   "creditCards",
-  "cashflow",
 ] as const;
 export type FeatureId = (typeof FEATURES)[number];
 
@@ -55,7 +54,6 @@ export interface UsageCounts {
   holdings?: number;
   creditCards?: number;
   creditCardAccounts?: number;
-  plannedCashflow?: number;
 }
 
 export interface SuggestionRule {
@@ -139,13 +137,6 @@ export const RULES: readonly SuggestionRule[] = [
     used: (u) => n(u.holdings) > 0,
     eligible: (u) => n(u.accounts) >= 1 && n(u.transactions) >= 20,
     weight: 80,
-  },
-  {
-    id: "cashflow",
-    used: (u) => n(u.plannedCashflow) > 0,
-    eligible: (u) => n(u.transactions) >= 20,
-    weight: 100,
-    premium: true,
   },
 ];
 
