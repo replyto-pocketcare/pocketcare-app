@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -375,38 +375,50 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
    * needs, which — with `grid-auto-flow: dense` — lets two short tiles pack
    * alongside one tall one instead of leaving holes.
    *
-   * Safe against feedback loops because the observed element is height:auto:
-   * its height drives the span, never the other way round. (If .dash-tile-body
-   * were height:100% again this would oscillate.)
+   * Measured from ONE effect that walks the tile elements already tracked in
+   * `refs`, rather than a per-tile ref callback. An inline `ref={(el) => ...}`
+   * has a new identity every render, so React detaches and re-attaches it each
+   * time — and re-attaching means calling observe(), which fires the observer
+   * immediately, which sets state, which renders again. That is an infinite
+   * loop, and it is why an earlier version of this left the dashboard blank.
+   *
+   * The measured element must stay height:auto: its height drives the span,
+   * never the other way round. If .dash-tile-body were height:100% again this
+   * would oscillate for a different reason.
    */
   const [spans, setSpans] = useState<Record<string, number>>({});
-  const bodies = useRef<Map<TileId, HTMLElement>>(new Map());
-  const obs = useRef<ResizeObserver | null>(null);
 
   useEffect(() => {
-    if (typeof ResizeObserver === "undefined") return;
-    const measure = (el: HTMLElement) => {
-      const id = el.dataset.tileId as TileId | undefined;
-      if (!id) return;
-      const h = el.getBoundingClientRect().height;
-      if (h <= 0) return;
-      // Rows are ROW_UNIT tall with ROW_GAP between, so N rows cover
-      // N*unit + (N-1)*gap — solve for the smallest N that fits.
-      const span = Math.max(2, Math.ceil((h + ROW_GAP) / (ROW_UNIT + ROW_GAP)));
-      setSpans((prev) => (prev[id] === span ? prev : { ...prev, [id]: span }));
+    const measureAll = () => {
+      setSpans((prev) => {
+        let next = prev;
+        let changed = false;
+        refs.current.forEach((tile, id) => {
+          const body = tile.querySelector<HTMLElement>(".dash-tile-body");
+          if (!body) return;
+          const h = body.getBoundingClientRect().height;
+          if (h <= 0) return;
+          // N rows cover N*unit + (N-1)*gap — smallest N that fits the content.
+          const span = Math.max(2, Math.ceil((h + ROW_GAP) / (ROW_UNIT + ROW_GAP)));
+          if (prev[id] !== span) {
+            if (!changed) { next = { ...prev }; changed = true; }
+            next[id] = span;
+          }
+        });
+        return changed ? next : prev;
+      });
     };
-    const ro = new ResizeObserver((entries) => entries.forEach((e) => measure(e.target as HTMLElement)));
-    obs.current = ro;
-    bodies.current.forEach((el) => { ro.observe(el); measure(el); });
-    return () => { ro.disconnect(); obs.current = null; };
-  }, []);
 
-  const bodyRef = useCallback((id: TileId) => (el: HTMLElement | null) => {
-    const prev = bodies.current.get(id);
-    if (prev && prev !== el) obs.current?.unobserve(prev);
-    if (el) { bodies.current.set(id, el); obs.current?.observe(el); }
-    else bodies.current.delete(id);
-  }, []);
+    measureAll();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measureAll);
+    refs.current.forEach((tile) => {
+      const body = tile.querySelector<HTMLElement>(".dash-tile-body");
+      if (body) ro.observe(body);
+    });
+    return () => ro.disconnect();
+    // Re-attach when the set of tiles changes, so new ones get measured too.
+  }, [ids.join(","), editing]);
 
   function moveBy(id: TileId, dir: -1 | 1) {
     setOrder((prev) => {
@@ -505,7 +517,7 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
               onPointerCancel={() => up()}
               style={{
                 gridColumn: `span ${W_COLS[sz.w]}`,
-                gridRow: `span ${spans[id] ?? 14}`,
+                gridRow: `span ${spans[id] ?? 8}`,
                 position: "relative",
                 touchAction: isDrag ? "none" : "auto",
                 cursor: editing ? (isDrag ? "grabbing" : "grab") : "pointer",
@@ -540,12 +552,7 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
                     </div>
                   )}
                   {/* Freeze interactions inside the tile while editing so drags don't trigger links. */}
-                  <div
-                    className="dash-tile-body"
-                    data-tile-id={id}
-                    ref={bodyRef(id)}
-                    style={{ pointerEvents: editing ? "none" : "auto" }}
-                  >
+                  <div className="dash-tile-body" style={{ pointerEvents: editing ? "none" : "auto" }}>
                     <TileView id={id} />
                   </div>
                 </>
