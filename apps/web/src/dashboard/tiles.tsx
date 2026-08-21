@@ -287,7 +287,9 @@ function SpendingTile() {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const { data: spend = [] } = useQuery<{ category_id: string | null; total: number }>(
     `SELECT category_id, SUM(amount) as total FROM transactions
-     WHERE deleted_at IS NULL AND type='expense' AND occurred_at >= ? GROUP BY category_id ORDER BY total DESC`,
+     WHERE deleted_at IS NULL AND type='expense' AND occurred_at >= ?
+       AND id NOT IN (SELECT transaction_id FROM expense_postings WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+     GROUP BY category_id ORDER BY total DESC`,
     [monthStart],
   );
   // Pie values are MAJOR units so the shared chartMoney formatter applies.
@@ -662,7 +664,9 @@ function UpcomingTile() {
 
 function useCashflow() {
   const { data: byMonth = [] } = useQuery<{ ym: string; type: string; total: number }>(
-    "SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total FROM transactions WHERE deleted_at IS NULL AND type IN ('income','expense') GROUP BY ym, type ORDER BY ym",
+    `SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total FROM transactions
+      WHERE deleted_at IS NULL AND type IN ('income','expense') AND id NOT IN (SELECT transaction_id FROM expense_postings WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+      GROUP BY ym, type ORDER BY ym`,
   );
   const monthsMap = new Map<string, { month: string; income: number; expense: number }>();
   for (const r of byMonth) {
@@ -784,7 +788,9 @@ function TrendsTile() {
     return d.toISOString().slice(0, 10) + "T00:00:00";
   }, [days]);
   const { data: rows = [] } = useQuery<{ d: string; total: number }>(
-    "SELECT date(occurred_at) as d, SUM(amount) as total FROM transactions WHERE deleted_at IS NULL AND type='expense' AND occurred_at >= ? GROUP BY d ORDER BY d",
+    `SELECT date(occurred_at) as d, SUM(amount) as total FROM transactions
+      WHERE deleted_at IS NULL AND type='expense' AND occurred_at >= ? AND id NOT IN (SELECT transaction_id FROM expense_postings WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+      GROUP BY d ORDER BY d`,
     [since],
   );
   const data = useMemo(() => buildTrend(new Map(rows.map((r) => [r.d, r.total])), period), [rows, period]);
@@ -938,7 +944,9 @@ function HBarTile({ title, data, empty, href = "/insights" }: { title: string; d
 
 function ByCategoryTile() {
   const { data: byCat = [] } = useQuery<{ name: string | null; total: number }>(
-    "SELECT c.name as name, SUM(t.amount) as total FROM transactions t LEFT JOIN categories c ON c.id = t.category_id WHERE t.deleted_at IS NULL AND t.type='expense' GROUP BY t.category_id ORDER BY total DESC LIMIT 8",
+    `SELECT c.name as name, SUM(t.amount) as total FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
+      WHERE t.deleted_at IS NULL AND t.type='expense' AND t.id NOT IN (SELECT transaction_id FROM expense_postings WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+      GROUP BY t.category_id ORDER BY total DESC LIMIT 8`,
   );
   return <HBarTile title="Spending by category" data={byCat.map((r) => ({ name: r.name ?? "Uncategorised", value: major(r.total) }))} empty="No expenses recorded yet." />;
 }
@@ -947,7 +955,8 @@ function ByLabelTile() {
   const { data: labelRows = [] } = useQuery<{ name: string; total: number }>(
     `SELECT l.name AS name, SUM(t.amount) AS total
      FROM transaction_labels tl JOIN labels l ON l.id = tl.label_id JOIN transactions t ON t.id = tl.transaction_id
-     WHERE t.deleted_at IS NULL AND t.type='expense' GROUP BY l.id ORDER BY total DESC LIMIT 8`,
+     WHERE t.deleted_at IS NULL AND t.type='expense' AND t.id NOT IN (SELECT transaction_id FROM expense_postings WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+     GROUP BY l.id ORDER BY total DESC LIMIT 8`,
   );
   return <HBarTile title="Spending by label" data={labelRows.map((r) => ({ name: r.name, value: major(r.total) }))} empty="Add labels to transactions to see this." />;
 }

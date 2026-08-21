@@ -110,7 +110,9 @@ export function StatRow({ net, base, fmt, hidden }: {
   // Same shape of query the net-worth hero already runs, so this adds one
   // cheap aggregate rather than a second pass over the ledger per card.
   const { data: rows = [] } = useQuery<{ ym: string; type: string; total: number }>(
-    "SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total FROM transactions WHERE deleted_at IS NULL AND type IN ('income','expense') GROUP BY ym, type ORDER BY ym",
+    `SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total FROM transactions
+     WHERE deleted_at IS NULL AND type IN ('income','expense') AND id NOT IN (SELECT transaction_id FROM expense_postings WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+     GROUP BY ym, type ORDER BY ym`,
   );
 
   const byMonth = new Map<string, { inc: number; exp: number }>();

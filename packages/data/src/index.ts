@@ -120,6 +120,30 @@ export interface BudgetTxn {
   account_name: string | null;
 }
 
+/**
+ * SQL predicate excluding money you FRONTED for other people from your own
+ * spending.
+ *
+ * A split books the part you covered for others as an ordinary expense on your
+ * account (see projectPersonal in apps/web/src/splits/write.ts) so that a split
+ * reads as one clean expense in your ledger. Correct for the ledger — the cash
+ * really did leave your account — but wrong for every "what did I spend"
+ * aggregate: buying a friend a phone on your card to use an offer would blow
+ * your budget for the month even though none of it was your spending.
+ *
+ * The `lend` role on expense_postings already marks exactly these rows, so this
+ * needs no flag of its own. Kept here, as one string, because the alternative
+ * is the same condition hand-written into a dozen aggregates that then drift
+ * apart — which is precisely how the budget total and its drill-down would
+ * disagree.
+ *
+ * Deliberately NOT applied to listings: you should still SEE the transaction on
+ * your card, just not have it counted as your own spend.
+ */
+export const notFrontedForOthers = (alias = "t"): string =>
+  `${alias}.id NOT IN (SELECT transaction_id FROM expense_postings
+      WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)`;
+
 export interface BudgetRepository {
   list(): Promise<BudgetLike[]>;
   /** Money spent in the budget's current period window, honoring its scope. */

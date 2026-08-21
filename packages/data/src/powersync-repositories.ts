@@ -21,6 +21,7 @@ import type {
   EditTransactionInput,
   TransactionAudit,
 } from "./index.ts";
+import { notFrontedForOthers } from "./index.ts";
 
 const uuid = () => globalThis.crypto.randomUUID();
 const nowIso = () => new Date().toISOString();
@@ -452,6 +453,10 @@ export class PowerSyncBudgetRepository implements BudgetRepository {
     const where: string[] = [
       "t.type = 'expense'",
       "t.deleted_at IS NULL",
+      // Money fronted for other people is not your spending — see the note on
+      // notFrontedForOthers. Without this a friend's phone on your card blows
+      // the month's budget.
+      notFrontedForOthers("t"),
       "t.occurred_at >= ?",
       "t.occurred_at < ?",
       "t.currency = ?",
