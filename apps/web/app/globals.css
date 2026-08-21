@@ -691,10 +691,12 @@ body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-ri
   }
   body[data-fullbleed="true"] .shell-main { padding-left: 0 !important; padding-right: 0 !important; }
 
-  /* Same 4-column track (tile w/h spans in src/dashboard.ts assume 4 cols) —
-     just taller rows and more breathing room, so a chart tile is genuinely
-     bigger, not just wider. */
-  .dash-grid { grid-auto-rows: clamp(96px, 12vh, 152px); gap: 24px; }
+  /* NOTE: no grid-auto-rows / gap override here. The row unit is a FINE 8px
+     step that tile spans are measured against (DraggableGrid in app/page.tsx);
+     overriding it to a tile-sized row here multiplied every measured span by
+     ~15, which is what turned the dashboard into a void of giant empty cells.
+     Desktop gets bigger tiles by measuring more content, not by inflating the
+     unit those measurements are denominated in. */
 
   /* Sharper, less rounded corners read as a denser data console rather than
      a phone-app card stack — scoped to desktop only. */

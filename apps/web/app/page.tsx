@@ -40,9 +40,16 @@ const DEFAULT_SIZE: Partial<Record<TileId, TileSize>> = {
   byLabel: { w: "md", h: "md" },
   monthCompare: { w: "lg", h: "md" },
 };
-/** Fine row unit + gap the dashboard grid runs on. Must match .dash-grid. */
+/** Fallbacks only, for the first measurement before layout resolves. The live
+ *  values are read off .dash-grid — see measureAll. */
 const ROW_UNIT = 8;
 const ROW_GAP = 20;
+
+/** "8px" -> 8. A multi-track `grid-auto-rows` ("8px 8px") takes the first. */
+function parsePx(value: string | undefined, fallback: number): number {
+  const n = Number.parseFloat((value ?? "").trim().split(/\s+/)[0] ?? "");
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
 
 const defaultSize = (id: TileId): TileSize => DEFAULT_SIZE[id] ?? { w: "md", h: "md" };
 
@@ -357,6 +364,7 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
   const grab = useRef<{ ox: number; oy: number }>({ ox: 0, oy: 0 });
   const size = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
   const refs = useRef<Map<TileId, HTMLElement>>(new Map());
+  const gridRef = useRef<HTMLDivElement | null>(null);
   const hold = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const start = useRef<{ x: number; y: number } | null>(null);
   // Touch (coarse pointer) devices reorder with the ▲▼ buttons instead of drag,
@@ -392,6 +400,16 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
 
   useEffect(() => {
     const measureAll = () => {
+      // Read the row unit and gap the grid is ACTUALLY using rather than
+      // trusting a constant to match the stylesheet. A `grid-auto-rows`
+      // override in a later media query once multiplied every span by ~15 and
+      // turned the dashboard into a void of giant empty cells; a duplicated
+      // number in two files will drift again, a measured one cannot.
+      const grid = gridRef.current;
+      const cs = grid ? getComputedStyle(grid) : null;
+      const unit = parsePx(cs?.gridAutoRows, ROW_UNIT);
+      const gap = parsePx(cs?.rowGap, ROW_GAP);
+
       setSpans((prev) => {
         let next = prev;
         let changed = false;
@@ -401,7 +419,7 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
           const h = body.getBoundingClientRect().height;
           if (h <= 0) return;
           // N rows cover N*unit + (N-1)*gap — smallest N that fits the content.
-          const span = Math.max(2, Math.ceil((h + ROW_GAP) / (ROW_UNIT + ROW_GAP)));
+          const span = Math.max(2, Math.ceil((h + gap) / (unit + gap)));
           if (prev[id] !== span) {
             if (!changed) { next = { ...prev }; changed = true; }
             next[id] = span;
@@ -504,7 +522,7 @@ function DraggableGrid({ ids, editing, onLongPress, sizeOf }: {
 
   return (
     <>
-      <div className="dash-grid">
+      <div className="dash-grid" ref={gridRef}>
         {order.map((id) => {
           const sz = sizeOf(id);
           const isDrag = dragging === id;
