@@ -80,6 +80,11 @@ public enum SanvyaMetrics {
         public static let contentMaxWidth: CGFloat = 1440
     }
 
+    public enum PageHeader {
+        public static let sectionGap: CGFloat = 20
+        public static let headerGap: CGFloat = 12
+    }
+
     public enum UtilRow {
         public static let minHeight: CGFloat = 40
         public static let gap: CGFloat = 10

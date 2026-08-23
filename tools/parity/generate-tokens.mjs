@@ -461,6 +461,11 @@ object SanvyaMetrics {
         val contentMaxWidth = ${S.expanded.contentMaxWidth}.dp
     }
 
+    object PageHeader {
+        val sectionGap = ${S.pageHeader.sectionGap}.dp
+        val headerGap = ${S.pageHeader.headerGap}.dp
+    }
+
     object UtilRow {
         val minHeight = ${S.utilRow.minHeight}.dp
         val gap = ${S.utilRow.gap}.dp
@@ -867,6 +872,11 @@ public enum SanvyaMetrics {
         public static let contentPaddingH: CGFloat = ${S.expanded.contentPaddingH}
         public static let contentPaddingBottom: CGFloat = ${S.expanded.contentPaddingBottom}
         public static let contentMaxWidth: CGFloat = ${S.expanded.contentMaxWidth}
+    }
+
+    public enum PageHeader {
+        public static let sectionGap: CGFloat = ${S.pageHeader.sectionGap}
+        public static let headerGap: CGFloat = ${S.pageHeader.headerGap}
     }
 
     public enum UtilRow {

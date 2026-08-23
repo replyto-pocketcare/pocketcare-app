@@ -85,6 +85,11 @@ object SanvyaMetrics {
         val contentMaxWidth = 1440.dp
     }
 
+    object PageHeader {
+        val sectionGap = 20.dp
+        val headerGap = 12.dp
+    }
+
     object UtilRow {
         val minHeight = 40.dp
         val gap = 10.dp

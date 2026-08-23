@@ -326,6 +326,22 @@ export const SHELL = {
     ],
   },
 
+  /**
+   * The shape every top-level page shares: an `<h1>` and the page's primary
+   * action on one row, then the content below.
+   *
+   * Inline styles on the page wrappers in `apps/web/app/*\/page.tsx`, not CSS
+   * classes, so there is nothing here to assert -- the values are recorded with
+   * their source instead, exactly as `banner` is.
+   */
+  pageHeader: {
+    /** Between the heading row and the first block of content. */
+    sectionGap: 20,
+    /** Between the heading and its action button when both fit on one row. */
+    headerGap: 12,
+    source: "apps/web/app/{budgets,goals,accounts,cards,help,insights}/page.tsx page wrapper",
+  },
+
   listGrid: {
     minColumnWidth: 320,
     gap: 12,
