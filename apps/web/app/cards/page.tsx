@@ -18,6 +18,7 @@ import { useMoneyFmt } from "../../src/ui/Money";
 import { AmountInput } from "../../src/ui/AmountInput";
 import { findCoveredEmis, markEmisPaid, type CoveredEmi } from "../../src/loans/settleEmis";
 import { Modal } from "../../src/ui/Modal";
+import { isInvestmentAccount } from "@sanvya/types";
 
 const PALETTE = ["#3e4a38", "#b06a4f", "#5f6647", "#7c4a3a", "#2b2723"];
 
@@ -99,7 +100,11 @@ export default function CardsPage() {
                 account={b.account}
                 owed={b.balance.amount}
                 detail={detailFor(b.account.id)}
-                sources={balances.filter((x) => x.account.id !== b.account.id && x.account.type !== "credit_card").map((x) => ({ id: x.account.id, name: x.account.name }))}
+                sources={balances
+                  // A card bill is paid with spendable money. Demat/stocks/MF
+                  // accounts hold holdings, not cash you can move today.
+                  .filter((x) => x.account.id !== b.account.id && x.account.type !== "credit_card" && !isInvestmentAccount(x.account.type))
+                  .map((x) => ({ id: x.account.id, name: x.account.name }))}
               />
             </motion.div>
           );

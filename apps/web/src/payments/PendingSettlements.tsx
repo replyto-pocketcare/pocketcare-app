@@ -21,6 +21,7 @@ import { useMyUserId, useUserProfiles } from "../splits/hooks";
 import { confirmSettlement, disputeSettlement, type PendingSettlement } from "../splits/write";
 import { useMoneyFmt } from "../ui/Money";
 import { Spinner } from "../ui/Spinner";
+import { NOT_INVESTMENT_ACCOUNT_SQL } from "@sanvya/types";
 
 export function usePendingSettlements(): PendingSettlement[] {
   const me = useMyUserId();
@@ -41,7 +42,8 @@ export function PendingSettlements() {
   const pending = usePendingSettlements();
 
   const { data: accounts = [] } = useQuery<{ id: string; name: string }>(
-    "SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real' ORDER BY created_at",
+    `SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real'
+       AND ${NOT_INVESTMENT_ACCOUNT_SQL} ORDER BY created_at`,
   );
 
   const [accountId, setAccountId] = useState("");

@@ -15,9 +15,9 @@ import { utcToLocalTime, localToUtcTime } from "../time";
 import type { Freq } from "../templates/write";
 import { createRecurring, updateRecurring, type RecurringDirection, type RecurringItem } from "./recurring";
 import { useGroupsByDirection, createGroup } from "../recurring/groups";
+import { isInvestmentAccount } from "@sanvya/types";
 
 const FREQS: Freq[] = ["daily", "weekly", "monthly", "yearly"];
-const INVESTMENT_TYPES = ["demat", "stocks", "mutual_funds"];
 
 export function RecurringModal({ direction, base, edit, prefill, onClose }: {
   direction: RecurringDirection;
@@ -34,8 +34,8 @@ export function RecurringModal({ direction, base, edit, prefill, onClose }: {
     "SELECT id, name, kind FROM categories WHERE deleted_at IS NULL ORDER BY name",
   );
 
-  const spendAccounts = accounts.filter((a) => !INVESTMENT_TYPES.includes(a.type));
-  const investAccounts = accounts.filter((a) => INVESTMENT_TYPES.includes(a.type));
+  const spendAccounts = accounts.filter((a) => !isInvestmentAccount(a.type));
+  const investAccounts = accounts.filter((a) => isInvestmentAccount(a.type));
   const isSaving = direction === "saving";
   const isPayment = direction === "payment";
 

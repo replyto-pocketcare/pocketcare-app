@@ -21,6 +21,7 @@ import { UpgradeModal } from "../../../src/ui/UpgradeModal";
 import { useAutoCategorize, useLearnCategory } from "../../../src/categorize/hooks";
 import { encryptForWrite } from "../../../src/crypto/fields";
 import { AmountInput } from "../../../src/ui/AmountInput";
+import { NOT_INVESTMENT_ACCOUNT_SQL } from "@sanvya/types";
 
 type TxType = "expense" | "income" | "transfer";
 let counter = 0;
@@ -32,7 +33,8 @@ export default function NewTransactionPage() {
   const { t } = useTranslation("transactions");
   const router = useRouter();
   const { data: accounts = [] } = useQuery<Account>(
-    "SELECT * FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived, 0) = 0 AND IFNULL(kind,'real') = 'real' ORDER BY created_at",
+    `SELECT * FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived, 0) = 0 AND IFNULL(kind,'real') = 'real'
+       AND ${NOT_INVESTMENT_ACCOUNT_SQL} ORDER BY created_at`,
   );
   const { data: categories = [] } = useQuery<{ id: string; name: string; kind: string; parent_id: string | null }>(
     "SELECT id, name, kind, parent_id FROM categories WHERE deleted_at IS NULL ORDER BY name",

@@ -15,6 +15,7 @@ import { FloatingInput } from "../../src/ui/FloatingInput";
 import { Modal } from "../../src/ui/Modal";
 import { utcToLocalTime, localToUtcTime } from "../../src/time";
 import { Pill, Field, loanRange } from "../../src/loans/ui";
+import { NOT_INVESTMENT_ACCOUNT_SQL } from "@sanvya/types";
 
 interface Loan {
   id: string; lender: string; principal: number; currency: string;
@@ -140,7 +141,7 @@ function AddLoan({ base, onClose }: { base: string; onClose: () => void }) {
   const { data: fundingAccounts = [] } = useQuery<{ id: string; name: string; type: string }>(
     `SELECT id, name, type FROM accounts
       WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real'
-        AND type NOT IN ('stocks','mutual_funds','demat')
+        AND ${NOT_INVESTMENT_ACCOUNT_SQL}
       ORDER BY (type = 'credit_card') DESC, created_at`,
   );
   const [fundingId, setFundingId] = useState("");

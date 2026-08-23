@@ -20,6 +20,39 @@ export const AccountType = {
 } as const;
 export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 
+/**
+ * Accounts that only RECORD investments — they hold holdings, not spendable
+ * money.
+ *
+ * Money cannot physically leave a demat account to pay a credit card bill or
+ * settle up with a friend: you would have to sell, wait to settle, and withdraw
+ * first. Offering them in those pickers invites a transaction that never
+ * happened, which then quietly misstates both the cash balance and the
+ * portfolio.
+ *
+ * The Investments feature still moves money INTO these accounts when funding a
+ * holding — that is the one legitimate direction, and it uses its own account
+ * list rather than the general pickers this guards.
+ *
+ * One definition on purpose: this list was previously written out three times
+ * (INVESTMENT_TYPES in RecurringModal, DEMAT_TYPES on the Investments page, and
+ * inline SQL on Loans) and had already drifted — the Friends picker excluded
+ * 'stocks' and 'mutual_funds' but not 'demat', so a demat account could still
+ * be chosen to settle a debt.
+ */
+export const INVESTMENT_ACCOUNT_TYPES: readonly AccountType[] = [
+  AccountType.Demat,
+  AccountType.Stocks,
+  AccountType.MutualFunds,
+];
+
+export const isInvestmentAccount = (type: string | null | undefined): boolean =>
+  !!type && (INVESTMENT_ACCOUNT_TYPES as readonly string[]).includes(type);
+
+/** SQL predicate for pickers that move real money. Alias-free; prefix if joined. */
+export const NOT_INVESTMENT_ACCOUNT_SQL =
+  `IFNULL(type,'') NOT IN (${INVESTMENT_ACCOUNT_TYPES.map((t) => `'${t}'`).join(",")})`;
+
 // ----- Transactions -----
 export const TransactionType = {
   Income: "income",

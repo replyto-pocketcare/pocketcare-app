@@ -21,6 +21,7 @@ import { PendingSettlements } from "../../src/payments/PendingSettlements";
 import { NewGroupModal } from "../../src/splits/NewGroupModal";
 import { PayAnyone } from "../../src/payments/PayAnyone";
 import { ListSkeleton } from "../../src/ui/Skeleton";
+import { NOT_INVESTMENT_ACCOUNT_SQL } from "@sanvya/types";
 
 interface SettleTarget { userId: string; name: string; net: number }
 
@@ -74,7 +75,8 @@ export default function SplitsPage() {
   const name = (id: string) => profiles.get(id)?.name ?? "Someone";
 
   const { data: accounts = [] } = useQuery<{ id: string; name: string }>(
-    "SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real' AND type NOT IN ('stocks','mutual_funds') ORDER BY created_at",
+    `SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real'
+       AND ${NOT_INVESTMENT_ACCOUNT_SQL} ORDER BY created_at`,
   );
   const { data: settleGroups = [], isLoading: splitsLoading } = useQuery<{ group_id: string; user_id: string }>(
     "SELECT group_id, user_id FROM split_group_members WHERE deleted_at IS NULL",

@@ -17,6 +17,7 @@ import { useConfirm } from "../../src/ui/Confirm";
 import { softDelete } from "../../src/write";
 import { useTemplates, type Template } from "../../src/templates/hooks";
 import { createTemplate, updateTemplate, FREE_TEMPLATE_LIMIT } from "../../src/templates/write";
+import { NOT_INVESTMENT_ACCOUNT_SQL } from "@sanvya/types";
 
 export default function TemplatesPage() {
   const { t } = useTranslation("templates");
@@ -26,7 +27,8 @@ export default function TemplatesPage() {
   const { isPaid } = useEntitlement();
   const templates = useTemplates();
   const { data: accounts = [] } = useQuery<{ id: string; name: string }>(
-    "SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real' AND type NOT IN ('stocks','mutual_funds') ORDER BY created_at",
+    `SELECT id, name FROM accounts WHERE deleted_at IS NULL AND IFNULL(is_archived,0)=0 AND IFNULL(kind,'real')='real'
+       AND ${NOT_INVESTMENT_ACCOUNT_SQL} ORDER BY created_at`,
   );
 
   const [showUpgrade, setShowUpgrade] = useState(false);

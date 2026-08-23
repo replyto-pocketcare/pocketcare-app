@@ -24,8 +24,8 @@ import { AddInvestmentDialog } from "../../src/investments/AddDialog";
 import { ImportDialog } from "../../src/investments/ImportDialog";
 import { DividendPanel } from "../../src/market/DividendPanel";
 import { ProjectionPanel } from "../../src/market/ProjectionPanel";
+import { isInvestmentAccount } from "@sanvya/types";
 
-const DEMAT_TYPES = ["demat", "stocks", "mutual_funds"];
 
 export default function InvestmentsPage() {
   const { t } = useTranslation("investments");
@@ -36,7 +36,7 @@ export default function InvestmentsPage() {
   const { data: holdings = [], isLoading } = useQuery<HoldingRow>("SELECT * FROM holdings WHERE deleted_at IS NULL ORDER BY created_at");
   const { data: dividends = [] } = useQuery<DivRow>("SELECT symbol, exchange, ex_date, pay_date, amount, currency FROM market_dividends");
   const balances = useAccountBalances();
-  const invAccounts = useMemo(() => balances.filter((b) => DEMAT_TYPES.includes(b.account.type)), [balances]);
+  const invAccounts = useMemo(() => balances.filter((b) => isInvestmentAccount(b.account.type)), [balances]);
 
   useRegisterAddAction(
     invAccounts.length > 0
@@ -180,7 +180,7 @@ export default function InvestmentsPage() {
           ctx={addCtx}
           accounts={invAccounts.map((b) => ({ id: b.account.id, name: b.account.name, currency: b.account.currency, type: b.account.type }))}
           availableOf={(id) => (invAccounts.find((b) => b.account.id === id)?.balance.amount ?? 0) - holdings.filter((h) => h.account_id === id).reduce((s, h) => s + (h.avg_cost ?? 0) * h.quantity, 0)}
-          fundingAccounts={balances.filter((b) => !DEMAT_TYPES.includes(b.account.type)).map((b) => ({ id: b.account.id, name: b.account.name, currency: b.account.currency, balance: b.balance.amount }))}
+          fundingAccounts={balances.filter((b) => !isInvestmentAccount(b.account.type)).map((b) => ({ id: b.account.id, name: b.account.name, currency: b.account.currency, balance: b.balance.amount }))}
           base={base}
           onClose={() => setAddCtx(null)}
         />
