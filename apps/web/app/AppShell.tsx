@@ -180,7 +180,7 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
     { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "credit_card" },
     // Splits and Groups & trips were one screen's worth of information split
     // across two; /groups now redirects to /friends, so the nav has one entry.
-    { href: "/friends", tkey: "nav.friends", label: "Splits & groups", icon: "groups" },
+    { href: "/friends", tkey: "nav.friends", label: "Shared & owed", icon: "groups" },
     { href: "/search", tkey: "nav.search", label: "Search", icon: "search" },
   ] },
   { title: "Planning", items: [

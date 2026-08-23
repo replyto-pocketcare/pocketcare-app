@@ -16,7 +16,7 @@ export interface NavCatalogItem {
 
 export const NAV_CATALOG: NavCatalogItem[] = [
   { id: "transactions", href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "swap_horiz" },
-  { id: "friends", href: "/friends", tkey: "nav.friends", label: "Splits", icon: "groups" },
+  { id: "friends", href: "/friends", tkey: "nav.friends", label: "Shared", icon: "groups" },
   { id: "insights", href: "/insights", tkey: "nav.insights", label: "Insights", icon: "insights" },
   { id: "accounts", href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "account_balance" },
   { id: "budgets", href: "/budgets", tkey: "nav.budgets", label: "Budgets", icon: "donut_small" },

@@ -11,8 +11,8 @@ import { getRepositories } from "../../../src/powersync";
 import { LabelPicker } from "../../../src/ui/LabelPicker";
 import { SearchSelect } from "../../../src/ui/SearchSelect";
 import { AccountBadge } from "../../../src/ui/AccountBadge";
-import { useGroups, useUserProfiles, useMyUserId } from "../../../src/splits/hooks";
-import { createSplitExpense, type SplitMode } from "../../../src/splits/write";
+import { useGroups, useUserProfiles, useMyUserId, useConnections } from "../../../src/splits/hooks";
+import { createSplitExpense, getOrCreateDirectGroup, type SplitMode } from "../../../src/splits/write";
 import { splitEqual, splitByWeights } from "../../../src/splits/math";
 import { useTemplates, type Template } from "../../../src/templates/hooks";
 import { createTemplate, FREE_TEMPLATE_LIMIT } from "../../../src/templates/write";
@@ -83,6 +83,18 @@ export default function NewTransactionPage() {
   const { data: groupMembers = [] } = useQuery<{ group_id: string; user_id: string }>(
     "SELECT group_id, user_id FROM split_group_members WHERE deleted_at IS NULL",
   );
+  // "Paid for someone else": the whole expense was fronted for one person.
+  //
+  // Modelled as a 1:1 split where their share is 100% and mine is 0, rather
+  // than a new concept. That reuses the machinery that already exists: the
+  // amount lands as a `lend` posting (projectPersonal), which the
+  // notFrontedForOthers predicate already excludes from budgets and every
+  // spending aggregate, and the debt shows up in Shared & owed with the
+  // existing settle-up flow. A bespoke flag would have needed all of that
+  // rebuilt, and would have drifted from it.
+  const [forOtherOn, setForOtherOn] = useState(false);
+  const [forOtherUserId, setForOtherUserId] = useState("");
+  const connections = useConnections();
   const [splitGroupId, setSplitGroupId] = useState("");
   const [splitOn, setSplitOn] = useState(false);
   const [splitTouched, setSplitTouched] = useState(false);
@@ -207,6 +219,8 @@ export default function NewTransactionPage() {
     [items, currency],
   );
   const total = useMemo(() => sum(itemMoneys, currency), [itemMoneys, currency]);
+  // Declared after `total` because it reads it — the split flags above cannot.
+  const forOtherActive = type === "expense" && !splitOn && forOtherOn && !!forOtherUserId && total.amount > 0;
 
   // Assemble + validate the split from the editor state (single source of truth).
   const splitPlan = useMemo(() => {
@@ -260,7 +274,8 @@ export default function NewTransactionPage() {
 
   const canSave =
     !!account && total.amount > 0 && !saving && (type !== "transfer" || (!!toAccount && toAccount.id !== account.id))
-    && (!splitActive || splitPlan.valid);
+    && (!splitActive || splitPlan.valid)
+    && (!forOtherOn || type !== "expense" || splitOn || !!forOtherUserId);
 
   async function save() {
     if (!account || !canSave) return;
@@ -273,6 +288,32 @@ export default function NewTransactionPage() {
         : items.map(it => it.description.trim()).filter(Boolean).join(", ");
       // Encrypt the free-text note if encryption is unlocked (else stored as-is).
       const encNote = await encryptForWrite(note.trim() || null);
+
+      // Paid entirely for someone else: a 1:1 split where they carry the whole
+      // share and you carry none. `mode: "exact"` with your share pinned to 0
+      // is what makes projectPersonal book the full amount as `lend` rather
+      // than as your own spending — the money left your account, but none of
+      // it was yours to spend.
+      if (forOtherActive) {
+        const person = connections.find((c) => c.id === forOtherUserId);
+        const groupId = await getOrCreateDirectGroup(forOtherUserId, person?.name ?? "Direct", total.currency);
+        await createSplitExpense({
+          groupId,
+          mode: "exact",
+          total,
+          participants: [
+            { userId: me, value: 0 },
+            { userId: forOtherUserId, value: total.amount },
+          ],
+          payers: [{ userId: me, paid: total.amount, accountId: account.id }],
+          categoryId,
+          description: combinedDescription || null,
+          note: encNote,
+          occurredAt: occurredAtIso(),
+        });
+        router.push("/transactions");
+        return;
+      }
 
       // Split path: book only your share; lend/borrow the rest via virtual accounts.
       if (splitActive && splitPlan.valid) {
@@ -474,7 +515,34 @@ export default function NewTransactionPage() {
         </Field>
       )}
 
-      {type === "expense" && (
+      {type === "expense" && !splitOn && (
+        <div className="card" style={{ padding: 16, display: "grid", gap: 12 }}>
+          <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, cursor: "pointer" }}>
+            <span>
+              <span style={{ fontWeight: 600 }}>{t("paidForSomeone", "I paid this for someone else")}</span>
+              <span className="muted" style={{ display: "block", fontSize: 12, marginTop: 2 }}>
+                {t("paidForSomeoneHint", "The whole amount is theirs to repay — it won't count as your spending.")}
+              </span>
+            </span>
+            <input type="checkbox" checked={forOtherOn} onChange={(e) => setForOtherOn(e.target.checked)} />
+          </label>
+
+          {forOtherOn && (
+            connections.length === 0 ? (
+              <p className="muted" style={{ fontSize: 12.5, margin: 0, lineHeight: 1.5 }}>
+                {t("paidForSomeoneNoOne", "You'll need someone to owe first — add a person from Shared & owed.")}
+              </p>
+            ) : (
+              <select className="input" value={forOtherUserId} onChange={(e) => setForOtherUserId(e.target.value)} aria-label={t("paidForSomeone", "I paid this for someone else")}>
+                <option value="">{t("paidForSomeonePick", "Who was it for?")}</option>
+                {connections.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            )
+          )}
+        </div>
+      )}
+
+      {type === "expense" && !forOtherOn && (
         <div className="card" style={{ padding: 16, display: "grid", gap: 12 }}>
           <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
             <span style={{ fontWeight: 600 }}>{t("splitExpense")}</span>
