@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Task #62 (Receipt Scan capture) -- first camera use in this app.
+    <!-- Task #62 (Receipt Scan capture): first camera use in this app.
          android:required="false" on the feature: a device with no camera
          should still install the app, just can't use this one screen (same
          posture Google recommends for an optional-camera app). -->

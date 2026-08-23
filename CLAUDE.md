@@ -8,11 +8,11 @@ Offline-first, multi-currency personal expense & wealth manager. Live client: **
 ## Golden rules (never violate)
 1. Money = **integer minor units**, never floats. Use `@sanvya/money`.
 2. Balances are **derived from an append-only ledger**, never mutated.
-3. All tables + RPCs live in the **`sanvya`** Postgres schema → direct calls must be schema-qualified (`supabase.schema('sanvya').rpc(...)`) or PostgREST 404s.
+3. All tables + RPCs live in the **`pocketcare`** Postgres schema → direct calls must be schema-qualified (`supabase.schema('pocketcare').rpc(...)`) or PostgREST 404s. The product was renamed to Sanvya; the schema was not. Verified 2026-08-23 against `0001_init.sql`, every migration since, web's `schema("pocketcare")` call sites and `SupabaseConnector.DB_SCHEMA` on both native platforms — this rule said `sanvya` and was wrong.
 4. Server is authoritative; the client is an offline cache reconciled via sync.
 
 ## Writing migrations
-- **Schema-qualify every function call** — `sanvya.is_group_member(...)`, not bare. Older migrations (0011) get away with a bare call only because they `set search_path` at the top of the file; copying their policy shape without that fails with `function is_group_member(uuid, uuid) does not exist`.
+- **Schema-qualify every function call** — `pocketcare.is_group_member(...)`, not bare. Older migrations (0011) get away with a bare call only because they `set search_path` at the top of the file; copying their policy shape without that fails with `function is_group_member(uuid, uuid) does not exist`. (Same rename caveat as golden rule 3 — the schema is `pocketcare`.)
 - **Make migrations re-runnable.** `create table`/`create index` take `if not exists`, but `create policy` and `create constraint trigger` do **not** — precede each with `drop policy if exists` / `drop trigger if exists`. A migration that fails halfway (as 0040 first did) otherwise can't be retried, because the statements before the failure already applied.
 - Validate before shipping: `pip install pglast --break-system-packages`, then parse the file.
 - **Never write a cross-row constraint on a synced table.** PowerSync uploads the write queue as separate HTTP requests, each its own Postgres transaction, so related rows arrive **incrementally** — a "these rows must sum to that row" check will fire against a partial set and **wedge the upload queue forever** (0040 did exactly this; 0042 removed it). `DEFERRABLE INITIALLY DEFERRED` does not help: it defers only to the end of its own transaction. Enforce such invariants on the client, where the whole set is known at once, and expose a server-side *audit* function for observability instead.

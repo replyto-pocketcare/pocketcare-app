@@ -117,7 +117,7 @@ public final class ReceiptReviewViewModel {
 
     /// One-tap fix: "Use {computed} as the total".
     public func useComputedTotal() {
-        patch { d in ReceiptDraft(merchant: d.merchant, occurredAt: d.occurredAt, currency: d.currency, lines: d.lines, total: reconcile(d).computed, confidence: d.confidence, engine: d.engine, rawText: d.rawText) }
+        patch { adoptComputedTotal($0) }
     }
 
     public func saveAsTransaction() {

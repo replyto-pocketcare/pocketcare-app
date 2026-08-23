@@ -5,13 +5,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaFont
 
@@ -30,8 +31,8 @@ import com.sanvya.app.theme.SanvyaFont
  * a scaling glyph would overflow them. Web does the same; `.msym` takes an
  * explicit pixel size.
  *
- * @param contentDescription pass for a standalone icon button; leave null when
- *   the icon sits beside its own label, so a screen reader does not say it twice.
+ * @param description pass for a standalone icon button; leave null when the
+ *   icon sits beside its own label, so a screen reader does not say it twice.
  */
 @Composable
 fun SanvyaIcon(
@@ -39,23 +40,25 @@ fun SanvyaIcon(
     modifier: Modifier = Modifier,
     size: Dp = 20.dp,
     tint: Color = LocalSanvyaColors.current.text,
-    contentDescription: String? = null,
+    description: String? = null,
 ) {
-    val density = androidx.compose.ui.platform.LocalDensity.current
-    val fontSize = with(density) { size.toSp() }
-    val semantics = if (contentDescription != null) {
-        Modifier.semantics { this.contentDescription = contentDescription }
+    val fontSize = with(LocalDensity.current) { size.toSp() }
+    // Named `description`, not `contentDescription`: inside the semantics
+    // lambda the receiver already has a `contentDescription` property, and a
+    // parameter of the same name shadows it into an unresolvable assignment.
+    val semanticsModifier = if (description != null) {
+        Modifier.semantics { contentDescription = description }
     } else {
         Modifier.clearAndSetSemantics { }
     }
     Text(
         text = glyph,
-        modifier = modifier.size(size).then(semantics),
+        modifier = modifier.size(size).then(semanticsModifier),
         style = TextStyle(
             fontFamily = SanvyaFont.icons,
             fontSize = fontSize,
-            // A glyph box exactly as tall as the em means no extra leading, so
-            // the icon centres in its size(size) box instead of sitting low.
+            // A line box exactly as tall as the em means no extra leading, so
+            // the glyph centres in its size(size) box instead of sitting low.
             lineHeight = fontSize,
             textAlign = TextAlign.Center,
             color = tint,

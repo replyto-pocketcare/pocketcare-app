@@ -3,30 +3,23 @@ package com.sanvya.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.auth.AuthRepository
-import com.sanvya.app.data.auth.isGuest as authIsGuest
 import com.sanvya.app.data.diagnostics.QueuedOp
 import com.sanvya.app.data.diagnostics.currentDiagnosticsEntries
 import com.sanvya.app.data.diagnostics.diagnosticsReport
 import com.sanvya.app.data.diagnostics.discardOps
 import com.sanvya.app.data.diagnostics.failingTableFrom
-import com.sanvya.app.data.diagnostics.inspectQueue
 import com.sanvya.app.data.diagnostics.summarizeQueue
 import com.sanvya.app.data.repository.FailedWriteItem
 import com.sanvya.app.data.repository.NotificationPrefs
 import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.data.repository.RepairRepository
 import com.sanvya.app.data.repository.RepairScanResult
+import com.sanvya.app.data.repository.SettingsRepository
 import com.sanvya.app.data.repository.StrandedRow
 import com.sanvya.app.data.repository.insertRow
 import com.sanvya.app.data.repository.updateRow
 import com.sanvya.app.domain.diagnostics.LogEntry
 import com.sanvya.app.domain.entitlements.isPaid
-import com.powersync.PowerSyncDatabase
-import com.powersync.db.getLong
-import com.powersync.db.getStringOptional
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,10 +27,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -71,8 +60,7 @@ class SettingsViewModel : ViewModel(), KoinComponent {
     private val prefsRepository: PrefsRepository by inject()
     private val authRepository: AuthRepository by inject()
     private val repairRepository: RepairRepository by inject()
-    private val client: SupabaseClient by inject()
-    private val db: PowerSyncDatabase by inject()
+    private val settingsRepository: SettingsRepository by inject()
 
     // ---- Notifications (existing, unchanged) ----
     private val _notifPrefs = MutableStateFlow<NotificationPrefs?>(null)
@@ -194,15 +182,12 @@ class SettingsViewModel : ViewModel(), KoinComponent {
     private fun loadSession() {
         viewModelScope.launch {
             try {
-                val user = client.auth.currentSessionOrNull()?.user ?: run { _session.value = null; return@launch }
-                val guest = authIsGuest(client)
-                val username = ((user.userMetadata?.get("username")) as? JsonPrimitive)?.content ?: ""
-                val createdAtMs = try { user.createdAt?.toEpochMilliseconds() } catch (_: Exception) { null }
-                val daysLeft = if (guest && createdAtMs != null) {
-                    val remainMs = createdAtMs + 3L * 86_400_000L - System.currentTimeMillis()
+                val s = settingsRepository.currentSession() ?: run { _session.value = null; return@launch }
+                val daysLeft = if (s.isGuest && s.createdAtMs != null) {
+                    val remainMs = s.createdAtMs + 3L * 86_400_000L - System.currentTimeMillis()
                     kotlin.math.max(0, kotlin.math.ceil(remainMs / 86_400_000.0).toInt())
                 } else null
-                _session.value = SessionInfo(email = user.email, isGuest = guest, username = username, daysLeft = daysLeft)
+                _session.value = SessionInfo(email = s.email, isGuest = s.isGuest, username = s.username, daysLeft = daysLeft)
             } catch (_: Exception) {
                 // Offline / transient -- keep whatever we had, don't blank it out.
             }
@@ -212,7 +197,7 @@ class SettingsViewModel : ViewModel(), KoinComponent {
     fun saveUsername(name: String) {
         viewModelScope.launch {
             try {
-                client.auth.updateUser { data = buildJsonObject { put("username", name) } }
+                settingsRepository.updateUsername(name)
                 _session.value = _session.value?.copy(username = name)
                 _usernameSaved.value = true
             } catch (_: Exception) {
@@ -241,13 +226,7 @@ class SettingsViewModel : ViewModel(), KoinComponent {
         val userId = authRepository.currentUserId.value ?: return
         viewModelScope.launch {
             try {
-                val row = db.getOptional(
-                    sql = "SELECT gender, country FROM profiles WHERE id = ? LIMIT 1",
-                    parameters = listOf(userId),
-                    mapper = { c ->
-                        (c.getStringOptional("gender") ?: "") to (c.getStringOptional("country") ?: "")
-                    },
-                )
+                val row = settingsRepository.loadProfile(userId)
                 if (row != null) {
                     profileExists = true
                     _profileGender.value = row.first
@@ -282,36 +261,27 @@ class SettingsViewModel : ViewModel(), KoinComponent {
     // ---- Diagnostics ----
 
     /**
-     * Deliberately minimal: only `.connected` and `.lastSyncedAt` off
-     * `db.currentStatus`, the two SyncStatus fields confirmed against the
-     * SDK's own docs (docs.powersync.com / the JS SDK's SyncStatus reference,
-     * which the Kotlin/Swift SDKs mirror). `dataFlowStatus.uploading/
-     * downloading` and any error surface exist too but their exact Kotlin
-     * shape isn't verified here -- "waiting to upload" below comes from a
-     * direct `ps_crud` count instead, which is what web's DiagnosticsPanel
-     * falls back to as well.
+     * Sync fields and the queue depth both come from SettingsRepository --
+     * see there for which SyncStatus fields are safe to read and why the
+     * "waiting to upload" count is a direct ps_crud query instead.
      */
     fun refreshDiagnostics() {
         _diagnosticsEntries.value = currentDiagnosticsEntries()
         try {
-            val status = db.currentStatus
+            val status = settingsRepository.syncSnapshot()
             _syncConnected.value = status.connected
-            _syncLastSyncedAt.value = status.lastSyncedAt?.toString()
+            _syncLastSyncedAt.value = status.lastSyncedAt
         } catch (_: Exception) {
             /* leave last-known values */
         }
         viewModelScope.launch {
             try {
-                _queueDepth.value = db.getOptional(
-                    sql = "SELECT COUNT(*) AS n FROM ps_crud",
-                    parameters = emptyList(),
-                    mapper = { c -> c.getLong("n").toInt() },
-                )
+                _queueDepth.value = settingsRepository.crudQueueDepth()
             } catch (_: Exception) {
                 _queueDepth.value = null
             }
             val failingTable = failingTableFrom(_diagnosticsEntries.value)
-            _queueOps.value = try { inspectQueue(db, failingTable) } catch (_: Exception) { emptyList() }
+            _queueOps.value = try { settingsRepository.queueOps(failingTable) } catch (_: Exception) { emptyList() }
         }
     }
 
@@ -431,35 +401,17 @@ class SettingsViewModel : ViewModel(), KoinComponent {
     // ---- Delete account ----
 
     /**
-     * The RPC lives in the `pocketcare` schema (matches SupabaseConnector's
-     * DB_SCHEMA and every direct-write call in RepairRepository -- NOT the
-     * `sanvya` schema used elsewhere in this codebase's own naming; verified
-     * against apps/web/app/settings/page.tsx's own identical call and
-     * supabase/migrations/0006_delete_account_rpc.sql's real `create or
-     * replace function pocketcare.delete_user_account(...)` before assuming
-     * otherwise).
-     *
-     * `Postgrest.rpc()` has no schema PARAMETER (only from(schema, table)
-     * does) -- confirmed against supabase-kt's real source
-     * (Postgrest.kt/PostgrestImpl.kt/PostgrestRequestBuilder.kt on GitHub,
-     * supabase-community/supabase-kt): RpcRequestBuilder extends
-     * PostgrestRequestBuilder, which exposes a mutable `var schema` defaulting
-     * to `config.defaultSchema` ("public", since DataModule.kt's client never
-     * sets it) -- so the schema override has to happen inside the `request`
-     * lambda, not as an argument.
+     * Deletes the account server-side, wipes the local database, then signs
+     * out. The RPC and schema mechanics live in SettingsRepository.
      */
     fun deleteAccount() {
         viewModelScope.launch {
             _deleting.value = true
             _deleteError.value = null
             try {
-                client.postgrest.rpc(
-                    function = "delete_user_account",
-                    parameters = buildJsonObject { put("orphan_records", false) },
-                    request = { schema = "pocketcare" },
-                )
+                settingsRepository.deleteAccountOnServer()
                 try {
-                    db.disconnectAndClear()
+                    settingsRepository.clearLocalDatabase()
                 } catch (_: Exception) {
                     /* best-effort local clear; sign-out proceeds regardless */
                 }

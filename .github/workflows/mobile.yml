@@ -90,11 +90,14 @@ jobs:
       - name: Install SDK packages for compileSdk 36
         run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0" > /dev/null
       - uses: gradle/actions/setup-gradle@v4
+      # --continue: report EVERY failing task, not just the first. Each run
+      # costs a round trip through a human (the agent sandbox cannot push), so
+      # a run that stops at the first broken task wastes most of its value.
       - name: Assemble + test
         working-directory: apps/android
         run: |
           set -o pipefail
-          ./gradlew --no-daemon --stacktrace build test 2>&1 | tee ../../android.log
+          ./gradlew --no-daemon --stacktrace --continue build test 2>&1 | tee ../../android.log
       - if: always()
         uses: actions/upload-artifact@v4
         with: { name: log-android, path: android.log, retention-days: 7, if-no-files-found: ignore }
@@ -123,13 +126,20 @@ jobs:
         run: |
           set -o pipefail
           xcodegen generate 2>&1 | tee ../../ios.log
+      # Every step records its own status and keeps going. A failing Domain
+      # vector must not hide whether the SwiftUI app compiles — that is the
+      # signal a macOS runner exists to produce, and losing it costs a whole
+      # round trip. The job fails at the end if anything failed.
       - name: Swift packages (Domain + Data)
+        id: swiftpm
+        continue-on-error: true
         working-directory: apps/ios
         run: |
           set -o pipefail
-          { swift test --package-path Domain
-            swift build --package-path Data
-          } 2>&1 | tee -a ../../ios.log
+          rc=0
+          swift test --package-path Domain 2>&1 | tee -a ../../ios.log || rc=1
+          swift build --package-path Data 2>&1 | tee -a ../../ios.log || rc=1
+          exit $rc
       - name: Pick an available simulator
         id: sim
         run: |
@@ -138,6 +148,8 @@ jobs:
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
           echo "Using simulator $UDID" | tee -a ios.log
       - name: Build + test the app scheme
+        id: xcodebuild
+        continue-on-error: true
         working-directory: apps/ios
         run: |
           set -o pipefail
@@ -146,6 +158,11 @@ jobs:
             -scheme Sanvya \
             -destination "id=${{ steps.sim.outputs.udid }}" \
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee -a ../../ios.log
+      - name: Fail if either stage failed
+        if: steps.swiftpm.outcome == 'failure' || steps.xcodebuild.outcome == 'failure'
+        run: |
+          echo "swiftpm=${{ steps.swiftpm.outcome }} xcodebuild=${{ steps.xcodebuild.outcome }}"
+          exit 1
       - if: always()
         uses: actions/upload-artifact@v4
         with: { name: log-ios, path: ios.log, retention-days: 7, if-no-files-found: ignore }

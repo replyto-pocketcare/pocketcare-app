@@ -57,7 +57,7 @@ final class VectorRunnerTests: XCTestCase {
                     if jsonEqual(actual, vector.expected) {
                         passed += 1
                     } else {
-                        failures.append("\(label): expected \(String(describing: vector.expected)) but got \(actual)")
+                        failures.append("\(label): expected \(String(describing: vector.expected)) but got \(actual)\n        \(mismatchDetail(expected: vector.expected, actual: actual))")
                     }
                 } catch {
                     failures.append("\(label): threw unexpectedly: \(error)")
@@ -169,6 +169,29 @@ final class VectorRunnerTests: XCTestCase {
         registerUpiVectors()
         try runDomain("upi")
     }
+}
+
+
+/// Why a comparison failed, in terms a reader can act on.
+///
+/// The default message renders both sides with `String(describing:)`, which for
+/// two doubles that differ in the last bit prints the SAME text twice —
+/// `expected Optional(0.006666666666666667) but got 0.006666666666666667` — and
+/// tells you nothing. That exact message has now been chased twice. This prints
+/// the dynamic type of each side and, for numbers, the raw IEEE-754 bit
+/// pattern, so a one-ulp divergence and a genuine type mismatch look different
+/// at a glance.
+private func mismatchDetail(expected: Any?, actual: Any) -> String {
+    func describe(_ value: Any?) -> String {
+        guard let value else { return "nil" }
+        let type = String(describing: type(of: value))
+        if let number = value as? NSNumber {
+            let d = number.doubleValue
+            return "\(type)(double=\(d), bits=0x\(String(d.bitPattern, radix: 16)), objCType=\(String(cString: number.objCType)))"
+        }
+        return "\(type)(\(value))"
+    }
+    return "expected: \(describe(expected)) | actual: \(describe(actual))"
 }
 
 /// True only for an NSNumber that's actually CFBoolean-backed (i.e. came

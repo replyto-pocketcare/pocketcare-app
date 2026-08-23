@@ -14,7 +14,6 @@ import com.sanvya.app.domain.receipts.ReceiptDraft
 import com.sanvya.app.domain.receipts.ReceiptLine
 import com.sanvya.app.domain.receipts.ReconcileResult
 import com.sanvya.app.domain.receipts.Subtotals
-import com.sanvya.app.domain.receipts.adoptComputedTotal
 import com.sanvya.app.domain.receipts.balanceWithLine
 import com.sanvya.app.domain.receipts.reconcile
 import com.sanvya.app.domain.receipts.subtotals

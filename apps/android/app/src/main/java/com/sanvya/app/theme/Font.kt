@@ -1,6 +1,7 @@
 package com.sanvya.app.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -25,6 +26,10 @@ import com.sanvya.app.R
  */
 object SanvyaFont {
 
+    // FontVariation is still @ExperimentalTextApi. Opting in knowingly: it is
+    // the only way to reach the wght axis, and the alternative (static weight
+    // files) cannot express the design's 550/650 at all.
+    @OptIn(ExperimentalTextApi::class)
     private fun inter(weight: Int) = Font(
         resId = R.font.inter_variable,
         weight = FontWeight(weight),
