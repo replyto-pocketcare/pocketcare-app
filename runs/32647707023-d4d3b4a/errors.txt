@@ -1,0 +1,129 @@
+190:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/shell/WindowClass.kt:15:29 Unresolved reference 'layout'.
+191:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/shell/WindowClass.kt:114:16 Unresolved reference 'WindowSizeClass'.
+192:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/shell/WindowClass.kt:115:21 Unresolved reference 'WindowSizeClass'.
+193:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/shell/WindowClass.kt:116:16 Unresolved reference 'WindowSizeClass'.
+195:> Task :app:compileDebugKotlin FAILED
+206:> Task :app:compileReleaseKotlin FAILED
+207:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/shell/WindowClass.kt:15:29 Unresolved reference 'layout'.
+208:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/shell/WindowClass.kt:114:16 Unresolved reference 'WindowSizeClass'.
+209:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/shell/WindowClass.kt:115:21 Unresolved reference 'WindowSizeClass'.
+210:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/shell/WindowClass.kt:116:16 Unresolved reference 'WindowSizeClass'.
+238:FAILURE: Build completed with 2 failures.
+245:   > Compilation error. See log for more details
+402:Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+443:   > Compilation error. See log for more details
+606:Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+645:BUILD FAILED in 4m 8s
+826:35 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+831:260 |             ) { cursor in try cursor.getString(name: "id") } {
+839: 46 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+850:35 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+855:260 |             ) { cursor in try cursor.getString(name: "id") } {
+863: 46 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+874:35 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+879:260 |             ) { cursor in try cursor.getString(name: "id") } {
+887: 46 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+898:35 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+903:260 |             ) { cursor in try cursor.getString(name: "id") } {
+911: 46 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+922:35 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+927:260 |             ) { cursor in try cursor.getString(name: "id") } {
+935: 46 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+946:35 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+951:260 |             ) { cursor in try cursor.getString(name: "id") } {
+959: 46 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+970:35 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+975:260 |             ) { cursor in try cursor.getString(name: "id") } {
+983: 46 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+994:35 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+999:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1007: 46 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1081:315 |                         .in("id", value: chunk)
+1083:    |                          `- note: use 'in(_:values:)' instead
+1090:206 |                         try await rel.delete().in("id", value: ids).execute()
+1092:    |                                                `- note: use 'in(_:values:)' instead
+1117:315 |                         .in("id", value: chunk)
+1119:    |                          `- note: use 'in(_:values:)' instead
+1126:206 |                         try await rel.delete().in("id", value: ids).execute()
+1128:    |                                                `- note: use 'in(_:values:)' instead
+1153:315 |                         .in("id", value: chunk)
+1155:    |                          `- note: use 'in(_:values:)' instead
+1162:206 |                         try await rel.delete().in("id", value: ids).execute()
+1164:    |                                                `- note: use 'in(_:values:)' instead
+1189:315 |                         .in("id", value: chunk)
+1191:    |                          `- note: use 'in(_:values:)' instead
+1198:206 |                         try await rel.delete().in("id", value: ids).execute()
+1200:    |                                                `- note: use 'in(_:values:)' instead
+1225:315 |                         .in("id", value: chunk)
+1227:    |                          `- note: use 'in(_:values:)' instead
+1234:206 |                         try await rel.delete().in("id", value: ids).execute()
+1236:    |                                                `- note: use 'in(_:values:)' instead
+1261:315 |                         .in("id", value: chunk)
+1263:    |                          `- note: use 'in(_:values:)' instead
+1270:206 |                         try await rel.delete().in("id", value: ids).execute()
+1272:    |                                                `- note: use 'in(_:values:)' instead
+1297:315 |                         .in("id", value: chunk)
+1299:    |                          `- note: use 'in(_:values:)' instead
+1306:206 |                         try await rel.delete().in("id", value: ids).execute()
+1308:    |                                                `- note: use 'in(_:values:)' instead
+1430:  PowerSyncSQLiteCore: https://github.com/powersync-ja/powersync-sqlite-core-swift.git @ 0.4.13
+1432:  CSQLite: https://github.com/powersync-ja/CSQLite.git @ 3.51.2
+1435:  Supabase: https://github.com/supabase/supabase-swift.git @ 2.54.1
+1456:note: Building targets in dependency order
+1457:note: Target dependency graph (47 targets)
+1662:Build description signature: 28dcb73e9784960be0cfc613f3711b5e
+2896:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+2907:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3054:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3632:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+7443:            ) { cursor in try cursor.getString(name: "id") } {
+7455:            return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+7516:                        .in("id", value: chunk)
+7518:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/RepairRepository.swift:315:26: note: use 'in(_:values:)' instead
+7519:                        .in("id", value: chunk)
+7535:                        try await rel.delete().in("id", value: ids).execute()
+7537:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SupabaseConnector.swift:206:48: note: use 'in(_:values:)' instead
+7538:                        try await rel.delete().in("id", value: ids).execute()
+7617:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/AccountsView.swift:72:1: error: extraneous '}' at top level
+7620:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/CreditCardsView.swift:67:1: error: extraneous '}' at top level
+7623:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/GoalsView.swift:92:1: error: extraneous '}' at top level
+7626:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/InsightsView.swift:83:1: error: extraneous '}' at top level
+7629:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/InvestmentsView.swift:81:9: error: expressions are not allowed at the top level
+7632:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/InvestmentsView.swift:84:5: error: extraneous '}' at top level
+7636:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/InvestmentsView.swift:99:1: error: extraneous '}' at top level
+7639:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/LoansView.swift:56:9: error: expressions are not allowed at the top level
+7642:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/LoansView.swift:61:5: error: extraneous '}' at top level
+7646:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/LoansView.swift:92:1: error: extraneous '}' at top level
+7649:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SettingsView.swift:318:1: error: extraneous '}' at top level
+7652:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitsView.swift:44:13: error: expected declaration
+7655:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitsView.swift:9:8: note: in declaration of 'SplitsView'
+7658:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitsView.swift:51:5: error: extraneous '}' at top level
+7662:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitsView.swift:155:1: error: extraneous '}' at top level
+7665:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/TransactionsView.swift:74:9: error: expected declaration
+7668:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/TransactionsView.swift:9:8: note: in declaration of 'TransactionsView'
+7671:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/TransactionsView.swift:79:1: error: extraneous '}' at top level
+7680:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/AccountsView.swift:72:1: error: Extraneous '}' at top level
+7683:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/CreditCardsView.swift:67:1: error: Extraneous '}' at top level
+7686:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/GoalsView.swift:92:1: error: Extraneous '}' at top level
+7689:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/InsightsView.swift:83:1: error: Extraneous '}' at top level
+7692:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/InvestmentsView.swift:81:9: error: Expressions are not allowed at the top level
+7695:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/InvestmentsView.swift:84:5: error: Extraneous '}' at top level
+7699:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/InvestmentsView.swift:99:1: error: Extraneous '}' at top level
+7702:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/LoansView.swift:56:9: error: Expressions are not allowed at the top level
+7705:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/LoansView.swift:61:5: error: Extraneous '}' at top level
+7709:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/LoansView.swift:92:1: error: Extraneous '}' at top level
+7712:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SettingsView.swift:318:1: error: Extraneous '}' at top level
+7715:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitsView.swift:44:13: error: Expected declaration
+7718:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitsView.swift:9:8: note: In declaration of 'SplitsView'
+7721:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitsView.swift:51:5: error: Extraneous '}' at top level
+7725:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitsView.swift:155:1: error: Extraneous '}' at top level
+7728:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/TransactionsView.swift:74:9: error: Expected declaration
+7731:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/TransactionsView.swift:9:8: note: In declaration of 'TransactionsView'
+7734:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/TransactionsView.swift:79:1: error: Extraneous '}' at top level
+7847:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/nl.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7852:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/nl.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7857:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/hi.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7862:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/hi.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7867:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/en.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7872:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/en.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7932:** TEST FAILED **
