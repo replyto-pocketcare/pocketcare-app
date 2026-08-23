@@ -12,7 +12,7 @@
  * account's available-to-invest figure stays coherent.
  */
 import type { Period } from "@sanvya/types";
-import { insertRow, uuid, nowIso } from "../write";
+import { insertRow, softDelete, uuid, nowIso } from "../write";
 import { getDb, getUserId } from "../powersync";
 import type { AssetClass } from "./model";
 
@@ -74,7 +74,13 @@ export async function addHolding(inp: AddHoldingInput): Promise<string> {
   }
 
   // 2) SIP → a recurring transfer (debit account → this investment account)
-  //    that auto-posts on the SIP date. Surfaces under Recurring.
+  //    that auto-posts on the SIP date.
+  //
+  //    This is the ONLY place a recurring `saving` item is created. Recurring
+  //    savings are not browsable under /recurring — a SIP belongs to the
+  //    holding it funds, so it is created and stopped here (see
+  //    `stopSipForHolding`). It still posts through the shared engine and
+  //    still shows in the "Due now" strip.
   //
   //    One row now, not a template + rule pair: recurring_items carries both
   //    the schedule and the transaction detail (migration 0064).
@@ -90,7 +96,7 @@ export async function addHolding(inp: AddHoldingInput): Promise<string> {
       next_due: inp.sip.firstDue,
       account_id: inp.sip.sourceAccountId,
       to_account_id: inp.investmentAccountId,
-      category_id: null, group_id: null,
+      category_id: null,
       auto_post: 1, active: 1, alert_time_utc: null,
       description: "SIP", note: null, payment_method: null,
       labels: null, split_group_id: null, split_mode: null,
@@ -121,4 +127,16 @@ export async function addHolding(inp: AddHoldingInput): Promise<string> {
     sip_start_date: inp.sip ? inp.sip.startDate : null,
     sip_day: inp.sip ? inp.sip.day : null,
   });
+}
+
+/**
+ * Stop the SIP attached to a holding.
+ *
+ * Called when the holding is removed. Without this the recurring transfer keeps
+ * debiting the source account every month for an investment that no longer
+ * exists — and since recurring savings are not browsable under /recurring,
+ * there would be nowhere for the user to go and cancel it.
+ */
+export async function stopSipForHolding(h: { planned_id?: string | null }): Promise<void> {
+  if (h.planned_id) await softDelete("recurring_items", h.planned_id);
 }

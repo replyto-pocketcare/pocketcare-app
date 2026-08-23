@@ -2,13 +2,20 @@
 
 /**
  * Recurring payments & incomes — a dedicated home for salary, rent, bills and
- * other regular money in/out. Each item is a real recurring rule (template +
- * rule) that posts transactions. Opened directly, or deep-linked from Planned
- * Cashflow's "Add income / Add payment" (and quick-add / convert) via query
- * params: ?add=income|payment|saving [&name=&amount=<minor>&freq=&convertFrom=<plannedId>]
- * or ?edit=<ruleId>.
+ * other regular money in/out. Each item is one `recurring_items` row that
+ * posts real transactions.
+ *
+ * Two things deliberately do NOT live here:
+ *
+ * - **Savings / SIPs.** A SIP is a transfer into an investment account, so it
+ *   is created and managed in Investments alongside the holding it funds.
+ *   Items with direction `saving` still post through the same engine and still
+ *   appear in "Due now" below; they just have no browsable list here.
+ * - **Groups.** Recurring items are organised by direction and category now.
+ *
+ * Deep links: ?add=income|payment [&name=&amount=<minor>&freq=] or ?edit=<id>.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRegisterAddAction } from "../../src/ui/AddAction";
@@ -19,15 +26,13 @@ import { useBaseCurrency } from "../../src/hooks";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { softDelete } from "../../src/write";
 import { useRecurringItems, type RecurringItem, type RecurringDirection } from "../../src/cashflow/recurring";
-import { useGroupsByDirection, ensureDefaultGroups } from "../../src/recurring/groups";
 import { useRecurringSummary } from "../../src/recurring/summary";
-import { TriageStrip } from "../../src/recurring/TriageStrip";
 import { RecurringModal } from "../../src/cashflow/RecurringModal";
 
 import { postOnce, skipOnce, useDueItems, type Freq } from "../../src/recurring/engine";
 
 interface ModalState { direction: RecurringDirection; edit?: RecurringItem; prefill?: { name?: string; amount?: number; frequency?: Freq }; convertFrom?: string }
-const isDir = (s: string | null): s is RecurringDirection => s === "income" || s === "payment" || s === "saving";
+const isDir = (s: string | null): s is RecurringDirection => s === "income" || s === "payment";
 
 export default function RecurringPage() {
   const { t } = useTranslation("recurring");
@@ -47,12 +52,6 @@ export default function RecurringPage() {
       { key: "income", label: t("income"), icon: <PlusIcon size={17} />, onClick: () => setModal({ direction: "income" }) },
     ],
   }, [t]);
-  const groupsByDir = useGroupsByDirection();
-
-  // Seed the default groups on first visit. Idempotent and deterministic-id'd,
-  // so two devices doing this at once produce identical rows (see groups.ts).
-  useEffect(() => { void ensureDefaultGroups().catch(() => {}); }, []);
-
   // Open the modal from deep-link query params (add / edit / convert), once.
   useEffect(() => {
     const add = params.get("add");
@@ -71,13 +70,11 @@ export default function RecurringPage() {
       });
       router.replace("/recurring");
     } else if (editId) {
-      const it = items.find((i) => i.ruleId === editId);
+      const it = items.find((i) => i.ruleId === editId && i.direction !== "saving");
       if (it) { setModal({ direction: it.direction, edit: it }); router.replace("/recurring"); }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, items.length]);
-
-  const ungrouped = useMemo(() => items.filter((i) => !i.group_id), [items]);
 
   const summary = useRecurringSummary(items);
 
@@ -122,21 +119,6 @@ export default function RecurringPage() {
             base={base}
             fmt={fmt}
           />
-          {/* Savings only appear once there is one: they are transfers between
-              your own accounts, so they sit outside the net figure above but
-              must not become invisible. */}
-          {summary.saving.items.length > 0 && (
-            <DirectionCard
-              href="/recurring/saving"
-              label={t("savings", "Savings & SIPs")}
-              amount={summary.saving.monthly}
-              sign="→"
-              color="var(--teal)"
-              count={summary.saving.items.length}
-              base={base}
-              fmt={fmt}
-            />
-          )}
         </div>
       </section>
 
@@ -154,8 +136,6 @@ export default function RecurringPage() {
           ))}
         </section>
       )}
-
-      <TriageStrip items={ungrouped} groupsFor={(it) => groupsByDir[it.direction]} />
 
       {modal && (
         <RecurringModal

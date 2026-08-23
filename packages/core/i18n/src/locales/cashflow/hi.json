@@ -17,7 +17,6 @@
   "plans": "{{count}} योजनाएँ",
   "whereIncomeGoes": "आपकी आय कहाँ जाती है",
   "payments": "भुगतान",
-  "savings": "बचत",
   "freeSurplus": "मुक्त अधिशेष",
   "incomeVsPayments": "आय बनाम भुगतान बनाम बचत",
   "quickAdd": "त्वरित जोड़ · टेम्पलेट",
@@ -92,24 +91,17 @@
   "add": "जोड़ें",
   "dirLabel": {
     "income": "आवर्ती आय",
-    "payment": "आवर्ती भुगतान",
-    "saving": "आवर्ती बचत"
+    "payment": "आवर्ती भुगतान"
   },
   "modalEdit": "{{what}} संपादित करें",
   "modalAdd": "{{what}} जोड़ें",
   "depositInto": "किसमें जमा करें",
-  "fundFrom": "किससे धन लें",
   "payFrom": "किससे भुगतान करें",
   "selectAccount": "एक खाता चुनें",
-  "intoInvestment": "निवेश खाते में",
-  "noInvestAccount": "अभी कोई निवेश खाता नहीं — पहले निवेश पेज पर एक जोड़ें।",
   "categoryOptional": "श्रेणी (वैकल्पिक)",
   "noCategory": "कोई श्रेणी नहीं",
   "firstDue": "पहली देय",
   "postAuto": "देय तिथि पर स्वचालित रूप से पोस्ट करें",
   "postAutoOff": "बंद = हर बार देय होने पर हम आपसे पुष्टि माँगेंगे।",
-  "savingEllipsis": "सहेजा जा रहा है…",
-  "groupLabel": "समूह",
-  "groupNew": "नए समूह का नाम",
-  "groupNewEg": "जैसे सदस्यताएँ"
+  "savingEllipsis": "सहेजा जा रहा है…"
 }

@@ -19,6 +19,7 @@ import {
   buildGroups, portfolioTotals, valuation, assetClassOf, holdingLabel, classMeta, isListed,
   fyLabel, inCurrentFYToDate, type HoldingRow, type Group, type AssetClass,
 } from "../../src/investments/model";
+import { stopSipForHolding } from "../../src/investments/write";
 import { AllocationDonut, GainBars } from "../../src/investments/Charts";
 import { AddInvestmentDialog } from "../../src/investments/AddDialog";
 import { ImportDialog } from "../../src/investments/ImportDialog";
@@ -265,6 +266,10 @@ function HoldingTile({ h, quote }: { h: HoldingRow; quote: Quote | undefined }) 
   const ltp = quote ? quote.price : (h.quantity > 0 && h.current_value != null ? h.current_value / h.quantity : h.avg_cost ?? 0);
   const meta = classMeta(cls);
 
+  // A SIP is "on" only while it still has an amount AND its recurring item is
+  // alive; `planned_id` alone can point at a row that was already stopped.
+  const sipOn = !!h.planned_id && (h.sip_amount ?? 0) > 0;
+
   if (editing) return <EditHolding h={h} onDone={() => setEditing(false)} />;
 
   return (
@@ -294,10 +299,32 @@ function HoldingTile({ h, quote }: { h: HoldingRow; quote: Quote | undefined }) 
           {cls === "fd" && h.annual_rate ? ` · ${t("perAnnum", { rate: h.annual_rate })}` : ""}
           {cls === "fd" && h.maturity_date ? ` · ${t("matures")} ${new Date(h.maturity_date).toLocaleDateString(undefined, { month: "short", year: "numeric" })}` : ""}
           {quote ? ` · ${t("ltpLabel")} ${fmt(money(quote.price, quote.currency))}${quote.change_pct != null ? ` (${quote.change_pct >= 0 ? "+" : ""}${quote.change_pct.toFixed(1)}%)` : ""}` : ` · ${t("valueLabel")} ${fmt(money(Math.round(ltp), h.currency))}`}
+          {/* A running SIP is a standing debit on a real account. It has no
+              other home in the app — recurring savings are not browsable under
+              /recurring — so it has to be legible and stoppable right here. */}
+          {sipOn ? ` · ${t("sipLine", "SIP")} ${fmt(money(h.sip_amount!, h.currency))}` : ""}
         </span>
         <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
           <button className="chip" onClick={() => setEditing(true)} style={{ padding: "2px 8px", fontSize: 11 }}>{t("edit")}</button>
-          <button className="chip" onClick={async () => { if (await confirm({ title: t("removeTitle"), message: t("removeMsg", { label }), confirmLabel: t("remove") })) softDelete("holdings", h.id); }} aria-label={t("remove")} style={{ padding: "2px 8px", fontSize: 11 }}>×</button>
+          {sipOn && (
+            <button
+              className="chip"
+              style={{ padding: "2px 8px", fontSize: 11 }}
+              onClick={async () => {
+                if (await confirm({ title: t("stopSipTitle", "Stop SIP?"), message: t("stopSipMsg", "No further instalments will be recorded. The holding stays."), confirmLabel: t("stopSip", "Stop SIP") })) {
+                  await stopSipForHolding(h);
+                  await updateRow("holdings", h.id, { sip_amount: null, sip_day: null });
+                }
+              }}
+            >{t("stopSip", "Stop SIP")}</button>
+          )}
+          <button className="chip" onClick={async () => {
+            if (!await confirm({ title: t("removeTitle"), message: t("removeMsg", { label }), confirmLabel: t("remove") })) return;
+            // Kill the SIP with the holding, or it keeps debiting forever for
+            // an investment that no longer exists.
+            await stopSipForHolding(h);
+            await softDelete("holdings", h.id);
+          }} aria-label={t("remove")} style={{ padding: "2px 8px", fontSize: 11 }}>×</button>
         </div>
       </div>
     </div>

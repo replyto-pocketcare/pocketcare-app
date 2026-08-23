@@ -34,7 +34,6 @@ export interface RecurringItem {
   account_id: string | null;
   to_account_id: string | null;
   category_id: string | null;
-  group_id: string | null;
   auto_post: number;
   alert_time_utc: string | null;
 }
@@ -59,7 +58,6 @@ export function useRecurringItems(): RecurringItem[] {
     account_id: d.account_id,
     to_account_id: d.to_account_id,
     category_id: d.category_id,
-    group_id: d.group_id,
     auto_post: d.auto_post,
     alert_time_utc: d.alert_time_utc,
   }));

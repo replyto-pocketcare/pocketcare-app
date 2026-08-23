@@ -36,6 +36,11 @@ export interface HoldingRow {
   maturity_date: string | null;
   source_account_id: string | null;
   planned_id: string | null;
+  /** Amount-based SIP, in minor units (migration 0061). Set together with
+   *  `planned_id`, which points at the recurring item that actually posts it. */
+  sip_amount: number | null;
+  sip_start_date: string | null;
+  sip_day: number | null;
 }
 
 /** A minimal live quote (end-of-day price) for a listed instrument. */

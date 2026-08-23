@@ -585,24 +585,10 @@ const split_invitations = new Table({
 const connections = new Table({
   user_a: column.text, user_b: column.text, created_at: column.text, deleted_at: column.text,
 });
-/**
- * User-defined buckets for recurring items (Subscriptions, Salary, SIPs…).
- * `direction` mirrors the template type mapping: income → income,
- * transfer → saving, everything else → payment.
- */
-const recurring_groups = new Table(
-  {
-    user_id: column.text, name: column.text, direction: column.text,
-    icon: column.text, color: column.text, sort: column.integer, is_system: column.integer,
-    created_at: column.text, updated_at: column.text, deleted_at: column.text,
-  },
-  { indexes: { by_user: ["user_id", "direction"] } },
-);
-
 // Dedicated recurring incomes & expenses (replaces templates+rules for tracking).
 const recurring_items = new Table(
   {
-    user_id: column.text, direction: column.text, group_id: column.text, name: column.text,
+    user_id: column.text, direction: column.text, name: column.text,
     amount: column.integer, currency: column.text, frequency: column.text, interval_count: column.integer,
     next_due: column.text, account_id: column.text, category_id: column.text,
     auto_post: column.integer, active: column.integer, alert_time_utc: column.text,
@@ -772,7 +758,6 @@ export const AppSchema = new Schema({
   receipt_scans,
   // Payments (0041) — the audit trail only; payment_handles is server-only.
   payment_handle_disclosures,
-  recurring_groups,
   recurring_items,
   category_rules,
   // Lookup / reference tables

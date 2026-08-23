@@ -36,7 +36,6 @@ export interface RecurringRow {
   account_id: string | null;
   to_account_id: string | null;
   category_id: string | null;
-  group_id: string | null;
   auto_post: number;
   active: number;
   alert_time_utc: string | null;
@@ -49,7 +48,7 @@ export interface RecurringRow {
 
 export const RECURRING_COLUMNS =
   `id, direction, name, amount, currency, frequency, interval_count, next_due,
-   account_id, to_account_id, category_id, group_id, auto_post, active, alert_time_utc,
+   account_id, to_account_id, category_id, auto_post, active, alert_time_utc,
    description, note, payment_method, labels, split_group_id`;
 
 /** Direction → the transaction type it posts. Savings are a transfer into an
@@ -201,7 +200,6 @@ export interface RecurringInput {
   frequency: Freq;
   firstDue: string;            // YYYY-MM-DD
   autoPost: boolean;
-  groupId: string;
   alert_time_utc: string | null;
 }
 
@@ -216,7 +214,6 @@ const toRow = (inp: RecurringInput) => ({
   account_id: inp.accountId,
   to_account_id: inp.toAccountId ?? null,
   category_id: inp.categoryId ?? null,
-  group_id: inp.groupId,
   auto_post: inp.autoPost ? 1 : 0,
   alert_time_utc: inp.alert_time_utc,
 });

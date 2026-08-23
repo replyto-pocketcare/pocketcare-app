@@ -17,7 +17,6 @@
   "plans": "{{count}} plannen",
   "whereIncomeGoes": "Waar je inkomen naartoe gaat",
   "payments": "Betalingen",
-  "savings": "Sparen",
   "freeSurplus": "Vrij overschot",
   "incomeVsPayments": "Inkomsten vs betalingen vs sparen",
   "quickAdd": "Snel toevoegen · sjablonen",
@@ -92,24 +91,17 @@
   "add": "Toevoegen",
   "dirLabel": {
     "income": "terugkerende inkomsten",
-    "payment": "terugkerende betaling",
-    "saving": "terugkerend sparen"
+    "payment": "terugkerende betaling"
   },
   "modalEdit": "{{what}} bewerken",
   "modalAdd": "{{what}} toevoegen",
   "depositInto": "Storten op",
-  "fundFrom": "Financieren vanaf",
   "payFrom": "Betalen vanaf",
   "selectAccount": "Selecteer een rekening",
-  "intoInvestment": "Naar beleggingsrekening",
-  "noInvestAccount": "Nog geen beleggingsrekening — voeg er eerst een toe op de pagina Beleggingen.",
   "categoryOptional": "Categorie (optioneel)",
   "noCategory": "Geen categorie",
   "firstDue": "Eerste vervaldatum",
   "postAuto": "Automatisch boeken op de vervaldatum",
   "postAutoOff": "Uit = we vragen je elke keer om bevestiging bij vervaldatum.",
-  "savingEllipsis": "Opslaan…",
-  "groupLabel": "Groep",
-  "groupNew": "Naam nieuwe groep",
-  "groupNewEg": "bijv. Abonnementen"
+  "savingEllipsis": "Opslaan…"
 }

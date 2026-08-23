@@ -26,7 +26,6 @@ import { parsePdfStatement } from "../../../src/statements/parsePdf";
 import { summarize, byCategory, byDay, outliers as findOutliers, recurringCandidates } from "../../../src/statements/analysis";
 import { reconcile, type RecordedTxn } from "../../../src/statements/reconcile";
 import type { ParsedStatement, StatementKind } from "../../../src/statements/types";
-import { resolveGroupForImport } from "../../../src/recurring/groups";
 
 const EARTH = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#7c4a3a", "#2f6f6a", "#c98a72", "#7c7264"];
 const AXIS = { fontSize: 11, fill: "var(--text-2)" } as const;
@@ -170,8 +169,7 @@ function Results({ parsed, base, cur, fmt, accountId, accountName, onReset }: {
 
   async function addRecurring(key: string, label: string, amountMinor: number, cadence: string) {
     const freq = cadence === "weekly" ? "weekly" : cadence === "yearly" ? "yearly" : "monthly";
-    const groupId = await resolveGroupForImport("payment", label);
-    await createRecurring({ direction: "payment", name: label.slice(0, 40), amount: amountMinor / 100, accountId: accountId || null, frequency: freq, firstDue: new Date().toISOString().slice(0, 10), autoPost: false, groupId, alert_time_utc: null });
+    await createRecurring({ direction: "payment", name: label.slice(0, 40), amount: amountMinor / 100, accountId: accountId || null, frequency: freq, firstDue: new Date().toISOString().slice(0, 10), autoPost: false, alert_time_utc: null });
     setAddedRecurring((prev) => new Set(prev).add(key));
   }
 

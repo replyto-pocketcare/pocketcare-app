@@ -435,16 +435,21 @@ function GoalsTile() {
 function SubscriptionsTile() {
   const base = useBaseCurrency();
   const hidden = useAmountsHidden();
-  // Subscriptions live under the "Subscription" group of recurring *payments* —
-  // the same list the user manages on /recurring. Reads recurring_items, which
-  // now holds both halves of what used to be a template + rule pair.
+  // Subscriptions are recurring *payments* filed under the Subscriptions
+  // CATEGORY — the same list the user manages on /recurring.
+  //
+  // This used to key off a recurring GROUP of the same name. Groups are gone;
+  // category is what organises recurring items now. Both spellings are matched
+  // because the seed taxonomy says "Subscriptions" while the older group said
+  // "Subscription", and a user who typed either means the same thing.
   const { data: subs = [] } = useQuery<{ name: string; amount: number; currency: string; frequency: string; next_due: string | null; created_at: string | null }>(
     `SELECT i.name AS name, COALESCE(i.amount, 0) AS amount, COALESCE(i.currency, '') AS currency,
             i.frequency AS frequency, i.next_due AS next_due, i.created_at AS created_at
      FROM recurring_items i
-     JOIN recurring_groups g ON g.id = i.group_id
-     WHERE i.deleted_at IS NULL AND g.deleted_at IS NULL
-       AND i.active = 1 AND g.direction = 'payment' AND lower(g.name) = 'subscription'
+     JOIN categories c ON c.id = i.category_id
+     WHERE i.deleted_at IS NULL AND c.deleted_at IS NULL
+       AND i.active = 1 AND i.direction = 'expense'
+       AND lower(c.name) IN ('subscription', 'subscriptions')
      ORDER BY i.next_due`,
   );
   const monthly = subs.reduce((s, x) => s + monthlyEquivalent(x.amount, x.frequency as Period), 0);

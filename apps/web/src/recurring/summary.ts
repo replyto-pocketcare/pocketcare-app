@@ -67,17 +67,17 @@ export function summarise(
 /**
  * Net monthly cashflow = recurring income − recurring expenses.
  *
- * Savings are deliberately EXCLUDED. A SIP is a transfer between your own
- * accounts: the money leaves your current account but does not leave your net
- * worth, so counting it as an outflow would understate what you actually have
- * spare each month. They still get their own card so they stay visible.
+ * Savings are deliberately EXCLUDED, and not summarised at all. A SIP is a
+ * transfer between your own accounts: the money leaves your current account
+ * but does not leave your net worth, so counting it as an outflow would
+ * understate what you actually have spare each month. Recurring savings live
+ * in Investments, next to the holding they fund.
  */
 export function useRecurringSummary(items: RecurringItem[]) {
   const catNames = useCategoryNames();
   return useMemo(() => {
     const income = summarise(items, "income", catNames);
     const expense = summarise(items, "payment", catNames);
-    const saving = summarise(items, "saving", catNames);
-    return { income, expense, saving, net: income.monthly - expense.monthly };
+    return { income, expense, net: income.monthly - expense.monthly };
   }, [items, catNames]);
 }

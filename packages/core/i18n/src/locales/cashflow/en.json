@@ -17,7 +17,6 @@
   "plans": "{{count}} plans",
   "whereIncomeGoes": "Where your income goes",
   "payments": "Payments",
-  "savings": "Savings",
   "freeSurplus": "Free surplus",
   "incomeVsPayments": "Income vs payments vs savings",
   "quickAdd": "Quick add · templates",
@@ -92,24 +91,17 @@
   "add": "Add",
   "dirLabel": {
     "income": "recurring income",
-    "payment": "recurring payment",
-    "saving": "recurring saving"
+    "payment": "recurring payment"
   },
   "modalEdit": "Edit {{what}}",
   "modalAdd": "Add {{what}}",
   "depositInto": "Deposit into",
-  "fundFrom": "Fund from",
   "payFrom": "Pay from",
   "selectAccount": "Select an account",
-  "intoInvestment": "Into investment account",
-  "noInvestAccount": "No investment account yet — add one on the Investments page first.",
   "categoryOptional": "Category (optional)",
   "noCategory": "No category",
   "firstDue": "First due",
   "postAuto": "Post automatically on the due date",
   "postAutoOff": "Off = we'll ask you to confirm each time it's due.",
-  "savingEllipsis": "Saving…",
-  "groupLabel": "Group",
-  "groupNew": "New group name",
-  "groupNewEg": "e.g. Subscriptions"
+  "savingEllipsis": "Saving…"
 }

@@ -1,7 +1,10 @@
 "use client";
 
 /**
- * One side of the recurring picture: Income, Expense, or Savings.
+ * One side of the recurring picture: Income or Expense.
+ *
+ * There is no `saving` slug. Recurring savings are SIPs, and a SIP belongs to
+ * the holding it funds — it is created and stopped in Investments, not here.
  *
  * Route segment is the USER-facing word ("expense"), not the stored direction
  * ("payment") — the URL is part of the interface, and /recurring/payment would
@@ -26,9 +29,8 @@ import { KebabMenu } from "../../../src/ui/KebabMenu";
 import { useConfirm } from "../../../src/ui/Confirm";
 
 const SLUGS: Record<string, { direction: RecurringDirection; title: string; sign: string; color: string }> = {
-  income:  { direction: "income",  title: "Income",         sign: "+", color: "var(--positive)" },
-  expense: { direction: "payment", title: "Expense",        sign: "−", color: "var(--negative)" },
-  saving:  { direction: "saving",  title: "Savings & SIPs", sign: "→", color: "var(--teal)" },
+  income:  { direction: "income",  title: "Income",  sign: "+", color: "var(--positive)" },
+  expense: { direction: "payment", title: "Expense", sign: "−", color: "var(--negative)" },
 };
 
 export default function RecurringDirectionPage() {

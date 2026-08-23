@@ -36,3 +36,4 @@ coverage/
 support-key/
 *.share
 _tmp_*
+_to_delete/
