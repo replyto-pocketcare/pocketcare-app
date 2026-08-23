@@ -9,7 +9,7 @@ import { useSession, useAuthStatus } from "../src/account";
 import { useSyncStatus, syncMessage } from "../src/sync";
 import { Spinner } from "../src/ui/Spinner";
 import { Logo } from "../src/ui/Logo";
-import { PlusIcon, DownloadIcon, BellIcon, ReceiptIcon, CloseIcon } from "../src/ui/icons";
+import { PlusIcon, DownloadIcon, BellIcon, ReceiptIcon, CloseIcon, LockIcon } from "../src/ui/icons";
 import { MaterialIcon, type MaterialIconName } from "../src/ui/MaterialIcon";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
 import { TrialNotice } from "../src/ui/TrialNotice";
@@ -19,6 +19,7 @@ import { InstallGuide } from "../src/ui/InstallGuide";
 import { Modal } from "../src/ui/Modal";
 import { BugReportModal } from "../src/ui/BugReport";
 import { useUnreadCount } from "../src/notifications/hooks";
+import { useEntitlement } from "../src/entitlement";
 import { installDiagnostics, setDiagnosticsRoute } from "../src/diagnostics/log";
 import { startErrorReporting } from "../src/diagnostics/report";
 import { listFailedWrites } from "../src/sync/deadletter";
@@ -204,12 +205,12 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
 // The default "+" action for pages that haven't registered anything more
 // specific via useRegisterAddAction — a transaction (or a scanned receipt,
 // which becomes one) is the one thing that's always relevant on a money app.
-const defaultAddAction = (t: (k: string, d: string) => string): AddAction => ({
+const defaultAddAction = (t: (k: string, d: string) => string, canScan: boolean): AddAction => ({
   type: "menu",
   label: t("fab.add", "Add"),
   items: [
     { key: "transaction", label: t("fab.addTransaction", "Add transaction"), href: "/transactions/new", icon: <PlusIcon size={17} /> },
-    { key: "receipt", label: t("fab.scanReceipt", "Scan bill / receipt"), href: "/receipts/new", icon: <ReceiptIcon size={17} /> },
+    { key: "receipt", label: t("fab.scanReceipt", "Scan bill / receipt"), href: "/receipts/new", icon: <ReceiptIcon size={17} />, locked: !canScan },
   ],
 });
 
@@ -228,6 +229,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const authStatus = useAuthStatus();
   const sync = useSyncStatus();
   const unread = useUnreadCount();
+  const entitlement = useEntitlement();
   const { t } = useTranslation();
   const navIds = useBottomNavIds();
   const navItems = navItemsFor(navIds);
@@ -356,7 +358,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}><Spinner size={34} /></div>;
   }
 
-  const action = pageAction ?? defaultAddAction(t);
+  // Lite/Pro only — matches the gate on /receipts/new and in receipt-scan.
+  const canScan = entitlement.tier === "lite" || entitlement.tier === "pro";
+  const action = pageAction ?? defaultAddAction(t, canScan);
   const menuItems = action.type === "menu" ? action.items : null;
 
   const runAdd = (anchor?: HTMLElement | null) => {
@@ -593,6 +597,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                 item.href ? (
                   <Link key={item.key} href={item.href} className="add-popover-item" role="menuitem" onClick={() => setAddOpen(false)}>
                     {item.icon} {item.label}
+                    {item.locked && (
+                      // A lock, not a tier name: the plans are Lite and Pro, and a badge
+                      // saying "PLUS" or "PRO" would name a tier that either does not
+                      // exist or is only half the answer.
+                      <span style={{ marginLeft: "auto", display: "grid", color: "var(--text-3)" }} aria-label="Paid plan required">
+                        <LockIcon size={13} />
+                      </span>
+                    )}
                   </Link>
                 ) : (
                   <button key={item.key} type="button" className="add-popover-item" role="menuitem" onClick={() => { item.onClick?.(); setAddOpen(false); }}>

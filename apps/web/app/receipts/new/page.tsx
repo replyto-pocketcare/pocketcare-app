@@ -18,7 +18,7 @@ import type { ReceiptDraft } from "@sanvya/receipts";
 
 import { useBaseCurrency } from "../../../src/hooks";
 import { useEntitlement } from "../../../src/entitlement";
-import { CameraIcon, ReceiptIcon, UploadIcon } from "../../../src/ui/icons";
+import { CameraIcon, ReceiptIcon, UploadIcon, LockIcon } from "../../../src/ui/icons";
 import { Spinner } from "../../../src/ui/Spinner";
 import {
   escalateToAi,
@@ -35,6 +35,16 @@ export default function NewReceiptPage() {
   const router = useRouter();
   const currency = useBaseCurrency();
   const ent = useEntitlement();
+
+  // Receipt scanning is Lite/Pro only.
+  //
+  // `ent.tier` is the EFFECTIVE tier (it already folds in a complimentary tier
+  // from a redeemed coupon), so this reads paid-or-not without re-deriving it.
+  // Note this deliberately does NOT include `ent.isTrial`: the assistant lets
+  // trial users in, but scanning was asked for as Lite and Pro only. The
+  // receipt-scan function enforces the same rule server-side — this card is
+  // the courtesy, that is the gate.
+  const canScan = ent.tier === "lite" || ent.tier === "pro";
 
   const [stage, setStage] = useState<ScanStage | null>(null);
   const [fraction, setFraction] = useState(0);
@@ -120,6 +130,24 @@ export default function NewReceiptPage() {
   const stageLabel = stage
     ? t(`stage.${stage}`, { defaultValue: stage })
     : null;
+
+  if (!canScan) {
+    return (
+      <div className="fade-up" style={{ display: "grid", gap: 16, maxWidth: 560 }}>
+        <h1 style={{ margin: 0 }}>{t("capture.title", "Scan a bill or receipt")}</h1>
+        <div className="card" style={{ padding: 28, display: "grid", gap: 12, textAlign: "center" }}>
+          <div style={{ display: "flex", justifyContent: "center", color: "var(--text-2)" }}><LockIcon size={30} /></div>
+          <h2>{t("premium.title", "A Lite or Pro feature")}</h2>
+          <p className="muted" style={{ lineHeight: 1.6 }}>
+            {t("premium.body", "Reading a bill and turning it into an itemised transaction runs on AI, so it's part of the Lite and Pro plans. You can still add transactions by hand on any plan.")}
+          </p>
+          <Link href="/settings" className="btn" style={{ justifySelf: "center" }}>
+            {t("premium.cta", "See plans")}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "grid", gap: 16, maxWidth: 640 }}>

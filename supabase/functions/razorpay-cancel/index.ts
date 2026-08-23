@@ -53,7 +53,7 @@ Deno.serve(async (req: Request) => {
 
   const endsAt = sub.current_end ? new Date(sub.current_end * 1000).toISOString() : null;
 
-  // Leave a notification behind if they still hold unspent purchased credits.
+  // Reassure, rather than alarm, if they still hold unspent purchased credits.
   //
   // Raised HERE rather than in the client so it survives the tab being closed
   // the moment after cancelling, and so it is written with the service role
@@ -85,12 +85,12 @@ Deno.serve(async (req: Request) => {
         user_id: user.id,
         kind: "system",
         severity: "warn",
-        title: `${credits} AI credit${plural} will be out of reach`,
-        subtitle: `Your plan ends ${when}`,
+        title: `Your ${credits} AI credit${plural} ${credits === 1 ? "is" : "are"} safe`,
+        subtitle: `Kept for whenever you upgrade`,
         body:
-          `You have ${credits} purchased AI credit${plural} that don't expire and stay on your account. ` +
-          `But Ask Sanvya isn't available on the Free plan, so you won't be able to spend them after ${when} ` +
-          `unless you subscribe again.`,
+          `Your plan ends ${when}. Your ${credits} purchased AI credit${plural} don't expire and stay on your ` +
+          `account — nothing is lost. AI features need a paid plan, so you won't be able to spend them while ` +
+          `you're on Free, but they'll be waiting exactly as they are whenever you upgrade again.`,
         href: "/settings",
         // Keyed to this subscription + end date so a cancel/resubscribe/cancel
         // cycle notifies once per actual ending, not once per button press.

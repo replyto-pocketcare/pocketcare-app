@@ -128,11 +128,29 @@ Deno.serve(async (req: Request) => {
   // have a single number to reason about rather than per-feature allowances.
   const { data: entitlement, error: entErr } = await supabase
     .from("entitlements")
-    .select("monthly_quota_total, monthly_quota_used, purchased_quota_remaining")
+    .select("tier, comp_tier, comp_until, monthly_quota_total, monthly_quota_used, purchased_quota_remaining")
     .eq("user_id", user.id)
     .single();
 
   if (entErr || !entitlement) return json({ error: "Entitlements not found." });
+
+  // Receipt scanning is a PAID feature: Lite and Pro only.
+  //
+  // Enforced here, not just in the UI, because this endpoint spends real money
+  // on every call — a client-side gate is a suggestion, and the quota check
+  // below would happily let a Free user burn credits they can no longer reach
+  // through the app. Mirrors the client's effective-tier rule: a complimentary
+  // tier from a redeemed coupon counts while it lasts.
+  const compActive = !!entitlement.comp_until && new Date(entitlement.comp_until).getTime() > Date.now();
+  const effectiveTier = compActive && entitlement.comp_tier && entitlement.comp_tier !== "free"
+    ? entitlement.comp_tier
+    : entitlement.tier;
+  if (effectiveTier !== "lite" && effectiveTier !== "pro") {
+    return json({
+      error: "Receipt scanning is available on the Lite and Pro plans.",
+      code: "premium_required",
+    });
+  }
 
   const { monthly_quota_total, monthly_quota_used, purchased_quota_remaining } = entitlement;
   const quota = (monthly_quota_total || 0) - (monthly_quota_used || 0) + (purchased_quota_remaining || 0);

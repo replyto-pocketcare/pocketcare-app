@@ -20,6 +20,10 @@ export interface AddMenuItem {
   icon: ReactNode;
   href?: string;
   onClick?: () => void;
+  /** Paid feature the current plan can't reach. Still listed — hiding it would
+   *  make a plan's features undiscoverable — but marked, so the user learns the
+   *  cost before the tap rather than after it. */
+  locked?: boolean;
 }
 
 export type AddAction =

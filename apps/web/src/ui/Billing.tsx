@@ -172,9 +172,9 @@ export function Billing() {
                     and your plan’s monthly AI prompts stop.
                     {e.purchased > 0 && (
                       <>
-                        {" "}You still have <strong>{e.purchased} purchased credit{e.purchased === 1 ? "" : "s"}</strong>.
-                        They stay on your account and don’t expire, but Ask Sanvya isn’t available on the Free plan —
-                        so you won’t be able to spend them until you subscribe again.
+                        {" "}Your <strong>{e.purchased} purchased credit{e.purchased === 1 ? "" : "s"} are safe.</strong>{" "}
+                        They don’t expire and stay on your account. AI features need a paid plan, so you won’t be able to
+                        spend them while you’re on Free — but they’ll be exactly where you left them the moment you upgrade again.
                       </>
                     )}
                   </span>

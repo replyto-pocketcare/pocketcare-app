@@ -131,6 +131,10 @@ export const RULES: readonly SuggestionRule[] = [
     used: (u) => n(u.receipts) > 0,
     eligible: (u) => n(u.transactions) >= 10,
     weight: 70,
+    // Scanning is a Lite/Pro feature, so this is an ad rather than a tip for
+    // anyone who cannot reach it — the same reason Planned Cashflow carried
+    // this flag before it was removed.
+    premium: true,
   },
   {
     id: "investments",
