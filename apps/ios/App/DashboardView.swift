@@ -236,7 +236,7 @@ struct DashboardView: View {
     /// Amounts here are in the user's base currency, not always INR — the old
     /// local formatter hardcoded both the currency and ÷100.
     private func formatCents(_ cents: Int64) -> String {
-        formatMoneyUnmasked(Domain.money(cents, Prefs.shared.baseCurrency))
+        formatMoneyUnmasked(Domain.money(cents, baseCurrencyNow()))
     }
 }
 

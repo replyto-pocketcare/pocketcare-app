@@ -29,18 +29,13 @@ import com.sanvya.app.theme.LocalSanvyaColors
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ComingSoonScreen(title: String, onOpenDrawer: () -> Unit = {}) {
+fun ComingSoonScreen(title: String) {
     val colors = LocalSanvyaColors.current
     Scaffold(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
                 title = { Text(title, fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = colors.text2)
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )
         },

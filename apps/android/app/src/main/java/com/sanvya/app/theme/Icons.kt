@@ -47,6 +47,7 @@ object SanvyaIcons {
     const val home = "\ue88a"
     const val insights = "\uf092"
     const val label = "\ue892"
+    const val lock = "\ue897"
     const val moreHoriz = "\ue5d3"
     const val notifications = "\ue7f4"
     const val payments = "\uef63"
@@ -107,6 +108,7 @@ object SanvyaIcons {
         "home" to "\ue88a",
         "insights" to "\uf092",
         "label" to "\ue892",
+        "lock" to "\ue897",
         "more_horiz" to "\ue5d3",
         "notifications" to "\ue7f4",
         "payments" to "\uef63",

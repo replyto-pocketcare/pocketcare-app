@@ -45,6 +45,7 @@ export const MATERIAL_ICON = {
   home: "\ue88a",
   insights: "\uf092",
   label: "\ue892",
+  lock: "\ue897",
   more_horiz: "\ue5d3",
   notifications: "\ue7f4",
   payments: "\uef63",

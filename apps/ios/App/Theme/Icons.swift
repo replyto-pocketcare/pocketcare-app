@@ -45,6 +45,7 @@ public enum SanvyaIcons {
     public static let home = "\u{e88a}"
     public static let insights = "\u{f092}"
     public static let label = "\u{e892}"
+    public static let lock = "\u{e897}"
     public static let moreHoriz = "\u{e5d3}"
     public static let notifications = "\u{e7f4}"
     public static let payments = "\u{ef63}"
@@ -105,6 +106,7 @@ public enum SanvyaIcons {
         "home": "\u{e88a}",
         "insights": "\u{f092}",
         "label": "\u{e892}",
+        "lock": "\u{e897}",
         "more_horiz": "\u{e5d3}",
         "notifications": "\u{e7f4}",
         "payments": "\u{ef63}",

@@ -29,7 +29,6 @@ import com.sanvya.app.theme.SanvyaRadius
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SplitsScreen(
-    onOpenDrawer: () -> Unit,
     onOpenGroup: (String) -> Unit,
     viewModel: SplitsViewModel = viewModel(),
 ) {
@@ -46,7 +45,6 @@ fun SplitsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Splits", fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = { IconButton(onClick = onOpenDrawer) { Icon(Icons.Default.Menu, contentDescription = "Menu", tint = colors.text2) } },
                 actions = { IconButton(onClick = { showCreate = true }) { Icon(Icons.Default.Add, contentDescription = "New group", tint = colors.accent) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )

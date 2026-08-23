@@ -51,7 +51,6 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    onOpenDrawer: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onAddAccount: () -> Unit = {},
     onViewAccounts: () -> Unit = {},
@@ -69,11 +68,6 @@ fun DashboardScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Dashboard", fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = colors.text2)
-                    }
-                },
                 actions = {
                     IconButton(onClick = { Prefs.setAmountsHidden(!amountsHidden) }) {
                         Icon(
@@ -92,33 +86,10 @@ fun DashboardScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )
         },
-        floatingActionButton = {
-            // Speed dial -- real port of AddSpeedDial (apps/web/app/
-            // AppShell.tsx), Dashboard-only on web (`pathname === "/"`), and
-            // the first quick-add control on either mobile platform (task
-            // #62 -- verified by grep, no FAB/SpeedDial symbol existed
-            // before this). See docs/mobile/screen-specs/receipt-scan.md.
-            var speedDialOpen by remember { mutableStateOf(false) }
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (speedDialOpen) {
-                    ExtendedFloatingActionButton(
-                        onClick = { speedDialOpen = false; onScanReceipt() },
-                        containerColor = colors.surface,
-                        icon = { Icon(Icons.Default.Receipt, contentDescription = null, tint = colors.text) },
-                        text = { Text("Scan bill / receipt", color = colors.text) },
-                    )
-                    ExtendedFloatingActionButton(
-                        onClick = { speedDialOpen = false; onAddTransaction() },
-                        containerColor = colors.surface,
-                        icon = { Icon(Icons.Default.Add, contentDescription = null, tint = colors.text) },
-                        text = { Text("Add transaction", color = colors.text) },
-                    )
-                }
-                FloatingActionButton(onClick = { speedDialOpen = !speedDialOpen }, containerColor = colors.accent) {
-                    Icon(Icons.Default.Add, contentDescription = if (speedDialOpen) "Close" else "Add", tint = colors.surface)
-                }
-            }
-        },
+        // No floatingActionButton: the shell's centre "+" is the app's one add
+        // affordance, on every screen, exactly as on web. The speed dial that
+        // used to live here was this app's only quick-add control before the
+        // shell existed; keeping it would put two "+" buttons on the dashboard.
     ) { padding ->
         if (uiState.accounts.isEmpty()) {
             EmptyDashboard(onAddAccount = onAddAccount, modifier = Modifier.padding(padding))

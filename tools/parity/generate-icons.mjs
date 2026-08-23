@@ -53,6 +53,14 @@ if (icons.length === 0) {
   console.error("Parsed 0 icons from MaterialIcon.tsx — the source shape changed. Fix this script rather than committing an empty map.");
   process.exit(1);
 }
+// `--codepoints` prints ONLY the U+ list, so build-fonts.sh can capture it with
+// a command substitution and the font can never be subset from a different
+// reading of the source than the maps are generated from.
+if (process.argv.includes("--codepoints")) {
+  process.stdout.write(icons.map(([, cp]) => `U+${cp}`).join(","));
+  process.exit(0);
+}
+
 console.log(`icons: ${icons.length} names parsed from MaterialIcon.tsx`);
 
 const camel = (s) => s.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());

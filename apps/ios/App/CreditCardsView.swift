@@ -276,7 +276,7 @@ private func shade(_ color: Color, _ percent: Double) -> Color {
 /// A card face shows the user's own balances — masked like everywhere else.
 /// The removed copy hardcoded INR and ÷100.
 private func formatMoneyINRForCards(_ minor: Int64) -> String {
-    formatMoney(minor, Prefs.shared.baseCurrency)
+    formatMoney(minor, baseCurrencyNow())
 }
 
 private extension String {

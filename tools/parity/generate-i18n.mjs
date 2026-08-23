@@ -177,7 +177,7 @@ for (const ns of namespaces) {
       LOCALES.filter((l) => l !== SOURCE_LOCALE).flatMap((l) => Object.values(values[l] ?? {})),
     );
     if (!args.includes("count")) args.unshift("count");
-    entries.push({ ns, key: base, args, plural: true, values });
+    entries.push({ ns, key: base, args, plural: true, values, localeArgsDiffer: false });
     for (const c of cats) consumed.add(`${base}_${c}`);
   }
 
@@ -190,7 +190,17 @@ for (const ns of namespaces) {
       values[SOURCE_LOCALE],
       LOCALES.filter((l) => l !== SOURCE_LOCALE).map((l) => values[l]),
     );
-    entries.push({ ns, key: k, args, plural: false, values });
+    // Android lint's StringFormatMatches assumes every locale interpolates the
+    // same arguments. Two keys deliberately do not: `loans:nthEmi` is
+    // "{{ord}} EMI" in English but "ईएमआई {{n}}" in Hindi and Dutch, because an
+    // English ordinal does not translate, and the call site passes both. Java's
+    // String.format ignores the unused argument, so this is correct at runtime —
+    // but lint cannot know that, so the accessor carries a suppression with the
+    // reason attached, emitted ONLY for the keys where it is actually true.
+    const localeArgsDiffer = LOCALES.some(
+      (l) => argsOf(values[l] ?? "").length !== args.length,
+    );
+    entries.push({ ns, key: k, args, plural: false, values, localeArgsDiffer });
   }
 }
 
@@ -374,7 +384,13 @@ function androidAccessorsKt() {
       }
       const params = e.args.map((a) => `${ktIdent(a)}: Any`).join(", ");
       const fmtArgs = e.args.map((a) => ktIdent(a)).join(", ");
-      return `        fun ${objName}(res: Resources, ${params}): String =\n            res.getString(R.string.${e.androidId}, ${fmtArgs})`;
+      const suppress = e.localeArgsDiffer
+        ? "        // Locales interpolate different subsets of these arguments (an English\n" +
+          "        // ordinal has no translation), so the default-locale string uses fewer\n" +
+          "        // specifiers than there are arguments. String.format ignores the extra.\n" +
+          '        @Suppress("StringFormatMatches")\n'
+        : "";
+      return `${suppress}        fun ${objName}(res: Resources, ${params}): String =\n            res.getString(R.string.${e.androidId}, ${fmtArgs})`;
     });
     blocks.push(`    object ${pascal(ns)} {\n${fns.join("\n")}\n    }`);
   }

@@ -53,14 +53,11 @@ print('Inter axes:', axes)
 npm pack material-symbols@0.45.9 >/dev/null
 tar xzf material-symbols-*.tgz
 
-UNICODES="$(node -e '
-const fs = require("fs");
-const src = fs.readFileSync(process.argv[1], "utf8");
-const block = src.slice(src.indexOf("export const MATERIAL_ICON"), src.indexOf("} as const;"));
-const cps = [...block.matchAll(/"\\\\u([0-9a-fA-F]{4})"/g)].map((m) => "U+" + m[1]);
-if (!cps.length) { console.error("no codepoints parsed"); process.exit(1); }
-process.stdout.write(cps.join(","));
-' "$ROOT/apps/web/src/ui/MaterialIcon.tsx")"
+UNICODES="$(node "$ROOT/tools/parity/generate-icons.mjs" --codepoints)"
+if [ -z "$UNICODES" ]; then
+  echo "no codepoints parsed from MaterialIcon.tsx" >&2
+  exit 1
+fi
 
 python3 -m fontTools.varLib.instancer package/material-symbols-rounded.woff2 \
   wght=400 opsz=24 FILL=0 GRAD=0 -o static.ttf >/dev/null

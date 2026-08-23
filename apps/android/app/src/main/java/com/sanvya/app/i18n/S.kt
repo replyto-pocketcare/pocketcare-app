@@ -712,6 +712,10 @@ object S {
         fun dueDay(res: Resources): String = res.getString(R.string.loans_due_day)
         fun dueLine(res: Resources, date: Any): String =
             res.getString(R.string.loans_due_line, date)
+        // Locales interpolate different subsets of these arguments (an English
+        // ordinal has no translation), so the default-locale string uses fewer
+        // specifiers than there are arguments. String.format ignores the extra.
+        @Suppress("StringFormatMatches")
         fun dueOnEach(res: Resources, ord: Any, n: Any): String =
             res.getString(R.string.loans_due_on_each, ord, n)
         fun edit(res: Resources): String = res.getString(R.string.loans_edit)
@@ -742,6 +746,10 @@ object S {
         fun noLoansTitle(res: Resources): String = res.getString(R.string.loans_no_loans_title)
         fun notExist(res: Resources): String = res.getString(R.string.loans_not_exist)
         fun notLinked(res: Resources): String = res.getString(R.string.loans_not_linked)
+        // Locales interpolate different subsets of these arguments (an English
+        // ordinal has no translation), so the default-locale string uses fewer
+        // specifiers than there are arguments. String.format ignores the extra.
+        @Suppress("StringFormatMatches")
         fun nthEmi(res: Resources, ord: Any, n: Any): String =
             res.getString(R.string.loans_nth_emi, ord, n)
         fun off(res: Resources): String = res.getString(R.string.loans_off)

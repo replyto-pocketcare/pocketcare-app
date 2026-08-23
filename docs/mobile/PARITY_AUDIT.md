@@ -93,11 +93,14 @@ Web's mobile chrome (`apps/web/app/AppShell.tsx`, `src/navPrefs.ts`, `src/ui/Bot
 - Auth gate: no session → replace to `/onboarding`. Pending invite token → replace to `/join`.
 - On open (2.5s after auth): `runRecurring()` then `runLoanAutoPost()`, once per launch.
 
-**Native today:** Android `ui/navigation/NavDrawer.kt` (a Material drawer) and iOS
-`MainTabView.swift` (misnamed — also a drawer, `DrawerMenuView.swift`, hand-rolled offset animation).
-Neither has a bottom bar, customizer, More sheet, banners, utility row, contextual "+", scroll
-restoration or the launch-time recurring/auto-post pass. **Decision 2026-08-23: replicate web exactly;
-drawer implementations are deleted.**
+**Android: built 2026-08-23.** `ui/shell/` — bottom bar with the four customizable slots and the
+raised centre "+", More sheet, customizer, all three banners, utility row, contextual add action,
+`NotificationsRepository` for the bell badge. `NavDrawer.kt` deleted; the Dashboard's own speed-dial
+FAB removed, since the shell's "+" is now the app's single add affordance. Still missing: per-route
+scroll restoration and the launch-time recurring/auto-post pass.
+
+**iOS: still `MainTabView.swift`** (misnamed — also a drawer, `DrawerMenuView.swift`, with a
+hand-rolled offset animation). Next.
 
 ## 4. Route → platform map
 

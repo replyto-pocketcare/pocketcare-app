@@ -38,7 +38,6 @@ private val COUNTRIES = listOf("", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onOpenDrawer: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel()
 ) {
@@ -91,11 +90,6 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Settings", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) {
-                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Open Drawer")
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
