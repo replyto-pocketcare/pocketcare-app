@@ -39,6 +39,25 @@ alter table pocketcare.recurring_items add column if not exists split_mode     t
 alter table pocketcare.recurring_items add column if not exists last_generated text;
 
 -- ---------------------------------------------------------------------------
+-- 1b. Allow the 'saving' direction.
+--
+-- 0060 narrowed direction to income|expense on the assumption that savings had
+-- all moved to Investments. That is true of the planned_cashflow saving ROWS
+-- (0061 ported them to holdings), but NOT of SIPs: a SIP still needs a monthly
+-- transfer to actually post (debit account -> investment account), and that
+-- lived as a transfer-typed template + rule, which 0060 skipped entirely.
+--
+-- So transfer-typed recurring rules have been orphaned from recurring_items
+-- since 0060. They need a home here, or removing transaction_templates would
+-- stop every SIP from posting.
+-- ---------------------------------------------------------------------------
+alter table pocketcare.recurring_items
+  drop constraint if exists recurring_items_direction_check;
+alter table pocketcare.recurring_items
+  add constraint recurring_items_direction_check
+  check (direction in ('income', 'expense', 'saving'));
+
+-- ---------------------------------------------------------------------------
 -- 2. Catch up anything created since 0060 (same guard, so re-running is a
 --    no-op for rows already present).
 -- ---------------------------------------------------------------------------

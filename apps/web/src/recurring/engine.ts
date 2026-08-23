@@ -57,8 +57,21 @@ export const RECURRING_COLUMNS =
 export const typeForDirection = (d: RecurringDirection): "income" | "expense" | "transfer" =>
   d === "income" ? "income" : d === "saving" ? "transfer" : "expense";
 
+/**
+ * The UI and the table disagree on one word, deliberately.
+ *
+ * The UI speaks of a "payment"; the column stores 'expense', matching the
+ * transaction type it posts and the check constraint 0060 defined. These two
+ * helpers are the only places that translate, so the round trip stays honest —
+ * writing the UI's word straight into the column violates the constraint and
+ * every new recurring payment fails to save.
+ */
 const directionOf = (d: string): RecurringDirection =>
   d === "income" ? "income" : d === "saving" ? "saving" : "payment";
+
+/** UI direction -> stored direction. */
+const dbDirection = (d: RecurringDirection): "income" | "expense" | "saving" =>
+  d === "income" ? "income" : d === "saving" ? "saving" : "expense";
 
 export function advance(dateStr: string, freq: Freq, n: number): string {
   const d = new Date(dateStr + "T00:00:00");
@@ -193,7 +206,7 @@ export interface RecurringInput {
 }
 
 const toRow = (inp: RecurringInput) => ({
-  direction: inp.direction,
+  direction: dbDirection(inp.direction),
   name: inp.name.trim(),
   amount: Math.round(inp.amount * 100),
   currency: getBaseCurrency(),
