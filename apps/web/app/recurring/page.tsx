@@ -18,9 +18,9 @@ import { money } from "@sanvya/money";
 import { useBaseCurrency } from "../../src/hooks";
 import { useMoneyFmt } from "../../src/ui/Money";
 import { softDelete } from "../../src/write";
-import { useRecurringItems, removeRecurring, type RecurringItem, type RecurringDirection } from "../../src/cashflow/recurring";
+import { useRecurringItems, type RecurringItem, type RecurringDirection } from "../../src/cashflow/recurring";
 import { useGroupsByDirection, ensureDefaultGroups } from "../../src/recurring/groups";
-import { GroupSection } from "../../src/recurring/GroupSection";
+import { useRecurringSummary } from "../../src/recurring/summary";
 import { TriageStrip } from "../../src/recurring/TriageStrip";
 import { RecurringModal } from "../../src/cashflow/RecurringModal";
 
@@ -79,17 +79,66 @@ export default function RecurringPage() {
 
   const ungrouped = useMemo(() => items.filter((i) => !i.group_id), [items]);
 
+  const summary = useRecurringSummary(items);
+
   return (
     <div style={{ display: "grid", gap: 20 }} className="fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <h1 style={{ margin: 0 }}>{t("title")}</h1>
+
+      {/* Net monthly cashflow, with the two sides drawn to scale against each
+          other. Everything is a MONTHLY equivalent (see summary.ts) so a weekly
+          bill and a yearly subscription are comparable. */}
+      <section className="card" style={{ padding: 18, display: "grid", gap: 14 }}>
         <div>
-          <h1 style={{ margin: 0 }}>{t("title")}</h1>
-                  </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button className="btn ghost" onClick={() => setModal({ direction: "income" })}>+ {t("income")}</button>
-          <button className="btn" onClick={() => setModal({ direction: "payment" })}>+ {t("payment")}</button>
+          <div className="eyebrow">{t("netMonthly", "Net monthly cashflow")}</div>
+          <div className="tabular-nums" style={{
+            fontSize: "clamp(28px, 7vw, 38px)", fontWeight: 750, letterSpacing: "-0.02em", marginTop: 2,
+            color: summary.net >= 0 ? "var(--positive)" : "var(--negative)",
+          }}>
+            {summary.net >= 0 ? "+" : "−"}{fmt(money(Math.abs(summary.net), base))}
+          </div>
         </div>
-      </div>
+
+        <CashflowBar expense={summary.expense.monthly} income={summary.income.monthly} base={base} fmt={fmt} />
+
+        <div style={{ display: "grid", gap: 10 }}>
+          <DirectionCard
+            href="/recurring/income"
+            label={t("incomes", "Income")}
+            amount={summary.income.monthly}
+            sign="+"
+            color="var(--positive)"
+            count={summary.income.items.length}
+            base={base}
+            fmt={fmt}
+          />
+          <DirectionCard
+            href="/recurring/expense"
+            label={t("payments", "Expense")}
+            amount={summary.expense.monthly}
+            sign="−"
+            color="var(--negative)"
+            count={summary.expense.items.length}
+            base={base}
+            fmt={fmt}
+          />
+          {/* Savings only appear once there is one: they are transfers between
+              your own accounts, so they sit outside the net figure above but
+              must not become invisible. */}
+          {summary.saving.items.length > 0 && (
+            <DirectionCard
+              href="/recurring/saving"
+              label={t("savings", "Savings & SIPs")}
+              amount={summary.saving.monthly}
+              sign="→"
+              color="var(--teal)"
+              count={summary.saving.items.length}
+              base={base}
+              fmt={fmt}
+            />
+          )}
+        </div>
+      </section>
 
       {due.length > 0 && (
         <section className="card" style={{ padding: 16, display: "grid", gap: 10, borderColor: "var(--accent-soft)", background: "var(--accent-ghost)" }}>
@@ -106,27 +155,7 @@ export default function RecurringPage() {
         </section>
       )}
 
-      {/* Legacy items with no group — a one-time prompt, not a permanent bucket. */}
-      <TriageStrip
-        items={ungrouped}
-        groupsFor={(it) => groupsByDir[it.direction]}
-      />
-
-      {(["income", "payment", "saving"] as const).map((dir) => (
-        <GroupSection
-          key={dir}
-          direction={dir}
-          title={dir === "income" ? t("incomes") : dir === "payment" ? t("payments") : t("savings")}
-          accent={dir === "income" ? "var(--positive)" : dir === "payment" ? "var(--negative)" : "var(--teal)"}
-          groups={groupsByDir[dir]}
-          items={items.filter((i) => i.direction === dir)}
-          base={base}
-          onAdd={() => setModal({ direction: dir })}
-          onEdit={(it) => setModal({ direction: dir, edit: it })}
-          onRemove={(it) => removeRecurring(it.ruleId, it.templateId)}
-          onPostNow={(it) => void postOnce(it.ruleId)}
-        />
-      ))}
+      <TriageStrip items={ungrouped} groupsFor={(it) => groupsByDir[it.direction]} />
 
       {modal && (
         <RecurringModal
@@ -140,5 +169,70 @@ export default function RecurringPage() {
         />
       )}
     </div>
+  );
+}
+
+/**
+ * Income vs expense drawn to scale against each other, so the balance is
+ * legible before the numbers are read. Widths are shares of the COMBINED
+ * total — the point is the ratio between the two bars, not either against some
+ * fixed maximum.
+ */
+function CashflowBar({ expense, income, base, fmt }: {
+  expense: number; income: number; base: string; fmt: (m: ReturnType<typeof money>) => string;
+}) {
+  const total = expense + income;
+  if (total <= 0) return null;
+  const expPct = (expense / total) * 100;
+  return (
+    <div>
+      <div style={{ display: "flex", height: 34, borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)" }}>
+        {expense > 0 && (
+          <div style={{
+            width: `${expPct}%`, background: "color-mix(in srgb, var(--negative) 18%, transparent)",
+            borderRight: "2px solid var(--negative)", display: "grid", placeItems: "center", minWidth: 0,
+          }}>
+            <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 700, color: "var(--negative)", padding: "0 6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              −{fmt(money(expense, base))}
+            </span>
+          </div>
+        )}
+        {income > 0 && (
+          <div style={{
+            width: `${100 - expPct}%`, background: "color-mix(in srgb, var(--positive) 18%, transparent)",
+            display: "grid", placeItems: "center", minWidth: 0,
+          }}>
+            <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 700, color: "var(--positive)", padding: "0 6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {fmt(money(income, base))}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DirectionCard({ href, label, amount, sign, color, count, base, fmt }: {
+  href: string; label: string; amount: number; sign: string; color: string; count: number;
+  base: string; fmt: (m: ReturnType<typeof money>) => string;
+}) {
+  return (
+    <Link href={href} className="card press" style={{
+      padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between",
+      gap: 12, background: "var(--surface-2)",
+    }}>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 13.5, fontWeight: 650 }}>{label}</span>
+        <span className="muted" style={{ fontSize: 12 }}>
+          {count === 0 ? "Nothing yet" : `${count} item${count === 1 ? "" : "s"} · per month`}
+        </span>
+      </span>
+      <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <span className="tabular-nums" style={{ fontSize: 19, fontWeight: 750, color }}>
+          {sign}{fmt(money(amount, base))}
+        </span>
+        <span style={{ color: "var(--text-3)" }}>›</span>
+      </span>
+    </Link>
   );
 }

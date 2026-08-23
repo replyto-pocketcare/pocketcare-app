@@ -19,6 +19,17 @@ import { isInvestmentAccount } from "@sanvya/types";
 
 const FREQS: Freq[] = ["daily", "weekly", "monthly", "yearly"];
 
+/**
+ * One-tap starters, per direction. They only fill the name — every other field
+ * stays the user's to choose — so a wrong tap costs nothing and there is no
+ * hidden magic behind the chip.
+ */
+const PRESETS: Record<RecurringDirection, string[]> = {
+  income: ["Salary", "Rent", "Interest", "Freelance"],
+  payment: ["Rent", "Electricity", "Internet", "Subscription", "EMI"],
+  saving: ["SIP", "Recurring deposit", "Emergency fund"],
+};
+
 export function RecurringModal({ direction, base, edit, prefill, onClose }: {
   direction: RecurringDirection;
   base: string;
@@ -99,6 +110,22 @@ export function RecurringModal({ direction, base, edit, prefill, onClose }: {
     <Modal open onClose={() => onClose(false)}>
       <div style={{ display: "grid", gap: 12 }}>
         <h2 style={{ margin: 0, textTransform: "capitalize" }}>{edit ? t("modalEdit", { what: t(`dirLabel.${direction}`) }) : t("modalAdd", { what: t(`dirLabel.${direction}`) })}</h2>
+
+        {!edit && (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {PRESETS[direction].map((p) => (
+              <button
+                key={p}
+                type="button"
+                className="chip"
+                data-active={name.trim().toLowerCase() === p.toLowerCase()}
+                onClick={() => setName(p)}
+              >
+                + {p}
+              </button>
+            ))}
+          </div>
+        )}
 
         <FloatingInput label={t("name")} value={name} onChange={setName} />
         <FloatingInput label={t("amountCur", { base })} group currency={base} value={amount} onChange={setAmount} />
