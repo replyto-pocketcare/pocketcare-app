@@ -1,13 +1,19 @@
 import SwiftUI
 
-/// One nav group in the More sheet, matching web's `NAV_GROUPS`.
-private struct NavGroup: Identifiable {
+/**
+ One nav group, matching web's `NAV_GROUPS`.
+
+ Not private: the More sheet and the expanded-layout sidebar render the **same**
+ list. They have to. At `.expanded` the More sheet is unreachable, so anything
+ that lived only there would simply vanish on an iPad.
+ */
+struct NavGroup: Identifiable {
     let id = UUID()
     let title: String
     let items: [NavEntry]
 }
 
-private struct NavEntry: Identifiable {
+struct NavEntry: Identifiable {
     let id = UUID()
     let tab: NavTab
     let label: String
@@ -21,7 +27,7 @@ private struct NavEntry: Identifiable {
  to `/friends`, because Groups and Splits were one screen's worth of information
  split across two.
  */
-private let navGroups: [NavGroup] = [
+let navGroups: [NavGroup] = [
     NavGroup(title: "Money", items: [
         NavEntry(tab: .accounts, label: "Accounts", glyph: SanvyaIcons.accountBalance),
         NavEntry(tab: .transactions, label: "Transactions", glyph: SanvyaIcons.swapHoriz),

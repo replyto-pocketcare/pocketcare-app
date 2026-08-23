@@ -205,7 +205,7 @@ approximation per screen (iOS's old credit-card face).
 | **No `RecurringRepository` on either platform** | `/recurring` is a data-layer task before it is a UI task — no `recurring_items` reads or writes exist natively | W4 |
 | **No `useUnreadCount()` equivalent natively** | The shell's bell badge and the Notifications screen both need it; neither platform has the query | W1 |
 | **`notifications` has no i18n namespace at all** | The web screen has zero `t()` calls. Porting it as-is would put the one hardcoded-English screen into apps that are otherwise fully localised | W4 |
-| **Tablets / foldables / large windows** | Required as of 2026-08-23, spec in `screen-specs/app-shell.md` §1/§1a/§1b. **Android: done** — `WindowClass.kt` (Material 3 breakpoints, device type from `FEATURE_SENSOR_HINGE_ANGLE` + `sw600dp`, orientation policy), `SideNav.kt`, the Expanded branch of `AppShell.kt`, manifest `configChanges`. **iOS: not started.** Still open on both: the Expanded **top bar** (web draws it alongside the util row, giving two bells — deliberately deferred, see spec §1a), every screen's own content re-checked at Medium/Expanded, and iPad Slide Over / Split View / Stage Manager | **W1.5** |
+| **Tablets / foldables / large windows** | Required as of 2026-08-23, spec in `screen-specs/app-shell.md` §1/§1a/§1b. **Android: done** — `WindowClass.kt` (Material 3 breakpoints, device type from `FEATURE_SENSOR_HINGE_ANGLE` + `sw600dp`, orientation policy), `SideNav.kt`, the Expanded branch of `AppShell.kt`, manifest `configChanges`. **iOS: done** — `WindowClass.swift` (size class + an 840×480 gate matching Android's, device type from `UIUserInterfaceIdiom`), `SideNav.swift`, the `.expanded` branch of `AppShell.swift`, orientation declared in `project.yml` (`UISupportedInterfaceOrientations` + `~ipad`). Still open on both: the Expanded **top bar** (web draws it alongside the util row, giving two bells — deliberately deferred, see spec §1a), every screen's own content re-checked at Medium/Expanded, and iPad Slide Over / Split View / Stage Manager | **W1.5** |
 | **Bundle ids / Universal Links domain** | Still placeholders (`com.sanvya.app`, `com.sanvya.app.ios`) — blocks `/join` deep links and store prep | **needs Akhilesh** |
 | **Min OS versions** | Proposed minSdk 26 / iOS target unconfirmed | **needs Akhilesh** |
 
@@ -225,7 +225,7 @@ approximation per screen (iOS's old credit-card face).
 height gate on Expanded) and `FEATURE_SENSOR_HINGE_ANGLE` / `sw600dp`, **not** web's 640/860/1024
 (Akhilesh, 2026-08-23). Orientation: phones portrait, tablets and foldables free. Every class
 change is a resize, not a relaunch — nothing may be lost across one.
-Spec: `screen-specs/app-shell.md` §1, §1a, §1b. Android done 2026-08-23; iOS next.
+Spec: `screen-specs/app-shell.md` §1, §1a, §1b. Both platforms done 2026-08-23.
 
 **W2 — spec re-derivation** for every ⚠️/🔶/❌ route in §4 from today's source. Each screen's spec
 must state what it does at Medium and Expanded, not only on a phone, and drop the screen's own

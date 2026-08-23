@@ -24,9 +24,16 @@ So the *layouts* are web's, pixel for pixel. The *thresholds they switch at* are
 
 | Class | Android (`WindowSizeClass`) | iOS | Layout |
 |---|---|---|---|
-| **Compact** | width < 600dp | compact horizontal size class | Bottom bar, icons only, full-width content |
-| **Medium** | 600 <= width < 840dp | regular, narrower window | Bottom bar **with labels**, content capped and centred |
-| **Expanded** | width >= 840dp **and** height >= 480dp | regular, wide window | Persistent sidebar + inset window frame, **no** bottom bar |
+| **Compact** | width < 600dp | `horizontalSizeClass == .compact` | Bottom bar, icons only, full-width content |
+| **Medium** | 600 <= width < 840dp | `.regular`, window < 840×480 | Bottom bar **with labels**, content capped and centred |
+| **Expanded** | width >= 840dp **and** height >= 480dp | `.regular`, window >= 840×480 | Persistent sidebar + inset window frame, **no** bottom bar |
+
+On iOS the **size class does the real work**: it is the platform's own answer to "is this a
+phone-shaped window", it already accounts for Slide Over and Split View, and it changes when the
+*window* changes rather than when the device does. Only the split between the two regular-width
+layouts needs a measurement, and it uses the same 840×480 Android reads from `WindowSizeClass`,
+so the two apps agree about what counts as a tablet. iPad portrait (834pt) is therefore Medium
+and iPad landscape is Expanded — sidebar in landscape, bottom bar in portrait.
 
 Constants come from `androidx.window.core.layout.WindowSizeClass`
 (`WIDTH_DP_MEDIUM_LOWER_BOUND`, `WIDTH_DP_EXPANDED_LOWER_BOUND`, `HEIGHT_DP_MEDIUM_LOWER_BOUND`)
@@ -150,9 +157,15 @@ Device type is read from the platform's own capability flags, not from a size:
 Hinge is tested first, so a large foldable is Foldable rather than Tablet. Both rotate freely,
 so nothing turns on it today — but the two diverge the moment anything cares about the fold.
 
-The lock is applied at runtime (`Activity.requestedOrientation`) and **restored on dispose**:
-it is Activity state, not composable state, so leaving it set would pin later screens — a
-full-screen receipt camera, say — to portrait too.
+**Android** applies the lock at runtime (`Activity.requestedOrientation`) and **restores it on
+dispose**: it is Activity state, not composable state, so leaving it set would pin later screens
+— a full-screen receipt camera, say — to portrait too.
+
+**iOS** declares it instead, in `Info.plist` via `UISupportedInterfaceOrientations` (portrait
+only) and `UISupportedInterfaceOrientations~ipad` (all four). Declared rather than set at
+runtime so the system applies it before the first frame, instead of after one has been laid out
+the wrong way round. `SanvyaDeviceType` mirrors the same policy in code
+(`UIUserInterfaceIdiom`, the platform's own identification) for anything that needs to *ask*.
 
 Worth knowing: from **Android 16 the system ignores an orientation restriction on displays at or
 above `sw600dp`**. This policy is therefore not fighting the platform — on phones the lock still

@@ -60,6 +60,52 @@ export const TYPOGRAPHY = {
       uppercase: true,
       css: { selector: ".eyebrow", prop: "font-size", expect: "11px" },
     },
+    // The expanded-layout sidebar has its own scale. `body` and `statLabel`
+    // only approximated it -- web's rows are 13.5/500 (650 when active), which
+    // is neither.
+    sideNavItem: {
+      size: 13.5,
+      weight: 500,
+      tracking: 0,
+      css: { selector: ".side-nav-item", prop: "font-size", expect: "13.5px", media: "(min-width: 1024px)" },
+    },
+    sideNavItemActive: {
+      size: 13.5,
+      weight: 650,
+      tracking: 0,
+      css: { selector: ".side-nav-item.active", prop: "font-weight", expect: "650", media: "(min-width: 1024px)" },
+    },
+    sideNavTitle: {
+      size: 10.5,
+      weight: 600,
+      tracking: 0.07,
+      uppercase: true,
+      css: { selector: ".side-nav-title", prop: "font-size", expect: "10.5px", media: "(min-width: 1024px)" },
+    },
+    sideNavSearch: {
+      size: 13,
+      weight: 400,
+      tracking: 0,
+      css: { selector: ".side-nav-search", prop: "font-size", expect: "13px", media: "(min-width: 1024px)" },
+    },
+    sideNavBadge: {
+      size: 10.5,
+      weight: 700,
+      tracking: 0,
+      css: { selector: ".side-nav-badge", prop: "font-size", expect: "10.5px", media: "(min-width: 1024px)" },
+    },
+    sideNavGuest: {
+      size: 12.5,
+      weight: 400,
+      tracking: 0,
+      css: { selector: ".side-nav-guest", prop: "font-size", expect: "12.5px", media: "(min-width: 1024px)" },
+    },
+    sideNavVersion: {
+      size: 11,
+      weight: 400,
+      tracking: 0,
+      css: { selector: ".side-nav-ver", prop: "font-size", expect: "11px", media: "(min-width: 1024px)" },
+    },
     body: {
       size: 15,
       weight: 400,

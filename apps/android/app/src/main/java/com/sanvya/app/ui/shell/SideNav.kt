@@ -34,7 +34,6 @@ import com.sanvya.app.theme.SanvyaIcons
 import com.sanvya.app.theme.SanvyaMetrics
 import com.sanvya.app.theme.SanvyaShape
 import com.sanvya.app.theme.SanvyaType
-import com.sanvya.app.ui.components.Eyebrow
 import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.ui.components.press
@@ -111,7 +110,7 @@ fun SideNav(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SanvyaIcon(SanvyaIcons.search, size = x.searchIconSize, tint = colors.text3)
-            SanvyaText("Search anything…", style = SanvyaType.statLabel, color = colors.text3)
+            SanvyaText("Search anything…", style = SanvyaType.sideNavSearch, color = colors.text3)
         }
 
         Column(
@@ -138,8 +137,14 @@ fun SideNav(
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     if (group.title.isNotEmpty()) {
-                        Eyebrow(
-                            group.title,
+                        // Not `Eyebrow`: that is 11/600 at 0.09 tracking, and
+                        // the sidebar's own title is 10.5/600 at 0.07. Close
+                        // enough to look like a mistake, different enough to be
+                        // one.
+                        SanvyaText(
+                            group.title.uppercase(),
+                            style = SanvyaType.sideNavTitle,
+                            color = colors.text2,
                             modifier = Modifier
                                 .alpha(0.65f)
                                 .padding(horizontal = 10.dp, vertical = 2.dp),
@@ -184,12 +189,12 @@ fun SideNav(
                 ) {
                     SanvyaText(
                         guestDaysLeft?.let { "Guest · ${it}d left" } ?: "Guest",
-                        style = SanvyaType.statLabel.copy(fontWeight = FontWeight.Bold),
+                        style = SanvyaType.sideNavGuest.copy(fontWeight = FontWeight.Bold),
                         color = colors.text,
                     )
                     SanvyaText(
                         "Create account →",
-                        style = SanvyaType.statLabel,
+                        style = SanvyaType.sideNavGuest,
                         color = colors.accent,
                         modifier = Modifier.padding(top = 2.dp),
                     )
@@ -208,7 +213,7 @@ fun SideNav(
 
             SanvyaText(
                 "Sanvya v$appVersion",
-                style = SanvyaType.navLabel,
+                style = SanvyaType.sideNavVersion,
                 color = colors.text2,
                 modifier = Modifier.alpha(0.7f).padding(start = 10.dp, end = 10.dp, top = 6.dp),
             )
@@ -263,16 +268,13 @@ private fun SideNavItem(
                 size = x.itemIconSize,
                 tint = if (isActive) colors.accent else colors.text,
             )
+            // Two whole styles rather than a weight override: the active row
+            // is 650 and the resting one 500, and neither is a Material weight
+            // constant. Inter is bundled as a VARIABLE font precisely so these
+            // resolve on the `wght` axis instead of rounding.
             SanvyaText(
                 label,
-                // Web's active row is weight 650 -- a real value, not a rounding
-                // of "semibold": Inter is bundled as a VARIABLE font precisely so
-                // 550/650 land where the design put them.
-                style = if (isActive) {
-                    SanvyaType.body.copy(fontWeight = FontWeight(650))
-                } else {
-                    SanvyaType.body
-                },
+                style = if (isActive) SanvyaType.sideNavItemActive else SanvyaType.sideNavItem,
                 color = if (isActive) colors.accent else colors.text,
                 modifier = Modifier.weight(1f),
             )
@@ -288,7 +290,7 @@ private fun SideNavItem(
                 ) {
                     SanvyaText(
                         if (badge > 9) "9+" else "$badge",
-                        style = SanvyaType.navLabel,
+                        style = SanvyaType.sideNavBadge,
                         color = Color.White,
                     )
                 }

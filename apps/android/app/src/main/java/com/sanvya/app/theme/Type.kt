@@ -47,6 +47,55 @@ object SanvyaType {
         letterSpacing = 0.09.em,
     )
 
+    val sideNavItem = TextStyle(
+        fontFamily = SanvyaFont.family,
+        fontSize = 13.5.sp,
+        fontWeight = FontWeight(500),
+        letterSpacing = 0.em,
+    )
+
+    val sideNavItemActive = TextStyle(
+        fontFamily = SanvyaFont.family,
+        fontSize = 13.5.sp,
+        fontWeight = FontWeight(650),
+        letterSpacing = 0.em,
+    )
+
+    val sideNavTitle = TextStyle(
+        fontFamily = SanvyaFont.family,
+        fontSize = 10.5.sp,
+        fontWeight = FontWeight(600),
+        letterSpacing = 0.07.em,
+    )
+
+    val sideNavSearch = TextStyle(
+        fontFamily = SanvyaFont.family,
+        fontSize = 13.sp,
+        fontWeight = FontWeight(400),
+        letterSpacing = 0.em,
+    )
+
+    val sideNavBadge = TextStyle(
+        fontFamily = SanvyaFont.family,
+        fontSize = 10.5.sp,
+        fontWeight = FontWeight(700),
+        letterSpacing = 0.em,
+    )
+
+    val sideNavGuest = TextStyle(
+        fontFamily = SanvyaFont.family,
+        fontSize = 12.5.sp,
+        fontWeight = FontWeight(400),
+        letterSpacing = 0.em,
+    )
+
+    val sideNavVersion = TextStyle(
+        fontFamily = SanvyaFont.family,
+        fontSize = 11.sp,
+        fontWeight = FontWeight(400),
+        letterSpacing = 0.em,
+    )
+
     val body = TextStyle(
         fontFamily = SanvyaFont.family,
         fontSize = 15.sp,
@@ -103,6 +152,13 @@ object SanvyaTypeUppercase {
     const val h1Compact = false
     const val h2 = false
     const val eyebrow = true
+    const val sideNavItem = false
+    const val sideNavItemActive = false
+    const val sideNavTitle = true
+    const val sideNavSearch = false
+    const val sideNavBadge = false
+    const val sideNavGuest = false
+    const val sideNavVersion = false
     const val body = false
     const val chip = false
     const val button = false

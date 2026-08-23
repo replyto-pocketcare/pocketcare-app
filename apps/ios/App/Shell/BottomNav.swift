@@ -16,7 +16,7 @@ import SwiftUI
  for the mapping back to `globals.css`.
  */
 struct BottomNav: View {
-    @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.sanvyaWindowClass) private var windowClass
     let currentTab: NavTab
     let navIds: [String]
     let unreadCount: Int
@@ -31,7 +31,9 @@ struct BottomNav: View {
     /// Web hides the labels below 640px, which is every iPhone. iPad and
     /// landscape-regular cross it, so this asks the size class rather than
     /// assuming.
-    private var compact: Bool { sizeClass == .compact }
+    // One source of truth: the shell's window class, not a second size-class
+    // check that could drift from it.
+    private var compact: Bool { !windowClass.showsNavLabels }
 
     var body: some View {
         HStack(spacing: SanvyaMetrics.BottomNav.itemGap) {

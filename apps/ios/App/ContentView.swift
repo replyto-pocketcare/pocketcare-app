@@ -11,8 +11,13 @@ import SwiftUI
  */
 struct ContentView: View {
     var body: some View {
-        AppShell { tab in
-            screen(for: tab)
+        // Measures the window and publishes the class to everything beneath —
+        // the shell's chrome and every screen inside it. Outermost, because a
+        // resize must reach all of them.
+        WindowClassReader {
+            AppShell { tab in
+                screen(for: tab)
+            }
         }
     }
 

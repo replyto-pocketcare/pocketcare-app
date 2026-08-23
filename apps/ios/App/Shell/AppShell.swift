@@ -29,6 +29,9 @@ struct AppShell<Content: View>: View {
     @State private var customizeOpen = false
     @State private var addOpen = false
 
+    @Environment(\.sanvyaWindowClass) private var windowClass
+    @Environment(\.colorScheme) private var colorScheme
+
     let content: (Binding<NavTab>) -> Content
 
     private var currentTab: NavTab {
@@ -50,6 +53,128 @@ struct AppShell<Content: View>: View {
     private var action: AddAction { pageAction ?? defaultAddAction(canScan: viewModel.canScan) }
 
     var body: some View {
+        Group {
+            if windowClass == .expanded {
+                expandedBody
+            } else {
+                compactBody
+            }
+        }
+        .environment(\.addActionSetter) { pageAction = $0 }
+        // Both overlays belong to the bottom bar. At `.expanded` the bar is gone
+        // and the sidebar shows every destination directly, so there is nothing
+        // to open them from — and a sheet that can never be dismissed by its own
+        // affordance is worse than no sheet.
+        .sanvyaModal(isPresented: moreBinding, label: "More") {
+            MoreSheet(
+                currentTab: currentTab,
+                unreadCount: viewModel.unreadCount,
+                isGuest: viewModel.isGuest,
+                guestDaysLeft: viewModel.guestDaysLeft,
+                appVersion: appVersion,
+                onSelect: { tab in moreOpen = false; select(tab) },
+                onCustomize: { moreOpen = false; customizeOpen = true },
+                onFeedback: { moreOpen = false },
+                onClose: { moreOpen = false }
+            )
+        }
+        .sanvyaModal(isPresented: customizeBinding, label: "Customize bottom bar") {
+            BottomNavCustomizer(
+                current: navPrefs.ids,
+                onSave: { ids in navPrefs.setIds(ids); customizeOpen = false },
+                onClose: { customizeOpen = false }
+            )
+        }
+        .task {
+            viewModel.start()
+            // `failed_writes` is local-only, so there is no sync event to
+            // observe. Web polls every 30s; so does this.
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(30))
+                await viewModel.refreshFailedWrites()
+            }
+        }
+    }
+
+    private var moreBinding: Binding<Bool> {
+        Binding(get: { moreOpen && windowClass.usesBottomBar }, set: { moreOpen = $0 })
+    }
+
+    private var customizeBinding: Binding<Bool> {
+        Binding(get: { customizeOpen && windowClass.usesBottomBar }, set: { customizeOpen = $0 })
+    }
+
+    /**
+     The `.expanded` layout: a persistent sidebar beside the content, and no
+     floating bottom bar.
+
+     Web turns the whole app into an inset console window at this size (a
+     `--surface-2` backdrop with the app floating on it, rounded and shadowed),
+     which is what stops an iPad reading as an iPhone layout stretched sideways.
+     Ported literally, because on a tablet that difference is the entire
+     impression the app makes.
+     */
+    private var expandedBody: some View {
+        VStack(spacing: 0) {
+            // Banners stay full-bleed above the frame: they are system messages
+            // about the app, not content inside it.
+            SyncProblemsBanner(count: viewModel.failedWriteCount) { select(.settings) }
+            OfflineBanner(offline: connectivity.isOffline)
+
+            HStack(spacing: 0) {
+                SideNav(
+                    currentTab: currentTab,
+                    unreadCount: viewModel.unreadCount,
+                    isGuest: viewModel.isGuest,
+                    guestDaysLeft: viewModel.guestDaysLeft,
+                    appVersion: appVersion,
+                    onSelect: select,
+                    onFeedback: {}
+                )
+
+                VStack(spacing: 0) {
+                    if currentTab != .dashboard {
+                        UtilRow(
+                            showBack: false,
+                            unreadCount: viewModel.unreadCount,
+                            onBack: {},
+                            onNotifications: { select(.notifications) }
+                        )
+                    }
+                    content(tabBinding)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .frame(maxWidth: SanvyaMetrics.Expanded.contentMaxWidth)
+                .padding(.top, SanvyaMetrics.Expanded.contentPaddingTop)
+                .padding(.horizontal, SanvyaMetrics.Expanded.contentPaddingH)
+                // No bottom clearance: the floating bar is gone, so reserving
+                // 96 for it would leave a dead strip.
+                .padding(.bottom, SanvyaMetrics.Expanded.contentPaddingBottom)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.bg)
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: SanvyaMetrics.Expanded.frameRadius,
+                    style: .continuous
+                )
+            )
+            .overlay(
+                RoundedRectangle(
+                    cornerRadius: SanvyaMetrics.Expanded.frameRadius,
+                    style: .continuous
+                )
+                .strokeBorder(Color.border, lineWidth: 1)
+            )
+            .sanvyaShadow(SanvyaShadows.shadowLg(dark: colorScheme == .dark))
+            .padding(SanvyaMetrics.Expanded.frameInset)
+        }
+        // The backdrop the window floats on — web changes the *body*
+        // background here, not the app's.
+        .background(Color.surface2.ignoresSafeArea())
+    }
+
+    private var compactBody: some View {
         ZStack(alignment: .bottom) {
             Color.bg.ignoresSafeArea()
 
@@ -74,6 +199,10 @@ struct AppShell<Content: View>: View {
                 }
                 .padding(.top, SanvyaMetrics.Page.paddingTop)
                 .padding(.horizontal, SanvyaMetrics.Page.paddingHorizontal)
+                // At `.medium` the column caps and centres rather than
+                // stretching an iPhone layout across an iPad, which is exactly
+                // what web does above its own middle breakpoint.
+                .frame(maxWidth: windowClass.capsContentWidth ? SanvyaMetrics.Page.maxWidth : .infinity)
             }
             // Web reserves 96px plus the safe area beneath the floating bar.
             .padding(.bottom, SanvyaMetrics.Page.paddingBottom)
@@ -96,36 +225,6 @@ struct AppShell<Content: View>: View {
                     addOpen = false
                     if let tab = item.tab { select(tab) }
                 })
-            }
-        }
-        .environment(\.addActionSetter) { pageAction = $0 }
-        .sanvyaModal(isPresented: $moreOpen, label: "More") {
-            MoreSheet(
-                currentTab: currentTab,
-                unreadCount: viewModel.unreadCount,
-                isGuest: viewModel.isGuest,
-                guestDaysLeft: viewModel.guestDaysLeft,
-                appVersion: appVersion,
-                onSelect: { tab in moreOpen = false; select(tab) },
-                onCustomize: { moreOpen = false; customizeOpen = true },
-                onFeedback: { moreOpen = false },
-                onClose: { moreOpen = false }
-            )
-        }
-        .sanvyaModal(isPresented: $customizeOpen, label: "Customize bottom bar") {
-            BottomNavCustomizer(
-                current: navPrefs.ids,
-                onSave: { ids in navPrefs.setIds(ids); customizeOpen = false },
-                onClose: { customizeOpen = false }
-            )
-        }
-        .task {
-            viewModel.start()
-            // `failed_writes` is local-only, so there is no sync event to
-            // observe. Web polls every 30s; so does this.
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(30))
-                await viewModel.refreshFailedWrites()
             }
         }
     }

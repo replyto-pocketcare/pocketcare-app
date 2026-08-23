@@ -46,6 +46,62 @@ public enum SanvyaType {
         relativeTo: .caption2
     )
 
+    public static let sideNavItem = SanvyaTextStyle(
+        size: 13.5,
+        cssWeight: 500,
+        trackingEm: 0,
+        uppercase: false,
+        relativeTo: .subheadline
+    )
+
+    public static let sideNavItemActive = SanvyaTextStyle(
+        size: 13.5,
+        cssWeight: 650,
+        trackingEm: 0,
+        uppercase: false,
+        relativeTo: .subheadline
+    )
+
+    public static let sideNavTitle = SanvyaTextStyle(
+        size: 10.5,
+        cssWeight: 600,
+        trackingEm: 0.07,
+        uppercase: true,
+        relativeTo: .caption2
+    )
+
+    public static let sideNavSearch = SanvyaTextStyle(
+        size: 13,
+        cssWeight: 400,
+        trackingEm: 0,
+        uppercase: false,
+        relativeTo: .subheadline
+    )
+
+    public static let sideNavBadge = SanvyaTextStyle(
+        size: 10.5,
+        cssWeight: 700,
+        trackingEm: 0,
+        uppercase: false,
+        relativeTo: .caption2
+    )
+
+    public static let sideNavGuest = SanvyaTextStyle(
+        size: 12.5,
+        cssWeight: 400,
+        trackingEm: 0,
+        uppercase: false,
+        relativeTo: .footnote
+    )
+
+    public static let sideNavVersion = SanvyaTextStyle(
+        size: 11,
+        cssWeight: 400,
+        trackingEm: 0,
+        uppercase: false,
+        relativeTo: .caption2
+    )
+
     public static let body = SanvyaTextStyle(
         size: 15,
         cssWeight: 400,
