@@ -314,3 +314,31 @@ rather than rendering a formatted amount, so none is a masking leak:
 
 Web shares the bug: `/search`'s amount filter and `createRecurring`'s `toRow()`.
 Fix belongs in `packages/core` first so all three platforms move together.
+
+### Found 2026-08-23 — two that ARE display-path leaks, on all three platforms
+
+Both render a wrong number to the user. These are not in the "safe" list above.
+
+1. **`packages/core/mindfulness` — `small_purchase_drift`.** Its body is built as
+   `` `You had ${n} spends under 200, totaling ${totalSmall / 100}.` ``. Three faults in
+   one line: the divisor is hardcoded (JPY has 0 minor units, KWD 3, so ¥43,215 renders as
+   "432.15"); the threshold `20000` carries the same assumption and is described in the copy
+   as a bare "200"; and the amount bypasses the money formatter entirely, so it has no
+   currency symbol, no locale grouping, and **cannot be hidden by the hide-amounts toggle**.
+   `TransactionForInsight` already carries `currency`, so the data is there — the function
+   just never asked for it. It also sums `t.amount` across mixed currencies without
+   converting.
+
+   Ported as-is to `apps/android/domain/.../insights/Mindfulness.kt` and
+   `apps/ios/Domain/Sources/Domain/Mindfulness.swift`, so all three are wrong identically.
+
+   Fix: give both `computeTier*Insights` the currency + locale (every other generator in
+   `apps/web/src/insights/generators.ts` already has `fmt()` for exactly this), derive the
+   threshold with `fromMajor(200, currency)`, and format the total with `format()`.
+
+2. **`apps/web/src/insights/generators.ts:207`** — `fmt(top.value * 100, ctx)` converts a
+   major-unit average back to minor by hardcoding ×100. Same currency assumption, and this
+   one is squarely in the display path.
+
+Neither is fixed yet: both want a `packages/core` change mirrored onto two native ports, and
+that is its own change set rather than something to fold into the shell work in flight.
