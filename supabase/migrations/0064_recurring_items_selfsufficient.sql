@@ -34,9 +34,25 @@ alter table pocketcare.recurring_items add column if not exists payment_method t
 alter table pocketcare.recurring_items add column if not exists labels         text;
 alter table pocketcare.recurring_items add column if not exists split_group_id uuid;
 alter table pocketcare.recurring_items add column if not exists split_mode     text;
--- Kept so a migrated row can still be traced back, and so the drop migration
--- can prove every rule has a counterpart here.
-alter table pocketcare.recurring_items add column if not exists last_generated text;
+-- DATE, not text: recurring_rules.last_generated is a date, and the sibling
+-- next_due on this very table is already date. Declaring it text made the
+-- backfill's coalesce(text, date) unmatchable. (The client schema still maps it
+-- to a string — that is how next_due already works.)
+alter table pocketcare.recurring_items add column if not exists last_generated date;
+
+-- An earlier run of this migration added the column as text before the type was
+-- corrected, and `add column if not exists` will not fix that. Normalise it.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'pocketcare' and table_name = 'recurring_items'
+       and column_name = 'last_generated' and data_type = 'text'
+  ) then
+    alter table pocketcare.recurring_items
+      alter column last_generated type date using nullif(last_generated, '')::date;
+  end if;
+end $$;
 
 -- ---------------------------------------------------------------------------
 -- 1b. Allow the 'saving' direction.
