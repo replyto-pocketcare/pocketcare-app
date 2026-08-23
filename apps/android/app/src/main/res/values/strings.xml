@@ -54,10 +54,10 @@
     <string name="accounts_save">Save</string>
     <string name="accounts_save_changes">Save changes</string>
     <string name="accounts_saving">Saving…</string>
-    <string name="accounts_show_archived">Show archived (%1$d)</string>
+    <string name="accounts_show_archived">Show archived (%1$s)</string>
     <string name="accounts_statement_day">Statement day (1–28)</string>
     <string name="accounts_title">Accounts</string>
-    <string name="accounts_total_currencies">%1$s total · %2$d currencies</string>
+    <string name="accounts_total_currencies">%1$s total · %2$s currencies</string>
     <string name="accounts_txn_note">Adds an income or expense for the difference, so it appears in history &amp; insights.</string>
     <string name="accounts_type_cash">Cash</string>
     <string name="accounts_type_credit_card">Credit card</string>
@@ -205,7 +205,7 @@
     <string name="cashflow_auto_posts">auto-posts</string>
     <string name="cashflow_cancel">Cancel</string>
     <string name="cashflow_category_optional">Category (optional)</string>
-    <string name="cashflow_commitments">%1$d commitments</string>
+    <string name="cashflow_commitments">%1$s commitments</string>
     <string name="cashflow_confirm">confirm</string>
     <string name="cashflow_deposit_into">Deposit into</string>
     <string name="cashflow_dir_label_income">recurring income</string>
@@ -249,7 +249,7 @@
     <string name="cashflow_per_month">/mo</string>
     <string name="cashflow_planned_payments">Planned payments</string>
     <string name="cashflow_planned_payments_title">Planned payments</string>
-    <string name="cashflow_plans">%1$d plans</string>
+    <string name="cashflow_plans">%1$s plans</string>
     <plurals name="cashflow_portfolio_meta">
         <item quantity="one">%1$d holding · invested %2$s · view →</item>
         <item quantity="other">%1$d holdings · invested %2$s · view →</item>
@@ -280,7 +280,7 @@
     <string name="cashflow_savings_invest">Savings &amp; investments</string>
     <string name="cashflow_select_account">Select an account</string>
     <string name="cashflow_spent_so_far">~%1$s since %2$s</string>
-    <string name="cashflow_spent_tooltip">Estimated from %1$d payments since %2$s at the current price. Actual charges may differ if the price changed or a payment was missed.</string>
+    <string name="cashflow_spent_tooltip">Estimated from %1$s payments since %2$s at the current price. Actual charges may differ if the price changed or a payment was missed.</string>
     <string name="cashflow_started_renewal">Started / next renewal</string>
     <string name="cashflow_subscription">Subscription</string>
     <string name="cashflow_timeframe_noun_daily">day</string>
@@ -651,7 +651,7 @@
     <string name="loans_principal_amount">Principal Amount</string>
     <string name="loans_rate_variable_suffix"> · variable</string>
     <string name="loans_remaining">Remaining</string>
-    <string name="loans_remaining_emis">%1$d EMIs</string>
+    <string name="loans_remaining_emis">%1$s EMIs</string>
     <string name="loans_remembers_account">This account is remembered for the next EMI.</string>
     <string name="loans_save">Save</string>
     <string name="loans_saving_ellipsis">Saving…</string>
@@ -793,7 +793,7 @@
     <string name="onboarding_wt_plan_cta">Done</string>
     <string name="onboarding_wt_plan_free">The basics stay free forever: your accounts, transactions, budgets and search.</string>
     <string name="onboarding_wt_plan_per_month">₹%1$s/month</string>
-    <string name="onboarding_wt_plan_quota">%1$d Ask Sanvya questions a month · everything else unlocked</string>
+    <string name="onboarding_wt_plan_quota">%1$s Ask Sanvya questions a month · everything else unlocked</string>
     <string name="onboarding_wt_plan_see">See plans</string>
     <string name="onboarding_wt_plan_title">What\'s free, and what\'s not</string>
     <string name="onboarding_wt_plan_title_trial">Everything is already unlocked for 14 days</string>
@@ -866,7 +866,7 @@
     <string name="payments_settings_remove">Remove</string>
     <string name="payments_settings_replace">Replace with a different UPI ID</string>
     <string name="payments_settings_save">Save UPI ID</string>
-    <string name="payments_settings_show_log">Who\'s seen this (%1$d)</string>
+    <string name="payments_settings_show_log">Who\'s seen this (%1$s)</string>
     <string name="payments_settings_someone">Someone</string>
     <string name="payments_settings_title">Your UPI ID</string>
     <string name="payments_settings_update">Update UPI ID</string>
@@ -879,7 +879,7 @@
     <string name="receipts_breakdown_person_total">%1$s owes</string>
     <string name="receipts_breakdown_show">View items</string>
     <string name="receipts_capture_ai_note">This sends the photo to our AI reader once. It isn\'t stored — by us or anyone else.</string>
-    <string name="receipts_capture_credits_left">%1$d left</string>
+    <string name="receipts_capture_credits_left">%1$s left</string>
     <string name="receipts_capture_drop_hint">Or drop an image or PDF here. JPEG, PNG or a PDF bill.</string>
     <string name="receipts_capture_edit_manually">Edit it myself</string>
     <string name="receipts_capture_improve_with_ai">Improve with AI</string>
@@ -1203,7 +1203,7 @@
     <string name="statements_analyze_closing_balance">Closing balance</string>
     <string name="statements_analyze_daily_spend">Daily spend</string>
     <string name="statements_analyze_imported_done">✓ Imported. They now appear in your transactions.</string>
-    <string name="statements_analyze_import_missing">Import %1$d missing into %2$s</string>
+    <string name="statements_analyze_import_missing">Import %1$s missing into %2$s</string>
     <string name="statements_analyze_intro_bold">entirely on your device</string>
     <string name="statements_analyze_intro_link">Back to statements</string>
     <string name="statements_analyze_intro_mid"> and never uploaded. </string>
@@ -1227,8 +1227,8 @@
     <string name="statements_analyze_read_fail">Couldn\'t read that file.</string>
     <string name="statements_analyze_reading_pdf">Reading PDF…</string>
     <string name="statements_analyze_reconcile_title">Reconcile with your records</string>
-    <string name="statements_analyze_recurring_meta">%1$s · %2$s · seen %3$d×</string>
-    <string name="statements_analyze_show_all">Show all %1$d</string>
+    <string name="statements_analyze_recurring_meta">%1$s · %2$s · seen %3$s×</string>
+    <string name="statements_analyze_show_all">Show all %1$s</string>
     <string name="statements_analyze_show_less">Show less</string>
     <string name="statements_analyze_statement_type">Statement type</string>
     <string name="statements_analyze_tip_bold">CSV/Excel</string>
@@ -1236,8 +1236,8 @@
     <string name="statements_analyze_tip_pre">Tip: most banks let you download a </string>
     <string name="statements_analyze_title">Analyze a statement</string>
     <string name="statements_analyze_total_due">Total due</string>
-    <string name="statements_analyze_transactions">%1$d transactions</string>
-    <string name="statements_analyze_transactions_title">Transactions (%1$d)</string>
+    <string name="statements_analyze_transactions">%1$s transactions</string>
+    <string name="statements_analyze_transactions_title">Transactions (%1$s)</string>
     <string name="statements_analyze_where_it_went">Where it went</string>
 
     <!-- templates -->

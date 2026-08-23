@@ -17,12 +17,15 @@ class Prefs: ObservableObject {
     static let shared = Prefs()
 
     private let defaults = UserDefaults.standard
-    /// Internal, not private: MoneyFormat.swift reads this key directly so the
-    /// hide-amounts rule can be honoured outside the main actor. One key, one meaning.
-    static let hideKey = "amountsHidden"
+    /// `nonisolated` and internal, not private: MoneyFormat.swift reads these
+    /// keys from contexts with no actor at all, so the hide-amounts rule can be
+    /// honoured everywhere. The class is `@MainActor` for its `@Published`
+    /// state; these two are immutable `String` constants and carry none of it.
+    /// One key, one meaning.
+    nonisolated static let hideKey = "amountsHidden"
     private static let themeKey = "theme"
-    /// Internal for the same reason as `hideKey` — see MoneyFormat.swift.
-    static let currencyKey = "baseCurrency"
+    /// Same reasoning as `hideKey`.
+    nonisolated static let currencyKey = "baseCurrency"
 
     @Published var amountsHidden: Bool {
         didSet { defaults.set(amountsHidden, forKey: Prefs.hideKey) }

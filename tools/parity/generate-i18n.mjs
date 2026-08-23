@@ -262,16 +262,23 @@ for (const e of entries) {
  * A literal `%` in a string that also carries arguments must be doubled, or
  * Android's formatter reads it as a specifier and throws.
  */
-function toPlatformFormat(s, args, kind) {
+function toPlatformFormat(s, args, kind, isPlural) {
   let out = args.length ? s.replace(/%/g, "%%") : s;
   out = out.replace(PLACEHOLDER, (_, name) => {
     const i = args.indexOf(name);
     if (i < 0) return `%%{{${name}}}`; // unreachable: validated above
-    // `count` is the one argument whose type is known — i18next always passes a
-    // number, and both platforms need an integer specifier there, not a string
-    // one: Android's quantity strings and iOS's plural variations both select
-    // the grammatical form from it.
-    const spec = name === "count" ? (kind === "ios" ? "lld" : "d") : kind === "ios" ? "@" : "s";
+    // The integer specifier belongs to PLURALS, not to the name "count".
+    //
+    // In a plural, `count` is what Android's getQuantityString and iOS's plural
+    // variations select the grammatical form from, so it is genuinely an Int and
+    // the accessor types it that way. Elsewhere `count` is just an argument name
+    // — `accounts:showArchived` is "Show archived ({{count}})", an ordinary
+    // string — and emitting %d for it while typing the parameter as Any is a
+    // type mismatch. Android lint catches exactly that:
+    //   "Wrong argument type for formatting argument '#1' in
+    //    accounts_show_archived: conversion is 'd', received Object"
+    const isCount = isPlural && name === "count";
+    const spec = isCount ? (kind === "ios" ? "lld" : "d") : kind === "ios" ? "@" : "s";
     return `%${i + 1}$${spec}`;
   });
   return out;
@@ -312,11 +319,11 @@ function androidStringsXml(locale) {
       for (const c of PLURAL_CATEGORIES) {
         const v = e.values[locale]?.[c];
         if (v == null) continue;
-        lines.push(`        <item quantity="${c}">${xmlEscape(toPlatformFormat(v, e.args, "android"))}</item>`);
+        lines.push(`        <item quantity="${c}">${xmlEscape(toPlatformFormat(v, e.args, "android", true))}</item>`);
       }
       lines.push("    </plurals>");
     } else {
-      lines.push(`    <string name="${e.androidId}">${xmlEscape(toPlatformFormat(e.values[locale], e.args, "android"))}</string>`);
+      lines.push(`    <string name="${e.androidId}">${xmlEscape(toPlatformFormat(e.values[locale], e.args, "android", false))}</string>`);
     }
   }
   lines.push("</resources>", "");
@@ -358,7 +365,7 @@ function androidAccessorsKt() {
     const fns = list.map((e) => {
       const objName = ktIdent(e.key);
       if (e.plural) {
-        const params = e.args.map((a) => (a === "count" ? "count: Int" : `${ktIdent(a)}: Any`)).join(", ");
+        const params = e.args.map((a) => (a === "count" ? "count: Int" : `${ktIdent(a)}: Any`)).join(", "); // plural only
         const fmtArgs = e.args.map((a) => (a === "count" ? "count" : ktIdent(a))).join(", ");
         return `        fun ${objName}(res: Resources, ${params}): String =\n            res.getQuantityString(R.plurals.${e.androidId}, count, ${fmtArgs})`;
       }
@@ -414,12 +421,12 @@ function xcstrings() {
         for (const c of PLURAL_CATEGORIES) {
           const v = e.values[loc]?.[c];
           if (v == null) continue;
-          variations[c] = { stringUnit: { state: "translated", value: toPlatformFormat(v, e.args, "ios") } };
+          variations[c] = { stringUnit: { state: "translated", value: toPlatformFormat(v, e.args, "ios", true) } };
         }
         localizations[loc] = { variations: { plural: variations } };
       } else {
         localizations[loc] = {
-          stringUnit: { state: "translated", value: toPlatformFormat(e.values[loc], e.args, "ios") },
+          stringUnit: { state: "translated", value: toPlatformFormat(e.values[loc], e.args, "ios", false) },
         };
       }
     }
@@ -443,7 +450,7 @@ function iosAccessorsSwift() {
       const name = swiftIdent(e.key);
       const id = `${e.ns}:${e.key}`;
       if (e.plural) {
-        const params = e.args.map((a) => (a === "count" ? "count: Int" : `${swiftIdent(a)}: CVarArg`)).join(", ");
+        const params = e.args.map((a) => (a === "count" ? "count: Int" : `${swiftIdent(a)}: CVarArg`)).join(", "); // plural only
         const fmtArgs = e.args.map((a) => (a === "count" ? "count" : swiftIdent(a))).join(", ");
         return `        public static func ${name}(${params}) -> String {\n            String(format: String(localized: "${id}", defaultValue: "", table: "Localizable"), ${fmtArgs})\n        }`;
       }

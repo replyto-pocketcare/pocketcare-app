@@ -99,6 +99,27 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew --no-daemon --stacktrace --continue build test 2>&1 | tee ../../android.log
+      # Lint prints only its FIRST failure to stdout and puts the rest in an
+      # HTML/XML report — which is an artifact, and artifacts need the API the
+      # agent sandbox cannot reach. So the full list is folded into the log,
+      # where the ci-logs branch will carry it.
+      - name: Expand the lint report
+        if: always()
+        run: |
+          python3 - <<'PY' | tee -a android.log
+          import glob, xml.etree.ElementTree as ET
+          files = glob.glob("apps/android/**/build/reports/lint-results-*.xml", recursive=True)
+          if not files:
+              print("[lint] no XML report produced")
+          for path in sorted(set(files)):
+              root = ET.parse(path).getroot()
+              issues = [i for i in root.iter("issue") if i.get("severity") == "Error"]
+              print(f"[lint] {path}: {len(issues)} error(s)")
+              for issue in issues:
+                  loc = issue.find("location")
+                  where = f'{loc.get("file")}:{loc.get("line")}' if loc is not None else "?"
+                  print(f'  {issue.get("id")}  {where}\n    {issue.get("message")}')
+          PY
       - if: always()
         uses: actions/upload-artifact@v4
         with: { name: log-android, path: android.log, retention-days: 7, if-no-files-found: ignore }

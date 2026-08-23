@@ -54,10 +54,10 @@
     <string name="accounts_save">सहेजें</string>
     <string name="accounts_save_changes">परिवर्तन सहेजें</string>
     <string name="accounts_saving">सहेजा जा रहा है…</string>
-    <string name="accounts_show_archived">संग्रहित दिखाएँ (%1$d)</string>
+    <string name="accounts_show_archived">संग्रहित दिखाएँ (%1$s)</string>
     <string name="accounts_statement_day">स्टेटमेंट दिन (1–28)</string>
     <string name="accounts_title">खाते</string>
-    <string name="accounts_total_currencies">कुल %1$s · %2$d मुद्राएँ</string>
+    <string name="accounts_total_currencies">कुल %1$s · %2$s मुद्राएँ</string>
     <string name="accounts_txn_note">अंतर के लिए एक आय या व्यय जोड़ता है, ताकि यह इतिहास और इनसाइट्स में दिखे।</string>
     <string name="accounts_type_cash">नकद</string>
     <string name="accounts_type_credit_card">क्रेडिट कार्ड</string>
@@ -205,7 +205,7 @@
     <string name="cashflow_auto_posts">स्वतः पोस्ट</string>
     <string name="cashflow_cancel">रद्द करें</string>
     <string name="cashflow_category_optional">श्रेणी (वैकल्पिक)</string>
-    <string name="cashflow_commitments">%1$d प्रतिबद्धताएँ</string>
+    <string name="cashflow_commitments">%1$s प्रतिबद्धताएँ</string>
     <string name="cashflow_confirm">पुष्टि करें</string>
     <string name="cashflow_deposit_into">किसमें जमा करें</string>
     <string name="cashflow_dir_label_income">आवर्ती आय</string>
@@ -249,7 +249,7 @@
     <string name="cashflow_per_month">/माह</string>
     <string name="cashflow_planned_payments">नियोजित भुगतान</string>
     <string name="cashflow_planned_payments_title">नियोजित भुगतान</string>
-    <string name="cashflow_plans">%1$d योजनाएँ</string>
+    <string name="cashflow_plans">%1$s योजनाएँ</string>
     <plurals name="cashflow_portfolio_meta">
         <item quantity="one">%1$d होल्डिंग · निवेशित %2$s · देखें →</item>
         <item quantity="other">%1$d होल्डिंग्स · निवेशित %2$s · देखें →</item>
@@ -280,7 +280,7 @@
     <string name="cashflow_savings_invest">बचत और निवेश</string>
     <string name="cashflow_select_account">एक खाता चुनें</string>
     <string name="cashflow_spent_so_far">%2$s से ~%1$s</string>
-    <string name="cashflow_spent_tooltip">%2$s से %1$d भुगतानों के आधार पर, वर्तमान कीमत पर अनुमानित। कीमत बदलने या भुगतान छूटने पर वास्तविक राशि भिन्न हो सकती है।</string>
+    <string name="cashflow_spent_tooltip">%2$s से %1$s भुगतानों के आधार पर, वर्तमान कीमत पर अनुमानित। कीमत बदलने या भुगतान छूटने पर वास्तविक राशि भिन्न हो सकती है।</string>
     <string name="cashflow_started_renewal">आरंभ / अगला नवीनीकरण</string>
     <string name="cashflow_subscription">सदस्यता</string>
     <string name="cashflow_timeframe_noun_daily">दिन</string>
@@ -651,7 +651,7 @@
     <string name="loans_principal_amount">मूलधन राशि</string>
     <string name="loans_rate_variable_suffix"> · परिवर्तनीय</string>
     <string name="loans_remaining">शेष</string>
-    <string name="loans_remaining_emis">%1$d ईएमआई</string>
+    <string name="loans_remaining_emis">%1$s ईएमआई</string>
     <string name="loans_remembers_account">अगली EMI के लिए यही खाता याद रखा जाएगा।</string>
     <string name="loans_save">सहेजें</string>
     <string name="loans_saving_ellipsis">सहेजा जा रहा है…</string>
@@ -793,7 +793,7 @@
     <string name="onboarding_wt_plan_cta">पूरा हुआ</string>
     <string name="onboarding_wt_plan_free">बुनियादी चीज़ें हमेशा मुफ़्त रहेंगी: आपके खाते, लेनदेन, बजट और खोज।</string>
     <string name="onboarding_wt_plan_per_month">₹%1$s/माह</string>
-    <string name="onboarding_wt_plan_quota">महीने में %1$d Ask Sanvya सवाल · बाकी सब खुला</string>
+    <string name="onboarding_wt_plan_quota">महीने में %1$s Ask Sanvya सवाल · बाकी सब खुला</string>
     <string name="onboarding_wt_plan_see">प्लान देखें</string>
     <string name="onboarding_wt_plan_title">क्या मुफ़्त है, और क्या नहीं</string>
     <string name="onboarding_wt_plan_title_trial">14 दिन तक सब कुछ पहले से खुला है</string>
@@ -866,7 +866,7 @@
     <string name="payments_settings_remove">हटाएँ</string>
     <string name="payments_settings_replace">किसी दूसरी UPI ID से बदलें</string>
     <string name="payments_settings_save">UPI ID सहेजें</string>
-    <string name="payments_settings_show_log">किसने देखी (%1$d)</string>
+    <string name="payments_settings_show_log">किसने देखी (%1$s)</string>
     <string name="payments_settings_someone">कोई</string>
     <string name="payments_settings_title">आपकी UPI ID</string>
     <string name="payments_settings_update">UPI आईडी अपडेट करें</string>
@@ -879,7 +879,7 @@
     <string name="receipts_breakdown_person_total">%1$s को देना है</string>
     <string name="receipts_breakdown_show">वस्तुएँ देखें</string>
     <string name="receipts_capture_ai_note">इससे फ़ोटो एक बार हमारे AI रीडर को भेजी जाती है। इसे कहीं भी सहेजा नहीं जाता।</string>
-    <string name="receipts_capture_credits_left">%1$d बचे</string>
+    <string name="receipts_capture_credits_left">%1$s बचे</string>
     <string name="receipts_capture_drop_hint">या यहाँ इमेज या PDF छोड़ें। JPEG, PNG या PDF बिल।</string>
     <string name="receipts_capture_edit_manually">मैं खुद ठीक करूँगा</string>
     <string name="receipts_capture_improve_with_ai">AI से बेहतर करें</string>
@@ -1203,7 +1203,7 @@
     <string name="statements_analyze_closing_balance">समापन बैलेंस</string>
     <string name="statements_analyze_daily_spend">दैनिक खर्च</string>
     <string name="statements_analyze_imported_done">✓ आयातित। ये अब आपके लेनदेन में दिखते हैं।</string>
-    <string name="statements_analyze_import_missing">%2$s में %1$d गुम आयात करें</string>
+    <string name="statements_analyze_import_missing">%2$s में %1$s गुम आयात करें</string>
     <string name="statements_analyze_intro_bold">पूरी तरह आपके उपकरण पर</string>
     <string name="statements_analyze_intro_link">स्टेटमेंट पर वापस</string>
     <string name="statements_analyze_intro_mid"> पार्स किया जाता है और कभी अपलोड नहीं किया जाता। </string>
@@ -1227,8 +1227,8 @@
     <string name="statements_analyze_read_fail">वह फ़ाइल पढ़ी नहीं जा सकी।</string>
     <string name="statements_analyze_reading_pdf">PDF पढ़ रहे हैं…</string>
     <string name="statements_analyze_reconcile_title">अपने रिकॉर्ड से मिलान करें</string>
-    <string name="statements_analyze_recurring_meta">%1$s · %2$s · %3$d× देखा गया</string>
-    <string name="statements_analyze_show_all">सभी %1$d दिखाएं</string>
+    <string name="statements_analyze_recurring_meta">%1$s · %2$s · %3$s× देखा गया</string>
+    <string name="statements_analyze_show_all">सभी %1$s दिखाएं</string>
     <string name="statements_analyze_show_less">कम दिखाएं</string>
     <string name="statements_analyze_statement_type">स्टेटमेंट प्रकार</string>
     <string name="statements_analyze_tip_bold">CSV/Excel</string>
@@ -1236,8 +1236,8 @@
     <string name="statements_analyze_tip_pre">सुझाव: ज़्यादातर बैंक आपको एक </string>
     <string name="statements_analyze_title">एक स्टेटमेंट विश्लेषण करें</string>
     <string name="statements_analyze_total_due">कुल देय</string>
-    <string name="statements_analyze_transactions">%1$d लेनदेन</string>
-    <string name="statements_analyze_transactions_title">लेनदेन (%1$d)</string>
+    <string name="statements_analyze_transactions">%1$s लेनदेन</string>
+    <string name="statements_analyze_transactions_title">लेनदेन (%1$s)</string>
     <string name="statements_analyze_where_it_went">यह कहाँ गया</string>
 
     <!-- templates -->

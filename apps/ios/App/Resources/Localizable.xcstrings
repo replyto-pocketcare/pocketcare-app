@@ -1088,19 +1088,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show archived (%1$lld)"
+            "value": "Show archived (%1$@)"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "संग्रहित दिखाएँ (%1$lld)"
+            "value": "संग्रहित दिखाएँ (%1$@)"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gearchiveerde tonen (%1$lld)"
+            "value": "Gearchiveerde tonen (%1$@)"
           }
         }
       }
@@ -1157,19 +1157,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ total · %2$lld currencies"
+            "value": "%1$@ total · %2$@ currencies"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "कुल %1$@ · %2$lld मुद्राएँ"
+            "value": "कुल %1$@ · %2$@ मुद्राएँ"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ totaal · %2$lld valuta's"
+            "value": "%1$@ totaal · %2$@ valuta's"
           }
         }
       }
@@ -4344,19 +4344,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld commitments"
+            "value": "%1$@ commitments"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld प्रतिबद्धताएँ"
+            "value": "%1$@ प्रतिबद्धताएँ"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld verplichtingen"
+            "value": "%1$@ verplichtingen"
           }
         }
       }
@@ -5356,19 +5356,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld plans"
+            "value": "%1$@ plans"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld योजनाएँ"
+            "value": "%1$@ योजनाएँ"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld plannen"
+            "value": "%1$@ plannen"
           }
         }
       }
@@ -6036,19 +6036,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimated from %1$lld payments since %2$@ at the current price. Actual charges may differ if the price changed or a payment was missed."
+            "value": "Estimated from %1$@ payments since %2$@ at the current price. Actual charges may differ if the price changed or a payment was missed."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "%2$@ से %1$lld भुगतानों के आधार पर, वर्तमान कीमत पर अनुमानित। कीमत बदलने या भुगतान छूटने पर वास्तविक राशि भिन्न हो सकती है।"
+            "value": "%2$@ से %1$@ भुगतानों के आधार पर, वर्तमान कीमत पर अनुमानित। कीमत बदलने या भुगतान छूटने पर वास्तविक राशि भिन्न हो सकती है।"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Geschat op basis van %1$lld betalingen sinds %2$@ tegen de huidige prijs. De werkelijke kosten kunnen afwijken als de prijs is gewijzigd of een betaling is gemist."
+            "value": "Geschat op basis van %1$@ betalingen sinds %2$@ tegen de huidige prijs. De werkelijke kosten kunnen afwijken als de prijs is gewijzigd of een betaling is gemist."
           }
         }
       }
@@ -13911,19 +13911,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld EMIs"
+            "value": "%1$@ EMIs"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld ईएमआई"
+            "value": "%1$@ ईएमआई"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld EMI's"
+            "value": "%1$@ EMI's"
           }
         }
       }
@@ -17085,19 +17085,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld Ask Sanvya questions a month · everything else unlocked"
+            "value": "%1$@ Ask Sanvya questions a month · everything else unlocked"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "महीने में %1$lld Ask Sanvya सवाल · बाकी सब खुला"
+            "value": "महीने में %1$@ Ask Sanvya सवाल · बाकी सब खुला"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld Ask Sanvya-vragen per maand · al het andere ontgrendeld"
+            "value": "%1$@ Ask Sanvya-vragen per maand · al het andere ontgrendeld"
           }
         }
       }
@@ -18718,19 +18718,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Who's seen this (%1$lld)"
+            "value": "Who's seen this (%1$@)"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "किसने देखी (%1$lld)"
+            "value": "किसने देखी (%1$@)"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wie dit heeft gezien (%1$lld)"
+            "value": "Wie dit heeft gezien (%1$@)"
           }
         }
       }
@@ -18971,19 +18971,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld left"
+            "value": "%1$@ left"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld बचे"
+            "value": "%1$@ बचे"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "nog %1$lld"
+            "value": "nog %1$@"
           }
         }
       }
@@ -25850,19 +25850,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import %1$lld missing into %2$@"
+            "value": "Import %1$@ missing into %2$@"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "%2$@ में %1$lld गुम आयात करें"
+            "value": "%2$@ में %1$@ गुम आयात करें"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld ontbrekende importeren naar %2$@"
+            "value": "%1$@ ontbrekende importeren naar %2$@"
           }
         }
       }
@@ -26402,19 +26402,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ · %2$@ · seen %3$lld×"
+            "value": "%1$@ · %2$@ · seen %3$@×"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ · %2$@ · %3$lld× देखा गया"
+            "value": "%1$@ · %2$@ · %3$@× देखा गया"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ · %2$@ · %3$lld× gezien"
+            "value": "%1$@ · %2$@ · %3$@× gezien"
           }
         }
       }
@@ -26425,19 +26425,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show all %1$lld"
+            "value": "Show all %1$@"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "सभी %1$lld दिखाएं"
+            "value": "सभी %1$@ दिखाएं"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alle %1$lld tonen"
+            "value": "Alle %1$@ tonen"
           }
         }
       }
@@ -26609,19 +26609,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld transactions"
+            "value": "%1$@ transactions"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld लेनदेन"
+            "value": "%1$@ लेनदेन"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld transacties"
+            "value": "%1$@ transacties"
           }
         }
       }
@@ -26632,19 +26632,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transactions (%1$lld)"
+            "value": "Transactions (%1$@)"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लेनदेन (%1$lld)"
+            "value": "लेनदेन (%1$@)"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transacties (%1$lld)"
+            "value": "Transacties (%1$@)"
           }
         }
       }

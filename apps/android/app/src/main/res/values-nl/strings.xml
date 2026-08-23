@@ -54,10 +54,10 @@
     <string name="accounts_save">Opslaan</string>
     <string name="accounts_save_changes">Wijzigingen opslaan</string>
     <string name="accounts_saving">Opslaan…</string>
-    <string name="accounts_show_archived">Gearchiveerde tonen (%1$d)</string>
+    <string name="accounts_show_archived">Gearchiveerde tonen (%1$s)</string>
     <string name="accounts_statement_day">Afschriftdag (1–28)</string>
     <string name="accounts_title">Rekeningen</string>
-    <string name="accounts_total_currencies">%1$s totaal · %2$d valuta\'s</string>
+    <string name="accounts_total_currencies">%1$s totaal · %2$s valuta\'s</string>
     <string name="accounts_txn_note">Voegt inkomsten of uitgaven toe voor het verschil, zodat het in geschiedenis en inzichten verschijnt.</string>
     <string name="accounts_type_cash">Contant</string>
     <string name="accounts_type_credit_card">Creditcard</string>
@@ -205,7 +205,7 @@
     <string name="cashflow_auto_posts">boekt automatisch</string>
     <string name="cashflow_cancel">Annuleren</string>
     <string name="cashflow_category_optional">Categorie (optioneel)</string>
-    <string name="cashflow_commitments">%1$d verplichtingen</string>
+    <string name="cashflow_commitments">%1$s verplichtingen</string>
     <string name="cashflow_confirm">bevestigen</string>
     <string name="cashflow_deposit_into">Storten op</string>
     <string name="cashflow_dir_label_income">terugkerende inkomsten</string>
@@ -249,7 +249,7 @@
     <string name="cashflow_per_month">/mnd</string>
     <string name="cashflow_planned_payments">Geplande betalingen</string>
     <string name="cashflow_planned_payments_title">Geplande betalingen</string>
-    <string name="cashflow_plans">%1$d plannen</string>
+    <string name="cashflow_plans">%1$s plannen</string>
     <plurals name="cashflow_portfolio_meta">
         <item quantity="one">%1$d positie · belegd %2$s · bekijken →</item>
         <item quantity="other">%1$d posities · belegd %2$s · bekijken →</item>
@@ -280,7 +280,7 @@
     <string name="cashflow_savings_invest">Sparen &amp; beleggen</string>
     <string name="cashflow_select_account">Selecteer een rekening</string>
     <string name="cashflow_spent_so_far">~%1$s sinds %2$s</string>
-    <string name="cashflow_spent_tooltip">Geschat op basis van %1$d betalingen sinds %2$s tegen de huidige prijs. De werkelijke kosten kunnen afwijken als de prijs is gewijzigd of een betaling is gemist.</string>
+    <string name="cashflow_spent_tooltip">Geschat op basis van %1$s betalingen sinds %2$s tegen de huidige prijs. De werkelijke kosten kunnen afwijken als de prijs is gewijzigd of een betaling is gemist.</string>
     <string name="cashflow_started_renewal">Gestart / volgende verlenging</string>
     <string name="cashflow_subscription">Abonnement</string>
     <string name="cashflow_timeframe_noun_daily">dag</string>
@@ -651,7 +651,7 @@
     <string name="loans_principal_amount">Hoofdsombedrag</string>
     <string name="loans_rate_variable_suffix"> · variabel</string>
     <string name="loans_remaining">Resterend</string>
-    <string name="loans_remaining_emis">%1$d EMI\'s</string>
+    <string name="loans_remaining_emis">%1$s EMI\'s</string>
     <string name="loans_remembers_account">Deze rekening wordt onthouden voor de volgende termijn.</string>
     <string name="loans_save">Opslaan</string>
     <string name="loans_saving_ellipsis">Opslaan…</string>
@@ -793,7 +793,7 @@
     <string name="onboarding_wt_plan_cta">Klaar</string>
     <string name="onboarding_wt_plan_free">De basis blijft voor altijd gratis: je rekeningen, transacties, budgetten en zoeken.</string>
     <string name="onboarding_wt_plan_per_month">₹%1$s/maand</string>
-    <string name="onboarding_wt_plan_quota">%1$d Ask Sanvya-vragen per maand · al het andere ontgrendeld</string>
+    <string name="onboarding_wt_plan_quota">%1$s Ask Sanvya-vragen per maand · al het andere ontgrendeld</string>
     <string name="onboarding_wt_plan_see">Bekijk abonnementen</string>
     <string name="onboarding_wt_plan_title">Wat gratis is, en wat niet</string>
     <string name="onboarding_wt_plan_title_trial">Alles staat al 14 dagen open</string>
@@ -866,7 +866,7 @@
     <string name="payments_settings_remove">Verwijderen</string>
     <string name="payments_settings_replace">Vervangen door een andere UPI-ID</string>
     <string name="payments_settings_save">UPI-ID opslaan</string>
-    <string name="payments_settings_show_log">Wie dit heeft gezien (%1$d)</string>
+    <string name="payments_settings_show_log">Wie dit heeft gezien (%1$s)</string>
     <string name="payments_settings_someone">Iemand</string>
     <string name="payments_settings_title">Je UPI-ID</string>
     <string name="payments_settings_update">UPI-ID bijwerken</string>
@@ -879,7 +879,7 @@
     <string name="receipts_breakdown_person_total">%1$s moet betalen</string>
     <string name="receipts_breakdown_show">Artikelen tonen</string>
     <string name="receipts_capture_ai_note">Hiermee gaat de foto eenmalig naar onze AI-lezer. Hij wordt nergens bewaard.</string>
-    <string name="receipts_capture_credits_left">nog %1$d</string>
+    <string name="receipts_capture_credits_left">nog %1$s</string>
     <string name="receipts_capture_drop_hint">Of sleep hier een afbeelding of PDF naartoe. JPEG, PNG of een PDF-rekening.</string>
     <string name="receipts_capture_edit_manually">Zelf aanpassen</string>
     <string name="receipts_capture_improve_with_ai">Verbeteren met AI</string>
@@ -1203,7 +1203,7 @@
     <string name="statements_analyze_closing_balance">Eindsaldo</string>
     <string name="statements_analyze_daily_spend">Dagelijkse uitgaven</string>
     <string name="statements_analyze_imported_done">✓ Geïmporteerd. Ze verschijnen nu in je transacties.</string>
-    <string name="statements_analyze_import_missing">%1$d ontbrekende importeren naar %2$s</string>
+    <string name="statements_analyze_import_missing">%1$s ontbrekende importeren naar %2$s</string>
     <string name="statements_analyze_intro_bold">volledig op je apparaat</string>
     <string name="statements_analyze_intro_link">Terug naar afschriften</string>
     <string name="statements_analyze_intro_mid"> verwerkt en nooit geüpload. </string>
@@ -1227,8 +1227,8 @@
     <string name="statements_analyze_read_fail">Kon dat bestand niet lezen.</string>
     <string name="statements_analyze_reading_pdf">PDF lezen…</string>
     <string name="statements_analyze_reconcile_title">Afstemmen met je gegevens</string>
-    <string name="statements_analyze_recurring_meta">%1$s · %2$s · %3$d× gezien</string>
-    <string name="statements_analyze_show_all">Alle %1$d tonen</string>
+    <string name="statements_analyze_recurring_meta">%1$s · %2$s · %3$s× gezien</string>
+    <string name="statements_analyze_show_all">Alle %1$s tonen</string>
     <string name="statements_analyze_show_less">Minder tonen</string>
     <string name="statements_analyze_statement_type">Type afschrift</string>
     <string name="statements_analyze_tip_bold">CSV/Excel</string>
@@ -1236,8 +1236,8 @@
     <string name="statements_analyze_tip_pre">Tip: bij de meeste banken kun je een </string>
     <string name="statements_analyze_title">Een afschrift analyseren</string>
     <string name="statements_analyze_total_due">Totaal verschuldigd</string>
-    <string name="statements_analyze_transactions">%1$d transacties</string>
-    <string name="statements_analyze_transactions_title">Transacties (%1$d)</string>
+    <string name="statements_analyze_transactions">%1$s transacties</string>
+    <string name="statements_analyze_transactions_title">Transacties (%1$s)</string>
     <string name="statements_analyze_where_it_went">Waar het naartoe ging</string>
 
     <!-- templates -->
