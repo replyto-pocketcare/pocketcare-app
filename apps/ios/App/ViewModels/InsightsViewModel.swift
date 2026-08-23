@@ -26,7 +26,7 @@ private func weekdayIndex(_ d: Date) -> Int { utcCal.component(.weekday, from: d
 /// generators.ts (task #28), replacing an entirely fake predecessor
 /// (InsightsView/InsightsViewModel hardcoded a nonexistent "StreamTV"
 /// subscription and a made-up "dining" keyword heuristic, yet were the one
-/// LIVE Insights screen on iOS -- wired into MainTabView.swift, unlike
+/// LIVE Insights screen on iOS -- wired into ContentView.swift, unlike
 /// Android's dead-code stub). See docs/mobile/screen-specs/insights.md for
 /// the full source-verified spec this was built from, and Android's
 /// InsightsViewModel.kt (same session) for the mirrored implementation.

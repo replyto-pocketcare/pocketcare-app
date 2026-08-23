@@ -49,7 +49,6 @@ private let genders: [(String, String)] = [("", "Not specified"), ("female", "Fe
 private let countries = ["", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other"]
 
 struct SettingsView: View {
-    @Binding var isDrawerOpen: Bool
     @Environment(\.dismiss) private var dismiss
     @StateObject private var prefs = Prefs.shared
 
@@ -264,12 +263,6 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) { isDrawerOpen.toggle() }
-                    } label: {
-                        Image(systemName: "line.3.horizontal").imageScale(.large)
-                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

@@ -12,7 +12,6 @@ import SwiftUI
 /// established Investments drill-in / Goals sheet conventions rather than
 /// introducing a new navigation pattern.
 struct LoansView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var viewModel = LoansViewModel()
     @State private var selectedLoanId: String?
     @State private var showingAddSheet = false
@@ -40,13 +39,6 @@ struct LoansView: View {
             .navigationTitle(selectedLoanId != nil ? "" : "Loans")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        if selectedLoanId != nil {
-                            selectedLoanId = nil
-                        } else {
-                            withAnimation(.spring()) { isDrawerOpen.toggle() }
-                        }
                     } label: {
                         Image(systemName: selectedLoanId != nil ? "chevron.left" : "line.3.horizontal")
                             .imageScale(.large)
@@ -463,5 +455,5 @@ struct MarkPaidSheetView: View {
 }
 
 #Preview {
-    LoansView(isDrawerOpen: .constant(false))
+    LoansView()
 }

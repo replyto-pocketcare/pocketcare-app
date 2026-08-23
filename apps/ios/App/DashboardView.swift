@@ -1,5 +1,6 @@
 import SwiftUI
 import Factory
+import Domain
 
 /// Wraps a `String` for `.fullScreenCover(item:)`, which needs `Identifiable`
 /// -- used to present ReceiptReviewView keyed by scan id (task #62).
@@ -9,7 +10,6 @@ private struct IdentifiableString: Identifiable {
 }
 
 struct DashboardView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var viewModel = Container.shared.dashboardViewModel()
     // Hide-amounts is a real, load-bearing toggle (Settings > "Hide Amounts",
     // apps/web's useMoneyFmt()) -- was missing entirely from this screen
@@ -127,16 +127,6 @@ struct DashboardView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Sanvya")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) {
-                            isDrawerOpen.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
                 // Hide/Show -- apps/web/app/page.tsx's header chip row has
                 // Customize/Hide-Show/Account+; Android's toolbar
                 // (DashboardScreen.kt) only ported the hide/show eye-toggle
@@ -306,7 +296,7 @@ struct WidgetsComingSoonCard: View {
 }
 
 #Preview {
-    DashboardView(isDrawerOpen: .constant(false))
+    DashboardView()
 }
 
 // MARK: - Net-worth hero

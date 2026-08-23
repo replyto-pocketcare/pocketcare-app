@@ -12,20 +12,122 @@
 > Android `ui/navigation/NavDrawer.kt` and iOS `MainTabView.swift`/`DrawerMenuView.swift`
 > are **deleted** — they implement a navigation model web does not have.
 
-## 1. Which web layout is "the mobile version"
+## 1. Width classes — all four, on every platform
 
-`globals.css` has three breakpoints. Native mirrors the phone one:
+Web has **four** width breakpoints, not three. Native ports all four. There is no
+"the mobile version" to pick: the shell picks a layout from its own width, exactly as
+web does, and a tablet, an unfolded foldable and a Stage-Manager window each land on
+whichever row their width falls in.
 
-| Width | What web shows |
-|---|---|
-| ≥ 1024px | Bottom bar hidden, persistent left sidebar + top bar, window-inset "console" frame |
-| 640–1023px | Floating bottom bar **with** text labels |
-| < 640px | Floating bottom bar, **icons only**, item height 46 (not 52), add button 48 (not 52) |
+| Width | Nav | Content column | Page padding |
+|---|---|---|---|
+| **< 640** (`compact`) | Floating bottom bar, **icons only**, item height 46, add button 48 | full width | `10 / 16`, bottom `96 + safeArea` |
+| **640–859** (`medium`) | Floating bottom bar **with** labels, item height 52, add button 52 | full width | `10 / 16`, bottom `96 + safeArea` |
+| **860–1023** (`wide`) | Same bar as `medium` | centred, `maxWidth 720` | `20 / 20`, bottom `96 + safeArea` |
+| **≥ 1024** (`expanded`) | Bottom bar **hidden**; persistent 252-wide left sidebar + sticky top bar | `startInset 252`, `maxWidth 1440` | `24 / 32 / 40`, **no** bottom clearance |
 
-**Every phone is below 640px.** So the compact values are the ones a phone renders, and the
-`≥1024px` sidebar is *not* ported — but a tablet in landscape does cross 640px, so the shell
-selects by `WindowSizeClass` (Android) / horizontal size class + width (iOS) rather than
-hardcoding compact.
+Traced to source: 640 → `globals.css:475`; 860 → `globals.css:547`; 1024 → `globals.css:594`;
+`maxWidth 720` and `padding 20px 20px 0` → the inline style on `<main className="shell-main">`
+(`AppShell.tsx:481`), which the two `!important` media rules override.
+
+**These are the numbers, not Material's.** Material 3 says 600/840; iOS says regular/compact
+size class. Using either would move the switch point and the layouts would stop matching web at
+the widths where it matters most — a 768pt iPad portrait is `wide` under web's rules and
+`expanded` under Material's. So each platform computes the class from a measured width against
+**web's** thresholds, and uses the platform-idiomatic *mechanism* to do it
+(`WindowSizeClass` with custom breakpoints on Android, `GeometryReader` width on iOS)
+rather than the platform's default *values*.
+
+Width means the **window's** width, never the screen's: split-screen, Slide Over, Stage Manager
+and a half-open foldable all hand the app less room than the panel it is on.
+
+### Foldables
+
+A fold is not just a width change.
+
+- **Android** — `WindowInfoTracker.windowLayoutInfo` supplies `FoldingFeature`. A book-posture
+  hinge splits the window into two panes with dead space between; the shell must keep the
+  sidebar and the content column out of the hinge bounds rather than letting a card straddle it.
+  Table-top posture (horizontal hinge, half-open) is treated as `compact` height, not a
+  separate layout.
+- **iOS** — no hinge API; the fold shows up as a width change and is covered by the table above.
+  What iOS adds is **Stage Manager and Slide Over**, where width changes at runtime with no
+  rotation event, so nothing may cache a width class across a layout pass.
+
+Every width class transition is a **resize, not a relaunch**: scroll position, an open More
+sheet, in-progress form input and the selected tab all survive it (LIFE-1..4 in §10).
+
+## 1a. The expanded layout (≥ 1024)
+
+Source: `globals.css:594-700` and `AppShell.tsx:416-483`. Every number below is a literal in
+that CSS and becomes a `SanvyaMetrics.Expanded.*` token — none may be typed into native code.
+
+### Window frame
+
+At this width the app stops being a page and becomes an inset console window.
+
+| | Value | Source |
+|---|---|---|
+| Backdrop | `--surface-2` (the *body* background changes) | `body { background: var(--surface-2) }` |
+| Frame inset | `16` on all sides, `minHeight = 100vh - 32` | `.shell { margin: 16px }` |
+| Frame fill | `--bg` | |
+| Frame border | `1px --border` | |
+| Frame radius | `26` | |
+| Frame shadow | `--shadow-lg` | |
+
+The frame is **not** a clipping container. Web says so in a comment and it matters natively too:
+clipping here would turn the frame into a scroll container and break the sticky top bar.
+
+### Sidebar (`.side-nav`)
+
+Fixed, inset one pixel inside the frame: `left/top/bottom = 17`, `width = 252`.
+Fill `--sidebar`, `1px --border` on the trailing edge only, radius `25 / 0 / 0 / 25`
+(leading corners only, so it sits flush inside the frame's 26). Padding `18 / 14 / 14`, gap `4`.
+
+Column, three parts:
+
+1. **Brand** — logo at 26, padding `2 / 8 / 14`, taps to dashboard.
+2. **Search entry** — a row, not a field: icon 16 + "Search anything…" + a `⌘K` key cap.
+   Padding `10 / 12`, `marginBottom 12`, radius `12`, `--surface` on `1px --border`,
+   text `--text-3` at 13. Hover moves the border to `--accent-soft`.
+   The cap: 10/600, padding `2 / 5`, radius `5`, `--surface-2` on `1px --border`, `--text-2`.
+   *Why search and not "+": at this width the add affordance moves into the dashboard's own
+   header row, and search is the thing every screen reaches for.*
+3. **Scroll region** — `Home`, then `Notifications` (with badge), then `NAV_GROUPS` verbatim —
+   the **same groups the More sheet uses**, so both read from one list.
+4. **Foot** — pinned, `1px --border` top rule, `paddingTop 10`: guest card (when guest),
+   Feedback, version. "Install app" stays unported here too.
+
+Item (`.side-nav-item`): row, gap `10`, padding `9 / 10`, radius `10`, icon 19, label 13.5/500,
+`--text`. Active: `--accent-ghost` fill, `--accent` text, weight **650**, plus a
+`3 × 20` left rail marker at `left: -14`, radius `0 3 3 0`, `--accent`.
+Group title: 10.5/600, uppercase, tracking `0.07em`, `--text-2` at 65% opacity, padding `2 / 10`.
+Badge: `minWidth 18`, height 18, padding `0 / 5`, pill, `--negative`, white 10.5/700.
+
+### Top bar (`.top-bar`)
+
+Sticky at `top: 16`, right-aligned, gap `16`, margin `-4 / 0 / 18`, padding `10 / 0`,
+fill `--bg` (opaque — it scrolls under content).
+Actions gap `8`. Icon button `36 × 36`, circle, `--surface` on `1px --border`, `--text`;
+unread dot `7 × 7` at `top 7 / right 8`, `--negative`. Avatar `36 × 36`, circle,
+`--accent` fill, white 14/700, `2px --surface` ring, `--shadow`.
+
+### Content column
+
+`startInset 252`, `maxWidth 1440`, padding `24 / 32 / 40`. **No bottom clearance** —
+the floating bar is gone, so reserving 96 for it would leave a dead strip.
+
+Full-bleed routes (`/insights`) drop horizontal padding at every width and drop the
+`maxWidth` cap below 1024; at 1024+ they keep the 1440 cap.
+
+### What is *not* in the sidebar
+
+The bottom bar's four customizable slots have no meaning here — every destination is already
+one tap away in the sidebar. `NavPrefs` is untouched, unread, and unshown at this width;
+switching back to a narrower window restores the bar exactly as it was. The **More sheet and
+the bottom-nav customizer are unreachable** at `expanded`, so anything reachable *only* from
+them would be lost — which is why the sidebar renders the same `NAV_GROUPS` list rather than a
+new one.
 
 ## 2. Structure, outermost first
 
@@ -181,12 +283,14 @@ On Android, hardware/predictive back must do exactly what this button does.
 | Scroll restoration | per-path, `pc_scroll:<path>`, retried ≤20× at 60 ms as async content grows | `rememberSaveable` / `@SceneStorage` per route |
 | Close overlays on navigation | More sheet + add popover | same |
 | Diagnostics | `installDiagnostics()`, `startErrorReporting()`, route tagged on every change | same, at process start |
-| ⌘K → `/search` | desktop only | **not ported** — hardware-keyboard iPad support is a later task |
+| ⌘K → `/search` | desktop only | ported at `expanded` only — `⌘K` on iPad/Android hardware keyboards, matching the sidebar's own `<kbd>⌘K</kbd>` hint |
 
 ## 9. Deliberately not ported
 
-- **Desktop sidebar and top bar** (`≥1024px`) — a different layout for a form factor these
-  apps do not target in v1. Revisit for iPad/foldable.
+- ~~**Desktop sidebar and top bar** (`≥1024px`)~~ — **this decision is reversed.**
+  Tablets, foldables and iPad are explicit targets (Akhilesh, 2026-08-23: *"android tablets,
+  foldables, ios foldables, tablets should work flawlessly as well"*). The expanded layout is
+  specified in §1 and §1a and is required on both platforms.
 - **"Install app" / `InstallGuide`** — a PWA affordance. Both native apps are already installed.
   The More sheet's footer loses that row and keeps Feedback + version.
 - **Service-worker registration** — no equivalent.
@@ -201,5 +305,9 @@ On Android, hardware/predictive back must do exactly what this button does.
 - [ ] Default "+" menu locks receipt scanning below Lite/Pro/trial.
 - [ ] No value in the shell source is a literal — everything reads a generated token.
 - [ ] Rotation, fold, background/restore and process death lose nothing (LIFE-1..4).
+- [ ] All four width classes render at their exact thresholds (639/640/859/860/1023/1024).
+- [ ] Resizing across a threshold keeps scroll, tab, open sheets and form input.
+- [ ] Android: no content lands inside `FoldingFeature.bounds` in book posture.
+- [ ] iPad: Slide Over, Split View and Stage Manager each pick the class from *window* width.
 - [ ] TalkBack/VoiceOver: every bar item announces its label; the "+" announces its action.
 - [ ] CI green on both platforms.

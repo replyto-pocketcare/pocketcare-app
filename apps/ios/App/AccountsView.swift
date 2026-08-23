@@ -7,7 +7,6 @@ import SwiftUI
 /// account still opens as a sheet (existing pattern); edit opens as a sheet
 /// too, keyed by account id (no separate push-navigation infra here yet).
 struct AccountsView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var showingCreateSheet = false
     @State private var editingAccount: EditingAccountId?
     @State private var viewModel = AccountsViewModel()
@@ -47,13 +46,6 @@ struct AccountsView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Accounts")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) { isDrawerOpen.toggle() }
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .imageScale(.large)
-                    }
                 }
                 ToolbarItemGroup(placement: .primaryAction) {
                     if viewModel.archivedCount > 0 {
@@ -129,5 +121,5 @@ private struct AccountCardView: View {
 }
 
 #Preview {
-    AccountsView(isDrawerOpen: .constant(false))
+    AccountsView()
 }

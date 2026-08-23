@@ -13,7 +13,6 @@ import SwiftUI
 /// Edit is inline within the holding row (web's own EditHolding
 /// behavior), same rationale as Android's HoldingTile.
 struct InvestmentsView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var viewModel = InvestmentsViewModel()
     @State private var drilledKey: String?
     @State private var showingAddSheet = false
@@ -65,13 +64,6 @@ struct InvestmentsView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle(drilledGroup?.label ?? "Investments")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        if drilledGroup != nil {
-                            drilledKey = nil
-                        } else {
-                            withAnimation(.spring()) { isDrawerOpen.toggle() }
-                        }
                     } label: {
                         Image(systemName: drilledGroup != nil ? "chevron.left" : "line.3.horizontal")
                             .imageScale(.large)
@@ -244,5 +236,5 @@ private struct HoldingRowView: View {
 }
 
 #Preview {
-    InvestmentsView(isDrawerOpen: .constant(false))
+    InvestmentsView()
 }

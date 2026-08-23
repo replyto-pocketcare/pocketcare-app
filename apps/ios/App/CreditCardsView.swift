@@ -15,7 +15,6 @@ import Data
 private let FALLBACK_PALETTE = ["#3e4a38", "#b06a4f", "#5f6647", "#7c4a3a", "#2b2723"]
 
 struct CreditCardsView: View {
-    @Binding var isDrawerOpen: Bool
     @Binding var currentTab: NavTab
     @State private var viewModel = CreditCardsViewModel()
 
@@ -41,12 +40,6 @@ struct CreditCardsView: View {
             .navigationTitle("Credit Cards")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) { isDrawerOpen.toggle() }
-                    } label: {
-                        Image(systemName: "line.3.horizontal").imageScale(.large)
-                    }
                 }
             }
             .onAppear { viewModel.start() }
@@ -291,5 +284,5 @@ private extension String {
 }
 
 #Preview {
-    CreditCardsView(isDrawerOpen: .constant(false), currentTab: .constant(.cards))
+    CreditCardsView(currentTab: .constant(.cards))
 }

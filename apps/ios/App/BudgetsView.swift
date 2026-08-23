@@ -11,7 +11,6 @@ import SwiftUI
 /// matching the native idiom already established for Accounts/Transactions
 /// on both platforms (translate the logic, not the exact widget shape).
 struct BudgetsView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var showingCreateSheet = false
     @State private var editingBudget: BudgetsViewModel.BudgetUiModel?
     @State private var viewModel = BudgetsViewModel()
@@ -40,16 +39,6 @@ struct BudgetsView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Budgets")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) {
-                            isDrawerOpen.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {
                         Image(systemName: "plus")
@@ -147,5 +136,5 @@ private struct BudgetRowCard: View {
 }
 
 #Preview {
-    BudgetsView(isDrawerOpen: .constant(false))
+    BudgetsView()
 }

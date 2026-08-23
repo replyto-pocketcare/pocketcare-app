@@ -7,7 +7,6 @@ import Domain
 /// settle-up used to show ₹1200 no matter the real balance) --
 /// settle-up now lives on GroupDetailView, fed by real balances.
 struct SplitsView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var selectedTab = 0 // 0: Groups & Trips, 1: Friends
     @State private var viewModel = SplitsViewModel()
     @State private var showingCreateSheet = false
@@ -29,13 +28,6 @@ struct SplitsView: View {
                 // Same leading button toggles hamburger/back depending on
                 // selection state -- matches LoansView's established
                 // list/detail convention, not a new pattern.
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        if selectedGroupId != nil {
-                            selectedGroupId = nil
-                        } else {
-                            withAnimation(.spring()) { isDrawerOpen.toggle() }
-                        }
                     } label: {
                         Image(systemName: selectedGroupId != nil ? "chevron.left" : "line.3.horizontal")
                             .imageScale(.large)
@@ -163,5 +155,5 @@ struct SplitsView: View {
 }
 
 #Preview {
-    SplitsView(isDrawerOpen: .constant(false))
+    SplitsView()
 }

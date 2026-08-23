@@ -28,12 +28,11 @@ private let TYPE_LABEL: [String: String] = [
 ]
 
 struct InsightsView: View {
-    @Binding var isDrawerOpen: Bool
     /// Insight CTAs deep-link to other screens (e.g. "Review budgets" ->
     /// Budgets tab). No NavigationStack push exists for this since these
     /// are top-level drawer tabs, not pushed screens -- matches Android's
     /// `onNavigate` callback into `SanvyaNavHost`, which this mirrors via
-    /// `MainTabView`'s `currentTab`.
+    /// the shell's current tab (see `ContentView.swift`).
     @Binding var currentTab: NavTab
     @State private var viewModel = InsightsViewModel()
 
@@ -64,12 +63,6 @@ struct InsightsView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Insights")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) { isDrawerOpen.toggle() }
-                    } label: {
-                        Image(systemName: "line.3.horizontal").imageScale(.large)
-                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -511,5 +504,5 @@ private func fmtCompact(_ v: Double) -> String {
 }
 
 #Preview {
-    InsightsView(isDrawerOpen: .constant(false), currentTab: .constant(.insights))
+    InsightsView(currentTab: .constant(.insights))
 }

@@ -7,7 +7,6 @@ import SwiftUI
 /// The Cashflow tab is removed entirely (invented UI, see the ViewModel's
 /// header comment); this is Goals-only now, matching the real web page.
 struct GoalsView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var showingCreateSheet = false
     @State private var editingGoal: GoalsViewModel.GoalUiModel?
     @State private var allocatingGoal: GoalsViewModel.GoalUiModel?
@@ -46,12 +45,6 @@ struct GoalsView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Goals")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) { isDrawerOpen.toggle() }
-                    } label: {
-                        Image(systemName: "line.3.horizontal").imageScale(.large)
-                    }
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {
@@ -162,5 +155,5 @@ private struct GoalRowCard: View {
 }
 
 #Preview {
-    GoalsView(isDrawerOpen: .constant(false))
+    GoalsView()
 }

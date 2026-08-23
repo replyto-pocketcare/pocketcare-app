@@ -15,7 +15,6 @@ struct RichInsightUiItem {
 }
 
 struct AssistantView: View {
-    @Binding var isDrawerOpen: Bool
     @Environment(\.dismiss) private var dismiss
 
     @State private var inputText: String = ""
@@ -139,18 +138,6 @@ struct AssistantView: View {
             }
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("✨ Sanvya AI")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) {
-                            isDrawerOpen.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
-            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -163,5 +150,5 @@ struct AssistantView: View {
 }
 
 #Preview {
-    AssistantView(isDrawerOpen: .constant(false))
+    AssistantView()
 }

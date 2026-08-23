@@ -99,8 +99,24 @@ raised centre "+", More sheet, customizer, all three banners, utility row, conte
 FAB removed, since the shell's "+" is now the app's single add affordance. Still missing: per-route
 scroll restoration and the launch-time recurring/auto-post pass.
 
-**iOS: still `MainTabView.swift`** (misnamed — also a drawer, `DrawerMenuView.swift`, with a
-hand-rolled offset animation). Next.
+**iOS: built 2026-08-23.** `App/Shell/` — the same seven pieces as Android.
+`MainTabView.swift` and `DrawerMenuView.swift` **deleted** (both were a drawer, despite the
+name). `ContentView.swift` is now the single `NavTab` → screen switch and is the app's root;
+`NavTab` lost `.templates`/`.cashflow` (no such web routes) along with their placeholder views;
+`NavModels.swift` lost the drawer's `NavGroup`/`NavItem`/`navGroups`, which also removes a name
+collision with `BottomNav.swift`'s private `NavItem`. Screens that navigate
+(`InsightsView`, `CreditCardsView`) get a `Binding<NavTab>` from the shell — writing through it
+routes via `select()`, so a screen cannot navigate and leave the More sheet open.
+Still missing on **both**: per-route scroll restoration, the launch-time recurring/auto-post
+pass, the in-flow sync-status strip (`syncMessage()` + Force Sync / Report Issue),
+`TrialNotice`, and `GlobalLoader`.
+
+**Residual on both: every top-level screen still wraps itself in its own
+`NavigationView`/`Scaffold` with a `navigationTitle`/`TopAppBar`.** Web's shell has no title bar
+at any width below 1024 — the util row is the top of the page. So each ported screen currently
+renders a system nav bar the web app does not have. Not a shell bug and not fixable at the shell:
+it is one line per screen and belongs to that screen's W2 pass, where the title becomes the page's
+own heading. Tracked here so it is not mistaken for done.
 
 ## 4. Route → platform map
 
@@ -189,6 +205,7 @@ approximation per screen (iOS's old credit-card face).
 | **No `RecurringRepository` on either platform** | `/recurring` is a data-layer task before it is a UI task — no `recurring_items` reads or writes exist natively | W4 |
 | **No `useUnreadCount()` equivalent natively** | The shell's bell badge and the Notifications screen both need it; neither platform has the query | W1 |
 | **`notifications` has no i18n namespace at all** | The web screen has zero `t()` calls. Porting it as-is would put the one hardcoded-English screen into apps that are otherwise fully localised | W4 |
+| **Tablets / foldables / large windows** | Web has **four** width breakpoints (640 / 860 / 1024); both native shells implement only the phone one. The `≥1024` sidebar + top bar + window-frame layout is **required** as of 2026-08-23 and fully specified in `screen-specs/app-shell.md` §1 and §1a. Also needs: Android `FoldingFeature` hinge avoidance, iPad Slide Over / Split View / Stage Manager (window width, never screen width), and every screen's own content re-checked at `wide`/`expanded` | **W1.5** |
 | **Bundle ids / Universal Links domain** | Still placeholders (`com.sanvya.app`, `com.sanvya.app.ios`) — blocks `/join` deep links and store prep | **needs Akhilesh** |
 | **Min OS versions** | Proposed minSdk 26 / iOS target unconfirmed | **needs Akhilesh** |
 
@@ -203,7 +220,14 @@ approximation per screen (iOS's old credit-card face).
 
 **W1 — app shell** (§3) on both platforms; delete drawers, dead tabs and placeholder views.
 
-**W2 — spec re-derivation** for every ⚠️/🔶/❌ route in §4 from today's source.
+**W1.5 — adaptive layout** on both platforms: the four width classes from web's own thresholds
+(640 / 860 / 1024, **not** Material's 600/840 and not iOS size classes), the `expanded` sidebar +
+top bar + window frame, Android hinge avoidance, iPad multitasking. Every width-class change is a
+resize, not a relaunch — nothing may be lost across one. Spec: `screen-specs/app-shell.md` §1, §1a.
+
+**W2 — spec re-derivation** for every ⚠️/🔶/❌ route in §4 from today's source. Each screen's spec
+must state what it does at `wide` and `expanded`, not only on a phone, and drop the screen's own
+`NavigationView`/`Scaffold` title bar (see §3).
 
 **W3 — close Android's gap to iOS**: Login, Onboarding/Walkthrough, Statements, Statement import,
 Assistant, plus anything else marked ❌/⚠️ on Android only.
@@ -214,8 +238,11 @@ Categories, Labels, Data import/export, Receipts split, Join/auth callback, Dash
 **W5 — parity re-check** of every ⚠️ screen against its W2 spec; delete inline approximations in
 favour of the W0.5 components.
 
-**W6 — native surfaces & release**: push/deep links, widgets, Live Activities, quick capture,
-biometric + field crypto, RevenueCat, store prep, launch gate.
+**W6 — native surfaces & release**: push/deep links, **home-screen widgets (Glance / WidgetKit)**,
+**local notifications**, Live Activities, quick capture, biometric + field crypto, and the wider
+"use the hardware in ways web cannot" pass Akhilesh has queued behind parity — plus RevenueCat,
+store prep, launch gate. **Nothing in W6 starts until W1–W5 are green**: these are the payoff for
+the parity work, and building them on top of screens that still drift would mean building twice.
 
 Each wave item is DONE only when CI is green for it **and** its spec checklist passes.
 

@@ -2,7 +2,6 @@ import SwiftUI
 
 struct PlaceholderView: View {
     let title: String
-    @Binding var isDrawerOpen: Bool
 
     var body: some View {
         NavigationView {
@@ -15,45 +14,20 @@ struct PlaceholderView: View {
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) {
-                            isDrawerOpen.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
-            }
         }
     }
 }
 
 struct SearchView: View {
-    @Binding var isDrawerOpen: Bool
-    var body: some View { PlaceholderView(title: "Search", isDrawerOpen: $isDrawerOpen) }
-}
-
-struct TemplatesView: View {
-    @Binding var isDrawerOpen: Bool
-    var body: some View { PlaceholderView(title: "Templates", isDrawerOpen: $isDrawerOpen) }
-}
-
-struct CashflowView: View {
-    @Binding var isDrawerOpen: Bool
-    var body: some View { PlaceholderView(title: "Planned Cashflow", isDrawerOpen: $isDrawerOpen) }
+    var body: some View { PlaceholderView(title: "Search", ) }
 }
 
 struct RecurringView: View {
-    @Binding var isDrawerOpen: Bool
-    var body: some View { PlaceholderView(title: "Recurring", isDrawerOpen: $isDrawerOpen) }
+    var body: some View { PlaceholderView(title: "Recurring", ) }
 }
 
 struct HelpView: View {
-    @Binding var isDrawerOpen: Bool
-    var body: some View { PlaceholderView(title: "Help & FAQ", isDrawerOpen: $isDrawerOpen) }
+    var body: some View { PlaceholderView(title: "Help & FAQ", ) }
 }
 
 // Added 2026-08-05 alongside the drawer-parity fix: both are real web
@@ -61,11 +35,9 @@ struct HelpView: View {
 // was missing entirely, not just missing a built screen for -- see
 // docs/mobile/screen-specs/navigation-drawer.md.
 struct ReflectView: View {
-    @Binding var isDrawerOpen: Bool
-    var body: some View { PlaceholderView(title: "Reflect", isDrawerOpen: $isDrawerOpen) }
+    var body: some View { PlaceholderView(title: "Reflect", ) }
 }
 
 struct NotificationsPlaceholderView: View {
-    @Binding var isDrawerOpen: Bool
-    var body: some View { PlaceholderView(title: "Notifications", isDrawerOpen: $isDrawerOpen) }
+    var body: some View { PlaceholderView(title: "Notifications", ) }
 }

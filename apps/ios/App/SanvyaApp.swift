@@ -19,7 +19,7 @@ struct SanvyaApp: App {
                     }
                 )
             } else {
-                MainTabView()
+                ContentView()
             }
         }
     }
