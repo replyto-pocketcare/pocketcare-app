@@ -7,6 +7,7 @@ import { useSession } from "../account";
 import { PLANS, CREDIT_PACKS, price, type PaidTier, type Cycle } from "../billing/plans";
 import { startSubscription, buyCredits, cancelSubscription, redeemCoupon } from "../billing";
 import { openInvoice, type InvoicePayment } from "../billing/invoice";
+import { useConfirm } from "./Confirm";
 
 const FREE_FEATURES = ["All account types (bank, cash, cards, stocks…)", "Categories, labels, budgets, goals", "Transactions, transfers, search"];
 const PAID_EXTRA = ["Detailed Insights & Statements", "Ask Sanvya AI assistant", "Auto-categorisation, upcoming, stock sync", "CSV import"];
@@ -20,6 +21,7 @@ const PLAN_DETAILS: Record<PlanKey, { includes: string[]; excludes: string[]; ai
 
 export function Billing() {
   const e = useEntitlement();
+  const confirm = useConfirm();
   const session = useSession();
   const email = session?.email ?? "";
   const { data: payments = [] } = useQuery<InvoicePayment>(
@@ -151,7 +153,34 @@ export function Billing() {
         {e.subscriptionStatus === "active" && (
           <button className="chip" disabled={!!busy} style={{ fontSize: 12, color: "var(--negative)", borderColor: "var(--negative)" }}
             onClick={async () => {
-              if (typeof window !== "undefined" && !window.confirm("Cancel your subscription? You'll keep access until the end of the current billing cycle.")) return;
+              // What actually happens on downgrade, stated accurately:
+              // razorpay-webhook sets tier=free and monthly_quota_total=0 but
+              // never touches purchased_quota_remaining, and the assistant /
+              // receipt-scan functions spend against quota rather than tier.
+              // So purchased credits are NOT destroyed — the assistant UI is
+              // simply gated to paid plans, which puts them out of reach until
+              // a resubscribe. Saying they'd be "lost" would be a false claim
+              // about money the user has already spent, made at the exact
+              // moment they are trying to leave.
+              const ok = await confirm({
+                title: "Cancel your subscription?",
+                confirmLabel: "Cancel plan",
+                cancelLabel: "Keep plan",
+                message: (
+                  <span style={{ display: "block", lineHeight: 1.6 }}>
+                    You keep full access until the end of the current billing cycle. After that you move to Free
+                    and your plan’s monthly AI prompts stop.
+                    {e.purchased > 0 && (
+                      <>
+                        {" "}You still have <strong>{e.purchased} purchased credit{e.purchased === 1 ? "" : "s"}</strong>.
+                        They stay on your account and don’t expire, but Ask Sanvya isn’t available on the Free plan —
+                        so you won’t be able to spend them until you subscribe again.
+                      </>
+                    )}
+                  </span>
+                ),
+              });
+              if (!ok) return;
               setBusy("cancel"); setMsg(null);
               try { const r = await cancelSubscription(); setMsg(r.ok ? `Cancelled — you keep access until ${r.ends_at ? new Date(r.ends_at).toLocaleDateString() : "the cycle ends"}.` : "Couldn't cancel."); }
               catch (err) { setMsg((err as Error).message); }

@@ -33,7 +33,9 @@ Deno.serve(async (req: Request) => {
   if (authErr || !user) return json({ error: "Unauthorized" });
 
   const { data: ent } = await supabase
-    .from("entitlements").select("razorpay_subscription_id").eq("user_id", user.id).single();
+    .from("entitlements")
+    .select("razorpay_subscription_id, purchased_quota_remaining, additional_purchased_quota")
+    .eq("user_id", user.id).single();
   const subId = ent?.razorpay_subscription_id;
   if (!subId) return json({ error: "No active subscription to cancel." });
 
@@ -49,5 +51,55 @@ Deno.serve(async (req: Request) => {
   // subscription.cancelled webhook downgrades to Free.
   await supabase.from("entitlements").update({ subscription_status: "cancelling" }).eq("user_id", user.id);
 
-  return json({ ok: true, ends_at: sub.current_end ? new Date(sub.current_end * 1000).toISOString() : null });
+  const endsAt = sub.current_end ? new Date(sub.current_end * 1000).toISOString() : null;
+
+  // Leave a notification behind if they still hold unspent purchased credits.
+  //
+  // Raised HERE rather than in the client so it survives the tab being closed
+  // the moment after cancelling, and so it is written with the service role
+  // (the client cannot insert notifications for itself).
+  //
+  // Wording is deliberately precise. The downgrade sets tier=free and
+  // monthly_quota_total=0; it does NOT clear purchased_quota_remaining, and the
+  // assistant/receipt-scan functions spend against quota, not tier. The credits
+  // therefore survive — what disappears is the ability to reach the assistant,
+  // which is gated to paid plans. Telling someone their pre-paid credits are
+  // destroyed, at the moment they cancel, would be a false statement about
+  // their own money.
+  //
+  // Wrapped in try/catch on purpose: by this point Razorpay has ALREADY
+  // cancelled the subscription. Letting a failed notification throw would
+  // return an error for an operation that actually succeeded, and the user
+  // would try again against a subscription that no longer exists. The dedupe
+  // index is also partial (0037: `where dedupe_key is not null and deleted_at
+  // is null`), which PostgREST's onConflict inference may not match — one more
+  // reason this must not be load-bearing.
+  const credits = (ent?.purchased_quota_remaining ?? 0) + (ent?.additional_purchased_quota ?? 0);
+  if (credits > 0) {
+    try {
+      const plural = credits === 1 ? "" : "s";
+      const when = endsAt
+        ? new Date(endsAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+        : "your plan ends";
+      await supabase.from("notifications").upsert({
+        user_id: user.id,
+        kind: "system",
+        severity: "warn",
+        title: `${credits} AI credit${plural} will be out of reach`,
+        subtitle: `Your plan ends ${when}`,
+        body:
+          `You have ${credits} purchased AI credit${plural} that don't expire and stay on your account. ` +
+          `But Ask Sanvya isn't available on the Free plan, so you won't be able to spend them after ${when} ` +
+          `unless you subscribe again.`,
+        href: "/settings",
+        // Keyed to this subscription + end date so a cancel/resubscribe/cancel
+        // cycle notifies once per actual ending, not once per button press.
+        dedupe_key: `plan-cancel:${subId}:${endsAt ?? "unknown"}`,
+      }, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
+    } catch (e) {
+      console.error("cancel notification failed (cancellation itself succeeded):", e);
+    }
+  }
+
+  return json({ ok: true, ends_at: endsAt, credits_at_risk: credits });
 });

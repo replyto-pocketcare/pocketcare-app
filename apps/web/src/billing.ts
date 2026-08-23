@@ -74,8 +74,8 @@ export async function startSubscription(tier: PaidTier, cycle: Cycle, offer_id?:
 }
 
 /** Cancel the current subscription at cycle end (access continues until then). */
-export async function cancelSubscription(): Promise<{ ok: boolean; ends_at: string | null }> {
-  return invoke<{ ok: boolean; ends_at: string | null }>("razorpay-cancel", {});
+export async function cancelSubscription(): Promise<{ ok: boolean; ends_at: string | null; credits_at_risk?: number }> {
+  return invoke<{ ok: boolean; ends_at: string | null; credits_at_risk?: number }>("razorpay-cancel", {});
 }
 
 /** Buy a one-time AI credit pack; the webhook adds the credits shortly after. */
