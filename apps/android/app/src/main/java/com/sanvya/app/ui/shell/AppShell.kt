@@ -20,6 +20,11 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +48,8 @@ import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.SanvyaCard
 import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaText
+import com.sanvya.app.ui.components.sanvyaShadow
+import com.sanvya.app.theme.LocalSanvyaShadows
 import kotlinx.coroutines.delay
 
 /** Matches web's `APP_VERSION` in AppShell.tsx. */
@@ -83,6 +90,7 @@ fun AppShell(
     content: @Composable () -> Unit,
 ) {
     val colors = LocalSanvyaColors.current
+    val windowClass = LocalWindowClass.current
     val offline = rememberIsOffline()
     val unreadCount by viewModel.unreadCount.collectAsState()
     val failedWrites by viewModel.failedWriteCount.collectAsState()
@@ -134,68 +142,99 @@ fun AppShell(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(colors.bg)) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Banners sit above everything, in web's z-order: problems first.
-            Column(modifier = Modifier.padding(WindowInsets.statusBars.asPaddingValues())) {
-                SyncProblemsBanner(failedWrites) { onNavigate("settings") }
-                OfflineBanner(offline)
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(
-                        top = SanvyaMetrics.Page.paddingTop,
-                        start = SanvyaMetrics.Page.paddingHorizontal,
-                        end = SanvyaMetrics.Page.paddingHorizontal,
-                    ),
-            ) {
-                if (!isDashboard) {
-                    UtilRow(
-                        showBack = showBack,
-                        unreadCount = unreadCount,
-                        onBack = onBack,
-                        onNotifications = { onNavigate("notifications") },
-                    )
-                }
-                CompositionLocalProviderForAddAction(onSetPageAction) { content() }
-            }
-        }
-
-        BottomNav(
-            currentRoute = currentRoute,
-            navIds = navIds,
-            unreadCount = unreadCount,
-            addLabel = action.label,
-            onNavigate = onNavigate,
-            onAdd = runAdd,
-            onMore = { moreOpen = true },
-            moreOpen = moreOpen,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(WindowInsets.navigationBars.asPaddingValues())
-                .padding(
-                    start = SanvyaMetrics.BottomNav.sideInset,
-                    end = SanvyaMetrics.BottomNav.sideInset,
-                    bottom = SanvyaMetrics.BottomNav.bottomInset,
-                )
-                .widthIn(max = SanvyaMetrics.BottomNav.maxWidth),
-        )
-
-        if (addOpen && action is AddAction.Menu) {
-            AddPopover(
-                action = action,
-                onDismiss = { addOpen = false },
-                onNavigate = { route -> addOpen = false; onNavigate(route) },
-                modifier = Modifier.align(Alignment.BottomCenter),
+    val page: @Composable () -> Unit = {
+        if (!isDashboard) {
+            UtilRow(
+                showBack = showBack,
+                unreadCount = unreadCount,
+                onBack = onBack,
+                onNotifications = { onNavigate("notifications") },
             )
+        }
+        CompositionLocalProviderForAddAction(onSetPageAction) { content() }
+    }
+
+    if (windowClass == SanvyaWindowClass.EXPANDED) {
+        ExpandedShell(
+            currentRoute = currentRoute,
+            unreadCount = unreadCount,
+            failedWrites = failedWrites,
+            offline = offline,
+            isGuest = isGuest,
+            guestDaysLeft = guestDaysLeft,
+            onNavigate = onNavigate,
+            page = page,
+        )
+    } else {
+        Box(modifier = Modifier.fillMaxSize().background(colors.bg)) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Banners sit above everything, in web's z-order: problems first.
+                Column(modifier = Modifier.padding(WindowInsets.statusBars.asPaddingValues())) {
+                    SyncProblemsBanner(failedWrites) { onNavigate("settings") }
+                    OfflineBanner(offline)
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(
+                            top = SanvyaMetrics.Page.paddingTop,
+                            start = SanvyaMetrics.Page.paddingHorizontal,
+                            end = SanvyaMetrics.Page.paddingHorizontal,
+                        )
+                        // At MEDIUM the column caps and centres rather than
+                        // stretching a phone layout across a tablet, which is
+                        // exactly what web does above its own middle breakpoint.
+                        .then(
+                            if (windowClass.capsContentWidth) {
+                                Modifier.widthIn(max = SanvyaMetrics.Page.maxWidth)
+                            } else {
+                                Modifier
+                            },
+                        ),
+                ) {
+                    page()
+                }
+            }
+
+            BottomNav(
+                currentRoute = currentRoute,
+                navIds = navIds,
+                unreadCount = unreadCount,
+                addLabel = action.label,
+                onNavigate = onNavigate,
+                onAdd = runAdd,
+                onMore = { moreOpen = true },
+                moreOpen = moreOpen,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(WindowInsets.navigationBars.asPaddingValues())
+                    .padding(
+                        start = SanvyaMetrics.BottomNav.sideInset,
+                        end = SanvyaMetrics.BottomNav.sideInset,
+                        bottom = SanvyaMetrics.BottomNav.bottomInset,
+                    )
+                    .widthIn(max = SanvyaMetrics.BottomNav.maxWidth),
+            )
+
+            if (addOpen && action is AddAction.Menu) {
+                AddPopover(
+                    action = action,
+                    onDismiss = { addOpen = false },
+                    onNavigate = { route -> addOpen = false; onNavigate(route) },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+            }
         }
     }
 
+    // Both overlays belong to the bottom bar. At EXPANDED the bar is gone and
+    // the sidebar shows every destination directly, so there is nothing to open
+    // them from -- and a sheet that can never be dismissed by its own affordance
+    // is worse than no sheet.
     MoreSheet(
-        open = moreOpen,
+        open = moreOpen && windowClass.usesBottomBar,
         currentRoute = currentRoute,
         unreadCount = unreadCount,
         isGuest = isGuest,
@@ -208,7 +247,7 @@ fun AppShell(
     )
 
     BottomNavCustomizer(
-        open = customizeOpen,
+        open = customizeOpen && windowClass.usesBottomBar,
         current = navIds,
         onSave = { ids -> NavPrefs.setIds(ids); customizeOpen = false },
         onClose = { customizeOpen = false },
@@ -347,4 +386,86 @@ private fun AddPopoverItem(item: AddAction.Menu.Item, onClick: () -> Unit) {
 private fun Modifier.clickableNoIndication(onClick: () -> Unit): Modifier = composed {
     val interaction = remember { MutableInteractionSource() }
     clickable(interactionSource = interaction, indication = null, onClick = onClick)
+}
+
+/**
+ * The >= 840dp layout: a persistent sidebar beside the content, and no floating
+ * bottom bar.
+ *
+ * Web turns the whole app into an inset console window at this size (a
+ * `--surface-2` backdrop with the app floating on it, rounded and shadowed),
+ * which is what stops a tablet reading as a phone layout stretched sideways.
+ * Ported literally, because on a tablet the difference is the entire impression
+ * the app makes.
+ *
+ * The frame is deliberately NOT a clipping container beyond its own corners.
+ * Web says so in a comment and it holds here for the same reason: clipping the
+ * content would turn the frame into a scroll container.
+ */
+@Composable
+private fun ExpandedShell(
+    currentRoute: String?,
+    unreadCount: Int,
+    failedWrites: Int,
+    offline: Boolean,
+    isGuest: Boolean,
+    guestDaysLeft: Int?,
+    onNavigate: (String) -> Unit,
+    page: @Composable () -> Unit,
+) {
+    val colors = LocalSanvyaColors.current
+    val x = SanvyaMetrics.Expanded
+    val frameShape = RoundedCornerShape(x.frameRadius)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            // The backdrop the window floats on -- web changes the *body*
+            // background here, not the app's.
+            .background(colors.surface2)
+            .padding(WindowInsets.systemBars.asPaddingValues()),
+    ) {
+        // Banners stay full-bleed above the frame: they are system messages
+        // about the app, not content inside it.
+        SyncProblemsBanner(failedWrites) { onNavigate("settings") }
+        OfflineBanner(offline)
+
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(x.frameInset)
+                .sanvyaShadow(LocalSanvyaShadows.current.shadowLg, frameShape)
+                .clip(frameShape)
+                .background(colors.bg)
+                .border(1.dp, colors.border, frameShape),
+        ) {
+            SideNav(
+                currentRoute = currentRoute,
+                unreadCount = unreadCount,
+                isGuest = isGuest,
+                guestDaysLeft = guestDaysLeft,
+                appVersion = APP_VERSION,
+                onNavigate = onNavigate,
+                onFeedback = { },
+                modifier = Modifier.fillMaxHeight(),
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .widthIn(max = x.contentMaxWidth)
+                    .padding(
+                        top = x.contentPaddingTop,
+                        start = x.contentPaddingH,
+                        end = x.contentPaddingH,
+                        // No bottom clearance: the floating bar is gone, so
+                        // reserving 96dp for it would leave a dead strip.
+                        bottom = x.contentPaddingBottom,
+                    ),
+            ) {
+                page()
+            }
+        }
+    }
 }

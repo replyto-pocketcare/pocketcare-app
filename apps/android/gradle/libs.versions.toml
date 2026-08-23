@@ -23,6 +23,14 @@ composeBom = "2026.06.00"
 activityCompose = "1.9.3"
 lifecycle = "2.8.7"
 coreKtx = "1.13.1"
+# W1.5 (tablets/foldables): Jetpack WindowManager. Used for exactly one thing --
+# androidx.window.core.layout.WindowSizeClass, whose WIDTH_DP_*/HEIGHT_DP_*
+# constants are Material 3's official breakpoints (600 / 840 / 480). The shell
+# reads those rather than hardcoding the numbers, so a platform revision moves
+# this app with it. 1.5.1 confirmed the latest stable on
+# developer.android.com/jetpack/androidx/releases/window (2025-11-19) on
+# 2026-08-23.
+androidxWindow = "1.5.1"
 # Human-approved 2026-07-31 for P0.4a (golden-vector runner): :domain is a
 # pure-JVM module with no Android SDK, so it has no built-in JSON parser.
 # kotlinx.serialization is JetBrains-official and the standard Kotlin
@@ -60,6 +68,7 @@ mlkitTextRecognition = "16.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-window = { group = "androidx.window", name = "window", version.ref = "androidxWindow" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 # Needed for the `viewModel()` composable (used by SettingsScreen.kt already,

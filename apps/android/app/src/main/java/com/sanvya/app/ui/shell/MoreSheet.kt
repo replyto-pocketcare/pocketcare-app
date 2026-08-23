@@ -39,9 +39,15 @@ import com.sanvya.app.ui.components.SanvyaModal
 import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.ui.components.press
 
-/** One nav group in the More sheet, matching web's NAV_GROUPS. */
-private data class NavGroup(val title: String, val items: List<NavEntry>)
-private data class NavEntry(val route: String, val label: String, val glyph: String)
+/**
+ * One nav group, matching web's NAV_GROUPS.
+ *
+ * Internal, not private: the More sheet and the expanded-layout sidebar render
+ * the **same** list. They have to. At >= 840dp the More sheet is unreachable, so
+ * anything that lived only there would simply vanish on a tablet.
+ */
+internal data class NavGroup(val title: String, val items: List<NavEntry>)
+internal data class NavEntry(val route: String, val label: String, val glyph: String)
 
 /**
  * Web's `NAV_GROUPS`, verbatim.
@@ -50,7 +56,7 @@ private data class NavEntry(val route: String, val label: String, val glyph: Str
  * redirects to `/friends`, because Groups and Splits were one screen's worth of
  * information split across two.
  */
-private val NAV_GROUPS = listOf(
+internal val NAV_GROUPS = listOf(
     NavGroup(
         "Money",
         listOf(

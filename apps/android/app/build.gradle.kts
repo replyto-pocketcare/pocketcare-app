@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation(libs.androidx.window)
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.material:material-icons-extended")
     debugImplementation(libs.compose.ui.tooling)
@@ -83,4 +84,11 @@ dependencies {
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-messaging")
+
+    // W1.5: :app had no test source set at all. Added for the device-type and
+    // window-class mapping -- both are small pure functions, and both decide
+    // things (portrait lock, sidebar vs bottom bar) whose failure mode is
+    // "wrong on a device nobody has to hand".
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlin.test.junit)
 }

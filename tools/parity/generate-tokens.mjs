@@ -388,9 +388,10 @@ ${ktBanner()}
  * the platform safe-area inset is added on top, exactly as
  * \`env(safe-area-inset-bottom)\` does.
  *
- * Phones are always below web's 640px breakpoint, so \`*Compact\` values are
- * the ones a phone actually renders. A large tablet in landscape crosses it —
- * the shell picks per WindowSizeClass.
+ * \`*Compact\` values are what a phone renders; \`Expanded\` is the
+ * tablet/foldable sidebar layout. Which one applies is decided by
+ * \`SanvyaWindowClass\`, from Material 3's breakpoints — not from the web
+ * breakpoints these values were read out of.
  */
 object SanvyaMetrics {
     object BottomNav {
@@ -408,6 +409,56 @@ object SanvyaMetrics {
         val addOverhang = ${S.bottomNav.addOverhang}.dp
         val addSideMargin = ${S.bottomNav.addSideMargin}.dp
         val labelHiddenBelow = ${S.bottomNav.labelHiddenBelow}.dp
+    }
+
+
+    /**
+     * The expanded layout: sidebar, top bar, and the inset window frame the app
+     * sits in. globals.css:594-700.
+     *
+     * Web's values, kept as web's values -- a tablet should look like the
+     * desktop browser. Only the threshold at which we switch to this is the
+     * platform's; see SanvyaWindowClass.
+     */
+    object Expanded {
+        val frameInset = ${S.expanded.frameInset}.dp
+        val frameRadius = ${S.expanded.frameRadius}.dp
+        val sidebarInset = ${S.expanded.sidebarInset}.dp
+        val sidebarWidth = ${S.expanded.sidebarWidth}.dp
+        val sidebarRadius = ${S.expanded.sidebarRadius}.dp
+        val sidebarPaddingTop = ${S.expanded.sidebarPaddingTop}.dp
+        val sidebarPaddingH = ${S.expanded.sidebarPaddingH}.dp
+        val sidebarPaddingBottom = ${S.expanded.sidebarPaddingBottom}.dp
+        val sidebarGap = ${S.expanded.sidebarGap}.dp
+        val brandSize = ${S.expanded.brandSize}.dp
+        val brandPaddingBottom = ${S.expanded.brandPaddingBottom}.dp
+        val searchPaddingV = ${S.expanded.searchPaddingV}.dp
+        val searchPaddingH = ${S.expanded.searchPaddingH}.dp
+        val searchMarginBottom = ${S.expanded.searchMarginBottom}.dp
+        val searchRadius = ${S.expanded.searchRadius}.dp
+        val searchIconSize = ${S.expanded.searchIconSize}.dp
+        val itemPaddingV = ${S.expanded.itemPaddingV}.dp
+        val itemPaddingH = ${S.expanded.itemPaddingH}.dp
+        val itemRadius = ${S.expanded.itemRadius}.dp
+        val itemGap = ${S.expanded.itemGap}.dp
+        val itemIconSize = ${S.expanded.itemIconSize}.dp
+        val railWidth = ${S.expanded.railWidth}.dp
+        val railHeight = ${S.expanded.railHeight}.dp
+        val railOffset = ${S.expanded.railOffset}.dp
+        val badgeMinWidth = ${S.expanded.badgeMinWidth}.dp
+        val badgeHeight = ${S.expanded.badgeHeight}.dp
+        val footPaddingTop = ${S.expanded.footPaddingTop}.dp
+        val topBarHeight = ${S.expanded.topBarHeight}.dp
+        val topBarGap = ${S.expanded.topBarGap}.dp
+        val topBarPaddingV = ${S.expanded.topBarPaddingV}.dp
+        val topBarMarginBottom = ${S.expanded.topBarMarginBottom}.dp
+        val topIconSize = ${S.expanded.topIconSize}.dp
+        val topDotSize = ${S.expanded.topDotSize}.dp
+        val avatarSize = ${S.expanded.avatarSize}.dp
+        val contentPaddingTop = ${S.expanded.contentPaddingTop}.dp
+        val contentPaddingH = ${S.expanded.contentPaddingH}.dp
+        val contentPaddingBottom = ${S.expanded.contentPaddingBottom}.dp
+        val contentMaxWidth = ${S.expanded.contentMaxWidth}.dp
     }
 
     object UtilRow {
@@ -746,8 +797,10 @@ ${swiftBanner()}
  Shell metrics. \`bottomInset\` is web's literal offset; the safe-area inset is
  added on top, exactly as \`env(safe-area-inset-bottom)\` does on web.
 
- iPhones are always below web's 640px breakpoint, so the \`Compact\` values are
- what a phone renders; iPad and landscape-regular cross it.
+ The \`Compact\` values are what an iPhone renders; \`Expanded\` is the
+ iPad/foldable sidebar layout. Which one applies is decided by
+ \`SanvyaWindowClass\`, from the platform's size classes — not from the web
+ breakpoints these values were read out of.
  */
 public enum SanvyaMetrics {
     public enum BottomNav {
@@ -765,6 +818,55 @@ public enum SanvyaMetrics {
         public static let addOverhang: CGFloat = ${S.bottomNav.addOverhang}
         public static let addSideMargin: CGFloat = ${S.bottomNav.addSideMargin}
         public static let labelHiddenBelow: CGFloat = ${S.bottomNav.labelHiddenBelow}
+    }
+
+
+    /**
+     The expanded layout: sidebar, top bar, and the inset window frame the app
+     sits in. globals.css:594-700.
+
+     Web's values, kept as web's values -- an iPad should look like the desktop
+     browser. Only the threshold at which we switch to this is the platform's.
+     */
+    public enum Expanded {
+        public static let frameInset: CGFloat = ${S.expanded.frameInset}
+        public static let frameRadius: CGFloat = ${S.expanded.frameRadius}
+        public static let sidebarInset: CGFloat = ${S.expanded.sidebarInset}
+        public static let sidebarWidth: CGFloat = ${S.expanded.sidebarWidth}
+        public static let sidebarRadius: CGFloat = ${S.expanded.sidebarRadius}
+        public static let sidebarPaddingTop: CGFloat = ${S.expanded.sidebarPaddingTop}
+        public static let sidebarPaddingH: CGFloat = ${S.expanded.sidebarPaddingH}
+        public static let sidebarPaddingBottom: CGFloat = ${S.expanded.sidebarPaddingBottom}
+        public static let sidebarGap: CGFloat = ${S.expanded.sidebarGap}
+        public static let brandSize: CGFloat = ${S.expanded.brandSize}
+        public static let brandPaddingBottom: CGFloat = ${S.expanded.brandPaddingBottom}
+        public static let searchPaddingV: CGFloat = ${S.expanded.searchPaddingV}
+        public static let searchPaddingH: CGFloat = ${S.expanded.searchPaddingH}
+        public static let searchMarginBottom: CGFloat = ${S.expanded.searchMarginBottom}
+        public static let searchRadius: CGFloat = ${S.expanded.searchRadius}
+        public static let searchIconSize: CGFloat = ${S.expanded.searchIconSize}
+        public static let itemPaddingV: CGFloat = ${S.expanded.itemPaddingV}
+        public static let itemPaddingH: CGFloat = ${S.expanded.itemPaddingH}
+        public static let itemRadius: CGFloat = ${S.expanded.itemRadius}
+        public static let itemGap: CGFloat = ${S.expanded.itemGap}
+        public static let itemIconSize: CGFloat = ${S.expanded.itemIconSize}
+        public static let railWidth: CGFloat = ${S.expanded.railWidth}
+        public static let railHeight: CGFloat = ${S.expanded.railHeight}
+        public static let railOffset: CGFloat = ${S.expanded.railOffset}
+        public static let badgeMinWidth: CGFloat = ${S.expanded.badgeMinWidth}
+        public static let badgeHeight: CGFloat = ${S.expanded.badgeHeight}
+        public static let footPaddingTop: CGFloat = ${S.expanded.footPaddingTop}
+        public static let topBarHeight: CGFloat = ${S.expanded.topBarHeight}
+        public static let topBarGap: CGFloat = ${S.expanded.topBarGap}
+        public static let topBarPaddingV: CGFloat = ${S.expanded.topBarPaddingV}
+        public static let topBarMarginBottom: CGFloat = ${S.expanded.topBarMarginBottom}
+        public static let topIconSize: CGFloat = ${S.expanded.topIconSize}
+        public static let topDotSize: CGFloat = ${S.expanded.topDotSize}
+        public static let avatarSize: CGFloat = ${S.expanded.avatarSize}
+        public static let contentPaddingTop: CGFloat = ${S.expanded.contentPaddingTop}
+        public static let contentPaddingH: CGFloat = ${S.expanded.contentPaddingH}
+        public static let contentPaddingBottom: CGFloat = ${S.expanded.contentPaddingBottom}
+        public static let contentMaxWidth: CGFloat = ${S.expanded.contentMaxWidth}
     }
 
     public enum UtilRow {

@@ -212,6 +212,74 @@ export const SHELL = {
       },
     ],
   },
+  /**
+   * The expanded layout: sidebar, top bar, and the inset window frame the whole
+   * app sits in. `globals.css:594-700`.
+   *
+   * These are web's values and stay web's values -- the layout must look the
+   * same on a tablet as it does in a desktop browser. Only the *threshold* at
+   * which native switches to it is the platform's (Material 3's 840dp width +
+   * 480dp height, not web's 1024px). See screen-specs/app-shell.md §1.
+   */
+  expanded: {
+    // Window frame. `.shell` inside a `--surface-2` body.
+    frameInset: 16,
+    frameRadius: 26,
+    // Sidebar, inset one pixel further so it sits flush inside the frame.
+    sidebarInset: 17,
+    sidebarWidth: 252,
+    sidebarRadius: 25,
+    sidebarPaddingTop: 18,
+    sidebarPaddingH: 14,
+    sidebarPaddingBottom: 14,
+    sidebarGap: 4,
+    brandSize: 26,
+    brandPaddingBottom: 14,
+    searchPaddingV: 10,
+    searchPaddingH: 12,
+    searchMarginBottom: 12,
+    searchRadius: 12,
+    searchIconSize: 16,
+    itemPaddingV: 9,
+    itemPaddingH: 10,
+    itemRadius: 10,
+    itemGap: 10,
+    itemIconSize: 19,
+    /** The "you are here" rail on the active row. */
+    railWidth: 3,
+    railHeight: 20,
+    railOffset: 14,
+    badgeMinWidth: 18,
+    badgeHeight: 18,
+    footPaddingTop: 10,
+    // Top bar.
+    topBarHeight: 36,
+    topBarGap: 16,
+    topBarPaddingV: 10,
+    topBarMarginBottom: 18,
+    topIconSize: 36,
+    topDotSize: 7,
+    avatarSize: 36,
+    // Content column.
+    contentPaddingTop: 24,
+    contentPaddingH: 32,
+    contentPaddingBottom: 40,
+    contentMaxWidth: 1440,
+    assertions: [
+      // Web's own switch point, asserted so the layout below stays anchored to
+      // the CSS block it was read from even though native switches earlier.
+      { selector: ".bottom-nav", prop: "display", contains: "none", media: "(min-width: 1024px)" },
+      { selector: ".shell", prop: "margin", expect: "16px", media: "(min-width: 1024px)" },
+      { selector: ".shell", prop: "border-radius", expect: "26px", media: "(min-width: 1024px)" },
+      { selector: ".side-nav", prop: "width", expect: "252px", media: "(min-width: 1024px)" },
+      { selector: ".side-nav", prop: "left", expect: "17px", media: "(min-width: 1024px)" },
+      { selector: ".side-nav-item", prop: "border-radius", expect: "10px", media: "(min-width: 1024px)" },
+      { selector: ".shell-main", prop: "margin-left", contains: "252px", media: "(min-width: 1024px)" },
+      { selector: ".shell-main", prop: "max-width", contains: "1440px", media: "(min-width: 1024px)" },
+      { selector: ".shell-main", prop: "padding", contains: "24px 32px 40px", media: "(min-width: 1024px)" },
+    ],
+  },
+
   listGrid: {
     minColumnWidth: 320,
     gap: 12,

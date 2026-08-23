@@ -205,7 +205,7 @@ approximation per screen (iOS's old credit-card face).
 | **No `RecurringRepository` on either platform** | `/recurring` is a data-layer task before it is a UI task — no `recurring_items` reads or writes exist natively | W4 |
 | **No `useUnreadCount()` equivalent natively** | The shell's bell badge and the Notifications screen both need it; neither platform has the query | W1 |
 | **`notifications` has no i18n namespace at all** | The web screen has zero `t()` calls. Porting it as-is would put the one hardcoded-English screen into apps that are otherwise fully localised | W4 |
-| **Tablets / foldables / large windows** | Web has **four** width breakpoints (640 / 860 / 1024); both native shells implement only the phone one. The `≥1024` sidebar + top bar + window-frame layout is **required** as of 2026-08-23 and fully specified in `screen-specs/app-shell.md` §1 and §1a. Also needs: Android `FoldingFeature` hinge avoidance, iPad Slide Over / Split View / Stage Manager (window width, never screen width), and every screen's own content re-checked at `wide`/`expanded` | **W1.5** |
+| **Tablets / foldables / large windows** | Required as of 2026-08-23, spec in `screen-specs/app-shell.md` §1/§1a/§1b. **Android: done** — `WindowClass.kt` (Material 3 breakpoints, device type from `FEATURE_SENSOR_HINGE_ANGLE` + `sw600dp`, orientation policy), `SideNav.kt`, the Expanded branch of `AppShell.kt`, manifest `configChanges`. **iOS: not started.** Still open on both: the Expanded **top bar** (web draws it alongside the util row, giving two bells — deliberately deferred, see spec §1a), every screen's own content re-checked at Medium/Expanded, and iPad Slide Over / Split View / Stage Manager | **W1.5** |
 | **Bundle ids / Universal Links domain** | Still placeholders (`com.sanvya.app`, `com.sanvya.app.ios`) — blocks `/join` deep links and store prep | **needs Akhilesh** |
 | **Min OS versions** | Proposed minSdk 26 / iOS target unconfirmed | **needs Akhilesh** |
 
@@ -220,13 +220,15 @@ approximation per screen (iOS's old credit-card face).
 
 **W1 — app shell** (§3) on both platforms; delete drawers, dead tabs and placeholder views.
 
-**W1.5 — adaptive layout** on both platforms: the four width classes from web's own thresholds
-(640 / 860 / 1024, **not** Material's 600/840 and not iOS size classes), the `expanded` sidebar +
-top bar + window frame, Android hinge avoidance, iPad multitasking. Every width-class change is a
-resize, not a relaunch — nothing may be lost across one. Spec: `screen-specs/app-shell.md` §1, §1a.
+**W1.5 — adaptive layout** on both platforms. The *layouts* are web's, value for value; the
+*thresholds and device identification* are the platform's — Material 3's 600/840 (plus a 480
+height gate on Expanded) and `FEATURE_SENSOR_HINGE_ANGLE` / `sw600dp`, **not** web's 640/860/1024
+(Akhilesh, 2026-08-23). Orientation: phones portrait, tablets and foldables free. Every class
+change is a resize, not a relaunch — nothing may be lost across one.
+Spec: `screen-specs/app-shell.md` §1, §1a, §1b. Android done 2026-08-23; iOS next.
 
 **W2 — spec re-derivation** for every ⚠️/🔶/❌ route in §4 from today's source. Each screen's spec
-must state what it does at `wide` and `expanded`, not only on a phone, and drop the screen's own
+must state what it does at Medium and Expanded, not only on a phone, and drop the screen's own
 `NavigationView`/`Scaffold` title bar (see §3).
 
 **W3 — close Android's gap to iOS**: Login, Onboarding/Walkthrough, Statements, Statement import,

@@ -12,55 +12,45 @@
 > Android `ui/navigation/NavDrawer.kt` and iOS `MainTabView.swift`/`DrawerMenuView.swift`
 > are **deleted** — they implement a navigation model web does not have.
 
-## 1. Width classes — all four, on every platform
+## 1. Width classes — the platform's, not web's
 
-Web has **four** width breakpoints, not three. Native ports all four. There is no
-"the mobile version" to pick: the shell picks a layout from its own width, exactly as
-web does, and a tablet, an unfolded foldable and a Stage-Manager window each land on
-whichever row their width falls in.
+Web switches layout at 640 / 860 / 1024 CSS pixels. **Native does not use those numbers.**
+Each platform uses its own size classes and its own device identification, because those are
+what every other app on the device already switches at, and because they are measured against
+how real devices cluster rather than how a browser window resizes
+(decision: Akhilesh, 2026-08-23).
 
-| Width | Nav | Content column | Page padding |
+So the *layouts* are web's, pixel for pixel. The *thresholds they switch at* are the platform's.
+
+| Class | Android (`WindowSizeClass`) | iOS | Layout |
 |---|---|---|---|
-| **< 640** (`compact`) | Floating bottom bar, **icons only**, item height 46, add button 48 | full width | `10 / 16`, bottom `96 + safeArea` |
-| **640–859** (`medium`) | Floating bottom bar **with** labels, item height 52, add button 52 | full width | `10 / 16`, bottom `96 + safeArea` |
-| **860–1023** (`wide`) | Same bar as `medium` | centred, `maxWidth 720` | `20 / 20`, bottom `96 + safeArea` |
-| **≥ 1024** (`expanded`) | Bottom bar **hidden**; persistent 252-wide left sidebar + sticky top bar | `startInset 252`, `maxWidth 1440` | `24 / 32 / 40`, **no** bottom clearance |
+| **Compact** | width < 600dp | compact horizontal size class | Bottom bar, icons only, full-width content |
+| **Medium** | 600 <= width < 840dp | regular, narrower window | Bottom bar **with labels**, content capped and centred |
+| **Expanded** | width >= 840dp **and** height >= 480dp | regular, wide window | Persistent sidebar + inset window frame, **no** bottom bar |
 
-Traced to source: 640 → `globals.css:475`; 860 → `globals.css:547`; 1024 → `globals.css:594`;
-`maxWidth 720` and `padding 20px 20px 0` → the inline style on `<main className="shell-main">`
-(`AppShell.tsx:481`), which the two `!important` media rules override.
+Constants come from `androidx.window.core.layout.WindowSizeClass`
+(`WIDTH_DP_MEDIUM_LOWER_BOUND`, `WIDTH_DP_EXPANDED_LOWER_BOUND`, `HEIGHT_DP_MEDIUM_LOWER_BOUND`)
+rather than being typed in, so a platform revision moves the app with it.
 
-**These are the numbers, not Material's.** Material 3 says 600/840; iOS says regular/compact
-size class. Using either would move the switch point and the layouts would stop matching web at
-the widths where it matters most — a 768pt iPad portrait is `wide` under web's rules and
-`expanded` under Material's. So each platform computes the class from a measured width against
-**web's** thresholds, and uses the platform-idiomatic *mechanism* to do it
-(`WindowSizeClass` with custom breakpoints on Android, `GeometryReader` width on iOS)
-rather than the platform's default *values*.
+Three tiers, not web's four: web's 860 "cap the content column" tier folds into **Medium**, which
+is the only one of the four that was about content width rather than navigation.
 
-Width means the **window's** width, never the screen's: split-screen, Slide Over, Stage Manager
-and a half-open foldable all hand the app less room than the panel it is on.
+**Expanded needs height as well as width.** The sidebar is a full-height column; give it a short
+wide window — a folded foldable turned sideways, a squat freeform window — and it has the width
+for a sidebar and nowhere to put it, leaving the content in a letterbox.
 
-### Foldables
+**Always the *window*, never the display.** `Configuration.screenWidthDp` on Android and the
+window's own size on iOS both report what the app actually got. An app in a narrow split-screen
+pane on a tablet is Compact, because the app is phone-sized even though the device is not.
 
-A fold is not just a width change.
+## 1a. The expanded layout
 
-- **Android** — `WindowInfoTracker.windowLayoutInfo` supplies `FoldingFeature`. A book-posture
-  hinge splits the window into two panes with dead space between; the shell must keep the
-  sidebar and the content column out of the hinge bounds rather than letting a card straddle it.
-  Table-top posture (horizontal hinge, half-open) is treated as `compact` height, not a
-  separate layout.
-- **iOS** — no hinge API; the fold shows up as a width change and is covered by the table above.
-  What iOS adds is **Stage Manager and Slide Over**, where width changes at runtime with no
-  rotation event, so nothing may cache a width class across a layout pass.
-
-Every width class transition is a **resize, not a relaunch**: scroll position, an open More
-sheet, in-progress form input and the selected tab all survive it (LIFE-1..4 in §10).
-
-## 1a. The expanded layout (≥ 1024)
+Shown at the **Expanded** class of §1 (Android: width >= 840dp with height >= 480dp), which is
+where web's own `>=1024px` layout lives.
 
 Source: `globals.css:594-700` and `AppShell.tsx:416-483`. Every number below is a literal in
 that CSS and becomes a `SanvyaMetrics.Expanded.*` token — none may be typed into native code.
+Only the *threshold* is the platform's (§1); the layout itself is web's, value for value.
 
 ### Window frame
 
@@ -104,7 +94,15 @@ Item (`.side-nav-item`): row, gap `10`, padding `9 / 10`, radius `10`, icon 19, 
 Group title: 10.5/600, uppercase, tracking `0.07em`, `--text-2` at 65% opacity, padding `2 / 10`.
 Badge: `minWidth 18`, height 18, padding `0 / 5`, pill, `--negative`, white 10.5/700.
 
-### Top bar (`.top-bar`)
+### Top bar (`.top-bar`) — **not ported yet**
+
+Web renders this *and* the util row at this width, which means the notification bell appears
+twice. That looks like a web quirk rather than an intention, so native renders the util row
+(which works at every size) and leaves the top bar out until someone has looked at the real
+page side by side. Its values are recorded below and generated as tokens, so porting it later
+is a layout job, not a re-derivation.
+
+
 
 Sticky at `top: 16`, right-aligned, gap `16`, margin `-4 / 0 / 18`, padding `10 / 0`,
 fill `--bg` (opaque — it scrolls under content).
@@ -128,6 +126,53 @@ switching back to a narrower window restores the bar exactly as it was. The **Mo
 the bottom-nav customizer are unreachable** at `expanded`, so anything reachable *only* from
 them would be lost — which is why the sidebar renders the same `NAV_GROUPS` list rather than a
 new one.
+
+## 1b. Orientation and device type
+
+Policy (Akhilesh, 2026-08-23):
+
+| Device | Orientations |
+|---|---|
+| Phone, no hinge | **Portrait only** |
+| Foldable | All |
+| Tablet | All |
+
+Device type is read from the platform's own capability flags, not from a size:
+
+- **Foldable** — `PackageManager.FEATURE_SENSOR_HINGE_ANGLE`. A property of the *device*, so it
+  stays true when the phone is folded shut and running on the cover display. A posture or
+  window-size check would say "phone" there and lock a foldable to portrait.
+- **Tablet** — `smallestScreenWidthDp >= 600`, the value behind the `sw600dp` resource
+  qualifier. Smallest width is the shorter dimension by definition, so it reads the same in
+  both orientations.
+- **Phone** — neither of the above.
+
+Hinge is tested first, so a large foldable is Foldable rather than Tablet. Both rotate freely,
+so nothing turns on it today — but the two diverge the moment anything cares about the fold.
+
+The lock is applied at runtime (`Activity.requestedOrientation`) and **restored on dispose**:
+it is Activity state, not composable state, so leaving it set would pin later screens — a
+full-screen receipt camera, say — to portrait too.
+
+Worth knowing: from **Android 16 the system ignores an orientation restriction on displays at or
+above `sw600dp`**. This policy is therefore not fighting the platform — on phones the lock still
+binds, and on tablets and unfolded foldables we are not asking for it in the first place.
+
+### Foldables and resize
+
+`AndroidManifest.xml` declares
+`configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density|keyboardHidden|uiMode"`.
+Without it every rotation, fold and split-screen drag **destroys and recreates the Activity**.
+Compose re-lays-out from the new size on its own, so the recreation buys nothing and costs
+everything not explicitly saved.
+
+Every class transition is a **resize, not a relaunch**: scroll position, an open More sheet,
+in-progress form input and the selected tab all survive it (LIFE-1..4 in §10).
+
+iOS has no shipping foldable and no hinge API; there, a fold would arrive as a width change and
+is covered by the table above. What iOS adds is **Stage Manager, Split View and Slide Over**,
+where width changes at runtime with no rotation event — so nothing may cache a size class
+across a layout pass.
 
 ## 2. Structure, outermost first
 
@@ -283,14 +328,15 @@ On Android, hardware/predictive back must do exactly what this button does.
 | Scroll restoration | per-path, `pc_scroll:<path>`, retried ≤20× at 60 ms as async content grows | `rememberSaveable` / `@SceneStorage` per route |
 | Close overlays on navigation | More sheet + add popover | same |
 | Diagnostics | `installDiagnostics()`, `startErrorReporting()`, route tagged on every change | same, at process start |
-| ⌘K → `/search` | desktop only | ported at `expanded` only — `⌘K` on iPad/Android hardware keyboards, matching the sidebar's own `<kbd>⌘K</kbd>` hint |
+| ⌘K → `/search` | desktop only | ported at Expanded only — `⌘K` on iPad/Android hardware keyboards, matching the sidebar's own `<kbd>⌘K</kbd>` hint |
 
 ## 9. Deliberately not ported
 
 - ~~**Desktop sidebar and top bar** (`≥1024px`)~~ — **this decision is reversed.**
   Tablets, foldables and iPad are explicit targets (Akhilesh, 2026-08-23: *"android tablets,
   foldables, ios foldables, tablets should work flawlessly as well"*). The expanded layout is
-  specified in §1 and §1a and is required on both platforms.
+  specified in §1a and is required on both platforms — at the *platform's* breakpoint (§1),
+  not web's 1024px.
 - **"Install app" / `InstallGuide`** — a PWA affordance. Both native apps are already installed.
   The More sheet's footer loses that row and keeps Feedback + version.
 - **Service-worker registration** — no equivalent.
@@ -305,9 +351,10 @@ On Android, hardware/predictive back must do exactly what this button does.
 - [ ] Default "+" menu locks receipt scanning below Lite/Pro/trial.
 - [ ] No value in the shell source is a literal — everything reads a generated token.
 - [ ] Rotation, fold, background/restore and process death lose nothing (LIFE-1..4).
-- [ ] All four width classes render at their exact thresholds (639/640/859/860/1023/1024).
+- [ ] All three width classes render at their exact thresholds (599/600, 839/840, 479/480 height).
 - [ ] Resizing across a threshold keeps scroll, tab, open sheets and form input.
-- [ ] Android: no content lands inside `FoldingFeature.bounds` in book posture.
+- [ ] Phones stay portrait; tablets and foldables rotate freely; the lock is restored on dispose.
 - [ ] iPad: Slide Over, Split View and Stage Manager each pick the class from *window* width.
+- [ ] A narrow split-screen pane on a tablet renders the Compact layout.
 - [ ] TalkBack/VoiceOver: every bar item announces its label; the "+" announces its action.
 - [ ] CI green on both platforms.

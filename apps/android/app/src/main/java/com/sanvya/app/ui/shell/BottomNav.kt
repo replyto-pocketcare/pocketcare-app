@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,9 +63,10 @@ fun BottomNav(
 ) {
     val colors = LocalSanvyaColors.current
     val nav = SanvyaMetrics.BottomNav
-    // Web hides the labels below 640px, which is every phone. A tablet in
-    // landscape crosses it, so this asks the window rather than assuming.
-    val compact = LocalConfiguration.current.screenWidthDp.dp < nav.labelHiddenBelow
+    // Labels are hidden on the smallest tier -- every phone, and any window
+    // narrow enough to be phone-shaped. One source of truth: the shell's window
+    // class, not a second width check that could drift from it.
+    val compact = !LocalWindowClass.current.showsNavLabels
     val items = NavPrefs.itemsFor(navIds)
 
     Row(

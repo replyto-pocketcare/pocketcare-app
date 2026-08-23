@@ -12,9 +12,10 @@ import androidx.compose.ui.unit.dp
  * the platform safe-area inset is added on top, exactly as
  * `env(safe-area-inset-bottom)` does.
  *
- * Phones are always below web's 640px breakpoint, so `*Compact` values are
- * the ones a phone actually renders. A large tablet in landscape crosses it —
- * the shell picks per WindowSizeClass.
+ * `*Compact` values are what a phone renders; `Expanded` is the
+ * tablet/foldable sidebar layout. Which one applies is decided by
+ * `SanvyaWindowClass`, from Material 3's breakpoints — not from the web
+ * breakpoints these values were read out of.
  */
 object SanvyaMetrics {
     object BottomNav {
@@ -32,6 +33,56 @@ object SanvyaMetrics {
         val addOverhang = 14.dp
         val addSideMargin = 6.dp
         val labelHiddenBelow = 640.dp
+    }
+
+
+    /**
+     * The expanded layout: sidebar, top bar, and the inset window frame the app
+     * sits in. globals.css:594-700.
+     *
+     * Web's values, kept as web's values -- a tablet should look like the
+     * desktop browser. Only the threshold at which we switch to this is the
+     * platform's; see SanvyaWindowClass.
+     */
+    object Expanded {
+        val frameInset = 16.dp
+        val frameRadius = 26.dp
+        val sidebarInset = 17.dp
+        val sidebarWidth = 252.dp
+        val sidebarRadius = 25.dp
+        val sidebarPaddingTop = 18.dp
+        val sidebarPaddingH = 14.dp
+        val sidebarPaddingBottom = 14.dp
+        val sidebarGap = 4.dp
+        val brandSize = 26.dp
+        val brandPaddingBottom = 14.dp
+        val searchPaddingV = 10.dp
+        val searchPaddingH = 12.dp
+        val searchMarginBottom = 12.dp
+        val searchRadius = 12.dp
+        val searchIconSize = 16.dp
+        val itemPaddingV = 9.dp
+        val itemPaddingH = 10.dp
+        val itemRadius = 10.dp
+        val itemGap = 10.dp
+        val itemIconSize = 19.dp
+        val railWidth = 3.dp
+        val railHeight = 20.dp
+        val railOffset = 14.dp
+        val badgeMinWidth = 18.dp
+        val badgeHeight = 18.dp
+        val footPaddingTop = 10.dp
+        val topBarHeight = 36.dp
+        val topBarGap = 16.dp
+        val topBarPaddingV = 10.dp
+        val topBarMarginBottom = 18.dp
+        val topIconSize = 36.dp
+        val topDotSize = 7.dp
+        val avatarSize = 36.dp
+        val contentPaddingTop = 24.dp
+        val contentPaddingH = 32.dp
+        val contentPaddingBottom = 40.dp
+        val contentMaxWidth = 1440.dp
     }
 
     object UtilRow {

@@ -8,8 +8,10 @@ import SwiftUI
  Shell metrics. `bottomInset` is web's literal offset; the safe-area inset is
  added on top, exactly as `env(safe-area-inset-bottom)` does on web.
 
- iPhones are always below web's 640px breakpoint, so the `Compact` values are
- what a phone renders; iPad and landscape-regular cross it.
+ The `Compact` values are what an iPhone renders; `Expanded` is the
+ iPad/foldable sidebar layout. Which one applies is decided by
+ `SanvyaWindowClass`, from the platform's size classes — not from the web
+ breakpoints these values were read out of.
  */
 public enum SanvyaMetrics {
     public enum BottomNav {
@@ -27,6 +29,55 @@ public enum SanvyaMetrics {
         public static let addOverhang: CGFloat = 14
         public static let addSideMargin: CGFloat = 6
         public static let labelHiddenBelow: CGFloat = 640
+    }
+
+
+    /**
+     The expanded layout: sidebar, top bar, and the inset window frame the app
+     sits in. globals.css:594-700.
+
+     Web's values, kept as web's values -- an iPad should look like the desktop
+     browser. Only the threshold at which we switch to this is the platform's.
+     */
+    public enum Expanded {
+        public static let frameInset: CGFloat = 16
+        public static let frameRadius: CGFloat = 26
+        public static let sidebarInset: CGFloat = 17
+        public static let sidebarWidth: CGFloat = 252
+        public static let sidebarRadius: CGFloat = 25
+        public static let sidebarPaddingTop: CGFloat = 18
+        public static let sidebarPaddingH: CGFloat = 14
+        public static let sidebarPaddingBottom: CGFloat = 14
+        public static let sidebarGap: CGFloat = 4
+        public static let brandSize: CGFloat = 26
+        public static let brandPaddingBottom: CGFloat = 14
+        public static let searchPaddingV: CGFloat = 10
+        public static let searchPaddingH: CGFloat = 12
+        public static let searchMarginBottom: CGFloat = 12
+        public static let searchRadius: CGFloat = 12
+        public static let searchIconSize: CGFloat = 16
+        public static let itemPaddingV: CGFloat = 9
+        public static let itemPaddingH: CGFloat = 10
+        public static let itemRadius: CGFloat = 10
+        public static let itemGap: CGFloat = 10
+        public static let itemIconSize: CGFloat = 19
+        public static let railWidth: CGFloat = 3
+        public static let railHeight: CGFloat = 20
+        public static let railOffset: CGFloat = 14
+        public static let badgeMinWidth: CGFloat = 18
+        public static let badgeHeight: CGFloat = 18
+        public static let footPaddingTop: CGFloat = 10
+        public static let topBarHeight: CGFloat = 36
+        public static let topBarGap: CGFloat = 16
+        public static let topBarPaddingV: CGFloat = 10
+        public static let topBarMarginBottom: CGFloat = 18
+        public static let topIconSize: CGFloat = 36
+        public static let topDotSize: CGFloat = 7
+        public static let avatarSize: CGFloat = 36
+        public static let contentPaddingTop: CGFloat = 24
+        public static let contentPaddingH: CGFloat = 32
+        public static let contentPaddingBottom: CGFloat = 40
+        public static let contentMaxWidth: CGFloat = 1440
     }
 
     public enum UtilRow {
