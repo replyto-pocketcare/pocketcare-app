@@ -1,0 +1,230 @@
+# PARITY_AUDIT.md — native ⇄ web parity reference (LLM boot file)
+
+> **Read this INSTEAD of scanning `apps/web`, `apps/android`, `apps/ios`.** It is the single map of
+> what web has, what each native app has, and what is actually missing. Companion files:
+> `PROJECT_REFERENCE.md` (architecture), `CLAUDE.md` (rules), `docs/mobile/TODO.md` (task queue +
+> handover), `docs/plans/mobile-pixel-parity-plan.md` (the method), `AUDIT_HISTORY.md` (dated log).
+>
+> **Goal of record (owner, 2026-08-23):** iOS and Android are exact replicas of the web app's mobile
+> layout — pixel-for-pixel UI and identical functionality — implemented with each platform's best
+> practices underneath. No approximations, no "close enough", no patch work.
+>
+> Generated 2026-08-23 by direct file inspection. Update the tables in place whenever a row's real
+> status changes; put dated narrative in `AUDIT_HISTORY.md`, never here.
+
+## 0. Size of the job (measured, not estimated)
+
+| Surface | Lines | Note |
+|---|---|---|
+| `apps/web/app/**` pages | 10,754 | 48 route files incl. admin |
+| `apps/web/app/AppShell.tsx` | 693 | the mobile shell — see §3 |
+| `apps/web/src/**` | 22,529 | feature logic + shared UI |
+| `apps/android/**/ui/**` | 12,133 | screens **and** ViewModels |
+| `apps/ios/App/**` | 7,815 | views **and** ViewModels |
+
+Native is roughly half of web's surface today, and the half that exists was largely written without a
+source spec. Treat every ⚠️ row below as "needs re-derivation", not "done".
+
+## 1. Rules that govern this work
+
+1. **`apps/web` is ground truth and is never edited** to make a port easier.
+2. **Visual values come from tokens**, generated from `apps/web/app/globals.css` by
+   `tools/parity/generate-tokens.mjs`. Never eyeball a hex, size, radius or duration.
+3. **Behaviour comes from `packages/core` golden vectors and the web source**, never from judgment.
+   Money is integer minor units. Never edit a vector to make a port pass.
+4. **Every screen is ported from a written spec** in `docs/mobile/screen-specs/<screen>.md`, derived
+   from today's `.tsx` — not from memory, not from a screenshot.
+5. **Nothing is marked DONE without a green compiler.** See §2.
+6. **Platform chrome is the one licensed divergence**: safe areas, home indicator, status bar,
+   predictive back, haptics, keyboard avoidance, dynamic type. Everything inside the content area
+   follows the spec exactly.
+7. No new third-party dependency without a human yes. Allowed set: PowerSync, Supabase, RevenueCat,
+   FCM (+ platform-native camera/OCR/BLE frameworks).
+
+## 2. Verification loop (the thing that was always missing)
+
+No Gradle/Xcode toolchain exists in the agent sandbox, and `maven.google.com`, Maven Central and
+`download.swift.org` are all blocked by egress policy — so **local compilation is impossible** and
+always has been. That is how ~18 tasks were once marked DONE against files that did not exist.
+
+**The compiler of record is GitHub Actions**, in `.github/workflows/mobile.yml`:
+
+- **Android** (`ubuntu-latest`) — `./gradlew build test` against a real Android SDK.
+- **iOS** (`macos-latest`) — `xcodegen generate` → `swift test` on the `Domain` package →
+  `xcodebuild build test` on the app scheme. macOS runners are the **only** place SwiftUI is
+  actually type-checked; Linux `swift build` reaches the SwiftPM packages and nothing else.
+- **Parity** (`ubuntu-latest`) — regenerates every generated artifact and fails on any diff, so
+  hand-edited generated output cannot survive a PR.
+
+**Results come back over git, not the API.** The agent sandbox proxies `api.github.com` and
+refuses `/repos/...` for this repository, so run status and logs cannot be polled the usual way —
+but plain git (clone, fetch, push) works. So the workflow's final job writes each run's outcome and
+captured compiler output to the orphan **`ci-logs`** branch under `runs/<run>-<sha>/`, and the
+agent reads them with `git fetch origin ci-logs`. Pushing a commit is the trigger; fetching the
+branch is the read. No API access required at any point.
+
+- **`xcodegen` from `apps/ios/project.yml` is the source of truth for the Xcode project.** The
+  `.xcodeproj` is no longer committed (untracked 2026-08-23). This permanently kills the "new
+  `.swift` file was never added to `project.pbxproj`, so the app doesn't compile" bug class that
+  bit on 2026-08-07 — there is no `pbxproj` left to forget to edit.
+- Removed 2026-08-23: `ci.yml`'s `ios` job still referenced `PocketCare.xcodeproj` / scheme
+  `PocketCare`; both were renamed to `Sanvya`, so it cannot have passed since the rename.
+
+## 3. The app shell — largest single divergence
+
+Web's mobile chrome (`apps/web/app/AppShell.tsx`, `src/navPrefs.ts`, `src/ui/BottomNavCustomizer.tsx`):
+
+- **Floating bottom bar**, balanced 3-and-3: `Home` · slot1 · slot2 · **center "+"** · slot3 · slot4 ·
+  `More`. Icons-only on phones. Active item tinted `--accent` on `--accent-ghost`.
+- **4 customizable slots** persisted at `localStorage["pc_bottomNav"]`, catalog of 14 destinations,
+  defaults `["transactions","accounts","friends","insights"]`, sanitised + topped-up on read
+  (`navPrefs.ts` — port `sanitize()` exactly, including the short-list top-up).
+- **"More" sheet** — grouped nav (Money / Planning / Growth / unlabelled), notifications row with
+  unread pill, customize + close buttons, guest strip with days-left, Feedback, Install app, version.
+- **Contextual "+"**: pages register their own add action (`useRegisterAddAction`); the default is a
+  2-item menu (Add transaction · Scan bill/receipt, the latter lock-badged below Lite/Pro/trial).
+- **Banners, in z-order**: `OfflineBanner` (sticky, `--warning`), `SyncProblemsBanner` (sticky,
+  `--negative`, polls `failed_writes` every 30s, taps through to `/settings#problems`), sync-status
+  message strip with Force Sync / Report Issue, `TrialNotice`, `GlobalLoader`.
+- **Utility row** (every screen except the dashboard): single Back affordance + notification bell with
+  unread badge. Exactly one back affordance per screen, in normal flow, never fixed.
+- **Per-route scroll restoration** keyed `pc_scroll:<path>`, retried up to 20× as async content grows.
+- Bare routes with no chrome: `/onboarding`, `/login`, `/join`, `/admin/*`.
+- Auth gate: no session → replace to `/onboarding`. Pending invite token → replace to `/join`.
+- On open (2.5s after auth): `runRecurring()` then `runLoanAutoPost()`, once per launch.
+
+**Native today:** Android `ui/navigation/NavDrawer.kt` (a Material drawer) and iOS
+`MainTabView.swift` (misnamed — also a drawer, `DrawerMenuView.swift`, hand-rolled offset animation).
+Neither has a bottom bar, customizer, More sheet, banners, utility row, contextual "+", scroll
+restoration or the launch-time recurring/auto-post pass. **Decision 2026-08-23: replicate web exactly;
+drawer implementations are deleted.**
+
+## 4. Route → platform map
+
+Legend: ✅ built & spec-checked · ⚠️ built, unverified or spec drifted · 🔶 partial · ❌ missing · 🚫 n/a
+
+| Web route | Web source (lines) | Android | iOS | Status |
+|---|---|---|---|---|
+| `/` dashboard | `app/page.tsx` (634) + `src/dashboard/tiles.tsx` (1022) + `src/dashboard.ts` + `Suggestions.tsx` | `ui/dashboard/DashboardScreen.kt` (410) | `DashboardView.swift` (444) | 🔶 hero + accounts strip + FAB only. **12-tile catalog, drag-reorder/resize, edit mode absent on both** |
+| `/accounts` | `app/accounts/page.tsx` (126) | `ui/accounts/AccountsScreen.kt` (156) | `AccountsView.swift` (133) | ⚠️ |
+| `/accounts/new` | (165) | `CreateAccountScreen.kt` (183) | `CreateAccountView.swift` (128) | ⚠️ credit-card/demat branches + `MultiCurrencyCard` deferred |
+| `/accounts/[id]/edit` | (189) | `EditAccountScreen.kt` (210) | `EditAccountView.swift` (271) | ⚠️ |
+| `/transactions` | (92) + `src/ui/TransactionTile.tsx` (273) | `TransactionsScreen.kt` (156) | `TransactionsView.swift` (137) | ⚠️ |
+| `/transactions/new` | (674) | `CreateTransactionScreen.kt` (257) | `CreateTransactionView.swift` (262) | 🔶 splits-create, templates, auto-categorize deferred |
+| `/transactions/[id]/edit` | (449) | `EditTransactionScreen.kt` (218) | `EditTransactionView.swift` (315) | 🔶 edit-history audit modal missing |
+| `/cards` | (352) + `src/cards/*` | `creditcards/CreditCardsScreen.kt` (307) | `CreditCardsView.swift` (297) | ⚠️ `docs/features/cards.md` is stale (describes a retired 3D wallet) |
+| `/friends` (splits hub) | (493) + `src/splits/hooks.ts` (398) | `splits/SplitsScreen.kt` (227) | `SplitsView.swift` (167) | 🔶 FriendInsights/Patterns panel not rendered; tiles redesign of 2026-08-12 not ported |
+| `/groups` | (19) redirect → `/friends` | 🚫 | 🚫 | 🚫 |
+| `/groups/[id]` | (364) + `src/splits/write.ts` (304) | `splits/GroupDetailScreen.kt` (281) | `GroupDetailView.swift` (313) | 🔶 equal-split only; percent/exact/itemized, group edit/delete missing |
+| `/search` | (148) | ❌ | ❌ `SearchView` is a `PlaceholderView` | ❌ |
+| `/budgets` | (410) | `budgets/BudgetsScreen.kt` (140) + Create/Edit | `BudgetsView.swift` (151) + Create/Edit | ⚠️ |
+| `/goals` | (304) + `src/goals/GoalCelebration.tsx` (222) | `goals/GoalsScreen.kt` (171) + Create/Edit/Allocate | `GoalsView.swift` (166) + Create/Edit/Allocate | 🔶 GoalCelebration not ported |
+| `/recurring` | (218) + `src/recurring/engine.ts` (251) | ❌ | ❌ `RecurringView` is a `PlaceholderView` | ❌ **redesigned on web 2026-08-12** |
+| `/recurring/[direction]` | (157) | ❌ | ❌ | ❌ |
+| `/loans` | (249) | `loans/LoansScreen.kt` (159) + Add/Edit | `LoansView.swift` (467) + Add/Edit | ⚠️ |
+| `/loans/[id]` | (484) + `src/loans/settleEmis.ts` | `loans/LoanDetailScreen.kt` (369) | inside `LoansView.swift` | ⚠️ auto-post surfacing + recurring groups missing |
+| `/investments` | (370) + `src/investments/*` | `investments/InvestmentsScreen.kt` (290) + AddHolding | `InvestmentsView.swift` (248) + AddHolding | 🔶 live catalog picker, SIP recurring transfer, CSV/XLSX import deferred |
+| `/reflect` | (97) + `src/reflect/IntentCard.tsx` (141) | ❌ | ❌ `ReflectView` is a `PlaceholderView` | ❌ |
+| `/insights` | (60) + `src/insights/generators.ts` (422) + `InsightFeed.tsx` (224) | `insights/InsightsScreen.kt` (376) | `InsightsView.swift` (515) | ⚠️ 18 generators ported; full-bleed feed layout + entitlement CTA need re-check |
+| `/statements` | (145) | ❌ | `StatementsView.swift` (115) | ❌ / ⚠️ |
+| `/statements/analyze` | (329) + `src/statements/parsePdf.ts` | ❌ | `StatementImportView.swift` (89) | ❌ / 🔶 |
+| `/assistant` | (9) + `src/assistant/AssistantChat.tsx` (644) + `richMessage.tsx` (384) + `tools.ts` (276) | ❌ | `AssistantView.swift` (167) | ❌ / 🔶 no rich messages, no tools, no voice |
+| `/settings` | (272) | `ui/SettingsScreen.kt` (527) | `SettingsView.swift` (413) | ⚠️ Security/crypto, Language, Categories/Labels, Import-Export links absent |
+| `/settings/categories` | (157) | ❌ | ❌ | ❌ |
+| `/settings/labels` | (89) | ❌ | ❌ | ❌ |
+| `/data` (import/export) | (154) + `src/data/importCsv.ts` (243) | ❌ | ❌ | ❌ |
+| `/notifications` | (75) + `src/notifications/hooks.ts` | ❌ | ❌ placeholder | ❌ |
+| `/help` | (152) | ❌ | ❌ `HelpView` is a `PlaceholderView` | ❌ |
+| `/onboarding` | (119) + `src/onboarding/Walkthrough.tsx` (368) | ❌ | `WalkthroughView.swift` (121) | ❌ / 🔶 |
+| `/login` | (334) | ❌ | `LoginView.swift` (105) | ❌ / 🔶 guest→OTP→Google + in-place upgrade unverified |
+| `/join?token=` | (53) | ❌ | ❌ | ❌ needs App Links / Universal Links + real domain |
+| `/auth/callback` | (87) | ❌ | ❌ | ❌ |
+| `/receipts/new` | (339) + `src/receipts/{scan,ocr,image}.ts` | `receipts/ReceiptCaptureScreen.kt` (272) | `ReceiptCaptureView.swift` (207) | ⚠️ camera-only; no PDF/gallery, no AI escalation |
+| `/receipts/review` | (501) | `receipts/ReceiptReviewScreen.kt` (283) | `ReceiptReviewView.swift` (265) | ⚠️ text-only OCR path (no word boxes) |
+| `/receipts/split` | (522) + `src/splits/writeItemized.ts` (258) | ❌ | ❌ | ❌ "Split this bill" is shown disabled on both |
+| `/subscriptions` | (8) redirect → `/recurring` | 🚫 | 🚫 | 🚫 |
+| `/admin/*` | 7 pages | 🚫 web-only, English-only | 🚫 | 🚫 out of scope |
+
+**Dead native screens to delete** (they mirror web routes that no longer exist): iOS
+`TemplatesView`, `CashflowView` in `PlaceholderViews.swift` + their `NavTab` cases; any Android
+`comingSoonRoute` entries for the same.
+
+## 5. Shared component inventory
+
+Each must exist **once** natively and be reused — the recurring failure mode has been re-inlining an
+approximation per screen (iOS's old credit-card face).
+
+| Web primitive | File | Android | iOS |
+|---|---|---|---|
+| `.card` / `.btn` / `.chip` / `.input` / `.tap-row` / `.row-stack` / `.list-grid` | `app/globals.css` | ❌ no component layer | ❌ ad hoc per view |
+| `TransactionTile` (the ONLY transaction row) | `src/ui/TransactionTile.tsx` (273) | `transactions/TransactionTileLogic.kt` (logic only) | `TransactionTileLogic.swift` (logic only) | 
+| `MaterialIcon` (Material Symbols set) | `src/ui/MaterialIcon.tsx` | 🔶 `Icons.Default.*` — different glyphs | 🔶 SF Symbols — different glyphs |
+| `Money` / `useMoneyFmt` / `amountFormat` | `src/ui/Money.tsx`, `amountFormat.ts` | 🔶 per-screen formatters | 🔶 per-screen formatters |
+| `Modal`, `Confirm`, `KebabMenu` | `src/ui/*` | ❌ | ❌ |
+| `AmountInput`, `FloatingInput`, `PasswordInput`, `SearchSelect`, `MultiSelect`, `LabelPicker` | `src/ui/*` | ❌ | ❌ |
+| `ProgressBar`, `Skeleton`, `Spinner`, `GlobalLoader` | `src/ui/*` | ❌ | ❌ |
+| `AddSpeedDial` / `AddAction` context | `src/ui/AddSpeedDial.tsx` (224) | 🔶 dashboard-only FAB | 🔶 dashboard-only FAB |
+| `BottomNavCustomizer` | `src/ui/BottomNavCustomizer.tsx` | ❌ | ❌ |
+| `TrialNotice`, `UpgradeModal`, `Billing` | `src/ui/*` | ❌ | ❌ |
+| `BugReport`, `InstallGuide`, `ErrorBoundary` | `src/ui/*` | ❌ | ❌ |
+| `ProblemsPanel`, `RepairPanel`, `DiagnosticsPanel` | `src/sync/*`, `src/diagnostics/*` | 🔶 inside Settings | 🔶 inside Settings |
+| `PayViaUpi`, `PayAnyone`, `PendingSettlements`, `PaymentHandlePanel` | `src/payments/*` | 🔶 dialog only | 🔶 sheet only |
+
+## 6. Cross-cutting gaps
+
+| Gap | State | Owner task |
+|---|---|---|
+| **i18n** | Web: 28 namespaces, ~1,465 keys, en/hi/nl. Native: **zero** — every string hardcoded English | W0.4 |
+| **Design tokens** | Generator emits colours + radii only. Typography, spacing, shadows, motion, component recipes not generated | W0.3 |
+| **Icons** | Web uses Material Symbols; Android uses `Icons.Default`, iOS uses SF Symbols → different shapes on every screen | W1 |
+| **Typeface** | Web is Inter throughout. Neither app bundles Inter | W0.3 |
+| **Dark theme** | `globals.css` has a full `[data-theme="dark"]` block; native theming unverified against it | W0.3 |
+| **State preservation (R1)** | Android partial (rememberSaveable on some screens); iOS `@SceneStorage`/draft-save **not started**; LIFE-4 process-death untested on both | per-screen |
+| **Accessibility** | No TalkBack/VoiceOver pass; touch-target and contrast unaudited | pre-launch |
+| **Sync L3 (P2.7)** | Blocked since 2026-07-31 — needs a test Supabase + PowerSync project and a real device round-trip | **needs Akhilesh** |
+| **Bundle ids / Universal Links domain** | Still placeholders (`com.sanvya.app`, `com.sanvya.app.ios`) — blocks `/join` deep links and store prep | **needs Akhilesh** |
+| **Min OS versions** | Proposed minSdk 26 / iOS target unconfirmed | **needs Akhilesh** |
+
+## 7. Work queue (waves — supersedes the coarse phase table in TODO.md)
+
+**W0 — foundation, no compiler needed**
+- W0.1 this file ✅
+- W0.2 `mobile.yml` CI + green baseline run
+- W0.3 token generator → typography/spacing/shadows/motion/component recipes + Inter bundling + dark parity + drift check
+- W0.4 i18n pipeline: `packages/core/i18n` → `strings.xml` (values, values-hi, values-nl) + `.xcstrings`, key-parity check in CI
+- W0.5 native component layer (§5) built once per platform against generated tokens
+
+**W1 — app shell** (§3) on both platforms; delete drawers, dead tabs and placeholder views.
+
+**W2 — spec re-derivation** for every ⚠️/🔶/❌ route in §4 from today's source.
+
+**W3 — close Android's gap to iOS**: Login, Onboarding/Walkthrough, Statements, Statement import,
+Assistant, plus anything else marked ❌/⚠️ on Android only.
+
+**W4 — screens missing on both**: Search, Recurring (+direction), Reflect, Notifications, Help,
+Categories, Labels, Data import/export, Receipts split, Join/auth callback, Dashboard tile catalog.
+
+**W5 — parity re-check** of every ⚠️ screen against its W2 spec; delete inline approximations in
+favour of the W0.5 components.
+
+**W6 — native surfaces & release**: push/deep links, widgets, Live Activities, quick capture,
+biometric + field crypto, RevenueCat, store prep, launch gate.
+
+Each wave item is DONE only when CI is green for it **and** its spec checklist passes.
+
+## 8. Traps (paid for in blood — do not re-learn)
+
+1. Marking DONE without compiler output. See §2. This is the single recurring failure of this project.
+2. Adding a Swift file without regenerating the Xcode project → app silently doesn't compile. Always
+   go through `xcodegen`; never hand-edit `project.pbxproj`.
+3. Cross-module smart casts in Kotlin (`domain` property read from `app`) don't compile — bind to a
+   local `val` first. Hit twice (Loans, Insights).
+4. Swift `actor` repositories (Goals, Investments) need `await` at every call site; the others don't.
+5. "Save" buttons that call `dismiss()` and persist nothing — found independently in Create Account,
+   Create Transaction, Create Goal on iOS. **Assume every unaudited form has it.**
+6. Duplicated domain ports (`LoansModel` vs `Finance`) — search before porting a helper.
+7. Bypassing the shared money formatter leaks amounts when hide-amounts is on. Three such leaks have
+   shipped on web. Charts must go through the equivalent of `chartMoney()`/`chartTooltip()`.
+8. `settlements` reads must filter `status <> 'disputed'`.
+9. List screens driven by one-shot `list()` instead of `db.watch()` look stale after a create/edit.
+10. Never a cross-row constraint on a synced table; never `ON CONFLICT` on a PowerSync view.

@@ -54,6 +54,14 @@ targets:
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
+        # Bundled faces. Inter is the app typeface (variable, so the design's
+        # 550/650 weights resolve exactly — see App/Theme/Font.swift); the
+        # icon face is the same Material Symbols subset web serves, so a glyph
+        # is identical across all three platforms. Rebuild both with
+        # tools/parity/build-fonts.sh.
+        UIAppFonts:
+          - InterVariable.ttf
+          - SanvyaIcons.ttf
 
   SanvyaTests:
     type: bundle.unit-test
