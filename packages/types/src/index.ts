@@ -133,6 +133,9 @@ export interface Account extends BaseRow {
   allow_negative?: boolean;
 }
 
+/** Need vs Greed. Mirrors the CHECK constraint in migration 0055. */
+export type TransactionIntent = "need" | "greed";
+
 export interface Transaction extends BaseRow {
   account_id: string;
   type: TransactionType;
@@ -140,6 +143,8 @@ export interface Transaction extends BaseRow {
   amount: number;
   currency: CurrencyCode;
   category_id: string | null;
+  /** Need vs Greed tagging (migration 0055). Null until the user judges it. */
+  intent: TransactionIntent | null;
   note: string | null;
   description: string | null;
   payment_method: string | null;

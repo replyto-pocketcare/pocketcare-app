@@ -218,6 +218,8 @@ export class PowerSyncTransactionRepository implements TransactionRepository {
       type: input.type,
       amount: input.amount.amount,
       currency: input.amount.currency,
+      // Judged later, on the Reflect screen — never at creation time.
+      intent: null,
       category_id: input.category_id ?? null,
       note: input.note ?? null,
       description: input.description ?? null,

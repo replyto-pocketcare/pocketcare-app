@@ -24,10 +24,15 @@ const TYPE_LABEL: Record<InsightType, string> = {
   avg_daily_spend: "Daily average",
   dividend_income: "Dividend income",
   portfolio_projection: "Projected wealth",
+  mindfulness: "Need vs Greed",
 };
 
 function VisualHost({ card }: { card: Card }) {
   const cssAccent = THEME_TOKEN[card.theme].accent;
+  // A card with no series to draw renders as copy alone rather than an empty
+  // chart frame. Until now `visual` was declared required, so this case type-
+  // checked as impossible while genMindfulness was shipping it every day.
+  if (!card.visual) return null;
   return (
     <div style={{ position: "absolute", inset: 0, padding: "8px 6px" }}>
       <Visual2D visual={card.visual} accent={cssAccent} />

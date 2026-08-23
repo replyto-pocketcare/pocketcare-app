@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@powersync/react";
 import { fromMajor, toMajor, money, format, sum, type Money } from "@sanvya/money";
-import type { Account, Transaction } from "@sanvya/types";
+import type { Account, Transaction, TransactionIntent } from "@sanvya/types";
 import type { TransactionAudit } from "@sanvya/data";
 import { getRepositories } from "../../../../src/powersync";
 import { LabelPicker } from "../../../../src/ui/LabelPicker";
@@ -60,7 +60,7 @@ export default function EditTransactionPage() {
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [note, setNote] = useState("");
-  const [intent, setIntent] = useState<string | null>(null);
+  const [intent, setIntent] = useState<TransactionIntent | null>(null);
   const [date, setDate] = useState("");
   const [ready, setReady] = useState(false);
   const [labelsReady, setLabelsReady] = useState(false);

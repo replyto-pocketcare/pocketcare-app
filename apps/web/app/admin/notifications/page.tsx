@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAudienceGroups, sendBroadcastPush, createAudienceGroup, addUsersToGroupByEmail, addUsersToGroupByDemographics, getGroupMembers, GroupMember } from "../../../src/admin-actions";
+import { getAudienceGroups, sendBroadcastPush, createAudienceGroup, addUsersToGroupByEmail, addUsersToGroupByDemographics, getGroupMembers } from "../../../src/admin-actions";
+import type { GroupMember } from "../../../src/admin-actions";
 
 export default function AdminNotifications() {
   const DEEP_LINK_TARGETS: Record<string, { label: string; sections: { id: string; label: string }[]; hasSpecificItem?: boolean }> = {
@@ -53,7 +54,8 @@ export default function AdminNotifications() {
     const res = await getAudienceGroups();
     if (res.ok) {
       setGroups(res.data);
-      if (res.data.length > 0 && !groupId) setGroupId(String(res.data[0].id));
+      const first = res.data[0];
+      if (first && !groupId) setGroupId(String(first.id));
     }
     setLoading(false);
   };
@@ -90,7 +92,17 @@ export default function AdminNotifications() {
       finalHref = `${finalHref}#${selectedSection}`;
     }
     
-    const res = await sendBroadcastPush({ group_id: groupId, title, subtitle: subtitle || undefined, body: body || undefined, image_url: imageUrl || undefined, href: finalHref || undefined });
+    // Spread-if-present rather than `key: value || undefined`: with
+    // exactOptionalPropertyTypes an explicit `undefined` is not the same as an
+    // absent key, and the action's signature says absent.
+    const res = await sendBroadcastPush({
+      group_id: groupId,
+      title,
+      ...(subtitle ? { subtitle } : {}),
+      ...(body ? { body } : {}),
+      ...(imageUrl ? { image_url: imageUrl } : {}),
+      ...(finalHref ? { href: finalHref } : {}),
+    });
     setSending(false);
     if (res.ok) {
       setStatus({ type: "success", msg: `Successfully queued push to ${res.data.users} members. Sent ${res.data.sent} pushes.` });
@@ -133,9 +145,9 @@ export default function AdminNotifications() {
     if (!groupId || (!country && !gender && !ipRegion)) return;
     setAddingMembers(true); setMemberStatus(null);
     const filters = {
-      country: country || undefined,
-      gender: gender || undefined,
-      ip_region: ipRegion || undefined
+      ...(country ? { country } : {}),
+      ...(gender ? { gender } : {}),
+      ...(ipRegion ? { ip_region: ipRegion } : {}),
     };
     const res = await addUsersToGroupByDemographics(groupId, filters);
     setAddingMembers(false);
@@ -268,12 +280,12 @@ export default function AdminNotifications() {
               </>
             )}
 
-            {DEEP_LINK_TARGETS[selectedPage]?.sections.length > 0 && (
+            {(DEEP_LINK_TARGETS[selectedPage]?.sections.length ?? 0) > 0 && (
               <>
                 <label style={{ display: "block", marginBottom: 4, fontWeight: "bold" }}>Scroll to Section (Optional)</label>
                 <select value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)} style={inputStyle}>
                   <option value="">None (Top of page)</option>
-                  {DEEP_LINK_TARGETS[selectedPage].sections.map(s => (
+                  {(DEEP_LINK_TARGETS[selectedPage]?.sections ?? []).map(s => (
                     <option key={s.id} value={s.id}>{s.label} (#{s.id})</option>
                   ))}
                 </select>

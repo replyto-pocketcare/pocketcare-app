@@ -38,8 +38,8 @@ export default function ReflectPage() {
   };
 
   const handleUndo = async () => {
-    if (history.length === 0) return;
     const last = history[history.length - 1];
+    if (!last) return;
     
     setHistory(history.slice(0, -1));
     

@@ -22,7 +22,8 @@ export type InsightType =
   | "category_spike"
   | "avg_daily_spend"
   | "dividend_income"
-  | "portfolio_projection";
+  | "portfolio_projection"
+  | "mindfulness";
 
 /** A single labelled datum shared by the chart visuals. */
 export interface SeriesPoint {
@@ -67,7 +68,13 @@ export interface InsightCard {
   subhead?: string;
   bullets: string[];
   metric?: InsightMetric;
-  visual: VisualSpec;
+  /**
+   * Optional. Most generators have a series to draw, but some (mindfulness)
+   * are pure copy — there is no number behind them to chart, and inventing a
+   * shape to fill the slot would be a chart that means nothing. Cards without
+   * one render text-only; see VisualHost in ui/feed/InsightCard.tsx.
+   */
+  visual?: VisualSpec;
   cta?: { label: string; target: string }; // in-app route
   cadence: { key: string; frequency: "daily" | "weekly" | "monthly" | "event" };
 }

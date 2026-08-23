@@ -315,7 +315,7 @@ const holdings = new Table({
   annual_rate: column.real, // FD / scheme interest rate % p.a.
   maturity_date: column.text, // FD maturity date (ISO)
   source_account_id: column.text, // savings/bank account that funded a NEW investment (null = tracking existing)
-  planned_id: column.text, // linked planned_cashflow saving row (for SIPs)
+  planned_id: column.text, // the recurring_items row that posts this SIP
   sip_amount: column.integer, // amount-based SIP: monthly amount (minor units)
   sip_start_date: column.text, // amount-based SIP: date it began (ISO)
   sip_day: column.integer, // amount-based SIP: day-of-month (1–28) the amount is debited to invest

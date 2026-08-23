@@ -63,7 +63,7 @@ export interface EditTransactionInput {
   account_id?: string;
   amount?: Money;
   category_id?: string | null;
-  intent?: string | null;
+  intent?: import("@sanvya/types").TransactionIntent | null;
   /** When provided, replaces the transaction's labels (find-or-create + rewrite junction). */
   labels?: string[] | null;
   note?: string | null;
@@ -106,6 +106,8 @@ export interface BudgetLike {
   limit_amount: number;
   currency: CurrencyCode;
   threshold_pct: number;
+  /** Local-time alert hour, stored as UTC "HH:MM" (migration 0059). */
+  alert_time_utc?: string | null;
 }
 
 /** One expense counted against a budget, joined for display. */
