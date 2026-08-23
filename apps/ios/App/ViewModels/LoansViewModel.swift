@@ -202,16 +202,6 @@ func formatRate(_ r: Double) -> String {
     r == r.rounded() ? String(Int64(r)) : String(r)
 }
 
-func formatMoney(_ minor: Int64, _ currency: String) -> String {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .currency
-    formatter.currencyCode = currency
-    formatter.maximumFractionDigits = 0
-    formatter.locale = Locale(identifier: "en_IN")
-    return formatter.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "\(currency) \(Double(minor) / 100.0)"
-}
+// formatMoney moved to App/Components/MoneyFormat.swift — one formatter,
+// hide-amounts aware, fraction digits from minorUnits(currency).
 
-func formatMajorPlain(_ minor: Int64) -> String {
-    let major = Double(minor) / 100.0
-    return major == major.rounded() ? String(Int64(major)) : String(major)
-}

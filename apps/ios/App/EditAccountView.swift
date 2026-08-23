@@ -43,15 +43,6 @@ struct EditAccountView: View {
     @State private var confirmDelete = false
     @State private var deleting = false
 
-    private let numberFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .currency
-        f.currencyCode = "INR"
-        f.locale = Locale(identifier: "en_IN")
-        f.maximumFractionDigits = 2
-        return f
-    }()
-
     var body: some View {
         NavigationStack {
             Group {
@@ -181,8 +172,7 @@ struct EditAccountView: View {
             let balances = try await ledgerRepository.accountBalances(includeArchived: true)
             guard let match = balances.first(where: { $0.account.id == accountId }) else { return }
             currentBalance = match.balance
-            let major = Double(match.balance.amount) / 100.0
-            currentBalanceFormatted = numberFormatter.string(from: NSNumber(value: major)) ?? "…"
+            currentBalanceFormatted = formatMoneyAware(match.balance)
         } catch {
             print("Failed to load balance for \(accountId): \(error)")
         }
@@ -256,7 +246,7 @@ struct EditAccountView: View {
                         note: "Balance adjustment", description: adjustmentTitle
                     )
                 }
-                let formattedTarget = numberFormatter.string(from: NSNumber(value: targetMajor)) ?? "\(targetMajor)"
+                let formattedTarget = formatMoneyAware(target)
                 balanceMessage = "Balance updated to \(formattedTarget)"
                 targetBalance = ""
             } catch {

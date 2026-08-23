@@ -256,10 +256,4 @@ private func parseMajor(_ text: String, digits: Int = 2) -> Int64? {
     return Int64((n * scale).rounded())
 }
 
-private func formatMoney(_ minor: Int64, _ currency: String) -> String {
-    let fmt = NumberFormatter()
-    fmt.numberStyle = .currency
-    fmt.currencyCode = currency
-    fmt.maximumFractionDigits = 2
-    return fmt.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "\(Double(minor) / 100.0) \(currency)"
-}
+// formatMoney moved to App/Components/MoneyFormat.swift.

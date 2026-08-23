@@ -17,9 +17,12 @@ class Prefs: ObservableObject {
     static let shared = Prefs()
 
     private let defaults = UserDefaults.standard
-    private static let hideKey = "amountsHidden"
+    /// Internal, not private: MoneyFormat.swift reads this key directly so the
+    /// hide-amounts rule can be honoured outside the main actor. One key, one meaning.
+    static let hideKey = "amountsHidden"
     private static let themeKey = "theme"
-    private static let currencyKey = "baseCurrency"
+    /// Internal for the same reason as `hideKey` — see MoneyFormat.swift.
+    static let currencyKey = "baseCurrency"
 
     @Published var amountsHidden: Bool {
         didSet { defaults.set(amountsHidden, forKey: Prefs.hideKey) }
@@ -36,15 +39,6 @@ class Prefs: ObservableObject {
         theme = defaults.string(forKey: Prefs.themeKey) ?? "light"
         baseCurrency = defaults.string(forKey: Prefs.currencyKey) ?? "INR"
     }
-}
-
-@MainActor
-func formatMoneyAware(_ money: Domain.Money, mask: String = "••••") -> String {
-    if Prefs.shared.amountsHidden {
-        return mask
-    }
-    let major = Domain.toMajor(money)
-    return String(format: "₹%.2f", major)
 }
 
 private let currencies = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"]

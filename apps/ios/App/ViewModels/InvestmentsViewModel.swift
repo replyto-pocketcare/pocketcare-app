@@ -265,23 +265,13 @@ public final class InvestmentsViewModel {
         }
     }
 
-    private func formatMoney(_ minor: Int64, _ currency: String) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = currency
-        formatter.maximumFractionDigits = 0
-        formatter.locale = Locale(identifier: "en_IN")
-        return formatter.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "\(currency) \(Double(minor) / 100.0)"
-    }
+    // formatMoney lives in App/Components/MoneyFormat.swift. The local copy
+    // removed here forced en_IN on every currency and ignored hide-amounts.
 
     private func formatPct(_ pct: Double) -> String {
         String(format: "%+.1f%%", pct)
     }
 
-    private func formatMajorPlain(_ minor: Int64) -> String {
-        let major = Double(minor) / 100.0
-        return major == major.rounded() ? String(Int64(major)) : String(major)
-    }
 }
 
 private extension Holding {

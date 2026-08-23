@@ -65,6 +65,7 @@ jobs:
           { node tools/parity/generate-tokens.mjs
             node tools/parity/generate-i18n.mjs
             node tools/parity/generate-icons.mjs
+            node tools/parity/generate-money-format.mjs
           } 2>&1 | tee parity.log
       - name: Fail if generated output drifted
         run: |

@@ -228,12 +228,6 @@ private func parseYmdLocal(_ iso: String) -> Ymd? {
     return Ymd(year: y, month: m, day: d)
 }
 
-/// A fresh NumberFormatter per call, not cached -- matches this codebase's
-/// established non-Sendable-Foundation-formatter rule.
 private func formatMoneyGeneric(_ minor: Int64, _ currency: String) -> String {
-    let f = NumberFormatter()
-    f.numberStyle = .currency
-    f.currencyCode = currency
-    f.maximumFractionDigits = 0
-    return f.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "\(currency) \(Double(minor) / 100.0)"
+    formatMoney(minor, currency)
 }

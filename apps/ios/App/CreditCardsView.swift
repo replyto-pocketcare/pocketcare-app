@@ -273,12 +273,10 @@ private func shade(_ color: Color, _ percent: Double) -> Color {
     return Color(red: ch(r), green: ch(g), blue: ch(b), opacity: Double(a))
 }
 
+/// A card face shows the user's own balances — masked like everywhere else.
+/// The removed copy hardcoded INR and ÷100.
 private func formatMoneyINRForCards(_ minor: Int64) -> String {
-    let f = NumberFormatter()
-    f.numberStyle = .currency
-    f.currencyCode = "INR"
-    f.maximumFractionDigits = 0
-    return f.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "₹\(Double(minor) / 100.0)"
+    formatMoney(minor, Prefs.shared.baseCurrency)
 }
 
 private extension String {

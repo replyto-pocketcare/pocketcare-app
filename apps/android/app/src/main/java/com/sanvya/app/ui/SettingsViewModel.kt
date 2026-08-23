@@ -6,7 +6,6 @@ import com.sanvya.app.data.auth.AuthRepository
 import com.sanvya.app.data.diagnostics.QueuedOp
 import com.sanvya.app.data.diagnostics.currentDiagnosticsEntries
 import com.sanvya.app.data.diagnostics.diagnosticsReport
-import com.sanvya.app.data.diagnostics.discardOps
 import com.sanvya.app.data.diagnostics.failingTableFrom
 import com.sanvya.app.data.diagnostics.summarizeQueue
 import com.sanvya.app.data.repository.FailedWriteItem
@@ -16,8 +15,6 @@ import com.sanvya.app.data.repository.RepairRepository
 import com.sanvya.app.data.repository.RepairScanResult
 import com.sanvya.app.data.repository.SettingsRepository
 import com.sanvya.app.data.repository.StrandedRow
-import com.sanvya.app.data.repository.insertRow
-import com.sanvya.app.data.repository.updateRow
 import com.sanvya.app.domain.diagnostics.LogEntry
 import com.sanvya.app.domain.entitlements.isPaid
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -183,8 +180,13 @@ class SettingsViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             try {
                 val s = settingsRepository.currentSession() ?: run { _session.value = null; return@launch }
-                val daysLeft = if (s.isGuest && s.createdAtMs != null) {
-                    val remainMs = s.createdAtMs + 3L * 86_400_000L - System.currentTimeMillis()
+                // Bound to a local first: `createdAtMs` is a public property on a
+                // :data class, and Kotlin refuses to smart-cast a public API
+                // property declared in another module. Same trap as the Loans and
+                // Insights fixes (PARITY_AUDIT.md trap 3).
+                val createdAtMs = s.createdAtMs
+                val daysLeft = if (s.isGuest && createdAtMs != null) {
+                    val remainMs = createdAtMs + 3L * 86_400_000L - System.currentTimeMillis()
                     kotlin.math.max(0, kotlin.math.ceil(remainMs / 86_400_000.0).toInt())
                 } else null
                 _session.value = SessionInfo(email = s.email, isGuest = s.isGuest, username = s.username, daysLeft = daysLeft)
@@ -244,9 +246,9 @@ class SettingsViewModel : ViewModel(), KoinComponent {
             _profileMsg.value = null
             try {
                 if (profileExists) {
-                    updateRow(db, "profiles", userId, mapOf("gender" to gender.ifEmpty { null }, "country" to country.ifEmpty { null }))
+                    settingsRepository.updateProfile(userId, gender.ifEmpty { null }, country.ifEmpty { null })
                 } else {
-                    insertRow(db, "profiles", userId, mapOf("id" to userId, "gender" to gender.ifEmpty { null }, "country" to country.ifEmpty { null }))
+                    settingsRepository.insertProfile(userId, gender.ifEmpty { null }, country.ifEmpty { null })
                     profileExists = true
                 }
                 _profileGender.value = gender
@@ -301,7 +303,7 @@ class SettingsViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             _discardingStuck.value = true
             try {
-                discardOps(db, stuck.map { it.id })
+                settingsRepository.discardQueueOps(stuck.map { it.id })
                 refreshDiagnostics()
             } finally {
                 _discardingStuck.value = false

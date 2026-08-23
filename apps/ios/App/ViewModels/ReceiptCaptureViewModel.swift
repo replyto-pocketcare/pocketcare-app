@@ -6,7 +6,7 @@ import Domain
 
 /// Mirrors `ScanStage` (apps/web/src/receipts/scan.ts) minus the AI stage --
 /// see docs/mobile/screen-specs/receipt-scan.md scope note #2.
-enum CaptureStage: Equatable {
+public enum CaptureStage: Equatable {
     case idle
     case preparing
     case reading
@@ -28,7 +28,7 @@ enum CaptureStage: Equatable {
 @Observable
 @MainActor
 public final class ReceiptCaptureViewModel {
-    @Injected(\.receiptsRepository) private var receiptsRepository
+    @ObservationIgnored @Injected(\.receiptsRepository) private var receiptsRepository
     private var pendingDraft: ReceiptDraft?
 
     public var stage: CaptureStage = .idle

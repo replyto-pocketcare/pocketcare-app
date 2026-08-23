@@ -5,6 +5,7 @@ import com.powersync.db.getLong
 import com.powersync.db.getStringOptional
 import com.sanvya.app.data.auth.isGuest as authIsGuest
 import com.sanvya.app.data.diagnostics.QueuedOp
+import com.sanvya.app.data.diagnostics.discardOps
 import com.sanvya.app.data.diagnostics.inspectQueue
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -91,6 +92,16 @@ class SettingsRepository(
 
     suspend fun queueOps(failingTable: String?): List<QueuedOp> = inspectQueue(db, failingTable)
 
+    /** Drops orphaned rows from the upload queue. Returns how many went. */
+    suspend fun discardQueueOps(ids: List<Long>): Int = discardOps(db, ids)
+
+    /** `profiles` upsert, split so the caller keeps its own "does it exist yet" state. */
+    suspend fun updateProfile(userId: String, gender: String?, country: String?) =
+        updateRow(db, "profiles", userId, mapOf("gender" to gender, "country" to country))
+
+    suspend fun insertProfile(userId: String, gender: String?, country: String?) =
+        insertRow(db, "profiles", userId, mapOf("id" to userId, "gender" to gender, "country" to country))
+
     /**
      * Server-side account deletion, then a local wipe.
      *
@@ -102,8 +113,8 @@ class SettingsRepository(
      *
      * The schema is `pocketcare`, not `sanvya`: the product was renamed but
      * `0001_init.sql` created — and every migration since has used — the
-     * `pocketcare` schema. (PROJECT_REFERENCE.md's golden rule 3 says `sanvya`
-     * and is wrong; see the note filed there.)
+     * `pocketcare` schema. Golden rule 3 in PROJECT_REFERENCE.md and CLAUDE.md
+     * said `sanvya` until 2026-08-23; both were corrected.
      */
     suspend fun deleteAccountOnServer() {
         client.postgrest.rpc(

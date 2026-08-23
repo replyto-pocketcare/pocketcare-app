@@ -396,12 +396,12 @@ public final class InsightsViewModel {
 /// TransactionsViewModel.swift/DashboardView.swift entry). A free function
 /// (not a method) so it captures no `self`/actor isolation at all, safe to
 /// hand to GenContext.fmt's plain `@Sendable` closure type as-is.
+/// Insight cards are amounts on screen like any other, so they go through the
+/// one masking formatter. This stays a free function with no actor isolation so
+/// it can still be handed to GenContext.fmt's `@Sendable` closure type —
+/// `formatMoney` is deliberately non-isolated for exactly this reason.
 private func formatMoneyINR(_ minor: Int64) -> String {
-    let f = NumberFormatter()
-    f.numberStyle = .currency
-    f.currencyCode = BASE_CURRENCY
-    f.maximumFractionDigits = 0
-    return f.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "\(BASE_CURRENCY) \(Double(minor) / 100.0)"
+    formatMoney(minor, BASE_CURRENCY)
 }
 
 private func dateFromYmd(_ s: String) -> Date? {

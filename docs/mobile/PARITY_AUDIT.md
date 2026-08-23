@@ -247,3 +247,38 @@ Each wave item is DONE only when CI is green for it **and** its spec checklist p
     `to_account_id`, or any item missing `account_id`, still advances `next_due` and is counted as
     posted while writing nothing. Unreachable through the form's own validation, but undefended in
     the engine. Do not reproduce the gap on native.
+15. **iOS had NINE money formatters, not one.** `formatMoneyAware`, three
+    `formatMoney`s, `formatMoneyINR`, `formatMoneyGeneric`, `formatMoneyINRForCards`,
+    `formatCents`, `formatMinor`, plus four copies of `formatMajorPlain` and a
+    `compactMoney`. Six of them hardcoded INR, all of them hardcoded ÷100, and only
+    one honoured hide-amounts. Consolidated 2026-08-23 into
+    `App/Components/MoneyFormat.swift` over a generated `Domain.format`. The shared
+    formatter is deliberately **non-isolated**: `Prefs` is `@MainActor`, but the
+    insight generators format inside `@Sendable` closures with no actor, so a
+    `@MainActor` formatter would put those call sites permanently outside the
+    masking rule. It reads the same UserDefaults key directly instead.
+16. `JSONSerialization` promotes a high-precision JSON literal to
+    **`NSDecimalNumber`**, and `.doubleValue` on that lands one ULP away from the
+    binary-nearest double. This made exactly one golden vector
+    (`finance[2] periodicRateFromAnnual`) fail with a message showing two
+    identical-looking numbers. Normalised at the loader
+    (`VectorFixtures.normalizeDecimals`) — never by loosening the comparison.
+17. `@Observable` and Factory's `@Injected` both synthesise `_x` backing storage,
+    so an injected property in an `@Observable` class must carry
+    `@ObservationIgnored`. 38 of 42 already did; the 4 that did not were compile
+    errors. Dependencies are not observable state — always ignore them.
+
+## 9. Known remaining `× 100` sites (tracked, not forgotten)
+
+The display path is clean. These still hardcode the divisor and need
+`minorUnits(currency)`; each populates an input field or scales a chart axis
+rather than rendering a formatted amount, so none is a masking leak:
+
+- `InsightsViewModel.swift` — chart series scaling (6 sites)
+- `TransactionsViewModel`, `EditTransactionView`, `EditAccountView`,
+  `AllocateGoalView`, `GroupDetailView`, `PayViaUpiSheet` — editable-field
+  population and parsing
+- Android has its own equivalents, not yet audited
+
+Web shares the bug: `/search`'s amount filter and `createRecurring`'s `toRow()`.
+Fix belongs in `packages/core` first so all three platforms move together.

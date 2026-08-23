@@ -39,15 +39,6 @@ public final class TransactionsViewModel {
     private var categoryMap: [String: CategoryRow] = [:]
     private var labelNames: [String: [String]] = [:]
 
-    private let formatter: NumberFormatter = {
-        let fmt = NumberFormatter()
-        fmt.numberStyle = .currency
-        fmt.currencyCode = "INR"
-        fmt.maximumFractionDigits = 2
-        fmt.locale = Locale(identifier: "en_IN")
-        return fmt
-    }()
-
     public init(ledgerRepository: LedgerRepository) {
         self.ledgerRepository = ledgerRepository
     }
@@ -126,8 +117,7 @@ public final class TransactionsViewModel {
         let account = accountMap[txn.accountId]
 
         let sign = txn.type == "expense" ? "\u{2212}" : (txn.type == "income" ? "+" : "")
-        let amt = Double(txn.amount) / 100.0
-        let formatted = formatter.string(from: NSNumber(value: amt)) ?? "₹0.00"
+        let formatted = formatMoney(txn.amount, txn.currency)
 
         let dateFormatted: String
         if let date = parseOccurredAt(txn.occurredAt) {

@@ -19,9 +19,9 @@ import Domain
 @Observable
 @MainActor
 public final class ReceiptReviewViewModel {
-    @Injected(\.receiptsRepository) private var receiptsRepository
-    @Injected(\.ledgerRepository) private var ledgerRepository
-    @Injected(\.authRepository) private var authRepository
+    @ObservationIgnored @Injected(\.receiptsRepository) private var receiptsRepository
+    @ObservationIgnored @Injected(\.ledgerRepository) private var ledgerRepository
+    @ObservationIgnored @Injected(\.authRepository) private var authRepository
     private var tasks: [Task<Void, Never>] = []
     private var scanId: String = ""
 

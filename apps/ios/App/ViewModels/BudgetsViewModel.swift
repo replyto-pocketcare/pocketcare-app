@@ -74,14 +74,6 @@ public final class BudgetsViewModel {
 
     private var tasks: [Task<Void, Never>] = []
 
-    private let numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "INR"
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }()
-
     public init() {}
 
     public func start() {
@@ -281,13 +273,7 @@ public final class BudgetsViewModel {
     }
 
     private func formatMoney(_ m: Money) -> String {
-        let major = toMajor(m)
-        return numberFormatter.string(from: NSNumber(value: major)) ?? "\(m.currency) 0"
-    }
-
-    private func formatMajorPlain(_ minor: Int64) -> String {
-        let major = Double(minor) / 100.0
-        return major == major.rounded() ? String(Int(major)) : String(major)
+        formatMoneyAware(m)
     }
 
     private func todayYmd() -> Ymd {
