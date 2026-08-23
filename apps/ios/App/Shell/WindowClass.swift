@@ -41,8 +41,8 @@ enum SanvyaDeviceType {
  this a phone-shaped window", it already accounts for Slide Over and Split View,
  and it changes when the window changes rather than when the device does. Only
  the split between the two regular-width layouts needs a measurement, and that
- uses the same numbers Android's `WindowSizeClass` uses so the two apps agree
- about what a tablet is.
+ uses the same generated constants Android reads, so the two apps agree about
+ what a tablet is.
 
  See `docs/mobile/screen-specs/app-shell.md` §1.
  */
@@ -67,28 +67,17 @@ enum SanvyaWindowClass {
     var capsContentWidth: Bool { self != .compact }
 }
 
-/**
- The minimum window for the sidebar layout.
-
- Mirrors Material 3's `WIDTH_DP_EXPANDED_LOWER_BOUND` / `HEIGHT_DP_MEDIUM_LOWER_BOUND`,
- which Android reads from `WindowSizeClass` directly. iOS has no equivalent
- constant to read, so the numbers are stated here — the point is that the two
- native apps switch at the same place, not that either matches web's 1024px.
-
- Height matters as much as width: the sidebar is a full-height column, and a
- short wide window has the width for one and nowhere to put it.
- */
-private enum SidebarMinimum {
-    static let width: CGFloat = 840
-    static let height: CGFloat = 480
-}
-
 func sanvyaWindowClass(
     horizontalSizeClass: UserInterfaceSizeClass?,
     size: CGSize
 ) -> SanvyaWindowClass {
     guard horizontalSizeClass == .regular else { return .compact }
-    if size.width >= SidebarMinimum.width && size.height >= SidebarMinimum.height {
+    // The same generated constants Android reads, so the two apps switch at
+    // the same place. Height matters as much as width: the sidebar is a
+    // full-height column, and a short wide window has the width for one and
+    // nowhere to put it.
+    if size.width >= SanvyaMetrics.WindowClass.expandedWidth
+        && size.height >= SanvyaMetrics.WindowClass.mediumHeight {
         return .expanded
     }
     return .medium

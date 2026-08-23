@@ -62,9 +62,6 @@ struct InsightsView: View {
             }
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Insights")
-            .toolbar {
-                }
-            }
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { viewModel.start() }
             .onDisappear { viewModel.cancel() }

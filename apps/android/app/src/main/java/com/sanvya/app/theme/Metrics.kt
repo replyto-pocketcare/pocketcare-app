@@ -85,6 +85,20 @@ object SanvyaMetrics {
         val contentMaxWidth = 1440.dp
     }
 
+    /**
+     * Material 3's window size class breakpoints — the platform's numbers, not
+     * web's. Stated rather than imported from
+     * androidx.window.core.layout.WindowSizeClass: that class is not on a
+     * consumer's compile classpath (window-core is an `implementation`
+     * dependency of androidx.window:window). Same values, one fewer artifact,
+     * and iOS reads the identical numbers.
+     */
+    object WindowClass {
+        val mediumWidth = 600
+        val expandedWidth = 840
+        val mediumHeight = 480
+    }
+
     object PageHeader {
         val sectionGap = 20.dp
         val headerGap = 12.dp

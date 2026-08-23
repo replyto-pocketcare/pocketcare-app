@@ -46,7 +46,6 @@ struct AccountsView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Accounts")
             .toolbar {
-                }
                 ToolbarItemGroup(placement: .primaryAction) {
                     if viewModel.archivedCount > 0 {
                         Button(viewModel.showArchived ? "Hide archived" : "Show archived (\(viewModel.archivedCount))") {

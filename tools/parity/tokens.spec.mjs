@@ -327,6 +327,32 @@ export const SHELL = {
   },
 
   /**
+   * Material 3's window size class breakpoints.
+   *
+   * NOT from globals.css — web switches at 640/860/1024 and native deliberately
+   * does not (see screen-specs/app-shell.md §1). These are the platform's, and
+   * they live here so that Android and iOS read the *same* number rather than
+   * each hardcoding its own idea of what a tablet is.
+   *
+   * Read from the spec rather than `androidx.window.core.layout.WindowSizeClass`
+   * because that class ships in `window-core`, which `androidx.window:window`
+   * depends on with `implementation` scope — so it resolves at runtime and is
+   * invisible on a consumer's compile classpath. Verified the hard way, CI run
+   * 32647707023: "Unresolved reference 'WindowSizeClass'". Adding a second
+   * artifact to import three integers is a worse trade than stating them here
+   * with their source.
+   */
+  windowClass: {
+    /** WIDTH_DP_MEDIUM_LOWER_BOUND. Below it, phone layout. */
+    mediumWidth: 600,
+    /** WIDTH_DP_EXPANDED_LOWER_BOUND. At or above it, the sidebar. */
+    expandedWidth: 840,
+    /** HEIGHT_DP_MEDIUM_LOWER_BOUND. The sidebar needs the height too. */
+    mediumHeight: 480,
+    source: "developer.android.com/develop/adaptive-apps/guides/use-window-size-classes (checked 2026-08-23)",
+  },
+
+  /**
    * The shape every top-level page shares: an `<h1>` and the page's primary
    * action on one row, then the content below.
    *

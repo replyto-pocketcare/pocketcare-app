@@ -461,6 +461,20 @@ object SanvyaMetrics {
         val contentMaxWidth = ${S.expanded.contentMaxWidth}.dp
     }
 
+    /**
+     * Material 3's window size class breakpoints — the platform's numbers, not
+     * web's. Stated rather than imported from
+     * androidx.window.core.layout.WindowSizeClass: that class is not on a
+     * consumer's compile classpath (window-core is an \`implementation\`
+     * dependency of androidx.window:window). Same values, one fewer artifact,
+     * and iOS reads the identical numbers.
+     */
+    object WindowClass {
+        val mediumWidth = ${S.windowClass.mediumWidth}
+        val expandedWidth = ${S.windowClass.expandedWidth}
+        val mediumHeight = ${S.windowClass.mediumHeight}
+    }
+
     object PageHeader {
         val sectionGap = ${S.pageHeader.sectionGap}.dp
         val headerGap = ${S.pageHeader.headerGap}.dp
@@ -872,6 +886,17 @@ public enum SanvyaMetrics {
         public static let contentPaddingH: CGFloat = ${S.expanded.contentPaddingH}
         public static let contentPaddingBottom: CGFloat = ${S.expanded.contentPaddingBottom}
         public static let contentMaxWidth: CGFloat = ${S.expanded.contentMaxWidth}
+    }
+
+    /**
+     Material 3's window size class breakpoints — the platform's numbers, not
+     web's, and the *same* numbers Android reads, so the two apps agree about
+     what counts as a tablet.
+     */
+    public enum WindowClass {
+        public static let mediumWidth: CGFloat = ${S.windowClass.mediumWidth}
+        public static let expandedWidth: CGFloat = ${S.windowClass.expandedWidth}
+        public static let mediumHeight: CGFloat = ${S.windowClass.mediumHeight}
     }
 
     public enum PageHeader {

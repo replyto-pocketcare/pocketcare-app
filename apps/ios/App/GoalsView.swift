@@ -45,7 +45,6 @@ struct GoalsView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Goals")
             .toolbar {
-                }
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {
                         Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)

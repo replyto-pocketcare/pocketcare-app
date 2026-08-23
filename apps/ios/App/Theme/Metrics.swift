@@ -80,6 +80,17 @@ public enum SanvyaMetrics {
         public static let contentMaxWidth: CGFloat = 1440
     }
 
+    /**
+     Material 3's window size class breakpoints — the platform's numbers, not
+     web's, and the *same* numbers Android reads, so the two apps agree about
+     what counts as a tablet.
+     */
+    public enum WindowClass {
+        public static let mediumWidth: CGFloat = 600
+        public static let expandedWidth: CGFloat = 840
+        public static let mediumHeight: CGFloat = 480
+    }
+
     public enum PageHeader {
         public static let sectionGap: CGFloat = 20
         public static let headerGap: CGFloat = 12

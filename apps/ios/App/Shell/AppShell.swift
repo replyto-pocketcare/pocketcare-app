@@ -28,6 +28,7 @@ struct AppShell<Content: View>: View {
     @State private var moreOpen = false
     @State private var customizeOpen = false
     @State private var addOpen = false
+    @State private var pageBack: (() -> Void)?
 
     @Environment(\.sanvyaWindowClass) private var windowClass
     @Environment(\.colorScheme) private var colorScheme
@@ -61,6 +62,7 @@ struct AppShell<Content: View>: View {
             }
         }
         .environment(\.addActionSetter) { pageAction = $0 }
+        .environment(\.backActionSetter) { pageBack = $0 }
         // Both overlays belong to the bottom bar. At `.expanded` the bar is gone
         // and the sidebar shows every destination directly, so there is nothing
         // to open them from — and a sheet that can never be dismissed by its own
@@ -135,9 +137,9 @@ struct AppShell<Content: View>: View {
                 VStack(spacing: 0) {
                     if currentTab != .dashboard {
                         UtilRow(
-                            showBack: false,
+                            showBack: pageBack != nil,
                             unreadCount: viewModel.unreadCount,
-                            onBack: {},
+                            onBack: { pageBack?() },
                             onNotifications: { select(.notifications) }
                         )
                     }
@@ -188,9 +190,9 @@ struct AppShell<Content: View>: View {
                     // first thing on the page, so the shared row is skipped there.
                     if currentTab != .dashboard {
                         UtilRow(
-                            showBack: false,
+                            showBack: pageBack != nil,
                             unreadCount: viewModel.unreadCount,
-                            onBack: {},
+                            onBack: { pageBack?() },
                             onNotifications: { select(.notifications) }
                         )
                     }
@@ -234,6 +236,9 @@ struct AppShell<Content: View>: View {
         // change.
         moreOpen = false
         addOpen = false
+        // The outgoing screen's Back goes with it — `onDisappear` fires too
+        // late to stop it flashing on the incoming one.
+        pageBack = nil
         storedTab = tab.rawValue
     }
 

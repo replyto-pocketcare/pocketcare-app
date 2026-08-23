@@ -12,7 +12,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.window.core.layout.WindowSizeClass
 
 /**
  * What kind of device this is, decided the way the platform decides it.
@@ -74,8 +73,8 @@ private const val TABLET_SW_DP = 600
 /**
  * Which shell layout the current window is big enough for.
  *
- * Derived from Material 3's own [WindowSizeClass] breakpoints, not from web's
- * CSS pixel widths. The two disagree — web switches at 640/860/1024, Material
+ * Derived from Material 3's own breakpoints (`SanvyaMetrics.WindowClass`), not
+ * from web's CSS pixel widths. The two disagree — web switches at 640/860/1024, Material
  * at 600/840 — and the platform's numbers win here, because they are the ones
  * every other Android app on the device already switches at, and because they
  * are measured against how Android devices actually cluster rather than how a
@@ -111,9 +110,9 @@ enum class SanvyaWindowClass {
  * to check both, and this is the case where it matters.
  */
 fun windowClassOf(widthDp: Int, heightDp: Int): SanvyaWindowClass = when {
-    widthDp >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND &&
-        heightDp >= WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND -> SanvyaWindowClass.EXPANDED
-    widthDp >= WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND -> SanvyaWindowClass.MEDIUM
+    widthDp >= SanvyaMetrics.WindowClass.expandedWidth &&
+        heightDp >= SanvyaMetrics.WindowClass.mediumHeight -> SanvyaWindowClass.EXPANDED
+    widthDp >= SanvyaMetrics.WindowClass.mediumWidth -> SanvyaWindowClass.MEDIUM
     else -> SanvyaWindowClass.COMPACT
 }
 

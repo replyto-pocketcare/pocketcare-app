@@ -63,12 +63,12 @@ struct InvestmentsView: View {
             }
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle(drilledGroup?.label ?? "Investments")
+            // Drill-in is local state, not a route, so the shell cannot
+            // infer it — the screen says so and the util row shows Back.
+            // Not a toolbar button: a screen gets ONE back affordance and
+            // it is the util row's (screen-specs/app-shell.md §7).
+            .registerBack(drilledKey != nil) { drilledKey = nil }
             .toolbar {
-                    } label: {
-                        Image(systemName: drilledGroup != nil ? "chevron.left" : "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
                 if !viewModel.invAccounts.isEmpty {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: { showingAddSheet = true }) {

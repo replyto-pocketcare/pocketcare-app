@@ -37,13 +37,9 @@ struct LoansView: View {
             }
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle(selectedLoanId != nil ? "" : "Loans")
+            .registerBack(selectedLoanId != nil) { selectedLoanId = nil }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                    } label: {
-                        Image(systemName: selectedLoanId != nil ? "chevron.left" : "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
                 if selectedLoanId == nil {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: { showingAddSheet = true }) {

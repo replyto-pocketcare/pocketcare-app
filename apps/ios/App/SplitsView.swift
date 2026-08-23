@@ -23,16 +23,9 @@ struct SplitsView: View {
             }
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle(selectedGroupId != nil ? "" : "Splits")
+            .registerBack(selectedGroupId != nil) { selectedGroupId = nil }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                // Same leading button toggles hamburger/back depending on
-                // selection state -- matches LoansView's established
-                // list/detail convention, not a new pattern.
-                    } label: {
-                        Image(systemName: selectedGroupId != nil ? "chevron.left" : "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
                 if selectedGroupId == nil {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: { showingCreateSheet = true }) {

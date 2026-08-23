@@ -39,9 +39,6 @@ struct CreditCardsView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Credit Cards")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                }
-            }
             .onAppear { viewModel.start() }
             .onDisappear { viewModel.cancel() }
             .sheet(isPresented: Binding(get: { !viewModel.coveredEmis.isEmpty }, set: { if !$0 { viewModel.skipMarkEmisPaid() } })) {
