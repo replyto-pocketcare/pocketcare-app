@@ -182,6 +182,10 @@ approximation per screen (iOS's old credit-card face).
 | **State preservation (R1)** | Android partial (rememberSaveable on some screens); iOS `@SceneStorage`/draft-save **not started**; LIFE-4 process-death untested on both | per-screen |
 | **Accessibility** | No TalkBack/VoiceOver pass; touch-target and contrast unaudited | pre-launch |
 | **Sync L3 (P2.7)** | Blocked since 2026-07-31 — needs a test Supabase + PowerSync project and a real device round-trip | **needs Akhilesh** |
+| **i18n keys web calls but never defined** | 46 keys across 8 namespaces (`tools/parity/audit-i18n-usage.mjs`). Web hides this: `t("netMonthly", "Net monthly")` falls back to its inline English default, so English looks perfect and **hi/nl silently render English**. Native has no inline default — a missing key is a missing resource — so each must be added to `packages/core/i18n` before its screen can be ported | W0.4 |
+| **No `RecurringRepository` on either platform** | `/recurring` is a data-layer task before it is a UI task — no `recurring_items` reads or writes exist natively | W4 |
+| **No `useUnreadCount()` equivalent natively** | The shell's bell badge and the Notifications screen both need it; neither platform has the query | W1 |
+| **`notifications` has no i18n namespace at all** | The web screen has zero `t()` calls. Porting it as-is would put the one hardcoded-English screen into apps that are otherwise fully localised | W4 |
 | **Bundle ids / Universal Links domain** | Still placeholders (`com.sanvya.app`, `com.sanvya.app.ios`) — blocks `/join` deep links and store prep | **needs Akhilesh** |
 | **Min OS versions** | Proposed minSdk 26 / iOS target unconfirmed | **needs Akhilesh** |
 
@@ -228,3 +232,18 @@ Each wave item is DONE only when CI is green for it **and** its spec checklist p
 8. `settlements` reads must filter `status <> 'disputed'`.
 9. List screens driven by one-shot `list()` instead of `db.watch()` look stale after a create/edit.
 10. Never a cross-row constraint on a synced table; never `ON CONFLICT` on a PowerSync view.
+11. **Major→minor unit conversion is hardcoded as `× 100` in at least two places** — `/search`'s
+    amount filter and `createRecurring`'s `toRow()`. That is wrong for JPY (0 decimals) and BHD
+    (3 decimals), and it contradicts golden rule 1. Invisible today only because the ledger is
+    effectively all-INR. Port the *correct* behaviour (`minorUnits(currency)`), and fix web in the
+    same change set rather than letting three platforms disagree.
+12. Native `NotificationPrefs` defaults `low_balance_threshold` to 500 on both platforms, and iOS
+    persists that 500 on first load. The server default (migration `0037_notifications.sql`) is 0.
+    Pre-existing native bug, found while tracing the prefs row.
+13. `subscriptions` and `recurring_items` are **unrelated tables** despite the plan doc implying a
+    merge. The dashboard, insights and assistant read `subscriptions`; `/recurring` reads only
+    `recurring_items`. A native Subscriptions surface is its own task.
+14. `materialize()` in the recurring engine has a silent no-op path — a transfer item missing
+    `to_account_id`, or any item missing `account_id`, still advances `next_due` and is counted as
+    posted while writing nothing. Unreachable through the form's own validation, but undefended in
+    the engine. Do not reproduce the gap on native.
