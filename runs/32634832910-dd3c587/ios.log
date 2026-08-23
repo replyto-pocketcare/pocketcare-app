@@ -1,0 +1,125 @@
+⚙️  Generating plists...
+⚙️  Generating project...
+⚙️  Writing project...
+Created project at /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Sanvya.xcodeproj
+Building for debugging...
+[0/7] /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/.build/arm64-apple-macosx/debug/DomainPackageTests.derived/runner.swift
+[1/7] Write sources
+[4/7] Write swift-version-7974D3F7F03D5E95.txt
+[6/25] Emitting module Domain
+[7/33] Compiling Domain ReceiptsParse.swift
+[8/33] Compiling Domain ReceiptsReconcile.swift
+[9/33] Compiling Domain ReceiptsTypes.swift
+[10/33] Compiling Domain Reconcile.swift
+[11/33] Compiling Domain SplitsInsights.swift
+[12/33] Compiling Domain SplitsMath.swift
+[13/33] Compiling Domain SyncPolicy.swift
+[14/33] Compiling Domain Upi.swift
+[15/33] Compiling Domain Budget.swift
+[16/33] Compiling Domain Diagnostics.swift
+[17/33] Compiling Domain Dividends.swift
+[18/33] Compiling Domain Entitlements.swift
+[19/33] Compiling Domain Finance.swift
+[20/33] Compiling Domain Guardrail.swift
+[21/33] Compiling Domain Insights.swift
+[22/33] Compiling Domain InvestmentsModel.swift
+[23/33] Compiling Domain Ledger.swift
+[24/33] Compiling Domain Mindfulness.swift
+[25/33] Compiling Domain Money.swift
+[26/33] Compiling Domain Placeholder.swift
+[27/33] Compiling Domain PocketCareSchema.swift
+[28/33] Compiling Domain Push.swift
+[29/33] Compiling Domain ReceiptsAllocate.swift
+[30/33] Compiling Domain ReceiptsFixtures.swift
+[31/33] Compiling Domain ReceiptsMoneyText.swift
+[32/46] Emitting module DomainTests
+[33/46] Compiling DomainTests LedgerVectors.swift
+[34/46] Compiling DomainTests MoneyVectors.swift
+[35/46] Compiling DomainTests PlaceholderTests.swift
+[36/46] Compiling DomainTests ReceiptsVectors.swift
+[37/46] Compiling DomainTests ReconcileVectors.swift
+[38/46] Compiling DomainTests SplitsInsightsVectors.swift
+[39/46] Compiling DomainTests BudgetVectors.swift
+[40/46] Compiling DomainTests DiagnosticsVectors.swift
+[41/46] Compiling DomainTests EntitlementsVectors.swift
+[42/46] Compiling DomainTests FinanceVectors.swift
+[43/46] Compiling DomainTests FunctionRegistry.swift
+[44/46] Compiling DomainTests GuardrailVectors.swift
+[45/51] Compiling DomainTests SplitsMathVectors.swift
+[46/51] Compiling DomainTests SyncPolicyVectors.swift
+[47/51] Compiling DomainTests UpiVectors.swift
+[48/51] Compiling DomainTests VectorFixtures.swift
+[49/51] Compiling DomainTests VectorRunnerTests.swift
+[50/53] Emitting module DomainPackageTests
+[51/53] Compiling DomainPackageTests runner.swift
+[51/53] Write Objects.LinkFileList
+[52/53] Linking DomainPackageTests
+Build complete! (22.28s)
+Test Suite 'All tests' started at 2026-08-23 10:50:39.337.
+Test Suite 'DomainPackageTests.xctest' started at 2026-08-23 10:50:39.341.
+Test Suite 'PlaceholderTests' started at 2026-08-23 10:50:39.341.
+Test Case '-[DomainTests.PlaceholderTests testDomainPackageIsWired]' started.
+Test Case '-[DomainTests.PlaceholderTests testDomainPackageIsWired]' passed (0.003 seconds).
+Test Suite 'PlaceholderTests' passed at 2026-08-23 10:50:39.344.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'VectorRunnerTests' started at 2026-08-23 10:50:39.344.
+Test Case '-[DomainTests.VectorRunnerTests testBudget]' started.
+Test Case '-[DomainTests.VectorRunnerTests testBudget]' passed (0.003 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testDiagnostics]' started.
+Test Case '-[DomainTests.VectorRunnerTests testDiagnostics]' passed (0.003 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testEntitlements]' started.
+Test Case '-[DomainTests.VectorRunnerTests testEntitlements]' passed (0.000 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testFinance]' started.
+/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Tests/DomainTests/VectorRunnerTests.swift:70: error: -[DomainTests.VectorRunnerTests testFinance] : failed - finance: 1 vector(s) failed:
+finance[2] periodicRateFromAnnual: expected Optional(0.006666666666666667) but got 0.006666666666666667
+Test Case '-[DomainTests.VectorRunnerTests testFinance]' failed (0.149 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testGuardrail]' started.
+Test Case '-[DomainTests.VectorRunnerTests testGuardrail]' passed (0.002 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testLedger]' started.
+Test Case '-[DomainTests.VectorRunnerTests testLedger]' passed (0.001 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testMoney]' started.
+Test Case '-[DomainTests.VectorRunnerTests testMoney]' passed (0.002 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testReceiptsAllocate]' started.
+Test Case '-[DomainTests.VectorRunnerTests testReceiptsAllocate]' passed (0.002 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testReceiptsMoneyText]' started.
+Test Case '-[DomainTests.VectorRunnerTests testReceiptsMoneyText]' passed (0.002 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testReceiptsParse]' started.
+Test Case '-[DomainTests.VectorRunnerTests testReceiptsParse]' passed (0.012 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testReceiptsReconcile]' started.
+Test Case '-[DomainTests.VectorRunnerTests testReceiptsReconcile]' passed (0.001 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testReconcile]' started.
+Test Case '-[DomainTests.VectorRunnerTests testReconcile]' passed (0.001 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testSplitsInsights]' started.
+Test Case '-[DomainTests.VectorRunnerTests testSplitsInsights]' passed (0.003 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testSplitsMath]' started.
+Test Case '-[DomainTests.VectorRunnerTests testSplitsMath]' passed (0.001 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testSyncPolicy]' started.
+Test Case '-[DomainTests.VectorRunnerTests testSyncPolicy]' passed (0.001 seconds).
+Test Case '-[DomainTests.VectorRunnerTests testUpi]' started.
+Test Case '-[DomainTests.VectorRunnerTests testUpi]' passed (0.001 seconds).
+Test Suite 'VectorRunnerTests' failed at 2026-08-23 10:50:39.528.
+	 Executed 16 tests, with 1 failure (0 unexpected) in 0.182 (0.185) seconds
+Test Suite 'DomainPackageTests.xctest' failed at 2026-08-23 10:50:39.528.
+	 Executed 17 tests, with 1 failure (0 unexpected) in 0.185 (0.188) seconds
+Test Suite 'All tests' failed at 2026-08-23 10:50:39.528.
+	 Executed 17 tests, with 1 failure (0 unexpected) in 0.185 (0.191) seconds
+[vectors] domain=budget total=10 passed=10 skipped=0 failed=0
+[vectors] domain=diagnostics total=10 passed=10 skipped=0 failed=0
+[vectors] domain=entitlements total=8 passed=8 skipped=0 failed=0
+[vectors] domain=finance total=33 passed=32 skipped=0 failed=1
+[vectors] domain=guardrail total=10 passed=10 skipped=0 failed=0
+[vectors] domain=ledger total=10 passed=10 skipped=0 failed=0
+[vectors] domain=money total=40 passed=37 skipped=3 failed=0
+[vectors] domain=receipts-allocate total=14 passed=14 skipped=0 failed=0
+[vectors] domain=receipts-money-text total=23 passed=23 skipped=0 failed=0
+[vectors] domain=receipts-parse total=14 passed=14 skipped=0 failed=0
+[vectors] domain=receipts-reconcile total=11 passed=11 skipped=0 failed=0
+[vectors] domain=reconcile total=7 passed=7 skipped=0 failed=0
+[vectors] domain=splits-insights total=6 passed=6 skipped=0 failed=0
+[vectors] domain=splits-math total=4 passed=4 skipped=0 failed=0
+[vectors] domain=sync-policy total=21 passed=21 skipped=0 failed=0
+[vectors] domain=upi total=29 passed=29 skipped=0 failed=0
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

@@ -1,0 +1,6 @@
+run_id:   32634832910
+sha:      dd3c5879659042f7779c683dc968f2d5fe0fa51d
+ref:      refs/heads/mobile/parity
+parity:   success
+android:  failure
+ios:      failure

@@ -1,0 +1,591 @@
+Fetching distribution.
+Downloading https://services.gradle.org/distributions/gradle-9.4.1-bin.zip
+.............10%.............20%.............30%.............40%.............50%.............60%..............70%.............80%.............90%.............100%
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:preBuild UP-TO-DATE
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :data:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :data:processDebugNavigationResources FROM-CACHE
+> Task :data:generateDebugResources FROM-CACHE
+> Task :data:packageDebugResources FROM-CACHE
+> Task :domain:compileKotlin FROM-CACHE
+> Task :app:generateDebugResources
+> Task :domain:compileJava NO-SOURCE
+> Task :domain:processResources NO-SOURCE
+> Task :domain:classes UP-TO-DATE
+> Task :domain:jar
+> Task :domain:assemble
+> Task :domain:compileTestKotlin FROM-CACHE
+> Task :domain:compileTestJava NO-SOURCE
+> Task :domain:processTestResources
+> Task :domain:testClasses
+> Task :domain:test FROM-CACHE
+> Task :domain:check UP-TO-DATE
+> Task :domain:build
+> Task :app:processDebugGoogleServices FROM-CACHE
+> Task :data:parseDebugLocalResources FROM-CACHE
+> Task :data:generateDebugRFile FROM-CACHE
+> Task :app:packageDebugResources
+> Task :data:compileDebugKotlin FROM-CACHE
+> Task :data:javaPreCompileDebug FROM-CACHE
+> Task :data:compileDebugJavaWithJavac NO-SOURCE
+> Task :data:generateDebugAssets UP-TO-DATE
+> Task :data:bundleLibCompileToJarDebug
+> Task :data:mergeDebugAssets
+> Task :data:processDebugJavaRes
+> Task :app:processDebugNavigationResources
+> Task :data:extractDeepLinksDebug FROM-CACHE
+> Task :data:writeDebugAarMetadata
+> Task :app:javaPreCompileDebug FROM-CACHE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :data:processDebugManifest FROM-CACHE
+> Task :data:mapDebugSourceSetPaths
+> Task :data:compileDebugLibraryResources FROM-CACHE
+> Task :data:mergeDebugJniLibFolders
+> Task :data:mergeDebugNativeLibs NO-SOURCE
+> Task :data:bundleLibRuntimeToDirDebug
+> Task :data:copyDebugJniLibsProjectOnly
+> Task :data:preReleaseBuild UP-TO-DATE
+> Task :data:mergeReleaseJniLibFolders
+> Task :data:mergeReleaseNativeLibs NO-SOURCE
+> Task :data:copyReleaseJniLibsProjectOnly
+> Task :app:mergeDebugAssets
+> Task :app:parseDebugLocalResources
+> Task :data:generateReleaseResources FROM-CACHE
+> Task :data:packageReleaseResources FROM-CACHE
+> Task :data:processReleaseNavigationResources FROM-CACHE
+> Task :data:parseReleaseLocalResources FROM-CACHE
+> Task :data:generateReleaseRFile FROM-CACHE
+> Task :app:compressDebugAssets FROM-CACHE
+> Task :app:generateDebugGlobalSynthetics FROM-CACHE
+> Task :app:generateDebugRFile
+> Task :data:compileReleaseKotlin FROM-CACHE
+> Task :data:javaPreCompileRelease FROM-CACHE
+> Task :data:compileReleaseJavaWithJavac NO-SOURCE
+> Task :data:writeReleaseAarMetadata
+> Task :data:extractDeepLinksRelease FROM-CACHE
+> Task :data:bundleLibCompileToJarRelease
+> Task :data:processReleaseManifest FROM-CACHE
+> Task :data:mapReleaseSourceSetPaths
+> Task :app:checkDebugDuplicateClasses
+> Task :data:compileReleaseLibraryResources FROM-CACHE
+> Task :data:prepareReleaseArtProfile
+> Task :data:generateReleaseAssets UP-TO-DATE
+> Task :data:mergeReleaseAssets
+> Task :data:processReleaseJavaRes
+> Task :data:bundleLibRuntimeToJarRelease
+> Task :data:bundleLibRuntimeToDirRelease
+> Task :data:extractProguardFiles
+> Task :data:createFullJarRelease
+> Task :data:generateReleaseLintModel
+> Task :data:prepareLintJarForPublish
+> Task :data:stripReleaseDebugSymbols NO-SOURCE
+> Task :data:copyReleaseJniLibsProjectAndLocalJars
+> Task :data:extractDeepLinksForAarRelease FROM-CACHE
+> Task :data:checkReleaseAarMetadata
+> Task :app:desugarDebugFileDependencies FROM-CACHE
+> Task :data:extractReleaseAnnotations FROM-CACHE
+> Task :data:mergeReleaseGeneratedProguardFiles
+> Task :data:mergeReleaseConsumerProguardFiles
+> Task :data:mergeReleaseJavaResource
+> Task :data:syncReleaseLibJars FROM-CACHE
+> Task :data:bundleReleaseLocalLintAar
+> Task :data:writeReleaseLintModelMetadata
+> Task :data:generateReleaseLintVitalModel
+> Task :data:checkDebugAarMetadata
+> Task :data:stripDebugDebugSymbols NO-SOURCE
+> Task :data:copyDebugJniLibsProjectAndLocalJars
+> Task :data:extractDebugAnnotations FROM-CACHE
+> Task :data:extractDeepLinksForAarDebug FROM-CACHE
+> Task :data:mergeDebugGeneratedProguardFiles
+> Task :data:mergeDebugConsumerProguardFiles
+> Task :data:prepareDebugArtProfile
+> Task :data:mergeDebugJavaResource
+> Task :app:mergeExtDexDebug FROM-CACHE
+> Task :data:syncDebugLibJars FROM-CACHE
+> Task :data:bundleDebugLocalLintAar
+> Task :app:mergeLibDexDebug FROM-CACHE
+> Task :app:checkDebugAarMetadata
+> Task :app:mapDebugSourceSetPaths
+> Task :data:bundleLibRuntimeToJarDebug
+> Task :app:compileDebugNavigationResources FROM-CACHE
+> Task :data:createFullJarDebug
+> Task :data:writeDebugLintModelMetadata
+> Task :data:generateDebugLintModel
+> Task :app:mergeDebugResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug FROM-CACHE
+> Task :app:processDebugMainManifest FAILED
+> Task :app:compileDebugKotlin
+> Task :data:lintVitalAnalyzeRelease
+> Task :data:lintAnalyzeDebug
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/theme/Font.kt:28:38 This API is experimental and is likely to change in the future.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:71:21 Unresolved reference 'rememberSaveable'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:72:27 Unresolved reference 'rememberSaveable'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:73:26 Unresolved reference 'rememberSaveable'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:74:24 Unresolved reference 'rememberSaveable'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:155:54 Unresolved reference 'it'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:156:35 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:191:31 Unresolved reference 'rememberSaveable'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:192:32 Unresolved reference 'rememberSaveable'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:209:42 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:209:52 Return type mismatch: expected 'Sequence<uninferred T (of fun <T> Sequence<T>.ifEmpty)>', actual 'String'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:322:62 Cannot access 'fun WideNavigationRailValue.not(): WideNavigationRailValue': it is internal in file.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:24:12 Unresolved reference 'powersync'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:25:12 Unresolved reference 'powersync'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:26:12 Unresolved reference 'powersync'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:27:8 Unresolved reference 'io'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:28:8 Unresolved reference 'io'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:29:8 Unresolved reference 'io'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:37:30 Unresolved reference 'json'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:38:30 Unresolved reference 'json'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:39:30 Unresolved reference 'json'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:40:30 Unresolved reference 'json'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:74:25 Unresolved reference 'SupabaseClient'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:74:40 Property delegate must have a 'getValue(SettingsViewModel, KProperty1<SettingsViewModel, ??? (Unresolved qualified name: SupabaseClient)>)' method. None of the following functions is applicable:
+fun <T> Lazy<T>.getValue(thisRef: Any?, property: KProperty<*>): T
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:74:43 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:74:43 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:75:21 Unresolved reference 'PowerSyncDatabase'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:75:39 Property delegate must have a 'getValue(SettingsViewModel, KProperty1<SettingsViewModel, ??? (Unresolved qualified name: PowerSyncDatabase)>)' method. None of the following functions is applicable:
+fun <T> Lazy<T>.getValue(thisRef: Any?, property: KProperty<*>): T
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:75:42 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:75:42 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:197:35 Unresolved reference 'auth'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:198:29 Cannot access class 'io.github.jan.supabase.SupabaseClient'. Check your module classpath for missing or conflicting dependencies.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:199:74 Unresolved reference 'JsonPrimitive'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:199:90 Unresolved reference 'content'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:202:48 Overload resolution ambiguity between candidates:
+fun String?.plus(other: Any?): String
+fun <T> Array<T>.plus(element: T): Array<T>
+fun LongArray.plus(element: Long): LongArray
+fun <T> Iterable<T>.plus(element: T): List<T>
+fun <T> Collection<T>.plus(element: T): List<T>
+fun <T> Set<T>.plus(element: T): Set<T>
+fun <T> Sequence<T>.plus(element: T): Sequence<T>
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:215:24 Unresolved reference 'auth'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:215:42 Unresolved reference 'data'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:215:49 Unresolved reference 'buildJsonObject'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:215:67 Unresolved reference 'put'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:244:30 Unresolved reference 'getOptional'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:247:32 Cannot infer type for value parameter 'c'. Specify it explicitly.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:248:28 Unresolved reference 'getStringOptional'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:248:69 Unresolved reference 'getStringOptional'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:253:48 Unresolved reference 'first'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:254:49 Unresolved reference 'second'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:268:21 Cannot access class 'com.powersync.PowerSyncDatabase'. Check your module classpath for missing or conflicting dependencies.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:270:21 Cannot access class 'com.powersync.PowerSyncDatabase'. Check your module classpath for missing or conflicting dependencies.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:297:29 Unresolved reference 'currentStatus'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:305:40 Unresolved reference 'getOptional'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:307:34 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:308:32 Cannot infer type for value parameter 'c'. Specify it explicitly.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:308:39 Unresolved reference 'getLong'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:314:37 Cannot access class 'com.powersync.PowerSyncDatabase'. Check your module classpath for missing or conflicting dependencies.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:334:17 Cannot access class 'com.powersync.PowerSyncDatabase'. Check your module classpath for missing or conflicting dependencies.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:456:24 Unresolved reference 'postgrest'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:458:34 Unresolved reference 'buildJsonObject'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:458:52 Unresolved reference 'put'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:459:33 Unresolved reference 'schema'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:462:24 Unresolved reference 'disconnectAndClear'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/components/Icon.kt:47:18 Unresolved reference 'semantics'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/components/Icon.kt:47:30 'this' is not defined in this context.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/receipts/ReceiptReviewViewModel.kt:17:39 Unresolved reference 'adoptComputedTotal'.
+e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/receipts/ReceiptReviewViewModel.kt:135:43 Unresolved reference 'adoptComputedTotal'.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1787482249582.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/build/reports/problems/problems-report.html
+
+FAILURE: Build completed with 2 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:processDebugMainManifest'.
+> com.android.manifmerger.ManifestMerger2$MergeFailureException: Error parsing /home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/AndroidManifest.xml
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':app:processDebugMainManifest'.
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.DefaultNodeExecutor.executeLocalTaskNode(DefaultNodeExecutor.java:55)
+	at org.gradle.execution.plan.DefaultNodeExecutor.execute(DefaultNodeExecutor.java:34)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:355)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:343)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:84)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:328)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+Caused by: java.lang.RuntimeException: com.android.manifmerger.ManifestMerger2$MergeFailureException: Error parsing /home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/AndroidManifest.xml
+	at com.android.build.gradle.internal.tasks.manifest.ManifestHelperKt.mergeManifests(ManifestHelper.kt:156)
+	at com.android.build.gradle.internal.tasks.manifest.ManifestHelperKt.mergeManifests$default(ManifestHelper.kt:44)
+	at com.android.build.gradle.tasks.ProcessApplicationManifest.doTaskAction(ProcessApplicationManifest.kt:153)
+	at com.android.build.gradle.internal.tasks.NonIncrementalTask$taskAction$$inlined$recordTaskAction$1.invoke(BaseTask.kt:72)
+	at com.android.build.gradle.internal.tasks.Blocks.recordSpan(Blocks.java:51)
+	at com.android.build.gradle.internal.tasks.NonIncrementalTask.taskAction(NonIncrementalTask.kt:71)
+	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:125)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.doExecute(StandardTaskAction.java:58)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:51)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:29)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:259)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:30)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:27)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:48)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:244)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:227)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:210)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:176)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:167)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:47)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:137)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:134)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:134)
+	at org.gradle.internal.execution.steps.ExecuteStep$Mutable.execute(ExecuteStep.java:80)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:51)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:29)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.executeMutable(RemovePreviousOutputsStep.java:67)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.executeMutable(RemovePreviousOutputsStep.java:39)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:42)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:24)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.executeMutable(ResolveInputChangesStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.executeMutable(ResolveInputChangesStep.java:28)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeAndStoreInCache(BuildCacheStep.java:145)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$executeWithCache$4(BuildCacheStep.java:104)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$executeWithCache$5(BuildCacheStep.java:104)
+	at org.gradle.internal.Try$Success.map(Try.java:170)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithCache(BuildCacheStep.java:88)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$0(BuildCacheStep.java:75)
+	at org.gradle.internal.Either$Left.fold(Either.java:116)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:74)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:49)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.executeMutable(StoreExecutionStateStep.java:46)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.executeMutable(StoreExecutionStateStep.java:35)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveMutableCachingStateStep.executeDelegate(ResolveMutableCachingStateStep.java:70)
+	at org.gradle.internal.execution.steps.ResolveMutableCachingStateStep.executeDelegate(ResolveMutableCachingStateStep.java:32)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:69)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:37)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.executeMutable(ResolveChangesStep.java:63)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.executeMutable(ResolveChangesStep.java:34)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.ValidateStep$Mutable.executeDelegate(ValidateStep.java:79)
+	at org.gradle.internal.execution.steps.ValidateStep$Mutable.executeDelegate(ValidateStep.java:65)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:99)
+	at org.gradle.internal.execution.steps.ValidateStep$Mutable.execute(ValidateStep.java:65)
+	at org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep.executeMutable(CaptureMutableStateBeforeExecutionStep.java:86)
+	at org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep.execute(CaptureMutableStateBeforeExecutionStep.java:65)
+	at org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep.execute(CaptureMutableStateBeforeExecutionStep.java:45)
+	at org.gradle.internal.execution.steps.SkipEmptyMutableWorkStep.executeWithNonEmptySources(SkipEmptyMutableWorkStep.java:210)
+	at org.gradle.internal.execution.steps.SkipEmptyMutableWorkStep.executeMutable(SkipEmptyMutableWorkStep.java:85)
+	at org.gradle.internal.execution.steps.SkipEmptyMutableWorkStep.executeMutable(SkipEmptyMutableWorkStep.java:53)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.executeMutable(LoadPreviousExecutionStateStep.java:36)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.executeMutable(LoadPreviousExecutionStateStep.java:23)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.executeMutable(HandleStaleOutputsStep.java:77)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.executeMutable(HandleStaleOutputsStep.java:43)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$executeMutable$0(AssignMutableWorkspaceStep.java:34)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:305)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.executeMutable(AssignMutableWorkspaceStep.java:30)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.executeMutable(AssignMutableWorkspaceStep.java:21)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:56)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:38)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:68)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+	... 30 more
+Caused by: com.android.manifmerger.ManifestMerger2$MergeFailureException: Error parsing /home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/AndroidManifest.xml
+	at com.android.manifmerger.ManifestMerger2.load(ManifestMerger2.java:1142)
+	at com.android.manifmerger.ManifestMerger2.merge(ManifestMerger2.java:188)
+	at com.android.manifmerger.ManifestMerger2$Invoker.merge(ManifestMerger2.java:2211)
+	at com.android.build.gradle.internal.tasks.manifest.ManifestHelperKt.mergeManifests(ManifestHelper.kt:128)
+	... 140 more
+Caused by: org.xml.sax.SAXParseException; lineNumber: 4; columnNumber: 44; The string "--" is not permitted within comments.
+	at com.android.utils.PositionXmlParser.saxParseInternal(PositionXmlParser.java:433)
+	at com.android.utils.PositionXmlParser.parseInternal(PositionXmlParser.java:379)
+	at com.android.utils.PositionXmlParser.internalParse(PositionXmlParser.java:293)
+	at com.android.utils.PositionXmlParser.parse(PositionXmlParser.java:232)
+	at com.android.utils.PositionXmlParser.parse(PositionXmlParser.java:270)
+	at com.android.manifmerger.XmlLoader.load(XmlLoader.java:64)
+	at com.android.manifmerger.ManifestMerger2.load(ManifestMerger2.java:1132)
+	... 143 more
+
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':app:compileDebugKotlin'.
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.DefaultNodeExecutor.executeLocalTaskNode(DefaultNodeExecutor.java:55)
+	at org.gradle.execution.plan.DefaultNodeExecutor.execute(DefaultNodeExecutor.java:34)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:355)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:343)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:84)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:328)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.gradle.workers.internal.DefaultWorkerExecutor$WorkExecutionException: A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+	at org.gradle.workers.internal.DefaultWorkerExecutor$WorkItemExecution.waitForCompletion(DefaultWorkerExecutor.java:289)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.lambda$waitForItemsAndGatherFailures$2(DefaultAsyncWorkTracker.java:130)
+	at org.gradle.internal.Factories$1.create(Factories.java:30)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.lambda$withoutLocks$2(DefaultWorkerLeaseService.java:350)
+	at org.gradle.internal.work.ResourceLockStatistics$1.measure(ResourceLockStatistics.java:43)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withoutLocks(DefaultWorkerLeaseService.java:348)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withoutLocks(DefaultWorkerLeaseService.java:332)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withoutLock(DefaultWorkerLeaseService.java:337)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForItemsAndGatherFailures(DefaultAsyncWorkTracker.java:126)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForItemsAndGatherFailures(DefaultAsyncWorkTracker.java:92)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForAll(DefaultAsyncWorkTracker.java:78)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForCompletion(DefaultAsyncWorkTracker.java:66)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:267)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:30)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:27)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:48)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:244)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:227)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:210)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:176)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:167)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:47)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:137)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:134)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:134)
+	at org.gradle.internal.execution.steps.ExecuteStep$Mutable.execute(ExecuteStep.java:80)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:51)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:29)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.executeMutable(RemovePreviousOutputsStep.java:67)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.executeMutable(RemovePreviousOutputsStep.java:39)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:42)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:24)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.executeMutable(ResolveInputChangesStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.executeMutable(ResolveInputChangesStep.java:28)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeAndStoreInCache(BuildCacheStep.java:145)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$executeWithCache$4(BuildCacheStep.java:104)
+	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$executeWithCache$5(BuildCacheStep.java:104)
+	at org.gradle.internal.Try$Success.map(Try.java:170)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithCache(BuildCacheStep.java:88)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$0(BuildCacheStep.java:75)
+	at org.gradle.internal.Either$Left.fold(Either.java:116)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:74)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:49)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.executeMutable(StoreExecutionStateStep.java:46)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.executeMutable(StoreExecutionStateStep.java:35)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53)
+	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveMutableCachingStateStep.executeDelegate(ResolveMutableCachingStateStep.java:70)
+	at org.gradle.internal.execution.steps.ResolveMutableCachingStateStep.executeDelegate(ResolveMutableCachingStateStep.java:32)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:69)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:37)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.executeMutable(ResolveChangesStep.java:63)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.executeMutable(ResolveChangesStep.java:34)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.ValidateStep$Mutable.executeDelegate(ValidateStep.java:79)
+	at org.gradle.internal.execution.steps.ValidateStep$Mutable.executeDelegate(ValidateStep.java:65)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:99)
+	at org.gradle.internal.execution.steps.ValidateStep$Mutable.execute(ValidateStep.java:65)
+	at org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep.executeMutable(CaptureMutableStateBeforeExecutionStep.java:86)
+	at org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep.execute(CaptureMutableStateBeforeExecutionStep.java:65)
+	at org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep.execute(CaptureMutableStateBeforeExecutionStep.java:45)
+	at org.gradle.internal.execution.steps.SkipEmptyMutableWorkStep.executeWithNonEmptySources(SkipEmptyMutableWorkStep.java:210)
+	at org.gradle.internal.execution.steps.SkipEmptyMutableWorkStep.executeMutable(SkipEmptyMutableWorkStep.java:90)
+	at org.gradle.internal.execution.steps.SkipEmptyMutableWorkStep.executeMutable(SkipEmptyMutableWorkStep.java:53)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.executeMutable(LoadPreviousExecutionStateStep.java:36)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.executeMutable(LoadPreviousExecutionStateStep.java:23)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.executeMutable(HandleStaleOutputsStep.java:77)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.executeMutable(HandleStaleOutputsStep.java:43)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$executeMutable$0(AssignMutableWorkspaceStep.java:34)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:305)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.executeMutable(AssignMutableWorkspaceStep.java:30)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.executeMutable(AssignMutableWorkspaceStep.java:21)
+	at org.gradle.internal.execution.steps.MutableStep.execute(MutableStep.java:26)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:56)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:38)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:68)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+	... 33 more
+Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+	at org.jetbrains.kotlin.gradle.tasks.TasksUtilsKt.throwExceptionIfCompilationFailed(tasksUtils.kt:21)
+	at org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork.execute(BuildToolsApiCompilationWork.kt:320)
+	at org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:68)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:64)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:61)
+	at org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:102)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.lambda$execute$0(NoIsolationWorkerFactory.java:61)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:44)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:41)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.workers.internal.AbstractWorker.executeWrappedInBuildOperation(AbstractWorker.java:41)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.execute(NoIsolationWorkerFactory.java:58)
+	at org.gradle.workers.internal.DefaultWorkerExecutor.lambda$submitWork$0(DefaultWorkerExecutor.java:176)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runExecution(DefaultConditionalExecutionQueue.java:194)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.access$700(DefaultConditionalExecutionQueue.java:127)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner$1.run(DefaultConditionalExecutionQueue.java:169)
+	at org.gradle.internal.Factories$1.create(Factories.java:30)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.lambda$withLocksAcquired$0(DefaultWorkerLeaseService.java:275)
+	at org.gradle.internal.work.ResourceLockStatistics$1.measure(ResourceLockStatistics.java:43)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocksAcquired(DefaultWorkerLeaseService.java:273)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:265)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:128)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:133)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runBatch(DefaultConditionalExecutionQueue.java:164)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.run(DefaultConditionalExecutionQueue.java:133)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	... 5 more
+
+==============================================================================
+
+BUILD FAILED in 1m 13s
+96 actionable tasks: 58 executed, 38 from cache

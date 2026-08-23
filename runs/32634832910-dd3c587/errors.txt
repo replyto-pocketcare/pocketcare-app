@@ -1,0 +1,70 @@
+122:> Task :app:processDebugMainManifest FAILED
+127:> Task :app:compileDebugKotlin FAILED
+128:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/theme/Font.kt:28:38 This API is experimental and is likely to change in the future.
+129:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:71:21 Unresolved reference 'rememberSaveable'.
+130:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:72:27 Unresolved reference 'rememberSaveable'.
+131:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:73:26 Unresolved reference 'rememberSaveable'.
+132:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:74:24 Unresolved reference 'rememberSaveable'.
+133:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:155:54 Unresolved reference 'it'.
+134:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:156:35 @Composable invocations can only happen from the context of a @Composable function
+135:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:191:31 Unresolved reference 'rememberSaveable'.
+136:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:192:32 Unresolved reference 'rememberSaveable'.
+137:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:209:42 Cannot infer type for type parameter 'T'. Specify it explicitly.
+138:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:209:52 Return type mismatch: expected 'Sequence<uninferred T (of fun <T> Sequence<T>.ifEmpty)>', actual 'String'.
+139:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsScreen.kt:322:62 Cannot access 'fun WideNavigationRailValue.not(): WideNavigationRailValue': it is internal in file.
+140:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:24:12 Unresolved reference 'powersync'.
+141:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:25:12 Unresolved reference 'powersync'.
+142:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:26:12 Unresolved reference 'powersync'.
+143:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:27:8 Unresolved reference 'io'.
+144:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:28:8 Unresolved reference 'io'.
+145:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:29:8 Unresolved reference 'io'.
+146:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:37:30 Unresolved reference 'json'.
+147:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:38:30 Unresolved reference 'json'.
+148:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:39:30 Unresolved reference 'json'.
+149:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:40:30 Unresolved reference 'json'.
+150:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:74:25 Unresolved reference 'SupabaseClient'.
+151:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:74:40 Property delegate must have a 'getValue(SettingsViewModel, KProperty1<SettingsViewModel, ??? (Unresolved qualified name: SupabaseClient)>)' method. None of the following functions is applicable:
+153:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:74:43 Cannot infer type for type parameter 'T'. Specify it explicitly.
+154:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:74:43 Cannot infer type for type parameter 'T'. Specify it explicitly.
+155:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:75:21 Unresolved reference 'PowerSyncDatabase'.
+156:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:75:39 Property delegate must have a 'getValue(SettingsViewModel, KProperty1<SettingsViewModel, ??? (Unresolved qualified name: PowerSyncDatabase)>)' method. None of the following functions is applicable:
+158:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:75:42 Cannot infer type for type parameter 'T'. Specify it explicitly.
+159:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:75:42 Cannot infer type for type parameter 'T'. Specify it explicitly.
+160:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:197:35 Unresolved reference 'auth'.
+161:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:198:29 Cannot access class 'io.github.jan.supabase.SupabaseClient'. Check your module classpath for missing or conflicting dependencies.
+162:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:199:74 Unresolved reference 'JsonPrimitive'.
+163:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:199:90 Unresolved reference 'content'.
+164:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:202:48 Overload resolution ambiguity between candidates:
+172:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:215:24 Unresolved reference 'auth'.
+173:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:215:42 Unresolved reference 'data'.
+174:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:215:49 Unresolved reference 'buildJsonObject'.
+175:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:215:67 Unresolved reference 'put'.
+176:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:244:30 Unresolved reference 'getOptional'.
+177:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:247:32 Cannot infer type for value parameter 'c'. Specify it explicitly.
+178:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:248:28 Unresolved reference 'getStringOptional'.
+179:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:248:69 Unresolved reference 'getStringOptional'.
+180:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:253:48 Unresolved reference 'first'.
+181:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:254:49 Unresolved reference 'second'.
+182:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:268:21 Cannot access class 'com.powersync.PowerSyncDatabase'. Check your module classpath for missing or conflicting dependencies.
+183:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:270:21 Cannot access class 'com.powersync.PowerSyncDatabase'. Check your module classpath for missing or conflicting dependencies.
+184:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:297:29 Unresolved reference 'currentStatus'.
+185:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:305:40 Unresolved reference 'getOptional'.
+186:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:307:34 Cannot infer type for type parameter 'T'. Specify it explicitly.
+187:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:308:32 Cannot infer type for value parameter 'c'. Specify it explicitly.
+188:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:308:39 Unresolved reference 'getLong'.
+189:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:314:37 Cannot access class 'com.powersync.PowerSyncDatabase'. Check your module classpath for missing or conflicting dependencies.
+190:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:334:17 Cannot access class 'com.powersync.PowerSyncDatabase'. Check your module classpath for missing or conflicting dependencies.
+191:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:456:24 Unresolved reference 'postgrest'.
+192:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:458:34 Unresolved reference 'buildJsonObject'.
+193:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:458:52 Unresolved reference 'put'.
+194:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:459:33 Unresolved reference 'schema'.
+195:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/SettingsViewModel.kt:462:24 Unresolved reference 'disconnectAndClear'.
+196:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/components/Icon.kt:47:18 Unresolved reference 'semantics'.
+197:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/components/Icon.kt:47:30 'this' is not defined in this context.
+198:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/receipts/ReceiptReviewViewModel.kt:17:39 Unresolved reference 'adoptComputedTotal'.
+199:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/receipts/ReceiptReviewViewModel.kt:135:43 Unresolved reference 'adoptComputedTotal'.
+204:FAILURE: Build completed with 2 failures.
+388:   > Compilation error. See log for more details
+551:Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+590:BUILD FAILED in 1m 13s
+73:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Tests/DomainTests/VectorRunnerTests.swift:70: error: -[DomainTests.VectorRunnerTests testFinance] : failed - finance: 1 vector(s) failed:

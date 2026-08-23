@@ -1,0 +1,27 @@
+globals.css: 19 colours, 3 radii, 3 shadows; 34/34 spec assertions match.
+Wrote:
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Color.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Shape.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Type.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Elevation.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Motion.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Metrics.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Theme.kt
+ - apps/ios/App/Theme/Colors.swift
+ - apps/ios/App/Theme/Shape.swift
+ - apps/ios/App/Theme/Typography.swift
+ - apps/ios/App/Theme/Elevation.swift
+ - apps/ios/App/Theme/Motion.swift
+ - apps/ios/App/Theme/Metrics.swift
+i18n: 28 namespaces, 1341 entries (17 plural), 3 locales — key sets aligned.
+Wrote:
+ - apps/android/app/src/main/res/values/strings.xml
+ - apps/android/app/src/main/res/values-hi/strings.xml
+ - apps/android/app/src/main/res/values-nl/strings.xml
+ - apps/android/app/src/main/java/com/sanvya/app/i18n/S.kt
+ - apps/ios/App/Resources/Localizable.xcstrings
+ - apps/ios/App/Generated/S.swift
+icons: 57 names parsed from MaterialIcon.tsx
+Wrote:
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Icons.kt
+ - apps/ios/App/Theme/Icons.swift
