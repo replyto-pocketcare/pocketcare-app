@@ -73,23 +73,28 @@ export async function addHolding(inp: AddHoldingInput): Promise<string> {
     }
   }
 
-  // 2) SIP → a recurring transfer rule (debit account → this investment account)
-  //    that auto-posts on the SIP date. Surfaces under Recurring / Planned Cashflow.
+  // 2) SIP → a recurring transfer (debit account → this investment account)
+  //    that auto-posts on the SIP date. Surfaces under Recurring.
+  //
+  //    One row now, not a template + rule pair: recurring_items carries both
+  //    the schedule and the transaction detail (migration 0064).
   let plannedId: string | null = null;
   if (inp.sip && inp.sip.amount > 0 && inp.sip.sourceAccountId) {
-    const templateId = await insertRow("transaction_templates", {
+    plannedId = await insertRow("recurring_items", {
+      direction: "saving",
       name: inp.name || inp.symbol || "SIP",
-      type: "transfer",
       amount: inp.sip.amount,
       currency: inp.currency,
+      frequency: inp.sip.frequency,
+      interval_count: 1,
+      next_due: inp.sip.firstDue,
       account_id: inp.sip.sourceAccountId,
       to_account_id: inp.investmentAccountId,
-      category_id: null, description: "SIP", note: null, payment_method: null,
-      labels: null, split_group_id: null, split_mode: "equal", sort: 0,
-    });
-    plannedId = await insertRow("recurring_rules", {
-      template_id: templateId, frequency: inp.sip.frequency, interval_count: 1,
-      next_due: inp.sip.firstDue, last_generated: null, auto_post: 1, active: 1,
+      category_id: null, group_id: null,
+      auto_post: 1, active: 1, alert_time_utc: null,
+      description: "SIP", note: null, payment_method: null,
+      labels: null, split_group_id: null, split_mode: null,
+      last_generated: null, source_table: null, source_id: null,
     });
   }
 

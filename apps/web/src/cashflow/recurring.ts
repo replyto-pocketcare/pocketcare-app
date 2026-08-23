@@ -1,29 +1,35 @@
 "use client";
 
 /**
- * Recurring-rule-backed Planned Cashflow items. Instead of standalone
- * planned_cashflow rows, incomes / payments / savings are real recurring rules
- * (a `transaction_templates` row + a `recurring_rules` row) that actually post
- * transactions via the recurring engine. Direction maps to the template type:
- *   income  → income template
- *   payment → expense template
- *   saving  → transfer template (into an investment account)
+ * Recurring items, read from `recurring_items`.
+ *
+ * These used to be a `transaction_templates` row plus a `recurring_rules` row.
+ * They are now a single self-sufficient row (see src/recurring/engine.ts and
+ * migration 0064), which is what lets the Templates feature be removed without
+ * taking every recurring commitment with it.
+ *
+ * `RecurringItem` keeps its shape so the /recurring page and its components did
+ * not all need rewriting; `ruleId` and `templateId` are both the item's id now,
+ * which keeps existing call sites honest while they still pass a pair around.
  */
 import { useQuery } from "@powersync/react";
-import type { Freq } from "../templates/write";
-import { createTemplate, createRule, updateTemplate } from "../templates/write";
-import { updateRow, softDelete } from "../write";
+import {
+  RECURRING_COLUMNS, createRecurring as create, updateRecurring as update,
+  removeRecurring as remove, typeForDirection,
+  type Freq, type RecurringDirection, type RecurringInput, type RecurringRow,
+} from "../recurring/engine";
 
-export type RecurringDirection = "income" | "payment" | "saving";
+export type { RecurringDirection, RecurringInput, Freq };
+export { typeForDirection };
 
 export interface RecurringItem {
   ruleId: string;
   templateId: string;
   direction: RecurringDirection;
   name: string;
-  amount: number;         // minor units, in `currency`
+  amount: number;
   currency: string;
-  frequency: string;      // daily | weekly | monthly | yearly
+  frequency: string;
   next_due: string;
   account_id: string | null;
   to_account_id: string | null;
@@ -33,88 +39,39 @@ export interface RecurringItem {
   alert_time_utc: string | null;
 }
 
-const directionOf = (type: string): RecurringDirection =>
-  type === "income" ? "income" : type === "transfer" ? "saving" : "payment";
-
-export const typeForDirection = (d: RecurringDirection): "income" | "expense" | "transfer" =>
-  d === "income" ? "income" : d === "saving" ? "transfer" : "expense";
-
-interface Row {
-  ruleId: string; templateId: string; type: string; name: string; amount: number | null; currency: string | null;
-  account_id: string | null; to_account_id: string | null; category_id: string | null; group_id: string | null;
-  frequency: string; next_due: string; auto_post: number; alert_time_utc: string | null;
-}
+const directionOf = (d: string): RecurringDirection =>
+  d === "income" ? "income" : d === "saving" ? "saving" : "payment";
 
 export function useRecurringItems(): RecurringItem[] {
-  const { data = [] } = useQuery<Row>(
-    `SELECT r.id AS ruleId, r.template_id AS templateId, t.type AS type, t.name AS name,
-            t.amount AS amount, t.currency AS currency, t.account_id AS account_id,
-            t.to_account_id AS to_account_id, t.category_id AS category_id, t.group_id AS group_id,
-            r.frequency AS frequency, r.next_due AS next_due, r.auto_post AS auto_post, r.alert_time_utc AS alert_time_utc
-     FROM recurring_rules r JOIN transaction_templates t ON t.id = r.template_id
-     WHERE r.deleted_at IS NULL AND t.deleted_at IS NULL AND r.active = 1
-     ORDER BY r.next_due`,
+  const { data = [] } = useQuery<RecurringRow>(
+    `SELECT ${RECURRING_COLUMNS} FROM recurring_items
+      WHERE deleted_at IS NULL AND active = 1 ORDER BY next_due`,
   );
   return data.map((d) => ({
-    ruleId: d.ruleId, templateId: d.templateId, direction: directionOf(d.type),
-    name: d.name, amount: d.amount ?? 0, currency: d.currency ?? "",
-    frequency: d.frequency, next_due: d.next_due, account_id: d.account_id,
-    to_account_id: d.to_account_id, category_id: d.category_id, group_id: d.group_id, auto_post: d.auto_post,
+    ruleId: d.id,
+    templateId: d.id,
+    direction: directionOf(d.direction),
+    name: d.name,
+    amount: d.amount ?? 0,
+    currency: d.currency ?? "",
+    frequency: d.frequency,
+    next_due: d.next_due,
+    account_id: d.account_id,
+    to_account_id: d.to_account_id,
+    category_id: d.category_id,
+    group_id: d.group_id,
+    auto_post: d.auto_post,
     alert_time_utc: d.alert_time_utc,
   }));
 }
 
-export interface RecurringInput {
-  direction: RecurringDirection;
-  name: string;
-  amount: number;              // major units
-  accountId: string | null;
-  toAccountId?: string | null; // saving → destination investment account
-  categoryId?: string | null;  // payment → optional category
-  frequency: Freq;
-  firstDue: string;            // YYYY-MM-DD
-  autoPost: boolean;
-  /** Required by the UI — nothing may be ungrouped. Nullable in Postgres only
-   *  because a NOT NULL + FK would quarantine on incremental sync (see 0046). */
-  groupId: string;
-  alert_time_utc: string | null;
+export const createRecurring = create;
+
+/** Signature keeps both ids so callers need no change; they are the same row. */
+export async function updateRecurring(ruleId: string, _templateId: string, inp: RecurringInput): Promise<void> {
+  await update(ruleId, inp);
 }
 
-/** Create a recurring item = a template + a recurring rule, in one step. */
-export async function createRecurring(inp: RecurringInput): Promise<string> {
-  const templateId = await createTemplate({
-    name: inp.name,
-    type: typeForDirection(inp.direction),
-    amount: inp.amount,
-    accountId: inp.accountId,
-    toAccountId: inp.toAccountId ?? null,
-    categoryId: inp.categoryId ?? null,
-    groupId: inp.groupId,
-  });
-  return createRule({ templateId, frequency: inp.frequency, firstDue: inp.firstDue, autoPost: inp.autoPost, alert_time_utc: inp.alert_time_utc });
-}
-
-/** Update the template + rule behind a recurring item. */
-export async function updateRecurring(ruleId: string, templateId: string, inp: RecurringInput): Promise<void> {
-  await updateTemplate(templateId, {
-    name: inp.name,
-    type: typeForDirection(inp.direction),
-    amount: inp.amount,
-    accountId: inp.accountId,
-    toAccountId: inp.toAccountId ?? null,
-    categoryId: inp.categoryId ?? null,
-    groupId: inp.groupId,
-  });
-  await updateRow("recurring_rules", ruleId, { 
-    frequency: inp.frequency, 
-    next_due: inp.firstDue, 
-    auto_post: inp.autoPost ? 1 : 0,
-    alert_time_utc: inp.alert_time_utc 
-  });
-}
-
-/** Soft-delete both the rule and its template. */
-export async function removeRecurring(ruleId: string, templateId: string): Promise<void> {
-  await softDelete("recurring_rules", ruleId);
-  await softDelete("transaction_templates", templateId);
+export async function removeRecurring(ruleId: string, _templateId?: string): Promise<void> {
+  await remove(ruleId);
 }

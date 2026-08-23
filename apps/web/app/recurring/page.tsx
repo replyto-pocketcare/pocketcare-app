@@ -23,8 +23,8 @@ import { useGroupsByDirection, ensureDefaultGroups } from "../../src/recurring/g
 import { GroupSection } from "../../src/recurring/GroupSection";
 import { TriageStrip } from "../../src/recurring/TriageStrip";
 import { RecurringModal } from "../../src/cashflow/RecurringModal";
-import { useDueRules } from "../../src/templates/hooks";
-import { postRuleOnce, skipRuleOnce, type Freq } from "../../src/templates/write";
+
+import { postOnce, skipOnce, useDueItems, type Freq } from "../../src/recurring/engine";
 
 interface ModalState { direction: RecurringDirection; edit?: RecurringItem; prefill?: { name?: string; amount?: number; frequency?: Freq }; convertFrom?: string }
 const isDir = (s: string | null): s is RecurringDirection => s === "income" || s === "payment" || s === "saving";
@@ -36,7 +36,7 @@ export default function RecurringPage() {
   const router = useRouter();
   const params = useSearchParams();
   const items = useRecurringItems();
-  const due = useDueRules();
+  const due = useDueItems();
   const [modal, setModal] = useState<ModalState | null>(null);
 
   useRegisterAddAction({
@@ -98,8 +98,8 @@ export default function RecurringPage() {
             <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <span style={{ fontSize: 14 }}>{r.template_name} <span className="muted" style={{ fontSize: 12 }}>· {t("dueOn", { date: r.next_due })}{r.amount != null ? ` · ${fmt(money(r.amount, r.currency ?? base))}` : ""}</span></span>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="chip" onClick={() => void skipRuleOnce(r.id)}>{t("skip")}</button>
-                <button className="btn" style={{ padding: "4px 12px", fontSize: 13, minHeight: 0 }} onClick={() => void postRuleOnce(r.id)}>{t("record")}</button>
+                <button className="chip" onClick={() => void skipOnce(r.id)}>{t("skip")}</button>
+                <button className="btn" style={{ padding: "4px 12px", fontSize: 13, minHeight: 0 }} onClick={() => void postOnce(r.id)}>{t("record")}</button>
               </div>
             </div>
           ))}
@@ -124,7 +124,7 @@ export default function RecurringPage() {
           onAdd={() => setModal({ direction: dir })}
           onEdit={(it) => setModal({ direction: dir, edit: it })}
           onRemove={(it) => removeRecurring(it.ruleId, it.templateId)}
-          onPostNow={(it) => void postRuleOnce(it.ruleId)}
+          onPostNow={(it) => void postOnce(it.ruleId)}
         />
       ))}
 

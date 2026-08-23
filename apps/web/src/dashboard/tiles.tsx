@@ -435,18 +435,17 @@ function GoalsTile() {
 function SubscriptionsTile() {
   const base = useBaseCurrency();
   const hidden = useAmountsHidden();
-  // Subscriptions live under the "Subscription" group of recurring *payments*
-  // (recurring_rules → transaction_templates → recurring_groups) — the same list
-  // the user manages on /recurring.
+  // Subscriptions live under the "Subscription" group of recurring *payments* —
+  // the same list the user manages on /recurring. Reads recurring_items, which
+  // now holds both halves of what used to be a template + rule pair.
   const { data: subs = [] } = useQuery<{ name: string; amount: number; currency: string; frequency: string; next_due: string | null; created_at: string | null }>(
-    `SELECT t.name AS name, COALESCE(t.amount, 0) AS amount, COALESCE(t.currency, '') AS currency,
-            r.frequency AS frequency, r.next_due AS next_due, r.created_at AS created_at
-     FROM recurring_rules r
-     JOIN transaction_templates t ON t.id = r.template_id
-     JOIN recurring_groups g ON g.id = t.group_id
-     WHERE r.deleted_at IS NULL AND t.deleted_at IS NULL AND g.deleted_at IS NULL
-       AND r.active = 1 AND g.direction = 'payment' AND lower(g.name) = 'subscription'
-     ORDER BY r.next_due`,
+    `SELECT i.name AS name, COALESCE(i.amount, 0) AS amount, COALESCE(i.currency, '') AS currency,
+            i.frequency AS frequency, i.next_due AS next_due, i.created_at AS created_at
+     FROM recurring_items i
+     JOIN recurring_groups g ON g.id = i.group_id
+     WHERE i.deleted_at IS NULL AND g.deleted_at IS NULL
+       AND i.active = 1 AND g.direction = 'payment' AND lower(g.name) = 'subscription'
+     ORDER BY i.next_due`,
   );
   const monthly = subs.reduce((s, x) => s + monthlyEquivalent(x.amount, x.frequency as Period), 0);
   // Estimated lifetime spend across active subscriptions — see estimatedSpentToDate.

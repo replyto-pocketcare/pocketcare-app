@@ -121,7 +121,7 @@ export async function ensureDefaultGroups(): Promise<void> {
   // Anything already grouped means seeding has happened before on some device
   // and the rows just haven't synced down yet. Don't race them.
   const grouped = await db.getOptional<{ c: number }>(
-    "SELECT COUNT(*) AS c FROM transaction_templates WHERE deleted_at IS NULL AND group_id IS NOT NULL",
+    "SELECT COUNT(*) AS c FROM recurring_items WHERE deleted_at IS NULL AND group_id IS NOT NULL",
   );
   if ((grouped?.c ?? 0) > 0) return;
 
@@ -165,19 +165,21 @@ export async function deleteGroup(id: string, moveTo: string | null): Promise<vo
   const db = getDb();
   if (!db) return;
   const items = await db.getAll<{ id: string }>(
-    "SELECT id FROM transaction_templates WHERE group_id = ? AND deleted_at IS NULL",
+    "SELECT id FROM recurring_items WHERE group_id = ? AND deleted_at IS NULL",
     [id],
   );
   if (items.length > 0) {
     if (!moveTo) throw new Error("Choose where to move this group's items before deleting it.");
-    for (const it of items) await updateRow("transaction_templates", it.id, { group_id: moveTo });
+    for (const it of items) await updateRow("recurring_items", it.id, { group_id: moveTo });
   }
   await softDelete("recurring_groups", id);
 }
 
-/** Assign one recurring item (by its template id) to a group. */
+/** Assign one recurring item to a group. The parameter is still named
+ *  `templateId` because callers pass RecurringItem.templateId, which is now the
+ *  item's own id — see src/cashflow/recurring.ts. */
 export async function assignGroup(templateId: string, groupId: string): Promise<void> {
-  await updateRow("transaction_templates", templateId, { group_id: groupId });
+  await updateRow("recurring_items", templateId, { group_id: groupId });
 }
 
 /**

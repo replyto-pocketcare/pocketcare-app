@@ -12,7 +12,7 @@ import { useQuery } from "@powersync/react";
 import { Modal } from "../ui/Modal";
 import { FloatingInput } from "../ui/FloatingInput";
 import { utcToLocalTime, localToUtcTime } from "../time";
-import type { Freq } from "../templates/write";
+import type { Freq } from "../recurring/engine";
 import { createRecurring, updateRecurring, type RecurringDirection, type RecurringItem } from "./recurring";
 import { useGroupsByDirection, createGroup } from "../recurring/groups";
 import { isInvestmentAccount } from "@sanvya/types";

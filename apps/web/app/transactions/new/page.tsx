@@ -14,8 +14,6 @@ import { AccountBadge } from "../../../src/ui/AccountBadge";
 import { useGroups, useUserProfiles, useMyUserId, useConnections } from "../../../src/splits/hooks";
 import { createSplitExpense, getOrCreateDirectGroup, type SplitMode } from "../../../src/splits/write";
 import { splitEqual, splitByWeights } from "../../../src/splits/math";
-import { useTemplates, type Template } from "../../../src/templates/hooks";
-import { createTemplate, FREE_TEMPLATE_LIMIT } from "../../../src/templates/write";
 import { useEntitlement } from "../../../src/entitlement";
 import { UpgradeModal } from "../../../src/ui/UpgradeModal";
 import { useAutoCategorize, useLearnCategory } from "../../../src/categorize/hooks";
@@ -140,10 +138,8 @@ export default function NewTransactionPage() {
   }, [search, groupMembers]);
 
   // Templates (Quick Apply).
-  const templates = useTemplates();
   const { isPaid } = useEntitlement();
   const tplAppliedRef = useRef(false);
-  const [tplSaved, setTplSaved] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const combinedDescriptionText = useMemo(() => {
@@ -167,30 +163,6 @@ export default function NewTransactionPage() {
       setIsAutoApplied(true);
     }
   }, [suggestedCategory, manualCategory, categoryId, setIsAutoApplied]);
-
-  function applyTemplate(t: Template) {
-    setType(t.type === "income" ? "income" : t.type === "transfer" ? "transfer" : "expense");
-    setItems([{ id: `i${++counter}`, description: t.description ?? "", value: t.amount != null ? String(t.amount / 100) : "" }]);
-    if (t.account_id) setAccountId(t.account_id);
-    setCategoryId(t.category_id ?? null);
-    setManualCategory(true);
-    setNote(t.note ?? "");
-    if (t.payment_method) setPaymentMethod(t.payment_method);
-    setSelectedLabels(t.labels ? t.labels.split(",").map((s) => s.trim()).filter(Boolean) : []);
-    if (t.split_group_id) { setSplitTouched(true); setSplitOn(true); setSplitGroupId(t.split_group_id); setSplitMembers(membersOf(t.split_group_id)); setSplitMode((t.split_mode as SplitMode) || "equal"); }
-    setTplSaved(false);
-  }
-
-  // One-time prefill from ?template=ID (deep link / "Use" button).
-  useEffect(() => {
-    if (tplAppliedRef.current) return;
-    const id = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("template") : null;
-    if (!id) return;
-    const t = templates.find((x) => x.id === id);
-    if (!t) return;
-    tplAppliedRef.current = true;
-    applyTemplate(t);
-  }, [templates]);
 
   const occurredAtIso = () => new Date(date).toISOString();
 
@@ -389,12 +361,6 @@ export default function NewTransactionPage() {
     <div style={{ maxWidth: 620, display: "grid", gap: 16 }} className="fade-up">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <h1 style={{ margin: 0 }}>{t("addTitle")}</h1>
-        {templates.length > 0 && (
-          <select className="input" style={{ maxWidth: 220 }} value="" onChange={(e) => { const tpl = templates.find((x) => x.id === e.target.value); if (tpl) applyTemplate(tpl); }}>
-            <option value="">{t("startFromTemplate")}</option>
-            {templates.map((tpl) => <option key={tpl.id} value={tpl.id}>{tpl.name}</option>)}
-          </select>
-        )}
       </div>
 
       <div style={{ display: "flex", gap: 8 }}>
@@ -692,34 +658,8 @@ export default function NewTransactionPage() {
       <button className="btn" disabled={!canSave} onClick={save} style={{ justifyContent: "center", padding: 14 }}>
         {saving ? t("saving") : t("saveWithTotal", { total: format(total, "en-US") })}
       </button>
-      {!!account && total.amount > 0 && (
-        <button className="chip" style={{ justifySelf: "center" }} disabled={tplSaved} onClick={() => void saveAsTemplate()}>
-          {tplSaved ? t("savedAsTemplate") : t("saveAsTemplate")}
-        </button>
-      )}
-
-      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} title={t("templateLimitTitle")}
-        message={t("templateLimitMsg", { limit: FREE_TEMPLATE_LIMIT })} />
     </div>
   );
-
-  async function saveAsTemplate() {
-    if (!account) return;
-    if (!isPaid && templates.length >= FREE_TEMPLATE_LIMIT) { setShowUpgrade(true); return; }
-    const fallbackName = type === "income" ? t("defaultIncome") : type === "transfer" ? t("defaultTransfer") : t("defaultExpense");
-    const guess = items.map((i) => i.description.trim()).filter(Boolean).join(", ") || fallbackName;
-    const name = typeof window !== "undefined" ? window.prompt(t("templateNamePrompt"), guess) : guess;
-    if (!name) return;
-    await createTemplate({
-      name, type: type === "transfer" ? "transfer" : type,
-      amount: total.amount ? total.amount / 100 : null,
-      accountId: account.id, toAccountId: type === "transfer" ? (toAccount?.id ?? null) : null,
-      categoryId, description: guess === fallbackName ? null : guess,
-      note: note.trim() || null, paymentMethod: paymentMethod || null, labels: selectedLabels,
-      splitGroupId: splitActive ? splitGroupId : null, splitMode: splitActive ? splitMode : "equal",
-    });
-    setTplSaved(true);
-  }
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

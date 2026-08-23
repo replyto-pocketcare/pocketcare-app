@@ -157,7 +157,7 @@ export function Suggestions() {
       (SELECT COUNT(*) FROM goals WHERE deleted_at IS NULL) AS goals,
       (SELECT COUNT(*) FROM split_groups WHERE deleted_at IS NULL) AS splitGroups,
       (SELECT COUNT(*) FROM receipt_scans WHERE deleted_at IS NULL) AS receipts,
-      (SELECT COUNT(*) FROM recurring_rules WHERE deleted_at IS NULL) AS recurring,
+      (SELECT COUNT(*) FROM recurring_items WHERE deleted_at IS NULL) AS recurring,
       (SELECT COUNT(*) FROM holdings WHERE deleted_at IS NULL) AS holdings,
       (SELECT COUNT(*) FROM credit_card_details WHERE deleted_at IS NULL) AS creditCards,
   `);

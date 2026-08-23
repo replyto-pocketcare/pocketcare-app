@@ -13,7 +13,7 @@ import { PlusIcon, DownloadIcon, BellIcon, ReceiptIcon, CloseIcon, LockIcon } fr
 import { MaterialIcon, type MaterialIconName } from "../src/ui/MaterialIcon";
 import { GlobalLoader } from "../src/ui/GlobalLoader";
 import { TrialNotice } from "../src/ui/TrialNotice";
-import { runRecurring } from "../src/templates/write";
+import { runRecurring } from "../src/recurring/engine";
 import { useInstallPrompt } from "../src/pwa";
 import { InstallGuide } from "../src/ui/InstallGuide";
 import { Modal } from "../src/ui/Modal";
@@ -176,7 +176,6 @@ const NAV_GROUPS: { title: string; items: { href: string; tkey: string; label: s
   { title: "Money", items: [
     { href: "/accounts", tkey: "nav.accounts", label: "Accounts", icon: "account_balance" },
     { href: "/transactions", tkey: "nav.transactions", label: "Transactions", icon: "swap_horiz" },
-    { href: "/templates", tkey: "nav.templates", label: "Templates", icon: "bookmarks" },
     { href: "/cards", tkey: "nav.cards", label: "Cards", icon: "credit_card" },
     // Splits and Groups & trips were one screen's worth of information split
     // across two; /groups now redirects to /friends, so the nav has one entry.
