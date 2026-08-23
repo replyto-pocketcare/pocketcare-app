@@ -358,8 +358,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}><Spinner size={34} /></div>;
   }
 
-  // Lite/Pro only — matches the gate on /receipts/new and in receipt-scan.
-  const canScan = entitlement.tier === "lite" || entitlement.tier === "pro";
+  // Lite/Pro, plus an active trial — matches /receipts/new and receipt-scan.
+  const canScan = entitlement.tier === "lite" || entitlement.tier === "pro" || entitlement.isTrial;
   const action = pageAction ?? defaultAddAction(t, canScan);
   const menuItems = action.type === "menu" ? action.items : null;
 

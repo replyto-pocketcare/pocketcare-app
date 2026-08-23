@@ -40,11 +40,11 @@ export default function NewReceiptPage() {
   //
   // `ent.tier` is the EFFECTIVE tier (it already folds in a complimentary tier
   // from a redeemed coupon), so this reads paid-or-not without re-deriving it.
-  // Note this deliberately does NOT include `ent.isTrial`: the assistant lets
-  // trial users in, but scanning was asked for as Lite and Pro only. The
-  // receipt-scan function enforces the same rule server-side — this card is
-  // the courtesy, that is the gate.
-  const canScan = ent.tier === "lite" || ent.tier === "pro";
+  // Trial counts too: the trial exists to show what a paid plan feels like, so
+  // withholding a headline paid feature from it defeats the point. Matches the
+  // assistant, and the receipt-scan function enforces the same rule
+  // server-side — this card is the courtesy, that is the gate.
+  const canScan = ent.tier === "lite" || ent.tier === "pro" || ent.isTrial;
 
   const [stage, setStage] = useState<ScanStage | null>(null);
   const [fraction, setFraction] = useState(0);
