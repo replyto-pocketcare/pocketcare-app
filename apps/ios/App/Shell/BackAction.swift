@@ -15,21 +15,18 @@ import SwiftUI
  Registering `nil` — or leaving the screen — clears it, so a screen can never
  hand its Back to the next one.
  */
-private struct BackActionKey: EnvironmentKey {
-    static let defaultValue: (() -> Void)? = nil
-}
-
 private struct BackActionSetterKey: EnvironmentKey {
-    static let defaultValue: ((() -> Void)?) -> Void = { _ in }
+    // `nonisolated(unsafe)` is load-bearing and honest. Swift 6 flags any
+    // static property whose type is not Sendable, and a closure type never is.
+    // What is actually stored here is a `let` holding a closure that captures
+    // nothing and does nothing, so there is no shared mutable state to race on
+    // — the compiler simply has no way to express that. The real setter is
+    // injected by the shell per-view through the environment; this is only the
+    // no-op fallback for a view rendered outside it (previews, tests).
+    nonisolated(unsafe) static let defaultValue: ((() -> Void)?) -> Void = { _ in }
 }
 
 extension EnvironmentValues {
-    /// Read by the shell to decide whether the util row shows Back.
-    var backAction: (() -> Void)? {
-        get { self[BackActionKey.self] }
-        set { self[BackActionKey.self] = newValue }
-    }
-
     var backActionSetter: ((() -> Void)?) -> Void {
         get { self[BackActionSetterKey.self] }
         set { self[BackActionSetterKey.self] = newValue }

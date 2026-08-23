@@ -51,7 +51,14 @@ func defaultAddAction(canScan: Bool) -> AddAction {
 
 /// Set by the shell; screens register through `registerAddAction`.
 private struct AddActionSetterKey: EnvironmentKey {
-    static let defaultValue: (AddAction?) -> Void = { _ in }
+    // `nonisolated(unsafe)` is load-bearing and honest. Swift 6 flags any
+    // static property whose type is not Sendable, and a closure type never is.
+    // What is actually stored here is a `let` holding a closure that captures
+    // nothing and does nothing, so there is no shared mutable state to race on
+    // — the compiler simply has no way to express that. The real setter is
+    // injected by the shell per-view through the environment; this is only the
+    // no-op fallback for a view rendered outside it (previews, tests).
+    nonisolated(unsafe) static let defaultValue: (AddAction?) -> Void = { _ in }
 }
 
 extension EnvironmentValues {
