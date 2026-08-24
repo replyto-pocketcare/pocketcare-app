@@ -942,12 +942,65 @@ Two things that review also settled, both previously unverified assumptions of m
 - Both vector runners *skip* an unregistered `fn` rather than failing, so a registration typo would
   have made `recurring-advance` pass vacuously. Registration confirmed present on both platforms.
 
+### iOS was writing UPPERCASE ids, and `currentUserId` was always nil — 2026-08-24
+
+Two findings, one of them systemic. Both are iOS-only and neither is visible on a single device.
+
+#### Swift's `UUID.uuidString` is uppercase. Nothing else in this product is.
+
+`crypto.randomUUID()` on web and `java.util.UUID.toString()` on Android both produce the lowercase
+canonical form. So does Postgres when it renders a `uuid` column. **iOS was the only writer
+producing `A1B2C3D4-…`** — for `newId()` (every row id it creates), for `authEnsureUser()`'s return
+(the `user_id` on every iOS write), for `ReceiptsRepository`'s scan id, and in
+`InvestmentsViewModel`.
+
+That is not cosmetic, because of where those strings live:
+
+- PowerSync's local mirror stores `id` and `user_id` as **TEXT**, and SQLite compares TEXT
+  **case-sensitively**. `WHERE user_id = ?` with an uppercase id does not match a row that arrived
+  from the server lowercase.
+- Postgres `uuid` columns normalise on write. An iOS-created row syncs up as uppercase, is stored
+  canonically, and **comes back down lowercase** — the local row's own id changes case underneath
+  anything still holding the uppercase one.
+
+Together: an iOS-written row is findable before its first sync and not after, and a parent created
+on iOS does not match a child that references it via the server's lowercased copy. Fixed with one
+`UUID.canonicalString` used at every persisting site (`Data/Ids.swift`). View-local `Identifiable`
+keys — a draft line item in a transaction form — never reach the database and are deliberately left
+alone; `TransactionItemInput` has no id field, which was checked rather than assumed.
+
+#### `currentUserId` returned nil unconditionally
+
+The property carried a comment claiming synchronous access was impossible in supabase-swift 2.x.
+**It is not.** `auth.session` is async because it *refreshes*; `auth.currentUser` is a
+`nonisolated` read off the local session store. Verified against **v2.54.1, the exact tag in
+`Package.resolved`** — cloned and read, not recalled.
+
+Most callers write `currentUserId ?? (try? await ensureUser())` and were unaffected. Four did not,
+and each silently did nothing:
+
+| Call site | What was broken |
+|---|---|
+| `LoanDetailViewModel` | `if let userId = …currentUserId` guarded the EMI charge — marking an EMI paid never posted it to the card |
+| `CreditCardsViewModel` (×2) | both settle paths returned "Couldn't determine the current user." |
+| `ReceiptReviewViewModel` | the save `guard` fell through silently |
+
+Worse, `RepairRepository` and `ReceiptsRepository` are constructed with
+`getUserId: { auth.currentUserId ?? "" }` — so they were writing rows with an **empty** `user_id`.
+
+**Both bugs share a shape worth naming:** a comment asserting a limitation
+(*"synchronous access is not directly possible"*, *"we return nil for sync access"*) that was never
+re-checked against the SDK, and a platform default (`uuidString`) that looked like the obvious call
+and was wrong only in comparison with the other two platforms. Neither is findable by testing iOS
+on its own — the first needs a second device or a sync round trip, the second needs a code path
+nobody had exercised.
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*
 - [x] `signInWithPassword` on both. *(2026-08-24 — iOS was the gap)*
 - [x] Google on both, linking rather than replacing a guest. *(2026-08-24, compiles; no live sign-in yet)*
-- [ ] `currentUserId` either works or is removed so nothing can depend on it.
+- [x] `currentUserId` works on both platforms. *(2026-08-24 — iOS returned nil unconditionally)*
 - [ ] A real device signs in, writes, force-quits, reopens, and sees its data — offline and on.
 - [ ] Guest → account upgrade preserves the guest's local data on both platforms.
 - [x] Auth gate on both. *(2026-08-24 — iOS's `SanvyaApp` already had one; this audit said it did

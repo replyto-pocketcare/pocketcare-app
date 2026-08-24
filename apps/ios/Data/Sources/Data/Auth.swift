@@ -24,11 +24,11 @@ import Supabase
 /// Mirrors ensureUser(client) in auth.ts.
 public func authEnsureUser(client: SupabaseClient) async throws -> String {
     if let session = try? await client.auth.session {
-        return session.user.id.uuidString
+        return session.user.id.canonicalString
     }
     try await client.auth.signInAnonymously()
     let session = try await client.auth.session
-    return session.user.id.uuidString
+    return session.user.id.canonicalString
 }
 
 // MARK: - isGuest

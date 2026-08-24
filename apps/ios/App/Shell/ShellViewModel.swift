@@ -49,9 +49,9 @@ final class ShellViewModel {
 
         tasks.append(Task { [weak self] in
             guard let self else { return }
-            // `AuthRepositoryImpl.currentUserId` still always returns nil
-            // (tracked as P3.2c). `ensureUser()` is the fallback every other
-            // write path already uses.
+            // ensureUser() rather than currentUserId: this runs at launch and
+            // must also CREATE the guest when there is no session at all, which
+            // currentUserId (now implemented, P3.2c closed) cannot do.
             guard let userId = try? await self.authRepository.ensureUser() else { return }
             do {
                 for try await rows in try await self.notificationsRepository.watchUnreadCount(userId: userId) {
@@ -119,8 +119,8 @@ final class ShellViewModel {
             guard let self else { return }
             try? await Task.sleep(for: Self.catchUpDelay)
             if Task.isCancelled { return }
-            // currentUserId still always returns nil (P3.2c); ensureUser() is
-            // the fallback every other write path here already uses.
+            // ensureUser(), same reasoning as start(): at launch there may be
+            // no session yet, and this must not silently skip the catch-up.
             guard let userId = try? await self.authRepository.ensureUser() else { return }
 
             // Sequential, where web fires both without awaiting either. A

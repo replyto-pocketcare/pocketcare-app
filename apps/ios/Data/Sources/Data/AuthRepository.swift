@@ -53,13 +53,31 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
         }
     }
     
+    /// The signed-in user's id, or nil when signed out.
+    ///
+    /// **This returned `nil` unconditionally** (P3.2c), with a comment claiming
+    /// synchronous access was impossible. It is not: `auth.session` is async
+    /// because it *refreshes*, but `auth.currentUser` is a `nonisolated` stored
+    /// read off the local session store. Verified against supabase-swift
+    /// v2.54.1 — the exact tag in Package.resolved — not from memory.
+    ///
+    /// The `nil` was not harmless. Most callers write
+    /// `currentUserId ?? (try? await ensureUser())` and were fine, but four did
+    /// not, and each silently did nothing:
+    ///
+    /// - `LoanDetailViewModel` — `if let userId = ...currentUserId` guarded the
+    ///   EMI charge, so marking an EMI paid never posted it to the card.
+    /// - `CreditCardsViewModel` (x2) — both settle paths returned
+    ///   "Couldn't determine the current user."
+    /// - `ReceiptReviewViewModel` — the save `guard` fell through silently.
+    ///
+    /// Worse, `RepairRepository` and `ReceiptsRepository` are constructed with
+    /// `getUserId: { auth.currentUserId ?? "" }`, so they were writing rows with
+    /// an EMPTY user_id.
+    ///
+    /// `.canonicalString`, not `.uuidString` — see Ids.swift.
     public var currentUserId: String? {
-        // Synchronous access is not directly possible via SupabaseClient in the latest versions
-        // unless caching. We return a placeholder or need to await it. 
-        // For synchronous UI needs, the ViewModel should cache it.
-        // In Supabase Swift SDK 2.x, `client.auth.session` is async.
-        // We will return nil for sync access, users should rely on async state.
-        nil 
+        client.auth.currentUser?.id.canonicalString
     }
     
     public func ensureUser() async throws -> String {

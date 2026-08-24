@@ -25,7 +25,8 @@ private let sharedLedgerTables: Set<String> = [
     "split_invitations", "connections", "profiles",
 ]
 
-public func newId() -> String { UUID().uuidString }
+/// Lowercase, matching web and Android. See Ids.swift for why that matters.
+public func newId() -> String { UUID().canonicalString }
 
 public func nowIso() -> String { ISO8601DateFormatter().string(from: Date()) }
 

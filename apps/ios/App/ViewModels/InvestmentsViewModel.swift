@@ -92,7 +92,7 @@ public final class InvestmentsViewModel {
     }
 
     private func startObserving() async {
-        guard let userId = try? await supabaseClient.auth.session.user.id.uuidString else { return }
+        guard let userId = try? await supabaseClient.auth.session.user.id.canonicalString else { return }
         currentUserId = userId
         do {
             let stream = try await investmentsRepository.watchHoldings(userId: userId)

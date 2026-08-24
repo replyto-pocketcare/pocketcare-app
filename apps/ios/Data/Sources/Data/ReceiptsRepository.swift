@@ -136,7 +136,7 @@ public final class ReceiptsRepository: @unchecked Sendable {
     }
 
     public func saveScan(_ input: SaveScanInput) async throws -> String {
-        let id = UUID().uuidString
+        let id = UUID().canonicalString
         let ts = currentIsoString()
         let userId = getUserId()
         let rawTextCapped = input.rawText.map { String($0.prefix(8000)) }
