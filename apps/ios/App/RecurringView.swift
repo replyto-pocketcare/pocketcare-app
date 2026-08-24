@@ -20,10 +20,17 @@ import Domain
 /// - **Create/edit is not here yet.** Web opens `RecurringModal`; the native
 ///   equivalent belongs to W2.1 (full-screen cover on phones, dialog above
 ///   600pt), and a button that opened nothing would be the dead control this
-///   audit keeps finding. The direction rows are likewise not yet tappable —
-///   `/recurring/[direction]` is a separate screen that does not exist natively.
+///   audit keeps finding.
+/// - **The direction rows ARE tappable now** — `RecurringDirectionView` exists
+///   as of 2026-08-24. They were inert until it did.
 struct RecurringView: View {
     @State private var viewModel = RecurringViewModel()
+
+    /// The drill-down is local state, not a NavigationStack — the same shape
+    /// LoansView uses for its loan detail. The shell owns navigation; a screen
+    /// pushing its own stack inside it is how the duplicate title bars in W2
+    /// happened.
+    @State private var openDirection: RecurringDirectionSlug?
 
     /// Web paints the two halves with
     /// `color-mix(in srgb, var(--negative) 18%, transparent)`. There is no
@@ -32,6 +39,14 @@ struct RecurringView: View {
     private static let barTintOpacity: Double = 0.18
 
     var body: some View {
+        if let slug = openDirection {
+            RecurringDirectionView(slug: slug, onBack: { openDirection = nil })
+        } else {
+            overview
+        }
+    }
+
+    private var overview: some View {
         ScrollView {
             SanvyaPage(S.Recurring.title) {
                 summaryCard
@@ -68,7 +83,8 @@ struct RecurringView: View {
                     sign: "+",
                     color: Color.positive,
                     count: viewModel.incomeCount,
-                    emptyText: S.Recurring.emptyIncome
+                    emptyText: S.Recurring.emptyIncome,
+                    onTap: { openDirection = .income }
                 )
                 directionRow(
                     label: S.Recurring.payments,
@@ -76,7 +92,8 @@ struct RecurringView: View {
                     sign: "−",
                     color: Color.negative,
                     count: viewModel.expenseCount,
-                    emptyText: S.Recurring.emptyPayment
+                    emptyText: S.Recurring.emptyPayment,
+                    onTap: { openDirection = .expense }
                 )
             }
         }
@@ -138,8 +155,12 @@ struct RecurringView: View {
         sign: String,
         color: Color,
         count: Int,
-        emptyText: String
+        emptyText: String,
+        onTap: @escaping () -> Void
     ) -> some View {
+        // Tappable as of RecurringDirectionView existing. Inert before that —
+        // a row that goes nowhere is worse than a row that reads as a summary.
+        Button(action: onTap) {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(label).sanvyaStyle(SanvyaType.sectionTitle).foregroundStyle(Color.text)
@@ -158,6 +179,8 @@ struct RecurringView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.surface2)
         .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusSm))
+        }
+        .buttonStyle(SanvyaLiftPressStyle())
     }
 
     private var dueCard: some View {

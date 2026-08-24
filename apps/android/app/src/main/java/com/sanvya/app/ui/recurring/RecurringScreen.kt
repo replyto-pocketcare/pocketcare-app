@@ -2,6 +2,7 @@ package com.sanvya.app.ui.recurring
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,11 +65,13 @@ private const val BAR_TINT_ALPHA = 0.18f
  * - **Create/edit is not here yet.** Web opens `RecurringModal`; the native
  *   equivalent belongs to W2.1 (full page below 600dp, dialog above), and a
  *   button that opened nothing would be the dead control this audit keeps
- *   finding. The direction cards are likewise not yet tappable — `/recurring/
- *   [direction]` is a separate screen and does not exist on native.
+ *   finding.
+ * - **The direction rows ARE tappable now** — `/recurring/[direction]` exists
+ *   as of 2026-08-24. They were inert until it did.
  */
 @Composable
 fun RecurringScreen(
+    onOpenDirection: (RecurringDirectionSlug) -> Unit = {},
     viewModel: RecurringViewModel = viewModel(),
 ) {
     val colors = LocalSanvyaColors.current
@@ -107,6 +110,7 @@ fun RecurringScreen(
                 color = colors.positive,
                 count = state.incomeCount,
                 emptyText = S.Recurring.emptyIncome(sRes()),
+                onClick = { onOpenDirection(RecurringDirectionSlug.INCOME) },
             )
             Spacer(Modifier.height(10.dp))
             DirectionRow(
@@ -116,6 +120,7 @@ fun RecurringScreen(
                 color = colors.negative,
                 count = state.expenseCount,
                 emptyText = S.Recurring.emptyPayment(sRes()),
+                onClick = { onOpenDirection(RecurringDirectionSlug.EXPENSE) },
             )
         }
 
@@ -219,6 +224,7 @@ private fun DirectionRow(
     color: androidx.compose.ui.graphics.Color,
     count: Int,
     emptyText: String,
+    onClick: () -> Unit,
 ) {
     val colors = LocalSanvyaColors.current
     Row(
@@ -226,6 +232,10 @@ private fun DirectionRow(
             .fillMaxWidth()
             .clip(SanvyaShape.radiusSm)
             .background(colors.surface2)
+            // Tappable as of the [direction] screen existing. It was
+            // deliberately inert before -- a row that goes nowhere is worse
+            // than a row that reads as a summary.
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -294,6 +294,16 @@ class RecurringRepository(
     }
 
     /**
+     * Stop a commitment.
+     *
+     * A soft delete (`deleted_at`), like every other removal in this app —
+     * `active = 0` would also hide it from the lists, but the row would keep
+     * syncing and keep answering queries that filter only on `deleted_at`.
+     * Web's `removeRecurring` soft-deletes for the same reason.
+     */
+    suspend fun remove(id: String) = softDelete(db, "recurring_items", id)
+
+    /**
      * Skip one occurrence without posting.
      *
      * `last_generated` is deliberately NOT touched, matching web: nothing was

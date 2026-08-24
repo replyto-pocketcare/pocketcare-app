@@ -29,7 +29,9 @@ Keep this current. Adding a row is part of the change that creates the gap, not 
 | Screen | What's absent | Why |
 |---|---|---|
 | Recurring | Create/edit (web's `RecurringModal`) | Belongs to **W2.1** — full page below 600dp, dialog/side panel above, `.fullScreenCover` on iOS phones. A "+" opening nothing is the dead control this audit keeps finding |
-| Recurring | Direction rows are **not tappable** | `/recurring/[direction]` is a separate web route with no native screen. A tappable row that goes nowhere is worse than a row that reads as a summary |
+| Recurring → direction | The **category donut** | Both platforms have a `DonutChart`, but each is `private` inside its Insights screen. Sharing one is a refactor of two working screens, not part of this port. The chips carry the names and percentages — the information — and web's own comment calls a single-slice donut "decoration, not information" |
+| Recurring → direction | **Add** and **Edit** | `RecurringModal` is not ported to either platform, so there is nothing for them to open. Same reason the overview has no "+" |
+| Recurring → direction | Web's **kebab menu** | With Edit absent there are only two actions. Hiding two buttons behind a third tap is worse than showing them |
 | Statements | Print | `window.print()` has no phone equivalent. Share/PDF export is a feature to design, not a button to add |
 | Statements | "Analyze" link | Targets `/statements/analyze`, which does not exist natively (see `StatementImportView` above) |
 | Statements | "Go Premium" button | Web links to `/settings`; there is **no native upgrade flow yet**, so the button would go nowhere |

@@ -177,7 +177,21 @@ fun SanvyaNavHost() {
         // `recurring` was a nav-catalog id with no screen behind it, so tapping
         // it landed on coming_soon/{title}. It has a real screen now.
         composable("recurring") {
-            com.sanvya.app.ui.recurring.RecurringScreen()
+            com.sanvya.app.ui.recurring.RecurringScreen(
+                onOpenDirection = { slug -> navController.navigate("recurring/${slug.slug}") },
+            )
+        }
+        composable(
+            "recurring/{direction}",
+            arguments = listOf(navArgument("direction") { type = NavType.StringType }),
+        ) { entry ->
+            // An unknown slug is not an error page: web calls notFound(), which
+            // this app has no equivalent of. Falling back to Expense keeps a
+            // mistyped deep link on a real screen.
+            val slug = com.sanvya.app.ui.recurring.RecurringDirectionSlug
+                .from(entry.arguments?.getString("direction"))
+                ?: com.sanvya.app.ui.recurring.RecurringDirectionSlug.EXPENSE
+            com.sanvya.app.ui.recurring.RecurringDirectionScreen(slug = slug)
         }
 
         // Also had no screen and fell through to coming_soon.
