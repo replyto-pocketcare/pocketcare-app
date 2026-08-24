@@ -91,6 +91,13 @@ jobs:
             node tools/golden-vectors/export-mobile-schema.mjs
             node tools/golden-vectors/gen-mobile-schema.mjs
           } 2>&1 | tee parity.log
+      # Text greps for Swift mistakes this codebase has made more than once.
+      # A separate step, not part of the regenerate block, because it FAILS
+      # rather than producing a diff -- and it runs here, in a job that takes
+      # seconds, rather than costing a ~10-minute macOS build and a round trip
+      # through a human to push again.
+      - name: Known Swift traps
+        run: node tools/parity/check-swift-traps.mjs 2>&1 | tee -a parity.log
       - name: Fail if generated output drifted
         run: |
           if ! git diff --exit-code | tee -a parity.log; then

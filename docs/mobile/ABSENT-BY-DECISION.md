@@ -66,6 +66,15 @@ Not gaps, but not evidence either. Nothing below has been exercised against a re
 - The Recurring and Statements screens — compiled, never opened
 - Guest → account upgrade preserving local data
 
+## Guards that exist because a mistake repeated
+
+Not gaps — the opposite. Each of these was written after the same error reached CI twice.
+
+| Guard | Catches | Where |
+|---|---|---|
+| `tools/parity/check-swift-traps.mjs` | `await` inside `??` (its RHS is an `@autoclosure`, so the compiler blames the `??` and the message names neither); `UUID().uuidString` on a persisted id (Swift's is UPPERCASE, SQLite compares TEXT case-sensitively) | `parity` CI job — seconds, not a 10-minute macOS build |
+| Schema generators in `parity` | `PocketCareSchema.kt/.swift` drifting from `packages/db`'s `AppSchema`. They were **not** in the job, which is how the native schema fell four migrations behind in silence | `parity` CI job |
+
 ---
 
 *A ✅ here means the row is resolved, not that the feature was verified on a device — see the

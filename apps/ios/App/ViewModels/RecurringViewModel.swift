@@ -117,8 +117,7 @@ public final class RecurringViewModel {
         Task { [weak self] in
             guard let self else { return }
             defer { self.busy = false }
-            guard let userId = self.authRepository.currentUserId
-                ?? (try? await self.authRepository.ensureUser()) else { return }
+            guard let userId = await self.resolveUserId() else { return }
             // Quiet on failure for now: there is no error surface on this
             // screen yet, and the row stays due, so the failure is visible as
             // "it is still in the list".
@@ -126,6 +125,19 @@ public final class RecurringViewModel {
                 id: id, userId: userId, baseCurrency: baseCurrencyNow()
             )
         }
+    }
+
+    /// The `currentUserId ?? ensureUser()` pattern, spelled out.
+    ///
+    /// It cannot be written as `currentUserId ?? (try? await ensureUser())`:
+    /// `??`'s right-hand side is an `@autoclosure`, which is not async, so the
+    /// `await` is illegal inside it — "'async' call in a function that does not
+    /// support concurrency", pointing at the `??` rather than at the await.
+    /// Every other view model here spells it out for the same reason, and this
+    /// file's first version did not, which is how CI run 32759622427 failed.
+    private func resolveUserId() async -> String? {
+        if let existing = authRepository.currentUserId { return existing }
+        return try? await authRepository.ensureUser()
     }
 
     /// Advance past one occurrence without posting anything.
