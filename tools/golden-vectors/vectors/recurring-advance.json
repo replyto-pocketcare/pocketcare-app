@@ -87,7 +87,7 @@
       "frequency": "monthly",
       "n": 1
     },
-    "expected": "2026-03-01"
+    "expected": "2026-02-28"
   },
   {
     "fn": "advance",
@@ -96,7 +96,7 @@
       "frequency": "monthly",
       "n": 1
     },
-    "expected": "2026-03-02"
+    "expected": "2026-02-28"
   },
   {
     "fn": "advance",
@@ -105,7 +105,7 @@
       "frequency": "monthly",
       "n": 1
     },
-    "expected": "2026-03-03"
+    "expected": "2026-02-28"
   },
   {
     "fn": "advance",
@@ -123,7 +123,7 @@
       "frequency": "monthly",
       "n": 1
     },
-    "expected": "2026-05-01"
+    "expected": "2026-04-30"
   },
   {
     "fn": "advance",
@@ -132,7 +132,7 @@
       "frequency": "monthly",
       "n": 1
     },
-    "expected": "2026-07-01"
+    "expected": "2026-06-30"
   },
   {
     "fn": "advance",
@@ -141,7 +141,7 @@
       "frequency": "monthly",
       "n": 6
     },
-    "expected": "2027-03-03"
+    "expected": "2027-02-28"
   },
   {
     "fn": "advance",
@@ -150,7 +150,7 @@
       "frequency": "monthly",
       "n": 13
     },
-    "expected": "2027-03-03"
+    "expected": "2027-02-28"
   },
   {
     "fn": "advance",
@@ -177,7 +177,7 @@
       "frequency": "yearly",
       "n": 1
     },
-    "expected": "2029-03-01"
+    "expected": "2029-02-28"
   },
   {
     "fn": "advance",
@@ -187,5 +187,23 @@
       "n": 1
     },
     "expected": "2027-12-31"
+  },
+  {
+    "fn": "advance",
+    "input": {
+      "date": "2026-01-31",
+      "frequency": "monthly",
+      "n": 3
+    },
+    "expected": "2026-04-30"
+  },
+  {
+    "fn": "advance",
+    "input": {
+      "date": "2027-01-31",
+      "frequency": "monthly",
+      "n": 1
+    },
+    "expected": "2027-02-28"
   }
 ]

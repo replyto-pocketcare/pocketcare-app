@@ -494,8 +494,10 @@ math **clamp**. They disagree wherever the target month is shorter:
 | `2026-08-31` + 6 months | **2027-03-03** | 2027-02-28 |
 
 A literal port would silently post transactions on different dates from web. Pinned by
-`tools/golden-vectors/vectors/recurring-advance.json` (21 vectors) so whichever behaviour is
-chosen is provably identical on all three platforms.
+`tools/golden-vectors/vectors/recurring-advance.json` (23 vectors, clamping) so all three
+platforms are provably identical. The vectors are consumed by the native runners only —
+`test:core` covers `packages/core` and `advance` lives in `apps/web/src` — so re-pinning them
+does not touch web's build.
 
 #### What the vectors exposed: this is a live bug on web
 
@@ -509,14 +511,34 @@ February is skipped entirely, and the item lands on the **3rd** of every month f
 affects any recurring item dated the **29th, 30th or 31st** — rent, salary, EMIs, subscriptions.
 A mid-month item (`Jan 15 → Feb 15 → Mar 15`) is unaffected, which is why this has survived.
 
-**This needs a decision before the port, and it is a decision about web, not about the port:**
+**Decided 2026-08-24 (Akhilesh): clamp, and web gets fixed to match.** Vectors re-pinned to
+clamping semantics — `2026-01-31 + 1 month → 2026-02-28`, which is what `java.time.plusMonths`
+and Foundation do natively, so both ports get it for free.
 
-1. **Clamp** (Jan 31 → Feb 28 → Mar 31) — what a user means by "monthly on the 31st", and what
-   `java.time` does for free. Requires fixing `advance()` on the live client.
-2. **Keep the overflow** — port the quirk faithfully to both platforms so all three agree, and
-   accept that month-end items drift.
-3. **Diverge** — native clamps, web keeps overflowing. Rejected: it would make the same recurring
-   item post on different dates depending on which device opened the app first.
+#### Clamping alone does NOT fix the drift — read this before changing web
+
+The vectors made a second problem visible. Clamping stops the jump into the following month, but
+the item still walks backwards, because each step advances from the **clamped result** rather
+than from an anchor:
+
+```
+overflow (today):  Jan 31 → Mar 3  → Apr 3  → May 3   (skips Feb, then sticks on the 3rd)
+clamping (agreed): Jan 31 → Feb 28 → Mar 28 → Apr 28  (no skip, but sticks on the 28th)
+correct:           Jan 31 → Feb 28 → Mar 31 → Apr 30  (clamps per month, returns to month-end)
+```
+
+"Monthly on the 31st" means the last three, and **no amount of fixing `advance()` gets there**,
+because `advance(next_due, …)` has already lost the original day. The correct version needs an
+**anchor day-of-month** to clamp against each time.
+
+`recurring_items` has no such column — `RECURRING_COLUMNS` is `next_due` and `last_generated` and
+no start date. So the real fix is a schema addition (`anchor_day`, or a `start_date` to derive it
+from), which is a migration and therefore a web/db change, not a port change.
+
+**Recommendation:** take the clamp now — it removes the skipped month and the runaway drift, and
+it is what native does natively — and treat the anchor as a separate, tracked item. Worth knowing
+before touching `advance()` on web, because swapping `setMonth` for a clamp will look like a fix
+and will still move a month-end bill to the 28th permanently.
 
 Not started pending that answer. Everything downstream (the `runRecurring` loop, `materialize`,
 `runLoanAutoPost`) is mechanical once the date arithmetic is settled.
