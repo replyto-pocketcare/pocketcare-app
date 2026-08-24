@@ -21,6 +21,8 @@ import com.sanvya.app.data.repository.InvestmentsRepository
 import com.sanvya.app.data.repository.LoansRepository
 import com.sanvya.app.data.repository.ReceiptsRepository
 import com.sanvya.app.data.repository.RepairRepository
+import com.sanvya.app.data.repository.LoanAutoPostRepository
+import com.sanvya.app.data.repository.RecurringRepository
 import com.sanvya.app.data.repository.SplitsRepository
 import com.sanvya.app.data.repository.SubscriptionsRepository
 import org.koin.android.ext.koin.androidContext
@@ -73,6 +75,12 @@ val dataModule = module {
     single { InvestmentsRepository(get()) }
     single { LoansRepository(get()) }
     single { SplitsRepository(get(), get()) }
+    // The two catch-up engines. Both take repositories rather than reaching for
+    // the database directly for the writes -- createTransaction() carries the
+    // overdraft guard and the transfer/items validation, and an engine that
+    // bypassed it would post rows the app itself would refuse.
+    single { RecurringRepository(db = get(), ledger = get(), splits = get()) }
+    single { LoanAutoPostRepository(db = get(), ledger = get()) }
     single { com.sanvya.app.data.repository.UpiRepository(get()) }
     single { SubscriptionsRepository(get()) }
     single { com.sanvya.app.data.repository.PrefsRepository(get()) }

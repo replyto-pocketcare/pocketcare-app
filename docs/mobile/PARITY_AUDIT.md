@@ -837,6 +837,62 @@ Still to come: the repositories and the two engines themselves, and the startup 
 (`AppShell.kt`'s `LaunchedEffect`, `AppShell.swift`'s `.task`) matching web's 2500 ms
 once-per-session debounce.
 
+### `runRecurring()` and `runLoanAutoPost()` ported — 2026-08-24
+
+Both engines now exist on both platforms, wired to the startup hook. Requested by Akhilesh
+2026-08-23 ("we'll have to do this — add this to your worklist"); unblocked once clamping was
+settled and the native schema actually declared `recurring_items`.
+
+| | Android | iOS |
+|---|---|---|
+| Recurring | `data/repository/RecurringRepository.kt` | `Data/RecurringRepository.swift` |
+| Loan EMIs | `data/repository/LoanAutoPostRepository.kt` | `Data/LoanAutoPostRepository.swift` |
+| Startup | `ShellViewModel.startCatchUp()`, called from `AppShell.kt`'s `LaunchedEffect` | same method, called from `AppShell.swift`'s `.task` |
+
+**The 2500 ms delay is load-bearing and must not be tuned away.** Loan auto-post's dedupe is a
+lookup in the *synced* ledger — "has another device already charged this EMI?" — so running it
+before the first sync settles gets the answer "no" and double-posts. Web's comment says the same.
+On all three platforms it is a *proxy* for "sync has settled" rather than a real signal, and
+replacing it with one is a genuine improvement available to whoever wants it.
+
+**Deliberate divergences from web, each for a stated reason:**
+
+- **Sequential, not concurrent.** Web fires both without awaiting either. Both engines write
+  transactions into the same local database and nothing depends on them overlapping, so
+  serialising removes an interleaving for no cost. The per-engine error isolation — the part of
+  web's shape that matters — is kept.
+- **Noon UTC for EMI dates.** Web builds the occurrence timestamp as
+  `new Date(\`${dueDate}T12:00:00\`)`, i.e. noon *local*, which is a different UTC instant on
+  every device — two phones in different zones stamp the same EMI differently. Noon UTC is what
+  web's own *recurring* engine already uses (`dueIso`), so this makes the two consistent.
+- **A real mutex / actor, not a boolean.** Web's `let running = false` is safe only because the
+  browser is single-threaded and the check and set cannot interleave. Two coroutines or two Swift
+  tasks genuinely can, and the failure mode is the exact thing the file exists to prevent: two runs
+  racing past the same dedupe lookup before either has written its row. Android uses
+  `Mutex.tryLock()` (returning immediately, like web's early return — *not* queueing); iOS uses
+  actor isolation.
+- **No `getLoanFundingAccount` fallback.** Web falls back to a `localStorage` map for loans created
+  before migration 0047 added the column. There is no native equivalent and there must not be one:
+  the column is the record, and a per-device memory of it would post different EMIs on different
+  phones.
+- **`todayIso` and `baseCurrency` are parameters**, read in `:app`/`App` and passed down. `:data`
+  cannot see `ui/Prefs.kt` and `Data` cannot see the App target's `Prefs`; duplicating that read
+  into the data layer would create a second source of truth for a user-visible setting. `Finance`
+  already takes `asOfIso` for the same reason.
+
+**Faithful where it counts:** `next_due` stays put when a post fails, so an overdraft-blocked
+auto-post reads as still-due and retries rather than silently skipping a month; the catch-up loop
+breaks rather than continuing. `skipOnce` does not touch `last_generated` — nothing was generated.
+The transfer branch passes no category, description, labels or `to_amount`, exactly as web does, so
+`fx_rate` stays null. `effectivePaidEmis` is passed `manual` even though every manual EMI is
+skipped immediately after, because web does — the result is identical either way, and diverging on
+"it makes no difference" grounds is how a port acquires differences nobody can account for later.
+
+**Not done:** there is still no Recurring *screen* on either platform (`recurring` is a nav-catalog
+id that falls through to `coming_soon` on Android and a `PlaceholderView` on iOS). `watchDueItems`,
+`postOnce` and `skipOnce` exist and nothing calls them yet — deliberately, so the screen has a data
+layer to be built against rather than the reverse. And no device has run either engine yet.
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*
@@ -848,6 +904,7 @@ once-per-session debounce.
 - [x] Auth gate on both. *(2026-08-24 — iOS's `SanvyaApp` already had one; this audit said it did
       not, which was stale. Its two callbacks were dead parameters and are gone.)*
 - [ ] Pending invite and launch-time materialisation ported.
+- [x] `runRecurring()` / `runLoanAutoPost()` ported to both. *(2026-08-24, compiles-only)*
 - [ ] Sync L3 (P2.7) unblocked — still needs a test Supabase + PowerSync project.
 
 ## 7. Work queue (waves — supersedes the coarse phase table in TODO.md)

@@ -1,5 +1,6 @@
 package com.sanvya.app.ui.shell
 
+import com.sanvya.app.ui.baseCurrencyNow
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
@@ -110,6 +111,20 @@ fun AppShell(
     val isDashboard = currentRoute == "dashboard"
     val showBack = currentRoute != null &&
         (currentRoute.count { it == '/' } >= 1 || currentRoute in FLOW_ROOTS)
+
+    // Post anything that fell due while the app was closed. The view model
+    // holds the once-per-session latch, so this is safe to recompose.
+    //
+    // todayIso and baseCurrency are read HERE, in :app, and passed down --
+    // :data cannot see ui/Prefs.kt, and duplicating the SharedPreferences read
+    // into the data layer would create a second source of truth for a
+    // user-visible setting.
+    LaunchedEffect(Unit) {
+        viewModel.startCatchUp(
+            todayIso = java.time.LocalDate.now().toString(),
+            baseCurrency = baseCurrencyNow(),
+        )
+    }
 
     // `failed_writes` is local-only, so there is no sync event to observe.
     // Web polls every 30s; so does this.

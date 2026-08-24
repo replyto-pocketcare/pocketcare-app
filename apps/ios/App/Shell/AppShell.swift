@@ -1,4 +1,5 @@
 import SwiftUI
+import Domain
 
 /// Matches web's `APP_VERSION` in AppShell.tsx.
 private let appVersion = "0.1.0"
@@ -89,6 +90,10 @@ struct AppShell<Content: View>: View {
         }
         .task {
             viewModel.start()
+            // Post anything that fell due while the app was closed. The view
+            // model holds the once-per-session latch, so this is safe to
+            // re-run on every appearance.
+            viewModel.startCatchUp(todayIso: isoToday(), baseCurrency: baseCurrencyNow())
             // `failed_writes` is local-only, so there is no sync event to
             // observe. Web polls every 30s; so does this.
             while !Task.isCancelled {

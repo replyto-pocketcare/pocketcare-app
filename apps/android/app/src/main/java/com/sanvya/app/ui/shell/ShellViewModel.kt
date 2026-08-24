@@ -1,5 +1,7 @@
 package com.sanvya.app.ui.shell
 
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filterNotNull
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.auth.AuthRepository
@@ -31,6 +33,18 @@ class ShellViewModel : ViewModel(), KoinComponent {
     private val repairRepository: RepairRepository by inject()
     private val settingsRepository: SettingsRepository by inject()
     private val prefsRepository: PrefsRepository by inject()
+    private val recurringRepository: com.sanvya.app.data.repository.RecurringRepository by inject()
+    private val loanAutoPostRepository: com.sanvya.app.data.repository.LoanAutoPostRepository by inject()
+
+    /**
+     * Guards the once-per-session catch-up. Web uses a `useRef` boolean set
+     * BEFORE the timer starts, so a re-render or an auth-state transition
+     * cannot start a second one; this is the same latch. It is not persisted --
+     * a relaunch runs the catch-up again, which is correct, because both
+     * engines are idempotent by design (`next_due` for recurring, the ledger
+     * description lookup for EMIs).
+     */
+    private var catchUpStarted = false
 
     private val _unreadCount = MutableStateFlow(0)
     val unreadCount: StateFlow<Int> = _unreadCount.asStateFlow()
@@ -109,6 +123,55 @@ class ShellViewModel : ViewModel(), KoinComponent {
      * nothing. Web polls it every 30s for exactly this reason; do not "improve"
      * it into a watch that would never fire.
      */
+    /**
+     * Post anything that fell due while the app was closed.
+     *
+     * Mirrors AppShell.tsx's effect: **once per session, after a 2500 ms
+     * delay.** The delay is not cosmetic and must not be tuned away. Loan
+     * auto-post's dedupe is a lookup in the SYNCED ledger, so running it before
+     * the first sync has settled means asking "has another device already
+     * charged this EMI?" before that device's row has arrived — and getting
+     * "no". Web's own comment says the same. It is a proxy for "sync has
+     * settled" rather than a real signal, on both platforms, and replacing it
+     * with a real one is a genuine improvement someone could make.
+     *
+     * Both engines run and a failure in one must not stop the other.
+     *
+     * Failures are swallowed deliberately, again matching web (`.catch(() =>
+     * {})`). This is a background catch-up the user did not ask for; surfacing
+     * "could not post your rent" as a toast over the dashboard on every cold
+     * start would be worse than the silence. Anything it fails to post stays
+     * due and is retried next launch.
+     */
+    fun startCatchUp(todayIso: String, baseCurrency: String) {
+        if (catchUpStarted) return
+        catchUpStarted = true
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(CATCH_UP_DELAY_MS)
+            // Suspend until there IS a user rather than reading `.value` and
+            // giving up on null. The latch is already set by this point, so a
+            // premature null would mean the catch-up silently never ran this
+            // session -- and 2500 ms after launch is exactly when the session
+            // may still be resolving. viewModelScope cancels this with the
+            // shell, so it cannot outlive the screen.
+            val userId = authRepository.currentUserId.filterNotNull().first()
+            // Sequential, where web fires both without awaiting either. A
+            // deliberate divergence: both engines write transactions into the
+            // same local database, and nothing depends on them overlapping, so
+            // serialising removes an interleaving for no cost. The separate
+            // try/catch on each keeps a failure in one from stopping the other,
+            // which is the part of web's shape that actually matters.
+            try {
+                recurringRepository.runRecurring(userId, todayIso, baseCurrency)
+            } catch (_: Exception) {
+            }
+            try {
+                loanAutoPostRepository.run(userId, todayIso)
+            } catch (_: Exception) {
+            }
+        }
+    }
+
     fun refreshFailedWrites() {
         viewModelScope.launch {
             _failedWriteCount.value = try {
@@ -117,5 +180,10 @@ class ShellViewModel : ViewModel(), KoinComponent {
                 0
             }
         }
+    }
+
+    private companion object {
+        /** Web's 2500 ms. See startCatchUp's note on why it exists. */
+        const val CATCH_UP_DELAY_MS = 2_500L
     }
 }

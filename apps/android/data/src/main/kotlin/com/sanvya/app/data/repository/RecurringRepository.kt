@@ -1,0 +1,284 @@
+package com.sanvya.app.data.repository
+
+import com.powersync.PowerSyncDatabase
+import com.powersync.db.SqlCursor
+import com.sanvya.app.domain.money.money
+import com.sanvya.app.domain.recurring.advance
+import kotlinx.coroutines.flow.Flow
+
+/**
+ * Recurring commitments — the port of apps/web/src/recurring/engine.ts.
+ *
+ * A commitment is one row of `recurring_items`, the table migration 0060
+ * consolidated `planned_cashflow` + `recurring_rules` + `transaction_templates`
+ * into. Everything an occurrence needs to become a transaction lives on that
+ * one row.
+ *
+ * Two things about this port are worth stating up front.
+ *
+ * **`next_due` is the cursor, and it is authoritative.** Posting an occurrence
+ * and advancing `next_due` are a pair; if the post fails, `next_due` stays put
+ * so the item still reads as due and will be retried on the next run. That is
+ * why the catch-up loop below breaks rather than continuing on failure — an
+ * overdraft-blocked auto-post must not silently skip a month.
+ *
+ * **Nothing here reads a clock or a preference.** `todayIso` and
+ * `baseCurrency` are parameters. `:data` cannot see `ui/Prefs.kt`, and
+ * duplicating the SharedPreferences read here would create a second source of
+ * truth for a user-visible setting. Finance.kt already takes `asOfIso` for the
+ * same reason.
+ */
+class RecurringRepository(
+    private val db: PowerSyncDatabase,
+    private val ledger: LedgerRepository,
+    private val splits: SplitsRepository,
+) {
+    /** One row of `recurring_items`, as the engine reads it. */
+    data class Item(
+        val id: String,
+        val direction: String,
+        val name: String,
+        val amount: Long?,
+        val currency: String?,
+        val frequency: String,
+        val intervalCount: Long?,
+        val nextDue: String,
+        val accountId: String?,
+        val toAccountId: String?,
+        val categoryId: String?,
+        val autoPost: Boolean,
+        val active: Boolean,
+        val alertTimeUtc: String?,
+        val description: String?,
+        val note: String?,
+        val paymentMethod: String?,
+        val labels: String?,
+        val splitGroupId: String?,
+    )
+
+    private companion object {
+        /** Mirrors web's RECURRING_COLUMNS, column for column. */
+        const val COLUMNS =
+            "id, direction, name, amount, currency, frequency, interval_count, next_due, " +
+                "account_id, to_account_id, category_id, auto_post, active, alert_time_utc, " +
+                "description, note, payment_method, labels, split_group_id"
+
+        /**
+         * Catching up more than two years of missed occurrences in one run is a
+         * bug, not a feature. Same guard value web uses.
+         */
+        const val MAX_CATCH_UP_PER_ITEM = 24
+
+        /**
+         * Noon UTC, not midnight. An occurrence dated `T00:00:00Z` lands on the
+         * previous day for anyone west of Greenwich, which silently shifts it
+         * into the wrong month for month-boundary commitments. Web's `dueIso`
+         * does the same thing for the same reason.
+         */
+        fun dueIso(day: String): String = "${day}T12:00:00.000Z"
+    }
+
+    private fun map(cursor: SqlCursor) = Item(
+        id = cursor.getString("id"),
+        direction = cursor.getStringOptional("direction") ?: "expense",
+        name = cursor.getStringOptional("name") ?: "",
+        amount = cursor.getLongOptional("amount"),
+        currency = cursor.getStringOptional("currency"),
+        frequency = cursor.getStringOptional("frequency") ?: "monthly",
+        intervalCount = cursor.getLongOptional("interval_count"),
+        nextDue = cursor.getStringOptional("next_due") ?: "",
+        accountId = cursor.getStringOptional("account_id"),
+        toAccountId = cursor.getStringOptional("to_account_id"),
+        categoryId = cursor.getStringOptional("category_id"),
+        autoPost = cursor.getBooleanOptional("auto_post") ?: false,
+        active = cursor.getBooleanOptional("active") ?: false,
+        alertTimeUtc = cursor.getStringOptional("alert_time_utc"),
+        description = cursor.getStringOptional("description"),
+        note = cursor.getStringOptional("note"),
+        paymentMethod = cursor.getStringOptional("payment_method"),
+        labels = cursor.getStringOptional("labels"),
+        splitGroupId = cursor.getStringOptional("split_group_id"),
+    )
+
+    /**
+     * The transaction type a direction posts.
+     *
+     * Savings are a transfer into the target account; payments are expenses;
+     * income is income. Web routes this through two helpers (`directionOf` then
+     * `typeForDirection`) because its UI says "payment" where the column says
+     * "expense" — a translation that only exists to keep the UI's word out of
+     * the check constraint 0060 defined. Native has no such vocabulary split,
+     * so the round trip collapses to this.
+     */
+    private fun typeFor(direction: String): String = when (direction) {
+        "income" -> "income"
+        "saving" -> "transfer"
+        else -> "expense"
+    }
+
+    /** Items due today or earlier that do NOT auto-post — the ones asking to be confirmed. */
+    fun watchDueItems(todayIso: String): Flow<List<Item>> = db.watch(
+        sql = """
+            SELECT $COLUMNS FROM recurring_items
+             WHERE deleted_at IS NULL AND active = 1 AND auto_post = 0 AND next_due <= ?
+             ORDER BY next_due
+        """.trimIndent(),
+        parameters = listOf(todayIso),
+        mapper = ::map,
+    )
+
+    private suspend fun byId(id: String): Item? = db.getOptional(
+        sql = "SELECT $COLUMNS FROM recurring_items WHERE id = ? AND deleted_at IS NULL",
+        parameters = listOf(id),
+        mapper = ::map,
+    )
+
+    /**
+     * Turn one due occurrence into a real transaction.
+     *
+     * Carries description, note, payment method, labels, transfer destination
+     * and the recurring split, so moving off templates does not quietly strip
+     * detail from posted transactions.
+     */
+    suspend fun materialize(
+        item: Item,
+        occurredAtIso: String,
+        userId: String,
+        baseCurrency: String,
+    ) {
+        val currency = item.currency ?: baseCurrency
+        val total = money(item.amount ?: 0L, currency)
+
+        // Recurring split: equal split among the group's CURRENT members, you
+        // pay. Fewer than two members is not a split -- it falls through to a
+        // plain transaction rather than creating a one-person expense.
+        val groupId = item.splitGroupId
+        val accountId = item.accountId
+        if (groupId != null && accountId != null) {
+            val memberIds = db.getAll(
+                sql = "SELECT user_id FROM split_group_members WHERE group_id = ? AND deleted_at IS NULL",
+                parameters = listOf(groupId),
+                mapper = { it.getString("user_id") },
+            )
+            if (memberIds.size >= 2) {
+                splits.createSplitExpense(
+                    userId = userId,
+                    input = SplitExpenseInput(
+                        groupId = groupId,
+                        mode = "equal",
+                        total = total,
+                        participants = memberIds.map { ParticipantInput(userId = it) },
+                        payers = listOf(PayerInput(userId = userId, paid = total.amount, accountId = accountId)),
+                        categoryId = item.categoryId,
+                        description = item.description,
+                        note = item.note,
+                        occurredAt = occurredAtIso,
+                    ),
+                )
+                return
+            }
+        }
+
+        val type = typeFor(item.direction)
+        if (type == "transfer" && item.toAccountId != null && accountId != null) {
+            // Deliberately no category/description/labels and no toAmount --
+            // matching web exactly. A null to_amount leaves fx_rate null, which
+            // is correct for a same-currency transfer and is what web produces.
+            ledger.createTransaction(
+                userId = userId,
+                accountId = accountId,
+                type = "transfer",
+                amount = total,
+                occurredAt = occurredAtIso,
+                note = item.note,
+                toAccountId = item.toAccountId,
+            )
+        } else if (accountId != null) {
+            ledger.createTransaction(
+                userId = userId,
+                accountId = accountId,
+                type = if (type == "income") "income" else "expense",
+                amount = total,
+                occurredAt = occurredAtIso,
+                categoryId = item.categoryId,
+                labels = item.labels
+                    ?.split(",")
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotEmpty() }
+                    ?: emptyList(),
+                note = item.note,
+                description = item.description,
+                paymentMethod = item.paymentMethod,
+            )
+        }
+        // No account_id: nothing to post against. Web falls through silently
+        // too -- the row is a plan, not yet a chargeable commitment.
+    }
+
+    /**
+     * Post every auto-post item that has come due, catching up missed occurrences.
+     *
+     * @return how many transactions were posted.
+     */
+    suspend fun runRecurring(userId: String, todayIso: String, baseCurrency: String): Int {
+        val items = db.getAll(
+            sql = """
+                SELECT $COLUMNS FROM recurring_items
+                 WHERE deleted_at IS NULL AND active = 1 AND auto_post = 1 AND next_due <= ?
+            """.trimIndent(),
+            parameters = listOf(todayIso),
+            mapper = ::map,
+        )
+
+        var posted = 0
+        for (item in items) {
+            var due = item.nextDue
+            var guard = 0
+            while (due <= todayIso && guard++ < MAX_CATCH_UP_PER_ITEM) {
+                try {
+                    materialize(item, dueIso(due), userId, baseCurrency)
+                } catch (e: Exception) {
+                    // e.g. an overdraft-blocked auto-post. Leave next_due where
+                    // it is so the item still reads as due, and move on to the
+                    // next item instead of stalling every one behind it.
+                    break
+                }
+                val next = advance(due, item.frequency, (item.intervalCount ?: 1L).toInt())
+                updateRow(
+                    db, "recurring_items", item.id,
+                    mapOf("next_due" to next, "last_generated" to due),
+                )
+                due = next
+                posted++
+            }
+        }
+        return posted
+    }
+
+    /** Post one occurrence now and advance ("Post now" / confirming a due item). */
+    suspend fun postOnce(id: String, userId: String, baseCurrency: String) {
+        val item = byId(id) ?: return
+        materialize(item, dueIso(item.nextDue), userId, baseCurrency)
+        updateRow(
+            db, "recurring_items", id,
+            mapOf(
+                "next_due" to advance(item.nextDue, item.frequency, (item.intervalCount ?: 1L).toInt()),
+                "last_generated" to item.nextDue,
+            ),
+        )
+    }
+
+    /**
+     * Skip one occurrence without posting.
+     *
+     * `last_generated` is deliberately NOT touched, matching web: nothing was
+     * generated, and writing it here would make a skipped month look posted.
+     */
+    suspend fun skipOnce(id: String) {
+        val item = byId(id) ?: return
+        updateRow(
+            db, "recurring_items", id,
+            mapOf("next_due" to advance(item.nextDue, item.frequency, (item.intervalCount ?: 1L).toInt())),
+        )
+    }
+}

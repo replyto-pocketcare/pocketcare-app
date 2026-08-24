@@ -88,6 +88,26 @@ public extension Container {
         self { SplitsRepository(db: self.powerSyncDatabase(), ledger: self.ledgerRepository()) }.singleton
     }
 
+    // The two catch-up engines. Both take repositories rather than reaching for
+    // the database directly for the writes -- createTransaction() carries the
+    // overdraft guard and the transfer/items validation, and an engine that
+    // bypassed it would post rows the app itself would refuse.
+    var recurringRepository: Factory<RecurringRepository> {
+        self {
+            RecurringRepository(
+                db: self.powerSyncDatabase(),
+                ledger: self.ledgerRepository(),
+                splits: self.splitsRepository()
+            )
+        }.singleton
+    }
+
+    var loanAutoPostRepository: Factory<LoanAutoPostRepository> {
+        self {
+            LoanAutoPostRepository(db: self.powerSyncDatabase(), ledger: self.ledgerRepository())
+        }.singleton
+    }
+
     var upiRepository: Factory<UpiRepository> {
         self { UpiRepository(client: self.supabaseClient()) }.singleton
     }
