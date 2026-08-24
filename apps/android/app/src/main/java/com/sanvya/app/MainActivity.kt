@@ -13,6 +13,12 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.sanvya.app.data.auth.AuthRepository
 import com.sanvya.app.domain.repository.PushRepository
 import com.sanvya.app.theme.SanvyaTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sanvya.app.data.auth.AuthState
+import com.sanvya.app.ui.auth.AuthViewModel
+import com.sanvya.app.ui.auth.LoginScreen
 import com.sanvya.app.ui.navigation.SanvyaNavHost
 import com.sanvya.app.ui.shell.ProvideWindowClass
 import kotlinx.coroutines.launch
@@ -43,7 +49,17 @@ class MainActivity : ComponentActivity() {
                 // width-class change must reach every screen -- not just the
                 // shell's own chrome.
                 ProvideWindowClass {
-                    SanvyaNavHost()
+                    // The auth gate web has had all along: no session, no app.
+                    // Android went straight to the dashboard and silently
+                    // created a guest, so there was no way to sign in as
+                    // yourself and no way to know you had not.
+                    val authViewModel: AuthViewModel = viewModel()
+                    val authState by authViewModel.authState.collectAsState()
+                    if (authState == AuthState.SIGNED_OUT) {
+                        LoginScreen()
+                    } else {
+                        SanvyaNavHost()
+                    }
                 }
             }
         }

@@ -374,8 +374,8 @@ guest. Plus `/auth/callback` for the OAuth return.
 | Email OTP | ✅ | ✅ `sendOtp`/`verifyOtp` | ✅ |
 | Google | ✅ OAuth redirect | ✅ `signInWithGoogle(idToken)` | ✅ + Apple |
 | Guest → account upgrade | ✅ | ✅ `upgradeGuestWithEmail` | ✅ |
-| **Email + password sign-in** | ✅ | ❌ **absent** | ❌ **absent** |
-| **A login screen** | ✅ | ❌ **no `ui/login` at all** | ✅ `LoginView.swift` — **was a facade until 2026-08-24**, see below |
+| **Email + password sign-in** | ✅ | ✅ `signInWithPassword` + `signUp` | ❌ **absent** — iOS only |
+| **A login screen** | ✅ | ✅ `ui/auth/LoginScreen.kt` (2026-08-24) | ✅ `LoginView.swift` — **was a facade until 2026-08-24**, see below |
 
 Two concrete gaps:
 
@@ -392,8 +392,12 @@ Two concrete gaps:
    Google button was the same shape — present, tappable, calling `onLoginSuccess()` — so it has
    been removed rather than left looking functional. It comes back when the native `idToken`
    flow is actually wired.
-2. **`signInWithPassword` exists on neither platform.** Anyone who registered with a password on
-   web cannot sign in on mobile at all. Native uses a **different token shape for Google**
+2. **`signInWithPassword` is missing on iOS only** — Android's `AuthRepository` has had both it
+   and `signUp` all along. **This entry previously said "neither platform", and that was my
+   error**: the glob I checked with (`apps/*/src*/**/auth/*.kt`) matched nothing on Android and I
+   read the empty result as absence. Second time in this audit that a bad search became a
+   recorded fact; see §3a. So a web-registered password user can now sign in on Android and
+   still cannot on iOS. Native uses a **different token shape for Google**
    (`idToken` via the native SDK) than web's OAuth redirect — that is correct for mobile, not a
    gap, but it means the OAuth callback route has no native equivalent and should not get one.
 
