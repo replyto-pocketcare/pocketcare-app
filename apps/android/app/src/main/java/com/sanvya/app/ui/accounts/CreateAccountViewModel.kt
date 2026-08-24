@@ -12,12 +12,16 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.time.Instant
+import com.sanvya.app.ui.FormOptions
 
 /** The 7 apps/web AccountType values (packages/types/src/index.ts), regular-
  * account path only per docs/mobile/screen-specs/accounts.md scope (credit
  * card / demat specifics deferred to those screens). */
-val ACCOUNT_TYPES = listOf("savings", "current", "credit_card", "cash", "mutual_funds", "stocks", "demat")
-val ACCOUNT_CURRENCIES = listOf("INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED")
+val ACCOUNT_TYPES = FormOptions.accountTypes
+val ACCOUNT_CURRENCIES = FormOptions.currencies
+
+/** Hex, because hex is what `accounts.color` stores. */
+val ACCOUNT_COLOR_HEX = FormOptions.accountColors
 
 data class CreateAccountUiState(
     val name: String = "",
@@ -37,16 +41,6 @@ data class CreateAccountUiState(
 ) {
     val allowNegativeEffective: Boolean get() = allowNegativeOverride ?: (type == "credit_card")
 }
-
-/** ACCOUNT_COLORS as hex strings for the color-swatch picker (the Compose
- * Color palette in ui/AccountColors.kt is ARGB Int, this screen needs to
- * persist a "#RRGGBB" string to account.color, matching what
- * apps/web/src/colors.ts's ACCOUNT_COLORS actually stores). */
-val ACCOUNT_COLOR_HEX = listOf(
-    "#3E4A38", "#5F6647", "#6B7A4F", "#9CAE8E", "#B06A4F", "#C98A72",
-    "#A8503A", "#7C4A3A", "#5F4636", "#C9B79C", "#C08A3E", "#4F46E5",
-    "#6D5ACF", "#3F5A8A", "#2F6F6A", "#7A4A6B", "#4B5563", "#2B2723",
-)
 
 class CreateAccountViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()

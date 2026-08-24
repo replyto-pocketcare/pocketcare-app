@@ -1,6 +1,6 @@
 import SwiftUI
 
-private let GOAL_CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"]
+private let GOAL_CURRENCIES = FormOptions.currencies
 
 /// Real create form, matching apps/web/app/goals/page.tsx's inline "New
 /// goal" card field-for-field per docs/mobile/screen-specs/goals.md. Was
@@ -16,7 +16,7 @@ struct CreateGoalView: View {
 
     @State private var name = ""
     @State private var targetText = ""
-    @State private var currency = "INR"
+    @State private var currency = FormOptions.defaultCurrency
     @State private var isEmergencyFund = false
     @State private var alertTime = "09:00"
     @State private var saving = false

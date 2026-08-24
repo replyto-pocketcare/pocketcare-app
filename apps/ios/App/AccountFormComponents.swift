@@ -9,16 +9,11 @@ import SwiftUI
 
 /// The 7 apps/web AccountType values (packages/types/src/index.ts),
 /// regular-account path only per docs/mobile/screen-specs/accounts.md scope.
-let accountTypes = ["savings", "current", "credit_card", "cash", "mutual_funds", "stocks", "demat"]
-let accountCurrencies = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"]
+let accountTypes = FormOptions.accountTypes
+let accountCurrencies = FormOptions.currencies
 
-/// ACCOUNT_COLORS as hex strings for the color-swatch picker, matching what
-/// apps/web/src/colors.ts's ACCOUNT_COLORS actually persists to account.color.
-let accountColorHex = [
-    "#3E4A38", "#5F6647", "#6B7A4F", "#9CAE8E", "#B06A4F", "#C98A72",
-    "#A8503A", "#7C4A3A", "#5F4636", "#C9B79C", "#C08A3E", "#4F46E5",
-    "#6D5ACF", "#3F5A8A", "#2F6F6A", "#7A4A6B", "#4B5563", "#2B2723",
-]
+/// Hex, because hex is what `accounts.color` stores.
+let accountColorHex = FormOptions.accountColors
 
 func accountTypeLabel(_ type: String) -> String {
     type.replacingOccurrences(of: "_", with: " ").capitalized

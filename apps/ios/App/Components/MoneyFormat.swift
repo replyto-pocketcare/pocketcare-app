@@ -67,7 +67,7 @@ public func formatMoneyUnmasked(_ money: Domain.Money) -> String {
 /// The user's base currency, readable without isolation — same reasoning as
 /// `amountsHiddenNow()`.
 public func baseCurrencyNow() -> String {
-    UserDefaults.standard.string(forKey: Prefs.currencyKey) ?? "INR"
+    UserDefaults.standard.string(forKey: Prefs.currencyKey) ?? FormOptions.defaultCurrency
 }
 
 /// A bare, ungrouped major-unit number for an EDITABLE field — "1200", or

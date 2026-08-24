@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
+import com.sanvya.app.ui.FormOptions
 
 /**
  * Real port of apps/web/app/friends/page.tsx's hub (task #30) -- replaces
@@ -166,7 +167,7 @@ private fun CreateGroupSheet(viewModel: SplitsViewModel, onDismiss: () -> Unit, 
     val connections by viewModel.connections.collectAsState()
     var name by remember { mutableStateOf("") }
     var kind by remember { mutableStateOf("group") }
-    var currency by remember { mutableStateOf("INR") }
+    var currency by remember { mutableStateOf(FormOptions.DEFAULT_CURRENCY) }
     var selected by remember { mutableStateOf(setOf<String>()) }
     var error by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
@@ -184,7 +185,7 @@ private fun CreateGroupSheet(viewModel: SplitsViewModel, onDismiss: () -> Unit, 
 
             Text("Currency", fontSize = 12.sp, color = colors.text2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("INR", "USD", "EUR").forEach { c ->
+                FormOptions.currencies.forEach { c ->
                     FilterChip(selected = currency == c, onClick = { currency = c }, label = { Text(c) })
                 }
             }

@@ -22,8 +22,9 @@ import { SunIcon, MoonIcon, EyeIcon, EyeOffIcon } from "../../src/ui/icons";
 import { SecurityPanel } from "../../src/crypto/SecurityPanel";
 import { ProfileTraits } from "../../src/ui/ProfileTraits";
 import { NotificationPanel } from "../../src/notifications/NotificationPanel";
+import { CURRENCIES } from "@sanvya/catalog";
 
-const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
+
 
 export default function SettingsPage() {
   const base = useBaseCurrency();

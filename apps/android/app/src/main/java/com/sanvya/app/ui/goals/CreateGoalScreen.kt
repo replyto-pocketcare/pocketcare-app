@@ -18,8 +18,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.budgets.TimePickerDialogSimple
 import kotlinx.coroutines.launch
+import com.sanvya.app.ui.FormOptions
 
-private val GOAL_CURRENCIES = listOf("INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED")
+private val GOAL_CURRENCIES = FormOptions.currencies
 
 /**
  * Real create form, matching apps/web/app/goals/page.tsx's inline "New
@@ -50,7 +51,7 @@ fun CreateGoalScreen(
     // 2026-08-06 (P3.19).
     var name by rememberSaveable { mutableStateOf("") }
     var targetText by rememberSaveable { mutableStateOf("") }
-    var currency by rememberSaveable { mutableStateOf("INR") }
+    var currency by rememberSaveable { mutableStateOf(FormOptions.DEFAULT_CURRENCY) }
     var currencyExpanded by rememberSaveable { mutableStateOf(false) }
     var isEmergencyFund by rememberSaveable { mutableStateOf(false) }
     var alertTime by rememberSaveable { mutableStateOf("09:00") }

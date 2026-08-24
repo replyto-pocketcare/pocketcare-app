@@ -40,13 +40,13 @@ class Prefs: ObservableObject {
     private init() {
         amountsHidden = defaults.bool(forKey: Prefs.hideKey)
         theme = defaults.string(forKey: Prefs.themeKey) ?? "light"
-        baseCurrency = defaults.string(forKey: Prefs.currencyKey) ?? "INR"
+        baseCurrency = defaults.string(forKey: Prefs.currencyKey) ?? FormOptions.defaultCurrency
     }
 }
 
-private let currencies = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"]
-private let genders: [(String, String)] = [("", "Not specified"), ("female", "Female"), ("male", "Male"), ("non-binary", "Non-binary"), ("prefer not to say", "Prefer not to say")]
-private let countries = ["", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other"]
+private let currencies = FormOptions.currencies
+private let genders: [(String, String)] = FormOptions.genders.map { ($0.value, $0.label) }
+private let countries = FormOptions.countries
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss

@@ -10,7 +10,7 @@ struct CreateGroupView: View {
 
     @State private var name: String = ""
     @State private var kind: String = "group"
-    @State private var currency: String = "INR"
+    @State private var currency: String = FormOptions.defaultCurrency
     @State private var selectedMembers: Set<String> = []
     @State private var error: String?
     @State private var saving = false
@@ -29,9 +29,9 @@ struct CreateGroupView: View {
                 Section(header: Text("Details")) {
                     TextField(kind == "trip" ? "Trip name (e.g. Goa Trip)" : "Group name (e.g. Roommates)", text: $name)
                     Picker("Currency", selection: $currency) {
-                        Text("INR").tag("INR")
-                        Text("USD").tag("USD")
-                        Text("EUR").tag("EUR")
+                        // Was a hand-written three-item list — the only picker
+                        // in the app that offered fewer than the other nine.
+                        ForEach(FormOptions.currencies, id: \.self) { Text($0).tag($0) }
                     }
                 }
 

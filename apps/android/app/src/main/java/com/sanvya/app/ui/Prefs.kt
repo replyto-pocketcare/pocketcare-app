@@ -25,7 +25,7 @@ object Prefs : KoinComponent {
     private const val THEME_KEY = "theme"
     private const val CURRENCY_KEY = "baseCurrency"
     private const val DEFAULT_THEME = "light"
-    private const val DEFAULT_CURRENCY = "INR"
+    private const val DEFAULT_CURRENCY = FormOptions.DEFAULT_CURRENCY
 
     private val context: Context by inject()
 

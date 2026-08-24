@@ -20,9 +20,10 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.StringListSaver
 import com.sanvya.app.ui.transactions.LabelPickerRow
 import kotlinx.coroutines.launch
+import com.sanvya.app.ui.FormOptions
 
-private val BUDGET_CURRENCIES = listOf("INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED")
-private val BUDGET_PERIODS = listOf("daily", "weekly", "monthly", "yearly")
+private val BUDGET_CURRENCIES = FormOptions.currencies
+private val BUDGET_PERIODS = FormOptions.periods
 
 internal fun periodChipLabel(p: String) = when (p) {
     "daily" -> "Daily"
@@ -56,7 +57,7 @@ fun CreateBudgetScreen(
     // stay open" requirement.
     var name by rememberSaveable { mutableStateOf("") }
     var limitText by rememberSaveable { mutableStateOf("") }
-    var currency by rememberSaveable { mutableStateOf("INR") }
+    var currency by rememberSaveable { mutableStateOf(FormOptions.DEFAULT_CURRENCY) }
     var currencyExpanded by rememberSaveable { mutableStateOf(false) }
     var thresholdText by rememberSaveable { mutableStateOf("80") }
     var alertTime by rememberSaveable { mutableStateOf("09:00") }

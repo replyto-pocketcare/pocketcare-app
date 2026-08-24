@@ -1,7 +1,7 @@
 import SwiftUI
 
-private let budgetCurrencies = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"]
-private let budgetPeriods = ["daily", "weekly", "monthly", "yearly"]
+private let budgetCurrencies = FormOptions.currencies
+private let budgetPeriods = FormOptions.periods
 
 private func periodChipLabel(_ p: String) -> String {
     switch p {
@@ -23,7 +23,7 @@ struct CreateBudgetView: View {
 
     @State private var name = ""
     @State private var limitText = ""
-    @State private var currency = "INR"
+    @State private var currency = FormOptions.defaultCurrency
     @State private var thresholdText = "80"
     @State private var alertTime = "09:00"
     @State private var selectedCategoryIds: [String] = []

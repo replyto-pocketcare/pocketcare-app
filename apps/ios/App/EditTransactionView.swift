@@ -36,7 +36,7 @@ struct EditTransactionView: View {
     @State private var paymentMethod = ""
     @State private var note = ""
     @State private var intent: String?
-    @State private var currency = "INR"
+    @State private var currency = FormOptions.defaultCurrency
     @State private var occurredAt = Date()
 
     @State private var saving = false

@@ -31,9 +31,9 @@ import com.sanvya.app.data.repository.FailedWriteItem
 import com.sanvya.app.data.repository.StrandedRow
 import com.sanvya.app.theme.*
 
-private val CURRENCIES = listOf("INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED")
-private val GENDERS = listOf("" to "Not specified", "female" to "Female", "male" to "Male", "non-binary" to "Non-binary", "prefer not to say" to "Prefer not to say")
-private val COUNTRIES = listOf("", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other")
+private val CURRENCIES = FormOptions.currencies
+private val GENDERS = FormOptions.genders.map { it.value to it.label }
+private val COUNTRIES = FormOptions.countries
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

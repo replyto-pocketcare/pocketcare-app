@@ -17,7 +17,7 @@ struct CreateAccountView: View {
 
     @State private var name = ""
     @State private var type = "savings"
-    @State private var currency = "INR"
+    @State private var currency = FormOptions.defaultCurrency
     @State private var color = accountColorHex[0]
     @State private var includeInNetWorth = true
     // nil = "follow type default", matches web's `allowNeg: Boolean | null`
