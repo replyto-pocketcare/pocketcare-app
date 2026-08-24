@@ -116,14 +116,6 @@ class ShellViewModel : ViewModel(), KoinComponent {
     }
 
     /**
-     * Polled by the shell, not observed.
-     *
-     * `failed_writes` is a LOCAL-ONLY table, so there is no sync event to hang a
-     * watch off, and quarantining is rare enough that a periodic check costs
-     * nothing. Web polls it every 30s for exactly this reason; do not "improve"
-     * it into a watch that would never fire.
-     */
-    /**
      * Post anything that fell due while the app was closed.
      *
      * Mirrors AppShell.tsx's effect: **once per session, after a 2500 ms
@@ -172,6 +164,14 @@ class ShellViewModel : ViewModel(), KoinComponent {
         }
     }
 
+    /**
+     * Polled by the shell, not observed.
+     *
+     * `failed_writes` is a LOCAL-ONLY table, so there is no sync event to hang a
+     * watch off, and quarantining is rare enough that a periodic check costs
+     * nothing. Web polls it every 30s for exactly this reason; do not "improve"
+     * it into a watch that would never fire.
+     */
     fun refreshFailedWrites() {
         viewModelScope.launch {
             _failedWriteCount.value = try {

@@ -48,8 +48,8 @@
                  supabase-kt via handleDeeplinks().
 
                  Both values are manifest placeholders fed from the
-                 `sanvya.authRedirect*` Gradle properties -- the same two the
-                 Supabase client is configured from -- so the URI the app asks
+                 `sanvya.authRedirect*` Gradle properties (the same two the
+                 Supabase client is configured from), so the URI the app asks
                  the provider to return to and the URI it is registered to
                  receive are the same string by construction.
 

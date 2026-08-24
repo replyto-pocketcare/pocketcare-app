@@ -22,7 +22,11 @@ public enum RecurringFrequency: String, Sendable, CaseIterable {
     }
 }
 
-public enum RecurringError: Error, CustomStringConvertible {
+// Sendable explicitly. A public type gets no inference, and every other error
+// type in Domain (MoneyError, CurrencyMismatchError) declares it -- `any Error`
+// is special-cased today so nothing diagnoses the omission, which is exactly
+// how it would go unnoticed until something did.
+public enum RecurringError: Error, Sendable, CustomStringConvertible {
     case badDate(String)
 
     public var description: String {

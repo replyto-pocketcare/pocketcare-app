@@ -54,10 +54,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
+      # pnpm BEFORE setup-node, and pinned to the exact version package.json's
+      # `packageManager` field names. Both matter, and this job got both wrong:
+      # `version: 9` against `packageManager: pnpm@9.7.0` makes
+      # pnpm/action-setup@v4 abort with "multiple versions of pnpm specified",
+      # and setup-node's `cache: pnpm` needs pnpm already on PATH. ci.yml has
+      # had this shape all along -- this is now a copy of it, not a variation.
       - uses: pnpm/action-setup@v4
-        with: { version: 9 }
+        with: { version: 9.7.0 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
       # export-mobile-schema.mjs imports packages/db's AppSchema, which needs
       # @powersync/common resolvable. The other generators parse source text and
       # need nothing installed.

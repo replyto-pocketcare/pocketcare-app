@@ -893,6 +893,55 @@ id that falls through to `coming_soon` on Android and a `PlaceholderView` on iOS
 `postOnce` and `skipOnce` exist and nothing calls them yet — deliberately, so the screen has a data
 layer to be built against rather than the reverse. And no device has run either engine yet.
 
+### Three CI failures, three self-inflicted — 2026-08-24
+
+Run `32744609000` failed parity, Android *and* iOS. All three were mine, and each is a distinct
+category worth naming.
+
+**parity — a workflow step I added, configured wrong.** I put `pnpm/action-setup` *after*
+`setup-node` and pinned `version: 9`, while `package.json` declares `packageManager: pnpm@9.7.0`.
+Action-setup aborts with "multiple versions of pnpm specified" when those disagree, and
+`cache: pnpm` needs pnpm already on `PATH`. **`ci.yml` has had the correct shape the whole time.**
+The parity job is now a copy of it rather than a variation — when a working example of the exact
+thing you are configuring is already in the repo, copy it.
+
+**Android — `--` is illegal inside an XML comment.** I wrote `properties -- the same two` in the
+manifest's new OAuth-callback comment, and the *entire file* stopped parsing:
+`ManifestMerger2$MergeFailureException: Error parsing AndroidManifest.xml`. Nothing in the message
+points at a comment. Swept every XML file in the repo for the pattern; this was the only one.
+The manifest is now parsed with `xml.etree` as a pre-commit check.
+
+**iOS — widening visibility is not free.** Opening up the civil-date helpers, I made
+`floorDiv`/`floorMod`/`isLeapYear` internal alongside `parseYmd`/`isoOf`. `Budget.swift` declares
+its own **private** `floorDiv`/`floorMod`, and in Swift a file-private declaration and a
+module-internal one with the same signature are *both* in scope inside that file — "invalid
+redeclaration", ~200 lines of it. Only `parseYmd` and `isoOf` were ever needed; the other three are
+private again.
+
+**What was checked before the next push,** since three round-trips is two too many:
+
+- The Android manifest parses (`xml.etree`) and the workflow parses (`yaml.safe_load`).
+- The parity job simulated end to end: all seven generators run, `git diff` on every generated
+  path is empty.
+- `pnpm-lock.yaml` verified structurally in sync — `lockfileVersion: 9.0` against
+  `packageManager: pnpm@9.7.0`, all five workspace importers present, and no npm dependency added
+  by any of this work. (`pnpm` itself is not installed on the machine, so a real
+  `--frozen-lockfile` run is still CI's first chance.)
+- Both new Kotlin and both new Swift files reviewed symbol by symbol against real declarations.
+  The Swift pass cloned `powersync-swift` at the exact revision in `Package.resolved` rather than
+  trusting docs. It found nothing; the Kotlin pass found that **the PowerSync cursor accessors are
+  extension functions and must each be imported by name** — `getString`, `getStringOptional`,
+  `getLongOptional`, `getBooleanOptional`. Both new repositories were missing all of them.
+
+Two things that review also settled, both previously unverified assumptions of mine:
+
+- `:app` *can* see `com.sanvya.app.data.repository.*` even though `:data` is an `implementation`
+  dependency — `implementation` hides a dependency from consumers of `:app`, and `:app` is itself
+  the consumer. This is **not** a repeat of the `MainActivity`/`SupabaseClient` failure; that one
+  was `:app` reaching for `supabase-kt`, a transitive dep of `:data`, which is genuinely invisible.
+- Both vector runners *skip* an unregistered `fn` rather than failing, so a registration typo would
+  have made `recurring-advance` pass vacuously. Registration confirmed present on both platforms.
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*

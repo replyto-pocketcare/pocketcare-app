@@ -1,12 +1,15 @@
 package com.sanvya.app.data.repository
 
 import com.powersync.PowerSyncDatabase
+// Extension-function cursor accessors -- imported by name, as everywhere else.
+import com.powersync.db.getLongOptional
+import com.powersync.db.getString
+import com.powersync.db.getStringOptional
 import com.sanvya.app.domain.finance.effectivePaidEmis
 import com.sanvya.app.domain.finance.emiDueDate
 import com.sanvya.app.domain.finance.emiDescription
 import com.sanvya.app.domain.money.money
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive

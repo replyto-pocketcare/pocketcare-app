@@ -2,6 +2,13 @@ package com.sanvya.app.data.repository
 
 import com.powersync.PowerSyncDatabase
 import com.powersync.db.SqlCursor
+// The cursor accessors are EXTENSION functions on SqlCursor living in
+// com.powersync.db -- each has to be imported by name or the call site does not
+// resolve. Every other repository here imports exactly this set.
+import com.powersync.db.getBooleanOptional
+import com.powersync.db.getLongOptional
+import com.powersync.db.getString
+import com.powersync.db.getStringOptional
 import com.sanvya.app.domain.money.money
 import com.sanvya.app.domain.recurring.advance
 import kotlinx.coroutines.flow.Flow

@@ -274,6 +274,12 @@ public func timeframeTotal(_ monthlyAmount: Int64, _ timeframe: String) -> Int64
 // needs exactly the same civil-date arithmetic, and duplicating a clamping
 // calendar helper is how two platforms end up disagreeing about what
 // Jan 31 + 1 month is. Mirrors the same change in Finance.kt.
+//
+// ONLY parseYmd and isoOf were opened up. isLeapYear/floorDiv/floorMod stay
+// private: Budget.swift declares its own private floorDiv/floorMod, and in
+// Swift a file-private declaration and a module-internal one with the same
+// signature are BOTH in scope inside that file -- "invalid redeclaration",
+// which is what CI run 32744609000 failed on. Widening visibility is not free.
 struct FinanceYmd {
     let y: Int
     let m: Int // 0-based
@@ -291,7 +297,7 @@ func parseYmd(_ iso: String?) -> FinanceYmd? {
     return FinanceYmd(y: y, m: m, d: d)
 }
 
-func isLeapYear(_ y: Int) -> Bool {
+private func isLeapYear(_ y: Int) -> Bool {
     (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
 }
 
@@ -306,13 +312,13 @@ func daysInMonth(_ y: Int, _ m0: Int) -> Int {
     }
 }
 
-func floorDiv(_ a: Int, _ b: Int) -> Int {
+private func floorDiv(_ a: Int, _ b: Int) -> Int {
     let q = a / b
     let r = a % b
     return (r != 0 && (r < 0) != (b < 0)) ? q - 1 : q
 }
 
-func floorMod(_ a: Int, _ b: Int) -> Int {
+private func floorMod(_ a: Int, _ b: Int) -> Int {
     let r = a % b
     return (r != 0 && (r < 0) != (b < 0)) ? r + b : r
 }
