@@ -118,6 +118,28 @@ renders a system nav bar the web app does not have. Not a shell bug and not fixa
 it is one line per screen and belongs to that screen's W2 pass, where the title becomes the page's
 own heading. Tracked here so it is not mistaken for done.
 
+## 3a. Facade sweep, 2026-08-24 — how to re-run it
+
+Three dead controls and three mock-data screens were all in places §4 marked as built. They were
+marked built because they **render**, and rendering was never the question.
+
+`/tmp` scripts are not the answer; the checks are recorded here so they can be repeated:
+
+1. **Dead controls** — every `Button(action:)` / `onClick = {}` whose body reaches no view model,
+   repository, callback, navigation or `Task`/`launch`. Local UI state (`showSheet = true`) is
+   legitimate; nothing at all is not. Beware two *correct* empty handlers on Android: the one
+   swallowing taps on a modal panel, and an `AssistChip(enabled = false)`.
+2. **Mock data** — any `*UiModel(` / `*UiItem(` literal constructed inside a View or Screen file.
+   A screen that builds its own rows is showing fiction.
+3. **No data layer** — a `*Screen.kt` / `*View.swift` matching neither `viewModel.` nor
+   `repository.`. Expect legitimate hits: pure components, the router, onboarding copy,
+   `ComingSoonScreen`.
+
+**And the check that caught my own error:** before concluding a feature is absent from web, look
+at what the route file *renders*, not just the route file. `apps/web/app/assistant/page.tsx` is
+nine lines. The assistant is 1,669 lines in `apps/web/src/assistant/`. I declared voice input
+non-existent on the strength of the nine.
+
 ## 4. Route → platform map
 
 Legend: ✅ built & spec-checked · ⚠️ built, unverified or spec drifted · 🔶 partial · ❌ missing · 🚫 n/a
@@ -145,9 +167,9 @@ Legend: ✅ built & spec-checked · ⚠️ built, unverified or spec drifted · 
 | `/investments` | (370) + `src/investments/*` | `investments/InvestmentsScreen.kt` (290) + AddHolding | `InvestmentsView.swift` (248) + AddHolding | 🔶 live catalog picker, SIP recurring transfer, CSV/XLSX import deferred |
 | `/reflect` | (97) + `src/reflect/IntentCard.tsx` (141) | ❌ | ❌ `ReflectView` is a `PlaceholderView` | ❌ |
 | `/insights` | (60) + `src/insights/generators.ts` (422) + `InsightFeed.tsx` (224) | `insights/InsightsScreen.kt` (376) | `InsightsView.swift` (515) | ⚠️ 18 generators ported; full-bleed feed layout + entitlement CTA need re-check |
-| `/statements` | (145) | ❌ | `StatementsView.swift` (115) | ❌ / ⚠️ |
-| `/statements/analyze` | (329) + `src/statements/parsePdf.ts` | ❌ | `StatementImportView.swift` (89) | ❌ / 🔶 |
-| `/assistant` | (9) + `src/assistant/AssistantChat.tsx` (644) + `richMessage.tsx` (384) + `tools.ts` (276) | ❌ | `AssistantView.swift` (167) | ❌ / 🔶 no rich messages, no tools, no voice |
+| `/statements` | (145) | ❌ | `StatementsView.swift` (102) | ❌ / **🩹 MOCK** — four hardcoded `StatementUiModel` rows ("July 2026", "01 Jul - 31 Jul"). No repository, no view model. Shows fiction that looks like data |
+| `/statements/analyze` | (329) + `src/statements/parsePdf.ts` | ❌ | `StatementImportView.swift` (89) | ❌ / **🩹 MOCK** — a hardcoded filename (`HDFC_Statement_July2026.pdf`), a hardcoded account (`HDFC Primary Savings (*4821)`) and four invented transactions incl. a ₹1,25,000 salary credit. Parses nothing |
+| `/assistant` | (9) + `src/assistant/AssistantChat.tsx` (644) + `richMessage.tsx` (384) + `tools.ts` (276) + `MicButton.tsx` (91) + `speech.ts` (90) | ❌ | `AssistantView.swift` (153) | ❌ / **🩹 MOCK** — seeded with hardcoded messages; sending appends your text and nothing answers. No repository, no tools, no voice. 153L against web's ~1,670 |
 | `/settings` | (272) | `ui/SettingsScreen.kt` (527) | `SettingsView.swift` (413) | ⚠️ Security/crypto, Language, Categories/Labels, Import-Export links absent |
 | `/settings/categories` | (157) | ❌ | ❌ | ❌ |
 | `/settings/labels` | (89) | ❌ | ❌ | ❌ |
@@ -388,8 +410,17 @@ both UI web does not have at all**:
 
 - **`AssistantView`'s microphone.** It toggled `isRecording`, swapped to a stop icon and turned
   accent — so it *looked* like it was recording — while capturing no audio and transcribing
-  nothing. Web's assistant has **no voice input**. Removed rather than implemented: building it
-  would be adding a feature web does not have, which is the opposite of this branch's job.
+  nothing. Removed, because a dead control is worse than a missing one.
+
+  **My stated reason for removing it was wrong, and the correction matters more than the fix.**
+  I claimed web had no voice input. It does: `apps/web/src/assistant/MicButton.tsx` (91 lines)
+  and `speech.ts` (90), rendered at `AssistantChat.tsx:623`. Whisper on-device first, Web Speech
+  API as fallback, audio never leaving the phone. I had grepped `apps/web/app/assistant/page.tsx`
+  — a **9-line wrapper** — and concluded from its silence that the feature did not exist.
+  **Checking the route file instead of the component it renders is how you conclude a 1,600-line
+  feature is absent.**
+  So the mic is a **missing feature, not an invented one**, and it belongs in the port. Deleting
+  the fake was still right; the note that said "web does not have this" was not.
 - **`DashboardView`'s chevron** beside the Accounts heading, `action: {}`. It read as "see all
   accounts". Web's dashboard has no such affordance.
 
