@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Scoped-down port of apps/web/src/investments/AddDialog.tsx's
@@ -82,22 +83,14 @@ fun AddHoldingScreen(
 
     val isLump = assetClass == AssetClass.FD
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Investments.addInvestment(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Investments.addInvestment(sRes()),
+        action = {
+
         },
-    ) { padding ->
+    ) {
         Column(
-            modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(S.Accounts.typeLabel(sRes()), fontSize = 13.sp, color = colors.text2)

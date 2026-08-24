@@ -20,6 +20,7 @@ import com.sanvya.app.ui.budgets.TimePickerDialogSimple
 import kotlinx.coroutines.launch
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Real edit form + delete, matching apps/web/app/goals/page.tsx's
@@ -49,10 +50,9 @@ fun EditGoalScreen(
     val scope = rememberCoroutineScope()
 
     if (goal == null) {
-        Scaffold(containerColor = colors.bg) { padding ->
-            Box(modifier = Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = colors.accent)
-            }
+        // A bare Scaffold here only supplied a background the shell now owns.
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = colors.accent)
         }
         return
     }
@@ -69,22 +69,14 @@ fun EditGoalScreen(
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirm by rememberSaveable { mutableStateOf(false) }
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text("Edit Goal", fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = "Edit Goal",
+        action = {
+
         },
-    ) { padding ->
+    ) {
         Column(
-            modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             OutlinedTextField(

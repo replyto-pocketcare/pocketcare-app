@@ -21,6 +21,7 @@ import com.sanvya.app.theme.SanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Real port of apps/web/app/groups/[id]/page.tsx (task #30). See
@@ -45,27 +46,18 @@ fun GroupDetailScreen(
     var showAddExpense by remember { mutableStateOf(false) }
     var settleTarget by remember { mutableStateOf<MemberUiModel?>(null) }
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(group?.name ?: S.Groups.kindGroup(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = group?.name ?: S.Groups.kindGroup(sRes()),
+        action = {
+
         },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = { showAddExpense = true }, containerColor = colors.accent) {
-                Text(S.Splits.addExpense(sRes()), color = colors.surface)
-            }
-        },
-    ) { padding ->
+    ) {
         if (!loaded) {
-            Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-            return@Scaffold
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            return@SanvyaPage
         }
 
-        LazyColumn(Modifier.padding(padding).fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             item {
                 Text(S.Groups.membersTitle(sRes()), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.text2)
             }

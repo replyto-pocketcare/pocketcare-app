@@ -22,6 +22,7 @@ import com.sanvya.app.ui.accounts.ChipRow
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * New transaction — ported from transactions/new/page.tsx's regular
@@ -47,23 +48,15 @@ fun CreateTransactionScreen(
 
     LaunchedEffect(uiState.saved) { if (uiState.saved) onSaved() }
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Transactions.addTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Transactions.addTitle(sRes()),
+        action = {
+
         },
-    ) { padding ->
+    ) {
         if (accounts.isEmpty()) {
             Column(
-                Modifier.padding(padding).fillMaxSize().padding(24.dp),
+                Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -71,15 +64,13 @@ fun CreateTransactionScreen(
                 Spacer(Modifier.height(12.dp))
                 Button(onClick = onAddAccountFirst) { Text(S.Transactions.newAccountCta(sRes())) }
             }
-            return@Scaffold
+            return@SanvyaPage
         }
 
         val currency = account?.currency ?: baseCurrencyNow()
 
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),

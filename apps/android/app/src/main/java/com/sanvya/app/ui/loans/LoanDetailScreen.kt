@@ -26,6 +26,7 @@ import com.sanvya.app.ui.budgets.DatePickerDialogSimple
 import kotlinx.coroutines.launch
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Loan detail (summary, next-EMI/remaining/interest strip, auto-mark
@@ -64,26 +65,15 @@ fun LoanDetailScreen(
         return
     }
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(model.lender, fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                actions = {
-                    TextButton(onClick = { editing = true }) { Text(S.Loans.edit(sRes())) }
-                    TextButton(onClick = { showDeleteConfirm = true }) { Text(S.Loans.delete(sRes()), color = colors.negative) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = model.lender,
+        action = {
+                TextButton(onClick = { editing = true }) { Text(S.Loans.edit(sRes())) }
+                TextButton(onClick = { showDeleteConfirm = true }) { Text(S.Loans.delete(sRes()), color = colors.negative) }
         },
-    ) { padding ->
+    ) {
         Column(
-            modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Summary cards

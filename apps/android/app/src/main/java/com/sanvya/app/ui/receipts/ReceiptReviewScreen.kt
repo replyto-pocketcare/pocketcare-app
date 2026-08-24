@@ -24,6 +24,7 @@ import java.util.Locale
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 private val LINE_KINDS = listOf("item", "tax", "service_charge", "tip", "discount")
 
@@ -56,26 +57,22 @@ fun ReceiptReviewScreen(
         savedTransactionId?.let { onSaved(it) }
     }
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Receipts.reviewTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Receipts.reviewTitle(sRes()),
+        action = {
+
         },
-    ) { padding ->
+    ) {
         if (!loaded) {
-            Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-            return@Scaffold
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            return@SanvyaPage
         }
         val d = draft
         if (d == null) {
-            Box(Modifier.padding(padding).fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Text(error ?: S.Receipts.reviewNotFound(sRes()), color = colors.text2, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
-            return@Scaffold
+            return@SanvyaPage
         }
 
         val digits = 2
@@ -85,7 +82,7 @@ fun ReceiptReviewScreen(
         val canSave = balanced && accountId != null && !saving
 
         LazyColumn(
-            modifier = Modifier.padding(padding).fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {

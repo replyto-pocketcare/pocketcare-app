@@ -27,6 +27,7 @@ import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Ported from apps/web/app/loans/page.tsx's `AddLoan` inline modal per
@@ -69,22 +70,14 @@ fun AddLoanScreen(
     val computedEmiMajor = if (computedEmiMinor > 0) formatMajorPlain(computedEmiMinor) else ""
     val emiValue = if (rateType == "variable") "" else if (emiTouched) emi else computedEmiMajor
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Loans.addLoan(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Loans.addLoan(sRes()),
+        action = {
+
         },
-    ) { padding ->
+    ) {
         Column(
-            modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             OutlinedTextField(value = lender, onValueChange = { lender = it }, label = { Text(S.Loans.lender(sRes())) }, modifier = Modifier.fillMaxWidth())

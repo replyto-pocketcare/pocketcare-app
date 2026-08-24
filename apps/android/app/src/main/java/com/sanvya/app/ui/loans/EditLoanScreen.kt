@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Ported from apps/web/app/loans/[id]/page.tsx's `EditLoan` inline form per
@@ -69,22 +70,14 @@ fun EditLoanScreen(
     val computedEmiMajor = if (computedEmiMinor > 0) formatMajorPlain(computedEmiMinor) else ""
     val emiValue = if (rateType == "variable") "" else if (emiTouched) emi else (emi.ifBlank { computedEmiMajor })
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Loans.editTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Loans.editTitle(sRes()),
+        action = {
+
         },
-    ) { padding ->
+    ) {
         Column(
-            modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             OutlinedTextField(value = lender, onValueChange = { lender = it }, label = { Text(S.Loans.lender(sRes())) }, modifier = Modifier.fillMaxWidth())

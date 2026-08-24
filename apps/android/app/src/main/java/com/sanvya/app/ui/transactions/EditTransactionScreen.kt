@@ -19,6 +19,7 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.accounts.ChipRow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Edit transaction — ported from transactions/[id]/edit/page.tsx per
@@ -44,31 +45,21 @@ fun EditTransactionScreen(
     LaunchedEffect(uiState.saved) { if (uiState.saved) onSaved() }
     LaunchedEffect(uiState.deleted) { if (uiState.deleted) onDeleted() }
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Transactions.editTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Transactions.editTitle(sRes()),
+        action = {
+
         },
-    ) { padding ->
+    ) {
         if (!uiState.loaded) {
-            Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(S.Transactions.loading(sRes()), color = colors.text2)
             }
-            return@Scaffold
+            return@SanvyaPage
         }
 
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),

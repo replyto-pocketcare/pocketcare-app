@@ -343,6 +343,29 @@ On Android, hardware/predictive back must do exactly what this button does.
 | Diagnostics | `installDiagnostics()`, `startErrorReporting()`, route tagged on every change | same, at process start |
 | ⌘K → `/search` | desktop only | ported at Expanded only — `⌘K` on iPad/Android hardware keyboards, matching the sidebar's own `<kbd>⌘K</kbd>` hint |
 
+## 8a. Forms: a route on Android, a sheet on iOS
+
+The two platforms present `Create*` / `Edit*` / `Add*` deliberately differently, and it is worth
+stating so it is not mistaken for drift.
+
+Web treats every form as a **route** — `/accounts/new` is a page, with the shell around it and Back
+in the utility row.
+
+- **Android follows web**: forms are `composable("accounts/new")` destinations inside `AppShell`.
+  They therefore had a `TopAppBar` sitting above the shell's own chrome, which is what the W2 pass
+  removed. They now use `SanvyaPage` like every other screen.
+- **iOS does not**: forms are `.sheet(...)` presentations. A sheet with its own navigation bar —
+  Cancel on the left, Save on the right — is the iOS idiom for a modal edit, and it brings
+  swipe-to-dismiss with it. Those `NavigationStack`s **stay**.
+
+This is the one place the brief's two halves pull against each other: *"exact replica of web"* and
+*"best practices for the respective platforms"*. A sheet is not a page — it does not show the
+bottom bar, and it dismisses by gesture. Judged worth it on iOS, where a full-screen push for a
+two-field form reads as heavy.
+
+**Open for a ruling**: if exactness wins, iOS's forms become routes and lose the sheet. Nothing
+downstream depends on the current choice.
+
 ## 9. Deliberately not ported
 
 - ~~**Desktop sidebar and top bar** (`≥1024px`)~~ — **this decision is reversed.**
