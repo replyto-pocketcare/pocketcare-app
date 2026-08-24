@@ -18,7 +18,6 @@ struct AssistantView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var inputText: String = ""
-    @State private var isRecording: Bool = false
 
     @State private var messages: [ChatMessageUiItem] = [
         ChatMessageUiItem(
@@ -96,14 +95,14 @@ struct AssistantView: View {
 
                 // Composer bar
                 HStack(spacing: 10) {
-                    Button(action: { isRecording.toggle() }) {
-                        Image(systemName: isRecording ? "stop.fill" : "mic.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(isRecording ? .white : Color.text)
-                            .frame(width: 40, height: 40)
-                            .background(isRecording ? Color.accent : Color.surface2)
-                            .clipShape(Circle())
-                    }
+                    // A microphone button used to sit here. It toggled
+                    // `isRecording`, swapped to a stop icon and turned accent
+                    // — so it LOOKED like it was recording — while capturing no
+                    // audio and transcribing nothing. Web's assistant has no
+                    // voice input at all, so this was invented UI that only
+                    // ever pretended. Removed rather than implemented:
+                    // building it would be adding a feature web does not have,
+                    // which is the opposite of this branch's job.
 
                     TextField("Ask Sanvya AI…", text: $inputText)
                         .padding(.horizontal, 14)

@@ -380,6 +380,27 @@ Two concrete gaps:
    `ensureUser()`, which works but means the sync accessor is a trap for the next person. Tracked
    as P3.2c.
 
+### Dead controls — swept 2026-08-24
+
+The login facade prompted a sweep of every button handler on both platforms for the same shape:
+a control that is present, tappable, and reaches nothing. Two more found, **both on iOS, and
+both UI web does not have at all**:
+
+- **`AssistantView`'s microphone.** It toggled `isRecording`, swapped to a stop icon and turned
+  accent — so it *looked* like it was recording — while capturing no audio and transcribing
+  nothing. Web's assistant has **no voice input**. Removed rather than implemented: building it
+  would be adding a feature web does not have, which is the opposite of this branch's job.
+- **`DashboardView`'s chevron** beside the Accounts heading, `action: {}`. It read as "see all
+  accounts". Web's dashboard has no such affordance.
+
+**Android came back clean.** Its two empty handlers are both deliberate and correct: one swallows
+taps on a modal panel so they do not reach the scrim, and the other is an `AssistChip` with
+`enabled = false` and a "coming soon" label — which is exactly the honest version of this.
+
+The rule this establishes: **a dead control is worse than a missing one.** A missing feature is
+visible and gets filed; a button that appears to work is trusted, and in the login case it
+appeared to authenticate people. Anything not yet built is either absent or visibly disabled.
+
 ### Local storage — the schema is generated and checked; the runtime path needs a real test
 
 Both platforms build their PowerSync schema **at runtime from a generated descriptor**

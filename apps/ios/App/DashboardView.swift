@@ -71,10 +71,11 @@ struct DashboardView: View {
                                         .fontWeight(.bold)
                                         .foregroundColor(Color.text)
                                     Spacer()
-                                    Button(action: {}) {
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(Color.text2)
-                                    }
+                                    // A chevron used to sit here with an empty
+                                    // action — it read as "see all accounts"
+                                    // and did nothing. Web's dashboard has no
+                                    // such affordance, so it is removed rather
+                                    // than given one.
                                 }
 
                                 ScrollView(.horizontal, showsIndicators: false) {
