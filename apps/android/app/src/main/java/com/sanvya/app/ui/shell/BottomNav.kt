@@ -33,10 +33,10 @@ import com.sanvya.app.theme.SanvyaShape
 import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaText
-import com.sanvya.app.ui.components.press
-import com.sanvya.app.ui.components.sanvyaShadow
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.i18n.S
+import com.sanvya.app.ui.components.press
+import com.sanvya.app.ui.components.sanvyaShadow
 
 /**
  * The floating bottom bar — web's only navigation on a phone.

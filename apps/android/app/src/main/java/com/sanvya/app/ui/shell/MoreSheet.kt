@@ -37,10 +37,10 @@ import com.sanvya.app.ui.components.SanvyaButton
 import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaModal
 import com.sanvya.app.ui.components.SanvyaText
-import com.sanvya.app.ui.components.press
 import com.sanvya.app.i18n.sRes
 import android.content.res.Resources
 import com.sanvya.app.i18n.S
+import com.sanvya.app.ui.components.press
 
 /**
  * One nav group, matching web's NAV_GROUPS.

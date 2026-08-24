@@ -48,10 +48,10 @@ import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.SanvyaCard
 import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaText
-import com.sanvya.app.ui.components.sanvyaShadow
 import com.sanvya.app.theme.LocalSanvyaShadows
 import kotlinx.coroutines.delay
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.sanvyaShadow
 
 /** Matches web's `APP_VERSION` in AppShell.tsx. */
 private const val APP_VERSION = "0.1.0"

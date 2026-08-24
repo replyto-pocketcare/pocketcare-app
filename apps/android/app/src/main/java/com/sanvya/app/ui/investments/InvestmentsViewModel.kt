@@ -305,4 +305,4 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    
+    }

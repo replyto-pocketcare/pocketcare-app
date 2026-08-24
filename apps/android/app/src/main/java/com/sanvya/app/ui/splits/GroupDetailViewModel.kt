@@ -26,7 +26,19 @@ import java.time.Instant
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
 
-data class MemberUiModel(val userId: String, val name: String, val net: Long, val isSelf: Boolean)
+/**
+ * `netFormatted` alongside `net` for the same reason `ExpenseUiModel` and
+ * `SettlementUiModel` carry `amountFormatted`: the group's currency is known
+ * here and not in the row composable, which had been calling `formatMoney`
+ * without one. The raw `net` stays for the sign and the colour.
+ */
+data class MemberUiModel(
+    val userId: String,
+    val name: String,
+    val net: Long,
+    val netFormatted: String,
+    val isSelf: Boolean,
+)
 data class ExpenseUiModel(val id: String, val description: String, val amountFormatted: String, val date: String)
 data class SettlementUiModel(val id: String, val fromUser: String, val toUser: String, val fromName: String, val toName: String, val amountFormatted: String, val date: String)
 data class AccountOption(val id: String, val name: String)
@@ -109,6 +121,10 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
                             userId = id,
                             name = if (id == uid) "You" else nameOf(id),
                             net = byId[id]?.net ?: 0L,
+                            netFormatted = formatMoney(
+                                kotlin.math.abs(byId[id]?.net ?: 0L),
+                                _group.value?.currency ?: baseCurrencyNow(),
+                            ),
                             isSelf = id == uid,
                         )
                     }

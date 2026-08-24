@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.baseCurrencyNow
 
 /** Real port of apps/web/app/friends/page.tsx's hub (task #30). See
  * docs/mobile/screen-specs/splits.md. Replaces the previous version's

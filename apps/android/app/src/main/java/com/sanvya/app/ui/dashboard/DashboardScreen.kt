@@ -37,7 +37,9 @@ import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.ui.Prefs
 import com.sanvya.app.ui.accountColor
 import kotlin.math.abs
+import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.formatMoneyUnmasked
+import com.sanvya.app.ui.colorForId
 
 /**
  * Dashboard — ported from apps/web/app/page.tsx per

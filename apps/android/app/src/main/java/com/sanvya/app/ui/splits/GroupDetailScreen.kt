@@ -19,7 +19,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
-import com.sanvya.app.ui.formatMoney
 
 /**
  * Real port of apps/web/app/groups/[id]/page.tsx (task #30). See
@@ -123,8 +122,8 @@ private fun MemberRow(m: MemberUiModel, colors: SanvyaColors, onClick: () -> Uni
         Text(
             when {
                 net == 0L -> "Settled up"
-                net > 0 -> "Owes you ${formatMoney(net)}"
-                else -> "You owe ${formatMoney(-net)}"
+                net > 0 -> "Owes you ${m.netFormatted}"
+                else -> "You owe ${m.netFormatted}"
             },
             fontSize = 13.sp,
             color = if (net == 0L) colors.text2 else if (net > 0) colors.positive else colors.negative,

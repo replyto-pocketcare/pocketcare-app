@@ -10,7 +10,6 @@ import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.LoansRepository
 import com.sanvya.app.domain.budget.billingCycle
 import com.sanvya.app.domain.money.fromMajor
-import com.sanvya.app.ui.loans.formatMoney
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
