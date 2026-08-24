@@ -343,28 +343,53 @@ On Android, hardware/predictive back must do exactly what this button does.
 | Diagnostics | `installDiagnostics()`, `startErrorReporting()`, route tagged on every change | same, at process start |
 | ⌘K → `/search` | desktop only | ported at Expanded only — `⌘K` on iPad/Android hardware keyboards, matching the sidebar's own `<kbd>⌘K</kbd>` hint |
 
-## 8a. Forms: a route on Android, a sheet on iOS
+## 8a. Create and edit surfaces — decided 2026-08-24
 
-The two platforms present `Create*` / `Edit*` / `Add*` deliberately differently, and it is worth
-stating so it is not mistaken for drift.
+Ruled by Akhilesh: *"Let them remain sheets [on iOS]... if it is better on sheets for iOS then
+keep it sheets else keep everything same."* So iOS uses sheets, and the other two follow web.
 
-Web treats every form as a **route** — `/accounts/new` is a page, with the shell around it and Back
-in the utility row.
+**Web is not uniform, and that is deliberate rather than accidental** — it routes the heavy forms
+and modals the light ones:
 
-- **Android follows web**: forms are `composable("accounts/new")` destinations inside `AppShell`.
-  They therefore had a `TopAppBar` sitting above the shell's own chrome, which is what the W2 pass
-  removed. They now use `SanvyaPage` like every other screen.
-- **iOS does not**: forms are `.sheet(...)` presentations. A sheet with its own navigation bar —
-  Cancel on the left, Save on the right — is the iOS idiom for a modal edit, and it brings
-  swipe-to-dismiss with it. Those `NavigationStack`s **stay**.
+| Feature | Web create | Web edit |
+|---|---|---|
+| Accounts | `/accounts/new` route | `/accounts/[id]` route |
+| Transactions | `/transactions/new` route | `/transactions/[id]` route |
+| Loans | modal in page | `/loans/[id]` route |
+| Budgets | modal in page | modal in page |
+| Goals | modal in page | modal in page |
+| Investments | modal in page | modal in page |
 
-This is the one place the brief's two halves pull against each other: *"exact replica of web"* and
-*"best practices for the respective platforms"*. A sheet is not a page — it does not show the
-bottom bar, and it dismisses by gesture. Judged worth it on iOS, where a full-screen push for a
-two-field form reads as heavy.
+**The rule, stated once so it stops being re-derived per screen:**
 
-**Open for a ruling**: if exactness wins, iOS's forms become routes and lose the sheet. Nothing
-downstream depends on the current choice.
+- **Web** — as above.
+- **Android** — *match web exactly*. A web route is a `composable(...)` destination; a web modal
+  is a `Dialog`. Android is not choosing independently; it is mirroring.
+- **iOS** — *always a `.sheet`*, for both. A sheet is the platform's answer to both a modal and a
+  pushed form: it brings swipe-to-dismiss and puts Cancel/Save in its own navigation bar, which
+  is why those `NavigationStack`s stay (and why the W2 title-bar sweep skipped iOS's forms).
+
+A sheet is genuinely not a page — no bottom bar, dismissible by gesture — and that divergence is
+accepted, because "best practices for the respective platforms" was half the brief and this is
+where iOS's convention is worth more than literal sameness.
+
+### Android does not currently follow the rule — 5 mismatches
+
+Found while settling this. Android drifted rather than mirroring:
+
+| Screen | Android today | Web says | |
+|---|---|---|---|
+| `CreateGoalScreen` | full route | modal | ✗ should be a Dialog |
+| `AddHoldingScreen` | full route | modal | ✗ should be a Dialog |
+| `AddLoanScreen` | full route | modal | ✗ should be a Dialog |
+| `EditAccountScreen` | Dialog | `/accounts/[id]` route | ✗ should be a route |
+| `EditTransactionScreen` | Dialog | `/transactions/[id]` route | ✗ should be a route |
+| `CreateAccountScreen`, `CreateTransactionScreen` | route | route | ✓ |
+| `CreateBudgetScreen`, `EditBudgetScreen`, `EditGoalScreen` | Dialog | modal | ✓ |
+| `EditLoanScreen` | route | route | ✓ |
+
+Not fixed yet: swapping a route for a Dialog and back means changes in `SanvyaNavHost` as well as
+the screen, so it is its own change set rather than a modifier tweak. Tracked as **W2.1**.
 
 ## 9. Deliberately not ported
 
