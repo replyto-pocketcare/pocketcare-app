@@ -1759,12 +1759,15 @@ public enum S {
         }
         public static var navFriends: String { String(localized: "translation:nav.friends", table: "Localizable") }
         public static var navGoals: String { String(localized: "translation:nav.goals", table: "Localizable") }
+        public static var navHelp: String { String(localized: "translation:nav.help", table: "Localizable") }
         public static var navHome: String { String(localized: "translation:nav.home", table: "Localizable") }
         public static var navInsights: String { String(localized: "translation:nav.insights", table: "Localizable") }
         public static var navInvestments: String { String(localized: "translation:nav.investments", table: "Localizable") }
         public static var navLoans: String { String(localized: "translation:nav.loans", table: "Localizable") }
         public static var navMore: String { String(localized: "translation:nav.more", table: "Localizable") }
         public static var navNotifications: String { String(localized: "translation:nav.notifications", table: "Localizable") }
+        public static var navRecurring: String { String(localized: "translation:nav.recurring", table: "Localizable") }
+        public static var navReflect: String { String(localized: "translation:nav.reflect", table: "Localizable") }
         public static var navSearch: String { String(localized: "translation:nav.search", table: "Localizable") }
         public static var navSettings: String { String(localized: "translation:nav.settings", table: "Localizable") }
         public static var navStatements: String { String(localized: "translation:nav.statements", table: "Localizable") }

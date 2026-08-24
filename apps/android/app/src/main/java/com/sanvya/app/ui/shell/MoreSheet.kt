@@ -38,6 +38,9 @@ import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaModal
 import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.ui.components.press
+import com.sanvya.app.i18n.sRes
+import android.content.res.Resources
+import com.sanvya.app.i18n.S
 
 /**
  * One nav group, matching web's NAV_GROUPS.
@@ -47,7 +50,7 @@ import com.sanvya.app.ui.components.press
  * anything that lived only there would simply vanish on a tablet.
  */
 internal data class NavGroup(val title: String, val items: List<NavEntry>)
-internal data class NavEntry(val route: String, val label: String, val glyph: String)
+internal data class NavEntry(val route: String, val label: (Resources) -> String, val glyph: String)
 
 /**
  * Web's `NAV_GROUPS`, verbatim.
@@ -60,37 +63,37 @@ internal val NAV_GROUPS = listOf(
     NavGroup(
         "Money",
         listOf(
-            NavEntry("accounts", "Accounts", SanvyaIcons.accountBalance),
-            NavEntry("transactions", "Transactions", SanvyaIcons.swapHoriz),
-            NavEntry("cards", "Cards", SanvyaIcons.creditCard),
-            NavEntry("splits", "Shared & owed", SanvyaIcons.groups),
-            NavEntry("search", "Search", SanvyaIcons.search),
+            NavEntry("accounts", S.Translation::navAccounts, SanvyaIcons.accountBalance),
+            NavEntry("transactions", S.Translation::navTransactions, SanvyaIcons.swapHoriz),
+            NavEntry("cards", S.Translation::navCards, SanvyaIcons.creditCard),
+            NavEntry("splits", S.Translation::navFriends, SanvyaIcons.groups),
+            NavEntry("search", S.Translation::navSearch, SanvyaIcons.search),
         ),
     ),
     NavGroup(
         "Planning",
         listOf(
-            NavEntry("budgets", "Budgets", SanvyaIcons.donutSmall),
-            NavEntry("goals", "Goals", SanvyaIcons.flag),
-            NavEntry("recurring", "Recurring", SanvyaIcons.autorenew),
-            NavEntry("loans", "Loans", SanvyaIcons.requestQuote),
+            NavEntry("budgets", S.Translation::navBudgets, SanvyaIcons.donutSmall),
+            NavEntry("goals", S.Translation::navGoals, SanvyaIcons.flag),
+            NavEntry("recurring", S.Translation::navRecurring, SanvyaIcons.autorenew),
+            NavEntry("loans", S.Translation::navLoans, SanvyaIcons.requestQuote),
         ),
     ),
     NavGroup(
         "Growth",
         listOf(
-            NavEntry("investments", "Investments", SanvyaIcons.trendingUp),
-            NavEntry("reflect", "Reflect", SanvyaIcons.volunteerActivism),
-            NavEntry("insights", "Insights", SanvyaIcons.insights),
-            NavEntry("statements", "Statements", SanvyaIcons.description),
+            NavEntry("investments", S.Translation::navInvestments, SanvyaIcons.trendingUp),
+            NavEntry("reflect", S.Translation::navReflect, SanvyaIcons.volunteerActivism),
+            NavEntry("insights", S.Translation::navInsights, SanvyaIcons.insights),
+            NavEntry("statements", S.Translation::navStatements, SanvyaIcons.description),
         ),
     ),
     NavGroup(
         "",
         listOf(
-            NavEntry("assistant", "Ask Sanvya", SanvyaIcons.autoAwesome),
-            NavEntry("settings", "Settings", SanvyaIcons.settings),
-            NavEntry("help", "Help & FAQ", SanvyaIcons.help),
+            NavEntry("assistant", S.Translation::navAssistant, SanvyaIcons.autoAwesome),
+            NavEntry("settings", S.Translation::navSettings, SanvyaIcons.settings),
+            NavEntry("help", S.Translation::navHelp, SanvyaIcons.help),
         ),
     ),
 )
@@ -123,8 +126,8 @@ fun MoreSheet(
         ) {
             SanvyaText("Sanvya", SanvyaType.h2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RoundIconButton(SanvyaIcons.edit, "Customize bottom bar", onCustomize)
-                RoundIconButton(SanvyaIcons.close, "Close", onClose)
+                RoundIconButton(SanvyaIcons.edit, S.Translation.navCustomize(sRes()), onCustomize)
+                RoundIconButton(SanvyaIcons.close, S.Translation.commonClose(sRes()), onClose)
             }
         }
 
@@ -136,7 +139,7 @@ fun MoreSheet(
         ) {
             MoreNavItem(
                 glyph = SanvyaIcons.notifications,
-                label = "Notifications",
+                label = S.Translation.navNotifications(sRes()),
                 active = currentRoute?.startsWith("notifications") == true,
                 badge = unreadCount,
                 onClick = { onNavigate("notifications") },
@@ -157,7 +160,7 @@ fun MoreSheet(
                     group.items.forEach { entry ->
                         MoreNavItem(
                             glyph = entry.glyph,
-                            label = entry.label,
+                            label = entry.label(sRes()),
                             active = currentRoute?.startsWith(entry.route) == true,
                             onClick = { onNavigate(entry.route) },
                         )
@@ -288,10 +291,10 @@ fun BottomNavCustomizer(
     val colors = LocalSanvyaColors.current
     var picked by rememberSaveable(open, current) { mutableStateOf(current) }
 
-    SanvyaModal(open = open, onClose = onClose, label = "Customize bottom bar") {
-        SanvyaText("Customize bottom bar", SanvyaType.h2, modifier = Modifier.padding(bottom = 4.dp))
+    SanvyaModal(open = open, onClose = onClose, label = S.Translation.navCustomize(sRes())) {
+        SanvyaText(S.Translation.navCustomize(sRes()), SanvyaType.h2, modifier = Modifier.padding(bottom = 4.dp))
         SanvyaText(
-            text = "Pick ${NavPrefs.SLOTS} to keep one tap away. Home and More always stay put.",
+            text = S.Translation.navCustomizeHint(sRes(), NavPrefs.SLOTS),
             style = SanvyaType.statLabel,
             color = colors.text2,
             modifier = Modifier.padding(bottom = 14.dp),
@@ -330,7 +333,7 @@ fun BottomNavCustomizer(
                         tint = if (disabled) colors.text3 else colors.text,
                     )
                     SanvyaText(
-                        text = item.label,
+                        text = item.label(sRes()),
                         style = SanvyaType.body,
                         color = if (disabled) colors.text3 else colors.text,
                         modifier = Modifier.weight(1f),

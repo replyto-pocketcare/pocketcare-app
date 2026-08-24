@@ -36,20 +36,21 @@ public enum FormOptions {
 
     public static let fallbackAccountColor = "#7c7264"
 
-    /// `value` is what is stored; `tkey` is what gets translated at render.
+    /// `value` is what is stored. `label` is English and NOT yet translated —
+    /// there are no `gender.*` keys in the i18n on any platform. See the note
+    /// in packages/core/catalog.
     public struct Option: Identifiable, Sendable {
         public let value: String
-        public let tkey: String
         public let label: String
         public var id: String { value }
     }
 
     public static let genders: [Option] = [
-        Option(value: "", tkey: "gender.unspecified", label: "Not specified"),
-        Option(value: "female", tkey: "gender.female", label: "Female"),
-        Option(value: "male", tkey: "gender.male", label: "Male"),
-        Option(value: "non-binary", tkey: "gender.nonBinary", label: "Non-binary"),
-        Option(value: "prefer not to say", tkey: "gender.preferNotToSay", label: "Prefer not to say"),
+        Option(value: "", label: "Not specified"),
+        Option(value: "female", label: "Female"),
+        Option(value: "male", label: "Male"),
+        Option(value: "non-binary", label: "Non-binary"),
+        Option(value: "prefer not to say", label: "Prefer not to say"),
     ]
 
     public static let countries = ["", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other"]

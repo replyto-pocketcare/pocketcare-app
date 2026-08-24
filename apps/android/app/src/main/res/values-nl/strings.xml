@@ -1407,12 +1407,15 @@
     <string name="translation_nav_customize_hint">Kies %1$s om altijd binnen handbereik te houden. Start en Meer blijven vast.</string>
     <string name="translation_nav_friends">Gedeeld &amp; verschuldigd</string>
     <string name="translation_nav_goals">Doelen</string>
+    <string name="translation_nav_help">Help &amp; veelgestelde vragen</string>
     <string name="translation_nav_home">Dashboard</string>
     <string name="translation_nav_insights">Inzichten</string>
     <string name="translation_nav_investments">Beleggingen</string>
     <string name="translation_nav_loans">Leningen</string>
     <string name="translation_nav_more">Meer</string>
     <string name="translation_nav_notifications">Meldingen</string>
+    <string name="translation_nav_recurring">Terugkerend</string>
+    <string name="translation_nav_reflect">Reflectie</string>
     <string name="translation_nav_search">Zoeken</string>
     <string name="translation_nav_settings">Instellingen</string>
     <string name="translation_nav_statements">Overzichten</string>

@@ -1407,12 +1407,15 @@
     <string name="translation_nav_customize_hint">%1$s चुनें जिन्हें एक टैप में रखना है। होम और और हमेशा वहीं रहते हैं।</string>
     <string name="translation_nav_friends">साझा और बकाया</string>
     <string name="translation_nav_goals">लक्ष्य</string>
+    <string name="translation_nav_help">सहायता और सामान्य प्रश्न</string>
     <string name="translation_nav_home">डैशबोर्ड</string>
     <string name="translation_nav_insights">अंतर्दृष्टि</string>
     <string name="translation_nav_investments">निवेश</string>
     <string name="translation_nav_loans">ऋण</string>
     <string name="translation_nav_more">और</string>
     <string name="translation_nav_notifications">सूचनाएं</string>
+    <string name="translation_nav_recurring">आवर्ती</string>
+    <string name="translation_nav_reflect">चिंतन</string>
     <string name="translation_nav_search">खोज</string>
     <string name="translation_nav_settings">सेटिंग्स</string>
     <string name="translation_nav_statements">विवरण</string>

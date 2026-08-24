@@ -30398,6 +30398,29 @@
         }
       }
     },
+    "translation:nav.help": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help & FAQ"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहायता और सामान्य प्रश्न"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help & veelgestelde vragen"
+          }
+        }
+      }
+    },
     "translation:nav.home": {
       "extractionState": "manual",
       "localizations": {
@@ -30532,6 +30555,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Meldingen"
+          }
+        }
+      }
+    },
+    "translation:nav.recurring": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recurring"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आवर्ती"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terugkerend"
+          }
+        }
+      }
+    },
+    "translation:nav.reflect": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reflect"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चिंतन"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reflectie"
           }
         }
       }

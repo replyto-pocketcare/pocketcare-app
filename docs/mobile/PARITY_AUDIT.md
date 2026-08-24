@@ -222,7 +222,7 @@ with honest status. **Most of this is not done.**
 | 1 | **Form option lists** — currencies, periods, account types, colour palette, genders, countries | 9-currency array declared **12×**; palette 4×; periods 4× | ✅ **done.** `packages/core/catalog` + `tools/parity/generate-options.mjs` → `FormOptions.kt`/`.swift`. CI fails on drift |
 | 2 | **Backend URLs + anon key in source** | 6 literals across two `DataModule` files | ❌ no environment switch at all — dev and prod are one project |
 | 3 | **`baseCurrency` is a write-only setting** | 6 `BASE_CURRENCY` consts, ~14 defaults, 11 hand-built INR formatters on Android | ✅ **done.** New `ui/MoneyFormat.kt` mirrors iOS's; all 11 formatters, both duplicate `formatMoney`s, every `BASE_CURRENCY` const and every `"INR"` default are gone from both platforms. `"INR"` now appears in native source in exactly two places: `FormOptions.DEFAULT_CURRENCY` (generated) and the lakh/crore grouping table |
-| 4 | **i18n completely unwired** | ~1,430 English literals across 125 files; `S.kt`/`S.swift` have 3,300 accessors, referenced **zero** times | ❌ the single largest item |
+| 4 | **i18n completely unwired** | ~1,430 English literals across 125 files; `S.kt`/`S.swift` have 3,300 accessors, referenced **zero** times | 🔶 **started.** Slice 1 = the nav vocabulary (both shells): the 14-item catalog, both nav-group lists, Home/Notifications/Back/Close/Customize and the customizer's plural hint. Android also gained the `I18n.kt` `S.kt` had referenced since it was written but which never existed — the likeliest reason nothing used the accessors. ~62 literals down; **~1,370 to go** |
 | 5 | **Insights domain assumptions as magic numbers** | growth 7%/15y, `1.3`×/`5000` anomaly threshold, 30/70/60/14/7-day windows, 8/6/10/200 caps — duplicated per platform | ❌ `5000` is currency-dependent and wrong outside INR |
 | 6 | **`/100` still literal** | was 19 Android / 11 iOS | 🔶 partial — the Android money-format work removed ~10 (every `numberFormat.format(x / 100.0)` call site, plus `formatMajorPlain`, which is now currency-aware). iOS's remain |
 | 7 | **DI is inconsistent** | iOS: 15 views `new` their own view model; only 3 of 18 registered in the Factory container. Android: service-locator (`by inject()`), no constructor params — no test can substitute a fake without a Koin graph | ❌ |
@@ -234,10 +234,26 @@ Order mattered: 3 depended on 1, and the Android half of 3 depended on replacing
 hand-built `NumberFormat(Locale("en","IN"))` blocks with the generated `MoneyFormat.kt` — which
 already shipped a full currency→locale map those call sites bypassed. Both are now done.
 
-**Next in order: 4 (i18n).** It is by far the largest, and nothing else depends on it, so it can
-be taken in slices — one screen at a time, highest string-count first (`SettingsScreen.kt` at 101,
-`SettingsView.swift` at 100). View-model strings are the priority within each slice: they cannot
-be localised at render time at all.
+**In progress: 4 (i18n).** By far the largest, and nothing depends on it, so it goes in slices.
+Slice 1 (the nav vocabulary) is done and set the pattern:
+
+- **A label is a typed accessor, never a string and never a string key.** `NavCatalogItem` and
+  `NavEntry` used to carry BOTH a `tkey` nothing resolved and an English `label` that got
+  rendered — so the apps shipped English to hi and nl while carrying the key that would have
+  fixed it. They now hold `(Resources) -> String` / `() -> String`. A renamed key fails to
+  compile instead of silently falling back.
+- **Missing keys get added, not faked.** `nav.recurring`, `nav.reflect` and `nav.help` did not
+  exist in any locale; web renders them from its inline `t()` fallback, which is why nobody
+  noticed. Added to en/hi/nl in the register the existing translations use.
+
+Remaining slices, highest string-count first: `SettingsScreen.kt` (101) / `SettingsView.swift`
+(100), then Loans, Cards, Budgets. **View-model strings are the priority within each slice** —
+they cannot be localised at render time at all, so a screen done without them needs a second pass.
+
+Still blocked on new keys: the More sheet's group titles (Money / Planning / Growth), the guest
+strip, Feedback, and both banner bodies. **Web hardcodes all of those too** — they are absent
+from `packages/core/i18n` entirely, so this is a web gap the native port inherited, not native
+drift.
 
 On item 2: the Supabase key in source is the **anon** key, which is designed to be public and is
 shipped in every web client, so it is not a leak in the way a service-role key would be — RLS is

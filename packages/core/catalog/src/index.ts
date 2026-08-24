@@ -90,13 +90,22 @@ export function colorForId(
   return ACCOUNT_COLORS[h % ACCOUNT_COLORS.length] ?? fallback;
 }
 
-/** Profile options. Value is what is stored; the label is translated at render. */
+/**
+ * Profile options. `value` is what is stored.
+ *
+ * `label` is English and **not yet translated** — there are no `gender.*` keys
+ * in `packages/core/i18n`, on any platform, so web renders these literally too.
+ * They carried a `tkey` field in the first draft of this file, which would have
+ * been the same unresolved-string-key pattern the nav catalog just shed: a key
+ * that nothing looks up reads like the work is done. Add the keys, then give
+ * these a typed accessor the way `NavCatalogItem.label` has one.
+ */
 export const GENDERS = [
-  { value: "", tkey: "gender.unspecified", label: "Not specified" },
-  { value: "female", tkey: "gender.female", label: "Female" },
-  { value: "male", tkey: "gender.male", label: "Male" },
-  { value: "non-binary", tkey: "gender.nonBinary", label: "Non-binary" },
-  { value: "prefer not to say", tkey: "gender.preferNotToSay", label: "Prefer not to say" },
+  { value: "", label: "Not specified" },
+  { value: "female", label: "Female" },
+  { value: "male", label: "Male" },
+  { value: "non-binary", label: "Non-binary" },
+  { value: "prefer not to say", label: "Prefer not to say" },
 ] as const;
 
 /** ISO 3166-1 alpha-2, plus "" for unset and "Other". */

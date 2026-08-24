@@ -39,7 +39,7 @@ struct BottomNav: View {
         HStack(spacing: SanvyaMetrics.BottomNav.itemGap) {
             NavItem(
                 glyph: SanvyaIcons.spaceDashboard,
-                label: "Home",
+                label: S.Translation.navHome,
                 isActive: currentTab == .dashboard,
                 compact: compact,
                 action: { onSelect(.dashboard) }
@@ -48,7 +48,7 @@ struct BottomNav: View {
             ForEach(items.prefix(2)) { item in
                 NavItem(
                     glyph: item.glyph,
-                    label: item.label,
+                    label: item.label(),
                     isActive: currentTab == item.tab,
                     compact: compact,
                     action: { onSelect(item.tab) }
@@ -60,7 +60,7 @@ struct BottomNav: View {
             ForEach(items.dropFirst(2).prefix(2)) { item in
                 NavItem(
                     glyph: item.glyph,
-                    label: item.label,
+                    label: item.label(),
                     isActive: currentTab == item.tab,
                     compact: compact,
                     action: { onSelect(item.tab) }

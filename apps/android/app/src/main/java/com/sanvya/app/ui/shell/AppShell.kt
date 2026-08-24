@@ -51,6 +51,7 @@ import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.ui.components.sanvyaShadow
 import com.sanvya.app.theme.LocalSanvyaShadows
 import kotlinx.coroutines.delay
+import com.sanvya.app.i18n.sRes
 
 /** Matches web's `APP_VERSION` in AppShell.tsx. */
 private const val APP_VERSION = "0.1.0"
@@ -359,7 +360,7 @@ private fun AddPopoverItem(item: AddAction.Menu.Item, onClick: () -> Unit) {
     ) {
         SanvyaIcon(item.glyph, size = 17.dp, tint = colors.text)
         SanvyaText(
-            text = item.label,
+            text = item.label(sRes()),
             style = SanvyaType.button,
             color = colors.text,
             modifier = Modifier.weight(1f),

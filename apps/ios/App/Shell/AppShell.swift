@@ -80,7 +80,7 @@ struct AppShell<Content: View>: View {
                 onClose: { moreOpen = false }
             )
         }
-        .sanvyaModal(isPresented: customizeBinding, label: "Customize bottom bar") {
+        .sanvyaModal(isPresented: customizeBinding, label: S.Translation.navCustomize) {
             BottomNavCustomizer(
                 current: navPrefs.ids,
                 onSave: { ids in navPrefs.setIds(ids); customizeOpen = false },
@@ -276,7 +276,7 @@ private struct AddPopover: View {
                         Button { onSelect(item) } label: {
                             HStack(spacing: 10) {
                                 SanvyaIconView(item.glyph, size: 17, tint: .text)
-                                Text(item.label)
+                                Text(item.label())
                                     .sanvyaStyle(SanvyaType.button)
                                     .foregroundStyle(Color.text)
                                 Spacer()

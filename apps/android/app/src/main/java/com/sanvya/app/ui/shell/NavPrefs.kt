@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import android.content.res.Resources
+import com.sanvya.app.i18n.S
 
 /**
  * Which destinations sit in the bottom bar's four customizable slots.
@@ -19,11 +21,20 @@ import org.koin.core.component.inject
 data class NavCatalogItem(
     val id: String,
     val route: String,
-    /** i18n key, e.g. "nav.transactions" — the same one web passes to `t()`. */
-    val tkey: String,
-    /** English fallback, matching web's second argument to `t()`. */
-    val label: String,
     val glyph: String,
+    /**
+     * How this item names itself.
+     *
+     * A function, not a string and not a string key. It used to be both: a
+     * `tkey` of `"nav.transactions"` that nothing ever resolved, sitting beside
+     * an English `label` that got rendered directly — so the app shipped
+     * English to hi and nl while carrying the key that would have fixed it.
+     *
+     * Holding the typed accessor instead means a renamed key fails to compile
+     * rather than falling back to English at runtime, and there is no second
+     * string to keep in sync with the first.
+     */
+    val label: (Resources) -> String,
 )
 
 object NavPrefs : KoinComponent {
@@ -33,20 +44,20 @@ object NavPrefs : KoinComponent {
      * deliberately NOT in here, exactly as on web.
      */
     val CATALOG: List<NavCatalogItem> = listOf(
-        NavCatalogItem("transactions", "transactions", "nav.transactions", "Transactions", SanvyaIcons.swapHoriz),
-        NavCatalogItem("friends", "splits", "nav.friends", "Shared", SanvyaIcons.groups),
-        NavCatalogItem("insights", "insights", "nav.insights", "Insights", SanvyaIcons.insights),
-        NavCatalogItem("accounts", "accounts", "nav.accounts", "Accounts", SanvyaIcons.accountBalance),
-        NavCatalogItem("budgets", "budgets", "nav.budgets", "Budgets", SanvyaIcons.donutSmall),
-        NavCatalogItem("goals", "goals", "nav.goals", "Goals", SanvyaIcons.flag),
-        NavCatalogItem("recurring", "recurring", "nav.recurring", "Recurring", SanvyaIcons.autorenew),
-        NavCatalogItem("loans", "loans", "nav.loans", "Loans", SanvyaIcons.requestQuote),
-        NavCatalogItem("investments", "investments", "nav.investments", "Investments", SanvyaIcons.trendingUp),
-        NavCatalogItem("cards", "cards", "nav.cards", "Cards", SanvyaIcons.creditCard),
-        NavCatalogItem("statements", "statements", "nav.statements", "Statements", SanvyaIcons.description),
-        NavCatalogItem("search", "search", "nav.search", "Search", SanvyaIcons.search),
-        NavCatalogItem("assistant", "assistant", "nav.assistant", "Ask Sanvya", SanvyaIcons.autoAwesome),
-        NavCatalogItem("settings", "settings", "nav.settings", "Settings", SanvyaIcons.settings),
+        NavCatalogItem("transactions", "transactions", SanvyaIcons.swapHoriz, S.Translation::navTransactions),
+        NavCatalogItem("friends", "splits", SanvyaIcons.groups, S.Translation::navFriends),
+        NavCatalogItem("insights", "insights", SanvyaIcons.insights, S.Translation::navInsights),
+        NavCatalogItem("accounts", "accounts", SanvyaIcons.accountBalance, S.Translation::navAccounts),
+        NavCatalogItem("budgets", "budgets", SanvyaIcons.donutSmall, S.Translation::navBudgets),
+        NavCatalogItem("goals", "goals", SanvyaIcons.flag, S.Translation::navGoals),
+        NavCatalogItem("recurring", "recurring", SanvyaIcons.autorenew, S.Translation::navRecurring),
+        NavCatalogItem("loans", "loans", SanvyaIcons.requestQuote, S.Translation::navLoans),
+        NavCatalogItem("investments", "investments", SanvyaIcons.trendingUp, S.Translation::navInvestments),
+        NavCatalogItem("cards", "cards", SanvyaIcons.creditCard, S.Translation::navCards),
+        NavCatalogItem("statements", "statements", SanvyaIcons.description, S.Translation::navStatements),
+        NavCatalogItem("search", "search", SanvyaIcons.search, S.Translation::navSearch),
+        NavCatalogItem("assistant", "assistant", SanvyaIcons.autoAwesome, S.Translation::navAssistant),
+        NavCatalogItem("settings", "settings", SanvyaIcons.settings, S.Translation::navSettings),
     )
 
     val DEFAULT_IDS = listOf("transactions", "accounts", "friends", "insights")

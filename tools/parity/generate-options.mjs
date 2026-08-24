@@ -59,8 +59,11 @@ function scalar(name) {
 function genders() {
   const m = src.match(/export const GENDERS = \[([\s\S]*?)\] as const;/);
   if (!m) throw new Error("generate-options: GENDERS not found");
-  return [...m[1].matchAll(/\{ value: "([^"]*)", tkey: "([^"]*)", label: "([^"]*)" \}/g)]
-    .map(([, value, tkey, label]) => ({ value, tkey, label }));
+  const rows = [...m[1].matchAll(/\{ value: "([^"]*)", label: "([^"]*)" \}/g)]
+    .map(([, value, label]) => ({ value, label }));
+  // A silent zero here would emit an empty picker that looks intentional.
+  if (rows.length === 0) throw new Error("generate-options: GENDERS parsed to 0 rows");
+  return rows;
 }
 
 const CURRENCIES = stringArray("CURRENCIES");
@@ -117,11 +120,15 @@ object FormOptions {
 
     const val FALLBACK_ACCOUNT_COLOR = "${FALLBACK_ACCOUNT_COLOR}"
 
-    /** \`value\` is what is stored; \`tkey\` is what gets translated at render. */
-    data class Option(val value: String, val tkey: String, val label: String)
+    /**
+     * \`value\` is what is stored. \`label\` is English and NOT yet translated —
+     * there are no \`gender.*\` keys in the i18n on any platform. See the note
+     * in packages/core/catalog.
+     */
+    data class Option(val value: String, val label: String)
 
     val genders = listOf(
-${GENDERS.map((g) => `        Option("${g.value}", "${g.tkey}", "${g.label}"),`).join("\n")}
+${GENDERS.map((g) => `        Option("${g.value}", "${g.label}"),`).join("\n")}
     )
 
     val countries = listOf(${ktList(COUNTRIES)})
@@ -181,16 +188,17 @@ public enum FormOptions {
 
     public static let fallbackAccountColor = "${FALLBACK_ACCOUNT_COLOR}"
 
-    /// \`value\` is what is stored; \`tkey\` is what gets translated at render.
+    /// \`value\` is what is stored. \`label\` is English and NOT yet translated —
+    /// there are no \`gender.*\` keys in the i18n on any platform. See the note
+    /// in packages/core/catalog.
     public struct Option: Identifiable, Sendable {
         public let value: String
-        public let tkey: String
         public let label: String
         public var id: String { value }
     }
 
     public static let genders: [Option] = [
-${GENDERS.map((g) => `        Option(value: "${g.value}", tkey: "${g.tkey}", label: "${g.label}"),`).join("\n")}
+${GENDERS.map((g) => `        Option(value: "${g.value}", label: "${g.label}"),`).join("\n")}
     ]
 
     public static let countries = [${swiftList(COUNTRIES)}]

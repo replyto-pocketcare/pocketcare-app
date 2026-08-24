@@ -35,6 +35,8 @@ import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.ui.components.press
 import com.sanvya.app.ui.components.sanvyaShadow
+import com.sanvya.app.i18n.sRes
+import com.sanvya.app.i18n.S
 
 /**
  * The floating bottom bar — web's only navigation on a phone.
@@ -83,7 +85,7 @@ fun BottomNav(
     ) {
         NavItem(
             glyph = SanvyaIcons.spaceDashboard,
-            label = "Home",
+            label = S.Translation.navHome(sRes()),
             active = isActive(currentRoute, "dashboard"),
             compact = compact,
             onClick = { onNavigate("dashboard") },
@@ -92,7 +94,7 @@ fun BottomNav(
         items.take(2).forEach { item ->
             NavItem(
                 glyph = item.glyph,
-                label = item.label,
+                label = item.label(sRes()),
                 active = isActive(currentRoute, item.route),
                 compact = compact,
                 onClick = { onNavigate(item.route) },
@@ -104,7 +106,7 @@ fun BottomNav(
         items.drop(2).take(2).forEach { item ->
             NavItem(
                 glyph = item.glyph,
-                label = item.label,
+                label = item.label(sRes()),
                 active = isActive(currentRoute, item.route),
                 compact = compact,
                 onClick = { onNavigate(item.route) },

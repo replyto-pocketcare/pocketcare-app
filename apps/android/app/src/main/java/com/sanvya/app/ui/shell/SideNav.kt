@@ -37,6 +37,8 @@ import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.ui.components.press
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * The persistent sidebar shown at [SanvyaWindowClass.EXPANDED].
@@ -119,13 +121,13 @@ fun SideNav(
         ) {
             SideNavItem(
                 glyph = SanvyaIcons.spaceDashboard,
-                label = "Home",
+                label = S.Translation.navHome(sRes()),
                 isActive = currentRoute == "dashboard",
                 onClick = { onNavigate("dashboard") },
             )
             SideNavItem(
                 glyph = SanvyaIcons.notifications,
-                label = "Notifications",
+                label = S.Translation.navNotifications(sRes()),
                 isActive = currentRoute == "notifications",
                 badge = unreadCount,
                 onClick = { onNavigate("notifications") },
@@ -153,7 +155,7 @@ fun SideNav(
                     group.items.forEach { entry ->
                         SideNavItem(
                             glyph = entry.glyph,
-                            label = entry.label,
+                            label = entry.label(sRes()),
                             isActive = currentRoute == entry.route,
                             onClick = { onNavigate(entry.route) },
                         )

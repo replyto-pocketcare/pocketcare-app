@@ -36,13 +36,13 @@ struct SideNav: View {
                 VStack(alignment: .leading, spacing: 2) {
                     SideNavItem(
                         glyph: SanvyaIcons.spaceDashboard,
-                        label: "Home",
+                        label: S.Translation.navHome,
                         isActive: currentTab == .dashboard,
                         action: { onSelect(.dashboard) }
                     )
                     SideNavItem(
                         glyph: SanvyaIcons.notifications,
-                        label: "Notifications",
+                        label: S.Translation.navNotifications,
                         isActive: currentTab == .notifications,
                         badge: unreadCount,
                         action: { onSelect(.notifications) }
@@ -65,7 +65,7 @@ struct SideNav: View {
                             ForEach(group.items) { entry in
                                 SideNavItem(
                                     glyph: entry.glyph,
-                                    label: entry.label,
+                                    label: entry.label(),
                                     isActive: currentTab == entry.tab,
                                     action: { onSelect(entry.tab) }
                                 )

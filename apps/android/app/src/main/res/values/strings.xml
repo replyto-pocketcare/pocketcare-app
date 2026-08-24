@@ -1407,12 +1407,15 @@
     <string name="translation_nav_customize_hint">Pick %1$s to keep one tap away. Home and More always stay put.</string>
     <string name="translation_nav_friends">Shared &amp; owed</string>
     <string name="translation_nav_goals">Goals</string>
+    <string name="translation_nav_help">Help &amp; FAQ</string>
     <string name="translation_nav_home">Dashboard</string>
     <string name="translation_nav_insights">Insights</string>
     <string name="translation_nav_investments">Investments</string>
     <string name="translation_nav_loans">Loans</string>
     <string name="translation_nav_more">More</string>
     <string name="translation_nav_notifications">Notifications</string>
+    <string name="translation_nav_recurring">Recurring</string>
+    <string name="translation_nav_reflect">Reflect</string>
     <string name="translation_nav_search">Search</string>
     <string name="translation_nav_settings">Settings</string>
     <string name="translation_nav_statements">Statements</string>

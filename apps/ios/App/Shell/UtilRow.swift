@@ -40,7 +40,7 @@ private struct BackButton: View {
         Button(action: action) {
             HStack(spacing: SanvyaMetrics.UtilRow.backGap) {
                 SanvyaIconView(SanvyaIcons.arrowBack, size: 18, tint: .text)
-                Text("Back")
+                Text(S.Translation.commonBack)
                     .sanvyaStyle(SanvyaType.statLabel)
                     .foregroundStyle(Color.text)
             }
@@ -52,7 +52,7 @@ private struct BackButton: View {
             .overlay(Capsule().strokeBorder(Color.border, lineWidth: 1))
         }
         .buttonStyle(SanvyaPressStyle())
-        .accessibilityLabel("Back")
+        .accessibilityLabel(S.Translation.commonBack)
     }
 }
 
@@ -84,6 +84,8 @@ struct NotifBell: View {
             }
         }
         .buttonStyle(SanvyaPressStyle())
-        .accessibilityLabel(unreadCount > 0 ? "Notifications (\(unreadCount) unread)" : "Notifications")
+        .accessibilityLabel(unreadCount > 0
+            ? "\(S.Translation.navNotifications) (\(unreadCount))"
+            : S.Translation.navNotifications)
     }
 }

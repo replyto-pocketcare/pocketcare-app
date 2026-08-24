@@ -16,7 +16,8 @@ struct NavGroup: Identifiable {
 struct NavEntry: Identifiable {
     let id = UUID()
     let tab: NavTab
-    let label: String
+    /// Typed accessor, not a literal — see `NavCatalogItem.label`.
+    let label: () -> String
     let glyph: String
 }
 
@@ -29,28 +30,28 @@ struct NavEntry: Identifiable {
  */
 let navGroups: [NavGroup] = [
     NavGroup(title: "Money", items: [
-        NavEntry(tab: .accounts, label: "Accounts", glyph: SanvyaIcons.accountBalance),
-        NavEntry(tab: .transactions, label: "Transactions", glyph: SanvyaIcons.swapHoriz),
-        NavEntry(tab: .cards, label: "Cards", glyph: SanvyaIcons.creditCard),
-        NavEntry(tab: .splits, label: "Shared & owed", glyph: SanvyaIcons.groups),
-        NavEntry(tab: .search, label: "Search", glyph: SanvyaIcons.search),
+        NavEntry(tab: .accounts, label: { S.Translation.navAccounts }, glyph: SanvyaIcons.accountBalance),
+        NavEntry(tab: .transactions, label: { S.Translation.navTransactions }, glyph: SanvyaIcons.swapHoriz),
+        NavEntry(tab: .cards, label: { S.Translation.navCards }, glyph: SanvyaIcons.creditCard),
+        NavEntry(tab: .splits, label: { S.Translation.navFriends }, glyph: SanvyaIcons.groups),
+        NavEntry(tab: .search, label: { S.Translation.navSearch }, glyph: SanvyaIcons.search),
     ]),
     NavGroup(title: "Planning", items: [
-        NavEntry(tab: .budgets, label: "Budgets", glyph: SanvyaIcons.donutSmall),
-        NavEntry(tab: .goals, label: "Goals", glyph: SanvyaIcons.flag),
-        NavEntry(tab: .recurring, label: "Recurring", glyph: SanvyaIcons.autorenew),
-        NavEntry(tab: .loans, label: "Loans", glyph: SanvyaIcons.requestQuote),
+        NavEntry(tab: .budgets, label: { S.Translation.navBudgets }, glyph: SanvyaIcons.donutSmall),
+        NavEntry(tab: .goals, label: { S.Translation.navGoals }, glyph: SanvyaIcons.flag),
+        NavEntry(tab: .recurring, label: { S.Translation.navRecurring }, glyph: SanvyaIcons.autorenew),
+        NavEntry(tab: .loans, label: { S.Translation.navLoans }, glyph: SanvyaIcons.requestQuote),
     ]),
     NavGroup(title: "Growth", items: [
-        NavEntry(tab: .investments, label: "Investments", glyph: SanvyaIcons.trendingUp),
-        NavEntry(tab: .reflect, label: "Reflect", glyph: SanvyaIcons.volunteerActivism),
-        NavEntry(tab: .insights, label: "Insights", glyph: SanvyaIcons.insights),
-        NavEntry(tab: .statements, label: "Statements", glyph: SanvyaIcons.description),
+        NavEntry(tab: .investments, label: { S.Translation.navInvestments }, glyph: SanvyaIcons.trendingUp),
+        NavEntry(tab: .reflect, label: { S.Translation.navReflect }, glyph: SanvyaIcons.volunteerActivism),
+        NavEntry(tab: .insights, label: { S.Translation.navInsights }, glyph: SanvyaIcons.insights),
+        NavEntry(tab: .statements, label: { S.Translation.navStatements }, glyph: SanvyaIcons.description),
     ]),
     NavGroup(title: "", items: [
-        NavEntry(tab: .assistant, label: "Ask Sanvya", glyph: SanvyaIcons.autoAwesome),
-        NavEntry(tab: .settings, label: "Settings", glyph: SanvyaIcons.settings),
-        NavEntry(tab: .help, label: "Help & FAQ", glyph: SanvyaIcons.help),
+        NavEntry(tab: .assistant, label: { S.Translation.navAssistant }, glyph: SanvyaIcons.autoAwesome),
+        NavEntry(tab: .settings, label: { S.Translation.navSettings }, glyph: SanvyaIcons.settings),
+        NavEntry(tab: .help, label: { S.Translation.navHelp }, glyph: SanvyaIcons.help),
     ]),
 ]
 
@@ -77,8 +78,8 @@ struct MoreSheet: View {
                 SanvyaH2("Sanvya")
                 Spacer()
                 HStack(spacing: 8) {
-                    RoundIconButton(glyph: SanvyaIcons.edit, label: "Customize bottom bar", action: onCustomize)
-                    RoundIconButton(glyph: SanvyaIcons.close, label: "Close", action: onClose)
+                    RoundIconButton(glyph: SanvyaIcons.edit, label: S.Translation.navCustomize, action: onCustomize)
+                    RoundIconButton(glyph: SanvyaIcons.close, label: S.Translation.commonClose, action: onClose)
                 }
             }
             .padding(.bottom, 14)
@@ -87,7 +88,7 @@ struct MoreSheet: View {
                 VStack(alignment: .leading, spacing: 4) {
                     MoreNavItem(
                         glyph: SanvyaIcons.notifications,
-                        label: "Notifications",
+                        label: S.Translation.navNotifications,
                         isActive: currentTab == .notifications,
                         badge: unreadCount,
                         action: { onSelect(.notifications) }
@@ -102,7 +103,7 @@ struct MoreSheet: View {
                             ForEach(group.items) { entry in
                                 MoreNavItem(
                                     glyph: entry.glyph,
-                                    label: entry.label,
+                                    label: entry.label(),
                                     isActive: currentTab == entry.tab,
                                     action: { onSelect(entry.tab) }
                                 )
@@ -225,9 +226,9 @@ struct BottomNavCustomizer: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SanvyaH2("Customize bottom bar")
+            SanvyaH2(S.Translation.navCustomize)
                 .padding(.bottom, 4)
-            Text("Pick \(NavPrefs.slots) to keep one tap away. Home and More always stay put.")
+            Text(S.Translation.navCustomizeHint(n: NavPrefs.slots))
                 .sanvyaStyle(SanvyaType.statLabel)
                 .foregroundStyle(Color.text2)
                 .padding(.bottom, 14)
@@ -261,7 +262,7 @@ struct BottomNavCustomizer: View {
         } label: {
             HStack(spacing: 10) {
                 SanvyaIconView(item.glyph, size: 20, tint: isDisabled ? .text3 : .text)
-                Text(item.label)
+                Text(item.label())
                     .sanvyaStyle(SanvyaType.body)
                     .foregroundStyle(isDisabled ? Color.text3 : Color.text)
                 Spacer()

@@ -8,14 +8,25 @@ import SwiftUI
  (`pc_bottomNav`) and the JSON-array shape, so web, Android and iOS never
  disagree about what a saved preference means.
  */
-struct NavCatalogItem: Identifiable, Equatable {
+/// `Equatable` is gone with the string label — a closure cannot be compared,
+/// and nothing needed it: the catalog is a constant and rows are keyed by `id`.
+struct NavCatalogItem: Identifiable {
     let id: String
     let tab: NavTab
-    /// The i18n key web passes to `t()`.
-    let tkey: String
-    /// English fallback, matching web's second argument to `t()`.
-    let label: String
     let glyph: String
+    /**
+     How this item names itself.
+
+     A closure, not a string and not a string key. It used to be both: a `tkey`
+     of `"nav.transactions"` that nothing ever resolved, sitting beside an
+     English `label` that got rendered directly — so the app shipped English to
+     hi and nl while carrying the key that would have fixed it.
+
+     Holding the typed accessor instead means a renamed key fails to compile
+     rather than falling back to English at runtime, and there is no second
+     string to keep in sync with the first.
+     */
+    let label: () -> String
 }
 
 @MainActor
@@ -25,20 +36,20 @@ final class NavPrefs: ObservableObject {
     /// The 14 destinations eligible for a slot. Home and More are fixed and
     /// deliberately absent, exactly as on web.
     static let catalog: [NavCatalogItem] = [
-        NavCatalogItem(id: "transactions", tab: .transactions, tkey: "nav.transactions", label: "Transactions", glyph: SanvyaIcons.swapHoriz),
-        NavCatalogItem(id: "friends", tab: .splits, tkey: "nav.friends", label: "Shared", glyph: SanvyaIcons.groups),
-        NavCatalogItem(id: "insights", tab: .insights, tkey: "nav.insights", label: "Insights", glyph: SanvyaIcons.insights),
-        NavCatalogItem(id: "accounts", tab: .accounts, tkey: "nav.accounts", label: "Accounts", glyph: SanvyaIcons.accountBalance),
-        NavCatalogItem(id: "budgets", tab: .budgets, tkey: "nav.budgets", label: "Budgets", glyph: SanvyaIcons.donutSmall),
-        NavCatalogItem(id: "goals", tab: .goals, tkey: "nav.goals", label: "Goals", glyph: SanvyaIcons.flag),
-        NavCatalogItem(id: "recurring", tab: .recurring, tkey: "nav.recurring", label: "Recurring", glyph: SanvyaIcons.autorenew),
-        NavCatalogItem(id: "loans", tab: .loans, tkey: "nav.loans", label: "Loans", glyph: SanvyaIcons.requestQuote),
-        NavCatalogItem(id: "investments", tab: .investments, tkey: "nav.investments", label: "Investments", glyph: SanvyaIcons.trendingUp),
-        NavCatalogItem(id: "cards", tab: .cards, tkey: "nav.cards", label: "Cards", glyph: SanvyaIcons.creditCard),
-        NavCatalogItem(id: "statements", tab: .statements, tkey: "nav.statements", label: "Statements", glyph: SanvyaIcons.description),
-        NavCatalogItem(id: "search", tab: .search, tkey: "nav.search", label: "Search", glyph: SanvyaIcons.search),
-        NavCatalogItem(id: "assistant", tab: .assistant, tkey: "nav.assistant", label: "Ask Sanvya", glyph: SanvyaIcons.autoAwesome),
-        NavCatalogItem(id: "settings", tab: .settings, tkey: "nav.settings", label: "Settings", glyph: SanvyaIcons.settings),
+        NavCatalogItem(id: "transactions", tab: .transactions, glyph: SanvyaIcons.swapHoriz, label: { S.Translation.navTransactions }),
+        NavCatalogItem(id: "friends", tab: .splits, glyph: SanvyaIcons.groups, label: { S.Translation.navFriends }),
+        NavCatalogItem(id: "insights", tab: .insights, glyph: SanvyaIcons.insights, label: { S.Translation.navInsights }),
+        NavCatalogItem(id: "accounts", tab: .accounts, glyph: SanvyaIcons.accountBalance, label: { S.Translation.navAccounts }),
+        NavCatalogItem(id: "budgets", tab: .budgets, glyph: SanvyaIcons.donutSmall, label: { S.Translation.navBudgets }),
+        NavCatalogItem(id: "goals", tab: .goals, glyph: SanvyaIcons.flag, label: { S.Translation.navGoals }),
+        NavCatalogItem(id: "recurring", tab: .recurring, glyph: SanvyaIcons.autorenew, label: { S.Translation.navRecurring }),
+        NavCatalogItem(id: "loans", tab: .loans, glyph: SanvyaIcons.requestQuote, label: { S.Translation.navLoans }),
+        NavCatalogItem(id: "investments", tab: .investments, glyph: SanvyaIcons.trendingUp, label: { S.Translation.navInvestments }),
+        NavCatalogItem(id: "cards", tab: .cards, glyph: SanvyaIcons.creditCard, label: { S.Translation.navCards }),
+        NavCatalogItem(id: "statements", tab: .statements, glyph: SanvyaIcons.description, label: { S.Translation.navStatements }),
+        NavCatalogItem(id: "search", tab: .search, glyph: SanvyaIcons.search, label: { S.Translation.navSearch }),
+        NavCatalogItem(id: "assistant", tab: .assistant, glyph: SanvyaIcons.autoAwesome, label: { S.Translation.navAssistant }),
+        NavCatalogItem(id: "settings", tab: .settings, glyph: SanvyaIcons.settings, label: { S.Translation.navSettings }),
     ]
 
     static let defaultIds = ["transactions", "accounts", "friends", "insights"]

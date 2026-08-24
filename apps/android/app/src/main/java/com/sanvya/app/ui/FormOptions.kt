@@ -36,15 +36,19 @@ object FormOptions {
 
     const val FALLBACK_ACCOUNT_COLOR = "#7c7264"
 
-    /** `value` is what is stored; `tkey` is what gets translated at render. */
-    data class Option(val value: String, val tkey: String, val label: String)
+    /**
+     * `value` is what is stored. `label` is English and NOT yet translated —
+     * there are no `gender.*` keys in the i18n on any platform. See the note
+     * in packages/core/catalog.
+     */
+    data class Option(val value: String, val label: String)
 
     val genders = listOf(
-        Option("", "gender.unspecified", "Not specified"),
-        Option("female", "gender.female", "Female"),
-        Option("male", "gender.male", "Male"),
-        Option("non-binary", "gender.nonBinary", "Non-binary"),
-        Option("prefer not to say", "gender.preferNotToSay", "Prefer not to say"),
+        Option("", "Not specified"),
+        Option("female", "Female"),
+        Option("male", "Male"),
+        Option("non-binary", "Non-binary"),
+        Option("prefer not to say", "Prefer not to say"),
     )
 
     val countries = listOf("", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other")

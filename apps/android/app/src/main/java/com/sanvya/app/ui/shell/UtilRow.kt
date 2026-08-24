@@ -31,6 +31,8 @@ import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.ui.components.press
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * The in-flow utility row: one Back affordance on the left, the notification
@@ -80,12 +82,12 @@ private fun BackButton(onBack: () -> Unit) {
             .border(1.dp, colors.border, SanvyaShape.pill)
             .clickable(interactionSource = interaction, indication = null, onClick = onBack)
             .padding(start = util.backPaddingStart, end = util.backPaddingEnd)
-            .semantics { contentDescription = "Back" },
+            .semantics { contentDescription = S.Translation.commonBack(sRes()) },
         horizontalArrangement = Arrangement.spacedBy(util.backGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SanvyaIcon(SanvyaIcons.arrowBack, size = 18.dp, tint = colors.text)
-        SanvyaText("Back", SanvyaType.statLabel, color = colors.text)
+        SanvyaText(S.Translation.commonBack(sRes()), SanvyaType.statLabel, color = colors.text)
     }
 }
 
@@ -95,7 +97,7 @@ fun NotifBell(unreadCount: Int, onClick: () -> Unit, modifier: Modifier = Modifi
     val colors = LocalSanvyaColors.current
     val util = SanvyaMetrics.UtilRow
     val interaction = remember { MutableInteractionSource() }
-    val description = if (unreadCount > 0) "Notifications ($unreadCount unread)" else "Notifications"
+    val description = if (unreadCount > 0) S.Translation.navNotifications(sRes()) + " ($unreadCount)" else S.Translation.navNotifications(sRes())
 
     Box(
         modifier = modifier
