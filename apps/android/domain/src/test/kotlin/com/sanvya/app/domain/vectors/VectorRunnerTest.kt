@@ -117,6 +117,13 @@ class VectorRunnerTest {
         runDomain("finance")
     }
     @Test
+    fun `recurring-advance`() {
+        // Recurring.kt's advance(). The vectors pre-dated the implementation --
+        // re-pinned to clamping 2026-08-23, unenforced until now.
+        com.sanvya.app.domain.recurring.registerRecurringAdvanceVectors()
+        runDomain("recurring-advance")
+    }
+    @Test
     fun guardrail() {
         // P1.6a: registers Guardrail.kt's port before running
         // guardrail.json's vectors.

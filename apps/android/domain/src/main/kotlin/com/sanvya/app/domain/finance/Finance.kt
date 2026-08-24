@@ -238,9 +238,17 @@ fun timeframeTotal(monthlyAmount: Long, timeframe: String): Long {
 // the TS source's hand-rolled clamping. See Budget.kt for the sibling
 // billingCycle/periodBounds functions built the same way.
 
-private data class Ymd(val y: Int, val m: Int, val d: Int) // m is 0-based, like the TS source
+// `internal` rather than `private`: Recurring.kt's advance() needs exactly the
+// same civil-date arithmetic, and duplicating a clamping calendar helper is how
+// two platforms end up disagreeing about what Jan 31 + 1 month is.
+//
+// They stay in this package rather than moving to a neutral one because
+// Budget.kt already does `import com.sanvya.app.domain.finance.daysInMonth` --
+// the precedent for "the civil-date helpers live here" is established, and
+// moving vector-tested code to make a naming point is a bad trade.
+internal data class Ymd(val y: Int, val m: Int, val d: Int) // m is 0-based, like the TS source
 
-private fun parseYmd(iso: String?): Ymd? {
+internal fun parseYmd(iso: String?): Ymd? {
     if (iso == null) return null
     val s = iso.take(10)
     val match = Regex("^(\\d{4})-(\\d{2})-(\\d{2})$").find(s) ?: return null
@@ -260,7 +268,7 @@ internal fun daysInMonth(y: Int, m0: Int): Int {
 }
 
 /** Build YYYY-MM-DD for (y, m0, day), normalizing month overflow and clamping day to the month length. */
-private fun isoOf(y: Int, m0: Int, day: Int): String {
+internal fun isoOf(y: Int, m0: Int, day: Int): String {
     val totalMonths = y * 12 + m0
     val ny = Math.floorDiv(totalMonths, 12)
     val nm0 = Math.floorMod(totalMonths, 12)

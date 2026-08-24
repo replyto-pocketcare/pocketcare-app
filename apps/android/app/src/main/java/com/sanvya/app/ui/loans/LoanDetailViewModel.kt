@@ -1,5 +1,6 @@
 package com.sanvya.app.ui.loans
 
+import com.sanvya.app.domain.finance.emiDescription
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.auth.AuthRepository
@@ -240,7 +241,9 @@ class LoanDetailViewModel : ViewModel(), KoinComponent {
                     ledgerRepository.createTransaction(
                         userId = userId, accountId = accountId, type = "expense",
                         amount = money(emiAmountMinor, currency), occurredAt = occurredAt,
-                        description = "EMI #$month${l.lender?.takeIf { it.isNotBlank() }?.let { " — $it" } ?: ""}",
+                        // emiDescription(), not a literal: this string is the
+                        // cross-device dedupe key loan auto-post matches on.
+                        description = emiDescription(month, l.lender),
                     )
                 }
                 loansRepository.setFundingAccountId(l.id, accountId)

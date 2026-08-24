@@ -237,11 +237,12 @@ public final class LoanDetailViewModel {
             try? await self.loansRepository.setManualPaid(id: l.id, emiPaymentsJson: json, emisPaidCount: manual.count)
             if let accountId, emiAmountMinor > 0, let userId = self.authRepository.currentUserId {
                 let occurredAt = "\(paidOn)T12:00:00.000Z"
-                let lenderSuffix = (l.lender?.isEmpty == false) ? " — \(l.lender!)" : ""
                 try? await self.ledgerRepository.createTransaction(
                     userId: userId, accountId: accountId, type: "expense",
                     amount: money(emiAmountMinor, currency), occurredAt: occurredAt,
-                    description: "EMI #\(month)\(lenderSuffix)"
+                    // emiDescription(), not a literal: this string is the
+                    // cross-device dedupe key loan auto-post matches on.
+                    description: emiDescription(month, l.lender)
                 )
                 try? await self.loansRepository.setFundingAccountId(id: l.id, accountId: accountId)
             }

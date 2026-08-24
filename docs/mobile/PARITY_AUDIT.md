@@ -795,6 +795,48 @@ not evidence its output landed. Both faults here were "the tool said it worked."
 would have caught either is the one the `parity` job already performs on everything else —
 regenerate, then `git diff --exit-code`.
 
+### `advance()` and `emiDescription()` ported — 2026-08-24
+
+First half of the `runRecurring()` / `runLoanAutoPost()` port: the pure pieces, so CI can test them
+before any I/O exists to hide behind.
+
+**`advance()`** now exists in `:domain` / `Domain` on both platforms, and
+`tools/golden-vectors/vectors/recurring-advance.json` is finally *consumed* — 23 vectors, wired
+into both runners. Those vectors were re-pinned to clamping on 2026-08-23 and **nothing ran them
+until now**, so the decision was recorded and unenforced for a day.
+
+It carries an optional `anchorDay`. Nothing passes it — `recurring_items` has no `anchor_day`
+column yet — but the shape is right for the migration in §6c, and it demonstrates the point the
+clamping decision alone does not fix:
+
+| step | no anchor | `anchorDay = 31` |
+|---|---|---|
+| Jan 31 → | 2026-02-28 | 2026-02-28 |
+| → | 2026-03-**28** | 2026-03-**31** |
+| → | 2026-04-**28** | 2026-04-30 |
+
+Clamping stops the Feb-skipping overflow; only the anchor stops the *drift*, because each
+un-anchored step reads the day off the previous result.
+
+`parseYmd`/`isoOf` went from `private` to `internal` in `Finance.kt`/`Finance.swift` rather than
+being copied — a clamping calendar helper is exactly the thing that must not exist twice. They
+stayed in the finance package because `Budget.kt` already imports `daysInMonth` from there, so the
+precedent was set; moving vector-tested code to make a naming point is a bad trade. (Noted in
+passing: `Budget.swift` has its own private `daysInMonthYmd`, which *is* a third copy. Not touched
+here — it is tested and out of scope — but it should go.)
+
+**`emiDescription()`** is now one function per platform instead of a string literal built inline in
+`LoanDetailViewModel` on both. It is not cosmetic: loan auto-post's cross-device dedupe works by
+looking for a transaction whose description is *exactly* this, so that a second device running the
+same catch-up finds the first device's row and skips. Three hand-written copies of a byte-for-byte
+key across two platforms and a web app — the day someone improved the wording in one, every device
+running another would have started double-posting EMIs, silently, and only on loans linked to an
+account. Fixed as a prerequisite, not as part of the port.
+
+Still to come: the repositories and the two engines themselves, and the startup hooks
+(`AppShell.kt`'s `LaunchedEffect`, `AppShell.swift`'s `.task`) matching web's 2500 ms
+once-per-session debounce.
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*

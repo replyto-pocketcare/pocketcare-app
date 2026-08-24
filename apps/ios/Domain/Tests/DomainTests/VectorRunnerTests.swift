@@ -95,6 +95,12 @@ final class VectorRunnerTests: XCTestCase {
         registerFinanceVectors()
         try runDomain("finance")
     }
+    func testRecurringAdvance() throws {
+        // Recurring.swift's advance(). The vectors pre-dated the implementation
+        // -- re-pinned to clamping 2026-08-23, unenforced until now.
+        registerRecurringAdvanceVectors()
+        try runDomain("recurring-advance")
+    }
     func testGuardrail() throws {
         // P1.6b: registers Guardrail.swift's port before running
         // guardrail.json's vectors.

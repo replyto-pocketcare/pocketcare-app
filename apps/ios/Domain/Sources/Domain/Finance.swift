@@ -270,13 +270,17 @@ public func timeframeTotal(_ monthlyAmount: Int64, _ timeframe: String) -> Int64
 // their needs differ: this one only ever builds/compares/prints
 // YYYY-MM-DD strings, Budget.swift's needs real day-level +N arithmetic).
 
-private struct FinanceYmd {
+// Internal (Swift's default) rather than private: Recurring.swift's advance()
+// needs exactly the same civil-date arithmetic, and duplicating a clamping
+// calendar helper is how two platforms end up disagreeing about what
+// Jan 31 + 1 month is. Mirrors the same change in Finance.kt.
+struct FinanceYmd {
     let y: Int
     let m: Int // 0-based
     let d: Int
 }
 
-private func parseYmd(_ iso: String?) -> FinanceYmd? {
+func parseYmd(_ iso: String?) -> FinanceYmd? {
     guard let iso else { return nil }
     let s = String(iso.prefix(10))
     let parts = s.split(separator: "-")
@@ -287,7 +291,7 @@ private func parseYmd(_ iso: String?) -> FinanceYmd? {
     return FinanceYmd(y: y, m: m, d: d)
 }
 
-private func isLeapYear(_ y: Int) -> Bool {
+func isLeapYear(_ y: Int) -> Bool {
     (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
 }
 
@@ -302,20 +306,20 @@ func daysInMonth(_ y: Int, _ m0: Int) -> Int {
     }
 }
 
-private func floorDiv(_ a: Int, _ b: Int) -> Int {
+func floorDiv(_ a: Int, _ b: Int) -> Int {
     let q = a / b
     let r = a % b
     return (r != 0 && (r < 0) != (b < 0)) ? q - 1 : q
 }
 
-private func floorMod(_ a: Int, _ b: Int) -> Int {
+func floorMod(_ a: Int, _ b: Int) -> Int {
     let r = a % b
     return (r != 0 && (r < 0) != (b < 0)) ? r + b : r
 }
 
 /// Build YYYY-MM-DD for (y, m0, day), normalizing month overflow and
 /// clamping day to the month length -- mirrors the TS source's isoOf().
-private func isoOf(_ y: Int, _ m0: Int, _ day: Int) -> String {
+func isoOf(_ y: Int, _ m0: Int, _ day: Int) -> String {
     let totalMonths = y * 12 + m0
     let ny = floorDiv(totalMonths, 12)
     let nm0 = floorMod(totalMonths, 12)
