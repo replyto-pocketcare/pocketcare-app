@@ -44,3 +44,8 @@ apps/ios/Config/Sanvya.local.xcconfig
 # imports AppSchema. Normally removed on the same run; ignored so a sandbox that
 # cannot delete it never leaves it staged.
 packages/db/src/__schema_export_temp__.ts
+
+# git bundles. These were the hand-off mechanism while the sandbox could not
+# push; one got committed to mobile/parity by accident (37KB of binary pack
+# data in the source tree). They are transport, never source.
+*.bundle
