@@ -334,6 +334,82 @@ what protects the data. The real problem is the absence of an environment switch
 to point a build at a staging project, which also means no safe place to test the sync work that
 has been blocked since 2026-07-31.
 
+## 6c. Auth, app flow and local storage — must be verified before "ready"
+
+Requested 2026-08-24: these have to work exactly as web does before all three platforms are
+called done. **Not started as a work item**; this section is what a first pass found, so the job
+is scoped rather than guessed at.
+
+### Auth — the surface exists on both, one method is missing, one is broken
+
+Web offers **five** ways in (`apps/web/app/login/page.tsx`): email + password (`signInWithPassword`),
+email sign-up (`signUp`), email OTP (`verifyOtp`), Google OAuth (`signInWithOAuth`), and anonymous
+guest. Plus `/auth/callback` for the OAuth return.
+
+| Method | Web | Android | iOS |
+|---|---|---|---|
+| Guest (anonymous) | ✅ | ✅ `ensureUser()` | ✅ |
+| Email OTP | ✅ | ✅ `sendOtp`/`verifyOtp` | ✅ |
+| Google | ✅ OAuth redirect | ✅ `signInWithGoogle(idToken)` | ✅ + Apple |
+| Guest → account upgrade | ✅ | ✅ `upgradeGuestWithEmail` | ✅ |
+| **Email + password sign-in** | ✅ | ❌ **absent** | ❌ **absent** |
+| **A login screen** | ✅ | ❌ **no `ui/login` at all** | ✅ `LoginView.swift` |
+
+Two concrete gaps:
+
+1. **Android has no login screen.** The data layer is complete and nothing calls it.
+2. **`signInWithPassword` exists on neither platform.** Anyone who registered with a password on
+   web cannot sign in on mobile at all. Native uses a **different token shape for Google**
+   (`idToken` via the native SDK) than web's OAuth redirect — that is correct for mobile, not a
+   gap, but it means the OAuth callback route has no native equivalent and should not get one.
+
+3. **`AuthRepositoryImpl.currentUserId` returns `nil` unconditionally on iOS** — the property is
+   stubbed with a comment saying callers should use async state. Every call site falls back to
+   `ensureUser()`, which works but means the sync accessor is a trap for the next person. Tracked
+   as P3.2c.
+
+### Local storage — the schema is generated and checked; the runtime path needs a real test
+
+Both platforms build their PowerSync schema **at runtime from a generated descriptor**
+(`domain/db/PocketCareSchema.kt`, `Domain/PocketCareSchema.swift`), produced by
+`tools/golden-vectors/gen-mobile-schema.mjs` from `packages/db/src/index.ts` — the same
+`AppSchema` web uses. 57 tables. That is the right shape: one source, three consumers, drift
+caught by regeneration.
+
+What is **not** verified: that a real device round-trips. Writes go through PowerSync's queue to
+Supabase and back. Two known hazards apply to native exactly as they do to web, and neither has
+been exercised:
+
+- A column added to a migration but not to `AppSchema` fails at runtime with
+  `table <x> has no column named <y>` — Postgres fine, device broken.
+- The upload queue is per-row and per-transaction; a cross-row constraint wedges it permanently.
+
+### App flow — what the shell owes and has not yet paid
+
+`screen-specs/app-shell.md` §8 lists shell-level behaviour. Still missing on **both** platforms:
+
+- **Auth gate** — web replaces to `/onboarding` when there is no session. Neither app does.
+- **Pending invite** — `localStorage.pendingInvite` → `/join?token=`. No native equivalent.
+- **Launch-time materialisation** — 2.5s after auth, once per launch: `runRecurring()` then
+  `runLoanAutoPost()`. Neither app runs either, so recurring items and loan EMIs never
+  auto-post on mobile.
+- **Per-route scroll restoration** (`pc_scroll:<path>`, retried ≤20×).
+- **The in-flow sync-status strip** (`syncMessage()` + Force Sync / Report Issue) and
+  `TrialNotice`.
+
+That third one is the substantive one: it is not chrome, it is **data that silently never gets
+created** on mobile.
+
+### Done-when for this section
+
+- [ ] Android has a login screen reaching every method its data layer already supports.
+- [ ] `signInWithPassword` on both, or a documented decision that mobile is OTP/OAuth-only.
+- [ ] `currentUserId` either works or is removed so nothing can depend on it.
+- [ ] A real device signs in, writes, force-quits, reopens, and sees its data — offline and on.
+- [ ] Guest → account upgrade preserves the guest's local data on both platforms.
+- [ ] Auth gate, pending invite, and launch-time materialisation ported.
+- [ ] Sync L3 (P2.7) unblocked — still needs a test Supabase + PowerSync project.
+
 ## 7. Work queue (waves — supersedes the coarse phase table in TODO.md)
 
 **W0 — foundation, no compiler needed**
