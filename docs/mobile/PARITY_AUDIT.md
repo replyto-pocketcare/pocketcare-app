@@ -315,30 +315,28 @@ rather than rendering a formatted amount, so none is a masking leak:
 Web shares the bug: `/search`'s amount filter and `createRecurring`'s `toRow()`.
 Fix belongs in `packages/core` first so all three platforms move together.
 
-### Found 2026-08-23 — two that ARE display-path leaks, on all three platforms
+### Fixed 2026-08-23 — three that WERE display-path leaks, on all three platforms
 
-Both render a wrong number to the user. These are not in the "safe" list above.
+§9 said the display path was clean and every remaining site fed an input field or a chart
+axis. Three did not.
 
-1. **`packages/core/mindfulness` — `small_purchase_drift`.** Its body is built as
-   `` `You had ${n} spends under 200, totaling ${totalSmall / 100}.` ``. Three faults in
-   one line: the divisor is hardcoded (JPY has 0 minor units, KWD 3, so ¥43,215 renders as
-   "432.15"); the threshold `20000` carries the same assumption and is described in the copy
-   as a bare "200"; and the amount bypasses the money formatter entirely, so it has no
-   currency symbol, no locale grouping, and **cannot be hidden by the hide-amounts toggle**.
-   `TransactionForInsight` already carries `currency`, so the data is there — the function
-   just never asked for it. It also sums `t.amount` across mixed currencies without
-   converting.
+1. **`small_purchase_drift`** built its body as `` `…totaling ${totalSmall / 100}` ``. Hardcoded
+   divisor (¥43,215 rendered as "432.15"); a `20000`-minor threshold the copy described as a
+   bare "200" (¥20,000 in JPY, 20 dinar in KWD); it summed **across currencies** without
+   converting; and it bypassed the money formatter entirely, so it had no symbol, no locale
+   grouping, and **could not be hidden by the hide-amounts toggle**. Ported verbatim to Kotlin
+   and Swift, so all three were wrong identically.
 
-   Ported as-is to `apps/android/domain/.../insights/Mindfulness.kt` and
-   `apps/ios/Domain/Sources/Domain/Mindfulness.swift`, so all three are wrong identically.
+2. **`major()`** in all three insight generators was `minor / 100` — feeding every chart value
+   and every `metric.raw`.
 
-   Fix: give both `computeTier*Insights` the currency + locale (every other generator in
-   `apps/web/src/insights/generators.ts` already has `fmt()` for exactly this), derive the
-   threshold with `fromMajor(200, currency)`, and format the total with `format()`.
+3. **`fmt(top.value * 100)`** in the weekday-pattern card, converting a major-unit average back
+   to minor by hardcoding the same 100.
 
-2. **`apps/web/src/insights/generators.ts:207`** — `fmt(top.value * 100, ctx)` converts a
-   major-unit average back to minor by hardcoding ×100. Same currency assumption, and this
-   one is squarely in the display path.
+All three now derive from `minorUnits(currency)` via `fromMajor`/`toMajor`. `computeTier1Insights`
+takes the currency and the caller's formatter — which was already this codebase's convention
+("domain never formats currency, screens do"); native `GenContext` carried both all along and
+the mindfulness port simply never asked. Passing the formatter rather than a currency+locale
+pair is what fixes the hide-amounts leak, since web hands it `useMoneyFmt()`.
 
-Neither is fixed yet: both want a `packages/core` change mirrored onto two native ports, and
-that is its own change set rather than something to fold into the shell work in flight.
+Web typechecks clean; the two native halves await CI.

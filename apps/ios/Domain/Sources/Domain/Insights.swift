@@ -159,8 +159,20 @@ public struct GenContext: Sendable {
 private let utcCalendar: Calendar = { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!; return c }()
 
 private func fmtL(_ ctx: GenContext, _ minor: Double) -> String { ctx.fmt(Int64(minor.rounded())) }
-private func major(_ minor: Int64) -> Double { Double(minor) / 100.0 }
-private func majorD(_ minor: Double) -> Double { minor / 100.0 }
+// Minor -> major for chart values and metric.raw. Takes ctx because the
+// divisor is not 100 everywhere: JPY has no minor units, KWD has three. The
+// old signatures could not have been correct — they had no currency to ask.
+private func major(_ ctx: GenContext, _ minor: Int64) -> Double {
+    toMajor(Money(amount: minor, currency: ctx.currency))
+}
+private func majorD(_ ctx: GenContext, _ minor: Double) -> Double {
+    major(ctx, Int64(minor.rounded()))
+}
+
+/// The inverse, for the one place a major-unit average has to go back.
+private func minorOf(_ ctx: GenContext, _ majorValue: Double) -> Int64 {
+    fromMajor(majorValue, ctx.currency).amount
+}
 private func pctOf(_ a: Double, _ b: Double) -> Int { b == 0 ? (a > 0 ? 100 : 0) : Int(((a - b) / abs(b) * 100).rounded()) }
 private let WD_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 private func weekdayLabel(_ iso: String) -> String {
@@ -186,7 +198,7 @@ public func genWeeklySummary(_ ctx: GenContext) -> [InsightCard] {
     let prev7 = Array(ctx.days.dropLast(7).suffix(7))
     let inc = last7.reduce(0) { $0 + $1.income }; let exp = last7.reduce(0) { $0 + $1.expense }; let net = inc - exp
     let prevNet = prev7.reduce(0) { $0 + $1.income } - prev7.reduce(0) { $0 + $1.expense }
-    let series = last7.map { SeriesPoint(weekdayLabel($0.day), major($0.income - $0.expense)) }
+    let series = last7.map { SeriesPoint(weekdayLabel($0.day), major(ctx, $0.income - $0.expense)) }
     return [InsightCard(
         id: "weekly:\(last7.first!.day)", type: "weekly_summary", theme: net >= 0 ? .positive : .warning,
         generatedAt: ctx.nowIso, periodStart: last7.first!.day, periodEnd: last7.last!.day, priority: 92,
@@ -196,7 +208,7 @@ public func genWeeklySummary(_ ctx: GenContext) -> [InsightCard] {
             "Money in: \(ctx.fmt(inc))", "Money out: \(ctx.fmt(exp))",
             prev7.isEmpty ? "Your first week of tracking" : "\(net >= prevNet ? "Up" : "Down") \(ctx.fmt(abs(net - prevNet))) vs the week before",
         ],
-        metric: InsightMetric(display: ctx.fmt(net), raw: major(net), deltaPct: (!prev7.isEmpty && prevNet != 0) ? pctOf(Double(net), Double(prevNet)) : nil, direction: net >= prevNet ? "up" : "down"),
+        metric: InsightMetric(display: ctx.fmt(net), raw: major(ctx, net), deltaPct: (!prev7.isEmpty && prevNet != 0) ? pctOf(Double(net), Double(prevNet)) : nil, direction: net >= prevNet ? "up" : "down"),
         visual: .area(series: series), cta: nil, cadenceKey: "weekly_summary", cadenceFrequency: "weekly"
     )]
 }
@@ -215,7 +227,7 @@ public func genBudgetWarnings(_ ctx: GenContext) -> [InsightCard] {
                 subhead: over ? "Over budget" : "Almost there",
                 bullets: ["Spent \(ctx.fmt(b.spent)) of \(ctx.fmt(b.limit))", over ? "Consider easing off this category" : "\(ctx.fmt(b.limit - b.spent)) left this period"],
                 metric: InsightMetric(display: "\(Int((ratio * 100).rounded()))%", raw: (ratio * 100).rounded()),
-                visual: .gauge(value: major(b.spent), max: major(b.limit), warnAt: major(b.limit) * 0.8, dangerAt: major(b.limit), unit: nil, centerLabel: "\(Int((ratio * 100).rounded()))%"),
+                visual: .gauge(value: major(ctx, b.spent), max: major(ctx, b.limit), warnAt: major(ctx, b.limit) * 0.8, dangerAt: major(ctx, b.limit), unit: nil, centerLabel: "\(Int((ratio * 100).rounded()))%"),
                 cta: InsightCta(label: "Review budgets", target: "/budgets"), cadenceKey: "budget_warning:\(b.name)", cadenceFrequency: "daily"
             )
         }
@@ -234,7 +246,7 @@ public func genSavingsAchievement(_ ctx: GenContext) -> [InsightCard] {
         headline: "You saved \(ctx.fmt(net)) in \(monShort(cur.ym))", subhead: "That's a \(rate)% savings rate",
         bullets: ["Kept \(rate)% of what you earned", (prev != nil && net > prevNet) ? "Beat last month by \(ctx.fmt(net - prevNet))" : "Every bit compounds"],
         metric: InsightMetric(display: "\(rate)%", raw: Double(rate), direction: "up"),
-        visual: .progress(value: major(net), target: major(cur.income), centerLabel: "\(rate)%"),
+        visual: .progress(value: major(ctx, net), target: major(ctx, cur.income), centerLabel: "\(rate)%"),
         cta: nil, cadenceKey: "savings_achievement", cadenceFrequency: "monthly"
     )]
 }
@@ -245,7 +257,7 @@ public func genSpendingTrend(_ ctx: GenContext) -> [InsightCard] {
     func avg(_ arr: [MonthAgg]) -> Double { arr.isEmpty ? 0 : Double(arr.reduce(0) { $0 + $1.expense }) / Double(arr.count) }
     let recent = avg(Array(m.suffix(m.count - half))); let older = avg(Array(m.prefix(half)))
     let down = recent <= older; let delta = pctOf(recent, older)
-    let series = m.map { SeriesPoint(monShort($0.ym), major($0.expense)) }
+    let series = m.map { SeriesPoint(monShort($0.ym), major(ctx, $0.expense)) }
     return [InsightCard(
         id: "trend:\(m.last!.ym)", type: "spending_trend", theme: down ? .positive : .warning,
         generatedAt: ctx.nowIso, periodStart: "\(m.first!.ym)-01", periodEnd: "\(m.last!.ym)-01", priority: 72,
@@ -264,8 +276,8 @@ public func genCategoryBreakdown(_ ctx: GenContext) -> [InsightCard] {
         generatedAt: ctx.nowIso, periodStart: "", periodEnd: "", priority: 62,
         headline: "Where your money went", subhead: "This month, by category",
         bullets: ["\(lead.name) led at \(ctx.fmt(lead.expense))", "\(Int((Double(lead.expense) / Double(total) * 100).rounded()))% of your tracked spending"],
-        metric: InsightMetric(display: ctx.fmt(total), raw: major(total)),
-        visual: .donut(series: top.map { SeriesPoint($0.name, major($0.expense)) }, centerLabel: ctx.fmt(total), centerSub: "this month"),
+        metric: InsightMetric(display: ctx.fmt(total), raw: major(ctx, total)),
+        visual: .donut(series: top.map { SeriesPoint($0.name, major(ctx, $0.expense)) }, centerLabel: ctx.fmt(total), centerSub: "this month"),
         cta: nil, cadenceKey: "category_breakdown", cadenceFrequency: "weekly"
     )]
 }
@@ -291,8 +303,8 @@ public func genBiggestExpense(_ ctx: GenContext) -> [InsightCard] {
         generatedAt: ctx.nowIso, periodStart: "", periodEnd: "", priority: 68,
         headline: "Your biggest expense was \(ctx.fmt(lead.amount))", subhead: lead.label.isEmpty ? "This month" : lead.label,
         bullets: top.prefix(3).map { "\($0.label): \(ctx.fmt($0.amount))" },
-        metric: InsightMetric(display: ctx.fmt(lead.amount), raw: major(lead.amount)),
-        visual: .bars(series: top.map { SeriesPoint(trunc($0.label, 16), major($0.amount)) }, unit: nil, horizontal: true),
+        metric: InsightMetric(display: ctx.fmt(lead.amount), raw: major(ctx, lead.amount)),
+        visual: .bars(series: top.map { SeriesPoint(trunc($0.label, 16), major(ctx, $0.amount)) }, unit: nil, horizontal: true),
         cta: nil, cadenceKey: "biggest_expense", cadenceFrequency: "weekly"
     )]
 }
@@ -304,7 +316,7 @@ public func genWeekdayPattern(_ ctx: GenContext) -> [InsightCard] {
         id: "weekday:\(yearOf(ctx.now))-\(monthOf(ctx.now))", type: "weekday_pattern", theme: .neutral,
         generatedAt: ctx.nowIso, periodStart: "", periodEnd: "", priority: 50,
         headline: "\(ctx.weekdayTop) is your priciest day", subhead: "Average spend by weekday · last 60 days",
-        bullets: ["You spend most on \(ctx.weekdayTop)s", "Around \(fmtL(ctx, top.value * 100)) on an average \(ctx.weekdayTop)"],
+        bullets: ["You spend most on \(ctx.weekdayTop)s", "Around \(ctx.fmt(minorOf(ctx, top.value))) on an average \(ctx.weekdayTop)"],
         metric: nil,
         visual: .bars(series: ctx.weekday, unit: nil, horizontal: false), cta: nil, cadenceKey: "weekday_pattern", cadenceFrequency: "weekly"
     )]
@@ -318,8 +330,8 @@ public func genLabelBreakdown(_ ctx: GenContext) -> [InsightCard] {
         generatedAt: ctx.nowIso, periodStart: "", periodEnd: "", priority: 54,
         headline: "Spending by label", subhead: "This month, across your tags",
         bullets: ["\(lead.name) topped your labels at \(ctx.fmt(lead.expense))", "\(top.count) labels tracked this month"],
-        metric: InsightMetric(display: ctx.fmt(total), raw: major(total)),
-        visual: .donut(series: top.map { SeriesPoint($0.name, major($0.expense)) }, centerLabel: ctx.fmt(total), centerSub: "labelled"),
+        metric: InsightMetric(display: ctx.fmt(total), raw: major(ctx, total)),
+        visual: .donut(series: top.map { SeriesPoint($0.name, major(ctx, $0.expense)) }, centerLabel: ctx.fmt(total), centerSub: "labelled"),
         cta: nil, cadenceKey: "label_breakdown", cadenceFrequency: "weekly"
     )]
 }
@@ -332,8 +344,8 @@ public func genSubscriptions(_ ctx: GenContext) -> [InsightCard] {
         generatedAt: ctx.nowIso, periodStart: "", periodEnd: "", priority: 64,
         headline: "\(ctx.fmt(ctx.subsTotal))/mo on subscriptions", subhead: "\(subs.count) active subscription\(subs.count == 1 ? "" : "s")",
         bullets: ["Biggest: \(top[0].name) at \(ctx.fmt(top[0].monthly))/mo", "That's \(ctx.fmt(ctx.subsTotal * 12)) a year"],
-        metric: InsightMetric(display: ctx.fmt(ctx.subsTotal), raw: major(ctx.subsTotal)),
-        visual: .donut(series: top.map { SeriesPoint($0.name, major($0.monthly)) }, centerLabel: ctx.fmt(ctx.subsTotal), centerSub: "per month"),
+        metric: InsightMetric(display: ctx.fmt(ctx.subsTotal), raw: major(ctx, ctx.subsTotal)),
+        visual: .donut(series: top.map { SeriesPoint($0.name, major(ctx, $0.monthly)) }, centerLabel: ctx.fmt(ctx.subsTotal), centerSub: "per month"),
         cta: InsightCta(label: "Manage subscriptions", target: "/subscriptions"), cadenceKey: "subscriptions_load", cadenceFrequency: "monthly"
     )]
 }
@@ -351,7 +363,7 @@ public func genMonthPace(_ ctx: GenContext) -> [InsightCard] {
             "Spent \(fmtL(ctx, p.thisSoFar)) so far (was \(fmtL(ctx, p.lastSameSoFar)) by now last month)",
             "On track for about \(fmtL(ctx, projected)) vs \(fmtL(ctx, p.lastFull)) last month",
         ],
-        metric: InsightMetric(display: fmtL(ctx, projected), raw: majorD(projected), direction: faster ? "up" : "down"),
+        metric: InsightMetric(display: fmtL(ctx, projected), raw: majorD(ctx, projected), direction: faster ? "up" : "down"),
         visual: .area(series: p.cumulative), cta: nil, cadenceKey: "month_pace", cadenceFrequency: "daily"
     )]
 }
@@ -380,7 +392,7 @@ public func genGoalProgress(_ ctx: GenContext) -> [InsightCard] {
         headline: doneP >= 100 ? "\(g.name) is fully funded!" : "\(g.name) is \(doneP)% funded", subhead: "Goal progress",
         bullets: ["\(ctx.fmt(g.saved)) of \(ctx.fmt(g.target)) set aside", doneP >= 100 ? "Time to set your next goal" : "\(ctx.fmt(g.target - g.saved)) to go"],
         metric: InsightMetric(display: "\(doneP)%", raw: Double(doneP), direction: "up"),
-        visual: .gauge(value: major(g.saved), max: major(g.target), warnAt: nil, dangerAt: nil, unit: nil, centerLabel: "\(doneP)%"),
+        visual: .gauge(value: major(ctx, g.saved), max: major(ctx, g.target), warnAt: nil, dangerAt: nil, unit: nil, centerLabel: "\(doneP)%"),
         cta: InsightCta(label: "View goals", target: "/goals"), cadenceKey: "goal_progress:\(g.name)", cadenceFrequency: "weekly"
     )]
 }
@@ -394,7 +406,7 @@ public func genCategorySpike(_ ctx: GenContext) -> [InsightCard] {
         headline: "\(s.name) spending jumped \(up)%", subhead: "vs your recent average",
         bullets: ["\(fmtL(ctx, s.thisMonth)) this month", "Usually around \(fmtL(ctx, s.avgPrior))"],
         metric: InsightMetric(display: "+\(up)%", raw: Double(up), direction: "up"),
-        visual: .bars(series: [SeriesPoint("Usual", majorD(s.avgPrior), "forest"), SeriesPoint("This mo", majorD(s.thisMonth), "warning")], unit: nil, horizontal: false),
+        visual: .bars(series: [SeriesPoint("Usual", majorD(ctx, s.avgPrior), "forest"), SeriesPoint("This mo", majorD(ctx, s.thisMonth), "warning")], unit: nil, horizontal: false),
         cta: InsightCta(label: "See transactions", target: "/transactions"), cadenceKey: "category_spike", cadenceFrequency: "weekly"
     )]
 }
@@ -410,8 +422,8 @@ public func genAvgDaily(_ ctx: GenContext) -> [InsightCard] {
         headline: "You're averaging \(fmtL(ctx, thisAvg))/day",
         subhead: lastAvg > 0 ? "\(lower ? "Down from" : "Up from") \(fmtL(ctx, lastAvg))/day last month" : "So far this month",
         bullets: ["\(fmtL(ctx, thisAvg)) per day this month", lastAvg > 0 ? "\(fmtL(ctx, lastAvg)) per day last month" : "Keep it steady"],
-        metric: InsightMetric(display: fmtL(ctx, thisAvg), raw: majorD(thisAvg), direction: lower ? "down" : "up"),
-        visual: .bars(series: [SeriesPoint("Last mo", majorD(lastAvg), "forest"), SeriesPoint("This mo", majorD(thisAvg), "accent")], unit: nil, horizontal: false),
+        metric: InsightMetric(display: fmtL(ctx, thisAvg), raw: majorD(ctx, thisAvg), direction: lower ? "down" : "up"),
+        visual: .bars(series: [SeriesPoint("Last mo", majorD(ctx, lastAvg), "forest"), SeriesPoint("This mo", majorD(ctx, thisAvg), "accent")], unit: nil, horizontal: false),
         cta: nil, cadenceKey: "avg_daily_spend", cadenceFrequency: "weekly"
     )]
 }
@@ -426,7 +438,7 @@ public func genDividends(_ ctx: GenContext) -> [InsightCard] {
         headline: d.trailing12 > 0 ? "\(ctx.fmt(d.trailing12)) in dividends this year" : "\(ctx.fmt(d.total)) in dividends so far",
         subhead: "From \(d.holdings) holding\(d.holdings == 1 ? "" : "s")",
         bullets: ["Last 12 months: \(ctx.fmt(d.trailing12))", d.upcoming12 > 0 ? "Next 12 months (est.): \(ctx.fmt(d.upcoming12))" : "All-time: \(ctx.fmt(d.total))"],
-        metric: InsightMetric(display: ctx.fmt(headlineAmt), raw: major(headlineAmt)),
+        metric: InsightMetric(display: ctx.fmt(headlineAmt), raw: major(ctx, headlineAmt)),
         visual: .bars(series: series, unit: nil, horizontal: false),
         cta: InsightCta(label: "See dividends", target: "/investments"), cadenceKey: "dividend_income", cadenceFrequency: "monthly"
     )]
@@ -440,7 +452,7 @@ public func genProjection(_ ctx: GenContext) -> [InsightCard] {
         generatedAt: ctx.nowIso, periodStart: "", periodEnd: "", priority: 59,
         headline: "Your portfolio could reach \(fmtL(ctx, p.endValue))", subhead: "In \(p.years) years at \(p.growthPct)% a year",
         bullets: ["\(fmtL(ctx, p.currentValue)) invested today", "About \(fmtL(ctx, growthPortion)) of that would be growth", "A projection on default assumptions, not a forecast"],
-        metric: InsightMetric(display: fmtL(ctx, p.endValue), raw: majorD(p.endValue), direction: "up"),
+        metric: InsightMetric(display: fmtL(ctx, p.endValue), raw: majorD(ctx, p.endValue), direction: "up"),
         visual: .area(series: p.series),
         cta: InsightCta(label: "Adjust assumptions", target: "/investments"), cadenceKey: "portfolio_projection", cadenceFrequency: "monthly"
     )]
@@ -448,7 +460,7 @@ public func genProjection(_ ctx: GenContext) -> [InsightCard] {
 
 public func genMindfulness(_ ctx: GenContext) -> [InsightCard] {
     guard let txns = ctx.mindfulnessTxns else { return [] }
-    let t1 = computeTier1Insights(txns); let t2 = computeTier2Insights(txns)
+    let t1 = computeTier1Insights(txns, currency: ctx.currency, fmt: ctx.fmt); let t2 = computeTier2Insights(txns)
     return (t1 + t2).map { i in
         InsightCard(
             id: "mindfulness:\(i.id):\(String(ctx.nowIso.prefix(10)))", type: "mindfulness",
