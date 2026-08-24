@@ -10,7 +10,7 @@ import SwiftUI
  */
 /// `Equatable` is gone with the string label — a closure cannot be compared,
 /// and nothing needed it: the catalog is a constant and rows are keyed by `id`.
-struct NavCatalogItem: Identifiable {
+struct NavCatalogItem: Identifiable, Sendable {
     let id: String
     let tab: NavTab
     let glyph: String
@@ -26,7 +26,7 @@ struct NavCatalogItem: Identifiable {
      rather than falling back to English at runtime, and there is no second
      string to keep in sync with the first.
      */
-    let label: () -> String
+    let label: @Sendable () -> String
 }
 
 @MainActor

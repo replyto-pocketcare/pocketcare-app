@@ -7,17 +7,21 @@ import SwiftUI
  list. They have to. At `.expanded` the More sheet is unreachable, so anything
  that lived only there would simply vanish on an iPad.
  */
-struct NavGroup: Identifiable {
+/// `Sendable` because `navGroups` is a global `let`, and Swift 6 requires a
+/// global's type to be Sendable. That is only possible if the label closure is
+/// `@Sendable` too — which it is: each one captures nothing and returns a
+/// `String` from a static accessor.
+struct NavGroup: Identifiable, Sendable {
     let id = UUID()
     let title: String
     let items: [NavEntry]
 }
 
-struct NavEntry: Identifiable {
+struct NavEntry: Identifiable, Sendable {
     let id = UUID()
     let tab: NavTab
     /// Typed accessor, not a literal — see `NavCatalogItem.label`.
-    let label: () -> String
+    let label: @Sendable () -> String
     let glyph: String
 }
 

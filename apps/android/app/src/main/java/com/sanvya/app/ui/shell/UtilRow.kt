@@ -70,6 +70,9 @@ fun UtilRow(
 
 @Composable
 private fun BackButton(onBack: () -> Unit) {
+    // Hoisted: `semantics { }` is a plain lambda, not a composable one, so
+    // `sRes()` cannot be called inside it.
+    val backLabel = S.Translation.commonBack(sRes())
     val colors = LocalSanvyaColors.current
     val util = SanvyaMetrics.UtilRow
     val interaction = remember { MutableInteractionSource() }
@@ -82,12 +85,12 @@ private fun BackButton(onBack: () -> Unit) {
             .border(1.dp, colors.border, SanvyaShape.pill)
             .clickable(interactionSource = interaction, indication = null, onClick = onBack)
             .padding(start = util.backPaddingStart, end = util.backPaddingEnd)
-            .semantics { contentDescription = S.Translation.commonBack(sRes()) },
+            .semantics { contentDescription = backLabel },
         horizontalArrangement = Arrangement.spacedBy(util.backGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SanvyaIcon(SanvyaIcons.arrowBack, size = 18.dp, tint = colors.text)
-        SanvyaText(S.Translation.commonBack(sRes()), SanvyaType.statLabel, color = colors.text)
+        SanvyaText(backLabel, SanvyaType.statLabel, color = colors.text)
     }
 }
 

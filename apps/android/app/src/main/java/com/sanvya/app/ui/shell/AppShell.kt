@@ -360,7 +360,7 @@ private fun AddPopoverItem(item: AddAction.Menu.Item, onClick: () -> Unit) {
     ) {
         SanvyaIcon(item.glyph, size = 17.dp, tint = colors.text)
         SanvyaText(
-            text = item.label(sRes()),
+            text = item.label,
             style = SanvyaType.button,
             color = colors.text,
             modifier = Modifier.weight(1f),
