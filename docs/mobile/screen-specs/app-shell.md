@@ -389,7 +389,7 @@ The real state, verified against the nav host and every `.sheet(` call site:
 
 | | Compact (< 600) | Medium+ (>= 600) |
 |---|---|---|
-| **Android** | ✅ route — already correct | ❌ still a route where a dialog is wanted |
+| **Android** | ✅ route — already correct | ✅ `dialog(...)` destination, via `formDestination` |
 | **iOS** | ✅ `.fullScreenCover` — fixed 2026-08-24 | ✅ `.sheet`, which at that width *is* the dialog |
 
 So the half that was actually broken was **iOS at phone width**: all 16 create/edit forms were
@@ -404,11 +404,17 @@ nothing to scroll and nothing to lose on dismissal.
 - `LoansView` — `MarkPaidSheetView`
 - `GroupDetailView` — the UPI payment handoff
 
-**Remaining: Android at Medium and up.** A route cannot become a dialog by wrapping its content —
-navigating has already replaced the screen underneath, so a `Dialog` there would float over a blank
-page rather than over the list it came from. Closing it properly means the *caller* choosing
-between `navigate(...)` and setting dialog state, which is a nav-host change rather than a
-per-screen one. Tracked in `ABSENT-BY-DECISION.md`.
+**Android at Medium and up, closed 2026-08-24** — and far more cheaply than expected. The audit
+assumed a nested-NavHost rewrite, because a route cannot become a dialog by wrapping its content.
+But Navigation Compose has `dialog(...)`, a first-party destination builder that keeps the
+destination in the **same back stack**: `popBackStack()` still closes it, and every screen's
+existing `onBack`/`onSaved` wiring works untouched. `formDestination(route, windowClass)` picks
+`composable` or `dialog` — ten lines, nine call sites, no navigation rewiring at all.
+
+Worth noting what was *already* right: `AppShell` caps content to `SanvyaMetrics.Page.maxWidth` at
+Medium and up, so a tablet form was already a centred column rather than a stretched full-bleed
+page. The gap was the scrim and the list staying visible behind — real, but smaller than "Android
+does not follow the rule" suggested.
 
 Web's own route-vs-modal split (`/accounts/new` a route, Budgets a modal) is **no longer the
 reference** — it becomes width-driven like everything else. Web is off-limits for now, so W2.1 is a

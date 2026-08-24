@@ -8,9 +8,16 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraphBuilder
+import com.sanvya.app.ui.shell.LocalWindowClass
+import com.sanvya.app.ui.shell.SanvyaWindowClass
 import com.sanvya.app.ui.ComingSoonScreen
 import com.sanvya.app.ui.shell.AddAction
 import com.sanvya.app.ui.shell.AppShell
@@ -58,9 +65,52 @@ import com.sanvya.app.ui.transactions.TransactionsScreen
  * on `coming_soon/{title}` rather than a dead link, and each is tracked in
  * `docs/mobile/PARITY_AUDIT.md` §4.
  */
+/**
+ * A create/edit destination, placed by window width.
+ *
+ * The rule (screen-specs/app-shell.md §8a, Akhilesh 2026-08-24): below 600dp a
+ * form is a full page; at 600dp and up it is a dialog. Android was full-page at
+ * every width — correct on a phone, wrong on a tablet, where the list you came
+ * from should stay visible behind the form.
+ *
+ * `dialog(...)` is Navigation Compose's own destination builder, not a hand-
+ * rolled overlay: the destination keeps its place in the back stack, so
+ * `popBackStack()` still closes it and every screen's existing `onBack`/`onSaved`
+ * wiring works unchanged. That is the whole reason this is a ten-line helper
+ * rather than the nested-NavHost rewrite the audit expected.
+ *
+ * `usePlatformDefaultWidth = false` for the same reason SanvyaModal sets it —
+ * the platform default caps dialog width well below the form's own column.
+ *
+ * **Known edge:** the graph is built with the width class captured, so crossing
+ * 600dp *while a form is open* rebuilds the graph and the open form is closed
+ * rather than transformed. Rotating a tablet mid-form loses unsaved input. The
+ * alternative — registering both shapes and swapping — changes destination
+ * identity, which loses the same input in a less predictable way. Recorded in
+ * ABSENT-BY-DECISION.md rather than hidden.
+ */
+private fun NavGraphBuilder.formDestination(
+    route: String,
+    windowClass: SanvyaWindowClass,
+    arguments: List<NamedNavArgument> = emptyList(),
+    content: @Composable (NavBackStackEntry) -> Unit,
+) {
+    if (windowClass == SanvyaWindowClass.COMPACT) {
+        composable(route, arguments = arguments) { entry -> content(entry) }
+    } else {
+        dialog(
+            route,
+            arguments = arguments,
+            dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+        ) { entry -> content(entry) }
+    }
+}
+
 @Composable
 fun SanvyaNavHost() {
     val navController = rememberNavController()
+    // Captured once per graph build; see formDestination's "known edge".
+    val windowClass = LocalWindowClass.current
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -142,14 +192,15 @@ fun SanvyaNavHost() {
                 onEditAccount = { id -> navController.navigate("accounts/$id/edit") },
             )
         }
-        composable("accounts/new") {
+        formDestination("accounts/new", windowClass) {
             CreateAccountScreen(
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
             )
         }
-        composable(
+        formDestination(
             "accounts/{accountId}/edit",
+            windowClass,
             arguments = listOf(navArgument("accountId") { type = NavType.StringType }),
         ) {
             EditAccountScreen(
@@ -170,15 +221,16 @@ fun SanvyaNavHost() {
                 onEditTransaction = { id -> navController.navigate("transactions/$id/edit") },
             )
         }
-        composable("transactions/new") {
+        formDestination("transactions/new", windowClass) {
             CreateTransactionScreen(
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
                 onAddAccountFirst = { navController.navigate("accounts/new") },
             )
         }
-        composable(
+        formDestination(
             "transactions/{transactionId}/edit",
+            windowClass,
             arguments = listOf(navArgument("transactionId") { type = NavType.StringType }),
         ) {
             EditTransactionScreen(
@@ -194,14 +246,15 @@ fun SanvyaNavHost() {
                 onEditBudget = { id -> navController.navigate("budgets/$id/edit") },
             )
         }
-        composable("budgets/new") {
+        formDestination("budgets/new", windowClass) {
             CreateBudgetScreen(
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
             )
         }
-        composable(
+        formDestination(
             "budgets/{budgetId}/edit",
+            windowClass,
             arguments = listOf(navArgument("budgetId") { type = NavType.StringType }),
         ) { entry ->
             val budgetId = entry.arguments?.getString("budgetId") ?: ""
@@ -219,14 +272,15 @@ fun SanvyaNavHost() {
                 onEditGoal = { id -> navController.navigate("goals/$id/edit") },
             )
         }
-        composable("goals/new") {
+        formDestination("goals/new", windowClass) {
             CreateGoalScreen(
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
             )
         }
-        composable(
+        formDestination(
             "goals/{goalId}/edit",
+            windowClass,
             arguments = listOf(navArgument("goalId") { type = NavType.StringType }),
         ) { entry ->
             val goalId = entry.arguments?.getString("goalId") ?: ""
@@ -263,7 +317,7 @@ fun SanvyaNavHost() {
                 onOpenLoan = { id -> navController.navigate("loans/$id") },
             )
         }
-        composable("loans/new") {
+        formDestination("loans/new", windowClass) {
             AddLoanScreen(
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
