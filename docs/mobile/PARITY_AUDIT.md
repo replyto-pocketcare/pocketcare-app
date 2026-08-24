@@ -400,6 +400,63 @@ been exercised:
 That third one is the substantive one: it is not chrome, it is **data that silently never gets
 created** on mobile.
 
+### Launch-time materialisation — confirmed for the worklist (2026-08-24)
+
+`runRecurring()` and `runLoanAutoPost()` are the highest-value gap in §6c: without them, recurring
+items and loan EMIs **never auto-post on mobile**. Neither engine is in `packages/core` — both live
+in `apps/web/src/` (`recurring/engine.ts` 251 lines, `loans/autoPost.ts` 144) — so this is a real
+port, not a wiring job.
+
+#### The blocker: `advance()` cannot be ported literally
+
+Eight lines, and the whole risk lives in them:
+
+```ts
+export function advance(dateStr: string, freq: Freq, n: number): string {
+  const d = new Date(dateStr + "T00:00:00");
+  if (freq === "monthly") d.setMonth(d.getMonth() + n);   // ← here
+  return d.toISOString().slice(0, 10);
+}
+```
+
+JavaScript's `setMonth` **overflows**; `java.time.LocalDate.plusMonths` and Foundation's calendar
+math **clamp**. They disagree wherever the target month is shorter:
+
+| Input | JS (`setMonth`) | Kotlin / Swift (default) |
+|---|---|---|
+| `2026-01-29` + 1 month | **2026-03-01** | 2026-02-28 |
+| `2026-01-31` + 1 month | **2026-03-03** | 2026-02-28 |
+| `2026-03-31` + 1 month | **2026-05-01** (skips April) | 2026-04-30 |
+| `2026-08-31` + 6 months | **2027-03-03** | 2027-02-28 |
+
+A literal port would silently post transactions on different dates from web. Pinned by
+`tools/golden-vectors/vectors/recurring-advance.json` (21 vectors) so whichever behaviour is
+chosen is provably identical on all three platforms.
+
+#### What the vectors exposed: this is a live bug on web
+
+The overflow **compounds**. A monthly item never returns to its original day:
+
+```
+Jan 31 → Mar 3 → Apr 3 → May 3 → Jun 3 → Jul 3 → Aug 3 → Sep 3
+```
+
+February is skipped entirely, and the item lands on the **3rd** of every month forever after. It
+affects any recurring item dated the **29th, 30th or 31st** — rent, salary, EMIs, subscriptions.
+A mid-month item (`Jan 15 → Feb 15 → Mar 15`) is unaffected, which is why this has survived.
+
+**This needs a decision before the port, and it is a decision about web, not about the port:**
+
+1. **Clamp** (Jan 31 → Feb 28 → Mar 31) — what a user means by "monthly on the 31st", and what
+   `java.time` does for free. Requires fixing `advance()` on the live client.
+2. **Keep the overflow** — port the quirk faithfully to both platforms so all three agree, and
+   accept that month-end items drift.
+3. **Diverge** — native clamps, web keeps overflowing. Rejected: it would make the same recurring
+   item post on different dates depending on which device opened the app first.
+
+Not started pending that answer. Everything downstream (the `runRecurring` loop, `materialize`,
+`runLoanAutoPost`) is mechanical once the date arithmetic is settled.
+
 ### Done-when for this section
 
 - [ ] Android has a login screen reaching every method its data layer already supports.
