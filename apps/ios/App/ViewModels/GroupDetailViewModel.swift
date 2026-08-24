@@ -93,7 +93,7 @@ public final class GroupDetailViewModel {
         self.group = try? await splitsRepository.getGroup(groupId: groupId)
         let conns = (try? await firstConnections(uid)) ?? []
         namesById = Dictionary(uniqueKeysWithValues: conns.map { ($0.id, $0.name) })
-        if let uid { namesById[uid] = "You" }
+        if let uid { namesById[uid] = S.Receipts.splitYou }
         loaded = true
 
         if let uid {
@@ -111,7 +111,7 @@ public final class GroupDetailViewModel {
             do {
                 for try await list in try self.splitsRepository.watchGroupExpenses(groupId: groupId) {
                     self.expenses = list.map { e in
-                        ExpenseUiModel(id: e.id, description: (e.description?.isEmpty == false) ? e.description! : "Expense", amountFormatted: formatMoney(e.amount, e.currency), date: String(e.occurredAt.prefix(10)))
+                        ExpenseUiModel(id: e.id, description: (e.description?.isEmpty == false) ? e.description! : S.Groups.expenseFallback, amountFormatted: formatMoney(e.amount, e.currency), date: String(e.occurredAt.prefix(10)))
                     }
                 }
             } catch { self.errorMessage = error.localizedDescription }
@@ -123,8 +123,8 @@ public final class GroupDetailViewModel {
                     self.settlements = list.map { s in
                         SettlementUiModel(
                             id: s.id, fromUser: s.fromUser, toUser: s.toUser,
-                            fromName: s.fromUser == uid ? "You" : self.nameOf(s.fromUser),
-                            toName: s.toUser == uid ? "You" : self.nameOf(s.toUser),
+                            fromName: s.fromUser == uid ? S.Receipts.splitYou : self.nameOf(s.fromUser),
+                            toName: s.toUser == uid ? S.Receipts.splitYou : self.nameOf(s.toUser),
                             amountFormatted: formatMoney(s.amount, s.currency ?? baseCurrencyNow()), date: String(s.at.prefix(10))
                         )
                     }
@@ -163,11 +163,11 @@ public final class GroupDetailViewModel {
         var seen = Set<String>()
         everyone = everyone.filter { seen.insert($0).inserted }
         self.members = everyone.map { id in
-            MemberUiModel(userId: id, name: id == uid ? "You" : nameOf(id), net: byId[id] ?? 0, isSelf: id == uid)
+            MemberUiModel(userId: id, name: id == uid ? S.Receipts.splitYou : nameOf(id), net: byId[id] ?? 0, isSelf: id == uid)
         }
     }
 
-    private func nameOf(_ id: String) -> String { namesById[id] ?? "Someone" }
+    private func nameOf(_ id: String) -> String { namesById[id] ?? S.Groups.someone }
 
     /// Equal-split add-expense -- see docs/mobile/screen-specs/splits.md's
     /// scope note: web's richer percent/exact/itemized modes are deferred

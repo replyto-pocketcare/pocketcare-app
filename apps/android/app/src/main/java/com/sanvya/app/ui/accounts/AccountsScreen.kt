@@ -25,6 +25,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.ui.accountColor
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Accounts list — ported from apps/web/app/accounts/page.tsx per
@@ -46,10 +48,10 @@ fun AccountsScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Accounts", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Accounts.title(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 actions = {
@@ -58,7 +60,7 @@ fun AccountsScreen(
                             onClick = { viewModel.toggleShowArchived() },
                             label = {
                                 Text(
-                                    if (uiState.showArchived) "Hide archived" else "Show archived (${uiState.archivedCount})",
+                                    if (uiState.showArchived) S.Accounts.hideArchived(sRes()) else "Show archived (${uiState.archivedCount})",
                                     fontSize = 12.sp,
                                 )
                             },
@@ -66,7 +68,7 @@ fun AccountsScreen(
                         )
                     }
                     IconButton(onClick = onNewAccount) {
-                        Icon(Icons.Default.Add, contentDescription = "New account", tint = colors.accent)
+                        Icon(Icons.Default.Add, contentDescription = S.Accounts.newAccount(sRes()), tint = colors.accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -78,7 +80,7 @@ fun AccountsScreen(
                 modifier = Modifier.padding(padding).fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("No accounts yet", color = colors.text2, fontSize = 14.sp)
+                Text(S.Accounts.noAccounts(sRes()), color = colors.text2, fontSize = 14.sp)
             }
         } else {
             LazyVerticalGrid(
@@ -139,17 +141,17 @@ private fun AccountCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (acct.isArchived) {
-                    AssistChip(onClick = onUnarchive, label = { Text("Unarchive", fontSize = 12.sp) })
+                    AssistChip(onClick = onUnarchive, label = { Text(S.Accounts.unarchive(sRes()), fontSize = 12.sp) })
                 } else {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable(onClick = onToggleIncludeInNetWorth),
                     ) {
                         Checkbox(checked = acct.includeInNetWorth, onCheckedChange = { onToggleIncludeInNetWorth() })
-                        Text("In net worth", fontSize = 12.sp, color = colors.text2)
+                        Text(S.Accounts.inNetWorth(sRes()), fontSize = 12.sp, color = colors.text2)
                     }
                 }
-                AssistChip(onClick = onEdit, label = { Text("Edit", fontSize = 12.sp) })
+                AssistChip(onClick = onEdit, label = { Text(S.Accounts.edit(sRes()), fontSize = 12.sp) })
             }
         }
     }

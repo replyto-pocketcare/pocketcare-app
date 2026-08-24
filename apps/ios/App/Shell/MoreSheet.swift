@@ -75,7 +75,7 @@ struct MoreSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                SanvyaH2("Sanvya")
+                SanvyaH2(S.Translation.appName)
                 Spacer()
                 HStack(spacing: 8) {
                     RoundIconButton(glyph: SanvyaIcons.edit, label: S.Translation.navCustomize, action: onCustomize)
@@ -118,10 +118,10 @@ struct MoreSheet: View {
             VStack(alignment: .leading, spacing: 8) {
                 if isGuest {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(guestDaysLeft.map { "Guest · \($0) days until data is deleted" } ?? "Guest")
+                        Text(guestDaysLeft.map { "Guest · \($0) days until data is deleted" } ?? S.Settings.guestBold)
                             .sanvyaStyle(SanvyaType.statLabel)
                             .foregroundStyle(Color.text)
-                        Text("Create account →")
+                        Text(S.Onboarding.createAccount)
                             .sanvyaStyle(SanvyaType.statLabel)
                             .foregroundStyle(Color.accent)
                     }
@@ -244,8 +244,8 @@ struct BottomNavCustomizer: View {
 
             HStack(spacing: 8) {
                 Spacer()
-                SanvyaButton(ghost: true, action: onClose) { Text("Cancel") }
-                SanvyaButton(action: { onSave(picked) }) { Text("Save") }
+                SanvyaButton(ghost: true, action: onClose) { Text(S.Translation.commonCancel) }
+                SanvyaButton(action: { onSave(picked) }) { Text(S.Translation.commonSave) }
                     .disabled(picked.count != NavPrefs.slots)
             }
             .padding(.top, 16)

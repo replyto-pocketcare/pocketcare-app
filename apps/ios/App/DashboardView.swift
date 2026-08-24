@@ -66,7 +66,7 @@ struct DashboardView: View {
                             // Accounts Section
                             VStack(alignment: .leading, spacing: 10) {
                                 HStack {
-                                    Text("Accounts")
+                                    Text(S.Translation.navAccounts)
                                         .font(.title3)
                                         .fontWeight(.bold)
                                         .foregroundColor(Color.text)
@@ -125,7 +125,7 @@ struct DashboardView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Sanvya")
+            .navigationTitle(S.Translation.appName)
             .toolbar {
                 // Hide/Show -- apps/web/app/page.tsx's header chip row has
                 // Customize/Hide-Show/Account+; Android's toolbar
@@ -188,11 +188,11 @@ struct DashboardView: View {
     private var speedDial: some View {
         VStack(alignment: .trailing, spacing: 10) {
             if speedDialOpen {
-                speedDialAction(icon: "doc.text.viewfinder", label: "Scan bill / receipt") {
+                speedDialAction(icon: "doc.text.viewfinder", label: S.Translation.fabScanReceipt) {
                     speedDialOpen = false
                     showingReceiptCapture = true
                 }
-                speedDialAction(icon: "plus", label: "Add transaction") {
+                speedDialAction(icon: "plus", label: S.Translation.fabAddTransaction) {
                     speedDialOpen = false
                     showingAddTransactionSheet = true
                 }
@@ -243,7 +243,7 @@ struct DashboardEmptyStateView: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            Text("Welcome to Sanvya")
+            Text(S.Onboarding.wtIntroTitle)
                 .font(.system(size: 26, weight: .bold))
                 .foregroundColor(Color.text)
                 .multilineTextAlignment(.center)
@@ -328,13 +328,13 @@ struct NetWorthHeroView: View {
         let deltaText = hidden ? "••••" : formatMinor(abs(state.deltaMinor))
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text(state.showAvailable ? "AVAILABLE NET WORTH" : "NET WORTH")
+                Text(state.showAvailable ? S.Translation.netWorthAvailable : S.Translation.netWorthTitle)
                     .font(.system(size: 12, weight: .semibold))
                     .tracking(1)
                     .foregroundColor(Color(red: 0.776, green: 0.804, blue: 0.702)) // #c6cdb3
                 Spacer()
                 Button(action: onToggle) {
-                    Text(state.showAvailable ? "Excluding blocked" : "Including blocked")
+                    Text(state.showAvailable ? "Excluding blocked" : S.Translation.netWorthWithBlocked)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(Color(red: 0.918, green: 0.941, blue: 0.855)) // #eaf0da
                         .padding(.horizontal, 12)

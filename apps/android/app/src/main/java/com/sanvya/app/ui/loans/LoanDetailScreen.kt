@@ -24,6 +24,8 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.ui.budgets.DatePickerDialogSimple
 import kotlinx.coroutines.launch
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Loan detail (summary, next-EMI/remaining/interest strip, auto-mark
@@ -69,12 +71,12 @@ fun LoanDetailScreen(
                 title = { Text(model.lender, fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 actions = {
-                    TextButton(onClick = { editing = true }) { Text("Edit") }
-                    TextButton(onClick = { showDeleteConfirm = true }) { Text("Delete", color = colors.negative) }
+                    TextButton(onClick = { editing = true }) { Text(S.Loans.edit(sRes())) }
+                    TextButton(onClick = { showDeleteConfirm = true }) { Text(S.Loans.delete(sRes()), color = colors.negative) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )
@@ -86,37 +88,37 @@ fun LoanDetailScreen(
         ) {
             // Summary cards
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SummaryCard("Principal", model.principalFormatted, Modifier.weight(1f))
-                SummaryCard("Monthly EMI", model.emiFormatted, Modifier.weight(1f))
+                SummaryCard(S.Loans.cardPrincipal(sRes()), model.principalFormatted, Modifier.weight(1f))
+                SummaryCard(S.Loans.cardMonthlyEmi(sRes()), model.emiFormatted, Modifier.weight(1f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SummaryCard("Interest rate", model.interestRateText, Modifier.weight(1f))
-                SummaryCard("EMIs paid", model.emisPaidText, Modifier.weight(1f))
+                SummaryCard(S.Loans.cardInterestRate(sRes()), model.interestRateText, Modifier.weight(1f))
+                SummaryCard(S.Loans.cardEmisPaid(sRes()), model.emisPaidText, Modifier.weight(1f))
             }
 
             Card(colors = CardDefaults.cardColors(containerColor = colors.surface), shape = RoundedCornerShape(SanvyaRadius.radiusLg)) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Column {
-                            Text("Next EMI due", fontSize = 12.sp, color = colors.text2)
+                            Text(S.Loans.nextEmiDue(sRes()), fontSize = 12.sp, color = colors.text2)
                             Text(model.nextEmiDueFormatted, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text)
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("Remaining", fontSize = 12.sp, color = colors.text2)
+                            Text(S.Loans.remaining(sRes()), fontSize = 12.sp, color = colors.text2)
                             Text(model.remainingText, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text)
                         }
                     }
                     if (model.isVariable) {
                         model.variablePaidFormatted?.let {
                             Column {
-                                Text("Paid so far", fontSize = 12.sp, color = colors.text2)
+                                Text(S.Loans.paidSoFar(sRes()), fontSize = 12.sp, color = colors.text2)
                                 Text(it, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text)
                             }
                         }
                     } else {
                         model.totalInterestFormatted?.let {
                             Column {
-                                Text("Total interest (schedule)", fontSize = 12.sp, color = colors.text2)
+                                Text(S.Loans.totalInterestSchedule(sRes()), fontSize = 12.sp, color = colors.text2)
                                 Text(it, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.negative)
                             }
                         }
@@ -142,7 +144,7 @@ fun LoanDetailScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Auto-mark past-due EMIs paid", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = colors.text)
                             Text(
-                                (if (model.autoMarkPaid) "On" else "Off") + (if (model.autoMarkDueDayText.isNotBlank()) " · ${model.autoMarkDueDayText}" else ""),
+                                (if (model.autoMarkPaid) "On" else S.Loans.off(sRes())) + (if (model.autoMarkDueDayText.isNotBlank()) " · ${model.autoMarkDueDayText}" else ""),
                                 fontSize = 12.sp, color = colors.text2,
                             )
                         }
@@ -151,7 +153,7 @@ fun LoanDetailScreen(
                 }
             }
 
-            Text(if (model.isVariable) "Month-by-month EMIs" else "Amortization schedule", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = colors.text2)
+            Text(if (model.isVariable) "Month-by-month EMIs" else S.Loans.amortTitle(sRes()), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = colors.text2)
 
             if (model.rows.isEmpty()) {
                 Text(if (model.emptyScheduleHint) "Add an interest rate, tenure, or EMI to see a payoff schedule." else "No EMIs yet.", fontSize = 13.sp, color = colors.text2)
@@ -195,9 +197,9 @@ fun LoanDetailScreen(
             title = { Text("Delete ${model.lender}?") },
             text = { Text("This removes the loan and its EMI history.") },
             confirmButton = {
-                TextButton(onClick = { viewModel.delete(onDeleted); showDeleteConfirm = false }) { Text("Delete", color = colors.negative) }
+                TextButton(onClick = { viewModel.delete(onDeleted); showDeleteConfirm = false }) { Text(S.Loans.delete(sRes()), color = colors.negative) }
             },
-            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text(S.Loans.cancel(sRes())) } },
         )
     }
 }
@@ -235,8 +237,8 @@ private fun EmiRowCard(
                 Column(horizontalAlignment = Alignment.End) {
                     when (row.state) {
                         EmiRowState.AUTO_MARKED -> Chip("Auto-marked", colors.positive)
-                        EmiRowState.PAID -> Chip("Paid", colors.positive, onClick = onUnmark)
-                        EmiRowState.DUE -> Chip("Mark paid", colors.warning, onClick = onMark)
+                        EmiRowState.PAID -> Chip(S.Loans.paidCheck(sRes()), colors.positive, onClick = onUnmark)
+                        EmiRowState.DUE -> Chip(S.Loans.markPaid(sRes()), colors.warning, onClick = onMark)
                     }
                     Text(
                         if (row.state != EmiRowState.DUE) "on ${row.paidOnOrDueFormatted}" else "due ${row.dueFormatted}",
@@ -247,7 +249,7 @@ private fun EmiRowCard(
             HorizontalDivider()
             if (isVariable) {
                 Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("EMI this month", fontSize = 11.sp, color = colors.text2)
+                    Text(S.Loans.emiThisMonth(sRes()), fontSize = 11.sp, color = colors.text2)
                     OutlinedTextField(
                         value = amountText,
                         onValueChange = { amountText = it },
@@ -255,14 +257,14 @@ private fun EmiRowCard(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         trailingIcon = {
-                            TextButton(onClick = { onSaveVariableAmount(amountText) }) { Text("Save", fontSize = 12.sp) }
+                            TextButton(onClick = { onSaveVariableAmount(amountText) }) { Text(S.Loans.save(sRes()), fontSize = 12.sp) }
                         },
                     )
                 }
             } else {
                 Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column {
-                        Text("Principal", fontSize = 11.sp, color = colors.text2)
+                        Text(S.Loans.cardPrincipal(sRes()), fontSize = 11.sp, color = colors.text2)
                         Text(row.principalFormatted ?: "—", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = colors.text)
                     }
                     if (row.hasInterest) {
@@ -272,7 +274,7 @@ private fun EmiRowCard(
                         }
                     } else {
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("Balance", fontSize = 11.sp, color = colors.text2)
+                            Text(S.Loans.balance(sRes()), fontSize = 11.sp, color = colors.text2)
                             Text(row.balanceFormatted ?: "—", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = colors.text)
                         }
                     }
@@ -336,7 +338,7 @@ private fun MarkPaidDialog(
                     fontSize = 13.sp, color = colors.text2,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Paid on", fontSize = 13.sp, color = colors.text2)
+                    Text(S.Loans.paidOn(sRes()), fontSize = 13.sp, color = colors.text2)
                     TextButton(onClick = { showDatePicker = true }) { Text(paidOn) }
                 }
                 val selected = accounts.find { it.id == accountId }
@@ -356,9 +358,9 @@ private fun MarkPaidDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(paidOn, accountId.ifBlank { null }) }) { Text(if (accountId.isNotBlank()) "Mark paid & record" else "Mark paid") }
+            TextButton(onClick = { onConfirm(paidOn, accountId.ifBlank { null }) }) { Text(if (accountId.isNotBlank()) S.Loans.markPaidRecord(sRes()) else S.Loans.markPaid(sRes())) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(S.Loans.cancel(sRes())) } },
     )
 
     if (showDatePicker) {

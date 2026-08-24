@@ -69,7 +69,7 @@ struct BottomNav: View {
 
             NavItem(
                 glyph: SanvyaIcons.moreHoriz,
-                label: "More",
+                label: S.Translation.navMore,
                 isActive: moreOpen,
                 compact: compact,
                 badgeDot: unreadCount > 0,

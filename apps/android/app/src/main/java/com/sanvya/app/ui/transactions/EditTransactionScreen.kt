@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.accounts.ChipRow
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Edit transaction — ported from transactions/[id]/edit/page.tsx per
@@ -46,10 +48,10 @@ fun EditTransactionScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Edit transaction", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Transactions.editTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -58,7 +60,7 @@ fun EditTransactionScreen(
     ) { padding ->
         if (!uiState.loaded) {
             Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Loading…", color = colors.text2)
+                Text(S.Transactions.loading(sRes()), color = colors.text2)
             }
             return@Scaffold
         }
@@ -82,7 +84,7 @@ fun EditTransactionScreen(
                 }
             }
 
-            Text("Account", fontSize = 13.sp, color = colors.text2)
+            Text(S.Transactions.account(sRes()), fontSize = 13.sp, color = colors.text2)
             ChipRow(
                 options = accounts.map { it.id },
                 selected = uiState.accountId,
@@ -124,7 +126,7 @@ fun EditTransactionScreen(
                     TextButton(onClick = { viewModel.addItem() }) { Text("+ Add item") }
                 }
 
-                Text("Category", fontSize = 13.sp, color = colors.text2)
+                Text(S.Transactions.category(sRes()), fontSize = 13.sp, color = colors.text2)
                 CategoryPicker(
                     categories = relevantCategories,
                     selectedId = uiState.categoryId,
@@ -132,7 +134,7 @@ fun EditTransactionScreen(
                 )
 
                 if (relevantPaymentMethods.isNotEmpty()) {
-                    Text("Payment method", fontSize = 13.sp, color = colors.text2)
+                    Text(S.Transactions.paymentMethod(sRes()), fontSize = 13.sp, color = colors.text2)
                     ChipRow(
                         options = relevantPaymentMethods.map { it.id },
                         selected = uiState.paymentMethod,
@@ -143,7 +145,7 @@ fun EditTransactionScreen(
                 }
             }
 
-            Text("Labels", fontSize = 13.sp, color = colors.text2)
+            Text(S.Transactions.labels(sRes()), fontSize = 13.sp, color = colors.text2)
             LabelPickerRow(
                 available = labelOptions.map { it.name },
                 selected = uiState.selectedLabels,
@@ -164,7 +166,7 @@ fun EditTransactionScreen(
             OutlinedTextField(
                 value = uiState.note,
                 onValueChange = viewModel::setNote,
-                label = { Text("Note") },
+                label = { Text(S.Transactions.note(sRes())) },
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -176,12 +178,12 @@ fun EditTransactionScreen(
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = { viewModel.save() }, enabled = !uiState.saving) {
-                    Text(if (uiState.saving) "Saving…" else "Save changes")
+                    Text(if (uiState.saving) S.Transactions.saving(sRes()) else S.Transactions.saveChanges(sRes()))
                 }
-                OutlinedButton(onClick = onBack) { Text("Cancel") }
+                OutlinedButton(onClick = onBack) { Text(S.Transactions.cancel(sRes())) }
                 Spacer(Modifier.weight(1f))
                 TextButton(onClick = { viewModel.setConfirmDelete(true) }) {
-                    Text("Delete", color = colors.negative)
+                    Text(S.Transactions.delete(sRes()), color = colors.negative)
                 }
             }
         }
@@ -189,15 +191,15 @@ fun EditTransactionScreen(
         if (uiState.confirmDelete) {
             AlertDialog(
                 onDismissRequest = { if (!uiState.deleting) viewModel.setConfirmDelete(false) },
-                title = { Text("Delete this transaction?", color = colors.negative) },
+                title = { Text(S.Transactions.deleteConfirmTitle(sRes()), color = colors.negative) },
                 text = { Text("This can't be undone from here.", fontSize = 14.sp, color = colors.text2) },
                 confirmButton = {
                     TextButton(onClick = { viewModel.delete() }, enabled = !uiState.deleting) {
-                        Text("Delete", color = colors.negative)
+                        Text(S.Transactions.delete(sRes()), color = colors.negative)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { viewModel.setConfirmDelete(false) }, enabled = !uiState.deleting) { Text("Cancel") }
+                    TextButton(onClick = { viewModel.setConfirmDelete(false) }, enabled = !uiState.deleting) { Text(S.Transactions.cancel(sRes())) }
                 },
             )
         }

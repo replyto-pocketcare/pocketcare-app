@@ -200,7 +200,7 @@ public final class InsightsViewModel {
         var catExpenseByName: [String: Int64] = [:]
         for t in thisMonthExpenseTxns {
             if let cid = t.categoryId { catExpenseById[cid, default: 0] += t.amount }
-            let name = t.categoryId.flatMap { catNameById[$0] } ?? "Uncategorised"
+            let name = t.categoryId.flatMap { catNameById[$0] } ?? S.Receipts.reviewNoCategory
             catExpenseByName[name, default: 0] += t.amount
         }
         let cats = catExpenseByName.map { CatAgg($0.key, $0.value) }.sorted { $0.expense > $1.expense }
@@ -286,14 +286,14 @@ public final class InsightsViewModel {
 
         // ---- top expenses (this month) ----
         let topExpenses = thisMonthExpenseTxns.sorted { $0.amount > $1.amount }.prefix(6)
-            .map { TopExpense(($0.description ?? $0.note ?? "Expense").trimmingCharacters(in: .whitespacesAndNewlines), $0.amount) }
+            .map { TopExpense(($0.description ?? $0.note ?? S.Translation.transactionExpense).trimmingCharacters(in: .whitespacesAndNewlines), $0.amount) }
 
         // ---- subscriptions (monthly-normalised) ----
         func norm(_ amt: Int64, _ cycle: String?) -> Int64 {
             switch cycle { case "yearly": return amt / 12; case "weekly": return (amt * 52) / 12; case "quarterly": return amt / 3; default: return amt }
         }
         let subs = latestSubs.map { s -> SubAgg in
-            let name = (s.name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "Subscription"
+            let name = (s.name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? S.Cashflow.subscription
             return SubAgg(name, norm(s.amount, s.billingCycle))
         }
         let subsTotal = subs.reduce(0) { $0 + $1.monthly }
@@ -312,7 +312,7 @@ public final class InsightsViewModel {
         for t in txns where t.type == "expense" {
             let day = String(t.occurredAt.prefix(10))
             guard let dDate = dateFromYmd(day), dDate >= fourMonthsAgo else { continue }
-            let name = t.categoryId.flatMap { catNameById[$0] } ?? "Uncategorised"
+            let name = t.categoryId.flatMap { catNameById[$0] } ?? S.Receipts.reviewNoCategory
             let ym = String(t.occurredAt.prefix(7))
             priorByCatYm[name, default: [:]][ym, default: 0] += t.amount
         }

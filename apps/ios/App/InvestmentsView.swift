@@ -62,7 +62,7 @@ struct InvestmentsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(drilledGroup?.label ?? "Investments")
+            .navigationTitle(drilledGroup?.label ?? S.Translation.navInvestments)
             // Drill-in is local state, not a route, so the shell cannot
             // infer it — the screen says so and the util row shows Back.
             // Not a toolbar button: a screen gets ONE back affordance and
@@ -86,7 +86,7 @@ struct InvestmentsView: View {
     private var emptyAccountState: some View {
         VStack(spacing: 10) {
             Text("▤").font(.system(size: 26))
-            Text("No investment account yet").font(.title3).fontWeight(.bold).foregroundColor(Color.text)
+            Text(S.Investments.noInvAccountTitle).font(.title3).fontWeight(.bold).foregroundColor(Color.text)
             Text("Add a demat, stocks, or mutual-funds account to start tracking investments.")
                 .font(.subheadline)
                 .foregroundColor(Color.text2)
@@ -204,7 +204,7 @@ private struct HoldingRowView: View {
             }
             if editing {
                 VStack(spacing: 8) {
-                    TextField("Quantity", text: $quantityText).textFieldStyle(.roundedBorder).keyboardType(.decimalPad)
+                    TextField(S.Investments.quantity, text: $quantityText).textFieldStyle(.roundedBorder).keyboardType(.decimalPad)
                     TextField("Avg cost (\(holding.currency))", text: $avgCostText).textFieldStyle(.roundedBorder).keyboardType(.decimalPad)
                     if !holding.isListedClass {
                         TextField("Current value (\(holding.currency))", text: $currentValueText).textFieldStyle(.roundedBorder).keyboardType(.decimalPad)
@@ -213,9 +213,9 @@ private struct HoldingRowView: View {
                         TextField("Annual rate (%)", text: $annualRateText).textFieldStyle(.roundedBorder).keyboardType(.decimalPad)
                     }
                     HStack {
-                        Button("Cancel") { editing = false }
+                        Button(S.Investments.cancel) { editing = false }
                         Spacer()
-                        Button("Save") {
+                        Button(S.Investments.save) {
                             onUpdate(quantityText, avgCostText, currentValueText, annualRateText)
                             editing = false
                         }.fontWeight(.semibold)
@@ -227,8 +227,8 @@ private struct HoldingRowView: View {
         .background(Color.surface)
         .cornerRadius(14)
         .alert("Remove \(holding.label)?", isPresented: $showDeleteConfirm) {
-            Button("Remove", role: .destructive, action: onDelete)
-            Button("Cancel", role: .cancel) {}
+            Button(S.Investments.remove, role: .destructive, action: onDelete)
+            Button(S.Investments.cancel, role: .cancel) {}
         } message: {
             Text("This removes the holding. It doesn't reverse any transfer used to fund it.")
         }

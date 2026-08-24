@@ -26,7 +26,7 @@ struct SideNav: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: SanvyaMetrics.Expanded.sidebarGap) {
-            SanvyaH2("Sanvya")
+            SanvyaH2(S.Translation.appName)
                 .padding(.horizontal, 8)
                 .padding(.bottom, SanvyaMetrics.Expanded.brandPaddingBottom)
 
@@ -150,11 +150,11 @@ struct SideNav: View {
             if isGuest {
                 Button { onSelect(.settings) } label: {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(guestDaysLeft.map { "Guest · \($0)d left" } ?? "Guest")
+                        Text(guestDaysLeft.map { "Guest · \($0)d left" } ?? S.Settings.guestBold)
                             .sanvyaStyle(SanvyaType.sideNavGuest)
                             .fontWeight(.bold)
                             .foregroundStyle(Color.text)
-                        Text("Create account →")
+                        Text(S.Onboarding.createAccount)
                             .sanvyaStyle(SanvyaType.sideNavGuest)
                             .foregroundStyle(Color.accent)
                     }

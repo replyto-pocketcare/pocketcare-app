@@ -67,7 +67,7 @@ struct AppShell<Content: View>: View {
         // and the sidebar shows every destination directly, so there is nothing
         // to open them from — and a sheet that can never be dismissed by its own
         // affordance is worse than no sheet.
-        .sanvyaModal(isPresented: moreBinding, label: "More") {
+        .sanvyaModal(isPresented: moreBinding, label: S.Translation.navMore) {
             MoreSheet(
                 currentTab: currentTab,
                 unreadCount: viewModel.unreadCount,

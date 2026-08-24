@@ -226,7 +226,7 @@ class SettingsViewModel {
                 }
                 profileGender = gender
                 profileCountry = country
-                profileMsg = "Saved."
+                profileMsg = S.Settings.saved
             } catch {
                 profileMsg = error.localizedDescription
             }

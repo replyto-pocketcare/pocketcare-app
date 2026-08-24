@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * New account — ported from apps/web/app/accounts/new/page.tsx per
@@ -47,10 +49,10 @@ fun CreateAccountScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("New account", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Accounts.newAccount(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -67,18 +69,18 @@ fun CreateAccountScreen(
         ) {
             // Load-bearing copy, not decorative -- keep verbatim (spec).
             Text(
-                "Nothing here connects to your bank. You're naming a place your money sits and typing in the amount yourself.",
+                S.Accounts.noBankLink(sRes()),
                 fontSize = 13.5.sp,
                 color = colors.text2,
             )
             OutlinedTextField(
                 value = uiState.name,
                 onValueChange = viewModel::setName,
-                label = { Text("Account name") },
+                label = { Text(S.Accounts.accountName(sRes())) },
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Text("Type", fontSize = 13.sp, color = colors.text2)
+            Text(S.Accounts.typeLabel(sRes()), fontSize = 13.sp, color = colors.text2)
             ChipRow(
                 options = ACCOUNT_TYPES,
                 selected = uiState.type,
@@ -87,7 +89,7 @@ fun CreateAccountScreen(
                 colors = colors,
             )
 
-            Text("Currency", fontSize = 13.sp, color = colors.text2)
+            Text(S.Accounts.currency(sRes()), fontSize = 13.sp, color = colors.text2)
             ChipRow(
                 options = ACCOUNT_CURRENCIES,
                 selected = uiState.currency,
@@ -96,7 +98,7 @@ fun CreateAccountScreen(
                 colors = colors,
             )
 
-            Text("Colour", fontSize = 13.sp, color = colors.text2)
+            Text(S.Accounts.colour(sRes()), fontSize = 13.sp, color = colors.text2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ACCOUNT_COLOR_HEX.forEach { hex ->
                     val selected = hex == uiState.color
@@ -113,7 +115,7 @@ fun CreateAccountScreen(
 
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Checkbox(checked = uiState.includeInNetWorth, onCheckedChange = viewModel::setIncludeInNetWorth)
-                Text("Include in net worth", fontSize = 14.sp, color = colors.text)
+                Text(S.Accounts.includeShort(sRes()), fontSize = 14.sp, color = colors.text)
             }
 
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -142,7 +144,7 @@ fun CreateAccountScreen(
                 enabled = uiState.name.isNotBlank() && !uiState.saving,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             ) {
-                Text(if (uiState.saving) "Saving…" else "Save")
+                Text(if (uiState.saving) S.Accounts.saving(sRes()) else S.Accounts.save(sRes()))
             }
         }
     }

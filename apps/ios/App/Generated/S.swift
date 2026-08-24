@@ -1735,6 +1735,7 @@ public enum S {
         public static var accountTypeStocks: String { String(localized: "translation:accountType.stocks", table: "Localizable") }
         public static var appName: String { String(localized: "translation:app.name", table: "Localizable") }
         public static var commonAdd: String { String(localized: "translation:common.add", table: "Localizable") }
+        public static var commonAdding: String { String(localized: "translation:common.adding", table: "Localizable") }
         public static var commonBack: String { String(localized: "translation:common.back", table: "Localizable") }
         public static var commonCancel: String { String(localized: "translation:common.cancel", table: "Localizable") }
         public static var commonClear: String { String(localized: "translation:common.clear", table: "Localizable") }
@@ -1744,6 +1745,8 @@ public enum S {
         public static var commonEdit: String { String(localized: "translation:common.edit", table: "Localizable") }
         public static var commonRemove: String { String(localized: "translation:common.remove", table: "Localizable") }
         public static var commonSave: String { String(localized: "translation:common.save", table: "Localizable") }
+        public static var commonSaveChanges: String { String(localized: "translation:common.saveChanges", table: "Localizable") }
+        public static var commonSaving: String { String(localized: "translation:common.saving", table: "Localizable") }
         public static var commonSettings: String { String(localized: "translation:common.settings", table: "Localizable") }
         public static var fabAdd: String { String(localized: "translation:fab.add", table: "Localizable") }
         public static var fabAddTransaction: String { String(localized: "translation:fab.addTransaction", table: "Localizable") }

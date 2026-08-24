@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Edit account — ported from apps/web/app/accounts/[id]/edit/page.tsx per
@@ -46,10 +48,10 @@ fun EditAccountScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Edit account", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Accounts.editTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -58,7 +60,7 @@ fun EditAccountScreen(
     ) { padding ->
         if (!uiState.loaded) {
             Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Loading…", color = colors.text2)
+                Text(S.Accounts.loading(sRes()), color = colors.text2)
             }
             return@Scaffold
         }
@@ -74,16 +76,16 @@ fun EditAccountScreen(
             OutlinedTextField(
                 value = uiState.name,
                 onValueChange = viewModel::setName,
-                label = { Text("Account name") },
+                label = { Text(S.Accounts.accountName(sRes())) },
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Text("Type", fontSize = 13.sp, color = colors.text2)
+            Text(S.Accounts.typeLabel(sRes()), fontSize = 13.sp, color = colors.text2)
             ChipRow(options = ACCOUNT_TYPES, selected = uiState.type,
                 label = { it.replace("_", " ").replaceFirstChar { c -> c.uppercase() } },
                 onSelect = viewModel::setType, colors = colors)
 
-            Text("Colour", fontSize = 13.sp, color = colors.text2)
+            Text(S.Accounts.colour(sRes()), fontSize = 13.sp, color = colors.text2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ACCOUNT_COLOR_HEX.forEach { hex ->
                     val selected = hex == uiState.color
@@ -100,7 +102,7 @@ fun EditAccountScreen(
 
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Checkbox(checked = uiState.includeInNetWorth, onCheckedChange = viewModel::setIncludeInNetWorth)
-                Text("Include in net worth", fontSize = 14.sp, color = colors.text)
+                Text(S.Accounts.includeShort(sRes()), fontSize = 14.sp, color = colors.text)
             }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Checkbox(checked = uiState.allowNegative, onCheckedChange = viewModel::setAllowNegative)
@@ -115,11 +117,11 @@ fun EditAccountScreen(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = { viewModel.save() }, enabled = uiState.name.isNotBlank()) { Text("Save changes") }
-                OutlinedButton(onClick = onBack) { Text("Cancel") }
+                Button(onClick = { viewModel.save() }, enabled = uiState.name.isNotBlank()) { Text(S.Accounts.saveChanges(sRes())) }
+                OutlinedButton(onClick = onBack) { Text(S.Accounts.cancel(sRes())) }
                 Spacer(Modifier.weight(1f))
                 TextButton(onClick = { viewModel.setConfirmDelete(true) }) {
-                    Text("Delete", color = colors.negative)
+                    Text(S.Accounts.delete(sRes()), color = colors.negative)
                 }
             }
 
@@ -140,13 +142,13 @@ fun EditAccountScreen(
                     OutlinedTextField(
                         value = uiState.targetBalance,
                         onValueChange = viewModel::setTargetBalance,
-                        label = { Text("New balance") },
+                        label = { Text(S.Accounts.newBalance(sRes())) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AssistChip(
                             onClick = { viewModel.setBalanceMode(BalanceMode.Direct) },
-                            label = { Text("Change directly", fontSize = 12.sp) },
+                            label = { Text(S.Accounts.changeDirectly(sRes()), fontSize = 12.sp) },
                             colors = AssistChipDefaults.assistChipColors(
                                 containerColor = if (uiState.balanceMode == BalanceMode.Direct) colors.accent else colors.surface2,
                                 labelColor = if (uiState.balanceMode == BalanceMode.Direct) Color.White else colors.text,
@@ -170,7 +172,7 @@ fun EditAccountScreen(
                     OutlinedButton(
                         onClick = { viewModel.applyBalance() },
                         enabled = uiState.currentBalance != null && uiState.targetBalance.isNotEmpty(),
-                    ) { Text("Update balance") }
+                    ) { Text(S.Accounts.updateBalance(sRes())) }
                     uiState.balanceMessage?.let {
                         Text(it, fontSize = 13.sp, color = colors.text2)
                     }
@@ -181,7 +183,7 @@ fun EditAccountScreen(
         if (uiState.confirmDelete) {
             AlertDialog(
                 onDismissRequest = { if (!uiState.deleting) viewModel.setConfirmDelete(false) },
-                title = { Text("Delete account?", color = colors.negative) },
+                title = { Text(S.Accounts.deleteTitle(sRes()), color = colors.negative) },
                 text = {
                     Text(
                         "Deleting keeps your data safe -- this only marks the account (and optionally its transactions) as removed, it isn't a permanent hard delete.",
@@ -190,13 +192,13 @@ fun EditAccountScreen(
                 },
                 confirmButton = {
                     Column {
-                        Button(onClick = { viewModel.delete(true) }, enabled = !uiState.deleting) { Text("Delete everything") }
+                        Button(onClick = { viewModel.delete(true) }, enabled = !uiState.deleting) { Text(S.Settings.deleteEverything(sRes())) }
                         Spacer(Modifier.height(8.dp))
                         OutlinedButton(onClick = { viewModel.delete(false) }, enabled = !uiState.deleting) { Text("Delete, keep transactions") }
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { viewModel.setConfirmDelete(false) }, enabled = !uiState.deleting) { Text("Cancel") }
+                    TextButton(onClick = { viewModel.setConfirmDelete(false) }, enabled = !uiState.deleting) { Text(S.Accounts.cancel(sRes())) }
                 },
             )
         }

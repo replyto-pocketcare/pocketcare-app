@@ -43,7 +43,7 @@ struct GoalsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Goals")
+            .navigationTitle(S.Goals.title)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {
@@ -105,7 +105,7 @@ private struct GoalRowCard: View {
                                 Text(goal.name).font(.headline).fontWeight(.bold).foregroundColor(Color.text)
                                 if goal.funded {
                                     Image(systemName: "checkmark.circle.fill").font(.caption).foregroundColor(Color.accent)
-                                    Text("Funded").font(.caption).fontWeight(.semibold).foregroundColor(Color.accent)
+                                    Text(S.Goals.funded).font(.caption).fontWeight(.semibold).foregroundColor(Color.accent)
                                 } else if goal.isEmergencyFund {
                                     Text("· liquid").font(.caption).foregroundColor(Color.text2)
                                 }

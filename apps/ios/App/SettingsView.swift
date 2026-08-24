@@ -65,7 +65,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 // MARK: Account
-                Section(header: Text("Account")) {
+                Section(header: Text(S.Settings.account)) {
                     if viewModel.session?.isGuest == true {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("You're using Sanvya as a guest.\(viewModel.session?.daysLeft.map { " Your data will be deleted in \($0) day\($0 == 1 ? "" : "s") unless you create an account." } ?? "")")
@@ -87,22 +87,22 @@ struct SettingsView: View {
                     }
 
                     HStack {
-                        TextField("Your name", text: $username)
-                        Button(viewModel.usernameSaved ? "Saved" : "Save") { viewModel.saveUsername(username) }
+                        TextField(S.Settings.yourName, text: $username)
+                        Button(viewModel.usernameSaved ? S.Settings.saved : S.Settings.save) { viewModel.saveUsername(username) }
                     }
                 }
 
                 // MARK: Appearance
-                Section(header: Text("Appearance")) {
+                Section(header: Text(S.Settings.appearance)) {
                     Picker("Theme", selection: $prefs.theme) {
-                        Text("Light").tag("light")
-                        Text("Dark").tag("dark")
+                        Text(S.Settings.light).tag("light")
+                        Text(S.Settings.dark).tag("dark")
                     }
                     .pickerStyle(.segmented)
                 }
 
                 // MARK: Privacy
-                Section(header: Text("Privacy"), footer: Text("Mask balances and transaction amounts across the app.")) {
+                Section(header: Text(S.Settings.privacy), footer: Text("Mask balances and transaction amounts across the app.")) {
                     Toggle("Hide Amounts", isOn: $prefs.amountsHidden)
                         .tint(Color.accent)
                 }
@@ -116,7 +116,7 @@ struct SettingsView: View {
                         ForEach(countries, id: \.self) { c in Text(c.isEmpty ? "Not specified" : c).tag(c) }
                     }
                     HStack {
-                        Button("Save") { viewModel.saveProfile(gender: profileGenderSel, country: profileCountrySel) }
+                        Button(S.Settings.save) { viewModel.saveProfile(gender: profileGenderSel, country: profileCountrySel) }
                         if let msg = viewModel.profileMsg {
                             Text(msg).font(.footnote).foregroundColor(Color.text2)
                         }
@@ -125,7 +125,7 @@ struct SettingsView: View {
 
                 // MARK: Notifications (existing)
                 if let notif = viewModel.notifPrefs {
-                    Section(header: Text("Notifications"), footer: Text("Get alerted about bills, budgets, low balances and unusual spend.")) {
+                    Section(header: Text(S.Translation.navNotifications), footer: Text("Get alerted about bills, budgets, low balances and unusual spend.")) {
                         Toggle("Push notifications", isOn: Binding(
                             get: { notif.push_enabled == 1 },
                             set: { viewModel.updatePref(keyPath: \.push_enabled, value: $0) }
@@ -158,7 +158,7 @@ struct SettingsView: View {
                 }
 
                 // MARK: Base currency
-                Section(header: Text("Base Currency"), footer: Text("Used as the default across new accounts and reports.")) {
+                Section(header: Text(S.Settings.baseCurrency), footer: Text("Used as the default across new accounts and reports.")) {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 6) {
                             ForEach(currencies, id: \.self) { c in
@@ -243,8 +243,8 @@ struct SettingsView: View {
                 }
 
                 // MARK: Help & support
-                Section(header: Text("Help & Support")) {
-                    Button("Contact support") {
+                Section(header: Text(S.Settings.help)) {
+                    Button(S.Settings.contactSupport) {
                         if let url = URL(string: "mailto:support@sanvya.app") { UIApplication.shared.open(url) }
                     }
                 }
@@ -253,19 +253,19 @@ struct SettingsView: View {
                 Section {
                     HStack {
                         Spacer()
-                        Button("Sign out") { confirmSignout = true }
+                        Button(S.Settings.signoutTitle) { confirmSignout = true }
                         Spacer()
-                        Button("Delete account") { confirmDelete = true }
+                        Button(S.Settings.deleteAccount) { confirmDelete = true }
                             .foregroundColor(.red)
                         Spacer()
                     }
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle(S.Settings.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Translation.commonClose) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
             .background(Color.bg)
@@ -286,17 +286,17 @@ struct SettingsView: View {
             }
             .onChange(of: viewModel.profileGender) { _, v in profileGenderSel = v }
             .onChange(of: viewModel.profileCountry) { _, v in profileCountrySel = v }
-            .alert("Sign out?", isPresented: $confirmSignout) {
-                Button("Cancel", role: .cancel) {}
-                Button("Sign out anyway", role: .destructive) { viewModel.signOut() }
+            .alert(S.Settings.signoutTitle, isPresented: $confirmSignout) {
+                Button(S.Settings.cancel, role: .cancel) {}
+                Button(S.Settings.signOutAnyway, role: .destructive) { viewModel.signOut() }
             } message: {
                 Text(viewModel.session?.isGuest == true
                     ? "You're a guest — signing out deletes this device's data with nothing backed up."
                     : "You can sign back in any time to restore your data.")
             }
-            .alert("Delete account", isPresented: $confirmDelete) {
-                Button("Cancel", role: .cancel) {}
-                Button(viewModel.deleting ? "Deleting…" : "Delete everything", role: .destructive) { viewModel.deleteAccount() }
+            .alert(S.Settings.deleteAccount, isPresented: $confirmDelete) {
+                Button(S.Settings.cancel, role: .cancel) {}
+                Button(viewModel.deleting ? S.Settings.deleting : S.Settings.deleteEverything, role: .destructive) { viewModel.deleteAccount() }
                     .disabled(viewModel.deleting)
             } message: {
                 Text("This permanently deletes your account and data. This can't be undone." + (viewModel.deleteError.map { "\n\($0)" } ?? ""))

@@ -33,6 +33,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Real port of apps/web/app/cards/page.tsx + src/cards/CreditCard.tsx
@@ -66,8 +68,8 @@ fun CreditCardsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Credit Cards", fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2) } },
-                actions = { IconButton(onClick = onAddAccount) { Icon(Icons.Default.Add, contentDescription = "Add card", tint = colors.accent) } },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2) } },
+                actions = { IconButton(onClick = onAddAccount) { Icon(Icons.Default.Add, contentDescription = S.Cards.addCard(sRes()), tint = colors.accent) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )
         },
@@ -141,7 +143,7 @@ private fun CreditCardPanel(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         // Card face -- mirrors CreditCard.tsx: gradient from the account's own
         // color, network = account name (no real "network" concept exists),
-        // masked digits, "Card holder" placeholder (no session-username plumbing
+        // masked digits, S.Cards.cardHolder(sRes()) placeholder (no session-username plumbing
         // wired up for this label yet), currency in the bottom corner.
         Box(
             modifier = Modifier.fillMaxWidth().aspectRatio(1.586f)
@@ -164,11 +166,11 @@ private fun CreditCardPanel(
                 Spacer(Modifier.weight(1f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
                     Column {
-                        Text("CARD HOLDER", color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                        Text("Card holder", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(S.Cards.cardHolder(sRes()), color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(S.Cards.cardHolder(sRes()), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("CURRENCY", color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(S.Accounts.currency(sRes()), color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         Text(card.currency, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -180,14 +182,14 @@ private fun CreditCardPanel(
             Column(Modifier.padding(20.dp).clickable { expanded = !expanded }) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
                     Column {
-                        Text("Spent this cycle", fontSize = 12.sp, color = colors.text2)
+                        Text(S.Cards.spentThisCycle(sRes()), fontSize = 12.sp, color = colors.text2)
                         Text(card.owedFormatted, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = colors.negative)
                         card.creditLimitFormatted?.let { Text("of $it limit", fontSize = 12.sp, color = colors.text2) }
                     }
                     if (!expanded && card.hasCycle) {
                         Column(horizontalAlignment = Alignment.End) {
                             card.dueThisCycleFormatted?.let {
-                                Text("Due this cycle", fontSize = 12.sp, color = colors.text2)
+                                Text(S.Cards.dueThisCycle(sRes()), fontSize = 12.sp, color = colors.text2)
                                 Text(it, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = if (card.dueThisCycle != 0L) colors.negative else colors.positive)
                             }
                             card.payByIso?.let { Text("Pay by ${it.toDisplayDate()}", fontSize = 11.sp, color = colors.text2) }
@@ -203,15 +205,15 @@ private fun CreditCardPanel(
                         card.newSpendFormatted?.let { Text("+$it new spend since the last statement", fontSize = 11.sp, color = colors.text2) }
                         card.statementDateIso?.let { Text("Statement: ${it.toDisplayDate()}", fontSize = 11.sp, color = colors.text2) }
                         if (!editing) {
-                            TextButton(onClick = { editing = true; limit = ""; dueAmt = "" }) { Text("Edit details") }
+                            TextButton(onClick = { editing = true; limit = ""; dueAmt = "" }) { Text(S.Cards.editDetails(sRes())) }
                         }
                     }
 
                     if (editing) {
-                        OutlinedTextField(stmt, { stmt = it.filter(Char::isDigit) }, label = { Text("Statement day") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                        OutlinedTextField(due, { due = it.filter(Char::isDigit) }, label = { Text("Due day") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                        OutlinedTextField(limit, { limit = it }, label = { Text("Credit limit") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                        OutlinedTextField(dueAmt, { dueAmt = it }, label = { Text("Amount due") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(stmt, { stmt = it.filter(Char::isDigit) }, label = { Text(S.Cards.statementDay(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(due, { due = it.filter(Char::isDigit) }, label = { Text(S.Cards.dueDay(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(limit, { limit = it }, label = { Text(S.Cards.creditLimit(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(dueAmt, { dueAmt = it }, label = { Text(S.Cards.amountDue(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                         OutlinedTextField(last4, { last4 = it.filter(Char::isDigit).takeLast(4) }, label = { Text("Card number (last 4)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = {
@@ -219,8 +221,8 @@ private fun CreditCardPanel(
                                     error = viewModel.saveCycle(card.accountId, card.currency, stmt, due, limit, dueAmt, last4, card.creditLimit)
                                     if (error == null) editing = false
                                 }
-                            }) { Text("Save") }
-                            if (card.hasCycle) TextButton(onClick = { editing = false }) { Text("Cancel") }
+                            }) { Text(S.Cards.save(sRes())) }
+                            if (card.hasCycle) TextButton(onClick = { editing = false }) { Text(S.Cards.cancel(sRes())) }
                         }
                     }
 
@@ -241,7 +243,7 @@ private fun CreditCardPanel(
                         }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(amountText, { amountText = it }, label = { Text("Amount") }, singleLine = true, modifier = Modifier.weight(1f))
+                        OutlinedTextField(amountText, { amountText = it }, label = { Text(S.Cards.amountPlaceholder(sRes())) }, singleLine = true, modifier = Modifier.weight(1f))
                         Button(
                             onClick = {
                                 scope.launch {
@@ -253,7 +255,7 @@ private fun CreditCardPanel(
                                 }
                             },
                             enabled = amountText.isNotBlank() && sources.isNotEmpty(),
-                        ) { Text("Settle") }
+                        ) { Text(S.Cards.settle(sRes())) }
                     }
                     error?.let { Text(it, fontSize = 12.sp, color = colors.negative) }
                 }
@@ -271,7 +273,7 @@ private fun CoveredEmisDialog(
 ) {
     AlertDialog(
         onDismissRequest = onSkip,
-        title = { Text("Mark EMIs paid?") },
+        title = { Text(S.Cards.emiCoveredTitle(sRes())) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
@@ -289,8 +291,8 @@ private fun CoveredEmisDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Mark paid") } },
-        dismissButton = { TextButton(onClick = onSkip) { Text("Not now") } },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(S.Cards.emiCoveredConfirm(sRes())) } },
+        dismissButton = { TextButton(onClick = onSkip) { Text(S.Cards.emiCoveredSkip(sRes())) } },
         containerColor = colors.surface,
     )
 }

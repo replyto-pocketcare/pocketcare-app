@@ -47,31 +47,31 @@ struct EditAccountView: View {
         NavigationStack {
             Group {
                 if !loaded {
-                    ProgressView("Loading…")
+                    ProgressView(S.Accounts.loading)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 14) {
-                            TextField("Account name", text: $name)
+                            TextField(S.Accounts.accountName, text: $name)
                                 .textFieldStyle(.roundedBorder)
 
-                            Text("Type").font(.system(size: 13)).foregroundColor(Color.text2)
+                            Text(S.Accounts.typeLabel).font(.system(size: 13)).foregroundColor(Color.text2)
                             ChipRow(options: accountTypes, selected: type, label: accountTypeLabel, onSelect: { type = $0 })
 
-                            Text("Colour").font(.system(size: 13)).foregroundColor(Color.text2)
+                            Text(S.Accounts.colour).font(.system(size: 13)).foregroundColor(Color.text2)
                             ColorSwatchRow(selected: color, onSelect: { color = $0 })
 
-                            Toggle("Include in net worth", isOn: $includeInNetWorth)
+                            Toggle(S.Accounts.includeShort, isOn: $includeInNetWorth)
                             AllowNegativeToggle(isOn: $allowNegative)
 
                             HStack(spacing: 10) {
-                                Button("Save changes", action: save)
+                                Button(S.Accounts.saveChanges, action: save)
                                     .buttonStyle(.borderedProminent)
                                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
-                                Button("Cancel") { dismiss() }
+                                Button(S.Accounts.cancel) { dismiss() }
                                     .buttonStyle(.bordered)
                                 Spacer()
-                                Button("Delete") { confirmDelete = true }
+                                Button(S.Accounts.delete) { confirmDelete = true }
                                     .foregroundColor(Color.negative)
                             }
 
@@ -84,18 +84,18 @@ struct EditAccountView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Edit account")
+            .navigationTitle(S.Accounts.editTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
+                    Button(S.Translation.commonClose) { dismiss() }
                         .foregroundColor(Color.text2)
                 }
             }
-            .confirmationDialog("Delete account?", isPresented: $confirmDelete, titleVisibility: .visible) {
-                Button("Delete everything", role: .destructive) { delete(cascade: true) }
+            .confirmationDialog(S.Accounts.deleteTitle, isPresented: $confirmDelete, titleVisibility: .visible) {
+                Button(S.Settings.deleteEverything, role: .destructive) { delete(cascade: true) }
                 Button("Delete, keep transactions", role: .destructive) { delete(cascade: false) }
-                Button("Cancel", role: .cancel) {}
+                Button(S.Accounts.cancel, role: .cancel) {}
             } message: {
                 Text("Deleting keeps your data safe -- this only marks the account (and optionally its transactions) as removed, it isn't a permanent hard delete.")
             }
@@ -108,18 +108,18 @@ struct EditAccountView: View {
             Text("Adjust balance").font(.system(size: 17, weight: .bold)).foregroundColor(Color.text)
             Text("Current balance: \(currentBalanceFormatted)")
                 .font(.system(size: 13)).foregroundColor(Color.text2)
-            TextField("New balance", text: $targetBalance)
+            TextField(S.Accounts.newBalance, text: $targetBalance)
                 .keyboardType(.decimalPad)
                 .textFieldStyle(.roundedBorder)
             HStack(spacing: 8) {
-                modeChip("Change directly", mode: .direct)
+                modeChip(S.Accounts.changeDirectly, mode: .direct)
                 modeChip("Record as transaction", mode: .transaction)
             }
             Text(balanceMode == .direct
                 ? "A silent correction entry, no category, doesn't show up in insights."
                 : "A real income/expense entry, appears in history and insights.")
                 .font(.system(size: 12)).foregroundColor(Color.text2)
-            Button("Update balance", action: applyBalance)
+            Button(S.Accounts.updateBalance, action: applyBalance)
                 .buttonStyle(.bordered)
                 .disabled(currentBalance == nil || targetBalance.isEmpty)
             if let balanceMessage {

@@ -37,7 +37,7 @@ struct BudgetsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Budgets")
+            .navigationTitle(S.Budgets.title)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {
@@ -61,7 +61,7 @@ struct BudgetsView: View {
     private var emptyState: some View {
         VStack(spacing: 10) {
             Text("◔").font(.system(size: 26))
-            Text("No budgets yet").font(.title3).fontWeight(.bold).foregroundColor(Color.text)
+            Text(S.Budgets.noBudgetsTitle).font(.title3).fontWeight(.bold).foregroundColor(Color.text)
             Text("Set a spending limit to get alerts before you go over.")
                 .font(.subheadline)
                 .foregroundColor(Color.text2)

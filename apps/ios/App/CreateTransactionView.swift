@@ -62,17 +62,17 @@ struct CreateTransactionView: View {
                     // top of itself) -- Close is what it actually does, say so.
                     VStack(spacing: 12) {
                         Text("Add an account first, from the Accounts screen").font(.headline).foregroundColor(Color.text).multilineTextAlignment(.center)
-                        Button("Close") { dismiss() }
+                        Button(S.Translation.commonClose) { dismiss() }
                     }
                     .padding(24)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 14) {
-                            Picker("Type", selection: $type) {
-                                Text("Expense").tag("expense")
-                                Text("Income").tag("income")
-                                Text("Transfer").tag("transfer")
+                            Picker(S.Transactions.auditType, selection: $type) {
+                                Text(S.Transactions.filterExpense).tag("expense")
+                                Text(S.Transactions.filterIncome).tag("income")
+                                Text(S.Transactions.filterTransfer).tag("transfer")
                             }
                             .pickerStyle(.segmented)
                             .disabled(isInvestment)
@@ -93,13 +93,13 @@ struct CreateTransactionView: View {
                                 itemsEditor
                             }
 
-                            Text(type == "transfer" ? "From account" : "Account").font(.system(size: 13)).foregroundColor(Color.text2)
+                            Text(type == "transfer" ? S.Transactions.fromAccount : S.Transactions.account).font(.system(size: 13)).foregroundColor(Color.text2)
                             ChipRow(options: accounts.map(\.id), selected: accountId ?? account?.id ?? "",
                                     label: { id in accounts.first { $0.id == id }.map { "\($0.name) · \($0.currency)" } ?? "" },
                                     onSelect: { accountId = $0 })
 
                             if type == "transfer" {
-                                Text("To account").font(.system(size: 13)).foregroundColor(Color.text2)
+                                Text(S.Transactions.toAccount).font(.system(size: 13)).foregroundColor(Color.text2)
                                 ChipRow(options: accounts.filter { $0.id != account?.id }.map(\.id), selected: toAccountId ?? toAccount?.id ?? "",
                                         label: { id in accounts.first { $0.id == id }.map { "\($0.name) · \($0.currency)" } ?? "" },
                                         onSelect: { toAccountId = $0 })
@@ -111,28 +111,28 @@ struct CreateTransactionView: View {
                             }
 
                             if type != "transfer" {
-                                Text("Category").font(.system(size: 13)).foregroundColor(Color.text2)
+                                Text(S.Transactions.category).font(.system(size: 13)).foregroundColor(Color.text2)
                                 CategoryPickerView(categories: relevantCategories, selectedId: $categoryId)
 
                                 if !relevantPaymentMethods.isEmpty {
-                                    Text("Payment method").font(.system(size: 13)).foregroundColor(Color.text2)
+                                    Text(S.Transactions.paymentMethod).font(.system(size: 13)).foregroundColor(Color.text2)
                                     ChipRow(options: relevantPaymentMethods.map(\.id), selected: paymentMethod,
                                             label: { id in relevantPaymentMethods.first { $0.id == id }?.label ?? "" },
                                             onSelect: { paymentMethod = $0 })
                                 }
                             }
 
-                            Text("Labels (optional)").font(.system(size: 13)).foregroundColor(Color.text2)
+                            Text(S.Transactions.labelsOptional).font(.system(size: 13)).foregroundColor(Color.text2)
                             LabelPickerRow(available: labelOptions.map(\.name), selected: $selectedLabels)
 
-                            TextField("Note (optional)", text: $note).textFieldStyle(.roundedBorder)
+                            TextField(S.Transactions.noteOptional, text: $note).textFieldStyle(.roundedBorder)
 
-                            DatePicker("Date", selection: $occurredAt, displayedComponents: [.date, .hourAndMinute])
+                            DatePicker(S.Transactions.date, selection: $occurredAt, displayedComponents: [.date, .hourAndMinute])
 
                             if let error { Text(error).foregroundColor(Color.negative).font(.system(size: 13)) }
 
                             Button(action: save) {
-                                Text(saving ? "Saving…" : "Save")
+                                Text(saving ? S.Transactions.saving : S.Translation.commonSave)
                                     .font(.headline)
                                     .frame(maxWidth: .infinity)
                                     .foregroundColor(.white)
@@ -147,11 +147,11 @@ struct CreateTransactionView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Add transaction")
+            .navigationTitle(S.Transactions.addTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Transactions.cancel) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
         }
@@ -162,7 +162,7 @@ struct CreateTransactionView: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach($items) { $item in
                 HStack {
-                    TextField(items.count > 1 ? "Item" : "What for?", text: $item.description)
+                    TextField(items.count > 1 ? S.Receipts.kindItem : "What for?", text: $item.description)
                         .textFieldStyle(.roundedBorder)
                     TextField("0.00", text: $item.value)
                         .keyboardType(.decimalPad)

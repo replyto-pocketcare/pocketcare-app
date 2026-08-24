@@ -71,7 +71,7 @@ struct EditBudgetView: View {
                     BudgetCategoryMultiSelect(options: viewModel.expenseCategories, selectedIds: $selectedCategoryIds)
                 }
 
-                Section(header: Text("Labels (optional)")) {
+                Section(header: Text(S.Budgets.labelsOptional)) {
                     LabelPickerRow(available: viewModel.labels.map(\.name), selected: $selectedLabels)
                 }
 
@@ -106,7 +106,7 @@ struct EditBudgetView: View {
                         if saving {
                             ProgressView()
                         } else {
-                            Text("Save Changes")
+                            Text(S.Translation.commonSaveChanges)
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .frame(maxWidth: .infinity, alignment: .center)
@@ -121,7 +121,7 @@ struct EditBudgetView: View {
                     Button(role: .destructive) {
                         showingDeleteConfirm = true
                     } label: {
-                        Text("Delete Budget")
+                        Text(S.Budgets.deleteBudgetAria)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
@@ -130,19 +130,19 @@ struct EditBudgetView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(S.Budgets.cancel) { dismiss() }
                         .foregroundColor(Color.text2)
                 }
             }
-            .confirmationDialog("Delete this budget?", isPresented: $showingDeleteConfirm, titleVisibility: .visible) {
-                Button("Delete", role: .destructive) {
+            .confirmationDialog(S.Budgets.deleteTitle, isPresented: $showingDeleteConfirm, titleVisibility: .visible) {
+                Button(S.Translation.commonDelete, role: .destructive) {
                     Task {
                         await viewModel.delete(id: budget.id)
                         onDeleted()
                         dismiss()
                     }
                 }
-                Button("Cancel", role: .cancel) {}
+                Button(S.Budgets.cancel, role: .cancel) {}
             }
         }
     }

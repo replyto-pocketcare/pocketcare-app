@@ -141,7 +141,7 @@ struct AssistantView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
+                    Button(S.Translation.commonClose) { dismiss() }
                         .foregroundColor(Color.text2)
                 }
             }

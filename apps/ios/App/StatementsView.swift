@@ -45,7 +45,7 @@ struct StatementsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Statements")
+            .navigationTitle(S.Statements.title)
             .navigationBarTitleDisplayMode(.inline)
 
         }

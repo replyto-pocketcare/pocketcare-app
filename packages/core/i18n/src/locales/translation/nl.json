@@ -13,7 +13,10 @@
     "clear": "Wissen",
     "settings": "Instellingen",
     "back": "Terug",
-    "close": "Sluiten"
+    "close": "Sluiten",
+    "saveChanges": "Wijzigingen opslaan",
+    "saving": "Opslaan…",
+    "adding": "Toevoegen…"
   },
   "nav": {
     "accounts": "Rekeningen",

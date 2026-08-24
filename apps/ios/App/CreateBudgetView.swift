@@ -5,10 +5,10 @@ private let budgetPeriods = FormOptions.periods
 
 private func periodChipLabel(_ p: String) -> String {
     switch p {
-    case "daily": return "Daily"
-    case "weekly": return "Weekly"
-    case "yearly": return "Yearly"
-    default: return "Monthly"
+    case "daily": return S.Budgets.periodDaily
+    case "weekly": return S.Budgets.periodWeekly
+    case "yearly": return S.Budgets.periodYearly
+    default: return S.Budgets.periodMonthly
     }
 }
 
@@ -42,7 +42,7 @@ struct CreateBudgetView: View {
                     TextField("Falls back to the category/label scope", text: $name)
                 }
 
-                Section(header: Text("Limit")) {
+                Section(header: Text(S.Budgets.limitShort)) {
                     HStack {
                         TextField("0", text: $limitText)
                             .keyboardType(.decimalPad)
@@ -74,14 +74,14 @@ struct CreateBudgetView: View {
                     BudgetCategoryMultiSelect(options: viewModel.expenseCategories, selectedIds: $selectedCategoryIds)
                 }
 
-                Section(header: Text("Labels (optional)")) {
+                Section(header: Text(S.Budgets.labelsOptional)) {
                     LabelPickerRow(available: viewModel.labels.map(\.name), selected: $selectedLabels)
                 }
 
-                Section(header: Text("Timeframe")) {
+                Section(header: Text(S.Budgets.timeframe)) {
                     Picker("", selection: $isCustomDated) {
-                        Text("Recurring").tag(false)
-                        Text("Custom dates").tag(true)
+                        Text(S.Budgets.recurring).tag(false)
+                        Text(S.Budgets.customDates).tag(true)
                     }
                     .pickerStyle(.segmented)
 
@@ -126,11 +126,11 @@ struct CreateBudgetView: View {
                     .listRowBackground(Color.accent)
                 }
             }
-            .navigationTitle("New Budget")
+            .navigationTitle(S.Budgets.newBudget)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(S.Budgets.cancel) { dismiss() }
                         .foregroundColor(Color.text2)
                 }
             }

@@ -19,15 +19,15 @@ struct PlaceholderView: View {
 }
 
 struct SearchView: View {
-    var body: some View { PlaceholderView(title: "Search", ) }
+    var body: some View { PlaceholderView(title: S.Translation.navSearch, ) }
 }
 
 struct RecurringView: View {
-    var body: some View { PlaceholderView(title: "Recurring", ) }
+    var body: some View { PlaceholderView(title: S.Translation.navRecurring, ) }
 }
 
 struct HelpView: View {
-    var body: some View { PlaceholderView(title: "Help & FAQ", ) }
+    var body: some View { PlaceholderView(title: S.Translation.navHelp, ) }
 }
 
 // Added 2026-08-05 alongside the drawer-parity fix: both are real web
@@ -35,9 +35,9 @@ struct HelpView: View {
 // was missing entirely, not just missing a built screen for -- see
 // docs/mobile/screen-specs/navigation-drawer.md.
 struct ReflectView: View {
-    var body: some View { PlaceholderView(title: "Reflect", ) }
+    var body: some View { PlaceholderView(title: S.Translation.navReflect, ) }
 }
 
 struct NotificationsPlaceholderView: View {
-    var body: some View { PlaceholderView(title: "Notifications", ) }
+    var body: some View { PlaceholderView(title: S.Translation.navNotifications, ) }
 }

@@ -54,22 +54,22 @@ struct EditLoanView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Lender")) {
+                Section(header: Text(S.Loans.lender)) {
                     TextField("e.g. HDFC Bank", text: $lender)
                 }
 
-                Section(header: Text("Interest type")) {
+                Section(header: Text(S.Loans.interestType)) {
                     Picker("", selection: $rateType) {
-                        Text("Fixed").tag("fixed")
-                        Text("Variable").tag("variable")
+                        Text(S.Loans.fixed).tag("fixed")
+                        Text(S.Loans.variable).tag("variable")
                     }
                     .pickerStyle(.segmented)
                 }
 
                 Section(header: Text("Loan details")) {
                     TextField("Principal (\(model.currency))", text: $principalText).keyboardType(.decimalPad)
-                    TextField("Tenure (months)", text: $tenureText).keyboardType(.numberPad)
-                    TextField(rateType == "variable" ? "Current interest %" : "Interest % p.a.", text: $rateText).keyboardType(.decimalPad)
+                    TextField(S.Loans.tenureMonths, text: $tenureText).keyboardType(.numberPad)
+                    TextField(rateType == "variable" ? "Current interest %" : S.Loans.interestPa, text: $rateText).keyboardType(.decimalPad)
                     if rateType == "fixed" {
                         TextField("Monthly EMI (\(model.currency))", text: emiFieldBinding).keyboardType(.decimalPad)
                         if computedEmiMinor > 0 {
@@ -78,7 +78,7 @@ struct EditLoanView: View {
                                     .font(.caption).foregroundColor(Color.text2)
                                 if emiTouched {
                                     Spacer()
-                                    Button("Use it") { emiTouched = false; emiText = "" }.font(.caption)
+                                    Button(S.Loans.useIt) { emiTouched = false; emiText = "" }.font(.caption)
                                 }
                             }
                         }
@@ -106,7 +106,7 @@ struct EditLoanView: View {
                         if saving {
                             ProgressView()
                         } else {
-                            Text("Save changes").font(.headline).fontWeight(.bold)
+                            Text(S.Translation.commonSaveChanges).font(.headline).fontWeight(.bold)
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .foregroundColor(Color.surface)
                         }
@@ -115,11 +115,11 @@ struct EditLoanView: View {
                     .listRowBackground(Color.accent)
                 }
             }
-            .navigationTitle("Edit loan")
+            .navigationTitle(S.Loans.editTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", action: onSaved).foregroundColor(Color.text2)
+                    Button(S.Loans.cancel, action: onSaved).foregroundColor(Color.text2)
                 }
             }
         }

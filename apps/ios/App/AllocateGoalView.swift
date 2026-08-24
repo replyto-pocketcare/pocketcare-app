@@ -16,7 +16,7 @@ struct AllocateGoalView: View {
     @State private var saving = false
     @State private var errorText: String?
 
-    private var actionLabel: String { goal.isEmergencyFund ? "Add" : "Block" }
+    private var actionLabel: String { goal.isEmergencyFund ? S.Goals.add : S.Goals.block }
 
     var body: some View {
         NavigationStack {
@@ -26,8 +26,8 @@ struct AllocateGoalView: View {
                         Text("Add a savings account first.").foregroundColor(Color.text2)
                     }
                 } else {
-                    Section(header: Text("From account")) {
-                        Picker("Account", selection: Binding(
+                    Section(header: Text(S.Goals.fromAccount)) {
+                        Picker(S.Translation.settingsAccount, selection: Binding(
                             get: { sourceAccountId ?? viewModel.savingsAccounts.first?.id ?? "" },
                             set: { sourceAccountId = $0 }
                         )) {
@@ -70,7 +70,7 @@ struct AllocateGoalView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Goals.cancel) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
         }

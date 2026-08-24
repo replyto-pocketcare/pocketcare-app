@@ -104,14 +104,14 @@ public final class LoansViewModel {
             }
             return LoanUiModel(
                 id: l.id,
-                lender: (l.lender?.isEmpty == false) ? l.lender! : "Loan",
+                lender: (l.lender?.isEmpty == false) ? l.lender! : S.Loans.loanFallback,
                 active: !closed,
                 rangeOrRate: range ?? (l.interestRate.map { "\(formatRate($0))% p.a." } ?? "—"),
                 paidCountText: tenure > 0 ? "\(paid) / \(tenure) paid" : "\(paid) paid",
                 progress: tenure > 0 ? min(1.0, max(0.0, Double(paid) / Double(tenure))) : 0,
                 hasTenure: tenure > 0,
                 principalFormatted: formatMoney(l.principal, cur),
-                emiFormatted: l.emiAmount.map { formatMoney($0, cur) } ?? (l.rateType == "variable" ? "Varies" : "—")
+                emiFormatted: l.emiAmount.map { formatMoney($0, cur) } ?? (l.rateType == "variable" ? S.Loans.varies : "—")
             )
         }
         totalEmiFormatted = formatMoney(totalEmiBase, baseCurrencyNow())

@@ -19,6 +19,8 @@ import com.sanvya.app.domain.upi.IntentParams
 import com.sanvya.app.domain.upi.buildIntentUrl
 import com.sanvya.app.domain.upi.maskVpa
 import com.sanvya.app.theme.LocalSanvyaColors
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Android mirror of the already-real `PayViaUpiSheet.swift` (task #30) --
@@ -51,7 +53,7 @@ fun PayViaUpiDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
-        title = { Text("Pay via UPI", fontWeight = FontWeight.Bold, color = colors.text) },
+        title = { Text(S.Payments.payButton(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -74,10 +76,10 @@ fun PayViaUpiDialog(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Open UPI App") }
+                ) { Text(S.Payments.payOpenApp(sRes())) }
 
                 if (!showFallback) {
-                    TextButton(onClick = { showFallback = true }) { Text("Didn't open? Pay another way", fontSize = 12.sp, color = colors.text2) }
+                    TextButton(onClick = { showFallback = true }) { Text(S.Payments.payDidntOpen(sRes()), fontSize = 12.sp, color = colors.text2) }
                 }
 
                 if (showFallback) {
@@ -87,7 +89,7 @@ fun PayViaUpiDialog(
                     ) {
                         Text("Pay manually", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = colors.text)
                         CopyRow(vpa, "Copy ID") { clipboard.setText(AnnotatedString(vpa)); copiedNotice = "Copied UPI ID" }
-                        CopyRow("₹$amountRupees", "Copy Amount") { clipboard.setText(AnnotatedString(amountRupees)); copiedNotice = "Copied Amount" }
+                        CopyRow("₹$amountRupees", S.Payments.payCopyAmount(sRes())) { clipboard.setText(AnnotatedString(amountRupees)); copiedNotice = "Copied Amount" }
                         copiedNotice?.let { Text(it, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.positive) }
                     }
                 }
@@ -96,7 +98,7 @@ fun PayViaUpiDialog(
                     onClick = { built?.let { onPaid(it.ref) } },
                     colors = ButtonDefaults.buttonColors(containerColor = colors.positive),
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("I've paid — tell them") }
+                ) { Text(S.Payments.payMarkPaid(sRes())) }
 
                 Text(
                     "We can't see UPI payments directly, so we'll ask $counterpartyName to confirm it arrived.",
@@ -105,7 +107,7 @@ fun PayViaUpiDialog(
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = colors.text2) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(S.Translation.commonCancel(sRes()), color = colors.text2) } },
     )
 }
 

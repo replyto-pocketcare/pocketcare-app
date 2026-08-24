@@ -25,7 +25,7 @@ struct CreateGoalView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Goal name")) {
+                Section(header: Text(S.Goals.goalName)) {
                     TextField("e.g. Emergency Fund", text: $name)
                 }
 
@@ -33,7 +33,7 @@ struct CreateGoalView: View {
                     HStack {
                         TextField("0", text: $targetText)
                             .keyboardType(.decimalPad)
-                        Picker("Currency", selection: $currency) {
+                        Picker(S.Accounts.currency, selection: $currency) {
                             ForEach(GOAL_CURRENCIES, id: \.self) { Text($0).tag($0) }
                         }
                         .pickerStyle(.menu)
@@ -73,11 +73,11 @@ struct CreateGoalView: View {
                     .listRowBackground(Color.accent)
                 }
             }
-            .navigationTitle("New Goal")
+            .navigationTitle(S.Goals.newGoal)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Goals.cancel) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
         }

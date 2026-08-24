@@ -50,7 +50,7 @@ public struct SanvyaLoading: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(label ?? "Loading")
+        .accessibilityLabel(label ?? S.Accounts.loading)
     }
 }
 

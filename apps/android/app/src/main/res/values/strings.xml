@@ -1385,6 +1385,7 @@
     <string name="translation_account_type_stocks">Stocks</string>
     <string name="translation_app_name">Sanvya</string>
     <string name="translation_common_add">Add</string>
+    <string name="translation_common_adding">Adding…</string>
     <string name="translation_common_back">Back</string>
     <string name="translation_common_cancel">Cancel</string>
     <string name="translation_common_clear">Clear</string>
@@ -1394,6 +1395,8 @@
     <string name="translation_common_edit">Edit</string>
     <string name="translation_common_remove">Remove</string>
     <string name="translation_common_save">Save</string>
+    <string name="translation_common_save_changes">Save changes</string>
+    <string name="translation_common_saving">Saving…</string>
     <string name="translation_common_settings">Settings</string>
     <string name="translation_fab_add">Add</string>
     <string name="translation_fab_add_transaction">Add transaction</string>

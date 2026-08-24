@@ -21,19 +21,21 @@ import com.sanvya.app.ui.StringListSaver
 import com.sanvya.app.ui.transactions.LabelPickerRow
 import kotlinx.coroutines.launch
 import com.sanvya.app.ui.FormOptions
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 private val BUDGET_CURRENCIES = FormOptions.currencies
 private val BUDGET_PERIODS = FormOptions.periods
 
 internal fun periodChipLabel(p: String) = when (p) {
-    "daily" -> "Daily"
-    "weekly" -> "Weekly"
-    "yearly" -> "Yearly"
-    else -> "Monthly"
+    "daily" -> S.Budgets.periodDaily(sRes())
+    "weekly" -> S.Budgets.periodWeekly(sRes())
+    "yearly" -> S.Budgets.periodYearly(sRes())
+    else -> S.Budgets.periodMonthly(sRes())
 }
 
 /**
- * Real create form, matching apps/web/app/budgets/page.tsx's "New budget"
+ * Real create form, matching apps/web/app/budgets/page.tsx's S.Budgets.newBudget(sRes())
  * modal field-for-field per docs/mobile/screen-specs/budgets.md. Android had
  * no Budgets screens at all before this pass (2026-08-06, task #24).
  */
@@ -77,10 +79,10 @@ fun CreateBudgetScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("New budget", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Budgets.newBudget(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -103,7 +105,7 @@ fun CreateBudgetScreen(
                 OutlinedTextField(
                     value = limitText,
                     onValueChange = { limitText = it },
-                    label = { Text("Limit") },
+                    label = { Text(S.Budgets.limitShort(sRes())) },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
                 )
@@ -124,7 +126,7 @@ fun CreateBudgetScreen(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Alert at", color = colors.text2, fontSize = 13.sp)
+                Text(S.Budgets.alertAt(sRes()), color = colors.text2, fontSize = 13.sp)
                 OutlinedTextField(
                     value = thresholdText,
                     onValueChange = { thresholdText = it.filter { c -> c.isDigit() } },
@@ -140,7 +142,7 @@ fun CreateBudgetScreen(
                 selectedCategoryIds = if (id in selectedCategoryIds) selectedCategoryIds - id else selectedCategoryIds + id
             })
 
-            Text("Labels (optional)", color = colors.text2, fontSize = 13.sp)
+            Text(S.Budgets.labelsOptional(sRes()), color = colors.text2, fontSize = 13.sp)
             LabelPickerRow(
                 available = labelNames,
                 selected = selectedLabels,
@@ -149,10 +151,10 @@ fun CreateBudgetScreen(
                 colors = colors,
             )
 
-            Text("Timeframe", color = colors.text2, fontSize = 13.sp)
+            Text(S.Budgets.timeframe(sRes()), color = colors.text2, fontSize = 13.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                TimeframeChip("Recurring", !isCustomDated) { isCustomDated = false }
-                TimeframeChip("Custom dates", isCustomDated) { isCustomDated = true }
+                TimeframeChip(S.Budgets.recurring(sRes()), !isCustomDated) { isCustomDated = false }
+                TimeframeChip(S.Budgets.customDates(sRes()), isCustomDated) { isCustomDated = true }
             }
             if (!isCustomDated) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -206,7 +208,7 @@ fun CreateBudgetScreen(
                 enabled = !saving,
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             ) {
-                Text(if (saving) "Saving…" else "Create Budget")
+                Text(if (saving) S.Translation.commonSaving(sRes()) else "Create Budget")
             }
         }
     }
@@ -283,9 +285,9 @@ internal fun TimePickerDialogSimple(initial: String, onDismiss: () -> Unit, onCo
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = { onConfirm(String.format("%02d:%02d", state.hour, state.minute)) }) { Text("Done") }
+            TextButton(onClick = { onConfirm(String.format("%02d:%02d", state.hour, state.minute)) }) { Text(S.Translation.commonDone(sRes())) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(S.Budgets.cancel(sRes())) } },
         text = { Column { TimePicker(state = state) } },
     )
 }
@@ -307,7 +309,7 @@ internal fun DatePickerDialogSimple(onDismiss: () -> Unit, onConfirm: (String) -
                 }
             }) { Text("OK") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(S.Budgets.cancel(sRes())) } },
     ) {
         DatePicker(state = state)
     }

@@ -1385,6 +1385,7 @@
     <string name="translation_account_type_stocks">शेयर</string>
     <string name="translation_app_name">पॉकेटकेयर</string>
     <string name="translation_common_add">जोड़ें</string>
+    <string name="translation_common_adding">जोड़ा जा रहा है…</string>
     <string name="translation_common_back">पीछे</string>
     <string name="translation_common_cancel">रद्द करें</string>
     <string name="translation_common_clear">साफ़ करें</string>
@@ -1394,6 +1395,8 @@
     <string name="translation_common_edit">संपादित करें</string>
     <string name="translation_common_remove">हटाएं</string>
     <string name="translation_common_save">सहेजें</string>
+    <string name="translation_common_save_changes">परिवर्तन सहेजें</string>
+    <string name="translation_common_saving">सहेजा जा रहा है…</string>
     <string name="translation_common_settings">सेटिंग्स</string>
     <string name="translation_fab_add">जोड़ें</string>
     <string name="translation_fab_add_transaction">लेन-देन जोड़ें</string>

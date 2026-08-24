@@ -20,16 +20,16 @@ struct ReceiptReviewView: View {
                 } else if let draft = viewModel.draft {
                     content(draft)
                 } else {
-                    Text(viewModel.error ?? "That scan is no longer available.")
+                    Text(viewModel.error ?? S.Receipts.reviewNotFound)
                         .foregroundColor(.text2)
                         .padding()
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Check the details")
+            .navigationTitle(S.Receipts.reviewTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: onCancel).foregroundColor(.text2) }
+                ToolbarItem(placement: .cancellationAction) { Button(S.Translation.commonCancel, action: onCancel).foregroundColor(.text2) }
             }
         }
         .task(id: scanId) { await viewModel.load(scanId) }
@@ -49,9 +49,9 @@ struct ReceiptReviewView: View {
             VStack(alignment: .leading, spacing: 16) {
                 PocketCard {
                     VStack(alignment: .leading, spacing: 12) {
-                        TextField("Merchant", text: Binding(get: { draft.merchant ?? "" }, set: { viewModel.setMerchant($0) }))
+                        TextField(S.Receipts.reviewMerchant, text: Binding(get: { draft.merchant ?? "" }, set: { viewModel.setMerchant($0) }))
                         TextField("Date (YYYY-MM-DD)", text: Binding(get: { draft.occurredAt ?? "" }, set: { viewModel.setOccurredAt($0) }))
-                        Text("PAID FROM").font(.caption2).foregroundColor(.text2)
+                        Text(S.Receipts.reviewAccount).font(.caption2).foregroundColor(.text2)
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(viewModel.accounts, id: \.id) { a in
@@ -59,10 +59,10 @@ struct ReceiptReviewView: View {
                                 }
                             }
                         }
-                        Text("CATEGORY").font(.caption2).foregroundColor(.text2)
+                        Text(S.Receipts.reviewCategory).font(.caption2).foregroundColor(.text2)
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
-                                chip("Uncategorised", selected: viewModel.categoryId == nil) { viewModel.categoryId = nil }
+                                chip(S.Receipts.reviewNoCategory, selected: viewModel.categoryId == nil) { viewModel.categoryId = nil }
                                 ForEach(viewModel.categories, id: \.id) { c in
                                     chip(c.name, selected: viewModel.categoryId == c.id) { viewModel.categoryId = c.id }
                                 }
@@ -71,7 +71,7 @@ struct ReceiptReviewView: View {
                     }
                 }
 
-                Text("Items & charges").font(.headline).fontWeight(.bold).foregroundColor(.text)
+                Text(S.Receipts.reviewItems).font(.headline).fontWeight(.bold).foregroundColor(.text)
                 ForEach(draft.lines, id: \.id) { line in
                     lineEditor(line)
                 }
@@ -83,14 +83,14 @@ struct ReceiptReviewView: View {
                 PocketCard {
                     VStack(alignment: .leading, spacing: 10) {
                         if let subs {
-                            subtotalRow("Items", subs.items, draft.currency)
-                            if subs.discount != 0 { subtotalRow("Discount", subs.discount, draft.currency) }
-                            if subs.serviceCharge != 0 { subtotalRow("Service charge", subs.serviceCharge, draft.currency) }
-                            if subs.tax != 0 { subtotalRow("Tax", subs.tax, draft.currency) }
-                            if subs.tip != 0 { subtotalRow("Tip", subs.tip, draft.currency) }
+                            subtotalRow(S.Receipts.reviewSubtotalItems, subs.items, draft.currency)
+                            if subs.discount != 0 { subtotalRow(S.Receipts.kindDiscount, subs.discount, draft.currency) }
+                            if subs.serviceCharge != 0 { subtotalRow(S.Receipts.kindServiceCharge, subs.serviceCharge, draft.currency) }
+                            if subs.tax != 0 { subtotalRow(S.Receipts.kindTax, subs.tax, draft.currency) }
+                            if subs.tip != 0 { subtotalRow(S.Receipts.kindTip, subs.tip, draft.currency) }
                         }
                         TextField(
-                            "Total on the receipt",
+                            S.Receipts.reviewTotal,
                             text: Binding(
                                 get: { draft.total.map { formatMajor($0) } ?? "" },
                                 set: { viewModel.setTotal(parseMajor($0)) }
@@ -105,7 +105,7 @@ struct ReceiptReviewView: View {
                                     balanced
                                         ? "Adds up: \(formatMoney(r.computed, draft.currency)) \u{2713}"
                                         : (r.reason == "missing_total"
-                                            ? "Enter the total printed on the receipt."
+                                            ? S.Receipts.reviewNeedTotal
                                             : "Lines add up to \(formatMoney(r.computed, draft.currency)), but the receipt says \(r.stated.map { formatMoney($0, draft.currency) } ?? "\u{2014}").")
                                 )
                                 .font(.caption)
@@ -140,12 +140,12 @@ struct ReceiptReviewView: View {
                         if let error = viewModel.error {
                             Text(error).foregroundColor(.negative).font(.caption)
                         }
-                        PrimaryButton(viewModel.saving ? "Saving\u{2026}" : "Save transaction") {
+                        PrimaryButton(viewModel.saving ? "Saving\u{2026}" : S.Receipts.reviewSave) {
                             viewModel.saveAsTransaction()
                         }
                         .disabled(!canSave)
                         if !balanced {
-                            Text("The lines need to add up to the total before this can be saved.")
+                            Text(S.Receipts.reviewMustBalance)
                                 .font(.caption2).foregroundColor(.text2)
                         }
                     }
@@ -160,7 +160,7 @@ struct ReceiptReviewView: View {
         PocketCard {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    TextField("Description", text: Binding(
+                    TextField(S.Receipts.reviewDescription, text: Binding(
                         get: { line.description },
                         set: { v in viewModel.updateLine(line.id) { copyLine($0, description: v) } }
                     ))
@@ -169,7 +169,7 @@ struct ReceiptReviewView: View {
                     }
                 }
                 HStack(spacing: 10) {
-                    TextField("Qty", text: Binding(
+                    TextField(S.Receipts.reviewQty, text: Binding(
                         get: { line.quantity.map { String(Double($0) / 1000.0) } ?? "" },
                         set: { v in
                             let n = Double(v.trimmingCharacters(in: .whitespaces))
@@ -180,7 +180,7 @@ struct ReceiptReviewView: View {
                         }
                     ))
                     .keyboardType(.decimalPad)
-                    TextField("Amount", text: Binding(
+                    TextField(S.Receipts.reviewAmount, text: Binding(
                         get: { formatMajor(line.amount) },
                         set: { v in
                             let minor = parseMajor(v) ?? 0

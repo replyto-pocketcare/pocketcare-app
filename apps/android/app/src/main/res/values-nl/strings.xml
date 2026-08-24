@@ -1385,6 +1385,7 @@
     <string name="translation_account_type_stocks">Aandelen</string>
     <string name="translation_app_name">Sanvya</string>
     <string name="translation_common_add">Toevoegen</string>
+    <string name="translation_common_adding">Toevoegen…</string>
     <string name="translation_common_back">Terug</string>
     <string name="translation_common_cancel">Annuleren</string>
     <string name="translation_common_clear">Wissen</string>
@@ -1394,6 +1395,8 @@
     <string name="translation_common_edit">Bewerken</string>
     <string name="translation_common_remove">Verwijderen</string>
     <string name="translation_common_save">Opslaan</string>
+    <string name="translation_common_save_changes">Wijzigingen opslaan</string>
+    <string name="translation_common_saving">Opslaan…</string>
     <string name="translation_common_settings">Instellingen</string>
     <string name="translation_fab_add">Toevoegen</string>
     <string name="translation_fab_add_transaction">Transactie toevoegen</string>

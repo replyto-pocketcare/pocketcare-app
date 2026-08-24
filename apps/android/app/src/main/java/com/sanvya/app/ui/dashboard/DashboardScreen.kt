@@ -40,6 +40,8 @@ import kotlin.math.abs
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.formatMoneyUnmasked
 import com.sanvya.app.ui.colorForId
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Dashboard — ported from apps/web/app/page.tsx per
@@ -68,7 +70,7 @@ fun DashboardScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Dashboard", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Translation.navHome(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 actions = {
                     IconButton(onClick = { Prefs.setAmountsHidden(!amountsHidden) }) {
                         Icon(
@@ -78,10 +80,10 @@ fun DashboardScreen(
                         )
                     }
                     IconButton(onClick = onViewTransactions) {
-                        Icon(Icons.Default.Receipt, contentDescription = "Transactions", tint = colors.text2)
+                        Icon(Icons.Default.Receipt, contentDescription = S.Translation.navTransactions(sRes()), tint = colors.text2)
                     }
                     IconButton(onClick = onOpenSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = colors.text2)
+                        Icon(Icons.Default.Settings, contentDescription = S.Translation.commonSettings(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -153,7 +155,7 @@ private fun EmptyDashboard(onAddAccount: () -> Unit = {}, modifier: Modifier = M
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Text("Welcome to Sanvya", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                Text(S.Onboarding.wtIntroTitle(sRes()), fontSize = 26.sp, fontWeight = FontWeight.Bold, color = colors.text)
                 Text(
                     "Start by adding your first account — just your own note of somewhere your money sits. " +
                         "Nothing here connects to your bank; you type the amounts in yourself.",
@@ -198,7 +200,7 @@ private fun NetWorthHero(
         Column {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    text = if (state.showAvailable) "AVAILABLE NET WORTH" else "NET WORTH",
+                    text = if (state.showAvailable) S.Translation.netWorthAvailable(sRes()) else S.Translation.netWorthTitle(sRes()),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 1.sp,
@@ -212,7 +214,7 @@ private fun NetWorthHero(
                         .padding(horizontal = 12.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text = if (state.showAvailable) "Excluding blocked" else "Including blocked",
+                        text = if (state.showAvailable) "Excluding blocked" else S.Translation.netWorthWithBlocked(sRes()),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFFEAF0DA),
@@ -319,7 +321,7 @@ private fun AccountsCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Accounts", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                Text(S.Translation.navAccounts(sRes()), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text)
                 val suffix = if (accounts.size > 8) " (${accounts.size})" else ""
                 Text(
                     "View all$suffix",

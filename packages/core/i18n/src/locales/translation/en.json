@@ -13,7 +13,10 @@
     "clear": "Clear",
     "settings": "Settings",
     "back": "Back",
-    "close": "Close"
+    "close": "Close",
+    "saveChanges": "Save changes",
+    "saving": "Saving…",
+    "adding": "Adding…"
   },
   "nav": {
     "accounts": "Accounts",

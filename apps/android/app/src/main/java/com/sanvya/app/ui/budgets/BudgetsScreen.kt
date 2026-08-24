@@ -21,6 +21,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import kotlin.math.roundToInt
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Ported from apps/web/app/budgets/page.tsx's list + docs/mobile/
@@ -49,15 +51,15 @@ fun BudgetsScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Budgets", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Budgets.title(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 actions = {
                     IconButton(onClick = onAddBudget) {
-                        Icon(Icons.Default.Add, contentDescription = "New budget", tint = colors.accent)
+                        Icon(Icons.Default.Add, contentDescription = S.Budgets.newBudget(sRes()), tint = colors.accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -68,7 +70,7 @@ fun BudgetsScreen(
             Box(modifier = Modifier.padding(padding).fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("◔", fontSize = 26.sp)
-                    Text("No budgets yet", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                    Text(S.Budgets.noBudgetsTitle(sRes()), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
                     Text(
                         "Set a spending limit to get alerts before you go over.",
                         fontSize = 14.sp,

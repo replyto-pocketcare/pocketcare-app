@@ -8,7 +8,7 @@ import Supabase
 /// Real port of apps/web/app/friends/page.tsx's hub (task #30). See
 /// docs/mobile/screen-specs/splits.md. Replaces the previous version's
 /// `"Friend" // Placeholder` name bug -- names are now resolved via a real
-/// connections join, matching web's `profiles.get(id)?.name ?? "Someone"`.
+/// connections join, matching web's `profiles.get(id)?.name ?? S.Groups.someone`.
 ///
 /// Multi-Task watch pattern (each `watch*` stream its own long-running
 /// Task, recomputing shared UI state on every emission) matches
@@ -104,7 +104,7 @@ public final class SplitsViewModel {
         do { try await refreshOverview(userId: userId) } catch { errorMessage = error.localizedDescription }
     }
 
-    private func nameOf(_ id: String) -> String { namesById[id] ?? "Someone" }
+    private func nameOf(_ id: String) -> String { namesById[id] ?? S.Groups.someone }
 
     private func refreshOverview(userId: String) async throws {
         let ov = try await splitsRepository.splitOverview(userId: userId)
@@ -125,7 +125,7 @@ public final class SplitsViewModel {
         self.groups = ov.groups.map { g in
             let isOwed = g.net > 0
             let text: String
-            if g.net == 0 { text = "Settled up" }
+            if g.net == 0 { text = S.Groups.settledTitle }
             else if isOwed { text = "You are owed \(formatMoney(g.net, g.group.currency))" }
             else { text = "You owe \(formatMoney(-g.net, g.group.currency))" }
             return SplitGroupUiModel(id: g.group.id, name: g.group.name, kind: g.group.kind, memberCount: g.peopleCount, dateRange: g.group.startDate, net: g.net, netBalanceFormatted: text, isOwed: isOwed)

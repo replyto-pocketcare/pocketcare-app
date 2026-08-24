@@ -17,9 +17,9 @@ struct StatementImportView: View {
 
     let parsedTxns = [
         StatementTxnUiItem(id: "1", date: "30 Jul 2026", narration: "UPI/Swiggy/29841029", amountFormatted: "-₹640", isDebit: true, category: "Food & Dining"),
-        StatementTxnUiItem(id: "2", date: "28 Jul 2026", narration: "SALARY CREDIT ACME CORP", amountFormatted: "+₹1,25,000", isDebit: false, category: "Income"),
+        StatementTxnUiItem(id: "2", date: "28 Jul 2026", narration: "SALARY CREDIT ACME CORP", amountFormatted: "+₹1,25,000", isDebit: false, category: S.Statements.income),
         StatementTxnUiItem(id: "3", date: "25 Jul 2026", narration: "UPI/Airtel Broadband/58129", amountFormatted: "-₹1,179", isDebit: true, category: "Bills & Utilities"),
-        StatementTxnUiItem(id: "4", date: "22 Jul 2026", narration: "POS DMART SUPERMARKET", amountFormatted: "-₹4,320", isDebit: true, category: "Groceries")
+        StatementTxnUiItem(id: "4", date: "22 Jul 2026", narration: "POS DMART SUPERMARKET", amountFormatted: "-₹4,320", isDebit: true, category: S.Onboarding.wtSpendWhatEg)
     ]
 
     var body: some View {
@@ -76,7 +76,7 @@ struct StatementImportView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(S.Translation.commonCancel) { dismiss() }
                         .foregroundColor(Color.text2)
                 }
             }

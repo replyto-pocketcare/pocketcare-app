@@ -19,11 +19,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Real port of apps/web/app/groups/[id]/page.tsx (task #30). See
  * docs/mobile/screen-specs/splits.md for the deliberate scope cut (equal-
- * split "Add expense" only; invite/itemized deferred).
+ * split S.Splits.addExpense(sRes()) only; invite/itemized deferred).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,14 +49,14 @@ fun GroupDetailScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text(group?.name ?: "Group", fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2) } },
+                title = { Text(group?.name ?: S.Groups.kindGroup(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = { showAddExpense = true }, containerColor = colors.accent) {
-                Text("Add expense", color = colors.surface)
+                Text(S.Splits.addExpense(sRes()), color = colors.surface)
             }
         },
     ) { padding ->
@@ -65,14 +67,14 @@ fun GroupDetailScreen(
 
         LazyColumn(Modifier.padding(padding).fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             item {
-                Text("Members", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.text2)
+                Text(S.Groups.membersTitle(sRes()), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.text2)
             }
             items(members, key = { it.userId }) { m ->
                 MemberRow(m, colors) { if (!m.isSelf) settleTarget = m }
             }
 
             if (expenses.isNotEmpty()) {
-                item { Spacer(Modifier.height(4.dp)); Text("Expenses", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.text2) }
+                item { Spacer(Modifier.height(4.dp)); Text(S.Groups.expensesTitle(sRes()), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.text2) }
                 items(expenses, key = { it.id }) { e ->
                     Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column {
@@ -121,7 +123,7 @@ private fun MemberRow(m: MemberUiModel, colors: SanvyaColors, onClick: () -> Uni
         val net = m.net
         Text(
             when {
-                net == 0L -> "Settled up"
+                net == 0L -> S.Groups.settledTitle(sRes())
                 net > 0 -> "Owes you ${m.netFormatted}"
                 else -> "You owe ${m.netFormatted}"
             },
@@ -146,11 +148,11 @@ private fun AddExpenseSheet(viewModel: GroupDetailViewModel, members: List<Membe
 
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = colors.surface) {
         Column(Modifier.padding(20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("Add expense", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.text)
+            Text(S.Splits.addExpense(sRes()), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.text)
             Text("Split equally among the people you select below.", fontSize = 12.sp, color = colors.text2)
 
-            OutlinedTextField(description, { description = it }, label = { Text("Description") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(amount, { amount = it }, label = { Text("Amount") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(description, { description = it }, label = { Text(S.Receipts.reviewDescription(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(amount, { amount = it }, label = { Text(S.Translation.transactionAmount(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
             Text("Paid by", fontSize = 12.sp, color = colors.text2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -160,7 +162,7 @@ private fun AddExpenseSheet(viewModel: GroupDetailViewModel, members: List<Membe
             }
 
             if (accounts.isNotEmpty()) {
-                Text("Paid from", fontSize = 12.sp, color = colors.text2)
+                Text(S.Receipts.reviewAccount(sRes()), fontSize = 12.sp, color = colors.text2)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     accounts.forEach { a ->
                         FilterChip(selected = accountId == a.id, onClick = { accountId = a.id }, label = { Text(a.name) })
@@ -168,7 +170,7 @@ private fun AddExpenseSheet(viewModel: GroupDetailViewModel, members: List<Membe
                 }
             }
 
-            Text("Split between", fontSize = 12.sp, color = colors.text2)
+            Text(S.Transactions.splitBetween(sRes()), fontSize = 12.sp, color = colors.text2)
             Column {
                 members.forEach { m ->
                     Row(
@@ -195,7 +197,7 @@ private fun AddExpenseSheet(viewModel: GroupDetailViewModel, members: List<Membe
                 },
                 enabled = amount.isNotBlank() && payerId.isNotBlank() && participants.isNotEmpty() && !saving,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(if (saving) "Saving..." else "Add expense") }
+            ) { Text(if (saving) S.Translation.commonSaving(sRes()) else S.Splits.addExpense(sRes())) }
         }
     }
 }
@@ -217,17 +219,17 @@ private fun SettleUpSheet(viewModel: GroupDetailViewModel, target: MemberUiModel
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = colors.surface) {
         Column(Modifier.padding(20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("Settle up with ${target.name}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.text)
-            OutlinedTextField(amount, { amount = it }, label = { Text("Amount") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(amount, { amount = it }, label = { Text(S.Translation.transactionAmount(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
             if (direction == "paid") {
                 Button(
                     onClick = { viewModel.startUpiFetch(target.userId) },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Pay via UPI") }
+                ) { Text(S.Payments.payButton(sRes())) }
             }
 
             if (accounts.isNotEmpty()) {
-                Text("Account", fontSize = 12.sp, color = colors.text2)
+                Text(S.Translation.settingsAccount(sRes()), fontSize = 12.sp, color = colors.text2)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     accounts.forEach { a ->
                         FilterChip(selected = accountId == a.id, onClick = { accountId = a.id }, label = { Text(a.name) })
@@ -256,7 +258,7 @@ private fun SettleUpSheet(viewModel: GroupDetailViewModel, target: MemberUiModel
         is UpiStage.Fetching -> AlertDialog(
             onDismissRequest = {},
             confirmButton = {},
-            text = { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) { CircularProgressIndicator(modifier = Modifier.size(20.dp)); Text("Preparing the payment…") } },
+            text = { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) { CircularProgressIndicator(modifier = Modifier.size(20.dp)); Text(S.Payments.payPreparing(sRes())) } },
         )
         is UpiStage.Ready -> PayViaUpiDialog(
             counterpartyName = target.name,

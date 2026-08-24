@@ -22,7 +22,7 @@ private let TYPE_LABEL: [String: String] = [
     "weekly_summary": "Weekly recap", "budget_warning": "Budget alert", "savings_achievement": "Achievement",
     "spending_trend": "Spending trend", "category_breakdown": "Breakdown", "streak": "Streak",
     "biggest_expense": "Biggest expense", "weekday_pattern": "Spending pattern", "label_breakdown": "By label",
-    "subscriptions_load": "Subscriptions", "month_pace": "Month pace", "no_spend_days": "No-spend days",
+    "subscriptions_load": S.Translation.navSubscriptions, "month_pace": "Month pace", "no_spend_days": "No-spend days",
     "goal_progress": "Goal progress", "category_spike": "Category spike", "avg_daily_spend": "Daily average",
     "dividend_income": "Dividend income", "portfolio_projection": "Projected wealth", "mindfulness": "Mindful spending",
 ]
@@ -61,7 +61,7 @@ struct InsightsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Insights")
+            .navigationTitle(S.Insights.title)
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { viewModel.start() }
             .onDisappear { viewModel.cancel() }
@@ -92,7 +92,7 @@ private struct LockedInsightsState: View {
                 .font(.subheadline)
                 .foregroundColor(Color.text2)
                 .multilineTextAlignment(.center)
-            Button("Go premium", action: onUpgrade)
+            Button(S.Insights.goPremium, action: onUpgrade)
                 .buttonStyle(.borderedProminent)
                 .tint(Color.accent)
                 .padding(.top, 4)

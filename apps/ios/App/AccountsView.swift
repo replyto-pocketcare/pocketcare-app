@@ -24,7 +24,7 @@ struct AccountsView: View {
         NavigationStack {
             ScrollView {
                 if viewModel.visible.isEmpty {
-                    Text("No accounts yet")
+                    Text(S.Accounts.noAccounts)
                         .foregroundColor(Color.text2)
                         .padding(.top, 48)
                 } else {
@@ -44,11 +44,11 @@ struct AccountsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Accounts")
+            .navigationTitle(S.Accounts.title)
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     if viewModel.archivedCount > 0 {
-                        Button(viewModel.showArchived ? "Hide archived" : "Show archived (\(viewModel.archivedCount))") {
+                        Button(viewModel.showArchived ? S.Accounts.hideArchived : "Show archived (\(viewModel.archivedCount))") {
                             viewModel.toggleShowArchived()
                         }
                         .font(.caption)
@@ -93,20 +93,20 @@ private struct AccountCardView: View {
                     .foregroundColor(Color.text)
                 HStack {
                     if acct.isArchived {
-                        Button("Unarchive", action: onUnarchive)
+                        Button(S.Accounts.unarchive, action: onUnarchive)
                             .font(.system(size: 12))
                     } else {
                         Button(action: onToggleIncludeInNetWorth) {
                             HStack(spacing: 4) {
                                 Image(systemName: acct.includeInNetWorth ? "checkmark.square.fill" : "square")
-                                Text("In net worth")
+                                Text(S.Accounts.inNetWorth)
                             }
                             .font(.system(size: 12))
                             .foregroundColor(Color.text2)
                         }
                     }
                     Spacer()
-                    Button("Edit", action: onEdit)
+                    Button(S.Accounts.edit, action: onEdit)
                         .font(.system(size: 12))
                 }
                 .padding(.top, 4)

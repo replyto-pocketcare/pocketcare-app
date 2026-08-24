@@ -36,7 +36,7 @@ struct TransactionsView: View {
 
                 ScrollView {
                     if viewModel.items.isEmpty {
-                        Text("No matching transactions")
+                        Text(S.Transactions.noMatching)
                             .foregroundColor(Color.text2)
                             .padding(.top, 40)
                     } else {
@@ -55,7 +55,7 @@ struct TransactionsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Transactions")
+            .navigationTitle(S.Transactions.title)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {

@@ -41,10 +41,10 @@ enum AddAction: Equatable {
  */
 func defaultAddAction(canScan: Bool) -> AddAction {
     .menu(
-        label: "Add",
+        label: S.Translation.commonAdd,
         items: [
-            AddAction.Item(id: "transaction", label: "Add transaction", glyph: SanvyaIcons.add, tab: .transactions),
-            AddAction.Item(id: "receipt", label: "Scan bill / receipt", glyph: SanvyaIcons.receipt, tab: nil, locked: !canScan),
+            AddAction.Item(id: "transaction", label: S.Translation.fabAddTransaction, glyph: SanvyaIcons.add, tab: .transactions),
+            AddAction.Item(id: "receipt", label: S.Translation.fabScanReceipt, glyph: SanvyaIcons.receipt, tab: nil, locked: !canScan),
         ]
     )
 }

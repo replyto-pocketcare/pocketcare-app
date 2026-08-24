@@ -22,7 +22,7 @@ struct SplitsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(selectedGroupId != nil ? "" : "Splits")
+            .navigationTitle(selectedGroupId != nil ? "" : S.Splits.eyebrow)
             .registerBack(selectedGroupId != nil) { selectedGroupId = nil }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -65,8 +65,8 @@ struct SplitsView: View {
             }
 
             Picker("Section", selection: $selectedTab) {
-                Text("Groups & Trips").tag(0)
-                Text("Friends").tag(1)
+                Text(S.Splits.groupsAndTrips).tag(0)
+                Text(S.Splits.sectionsFriends).tag(1)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
@@ -96,7 +96,7 @@ struct SplitsView: View {
                             ForEach(viewModel.friends) { friend in
                                 RowTile(
                                     title: friend.name,
-                                    subtitle: friend.isOwed ? "Owes you" : "You owe",
+                                    subtitle: friend.isOwed ? S.Splits.sectionsOwesYou : S.Splits.sectionsYouOwe,
                                     action: {
                                         Task {
                                             if let id = await viewModel.openOrCreateDirectGroup(otherUserId: friend.id, currency: baseCurrencyNow()) {

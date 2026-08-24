@@ -19,6 +19,8 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.budgets.TimePickerDialogSimple
 import kotlinx.coroutines.launch
 import com.sanvya.app.ui.FormOptions
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 private val GOAL_CURRENCIES = FormOptions.currencies
 
@@ -63,10 +65,10 @@ fun CreateGoalScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("New Goal", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Goals.newGoal(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -80,7 +82,7 @@ fun CreateGoalScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Goal name") },
+                label = { Text(S.Goals.goalName(sRes())) },
                 placeholder = { Text("e.g. Emergency Fund") },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -136,7 +138,7 @@ fun CreateGoalScreen(
                 enabled = !saving,
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             ) {
-                Text(if (saving) "Saving…" else "Create Goal")
+                Text(if (saving) S.Translation.commonSaving(sRes()) else "Create Goal")
             }
         }
     }

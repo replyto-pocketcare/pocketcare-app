@@ -222,7 +222,7 @@ with honest status. **Most of this is not done.**
 | 1 | **Form option lists** — currencies, periods, account types, colour palette, genders, countries | 9-currency array declared **12×**; palette 4×; periods 4× | ✅ **done.** `packages/core/catalog` + `tools/parity/generate-options.mjs` → `FormOptions.kt`/`.swift`. CI fails on drift |
 | 2 | **Backend URLs + anon key in source** | 6 literals across two `DataModule` files | ❌ no environment switch at all — dev and prod are one project |
 | 3 | **`baseCurrency` is a write-only setting** | 6 `BASE_CURRENCY` consts, ~14 defaults, 11 hand-built INR formatters on Android | ✅ **done.** New `ui/MoneyFormat.kt` mirrors iOS's; all 11 formatters, both duplicate `formatMoney`s, every `BASE_CURRENCY` const and every `"INR"` default are gone from both platforms. `"INR"` now appears in native source in exactly two places: `FormOptions.DEFAULT_CURRENCY` (generated) and the lakh/crore grouping table |
-| 4 | **i18n completely unwired** | ~1,430 English literals across 125 files; `S.kt`/`S.swift` have 3,300 accessors, referenced **zero** times | 🔶 **started.** Slice 1 = the nav vocabulary (both shells): the 14-item catalog, both nav-group lists, Home/Notifications/Back/Close/Customize and the customizer's plural hint. Android also gained the `I18n.kt` `S.kt` had referenced since it was written but which never existed — the likeliest reason nothing used the accessors. ~62 literals down; **~1,370 to go** |
+| 4 | **i18n completely unwired** | was ~1,430 English literals across 125 files against 3,300 unused accessors | 🔶 **~780 wired, ~820 left.** Slice 1 = nav vocabulary. Slice 2 = every exact key match across both trees, applied by `tools/parity/i18n-match.mjs`. What remains is genuinely harder: ~610 literals with **no key at all** and ~165 "near" matches where native copy has drifted from web |
 | 5 | **Insights domain assumptions as magic numbers** | growth 7%/15y, `1.3`×/`5000` anomaly threshold, 30/70/60/14/7-day windows, 8/6/10/200 caps — duplicated per platform | ❌ `5000` is currency-dependent and wrong outside INR |
 | 6 | **`/100` still literal** | was 19 Android / 11 iOS | 🔶 partial — the Android money-format work removed ~10 (every `numberFormat.format(x / 100.0)` call site, plus `formatMajorPlain`, which is now currency-aware). iOS's remain |
 | 7 | **DI is inconsistent** | iOS: 15 views `new` their own view model; only 3 of 18 registered in the Factory container. Android: service-locator (`by inject()`), no constructor params — no test can substitute a fake without a Koin graph | ❌ |
@@ -235,7 +235,30 @@ hand-built `NumberFormat(Locale("en","IN"))` blocks with the generated `MoneyFor
 already shipped a full currency→locale map those call sites bypassed. Both are now done.
 
 **In progress: 4 (i18n).** By far the largest, and nothing depends on it, so it goes in slices.
-Slice 1 (the nav vocabulary) is done and set the pattern:
+
+`tools/parity/i18n-match.mjs` does the matching. Hand-matching 1,430 literals against 1,347 keys
+is work that goes wrong quietly — it is easy to pick a key whose English happens to match but
+whose *meaning* belongs to another screen, and nothing downstream catches it. The tool reports
+exact / near / no-key per file and can apply the exact matches. Three things it got wrong before
+it was trusted, all now fixed and commented in the source:
+
+1. Its literal scanner matched the **gap between two strings** — `Option(value: "female", label:
+   "Female")` yielded `, label: `, which normalised to "label", exact-matched a real key, and was
+   substituted into the middle of the source. It corrupted five files before the quote-to-quote
+   scanner replaced the global regex.
+2. Its accessor naming did not camel-case past an underscore, so `kind.service_charge` became
+   `kindService_charge` where the generator emits `kindServiceCharge` — an accessor that looks
+   plausible and does not exist.
+3. Its namespace ranking did not strip verb prefixes, so `AddLoanScreen` matched no namespace and
+   fell through to whatever iterated first — binding its "Interest % p.a." to **investments**.
+   English identical, meaning wrong.
+
+That third one is the reason the tool ranks namespaces at all: "Cancel", "Save changes" and
+"Saving…" exist in a dozen namespaces with identical English. Where a word is genuinely generic
+it now lives in `translation.common` (three were added), so a Goals screen is not bound to
+`accounts.saveChanges`.
+
+Slice 1 (the nav vocabulary) set the pattern:
 
 - **A label is a typed accessor, never a string and never a string key.** `NavCatalogItem` and
   `NavEntry` used to carry BOTH a `tkey` nothing resolved and an English `label` that got

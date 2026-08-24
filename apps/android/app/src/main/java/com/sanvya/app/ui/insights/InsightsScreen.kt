@@ -36,6 +36,8 @@ import com.sanvya.app.theme.SanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import kotlinx.coroutines.launch
 import kotlin.math.min
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Real port of apps/web/src/ui/feed/{InsightFeed,InsightCard,Charts2D,
@@ -84,7 +86,7 @@ private fun LockedInsightsState(colors: SanvyaColors, onUpgrade: () -> Unit) {
                     "See weekly recaps, budget alerts, spending patterns and more -- generated automatically from your own data.",
                     fontSize = 14.sp, color = colors.text2, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
-                Button(onClick = onUpgrade) { Text("Go premium") }
+                Button(onClick = onUpgrade) { Text(S.Insights.goPremium(sRes())) }
             }
         }
     }
@@ -160,7 +162,7 @@ private val TYPE_LABEL = mapOf(
     "weekly_summary" to "Weekly recap", "budget_warning" to "Budget alert", "savings_achievement" to "Achievement",
     "spending_trend" to "Spending trend", "category_breakdown" to "Breakdown", "streak" to "Streak",
     "biggest_expense" to "Biggest expense", "weekday_pattern" to "Spending pattern", "label_breakdown" to "By label",
-    "subscriptions_load" to "Subscriptions", "month_pace" to "Month pace", "no_spend_days" to "No-spend days",
+    "subscriptions_load" to S.Translation.navSubscriptions(sRes()), "month_pace" to "Month pace", "no_spend_days" to "No-spend days",
     "goal_progress" to "Goal progress", "category_spike" to "Category spike", "avg_daily_spend" to "Daily average",
     "dividend_income" to "Dividend income", "portfolio_projection" to "Projected wealth", "mindfulness" to "Mindful spending",
 )

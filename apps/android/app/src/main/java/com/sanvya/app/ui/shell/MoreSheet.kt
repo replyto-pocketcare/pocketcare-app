@@ -118,13 +118,13 @@ fun MoreSheet(
     appVersion: String,
 ) {
     val colors = LocalSanvyaColors.current
-    SanvyaModal(open = open, onClose = onClose, label = "More") {
+    SanvyaModal(open = open, onClose = onClose, label = S.Translation.navMore(sRes())) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(bottom = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SanvyaText("Sanvya", SanvyaType.h2)
+            SanvyaText(S.Translation.appName(sRes()), SanvyaType.h2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 RoundIconButton(SanvyaIcons.edit, S.Translation.navCustomize(sRes()), onCustomize)
                 RoundIconButton(SanvyaIcons.close, S.Translation.commonClose(sRes()), onClose)
@@ -187,11 +187,11 @@ fun MoreSheet(
                         text = if (guestDaysLeft != null) {
                             "Guest · $guestDaysLeft days until data is deleted"
                         } else {
-                            "Guest"
+                            S.Settings.guestBold(sRes())
                         },
                         style = SanvyaType.statLabel,
                     )
-                    SanvyaText("Create account →", SanvyaType.statLabel, color = colors.accent)
+                    SanvyaText(S.Onboarding.createAccount(sRes()), SanvyaType.statLabel, color = colors.accent)
                 }
             }
             SanvyaButton(onClick = onFeedback, ghost = true, modifier = Modifier.fillMaxWidth()) {
@@ -361,13 +361,13 @@ fun BottomNavCustomizer(
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
         ) {
             SanvyaButton(onClick = onClose, ghost = true) {
-                SanvyaText("Cancel", SanvyaType.button, color = colors.text)
+                SanvyaText(S.Translation.commonCancel(sRes()), SanvyaType.button, color = colors.text)
             }
             SanvyaButton(
                 onClick = { onSave(picked) },
                 enabled = picked.size == NavPrefs.SLOTS,
             ) {
-                SanvyaText("Save", SanvyaType.button, color = Color.White)
+                SanvyaText(S.Translation.commonSave(sRes()), SanvyaType.button, color = Color.White)
             }
         }
     }
