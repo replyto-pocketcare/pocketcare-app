@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.sanvya.app.ui.formatMoney
 
 /**
  * Real port of apps/web/app/cards/page.tsx + src/cards/CreditCard.tsx
@@ -282,7 +283,7 @@ private fun CoveredEmisDialog(
                             Text("EMI #${c.emiNo}" + (c.lender?.let { " · $it" } ?: ""), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.text)
                             Text(c.dueDate.toDisplayDate(), fontSize = 11.5.sp, color = colors.text2)
                         }
-                        Text(com.sanvya.app.ui.loans.formatMoney(c.amount), fontWeight = FontWeight.Bold, color = colors.text)
+                        Text(formatMoney(c.amount, baseCurrencyNow()), fontWeight = FontWeight.Bold, color = colors.text)
                     }
                 }
             }

@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.domain.investments.AssetClass
 import com.sanvya.app.theme.LocalSanvyaColors
 import kotlinx.coroutines.launch
+import com.sanvya.app.ui.baseCurrencyNow
 
 /**
  * Scoped-down port of apps/web/src/investments/AddDialog.tsx's
@@ -59,7 +60,7 @@ fun AddHoldingScreen(
     var accountId by rememberSaveable { mutableStateOf(invAccounts.firstOrNull()?.id ?: "") }
     LaunchedEffect(invAccounts) { if (accountId.isBlank()) accountId = invAccounts.firstOrNull()?.id ?: "" }
     val account = invAccounts.find { it.id == accountId }
-    val currency = account?.currency ?: "INR"
+    val currency = account?.currency ?: baseCurrencyNow()
 
     var name by rememberSaveable { mutableStateOf("") }
     var exchange by rememberSaveable { mutableStateOf(initialExchange ?: "") }

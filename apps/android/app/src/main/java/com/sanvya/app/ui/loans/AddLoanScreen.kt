@@ -23,6 +23,8 @@ import com.sanvya.app.ui.budgets.DatePickerDialogSimple
 import com.sanvya.app.ui.budgets.TimePickerDialogSimple
 import com.sanvya.app.ui.budgets.localToUtcTime
 import kotlinx.coroutines.launch
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.baseCurrencyNow
 
 /**
  * Ported from apps/web/app/loans/page.tsx's `AddLoan` inline modal per
@@ -60,7 +62,7 @@ fun AddLoanScreen(
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
     var fundingMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
-    val principalMinor = principal.toDoubleOrNull()?.let { fromMajor(it, "INR").amount } ?: 0L
+    val principalMinor = principal.toDoubleOrNull()?.let { fromMajor(it, baseCurrencyNow()).amount } ?: 0L
     val computedEmiMinor = if (rateType == "fixed") emiFromPrincipal(principalMinor, rate.toDoubleOrNull() ?: 0.0, tenure.toIntOrNull() ?: 0) else 0L
     val computedEmiMajor = if (computedEmiMinor > 0) formatMajorPlain(computedEmiMinor) else ""
     val emiValue = if (rateType == "variable") "" else if (emiTouched) emi else computedEmiMajor
@@ -121,7 +123,7 @@ fun AddLoanScreen(
                 if (computedEmiMinor > 0) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            if (emiTouched) "Auto-calculated EMI was ${formatMoney(computedEmiMinor)}" else "EMI auto-calculated from principal, rate & tenure.",
+                            if (emiTouched) "Auto-calculated EMI was ${formatMoney(computedEmiMinor, baseCurrencyNow())}" else "EMI auto-calculated from principal, rate & tenure.",
                             fontSize = 12.sp, color = colors.text2,
                         )
                         if (emiTouched) TextButton(onClick = { emiTouched = false; emi = "" }) { Text("Use it", fontSize = 11.sp) }

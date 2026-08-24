@@ -103,7 +103,7 @@ struct GroupDetailView: View {
 
     private func memberBalanceText(_ m: MemberUiModel) -> String {
         if m.net == 0 { return "Settled up" }
-        return m.net > 0 ? "Owes you \(formatMoney(m.net, "INR"))" : "You owe \(formatMoney(-m.net, "INR"))"
+        return m.net > 0 ? "Owes you \(formatMoney(m.net, baseCurrencyNow()))" : "You owe \(formatMoney(-m.net, baseCurrencyNow()))"
     }
 }
 

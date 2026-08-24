@@ -221,18 +221,23 @@ with honest status. **Most of this is not done.**
 |---|---|---|---|
 | 1 | **Form option lists** — currencies, periods, account types, colour palette, genders, countries | 9-currency array declared **12×**; palette 4×; periods 4× | ✅ **done.** `packages/core/catalog` + `tools/parity/generate-options.mjs` → `FormOptions.kt`/`.swift`. CI fails on drift |
 | 2 | **Backend URLs + anon key in source** | 6 literals across two `DataModule` files | ❌ no environment switch at all — dev and prod are one project |
-| 3 | **`baseCurrency` is a write-only setting** | 6 `BASE_CURRENCY` consts, ~14 defaults, 11 hand-built INR formatters on Android | ❌ a user who picks USD still sees INR everywhere |
+| 3 | **`baseCurrency` is a write-only setting** | 6 `BASE_CURRENCY` consts, ~14 defaults, 11 hand-built INR formatters on Android | ✅ **done.** New `ui/MoneyFormat.kt` mirrors iOS's; all 11 formatters, both duplicate `formatMoney`s, every `BASE_CURRENCY` const and every `"INR"` default are gone from both platforms. `"INR"` now appears in native source in exactly two places: `FormOptions.DEFAULT_CURRENCY` (generated) and the lakh/crore grouping table |
 | 4 | **i18n completely unwired** | ~1,430 English literals across 125 files; `S.kt`/`S.swift` have 3,300 accessors, referenced **zero** times | ❌ the single largest item |
 | 5 | **Insights domain assumptions as magic numbers** | growth 7%/15y, `1.3`×/`5000` anomaly threshold, 30/70/60/14/7-day windows, 8/6/10/200 caps — duplicated per platform | ❌ `5000` is currency-dependent and wrong outside INR |
-| 6 | **`/100` still literal** | 19 Android sites, 11 iOS | ❌ separate from the three fixed in §9 |
+| 6 | **`/100` still literal** | was 19 Android / 11 iOS | 🔶 partial — the Android money-format work removed ~10 (every `numberFormat.format(x / 100.0)` call site, plus `formatMajorPlain`, which is now currency-aware). iOS's remain |
 | 7 | **DI is inconsistent** | iOS: 15 views `new` their own view model; only 3 of 18 registered in the Factory container. Android: service-locator (`by inject()`), no constructor params — no test can substitute a fake without a Koin graph | ❌ |
 | 8 | **UI imports data-layer row types** | Android 30+ files; iOS `import Data` in 7 views | ❌ a column rename reaches Compose/SwiftUI signatures |
 | 9 | **`APP_VERSION = "0.1.0"` hardcoded** in both shells | 2 | ❌ should read `BuildConfig.VERSION_NAME` / `CFBundleShortVersionString` |
 | 10 | **SQL in a view model** — `SettingsViewModel.swift:192` | 1 | ❌ Android has it correctly in the repository |
 
-Order matters: **3 depends on 1**, and the Android half of 3 depends on replacing the eleven
+Order mattered: 3 depended on 1, and the Android half of 3 depended on replacing the eleven
 hand-built `NumberFormat(Locale("en","IN"))` blocks with the generated `MoneyFormat.kt` — which
-already ships a full currency→locale map those call sites bypass.
+already shipped a full currency→locale map those call sites bypassed. Both are now done.
+
+**Next in order: 4 (i18n).** It is by far the largest, and nothing else depends on it, so it can
+be taken in slices — one screen at a time, highest string-count first (`SettingsScreen.kt` at 101,
+`SettingsView.swift` at 100). View-model strings are the priority within each slice: they cannot
+be localised at render time at all.
 
 On item 2: the Supabase key in source is the **anon** key, which is designed to be public and is
 shipped in every web client, so it is not a leak in the way a service-role key would be — RLS is

@@ -11,8 +11,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.text.NumberFormat
-import java.util.Locale
+import com.sanvya.app.ui.formatMoneyAware
 
 data class AccountUiModel(
     val id: String,
@@ -38,11 +37,6 @@ data class AccountsUiState(
 class AccountsViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
 
-    private val numberFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-        currency = java.util.Currency.getInstance("INR")
-        maximumFractionDigits = 2
-    }
-
     private val showArchived = MutableStateFlow(false)
 
     fun toggleShowArchived() {
@@ -61,7 +55,7 @@ class AccountsViewModel : ViewModel(), KoinComponent {
                 type = acct.type,
                 currency = acct.currency,
                 color = acct.color,
-                balance = numberFormat.format(acctWithBal.balance.amount / 100.0),
+                balance = formatMoneyAware(acctWithBal.balance),
                 isArchived = acct.isArchived,
                 allowNegative = acct.allowNegative,
                 includeInNetWorth = acct.includeInNetWorth,

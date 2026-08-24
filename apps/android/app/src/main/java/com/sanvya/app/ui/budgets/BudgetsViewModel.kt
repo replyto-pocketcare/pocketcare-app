@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -24,6 +23,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
+import com.sanvya.app.ui.formatMoneyAware
 
 enum class ProgressColor { POSITIVE, WARNING, NEGATIVE }
 
@@ -66,11 +66,6 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
     private val budgetRepository: BudgetRepository by inject()
     private val ledgerRepository: LedgerRepository by inject()
     private val authRepository: AuthRepository by inject()
-
-    private val numberFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-        currency = java.util.Currency.getInstance("INR")
-        maximumFractionDigits = 0
-    }
 
     private val _budgets = MutableStateFlow<List<BudgetUiModel>>(emptyList())
     val budgets: StateFlow<List<BudgetUiModel>> = _budgets
@@ -243,7 +238,7 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun formatMoney(m: com.sanvya.app.domain.money.Money): String = numberFormat.format(toMajor(m))
+    private fun formatMoney(m: com.sanvya.app.domain.money.Money): String = formatMoneyAware(m)
 
     private fun formatMajorPlain(minor: Long): String {
         val major = minor / 100.0

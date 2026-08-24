@@ -4,7 +4,6 @@ import Factory
 import Domain
 import Data
 
-private let BASE_CURRENCY = "INR"
 
 private let utcCal: Calendar = { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!; return c }()
 private func ymd(_ d: Date) -> String {
@@ -336,7 +335,7 @@ public final class InsightsViewModel {
         if !latestHoldings.isEmpty {
             let lite = latestHoldings.map { HoldingLite(symbol: $0.symbol, exchange: $0.exchange, quantity: $0.quantity, currency: $0.currency) }
             let divRows = latestDividends.map { DivRow(symbol: $0.symbol, exchange: $0.exchange, exDate: $0.exDate, payDate: $0.payDate, amount: $0.amount, currency: $0.currency) }
-            let events = computeDividendEvents(lite, divRows, rates, BASE_CURRENCY)
+            let events = computeDividendEvents(lite, divRows, rates, baseCurrencyNow())
             let summary = dividendSummary(events)
             let buckets = bucketize(events, .month).map { SeriesPoint($0.label, Double($0.value) / 100.0) }
             dividends = DividendAgg(holdings: latestHoldings.count, trailing12: summary.trailing12, upcoming12: summary.upcoming12, total: summary.total, buckets: buckets)
@@ -349,7 +348,7 @@ public final class InsightsViewModel {
                 let q = bySymEx[qKey(h.symbol, h.exchange)] ?? bySym[h.symbol.uppercased()]
                 let perShare = q.map { Double($0.price) } ?? Double(h.avgCost ?? 0)
                 let ccy = q?.currency ?? h.currency
-                let rate = ccy == BASE_CURRENCY ? 1.0 : rates(ccy, BASE_CURRENCY)
+                let rate = ccy == baseCurrencyNow() ? 1.0 : rates(ccy, baseCurrencyNow())
                 currentValue += perShare * h.quantity * rate
             }
             let projGrowthPct = 7; let projYears = 15
@@ -381,7 +380,7 @@ public final class InsightsViewModel {
             .map { TransactionForInsight(id: $0.id, amount: $0.amount, currency: $0.currency, occurredAt: $0.occurredAt, intent: $0.intent, categoryId: $0.categoryId) }
 
         return GenContext(
-            currency: BASE_CURRENCY, now: now, nowIso: nowIso, fmt: formatMoneyINR,
+            currency: baseCurrencyNow(), now: now, nowIso: nowIso, fmt: formatMoneyINR,
             days: days, months: months, cats: cats, labels: labels, budgets: budgets,
             streak: streak, txnDays7: txnDays7, topExpenses: Array(topExpenses),
             weekday: weekday, weekdayTop: weekdayTop, subs: subs, subsTotal: subsTotal,
@@ -401,7 +400,7 @@ public final class InsightsViewModel {
 /// it can still be handed to GenContext.fmt's `@Sendable` closure type —
 /// `formatMoney` is deliberately non-isolated for exactly this reason.
 private func formatMoneyINR(_ minor: Int64) -> String {
-    formatMoney(minor, BASE_CURRENCY)
+    formatMoney(minor, baseCurrencyNow())
 }
 
 private func dateFromYmd(_ s: String) -> Date? {

@@ -51,7 +51,7 @@ public final class ReceiptCaptureViewModel {
     public func onTextRecognized(_ rawText: String) {
         stage = .understanding
         let today = ISO8601DateFormatter().string(from: Date()).prefix(10)
-        let draft = parseReceiptText(rawText, ParseOptions(currency: "INR", today: String(today), engine: "tesseract"))
+        let draft = parseReceiptText(rawText, ParseOptions(currency: baseCurrencyNow(), today: String(today), engine: "tesseract"))
         pendingDraft = draft
         let rec = reconcile(draft)
         if rec.ok {

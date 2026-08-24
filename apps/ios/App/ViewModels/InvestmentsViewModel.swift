@@ -5,10 +5,6 @@ import Domain
 import Data
 import Supabase
 
-/// Base/display currency for portfolio subtotals -- hardcoded "INR"
-/// matching Android's InvestmentsViewModel.kt / this app's own Dashboard
-/// convention (no user-facing base-currency setting exists yet).
-private let BASE_CURRENCY = "INR"
 private let DEMAT_TYPES: Set<String> = ["demat", "stocks", "mutual_funds"]
 
 /// Ported from apps/web/app/investments/page.tsx per
@@ -134,8 +130,8 @@ public final class InvestmentsViewModel {
 
         let rows = holdings.map { $0.toHoldingRow() }
         let groupsResult = buildGroups(rows) { amount, currency in
-            if currency == BASE_CURRENCY { return amount }
-            return (try? convert(money(amount, currency), to: BASE_CURRENCY, rate: rates(currency, BASE_CURRENCY)).amount) ?? amount
+            if currency == baseCurrencyNow() { return amount }
+            return (try? convert(money(amount, currency), to: baseCurrencyNow(), rate: rates(currency, baseCurrencyNow())).amount) ?? amount
         }
         var byGroupKey: [String: [Holding]] = [:]
         for h in holdings { byGroupKey[groupKeyOf(h.toHoldingRow()), default: []].append(h) }
@@ -143,9 +139,9 @@ public final class InvestmentsViewModel {
         groups = groupsResult.map { g in
             GroupUiModel(
                 key: g.key, label: g.label, holdingsCount: g.holdings.count,
-                valueFormatted: formatMoney(g.value, BASE_CURRENCY),
-                costFormatted: formatMoney(g.cost, BASE_CURRENCY),
-                gainFormatted: "\(g.gain >= 0 ? "+" : "")\(formatMoney(g.gain, BASE_CURRENCY)) (\(formatPct(g.gainPct)))",
+                valueFormatted: formatMoney(g.value, baseCurrencyNow()),
+                costFormatted: formatMoney(g.cost, baseCurrencyNow()),
+                gainFormatted: "\(g.gain >= 0 ? "+" : "")\(formatMoney(g.gain, baseCurrencyNow())) (\(formatPct(g.gainPct)))",
                 gainPositive: g.gain >= 0,
                 gainPctFormatted: formatPct(g.gainPct),
                 holdings: (byGroupKey[g.key] ?? []).map { self.toUiModel($0) }
@@ -153,9 +149,9 @@ public final class InvestmentsViewModel {
         }
 
         let totals = portfolioTotals(groupsResult)
-        totalValueFormatted = formatMoney(totals.value, BASE_CURRENCY)
+        totalValueFormatted = formatMoney(totals.value, baseCurrencyNow())
         totalGainPositive = totals.gain >= 0
-        totalGainFormatted = "\(totals.gain >= 0 ? "+" : "")\(formatMoney(totals.gain, BASE_CURRENCY)) (\(formatPct(totals.gainPct)))"
+        totalGainFormatted = "\(totals.gain >= 0 ? "+" : "")\(formatMoney(totals.gain, baseCurrencyNow())) (\(formatPct(totals.gainPct)))"
     }
 
     private func toUiModel(_ h: Holding) -> HoldingUiModel {

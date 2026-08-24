@@ -4,6 +4,7 @@ import com.sanvya.app.domain.receipts.ReceiptDraft
 import com.sanvya.app.domain.receipts.ReceiptLine
 import org.json.JSONArray
 import org.json.JSONObject
+import com.sanvya.app.ui.FormOptions
 
 /**
  * Hand-rolled JSON encode/decode for [ReceiptDraft] (task #62). Mirrors
@@ -64,7 +65,7 @@ fun receiptDraftFromJsonString(text: String): ReceiptDraft {
     return ReceiptDraft(
         merchant = if (root.isNull("merchant")) null else root.optString("merchant"),
         occurredAt = if (root.isNull("occurredAt")) null else root.optString("occurredAt"),
-        currency = root.optString("currency", "INR"),
+        currency = root.optString("currency", FormOptions.DEFAULT_CURRENCY),
         lines = lines,
         total = if (root.isNull("total")) null else root.getLong("total"),
         confidence = root.optInt("confidence", 0),

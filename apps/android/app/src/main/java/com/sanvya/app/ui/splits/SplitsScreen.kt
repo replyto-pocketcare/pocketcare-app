@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.ui.FormOptions
+import com.sanvya.app.ui.baseCurrencyNow
 
 /**
  * Real port of apps/web/app/friends/page.tsx's hub (task #30) -- replaces
@@ -86,7 +87,7 @@ fun SplitsScreen(
                 else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(friends, key = { it.id }) { f ->
                         FriendRow(f, colors) {
-                            viewModel.openOrCreateDirectGroup(f.id, "INR") { id -> id?.let(onOpenGroup) }
+                            viewModel.openOrCreateDirectGroup(f.id, baseCurrencyNow()) { id -> id?.let(onOpenGroup) }
                         }
                     }
                 }

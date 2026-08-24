@@ -36,9 +36,8 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.ui.Prefs
 import com.sanvya.app.ui.accountColor
-import java.text.NumberFormat
-import java.util.Locale
 import kotlin.math.abs
+import com.sanvya.app.ui.formatMoneyUnmasked
 
 /**
  * Dashboard — ported from apps/web/app/page.tsx per
@@ -176,14 +175,11 @@ private fun NetWorthHero(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val numberFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-            currency = java.util.Currency.getInstance("INR")
-            maximumFractionDigits = 2
-        }
-    }
-    val netFormatted = if (hidden) "••••••" else numberFormat.format(state.net.amount / 100.0)
-    val deltaFormatted = if (hidden) "••••" else numberFormat.format(abs(state.deltaMinor) / 100.0)
+    // `formatMoneyAware` already consults the setting, but this screen
+// distinguishes a long mask for the hero from a short one for the delta,
+// so the choice stays here and the formatter is asked for the unmasked form.
+    val netFormatted = if (hidden) "••••••" else formatMoneyUnmasked(state.net)
+    val deltaFormatted = if (hidden) "••••" else formatMoney(abs(state.deltaMinor), state.net.currency, mask = "••••")
     val up = state.deltaMinor >= 0
 
     Box(
@@ -310,12 +306,6 @@ private fun AccountsCard(
     onViewAll: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val numberFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-            currency = java.util.Currency.getInstance("INR")
-            maximumFractionDigits = 2
-        }
-    }
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
@@ -362,7 +352,7 @@ private fun AccountsCard(
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = if (hidden) "••••••" else numberFormat.format(item.balance.amount / 100.0),
+                            text = if (hidden) "••••••" else formatMoneyUnmasked(item.balance),
                             fontSize = 14.5.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White,

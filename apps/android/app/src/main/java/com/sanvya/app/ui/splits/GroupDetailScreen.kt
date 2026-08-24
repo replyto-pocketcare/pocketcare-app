@@ -19,6 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
+import com.sanvya.app.ui.formatMoney
 
 /**
  * Real port of apps/web/app/groups/[id]/page.tsx (task #30). See

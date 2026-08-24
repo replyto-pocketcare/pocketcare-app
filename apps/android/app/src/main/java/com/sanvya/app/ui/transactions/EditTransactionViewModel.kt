@@ -24,6 +24,7 @@ import org.koin.core.component.inject
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import com.sanvya.app.ui.FormOptions
 
 data class EditTransactionUiState(
     val loaded: Boolean = false,
@@ -36,7 +37,7 @@ data class EditTransactionUiState(
     val paymentMethod: String = "",
     val note: String = "",
     val intent: String? = null,
-    val currency: String = "INR",
+    val currency: String = FormOptions.DEFAULT_CURRENCY,
     val occurredAt: LocalDateTime = LocalDateTime.now(),
     val saving: Boolean = false,
     val saved: Boolean = false,

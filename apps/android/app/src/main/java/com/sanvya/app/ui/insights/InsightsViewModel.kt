@@ -50,16 +50,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.util.Currency
-import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.roundToLong
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.ui.formatMoney
 
-private const val BASE_CURRENCY = "INR"
 
 /**
  * Real port of apps/web/src/insights/useInsightStack.ts + src/insights/
@@ -84,15 +82,15 @@ class InsightsViewModel : ViewModel(), KoinComponent {
     private val prefsRepository: PrefsRepository by inject()
     private val authRepository: AuthRepository by inject()
 
-    private val numberFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-        currency = Currency.getInstance(BASE_CURRENCY)
-        maximumFractionDigits = 0
-    }
-    private fun formatMoney(minor: Long): String = try {
-        numberFormat.format(toMajor(money(minor, BASE_CURRENCY)))
-    } catch (e: Exception) {
-        "$BASE_CURRENCY ${minor / 100.0}"
-    }
+    /**
+     * Handed to the domain generators as `GenContext.fmt`.
+     *
+     * Insights roll up across accounts, so they report in the user's base
+     * currency — which is now read, not assumed. The old version pinned both
+     * currency and locale to INR and had a fallback that divided by 100 by hand.
+     */
+    private fun formatMoney(minor: Long): String =
+        formatMoney(minor, baseCurrencyNow())
 
     private val _cards = MutableStateFlow<List<InsightCard>>(emptyList())
     val cards: StateFlow<List<InsightCard>> = _cards
@@ -329,7 +327,7 @@ class InsightsViewModel : ViewModel(), KoinComponent {
         if (g2.holdings.isNotEmpty()) {
             val lite = g2.holdings.map { HoldingLite(it.symbol, it.exchange, it.quantity, it.currency) }
             val divRows = g2.divs.map { DivRow(it.symbol, it.exchange, it.exDate, it.payDate, it.amount, it.currency) }
-            val events: List<DivEvent> = computeDividendEvents(lite, divRows, g3.rates, BASE_CURRENCY)
+            val events: List<DivEvent> = computeDividendEvents(lite, divRows, g3.rates, baseCurrencyNow())
             val summary = dividendSummary(events)
             val buckets = bucketize(events, DividendPeriod.MONTH).map { SeriesPoint(it.label, (it.value / 100.0).let { v -> (v * 100).roundToLong() / 100.0 }) }
             dividends = DividendAgg(g2.holdings.size, summary.trailing12, summary.upcoming12, summary.total, buckets)
@@ -342,7 +340,7 @@ class InsightsViewModel : ViewModel(), KoinComponent {
                 val q = bySymEx[qKey(h.symbol, h.exchange)] ?: bySym[h.symbol.uppercase()]
                 val perShare = q?.price?.toDouble() ?: (h.avgCost?.toDouble() ?: 0.0)
                 val ccy = q?.currency ?: h.currency
-                val rate = if (ccy == BASE_CURRENCY) 1.0 else g3.rates(ccy, BASE_CURRENCY)
+                val rate = if (ccy == baseCurrencyNow()) 1.0 else g3.rates(ccy, baseCurrencyNow())
                 currentValue += perShare * h.quantity * rate
             }
             val projGrowthPct = 7; val projYears = 15
@@ -364,7 +362,7 @@ class InsightsViewModel : ViewModel(), KoinComponent {
             .map { TransactionForInsight(it.id, it.amount, it.currency, it.occurredAt, it.intent, it.categoryId) }
 
         return GenContext(
-            currency = BASE_CURRENCY, now = now, nowIso = nowIso, fmt = ::formatMoney,
+            currency = baseCurrencyNow(), now = now, nowIso = nowIso, fmt = ::formatMoney,
             days = days, months = months, cats = cats, labels = labels, budgets = budgets,
             streak = streak, txnDays7 = txnDays7, topExpenses = topExpenses,
             weekday = weekday, weekdayTop = weekdayTop, subs = subs, subsTotal = subsTotal,

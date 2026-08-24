@@ -39,6 +39,9 @@ importers:
       '@sanvya/budget':
         specifier: workspace:*
         version: link:../../packages/core/budget
+      '@sanvya/catalog':
+        specifier: workspace:*
+        version: link:../../packages/core/catalog
       '@sanvya/crypto':
         specifier: workspace:*
         version: link:../../packages/core/crypto
@@ -145,6 +148,19 @@ importers:
       '@sanvya/types':
         specifier: workspace:*
         version: link:../../types
+
+  packages/core/catalog:
+    dependencies:
+      '@sanvya/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
 
   packages/core/crypto: {}
 
@@ -1799,6 +1815,7 @@ packages:
   '@xmldom/xmldom@0.9.10':
     resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
     engines: {node: '>=14.6'}
+    deprecated: this version has critical issues, please update to the latest version
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}

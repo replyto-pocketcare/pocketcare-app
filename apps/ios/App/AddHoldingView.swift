@@ -30,7 +30,7 @@ struct AddHoldingView: View {
     @State private var errorText: String?
 
     private var isLump: Bool { assetClass == .fd }
-    private var currency: String { viewModel.invAccounts.first(where: { $0.id == accountId })?.currency ?? "INR" }
+    private var currency: String { viewModel.invAccounts.first(where: { $0.id == accountId })?.currency ?? baseCurrencyNow() }
 
     var body: some View {
         NavigationStack {

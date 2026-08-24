@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.accounts.ChipRow
+import com.sanvya.app.ui.baseCurrencyNow
 
 /**
  * New transaction — ported from transactions/new/page.tsx's regular
@@ -71,7 +72,7 @@ fun CreateTransactionScreen(
             return@Scaffold
         }
 
-        val currency = account?.currency ?: "INR"
+        val currency = account?.currency ?: baseCurrencyNow()
 
         Column(
             modifier = Modifier

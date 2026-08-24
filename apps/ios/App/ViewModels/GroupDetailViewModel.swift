@@ -125,7 +125,7 @@ public final class GroupDetailViewModel {
                             id: s.id, fromUser: s.fromUser, toUser: s.toUser,
                             fromName: s.fromUser == uid ? "You" : self.nameOf(s.fromUser),
                             toName: s.toUser == uid ? "You" : self.nameOf(s.toUser),
-                            amountFormatted: formatMoney(s.amount, s.currency ?? "INR"), date: String(s.at.prefix(10))
+                            amountFormatted: formatMoney(s.amount, s.currency ?? baseCurrencyNow()), date: String(s.at.prefix(10))
                         )
                     }
                 }

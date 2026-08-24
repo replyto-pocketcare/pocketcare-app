@@ -22,6 +22,7 @@ import com.sanvya.app.ui.budgets.DatePickerDialogSimple
 import com.sanvya.app.ui.budgets.TimePickerDialogSimple
 import com.sanvya.app.ui.budgets.localToUtcTime
 import kotlinx.coroutines.launch
+import com.sanvya.app.ui.formatMoney
 
 /**
  * Ported from apps/web/app/loans/[id]/page.tsx's `EditLoan` inline form per

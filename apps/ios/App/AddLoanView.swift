@@ -24,7 +24,7 @@ struct AddLoanView: View {
     @State private var saving = false
     @State private var errorText: String?
 
-    private var principalMinor: Int64 { fromMajor(Double(principalText) ?? 0, "INR").amount }
+    private var principalMinor: Int64 { fromMajor(Double(principalText) ?? 0, baseCurrencyNow()).amount }
     private var computedEmiMinor: Int64 {
         rateType == "fixed" ? emiFromPrincipal(principalMinor, Double(rateText) ?? 0, Int(tenureText) ?? 0) : 0
     }
@@ -52,7 +52,7 @@ struct AddLoanView: View {
                         TextField("Monthly EMI (INR)", text: emiFieldBinding).keyboardType(.decimalPad)
                         if computedEmiMinor > 0 {
                             HStack {
-                                Text(emiTouched ? "Auto-calculated EMI was \(formatMoney(computedEmiMinor, "INR"))" : "EMI auto-calculated from principal, rate & tenure.")
+                                Text(emiTouched ? "Auto-calculated EMI was \(formatMoney(computedEmiMinor, baseCurrencyNow()))" : "EMI auto-calculated from principal, rate & tenure.")
                                     .font(.caption).foregroundColor(Color.text2)
                                 if emiTouched {
                                     Spacer()

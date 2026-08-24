@@ -28,6 +28,9 @@ import Domain
 
 /// Mask shown in place of an amount when hide-amounts is on. Matches web's
 /// `useMoneyFmt` default.
+/// Currencies whose compact form uses the Indian numbering system.
+let lakhCroreCurrencies: Set<String> = ["INR", "PKR", "LKR", "BDT", "NPR"]
+
 public let moneyMask = "••••"
 
 /// Whether amounts are currently hidden, readable from any isolation context.
@@ -93,7 +96,10 @@ public func compactMoney(_ minor: Int64, _ currency: String) -> String {
     let digits = Domain.minorUnits(currency)
     let major = Double(minor) / pow(10.0, Double(digits))
     let magnitude = abs(major)
-    let indian = ["INR", "PKR", "LKR", "BDT", "NPR"].contains(currency.uppercased())
+    // Currencies that group in lakh/crore rather than thousands, so a compact
+    // label reads "1.2L" not "120K". A data table about number systems, not a
+    // hardcoded default — it stays a literal on purpose.
+    let indian = lakhCroreCurrencies.contains(currency.uppercased())
 
     let (value, suffix): (Double, String)
     if indian, magnitude >= 10_000_000 { (value, suffix) = (major / 10_000_000, "Cr") }

@@ -26,7 +26,7 @@ val ACCOUNT_COLOR_HEX = FormOptions.accountColors
 data class CreateAccountUiState(
     val name: String = "",
     val type: String = "savings",
-    val currency: String = "INR",
+    val currency: String = FormOptions.DEFAULT_CURRENCY,
     val color: String = ACCOUNT_COLOR_HEX.first(),
     val includeInNetWorth: Boolean = true,
     /** null = "follow type default" (matches web's `allowNeg: Boolean | null`

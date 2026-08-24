@@ -42,7 +42,7 @@ struct CreateTransactionView: View {
     private var account: Account? { accounts.first { $0.id == accountId } ?? accounts.first }
     private var toAccount: Account? { accounts.first { $0.id == toAccountId } ?? accounts.first { $0.id != account?.id } }
     private var isInvestment: Bool { account?.type == "stocks" || account?.type == "mutual_funds" }
-    private var currency: String { account?.currency ?? "INR" }
+    private var currency: String { account?.currency ?? baseCurrencyNow() }
     private var relevantCategories: [CategoryRow] { categories.filter { $0.kind == (type == "income" ? "income" : "expense") } }
     private var relevantPaymentMethods: [PaymentMethodRow] { paymentMethods.filter { $0.accountTypeId == account?.type } }
 

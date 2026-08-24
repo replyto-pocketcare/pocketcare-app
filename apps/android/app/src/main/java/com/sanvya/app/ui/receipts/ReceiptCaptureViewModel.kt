@@ -16,6 +16,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.time.LocalDate
 import java.time.ZoneOffset
+import com.sanvya.app.ui.baseCurrencyNow
 
 /** Mirrors `ScanStage` (apps/web/src/receipts/scan.ts) minus the AI stage --
  * see docs/mobile/screen-specs/receipt-scan.md scope note #2. */
@@ -60,7 +61,7 @@ class ReceiptCaptureViewModel : ViewModel(), KoinComponent {
     fun onTextRecognized(rawText: String) {
         _stage.value = CaptureStage.Understanding
         val today = LocalDate.now(ZoneOffset.UTC).toString()
-        val draft = parseReceiptText(rawText, ParseOptions(currency = "INR", today = today, engine = "tesseract"))
+        val draft = parseReceiptText(rawText, ParseOptions(currency = baseCurrencyNow(), today = today, engine = "tesseract"))
         pendingDraft = draft
         val rec = reconcile(draft)
         if (rec.ok) {

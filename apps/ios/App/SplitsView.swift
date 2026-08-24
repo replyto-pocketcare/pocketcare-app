@@ -99,7 +99,7 @@ struct SplitsView: View {
                                     subtitle: friend.isOwed ? "Owes you" : "You owe",
                                     action: {
                                         Task {
-                                            if let id = await viewModel.openOrCreateDirectGroup(otherUserId: friend.id, currency: "INR") {
+                                            if let id = await viewModel.openOrCreateDirectGroup(otherUserId: friend.id, currency: baseCurrencyNow()) {
                                                 selectedGroupId = id
                                             }
                                         }

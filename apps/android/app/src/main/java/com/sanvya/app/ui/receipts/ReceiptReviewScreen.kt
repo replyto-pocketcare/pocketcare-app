@@ -21,6 +21,7 @@ import com.sanvya.app.theme.SanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import java.text.NumberFormat
 import java.util.Locale
+import com.sanvya.app.ui.formatMoney
 
 private val LINE_KINDS = listOf("item", "tax", "service_charge", "tip", "discount")
 

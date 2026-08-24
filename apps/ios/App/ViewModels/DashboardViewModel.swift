@@ -7,8 +7,8 @@ import Domain
 /// exactly (see docs/mobile/screen-specs/dashboard.md), and Android's
 /// NetWorthHeroState (DashboardViewModel.kt) added the same session.
 public struct NetWorthHeroState: Sendable {
-    public var net: Money = Money(amount: 0, currency: "INR")
-    public var base: String = "INR"
+    public var net: Money = Money(amount: 0, currency: FormOptions.defaultCurrency)
+    public var base: String = FormOptions.defaultCurrency
     public var showAvailable: Bool = false
     public var deltaMinor: Int64 = 0
     public var hasTrend: Bool = false
@@ -81,7 +81,7 @@ public final class DashboardViewModel {
 
     private func refreshSnapshots() async {
         do {
-            async let netWorthTask = ledgerRepository.netWorth(base: "INR")
+            async let netWorthTask = ledgerRepository.netWorth(base: baseCurrencyNow())
             async let balancesTask = ledgerRepository.accountBalances(includeArchived: false)
             async let monthlyTask = ledgerRepository.monthlyIncomeExpense()
 
