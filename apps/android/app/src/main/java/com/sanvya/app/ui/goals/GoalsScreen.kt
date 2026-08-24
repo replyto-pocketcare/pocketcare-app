@@ -26,6 +26,7 @@ import com.sanvya.app.theme.SanvyaRadius
 import kotlin.math.roundToInt
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Ported from apps/web/app/goals/page.tsx per
@@ -59,27 +60,16 @@ fun GoalsScreen(
     var allocatingGoalId by rememberSaveable { mutableStateOf<String?>(null) }
     val allocatingGoal = goals.find { it.id == allocatingGoalId }
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Goals.title(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onAddGoal) {
-                        Icon(Icons.Default.Add, contentDescription = S.Goals.newGoal(sRes()), tint = colors.accent)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Goals.title(sRes()),
+        action = {
+            IconButton(onClick = onAddGoal) {
+                Icon(Icons.Default.Add, contentDescription = S.Goals.newGoal(sRes()), tint = colors.accent)
+            }
         },
-    ) { padding ->
+    ) {
         if (goals.isEmpty()) {
-            Box(modifier = Modifier.padding(padding).fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("No goals yet", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
                     Text(
@@ -97,7 +87,7 @@ fun GoalsScreen(
             }
         } else {
             Column(
-                modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 val ef = goals.firstOrNull { it.isEmergencyFund }

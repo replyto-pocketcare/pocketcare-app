@@ -24,6 +24,7 @@ import com.sanvya.app.ui.FormOptions
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Real port of apps/web/app/friends/page.tsx's hub (task #30) -- replaces
@@ -44,17 +45,13 @@ fun SplitsScreen(
     var tab by remember { mutableStateOf(0) }
     var showCreate by remember { mutableStateOf(false) }
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Splits.eyebrow(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                actions = { IconButton(onClick = { showCreate = true }) { Icon(Icons.Default.Add, contentDescription = S.Splits.newGroupCta(sRes()), tint = colors.accent) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Splits.eyebrow(sRes()),
+        action = {
+ IconButton(onClick = { showCreate = true }) { Icon(Icons.Default.Add, contentDescription = S.Splits.newGroupCta(sRes()), tint = colors.accent) }
         },
-    ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
+    ) {
+        Column(Modifier.fillMaxSize()) {
             overview?.let { ov ->
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(16.dp)

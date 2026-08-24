@@ -27,6 +27,7 @@ import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.ui.accountColor
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Accounts list — ported from apps/web/app/accounts/page.tsx per
@@ -44,40 +45,29 @@ fun AccountsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val colors = LocalSanvyaColors.current
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Accounts.title(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                actions = {
-                    if (uiState.archivedCount > 0) {
-                        AssistChip(
-                            onClick = { viewModel.toggleShowArchived() },
-                            label = {
-                                Text(
-                                    if (uiState.showArchived) S.Accounts.hideArchived(sRes()) else "Show archived (${uiState.archivedCount})",
-                                    fontSize = 12.sp,
-                                )
-                            },
-                            modifier = Modifier.padding(end = 8.dp),
+    SanvyaPage(
+        title = S.Accounts.title(sRes()),
+        action = {
+            if (uiState.archivedCount > 0) {
+                AssistChip(
+                    onClick = { viewModel.toggleShowArchived() },
+                    label = {
+                        Text(
+                            if (uiState.showArchived) S.Accounts.hideArchived(sRes()) else "Show archived (${uiState.archivedCount})",
+                            fontSize = 12.sp,
                         )
-                    }
-                    IconButton(onClick = onNewAccount) {
-                        Icon(Icons.Default.Add, contentDescription = S.Accounts.newAccount(sRes()), tint = colors.accent)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+                        },
+                        modifier = Modifier.padding(end = 8.dp),
+                    )
+                }
+                IconButton(onClick = onNewAccount) {
+                    Icon(Icons.Default.Add, contentDescription = S.Accounts.newAccount(sRes()), tint = colors.accent)
+                }
         },
-    ) { padding ->
+    ) {
         if (uiState.visible.isEmpty()) {
             Box(
-                modifier = Modifier.padding(padding).fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(S.Accounts.noAccounts(sRes()), color = colors.text2, fontSize = 14.sp)
@@ -85,7 +75,7 @@ fun AccountsScreen(
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 260.dp),
-                modifier = Modifier.padding(padding).fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),

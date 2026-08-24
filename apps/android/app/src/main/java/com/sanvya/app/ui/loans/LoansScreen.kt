@@ -22,6 +22,7 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Ported from apps/web/app/loans/page.tsx per
@@ -44,27 +45,16 @@ fun LoansScreen(
     val totalEmi by viewModel.totalEmiFormatted.collectAsState()
     val colors = LocalSanvyaColors.current
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Loans.title(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onAddLoan) {
-                        Icon(Icons.Default.Add, contentDescription = "New loan", tint = colors.accent)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Loans.title(sRes()),
+        action = {
+            IconButton(onClick = onAddLoan) {
+                Icon(Icons.Default.Add, contentDescription = "New loan", tint = colors.accent)
+            }
         },
-    ) { padding ->
+    ) {
         if (loans.isEmpty()) {
-            Box(modifier = Modifier.padding(padding).fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("≈", fontSize = 26.sp)
                     Text(S.Loans.noLoansTitle(sRes()), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
@@ -83,7 +73,7 @@ fun LoansScreen(
             }
         } else {
             Column(
-                modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Card(

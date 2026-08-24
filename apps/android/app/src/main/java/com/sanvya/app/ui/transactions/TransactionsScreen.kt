@@ -25,6 +25,7 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Transactions list — ported from apps/web/app/transactions/page.tsx +
@@ -45,26 +46,15 @@ fun TransactionsScreen(
     val typeFilter by viewModel.typeFilter.collectAsState()
     val colors = LocalSanvyaColors.current
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text(S.Transactions.title(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onAddTransaction) {
-                        Icon(Icons.Default.Add, contentDescription = S.Transactions.addTitle(sRes()), tint = colors.accent)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = S.Transactions.title(sRes()),
+        action = {
+            IconButton(onClick = onAddTransaction) {
+                Icon(Icons.Default.Add, contentDescription = S.Transactions.addTitle(sRes()), tint = colors.accent)
+            }
         },
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             Column(Modifier.padding(16.dp, 12.dp, 16.dp, 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = query,

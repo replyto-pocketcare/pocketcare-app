@@ -26,6 +26,7 @@ import com.sanvya.app.theme.SanvyaRadius
 import kotlinx.coroutines.launch
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Ported from apps/web/app/investments/page.tsx per
@@ -67,31 +68,18 @@ fun InvestmentsScreen(
     var drilledKey by rememberSaveable { mutableStateOf<String?>(null) }
     val drilledGroup = groups.find { it.key == drilledKey }
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(drilledGroup?.label ?: S.Translation.navInvestments(sRes()), fontWeight = FontWeight.Bold, color = colors.text)
-                },
-                navigationIcon = {
-                    IconButton(onClick = { if (drilledGroup != null) drilledKey = null else onBack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
-                    }
-                },
-                actions = {
-                    if (invAccounts.isNotEmpty()) {
-                        IconButton(onClick = { if (invAccounts.isEmpty()) onNoInvestmentAccount() else onAddInvestment(drilledGroup?.key) }) {
-                            Icon(Icons.Default.Add, contentDescription = "New investment", tint = colors.accent)
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = drilledGroup?.label ?: S.Translation.navInvestments(sRes()),
+        action = {
+            if (invAccounts.isNotEmpty()) {
+                IconButton(onClick = { if (invAccounts.isEmpty()) onNoInvestmentAccount() else onAddInvestment(drilledGroup?.key) }) {
+                    Icon(Icons.Default.Add, contentDescription = "New investment", tint = colors.accent)
+                }
+            }
         },
-    ) { padding ->
+    ) {
         if (invAccounts.isEmpty()) {
-            Box(modifier = Modifier.padding(padding).fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("▤", fontSize = 26.sp)
                     Text(S.Investments.noInvAccountTitle(sRes()), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
@@ -108,11 +96,11 @@ fun InvestmentsScreen(
                     }
                 }
             }
-            return@Scaffold
+            return@SanvyaPage
         }
 
         Column(
-            modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             if (drilledGroup == null) {

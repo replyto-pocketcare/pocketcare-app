@@ -35,6 +35,7 @@ import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaPage
 
 /**
  * Real port of apps/web/app/cards/page.tsx + src/cards/CreditCard.tsx
@@ -63,18 +64,13 @@ fun CreditCardsScreen(
     val colors = LocalSanvyaColors.current
     val scope = rememberCoroutineScope()
 
-    Scaffold(
-        containerColor = colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text("Credit Cards", fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2) } },
-                actions = { IconButton(onClick = onAddAccount) { Icon(Icons.Default.Add, contentDescription = S.Cards.addCard(sRes()), tint = colors.accent) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
-            )
+    SanvyaPage(
+        title = "Credit Cards",
+        action = {
+ IconButton(onClick = onAddAccount) { Icon(Icons.Default.Add, contentDescription = S.Cards.addCard(sRes()), tint = colors.accent) }
         },
-    ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
+    ) {
+        Box(Modifier.fillMaxSize()) {
             when {
                 !loaded -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 cards.isEmpty() -> EmptyCardsState(colors, onAddAccount)
