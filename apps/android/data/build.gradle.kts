@@ -13,12 +13,37 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+// Reads a `sanvya.*` configuration key. findProperty() already searches, in
+// order: extra properties (settings.gradle.kts folds local.properties into
+// these), gradle.properties, and -P on the command line.
+//
+// Missing is a hard error rather than an empty default: a build that silently
+// produces an app pointed at nothing is far more expensive to diagnose than a
+// build that refuses to run.
+fun sanvyaConfig(key: String): String =
+    findProperty("sanvya.$key") as String?
+        ?: error("Missing configuration 'sanvya.$key'. Add it to gradle.properties, local.properties, or pass -Psanvya.$key=…")
+
 android {
     namespace = "com.sanvya.app.data"
     compileSdk = 36
 
     defaultConfig {
         minSdk = 26
+
+        // Every one of these was a string literal in DataModule.kt. They are
+        // build inputs now, so a different Supabase project is a property
+        // change, not a source edit. SanvyaConfig (config/SanvyaConfig.kt) is
+        // the only thing that reads BuildConfig — nothing outside :data does.
+        buildConfigField("String", "SUPABASE_URL", "\"${sanvyaConfig("supabaseUrl")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${sanvyaConfig("supabaseAnonKey")}\"")
+        buildConfigField("String", "POWERSYNC_URL", "\"${sanvyaConfig("powerSyncUrl")}\"")
+        buildConfigField("String", "AUTH_REDIRECT_SCHEME", "\"${sanvyaConfig("authRedirectScheme")}\"")
+        buildConfigField("String", "AUTH_REDIRECT_HOST", "\"${sanvyaConfig("authRedirectHost")}\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     compileOptions {

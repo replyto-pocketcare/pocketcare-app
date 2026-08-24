@@ -36,3 +36,6 @@ coverage/
 support-key/
 *.share
 _tmp_*
+
+# iOS local build-configuration overrides (see apps/ios/Config/Sanvya.xcconfig).
+apps/ios/Config/Sanvya.local.xcconfig

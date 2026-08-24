@@ -1,0 +1,42 @@
+// Sanvya build configuration — the iOS counterpart of Android's
+// gradle.properties `sanvya.*` block.
+//
+// These five values were string literals inside Data/DI/DataModule.swift, so
+// pointing a build at a different Supabase project meant editing source. They
+// are build settings now; project.yml copies them into Info.plist, and
+// SanvyaConfig.swift is the only type that reads them back.
+//
+// To override locally, create Config/Sanvya.local.xcconfig (git-ignored) with
+// just the keys you want to change — the optional #include at the bottom of
+// this file pulls it in last, and in xcconfig the last assignment wins.
+//
+// ---------------------------------------------------------------------------
+// WHY THE HOSTS HAVE NO SCHEME
+// ---------------------------------------------------------------------------
+// xcconfig treats `//` as the start of a comment, ANYWHERE on the line —
+// including inside what looks like a URL. Writing
+//
+//     SANVYA_SUPABASE_URL = https://project.supabase.co
+//
+// silently yields the value `https:` and a comment. There is no warning; the
+// app just builds pointed at a nonsense URL. So the scheme is not stored here
+// at all: these are bare hosts, and SanvyaConfig prepends `https://` in Swift,
+// where a slash is a slash.
+// ---------------------------------------------------------------------------
+
+SANVYA_SUPABASE_HOST = iagsmqtjadzdhcjdysno.supabase.co
+SANVYA_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhZ3NtcXRqYWR6ZGhjamR5c25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODYzODUsImV4cCI6MjA5ODU2MjM4NX0.Yh4VE6Nd_UDAXYfk_qKsm3C6PGhxq6kMxVO53ITw6Qc
+SANVYA_POWERSYNC_HOST = 6a464d1c68bc6e1f7cad8804.powersync.journeyapps.com
+
+// Where the OAuth provider returns the browser. Must appear in Supabase's
+// Authentication > URL Configuration > Redirect URLs, and must match the
+// CFBundleURLSchemes entry project.yml generates from it.
+//
+// Same pair as Android's sanvya.authRedirectScheme / authRedirectHost, so one
+// allowlist entry covers both platforms. A custom scheme is claimed
+// first-come-first-served across the device, and reverse-DNS is the only form
+// that is actually unique — hence the bundle id rather than a bare "sanvya".
+SANVYA_AUTH_REDIRECT_SCHEME = com.sanvya.app
+SANVYA_AUTH_REDIRECT_HOST = auth-callback
+
+#include? "Sanvya.local.xcconfig"

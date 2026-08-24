@@ -171,3 +171,53 @@ suspend fun currentAuthState(client: SupabaseClient, isOnline: Boolean): AuthSta
         else -> AuthState.SIGNED_IN_OFFLINE
     }
 }
+
+// ---------------------------------------------------------------------------
+// Google — and why it is a browser flow rather than Credential Manager
+// ---------------------------------------------------------------------------
+//
+// signInWithGoogle(client, idToken) above is the ID-token exchange: the app
+// obtains a Google ID token itself (Credential Manager on Android, the
+// Sign in with Google SDK on iOS) and posts it to GoTrue. It is the slicker
+// flow — a bottom sheet, no browser — and it is kept because the non-guest
+// case can use it.
+//
+// It cannot be the ONLY flow, because of what web actually does. login/page.tsx
+// branches:
+//
+//     const isGuest = session?.user?.is_anonymous
+//     isGuest ? supabase.auth.linkIdentity({ provider: "google", options })
+//             : supabase.auth.signInWithOAuth({ provider: "google", options })
+//
+// The guest branch LINKS Google to the existing anonymous user, so the UID is
+// unchanged and every row the guest already entered stays theirs. Sign-in
+// creates or switches to a different user. On web the difference is a nicety;
+// on a native app it is the difference between an upgrade and silently
+// abandoning everything the user typed before they registered — the local
+// PowerSync database is keyed by user id, so a UID change orphans the lot.
+//
+// GoTrue has no ID-token equivalent of linkIdentity: linking is defined as a
+// browser redirect to the provider and back. So the guest path has to be a
+// browser flow, and once one path is a browser flow, making both browser flows
+// is what keeps the two from behaving differently in ways nobody notices until
+// a user loses data.
+//
+// The callback comes back to `<scheme>://<host>` (SanvyaConfig.authRedirectUri)
+// rather than web's `/auth/callback`, because a native app cannot host an HTTP
+// route. That URI must be in Supabase's redirect allowlist.
+
+/**
+ * Continue with Google, choosing link-vs-sign-in exactly as web does.
+ *
+ * Returns after the browser has been launched — the session arrives later,
+ * when the OS routes the callback URI back to the Activity and
+ * `handleDeeplinks()` feeds it to supabase-kt. Callers should therefore not
+ * treat a normal return as "signed in"; watch `authState` instead.
+ */
+suspend fun continueWithGoogle(client: SupabaseClient) {
+    if (isGuest(client)) {
+        client.auth.linkIdentity(Google)
+    } else {
+        client.auth.signInWith(Google)
+    }
+}

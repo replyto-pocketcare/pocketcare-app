@@ -33,6 +33,13 @@ targets:
       - package: Domain
       - package: Data
       - package: Factory
+    # Backend configuration. Config/Sanvya.xcconfig holds the committed
+    # defaults and optionally #include?s a git-ignored Sanvya.local.xcconfig,
+    # so pointing a build at a different Supabase project never touches a
+    # tracked file. See that file's header for why the hosts carry no scheme.
+    configFiles:
+      Debug: Config/Sanvya.xcconfig
+      Release: Config/Sanvya.xcconfig
     settings:
       base:
         # PLACEHOLDER bundle id — confirm the real reverse-DNS id before any
@@ -80,6 +87,28 @@ targets:
         UIAppFonts:
           - InterVariable.ttf
           - SanvyaIcons.ttf
+        # Backend configuration, surfaced from the xcconfig above. Info.plist
+        # is how a build setting reaches runtime code; SanvyaConfig.swift is
+        # the only type that reads these keys back.
+        SanvyaSupabaseHost: $(SANVYA_SUPABASE_HOST)
+        SanvyaSupabaseAnonKey: $(SANVYA_SUPABASE_ANON_KEY)
+        SanvyaPowerSyncHost: $(SANVYA_POWERSYNC_HOST)
+        SanvyaAuthRedirectScheme: $(SANVYA_AUTH_REDIRECT_SCHEME)
+        SanvyaAuthRedirectHost: $(SANVYA_AUTH_REDIRECT_HOST)
+        # Claims the OAuth callback scheme with the OS. Without this entry the
+        # provider redirect goes nowhere and the sign-in silently never
+        # completes -- ASWebAuthenticationSession matches the callback against
+        # the scheme it was given, and the scheme has to be registered for the
+        # app to be a legal target for it.
+        #
+        # Generated from the same build setting the Supabase client is
+        # configured from, so the URI the app asks Google to return to and the
+        # URI this app is registered to receive cannot drift apart.
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: $(SANVYA_AUTH_REDIRECT_SCHEME)
+            CFBundleURLSchemes:
+              - $(SANVYA_AUTH_REDIRECT_SCHEME)
 
   SanvyaTests:
     type: bundle.unit-test

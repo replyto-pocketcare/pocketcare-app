@@ -42,6 +42,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             
+            <!-- OAuth callback. Google (and any future provider) sends the
+                 browser back to `<scheme>://<host>`, and this filter is what
+                 routes that URI into MainActivity, which hands it to
+                 supabase-kt via handleDeeplinks().
+
+                 Both values are manifest placeholders fed from the
+                 `sanvya.authRedirect*` Gradle properties -- the same two the
+                 Supabase client is configured from -- so the URI the app asks
+                 the provider to return to and the URI it is registered to
+                 receive are the same string by construction.
+
+                 No autoVerify: this is a custom scheme, not an https App Link,
+                 so there is no /.well-known file to verify against. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="${authRedirectScheme}"
+                    android:host="${authRedirectHost}" />
+            </intent-filter>
+
             <!-- App Links (Deep Links) for Invites -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

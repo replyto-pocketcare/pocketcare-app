@@ -4,8 +4,16 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-    id("com.google.gms.google-services")
+    alias(libs.plugins.google.services)
 }
+
+// Same resolution order as :data's copy (extra ← local.properties, then
+// gradle.properties, then -P). :app needs two of the keys at manifest-merge
+// time, which is why the lookup exists in both places rather than only in the
+// module that owns SanvyaConfig.
+fun sanvyaConfig(key: String): String =
+    findProperty("sanvya.$key") as String?
+        ?: error("Missing configuration 'sanvya.$key'. Add it to gradle.properties, local.properties, or pass -Psanvya.$key=…")
 
 android {
     namespace = "com.sanvya.app"
@@ -26,6 +34,16 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.0.1"
+
+        // Feeds the OAuth callback intent filter in AndroidManifest.xml from
+        // the same two Gradle properties that produce SanvyaConfig's
+        // authRedirectUri. Hand-writing the scheme into the manifest would
+        // make it possible for the URI the app asks the provider to return to
+        // and the URI the app is registered to receive to disagree -- a
+        // failure that shows up as the browser simply never coming back, with
+        // nothing in logcat to say why.
+        manifestPlaceholders["authRedirectScheme"] = sanvyaConfig("authRedirectScheme")
+        manifestPlaceholders["authRedirectHost"] = sanvyaConfig("authRedirectHost")
     }
 
     buildTypes {
@@ -62,8 +80,8 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.compose.material.icons.core)
+    implementation(libs.compose.material.icons.extended)
     debugImplementation(libs.compose.ui.tooling)
     
     implementation(project(":data"))
@@ -71,6 +89,13 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.navigation.compose)
+
+    // Google sign-in runs in a Custom Tab (see LoginScreen / GoogleAuth.kt).
+    // supabase-kt drives it, but the Custom Tabs client library is declared
+    // here explicitly rather than relied on transitively -- the failure mode
+    // if it is absent is a full browser app-switch that drops the back stack,
+    // which is easy to mistake for a Supabase misconfiguration.
+    implementation(libs.androidx.browser)
 
     // Task #62 (Receipt Scan capture): camera preview + in-memory frame
     // capture, on-device OCR. See docs/mobile/screen-specs/receipt-scan.md.
@@ -81,8 +106,8 @@ dependencies {
     implementation(libs.mlkit.text.recognition)
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
-    implementation("com.google.firebase:firebase-messaging")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     // W1.5: :app had no test source set at all. Added for the device-type and
     // window-class mapping -- both are small pure functions, and both decide

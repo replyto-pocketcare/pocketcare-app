@@ -3,6 +3,8 @@ package com.sanvya.app.data.di
 import android.content.Context
 import com.sanvya.app.data.auth.AuthRepository
 import com.sanvya.app.data.auth.AuthRepositoryImpl
+import com.sanvya.app.data.config.SanvyaConfig
+import com.sanvya.app.data.config.sanvyaConfig
 import com.powersync.PowerSyncDatabase
 import com.sanvya.app.data.db.DatabaseManager
 import com.sanvya.app.data.sync.SupabaseConnector
@@ -25,14 +27,29 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataModule = module {
+    // Which backend this build talks to. See config/SanvyaConfig.kt -- the
+    // URLs and keys below used to be literals right here.
+    single<SanvyaConfig> { sanvyaConfig() }
+
     single<AuthRepository> { AuthRepositoryImpl(get()) }
 
     single<SupabaseClient> {
+        val config: SanvyaConfig = get()
         createSupabaseClient(
-            supabaseUrl = "https://iagsmqtjadzdhcjdysno.supabase.co",
-            supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhZ3NtcXRqYWR6ZGhjamR5c25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODYzODUsImV4cCI6MjA5ODU2MjM4NX0.Yh4VE6Nd_UDAXYfk_qKsm3C6PGhxq6kMxVO53ITw6Qc"
+            supabaseUrl = config.supabaseUrl,
+            supabaseKey = config.supabaseAnonKey,
         ) {
-            install(Auth)
+            install(Auth) {
+                // The custom-scheme callback the OAuth provider returns to.
+                // supabase-kt builds `<scheme>://<host>` from these and hands
+                // it to the provider; MainActivity forwards the resulting
+                // Intent back in via handleDeeplinks(). Both halves read the
+                // same config, and the manifest intent filter is generated
+                // from the same two Gradle properties, so the three cannot
+                // drift out of agreement.
+                scheme = config.authRedirectScheme
+                host = config.authRedirectHost
+            }
             install(Postgrest)
             install(Functions)
         }
@@ -45,7 +62,7 @@ val dataModule = module {
     single<SupabaseConnector> {
         SupabaseConnector(
             client = get(),
-            powerSyncUrl = "https://6a464d1c68bc6e1f7cad8804.powersync.journeyapps.com"
+            powerSyncUrl = get<SanvyaConfig>().powerSyncUrl,
         )
     }
 

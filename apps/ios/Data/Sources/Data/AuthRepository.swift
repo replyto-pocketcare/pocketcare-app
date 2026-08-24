@@ -10,6 +10,15 @@ public protocol AuthRepository: Sendable {
     func upgradeGuestWithEmail(email: String, password: String) async throws
     func sendOtp(email: String) async throws
     func verifyOtp(email: String, token: String) async throws
+
+    /// Register a fresh account. Missing on iOS until now — Android has had it
+    /// since P2.4a, so a web-registered user could sign in there and not here.
+    func signUp(email: String, password: String, username: String) async throws
+    func signInWithPassword(email: String, password: String) async throws
+
+    /// Link-or-sign-in with Google. See Auth.swift's `authContinueWithGoogle`.
+    func continueWithGoogle() async throws
+
     func signInWithGoogle(idToken: String, nonce: String?) async throws
     func signInWithApple(idToken: String, nonce: String) async throws
     func signOut() async throws
@@ -17,9 +26,11 @@ public protocol AuthRepository: Sendable {
 
 public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
     private let client: SupabaseClient
-    
-    public init(client: SupabaseClient) {
+    private let config: SanvyaConfig
+
+    public init(client: SupabaseClient, config: SanvyaConfig) {
         self.client = client
+        self.config = config
     }
     
     public var authState: AsyncStream<AuthState> {
@@ -71,6 +82,18 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
         try await authVerifyOtp(client: client, email: email, token: token)
     }
     
+    public func signUp(email: String, password: String, username: String) async throws {
+        try await authSignUp(client: client, email: email, password: password, username: username)
+    }
+
+    public func signInWithPassword(email: String, password: String) async throws {
+        try await authSignInWithPassword(client: client, email: email, password: password)
+    }
+
+    public func continueWithGoogle() async throws {
+        try await authContinueWithGoogle(client: client, redirectURL: config.authRedirectURL)
+    }
+
     public func signInWithGoogle(idToken: String, nonce: String?) async throws {
         try await authSignInWithGoogle(client: client, idToken: idToken, nonce: nonce)
     }

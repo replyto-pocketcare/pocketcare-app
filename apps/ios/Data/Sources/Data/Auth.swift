@@ -86,6 +86,84 @@ public func authSignInWithGoogle(client: SupabaseClient, idToken: String, nonce:
     )
 }
 
+// MARK: - signUp / signInWithPassword
+
+/// Register a fresh account with email + password.
+///
+/// Missing on iOS entirely until now, while Android's repository has had it
+/// since P2.4a — so a user who registered on web could sign in on Android and
+/// not on their iPhone (PARITY_AUDIT §6c).
+///
+/// `username` goes into user metadata exactly as web does
+/// (`options: { data: { username } }` in login/page.tsx); it is what the app
+/// reads back as the display name. Blank is omitted rather than written as an
+/// empty string, matching web's `trim()`.
+public func authSignUp(
+    client: SupabaseClient,
+    email: String,
+    password: String,
+    username: String
+) async throws {
+    let trimmed = username.trimmingCharacters(in: .whitespacesAndNewlines)
+    try await client.auth.signUp(
+        email: email,
+        password: password,
+        data: trimmed.isEmpty ? nil : ["username": .string(trimmed)]
+    )
+}
+
+/// Sign in an existing account with email + password.
+public func authSignInWithPassword(
+    client: SupabaseClient,
+    email: String,
+    password: String
+) async throws {
+    try await client.auth.signIn(email: email, password: password)
+}
+
+// MARK: - continueWithGoogle
+//
+// authSignInWithGoogle above is the ID-token exchange: the app obtains a Google
+// ID token itself (the Sign in with Google SDK) and posts it to GoTrue. It is
+// the slicker flow and it is kept, because the non-guest case can use it.
+//
+// It cannot be the ONLY flow, because of what web actually does. login/page.tsx
+// branches:
+//
+//     const isGuest = session?.user?.is_anonymous
+//     isGuest ? supabase.auth.linkIdentity({ provider: "google", options })
+//             : supabase.auth.signInWithOAuth({ provider: "google", options })
+//
+// The guest branch LINKS Google to the existing anonymous user, so the UID is
+// unchanged and every row the guest already entered stays theirs. Sign-in
+// creates or switches to a different user. On web the difference is a nicety;
+// in a native app it is the difference between an upgrade and silently
+// abandoning everything the user typed before they registered — the local
+// PowerSync database is keyed by user id, so a UID change orphans the lot.
+//
+// GoTrue has no ID-token equivalent of linkIdentity: linking is defined as a
+// browser redirect to the provider and back. So the guest path has to be a
+// browser flow, and once one path is a browser flow, making both browser flows
+// is what keeps the two from behaving differently in ways nobody notices until
+// a user loses data. Android takes the same decision, for the same reason.
+//
+// ASWebAuthenticationSession (which supabase-swift drives here) is also the
+// flow Apple sanctions for third-party sign-in, and it needs no additional SDK.
+
+/// Continue with Google, choosing link-vs-sign-in exactly as web does.
+///
+/// Presents `ASWebAuthenticationSession` and returns once the session has been
+/// established or the user has cancelled — unlike Android, where the browser is
+/// a separate task and the result arrives back through a deep link.
+@MainActor
+public func authContinueWithGoogle(client: SupabaseClient, redirectURL: URL) async throws {
+    if await authIsGuest(client: client) {
+        try await client.auth.linkIdentity(provider: .google, redirectTo: redirectURL)
+    } else {
+        try await client.auth.signInWithOAuth(provider: .google, redirectTo: redirectURL)
+    }
+}
+
 // MARK: - signInWithApple
 
 /// Sign in with Apple (iOS-native, preferred for App Store compliance).

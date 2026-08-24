@@ -86,4 +86,21 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
     fun signInWithPassword(email: String, password: String, onComplete: () -> Unit = {}) =
         run(onComplete) { authRepository.signInWithPassword(email, password) }
+
+    /**
+     * Continue with Google.
+     *
+     * Deliberately takes no success callback. Everything else here finishes
+     * when the suspend call returns; this one only *launches a browser*, and
+     * the session appears later when the OS routes the callback URI back into
+     * MainActivity. A callback would fire the moment the Custom Tab opened,
+     * which is precisely the kind of control that looks like it worked and did
+     * not.
+     *
+     * `busy` is not cleared on success either: the app is going to the
+     * background, and a spinner that keeps spinning until the callback lands is
+     * the honest state. It clears on failure, which is when the user is still
+     * looking at this screen.
+     */
+    fun continueWithGoogle() = run { authRepository.continueWithGoogle() }
 }

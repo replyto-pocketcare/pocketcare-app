@@ -1,5 +1,6 @@
 package com.sanvya.app.ui.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
@@ -19,9 +21,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.sanvya.app.R
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.theme.LocalSanvyaColors
@@ -49,10 +53,10 @@ private enum class Mode { Password, Otp }
  *   sign in here and not there (PARITY_AUDIT §6c).
  * - **Email OTP** — `sendOtp` / `verifyOtp`.
  * - **Guest** — `ensureGuest`.
- * - **Google is absent**, not disabled-looking. The native flow needs an
- *   `idToken` from Google Sign-In, which is a dependency decision rather than a
- *   UI task, and iOS shipped a Google button that called nothing for exactly
- *   this reason. A dead control is worse than a missing one.
+ * - **Google** — `continueWithGoogle`, which links to an existing guest rather
+ *   than replacing them. It was absent rather than dead until now, on the rule
+ *   that a dead control is worse than a missing one; it is live as of this
+ *   change, and the button below does nothing that is not wired.
  */
 @Composable
 fun LoginScreen(
@@ -192,6 +196,31 @@ fun LoginScreen(
             color = colors.text3,
             modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
         )
+
+        // Google. Not gated on `mode`, because it is neither a sign-in nor a
+        // sign-up from the user's side -- web shows it in both modes and only
+        // changes the label, which is what the two keys below are for.
+        SanvyaButton(
+            onClick = { viewModel.continueWithGoogle() },
+            enabled = !busy,
+            ghost = true,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.ic_google),
+                    // Decorative: the label right next to it already says
+                    // "Continue with Google", so announcing the mark as well
+                    // would read the same thing twice.
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.padding(start = 10.dp))
+                SanvyaText(S.Login.continueGoogle(sRes()), style = SanvyaType.button)
+            }
+        }
+
+        Spacer(Modifier.padding(top = 8.dp))
 
         SanvyaButton(
             onClick = { viewModel.ensureGuest(onSignedIn) },

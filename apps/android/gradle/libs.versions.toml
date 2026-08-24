@@ -57,6 +57,17 @@ navigationCompose = "2.9.8"
 # privacy claim (docs/mobile/screen-specs/receipt-scan.md).
 cameraX = "1.6.0"
 mlkitTextRecognition = "16.0.1"
+# Push notifications. Version was written inline in app/build.gradle.kts as
+# `platform("com.google.firebase:firebase-bom:33.1.2")` and the Google Services
+# plugin as a bare `version "4.4.2"` in the root build file -- the two places
+# this catalog exists to prevent. Values unchanged, just relocated.
+firebaseBom = "33.1.2"
+googleServices = "4.4.2"
+# Google sign-in runs through the provider's own web flow in an in-app browser
+# tab (Custom Tabs), which is what supabase-kt's external-auth support drives.
+# androidx.browser is the Custom Tabs client library; without it the flow falls
+# back to a full browser app switch, which loses the app's task on some OEMs.
+androidxBrowser = "1.8.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -95,6 +106,14 @@ camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.
 camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraX" }
 camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+# Icon fonts for Compose -- were bare, version-less string coordinates in
+# app/build.gradle.kts, resolved by the Compose BOM. Same resolution, declared
+# where every other dependency is declared.
+compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -108,3 +127,4 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

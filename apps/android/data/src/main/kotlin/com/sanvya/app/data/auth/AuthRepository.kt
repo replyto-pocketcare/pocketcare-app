@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 interface AuthRepository {
@@ -15,6 +18,20 @@ interface AuthRepository {
     val authState: Flow<AuthState>
     
     suspend fun ensureGuest(): String
+
+    /**
+     * True when the signed-in user is anonymous.
+     *
+     * Auth.kt has had `isGuest(client)` since P2.4a but nothing exposed it, so
+     * no caller above :data could ask. Google sign-in has to: a guest gets a
+     * LINK (same UID, data preserved), everyone else a sign-in. iOS's
+     * AuthRepository already had this method.
+     */
+    suspend fun isGuest(): Boolean
+
+    /** Link-or-sign-in with Google. See Auth.kt's `continueWithGoogle`. */
+    suspend fun continueWithGoogle()
+
     suspend fun signInWithGoogle(idToken: String)
     suspend fun sendOtp(email: String)
     suspend fun verifyOtp(email: String, token: String)
@@ -37,9 +54,16 @@ class AuthRepositoryImpl(
         }
     }
 
+    // Was GlobalScope.launch. GlobalScope is a delicate API for exactly this
+    // reason: the coroutine it starts cannot be cancelled by anything, so a
+    // second instance of this class (a test, an instrumentation run) leaves the
+    // first one collecting forever. A scope the object owns is cancellable, and
+    // SupervisorJob keeps a failure in this collector from taking down siblings
+    // if more are ever added here.
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     init {
-        // Collect session status from Supabase to update currentUserId
-        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        scope.launch {
             client.auth.sessionStatus.collect { status ->
                 _currentUserId.value = when (status) {
                     is SessionStatus.Authenticated -> status.session.user?.id
@@ -51,6 +75,13 @@ class AuthRepositoryImpl(
 
     override suspend fun ensureGuest(): String {
         return ensureUser(client)
+    }
+
+    override suspend fun isGuest(): Boolean =
+        com.sanvya.app.data.auth.isGuest(client)
+
+    override suspend fun continueWithGoogle() {
+        com.sanvya.app.data.auth.continueWithGoogle(client)
     }
 
     override suspend fun signInWithGoogle(idToken: String) {
@@ -69,7 +100,18 @@ class AuthRepositoryImpl(
         client.auth.signUpWith(io.github.jan.supabase.auth.providers.builtin.Email) {
             this.email = email
             this.password = password
-            // Note: username could be sent in data if needed
+            // Web sends `options: { data: { username } }` (login/page.tsx), which
+            // lands in raw_user_meta_data and is what the app reads back as the
+            // display name. The old comment here said "username could be sent in
+            // data if needed" and then did not send it -- so an Android sign-up
+            // produced an account with no name, and the parameter was accepted
+            // and discarded. Blank usernames are omitted rather than written as
+            // "", matching web's trim().
+            if (username.isNotBlank()) {
+                data = kotlinx.serialization.json.buildJsonObject {
+                    put("username", kotlinx.serialization.json.JsonPrimitive(username.trim()))
+                }
+            }
         }
     }
 

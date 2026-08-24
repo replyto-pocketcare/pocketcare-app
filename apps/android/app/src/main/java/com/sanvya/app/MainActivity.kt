@@ -1,5 +1,6 @@
 package com.sanvya.app
 
+import android.content.Intent
 import android.os.Bundle
 import android.Manifest
 import android.content.pm.PackageManager
@@ -11,6 +12,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sanvya.app.data.auth.AuthRepository
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.handleDeeplinks
 import com.sanvya.app.domain.repository.PushRepository
 import com.sanvya.app.theme.SanvyaTheme
 import androidx.compose.runtime.collectAsState
@@ -28,6 +31,11 @@ class MainActivity : ComponentActivity() {
     private val pushRepository: PushRepository by inject()
     private val authRepository: AuthRepository by inject()
 
+    // Needed only to hand OAuth callback URIs back to supabase-kt. Nothing
+    // else in :app touches the Supabase client directly -- reads and writes go
+    // through repositories.
+    private val supabaseClient: SupabaseClient by inject()
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -38,7 +46,19 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
+        // Google (and any future provider) returns the browser to
+        // `<scheme>://<host>` -- the intent filter in AndroidManifest.xml
+        // routes it here, and this is what turns that URI into a session.
+        //
+        // Both entry points are needed. A cold start arrives through onCreate's
+        // intent; a warm one -- the far more common case, since the app is
+        // still in the background behind the Custom Tab -- arrives through
+        // onNewIntent. Wiring only onCreate produces the flow that works
+        // exactly once, on the first launch after install, and then silently
+        // stops working, which is a miserable thing to debug.
+        supabaseClient.handleDeeplinks(intent)
+
         askNotificationPermission()
         
         setContent {
@@ -63,6 +83,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        supabaseClient.handleDeeplinks(intent)
     }
 
     private fun askNotificationPermission() {

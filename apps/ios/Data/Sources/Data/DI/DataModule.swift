@@ -7,11 +7,18 @@ import Domain
 // MARK: - DataModule (Factory)
 
 public extension Container {
+    /// Which backend this build talks to. See Config/SanvyaConfig.swift — the
+    /// URL and key below used to be literals right here.
+    var sanvyaConfig: Factory<SanvyaConfig> {
+        self { BundleSanvyaConfig() }.singleton
+    }
+
     var supabaseClient: Factory<SupabaseClient> {
         self {
-            SupabaseClient(
-                supabaseURL: URL(string: "https://iagsmqtjadzdhcjdysno.supabase.co")!,
-                supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhZ3NtcXRqYWR6ZGhjamR5c25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODYzODUsImV4cCI6MjA5ODU2MjM4NX0.Yh4VE6Nd_UDAXYfk_qKsm3C6PGhxq6kMxVO53ITw6Qc"
+            let config = self.sanvyaConfig()
+            return SupabaseClient(
+                supabaseURL: config.supabaseURL,
+                supabaseKey: config.supabaseAnonKey
             )
         }.singleton
     }
@@ -51,13 +58,18 @@ public extension Container {
         self {
             SupabaseConnector(
                 client: self.supabaseClient(),
-                powerSyncUrl: "https://6a464d1c68bc6e1f7cad8804.powersync.journeyapps.com"
+                powerSyncUrl: self.sanvyaConfig().powerSyncURL
             )
         }.singleton
     }
 
     var authRepository: Factory<AuthRepository> {
-        self { AuthRepositoryImpl(client: self.supabaseClient()) }.singleton
+        self {
+            AuthRepositoryImpl(
+                client: self.supabaseClient(),
+                config: self.sanvyaConfig()
+            )
+        }.singleton
     }
 
     var ledgerRepository: Factory<LedgerRepository> {

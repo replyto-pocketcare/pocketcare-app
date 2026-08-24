@@ -177,7 +177,7 @@ Legend: ✅ built & spec-checked · ⚠️ built, unverified or spec drifted · 
 | `/notifications` | (75) + `src/notifications/hooks.ts` | ❌ | ❌ placeholder | ❌ |
 | `/help` | (152) | ❌ | ❌ `HelpView` is a `PlaceholderView` | ❌ |
 | `/onboarding` | (119) + `src/onboarding/Walkthrough.tsx` (368) | ❌ | `WalkthroughView.swift` (121) | ❌ / 🔶 |
-| `/login` | (334) | ❌ | `LoginView.swift` (105) | ❌ / 🔶 guest→OTP→Google + in-place upgrade unverified |
+| `/login` | (334) | ✅ `ui/auth/LoginScreen.kt` | ✅ `LoginView.swift` | 🔶 all four methods on both (2026-08-24); no live Google sign-in yet, in-place upgrade unverified |
 | `/join?token=` | (53) | ❌ | ❌ | ❌ needs App Links / Universal Links + real domain |
 | `/auth/callback` | (87) | ❌ | ❌ | ❌ |
 | `/receipts/new` | (339) + `src/receipts/{scan,ocr,image}.ts` | `receipts/ReceiptCaptureScreen.kt` (272) | `ReceiptCaptureView.swift` (207) | ⚠️ camera-only; no PDF/gallery, no AI escalation |
@@ -372,14 +372,16 @@ guest. Plus `/auth/callback` for the OAuth return.
 |---|---|---|---|
 | Guest (anonymous) | ✅ | ✅ `ensureUser()` | ✅ |
 | Email OTP | ✅ | ✅ `sendOtp`/`verifyOtp` | ✅ |
-| Google | ✅ OAuth redirect | ✅ `signInWithGoogle(idToken)` | ✅ + Apple |
+| Google | ✅ OAuth redirect, **`linkIdentity` when guest** | ✅ `continueWithGoogle()` — same branch | ✅ same branch (+ `signInWithApple` unused) |
 | Guest → account upgrade | ✅ | ✅ `upgradeGuestWithEmail` | ✅ |
-| **Email + password sign-in** | ✅ | ✅ `signInWithPassword` + `signUp` | ❌ **absent** — iOS only |
+| **Email + password sign-in** | ✅ | ✅ `signInWithPassword` + `signUp` | ✅ added 2026-08-24 — was absent on iOS only |
+| **Username on sign-up** | ✅ `data: { username }` | ✅ fixed 2026-08-24 — was accepted and discarded | ✅ added 2026-08-24 |
 | **A login screen** | ✅ | ✅ `ui/auth/LoginScreen.kt` (2026-08-24) | ✅ `LoginView.swift` — **was a facade until 2026-08-24**, see below |
 
-Two concrete gaps:
+Both gaps below are now closed — the text is kept because how they were found is the point.
 
-1. **Android has no login screen.** The data layer is complete and nothing calls it.
+1. **Android had no login screen.** The data layer was complete and nothing called it.
+   Fixed 2026-08-24.
 
    **1a. iOS's looked like one and was not.** Until 2026-08-24 `LoginView` set a local
    `otpSent = true` on "Continue with Email" and called `onLoginSuccess()` directly on
@@ -389,17 +391,22 @@ Two concrete gaps:
    none of them. Now rewired to the view model.
 
    The lesson generalises past this screen: **a dead control is worse than a missing one.** The
-   Google button was the same shape — present, tappable, calling `onLoginSuccess()` — so it has
-   been removed rather than left looking functional. It comes back when the native `idToken`
-   flow is actually wired.
-2. **`signInWithPassword` is missing on iOS only** — Android's `AuthRepository` has had both it
-   and `signUp` all along. **This entry previously said "neither platform", and that was my
-   error**: the glob I checked with (`apps/*/src*/**/auth/*.kt`) matched nothing on Android and I
-   read the empty result as absence. Second time in this audit that a bad search became a
-   recorded fact; see §3a. So a web-registered password user can now sign in on Android and
-   still cannot on iOS. Native uses a **different token shape for Google**
+   Google button was the same shape — present, tappable, calling `onLoginSuccess()` — so it was
+   removed rather than left looking functional. It came back on 2026-08-24, wired.
+2. **`signInWithPassword` was missing on iOS only** — Android's `AuthRepository` had both it and
+   `signUp` all along. **This entry previously said "neither platform", and that was my error**:
+   the glob I checked with (`apps/*/src*/**/auth/*.kt`) matched nothing on Android and I read the
+   empty result as absence. Second time in this audit that a bad search became a recorded fact;
+   see §3a. Added to iOS 2026-08-24.
+
+   The last sentence of this entry used to read *"native uses a different token shape for Google
    (`idToken` via the native SDK) than web's OAuth redirect — that is correct for mobile, not a
-   gap, but it means the OAuth callback route has no native equivalent and should not get one.
+   gap."* **That was a third wrong fact, and the most expensive of the three**, because it would
+   have shipped. Web branches on `is_anonymous` and *links* Google to a guest instead of signing
+   them in; an ID-token grant cannot do that, and using it would have silently orphaned every
+   guest's data at the moment they registered. Full write-up in §6c under "Google sign-in".
+   What survives from the old claim is only this: **`/auth/callback` has no native equivalent and
+   must not get one** — a native app cannot host an HTTP route.
 
 3. **`AuthRepositoryImpl.currentUserId` returns `nil` unconditionally on iOS** — the property is
    stubbed with a comment saying callers should use async state. Every call site falls back to
@@ -615,37 +622,117 @@ The clamp and the anchor are independent. Ship the clamp first (native already h
 yours), and the anchor when the migration is convenient. Clamp-then-anchor never produces a
 *worse* date than today at any point.
 
-### Plan — Google sign-in, both platforms (requested 2026-08-24)
+### Google sign-in, both platforms — built 2026-08-24
 
-Both repositories are **already done**: `signInWithGoogle(idToken)` on Android,
-`signInWithGoogle(idToken:nonce:)` and `signInWithApple(idToken:nonce:)` on iOS. Both hand the
-token to Supabase as an IDToken grant. **Only the token-acquisition half is missing**, which is
-why neither login screen shows a Google button today — a button that cannot produce a token is
-the dead control this audit keeps finding.
+**Status: implemented on both, unverified by a real sign-in.** CI compiles it; nobody has tapped
+the button against a real Google account yet, and the Supabase redirect allowlist entry below is
+still yours to add.
 
-**Native uses a different grant from web, and that is correct, not drift.** Web does
-`signInWithOAuth({ provider: "google" })` — a browser redirect through `/auth/callback`. Native
-gets an `idToken` from the platform's own account picker. So **`/auth/callback` has no native
-equivalent and must not get one.**
+#### The finding that changed the plan
+
+The plan written earlier this session said native's ID-token grant was *"correct, not drift"*
+because web redirects and native uses the platform account picker. **That was wrong, and wrong in
+the expensive direction.** Re-reading `apps/web/app/login/page.tsx` line by line:
+
+```ts
+const isGuest = Boolean(sess.session?.user?.is_anonymous);
+const { error } = isGuest
+  ? await supabase.auth.linkIdentity({ provider: "google", options })
+  : await supabase.auth.signInWithOAuth({ provider: "google", options });
+```
+
+Web **links** Google onto the existing anonymous user when one exists. The UID does not change, so
+everything the guest already entered stays theirs. `signInWithIdToken` has no such branch — it
+signs in, which for a guest means becoming a *different user*. On web that distinction is a
+nicety. On native it is data loss: the local PowerSync database is keyed by user id, so a UID
+change orphans every row the guest created, and the rows are still sitting on the server under an
+anonymous uid nobody can log into again.
+
+**GoTrue has no ID-token equivalent of `linkIdentity`.** Linking is defined as a browser redirect
+to the provider and back. So the guest path *has* to be a browser flow — and once one path is a
+browser flow, making both browser flows is what stops the two from diverging in ways nobody
+notices until a user writes in.
+
+#### What was built
 
 | | Android | iOS |
 |---|---|---|
-| Dependency | `androidx.credentials:credentials` + `credentials-play-services-auth` + `googleid` | `GoogleSignIn-iOS`, or `ASWebAuthenticationSession` to avoid an SDK |
-| Config **you set up** | **Web** OAuth client ID (not the Android one) in `google-services.json`; SHA-1 of each signing key registered in Firebase/GCP | Same **Web** client ID, plus an iOS client ID and its reversed-client-id URL scheme in `project.yml` |
-| Nonce | Generate, hash, pass raw to Supabase | Same — iOS's signature already takes `nonce` |
+| Flow | Custom Tab, `auth.signInWith(Google)` / `auth.linkIdentity(Google)` | `ASWebAuthenticationSession`, `signInWithOAuth` / `linkIdentity` |
+| Branch | `AuthRepository.continueWithGoogle()` → `isGuest()` decides | same method, same decision |
+| Callback | `<scheme>://<host>` intent filter → `handleDeeplinks()` in `MainActivity` (both `onCreate` **and** `onNewIntent`) | `CFBundleURLTypes` scheme; the session call returns when the sheet dismisses |
+| New dependency | `androidx.browser` only | **none** |
+| Mark | `res/drawable/ic_google.xml` | `GoogleSlice`, a `Shape` |
 
-**The trap worth stating once:** Supabase validates the token against the **Web** client ID, not
-the platform one. Passing the Android or iOS client ID fails with an audience mismatch that reads
-like a misconfiguration rather than a wrong-ID error, and it is the usual reason this takes a day
-instead of an hour.
+The G mark is the same path data on all three platforms, on the same 18×18 viewport — web's SVG,
+Android's vector drawable, iOS's `Shape`. Not tinted, per Google's branding rules.
 
-Once the config exists, both screens gain a button wired to the existing repository call. Until
-then the button stays absent — which is the point.
+`signInWithGoogle(idToken:)` is **kept on both platforms**, unused. It is the better UX for the
+non-guest case (Credential Manager's bottom sheet on Android; the Sign in with Google SDK on iOS)
+and can be layered on later as a fast path — but only for non-guests, and only once the
+browser flow is proven.
+
+#### What you still have to set up
+
+1. **Supabase → Authentication → URL Configuration → Redirect URLs**: add
+   `com.sanvya.app://auth-callback`. One entry covers both platforms — they deliberately use the
+   same scheme and host.
+2. **Supabase → Authentication → Providers → Google**: already configured for web; nothing to
+   change. The browser flow uses the *same* Web client ID and secret web uses, which is why this
+   approach needs no new client IDs, no SHA-1 registration, and no reversed-client-id URL scheme.
+
+That is the whole setup. The earlier plan's list — Android/iOS client IDs, SHA-1 per signing key,
+nonce generation, and the audience-mismatch trap where Supabase validates against the **Web**
+client ID rather than the platform one — all belonged to the ID-token flow. None of it applies to
+what was built. It is recorded here only because it comes back the day someone adds the
+Credential Manager fast path.
+
+#### Carried in the same change
+
+- **`/auth/callback` still has no native equivalent and must not get one.** A native app cannot
+  host an HTTP route; the callback is a custom scheme the OS routes back into the process.
+- **`signInWithPassword` and `signUp` on iOS** — were missing on iOS only, so a web-registered
+  user could sign in on Android and not on their iPhone. `LoginView` now has both modes, matching
+  Android's.
+- **Android's `signUp` dropped the username.** It took the parameter, carried a comment reading
+  *"username could be sent in data if needed"*, and then did not send it — so an Android sign-up
+  produced an account with no display name. Web sends `options: { data: { username } }`; both
+  native platforms do now.
+- **`AuthRepositoryImpl` leaked a coroutine.** The session-status collector ran in
+  `GlobalScope`, which cannot be cancelled by anything. It owns a `CoroutineScope` now.
+- **`isGuest()` was unreachable on Android.** `Auth.kt` has had it since P2.4a and nothing above
+  `:data` could call it. iOS's repository already exposed it.
+
+#### Configuration is no longer hardcoded
+
+Google needed a config layer, and the Supabase URL, anon key and PowerSync URL were sitting as
+string literals in `DataModule.kt` and `DataModule.swift` — a build for a different project meant
+editing source. Both are now build inputs:
+
+| | Android | iOS |
+|---|---|---|
+| Committed defaults | `gradle.properties` (`sanvya.*`) | `Config/Sanvya.xcconfig` |
+| Local override | `local.properties`, folded into project extras by `settings.gradle.kts` | `Config/Sanvya.local.xcconfig`, pulled in by an optional `#include?`, git-ignored |
+| Reaches code as | `BuildConfig` → `SanvyaConfig` (`:data`) | Info.plist → `SanvyaConfig` (`Data`) |
+| Read by | that one type, nothing else | that one type, nothing else |
+
+Both are interfaces with a single shipping implementation, so a staging scheme or a remote-config
+lookup is a new conformance rather than an edit to every call site. Missing configuration is a
+hard failure at build time (Android) or launch (iOS), naming the key — an app that starts up
+pointed at nothing fails much later, somewhere else, as a network error.
+
+**The xcconfig trap, since it costs an hour every time:** xcconfig treats `//` as the start of a
+comment *anywhere on the line*, so `SUPABASE_URL = https://x.supabase.co` silently becomes
+`https:`. No warning. The hosts are therefore stored bare and the scheme is prepended in Swift.
+
+Also folded in, same reasoning: Firebase's BOM version, the Google Services plugin version and the
+two Compose icon artifacts were inline coordinates in `app/build.gradle.kts` and the root build
+file. They are catalog entries now — the version catalog exists precisely to stop that.
 
 ### Done-when for this section
 
-- [ ] Android has a login screen reaching every method its data layer already supports.
-- [ ] `signInWithPassword` on both, or a documented decision that mobile is OTP/OAuth-only.
+- [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*
+- [x] `signInWithPassword` on both. *(2026-08-24 — iOS was the gap)*
+- [x] Google on both, linking rather than replacing a guest. *(2026-08-24, compiles; no live sign-in yet)*
 - [ ] `currentUserId` either works or is removed so nothing can depend on it.
 - [ ] A real device signs in, writes, force-quits, reopens, and sees its data — offline and on.
 - [ ] Guest → account upgrade preserves the guest's local data on both platforms.
