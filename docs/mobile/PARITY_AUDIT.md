@@ -547,6 +547,101 @@ and will still move a month-end bill to the 28th permanently.
 Not started pending that answer. Everything downstream (the `runRecurring` loop, `materialize`,
 `runLoanAutoPost`) is mechanical once the date arithmetic is settled.
 
+### Plan — `anchor_day` on `recurring_items` (requested 2026-08-24)
+
+**The problem, restated:** `advance(next_due, …)` advances from the *previous result*, so a
+month-end item walks backwards and never returns. Clamping fixes the skipped month; only an
+anchor fixes the walk.
+
+```
+overflow (today):  Jan 31 → Mar 3  → Apr 3
+clamping alone:    Jan 31 → Feb 28 → Mar 28      ← still wrong
+with an anchor:    Jan 31 → Feb 28 → Mar 31 → Apr 30
+```
+
+**Precedent already in the schema:** `investments.sip_day` is `column.integer` documented as
+"day-of-month (**1–28**) the amount is debited". The codebase has already met this problem once
+and solved it by refusing the dates that break. That is a reasonable answer for SIPs and a poor
+one for rent.
+
+#### The column
+
+`anchor_day INTEGER NULL` on `pocketcare.recurring_items` — the day-of-month the item *means*,
+1–31.
+
+- **Nullable on purpose.** Null = "no anchor recorded", and the engine falls back to
+  `day(next_due)`, which is exactly today's behaviour. So existing rows keep working with no
+  backfill, and nothing breaks between the migration landing and clients updating.
+- **Set on create** from the day the user picked, not from the first `next_due`.
+- **Only meaningful for `frequency = 'monthly'` and `'yearly'`.** Daily and weekly ignore it.
+
+#### The four steps (CLAUDE.md's rule for a synced column — all four or it does not sync)
+
+1. **`packages/db/src/index.ts`** — add `anchor_day: column.integer` to the `recurring_items`
+   `new Table({...})`. **Skipping this is the classic failure**: Postgres is fine and the device
+   throws `table recurring_items has no column named anchor_day` on every read *and* write.
+2. **`supabase/migrations/00xx_recurring_anchor_day.sql`** —
+   `alter table pocketcare.recurring_items add column if not exists anchor_day integer;`
+   No RLS change (inherits the table's owner policy), no new grants. Re-runnable via
+   `if not exists`. **No CHECK constraint spanning rows** — irrelevant here, but the rule stands.
+3. **`packages/db/sync-streams.yaml`** — nothing to do *if* the stream is `SELECT *`; an explicit
+   column list needs the column added.
+4. **`supabase db push` AND deploy the Sync Streams config.** Both, or it will not reach devices.
+
+Validate the SQL first: `pip install pglast --break-system-packages`, then parse the file.
+
+#### The engine change
+
+```
+next = advanceWithAnchor(next_due, frequency, interval, anchor_day ?? day(next_due))
+```
+— add `interval` months/years to `next_due`, then set the day to `min(anchor, daysInThatMonth)`.
+Web, Kotlin and Swift all get the same function, pinned by extending
+`vectors/recurring-advance.json` with anchor cases. The 23 clamping vectors stay valid: they are
+the `anchor == day(next_due)` case.
+
+#### Backfill
+
+Optional, and worth doing separately once the column exists:
+`update pocketcare.recurring_items set anchor_day = extract(day from next_due::date)
+ where anchor_day is null and frequency in ('monthly','yearly');`
+Correct for every item that has not yet drifted, and *wrong* for ones already sitting on the 3rd
+or the 28th — those have lost the original day and only the user knows it. Do not guess; leaving
+them null preserves today's behaviour rather than inventing a new wrong one.
+
+#### Order
+
+The clamp and the anchor are independent. Ship the clamp first (native already has it, web is
+yours), and the anchor when the migration is convenient. Clamp-then-anchor never produces a
+*worse* date than today at any point.
+
+### Plan — Google sign-in, both platforms (requested 2026-08-24)
+
+Both repositories are **already done**: `signInWithGoogle(idToken)` on Android,
+`signInWithGoogle(idToken:nonce:)` and `signInWithApple(idToken:nonce:)` on iOS. Both hand the
+token to Supabase as an IDToken grant. **Only the token-acquisition half is missing**, which is
+why neither login screen shows a Google button today — a button that cannot produce a token is
+the dead control this audit keeps finding.
+
+**Native uses a different grant from web, and that is correct, not drift.** Web does
+`signInWithOAuth({ provider: "google" })` — a browser redirect through `/auth/callback`. Native
+gets an `idToken` from the platform's own account picker. So **`/auth/callback` has no native
+equivalent and must not get one.**
+
+| | Android | iOS |
+|---|---|---|
+| Dependency | `androidx.credentials:credentials` + `credentials-play-services-auth` + `googleid` | `GoogleSignIn-iOS`, or `ASWebAuthenticationSession` to avoid an SDK |
+| Config **you set up** | **Web** OAuth client ID (not the Android one) in `google-services.json`; SHA-1 of each signing key registered in Firebase/GCP | Same **Web** client ID, plus an iOS client ID and its reversed-client-id URL scheme in `project.yml` |
+| Nonce | Generate, hash, pass raw to Supabase | Same — iOS's signature already takes `nonce` |
+
+**The trap worth stating once:** Supabase validates the token against the **Web** client ID, not
+the platform one. Passing the Android or iOS client ID fails with an audience mismatch that reads
+like a misconfiguration rather than a wrong-ID error, and it is the usual reason this takes a day
+instead of an hour.
+
+Once the config exists, both screens gain a button wired to the existing repository call. Until
+then the button stays absent — which is the point.
+
 ### Done-when for this section
 
 - [ ] Android has a login screen reaching every method its data layer already supports.
