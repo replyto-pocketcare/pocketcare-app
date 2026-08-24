@@ -571,9 +571,11 @@ height gate on Expanded) and `FEATURE_SENSOR_HINGE_ANGLE` / `sw600dp`, **not** w
 change is a resize, not a relaunch — nothing may be lost across one.
 Spec: `screen-specs/app-shell.md` §1, §1a, §1b. Both platforms done 2026-08-23.
 
-**W2.1 — Android's create/edit surfaces** (5 screens): match web's own route-vs-modal split
-rather than the mix Android drifted into. Rule and the mismatch table in
-`screen-specs/app-shell.md` §8a. Touches `SanvyaNavHost` as well as the screens.
+**W2.1 — create/edit surfaces, all three platforms**: full page below 600dp, dialog or side
+panel at 600dp and up. One rule, width-driven, replacing both Android's drift and web's own
+route-vs-modal split. iOS uses `.fullScreenCover` on phones, not `.sheet`. Rule and the current
+state in `screen-specs/app-shell.md` §8a. Touches `SanvyaNavHost`, every create/edit screen on
+both native platforms, and — when the live client is next open for changes — web.
 
 **W2 — spec re-derivation** for every ⚠️/🔶/❌ route in §4 from today's source. Each screen's spec
 must state what it does at Medium and Expanded, not only on a phone, and drop the screen's own

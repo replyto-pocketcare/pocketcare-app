@@ -345,51 +345,51 @@ On Android, hardware/predictive back must do exactly what this button does.
 
 ## 8a. Create and edit surfaces — decided 2026-08-24
 
-Ruled by Akhilesh: *"Let them remain sheets [on iOS]... if it is better on sheets for iOS then
-keep it sheets else keep everything same."* So iOS uses sheets, and the other two follow web.
+**One rule, all three platforms, driven by window width rather than by platform.**
 
-**Web is not uniform, and that is deliberate rather than accidental** — it routes the heavy forms
-and modals the light ones:
+> *"On mobile a new page for entering the details is easier for users rather than to scroll
+> inside a dialog. But for larger screens we have the dialog or a side panel for input."*
+> — Akhilesh, 2026-08-24
 
-| Feature | Web create | Web edit |
-|---|---|---|
-| Accounts | `/accounts/new` route | `/accounts/[id]` route |
-| Transactions | `/transactions/new` route | `/transactions/[id]` route |
-| Loans | modal in page | `/loans/[id]` route |
-| Budgets | modal in page | modal in page |
-| Goals | modal in page | modal in page |
-| Investments | modal in page | modal in page |
+| Window | Create / edit surface |
+|---|---|
+| **< 600dp** (Compact) | A **full page**. Nothing to scroll inside; the form owns the screen. |
+| **>= 600dp** (Medium and up) | A **dialog**, or a **side panel** where the form pairs with a list. |
 
-**The rule, stated once so it stops being re-derived per screen:**
+The flip is at **Medium**, not Expanded — so a portrait tablet gets dialogs even though it still
+shows the bottom bar. That is deliberate: the reason for a full page is a *narrow* screen, and a
+600dp tablet is not narrow. It is a different threshold from the sidebar's (840dp), and the two
+are answering different questions.
 
-- **Web** — as above.
-- **Android** — *match web exactly*. A web route is a `composable(...)` destination; a web modal
-  is a `Dialog`. Android is not choosing independently; it is mirroring.
-- **iOS** — *always a `.sheet`*, for both. A sheet is the platform's answer to both a modal and a
-  pushed form: it brings swipe-to-dismiss and puts Cancel/Save in its own navigation bar, which
-  is why those `NavigationStack`s stay (and why the W2 title-bar sweep skipped iOS's forms).
+### Per platform
 
-A sheet is genuinely not a page — no bottom bar, dismissible by gesture — and that divergence is
-accepted, because "best practices for the respective platforms" was half the brief and this is
-where iOS's convention is worth more than literal sameness.
+- **Android** — Compact: a `composable(...)` destination. Medium+: a `Dialog`.
+- **iOS** — Compact: **`.fullScreenCover`**. Medium+: a `.sheet` sized as a dialog, or a side panel.
+- **Web** — Compact: a route. Medium+: its existing in-page `<Modal>`.
 
-### Android does not currently follow the rule — 5 mismatches
+**This supersedes the sheets ruling of the same day.** `.sheet` stays only at Medium and up, where
+it *is* the dialog. On an iPhone a sheet is still a card with rounded corners and a strip of the
+page behind it — it reads as an overlay to scroll inside, which is exactly what this rule is
+against. `.fullScreenCover` gives up swipe-to-dismiss; Cancel becomes the only way out. Accepted:
+an explicit exit from a form with unsaved input is not a loss.
 
-Found while settling this. Android drifted rather than mirroring:
+**Consequence for the W2 title-bar work:** iOS's forms keep their `NavigationStack` at every
+width. Inside a `.fullScreenCover` there is no shell around it, so that navigation bar is the
+*only* chrome and is carrying Cancel/Save — it is not the duplicate the top-level screens had.
 
-| Screen | Android today | Web says | |
+### Current state — nothing matches this yet
+
+| Screen | Android now | iOS now | Both need |
 |---|---|---|---|
-| `CreateGoalScreen` | full route | modal | ✗ should be a Dialog |
-| `AddHoldingScreen` | full route | modal | ✗ should be a Dialog |
-| `AddLoanScreen` | full route | modal | ✗ should be a Dialog |
-| `EditAccountScreen` | Dialog | `/accounts/[id]` route | ✗ should be a route |
-| `EditTransactionScreen` | Dialog | `/transactions/[id]` route | ✗ should be a route |
-| `CreateAccountScreen`, `CreateTransactionScreen` | route | route | ✓ |
-| `CreateBudgetScreen`, `EditBudgetScreen`, `EditGoalScreen` | Dialog | modal | ✓ |
-| `EditLoanScreen` | route | route | ✓ |
+| CreateAccount, CreateTransaction | route | sheet | route + `.fullScreenCover`; dialog at >=600 |
+| CreateGoal, AddHolding, AddLoan | route | sheet | same |
+| CreateBudget, EditBudget, EditGoal | Dialog | sheet | route/cover at <600; Dialog at >=600 |
+| EditAccount, EditTransaction | Dialog | sheet | same |
+| EditLoan | route | sheet | same |
 
-Not fixed yet: swapping a route for a Dialog and back means changes in `SanvyaNavHost` as well as
-the screen, so it is its own change set rather than a modifier tweak. Tracked as **W2.1**.
+Web's own route-vs-modal split (`/accounts/new` a route, Budgets a modal) is **no longer the
+reference** — it becomes width-driven like everything else. Tracked as **W2.1**, and it is now a
+three-platform change rather than five Android fixes.
 
 ## 9. Deliberately not ported
 
