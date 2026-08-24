@@ -209,6 +209,56 @@ approximation per screen (iOS's old credit-card face).
 | **Bundle ids / Universal Links domain** | Still placeholders (`com.sanvya.app`, `com.sanvya.app.ios`) — blocks `/join` deep links and store prep | **needs Akhilesh** |
 | **Min OS versions** | Proposed minSdk 26 / iOS target unconfirmed | **needs Akhilesh** |
 
+## 6b. The live client is off-limits — and I crossed that line
+
+Standing rule (Akhilesh, 2026-08-24): *"we are not supposed to touch the live client. Currently
+our focus is strictly to bring ios and android up to speed with web."*
+
+Web is the shipped app. This branch is a native port. **Native may read from web; it must not
+change web.** Reverted 2026-08-24:
+
+| File | What I had changed | Why it was wrong |
+|---|---|---|
+| `apps/web/src/insights/generators.ts` | `major()` currency-aware, `minor()` added, weekday `×100` fixed | Real bug, but it alters every chart value and `metric.raw` on the shipped client |
+| `packages/core/mindfulness/src/index.ts` | `computeTier1Insights` took a currency + formatter | Signature change forcing a web call-site change; also alters shipped insight copy |
+| `apps/web/src/colors.ts` | Re-export from `@sanvya/catalog` | Tidiness, not necessity |
+| `apps/web/app/{accounts/new,budgets,goals,settings}/page.tsx` | Currency list from `@sanvya/catalog` | Same |
+| `apps/web/package.json`, `pnpm-lock.yaml` | Added the `@sanvya/catalog` dependency | Follows from the above |
+
+`packages/core/catalog` **stays**, but is now **generator-input only**: nothing in `apps/web`
+imports it, and the native `FormOptions` files are generated from it. It reads web's values
+without changing web's code, which is the right shape for everything on this branch.
+
+### Still touching web, and needing a decision
+
+Two changes predate this rule and are **not** reverted, because reverting them breaks the icon
+pipeline both native platforms depend on:
+
+- `apps/web/src/ui/MaterialIcon.tsx` — one added glyph (`lock: "\ue897"`), needed by the shell's
+  add-menu lock badge. `generate-icons.mjs` parses this file as its source of truth.
+- `apps/web/public/fonts/pocketcare-icons.woff2` — rebuilt to include that glyph.
+
+Both are **purely additive**: no existing glyph moved or changed codepoint, so web renders
+identically. Flagging rather than deciding — if the rule is absolute, the icon generator needs a
+source that is not a web file.
+
+### Web bugs found while porting — for Akhilesh to schedule separately
+
+Found by reading web as the parity source. **None are fixed on web.** All three are fixed in the
+native ports, which now deliberately diverge from their stated source:
+
+1. **`packages/core/mindfulness`, `small_purchase_drift`** — body built as `totalSmall / 100`.
+   Hardcoded divisor (¥43,215 renders "432.15"); a `20000`-minor threshold the copy calls a bare
+   "200"; sums **across currencies** without converting; bypasses the money formatter, so it has
+   no symbol and **cannot be hidden by the hide-amounts toggle**.
+2. **`apps/web/src/insights/generators.ts`** — `major()` is `minor / 100`, feeding every chart
+   value and `metric.raw`.
+3. **`generators.ts:207`** — `fmt(top.value * 100, ctx)`, converting major back to minor with the
+   same constant.
+
+All three are wrong for any currency without two minor units — JPY, KWD, BHD. For an INR-first
+user base they are invisible today, which is exactly why they have survived.
+
 ## 6a. De-hardcoding programme (Akhilesh, 2026-08-23)
 
 > *"remove any hardcoding from any platform to structured and easy swappable design

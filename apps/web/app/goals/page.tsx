@@ -19,7 +19,6 @@ import { useConfirm } from "../../src/ui/Confirm";
 import { ListSkeleton } from "../../src/ui/Skeleton";
 import { GoalCelebration } from "../../src/goals/GoalCelebration";
 import { MaterialIcon } from "../../src/ui/MaterialIcon";
-import { CURRENCIES } from "@sanvya/catalog";
 
 // Remember which goals we've already celebrated so completing one is a one-time
 // moment (survives reloads), while a goal that dips below target can re-earn it.
@@ -39,7 +38,7 @@ function compactMoney(minor: number, currency: string): string {
     .format(toMajor(money(minor, currency as CurrencyCode)));
 }
 
-const GOAL_CURRENCIES = CURRENCIES;
+const GOAL_CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 
 interface Goal {
   id: string;

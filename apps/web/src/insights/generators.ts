@@ -2,7 +2,7 @@
 // from PowerSync) and returns zero or more InsightCards. No I/O here — trivially
 // testable and portable to a backend later.
 
-import { money, format, toMajor, fromMajor } from "@sanvya/money";
+import { money, format } from "@sanvya/money";
 import type { CurrencyCode } from "@sanvya/types";
 import type { InsightCard, SeriesPoint } from "./types";
 import { computeTier1Insights, computeTier2Insights, type TransactionForInsight } from "@sanvya/mindfulness";
@@ -68,19 +68,7 @@ export interface GenContext {
 }
 
 const fmt = (minor: number, ctx: GenContext) => format(money(Math.round(minor), ctx.currency as CurrencyCode), ctx.locale);
-
-/**
- * Minor units -> major, for chart values and `metric.raw`.
- *
- * Takes `ctx` because the divisor is not 100 everywhere: JPY has no minor
- * units at all and KWD has three. The old signature could not have been
- * correct — it had no currency to ask.
- */
-const major = (minor: number, ctx: GenContext) => toMajor(money(Math.round(minor), ctx.currency as CurrencyCode));
-
-/** The inverse, for the one place a major-unit average has to go back. */
-const minor = (majorValue: number, ctx: GenContext) =>
-  fromMajor(majorValue, ctx.currency as CurrencyCode).amount;
+const major = (minor: number) => Math.round(minor) / 100;
 const pct = (a: number, b: number) => (b === 0 ? (a > 0 ? 100 : 0) : Math.round(((a - b) / Math.abs(b)) * 100));
 const weekday = (iso: string) => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { weekday: "short" });
 const monShort = (ym: string) => new Date(ym + "-01T00:00:00").toLocaleDateString(undefined, { month: "short" });
@@ -94,7 +82,7 @@ export function genWeeklySummary(ctx: GenContext): InsightCard[] {
   const sum = (arr: DayAgg[], k: "income" | "expense") => arr.reduce((s, d) => s + d[k], 0);
   const inc = sum(last7, "income"), exp = sum(last7, "expense"), net = inc - exp;
   const prevNet = sum(prev7, "income") - sum(prev7, "expense");
-  const series: SeriesPoint[] = last7.map((d) => ({ label: weekday(d.day), value: major(d.income - d.expense, ctx) }));
+  const series: SeriesPoint[] = last7.map((d) => ({ label: weekday(d.day), value: major(d.income - d.expense) }));
   return [{
     id: `weekly:${last7[0]!.day}`, type: "weekly_summary", theme: net >= 0 ? "positive" : "warning",
     generatedAt: ctx.now.toISOString(), period: { start: last7[0]!.day, end: last7[last7.length - 1]!.day }, priority: 92,
@@ -104,7 +92,7 @@ export function genWeeklySummary(ctx: GenContext): InsightCard[] {
       `Money in: ${fmt(inc, ctx)}`, `Money out: ${fmt(exp, ctx)}`,
       prev7.length ? `${net >= prevNet ? "Up" : "Down"} ${fmt(Math.abs(net - prevNet), ctx)} vs the week before` : "Your first week of tracking",
     ],
-    metric: { display: fmt(net, ctx), raw: major(net, ctx), deltaPct: prev7.length && prevNet !== 0 ? pct(net, prevNet) : undefined, direction: net >= prevNet ? "up" : "down" },
+    metric: { display: fmt(net, ctx), raw: major(net), deltaPct: prev7.length && prevNet !== 0 ? pct(net, prevNet) : undefined, direction: net >= prevNet ? "up" : "down" },
     visual: { kind: "area", series }, cadence: { key: "weekly_summary", frequency: "weekly" },
   }];
 }
@@ -124,7 +112,7 @@ export function genBudgetWarnings(ctx: GenContext): InsightCard[] {
         subhead: over ? "Over budget" : "Almost there",
         bullets: [`Spent ${fmt(b.spent, ctx)} of ${fmt(b.limit, ctx)}`, over ? "Consider easing off this category" : `${fmt(b.limit - b.spent, ctx)} left this period`],
         metric: { display: `${Math.round(ratio * 100)}%`, raw: Math.round(ratio * 100) },
-        visual: { kind: "gauge", value: major(b.spent, ctx), max: major(b.limit, ctx), warnAt: major(b.limit, ctx) * 0.8, dangerAt: major(b.limit, ctx), centerLabel: `${Math.round(ratio * 100)}%` },
+        visual: { kind: "gauge", value: major(b.spent), max: major(b.limit), warnAt: major(b.limit) * 0.8, dangerAt: major(b.limit), centerLabel: `${Math.round(ratio * 100)}%` },
         cta: { label: "Review budgets", target: "/budgets" }, cadence: { key: `budget_warning:${b.name}`, frequency: "daily" },
       };
     });
@@ -153,7 +141,7 @@ export function genSpendingTrend(ctx: GenContext): InsightCard[] {
   const half = Math.floor(m.length / 2);
   const avg = (arr: MonthAgg[]) => arr.reduce((s, x) => s + x.expense, 0) / (arr.length || 1);
   const recent = avg(m.slice(half)), older = avg(m.slice(0, half)), down = recent <= older, delta = pct(recent, older);
-  const series: SeriesPoint[] = m.map((x) => ({ label: monShort(x.ym), value: major(x.expense, ctx) }));
+  const series: SeriesPoint[] = m.map((x) => ({ label: monShort(x.ym), value: major(x.expense) }));
   return [{
     id: `trend:${m[m.length - 1]!.ym}`, type: "spending_trend", theme: down ? "positive" : "warning",
     generatedAt: ctx.now.toISOString(), period: { start: `${m[0]!.ym}-01`, end: `${m[m.length - 1]!.ym}-01` }, priority: 72,
@@ -173,8 +161,8 @@ export function genCategoryBreakdown(ctx: GenContext): InsightCard[] {
     generatedAt: ctx.now.toISOString(), period: { start: "", end: "" }, priority: 62,
     headline: "Where your money went", subhead: "This month, by category",
     bullets: [`${lead.name} led at ${fmt(lead.expense, ctx)}`, `${Math.round((lead.expense / total) * 100)}% of your tracked spending`],
-    metric: { display: fmt(total, ctx), raw: major(total, ctx) },
-    visual: { kind: "donut", series: top.map((c) => ({ label: c.name, value: major(c.expense, ctx) })), centerLabel: fmt(total, ctx), centerSub: "this month" },
+    metric: { display: fmt(total, ctx), raw: major(total) },
+    visual: { kind: "donut", series: top.map((c) => ({ label: c.name, value: major(c.expense) })), centerLabel: fmt(total, ctx), centerSub: "this month" },
     cadence: { key: "category_breakdown", frequency: "weekly" },
   }];
 }
@@ -202,8 +190,8 @@ export function genBiggestExpense(ctx: GenContext): InsightCard[] {
     generatedAt: ctx.now.toISOString(), period: { start: "", end: "" }, priority: 68,
     headline: `Your biggest expense was ${fmt(lead.amount, ctx)}`, subhead: lead.label || "This month",
     bullets: top.slice(0, 3).map((t) => `${t.label}: ${fmt(t.amount, ctx)}`),
-    metric: { display: fmt(lead.amount, ctx), raw: major(lead.amount, ctx) },
-    visual: { kind: "bars", horizontal: true, series: top.map((t) => ({ label: trunc(t.label, 16), value: major(t.amount, ctx) })) },
+    metric: { display: fmt(lead.amount, ctx), raw: major(lead.amount) },
+    visual: { kind: "bars", horizontal: true, series: top.map((t) => ({ label: trunc(t.label, 16), value: major(t.amount) })) },
     cadence: { key: "biggest_expense", frequency: "weekly" },
   }];
 }
@@ -216,7 +204,7 @@ export function genWeekdayPattern(ctx: GenContext): InsightCard[] {
     id: `weekday:${ctx.now.toISOString().slice(0, 7)}`, type: "weekday_pattern", theme: "neutral",
     generatedAt: ctx.now.toISOString(), period: { start: "", end: "" }, priority: 50,
     headline: `${ctx.weekdayTop} is your priciest day`, subhead: "Average spend by weekday · last 60 days",
-    bullets: [`You spend most on ${ctx.weekdayTop}s`, `Around ${fmt(minor(top.value, ctx), ctx)} on an average ${ctx.weekdayTop}`],
+    bullets: [`You spend most on ${ctx.weekdayTop}s`, `Around ${fmt(top.value * 100, ctx)} on an average ${ctx.weekdayTop}`],
     visual: { kind: "bars", series: ctx.weekday }, cadence: { key: "weekday_pattern", frequency: "weekly" },
   }];
 }
@@ -230,8 +218,8 @@ export function genLabelBreakdown(ctx: GenContext): InsightCard[] {
     generatedAt: ctx.now.toISOString(), period: { start: "", end: "" }, priority: 54,
     headline: "Spending by label", subhead: "This month, across your tags",
     bullets: [`${lead.name} topped your labels at ${fmt(lead.expense, ctx)}`, `${top.length} labels tracked this month`],
-    metric: { display: fmt(total, ctx), raw: major(total, ctx) },
-    visual: { kind: "donut", series: top.map((l) => ({ label: l.name, value: major(l.expense, ctx) })), centerLabel: fmt(total, ctx), centerSub: "labelled" },
+    metric: { display: fmt(total, ctx), raw: major(total) },
+    visual: { kind: "donut", series: top.map((l) => ({ label: l.name, value: major(l.expense) })), centerLabel: fmt(total, ctx), centerSub: "labelled" },
     cadence: { key: "label_breakdown", frequency: "weekly" },
   }];
 }
@@ -245,8 +233,8 @@ export function genSubscriptions(ctx: GenContext): InsightCard[] {
     generatedAt: ctx.now.toISOString(), period: { start: "", end: "" }, priority: 64,
     headline: `${fmt(ctx.subsTotal, ctx)}/mo on subscriptions`, subhead: `${subs.length} active subscription${subs.length === 1 ? "" : "s"}`,
     bullets: [`Biggest: ${top[0]!.name} at ${fmt(top[0]!.monthly, ctx)}/mo`, `That's ${fmt(ctx.subsTotal * 12, ctx)} a year`],
-    metric: { display: fmt(ctx.subsTotal, ctx), raw: major(ctx.subsTotal, ctx) },
-    visual: { kind: "donut", series: top.map((s) => ({ label: s.name, value: major(s.monthly, ctx) })), centerLabel: fmt(ctx.subsTotal, ctx), centerSub: "per month" },
+    metric: { display: fmt(ctx.subsTotal, ctx), raw: major(ctx.subsTotal) },
+    visual: { kind: "donut", series: top.map((s) => ({ label: s.name, value: major(s.monthly) })), centerLabel: fmt(ctx.subsTotal, ctx), centerSub: "per month" },
     cta: { label: "Manage subscriptions", target: "/subscriptions" }, cadence: { key: "subscriptions_load", frequency: "monthly" },
   }];
 }
@@ -262,7 +250,7 @@ export function genMonthPace(ctx: GenContext): InsightCard[] {
     headline: faster ? "You're spending faster than last month" : "You're pacing under last month",
     subhead: `Day ${p.dayOfMonth} of ${p.daysInMonth}`,
     bullets: [`Spent ${fmt(p.thisSoFar, ctx)} so far (was ${fmt(p.lastSameSoFar, ctx)} by now last month)`, `On track for about ${fmt(projected, ctx)} vs ${fmt(p.lastFull, ctx)} last month`],
-    metric: { display: fmt(projected, ctx), raw: major(projected, ctx), direction: faster ? "up" : "down" },
+    metric: { display: fmt(projected, ctx), raw: major(projected), direction: faster ? "up" : "down" },
     visual: { kind: "area", series: p.cumulative }, cadence: { key: "month_pace", frequency: "daily" },
   }];
 }
@@ -295,7 +283,7 @@ export function genGoalProgress(ctx: GenContext): InsightCard[] {
     headline: doneP >= 100 ? `${g.name} is fully funded!` : `${g.name} is ${doneP}% funded`, subhead: "Goal progress",
     bullets: [`${fmt(g.saved, ctx)} of ${fmt(g.target, ctx)} set aside`, doneP >= 100 ? "Time to set your next goal" : `${fmt(g.target - g.saved, ctx)} to go`],
     metric: { display: `${doneP}%`, raw: doneP, direction: "up" },
-    visual: { kind: "gauge", value: major(g.saved, ctx), max: major(g.target, ctx), centerLabel: `${doneP}%` },
+    visual: { kind: "gauge", value: major(g.saved), max: major(g.target), centerLabel: `${doneP}%` },
     cta: { label: "View goals", target: "/goals" }, cadence: { key: `goal_progress:${g.name}`, frequency: "weekly" },
   }];
 }
@@ -310,7 +298,7 @@ export function genCategorySpike(ctx: GenContext): InsightCard[] {
     headline: `${s.name} spending jumped ${up}%`, subhead: "vs your recent average",
     bullets: [`${fmt(s.thisMonth, ctx)} this month`, `Usually around ${fmt(s.avgPrior, ctx)}`],
     metric: { display: `+${up}%`, raw: up, direction: "up" },
-    visual: { kind: "bars", series: [{ label: "Usual", value: major(s.avgPrior, ctx), color: "var(--forest)" }, { label: "This mo", value: major(s.thisMonth, ctx), color: "var(--warning)" }] },
+    visual: { kind: "bars", series: [{ label: "Usual", value: major(s.avgPrior), color: "var(--forest)" }, { label: "This mo", value: major(s.thisMonth), color: "var(--warning)" }] },
     cta: { label: "See transactions", target: "/transactions" }, cadence: { key: "category_spike", frequency: "weekly" },
   }];
 }
@@ -325,8 +313,8 @@ export function genAvgDaily(ctx: GenContext): InsightCard[] {
     generatedAt: ctx.now.toISOString(), period: { start: "", end: "" }, priority: 52,
     headline: `You're averaging ${fmt(thisAvg, ctx)}/day`, subhead: lastAvg > 0 ? `${lower ? "Down from" : "Up from"} ${fmt(lastAvg, ctx)}/day last month` : "So far this month",
     bullets: [`${fmt(thisAvg, ctx)} per day this month`, lastAvg > 0 ? `${fmt(lastAvg, ctx)} per day last month` : "Keep it steady"],
-    metric: { display: fmt(thisAvg, ctx), raw: major(thisAvg, ctx), direction: lower ? "down" : "up" },
-    visual: { kind: "bars", series: [{ label: "Last mo", value: major(lastAvg, ctx), color: "var(--forest)" }, { label: "This mo", value: major(thisAvg, ctx), color: "var(--accent)" }] },
+    metric: { display: fmt(thisAvg, ctx), raw: major(thisAvg), direction: lower ? "down" : "up" },
+    visual: { kind: "bars", series: [{ label: "Last mo", value: major(lastAvg), color: "var(--forest)" }, { label: "This mo", value: major(thisAvg), color: "var(--accent)" }] },
     cadence: { key: "avg_daily_spend", frequency: "weekly" },
   }];
 }
@@ -355,7 +343,7 @@ export function genDividends(ctx: GenContext): InsightCard[] {
       `Last 12 months: ${fmt(d.trailing12, ctx)}`,
       d.upcoming12 > 0 ? `Next 12 months (est.): ${fmt(d.upcoming12, ctx)}` : `All-time: ${fmt(d.total, ctx)}`,
     ],
-    metric: { display: fmt(headlineAmt, ctx), raw: major(headlineAmt, ctx) },
+    metric: { display: fmt(headlineAmt, ctx), raw: major(headlineAmt) },
     visual: { kind: "bars", series },
     cta: { label: "See dividends", target: "/investments" },
     cadence: { key: "dividend_income", frequency: "monthly" },
@@ -384,7 +372,7 @@ export function genProjection(ctx: GenContext): InsightCard[] {
       `About ${fmt(growthPortion, ctx)} of that would be growth`,
       "A projection on default assumptions, not a forecast",
     ],
-    metric: { display: fmt(p.endValue, ctx), raw: major(p.endValue, ctx), direction: "up" },
+    metric: { display: fmt(p.endValue, ctx), raw: major(p.endValue), direction: "up" },
     visual: { kind: "area", series: p.series },
     cta: { label: "Adjust assumptions", target: "/investments" },
     cadence: { key: "portfolio_projection", frequency: "monthly" },
@@ -394,12 +382,7 @@ export function genProjection(ctx: GenContext): InsightCard[] {
 // ---- mindfulness ----
 export function genMindfulness(ctx: GenContext): InsightCard[] {
   if (!ctx.mindfulnessTxns) return [];
-  // The formatter goes in, so an amount inside a mindfulness insight is
-  // formatted and hideable like every other amount on the page.
-  const t1 = computeTier1Insights(ctx.mindfulnessTxns, {
-    currency: ctx.currency as CurrencyCode,
-    fmt: (m) => fmt(m, ctx),
-  });
+  const t1 = computeTier1Insights(ctx.mindfulnessTxns);
   const t2 = computeTier2Insights(ctx.mindfulnessTxns);
   
   const cards: InsightCard[] = [];

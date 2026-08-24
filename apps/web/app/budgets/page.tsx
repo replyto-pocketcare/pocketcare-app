@@ -24,10 +24,9 @@ import { SpentBreakdown } from "../../src/budgets/SpentBreakdown";
 import { ListSkeleton } from "../../src/ui/Skeleton";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, ReferenceLine, Tooltip } from "recharts";
 import type { BudgetLike } from "@sanvya/data";
-import { CURRENCIES, PERIODS as CATALOG_PERIODS } from "@sanvya/catalog";
 
-const PERIODS = CATALOG_PERIODS as readonly Period[];
-
+const PERIODS: Period[] = ["daily", "weekly", "monthly", "yearly"];
+const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 type TimeMode = "recurring" | "custom";
 
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);

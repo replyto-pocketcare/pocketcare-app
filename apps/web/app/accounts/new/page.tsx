@@ -9,10 +9,9 @@ import { getRepositories, getDb } from "../../../src/powersync";
 import { useBaseCurrency } from "../../../src/hooks";
 import { ACCOUNT_COLORS } from "../../../src/colors";
 import { FloatingInput } from "../../../src/ui/FloatingInput";
-import { CURRENCIES } from "@sanvya/catalog";
 
 const TYPES = Object.values(AccountType);
-
+const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 const COLORS = ACCOUNT_COLORS;
 
 /**

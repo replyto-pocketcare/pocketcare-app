@@ -39,9 +39,6 @@ importers:
       '@sanvya/budget':
         specifier: workspace:*
         version: link:../../packages/core/budget
-      '@sanvya/catalog':
-        specifier: workspace:*
-        version: link:../../packages/core/catalog
       '@sanvya/crypto':
         specifier: workspace:*
         version: link:../../packages/core/crypto
