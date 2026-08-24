@@ -21,6 +21,17 @@ import path from "node:path";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const jsonPath = path.join(repoRoot, "tools", "golden-vectors", "vectors", "mobile-schema.json");
+// The Kotlin package, in one place, because the path on disk and the `package`
+// declaration in the generated file must agree and previously did not.
+//
+// This script wrote to care/pocket/domain/db/ with `package care.pocket.domain.db`
+// long after the Android sources moved to com.sanvya.app. Running it therefore
+// created a SECOND, orphaned schema file and left the real one -- the one both
+// PowerSync and every repository actually read -- untouched and stale. Nothing
+// failed; the generator reported success. That is how `recurring_items` stayed
+// missing from the native schema across four migrations.
+const KOTLIN_PACKAGE = "com.sanvya.app.domain.db";
+
 const kotlinPath = path.join(
   repoRoot,
   "apps",
@@ -29,10 +40,7 @@ const kotlinPath = path.join(
   "src",
   "main",
   "kotlin",
-  "care",
-  "pocket",
-  "domain",
-  "db",
+  ...KOTLIN_PACKAGE.split("."),
   "PocketCareSchema.kt",
 );
 const swiftPath = path.join(repoRoot, "apps", "ios", "Domain", "Sources", "Domain", "PocketCareSchema.swift");
@@ -89,7 +97,7 @@ function renderKotlinTable(t) {
         ),`;
 }
 
-const kotlin = `package care.pocket.domain.db
+const kotlin = `package ${KOTLIN_PACKAGE}
 
 /**
  * ${HEADER.split("\n").join("\n * ")}

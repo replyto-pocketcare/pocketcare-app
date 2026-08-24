@@ -57,7 +57,12 @@ val REPAIR_ORDER: List<String> = listOf(
     "loans",
     "subscriptions",
     "recurring_commitments",
-    "planned_cashflow",
+    // "planned_cashflow" was here and is not in web's REPAIR_ORDER
+    // (apps/web/src/sync/repair.ts). Migration 0060 folded that table into
+    // recurring_items; web dropped it, both native copies kept it. Harmless
+    // while the native schema was stale enough to still declare the table --
+    // and a query against a view PowerSync no longer creates the moment the
+    // schema caught up.
     "holdings",
     "receipt_scans"
 )

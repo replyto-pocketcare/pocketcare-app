@@ -741,6 +741,60 @@ Also folded in, same reasoning: Firebase's BOM version, the Google Services plug
 two Compose icon artifacts were inline coordinates in `app/build.gradle.kts` and the root build
 file. They are catalog entries now — the version catalog exists precisely to stop that.
 
+### The native schema was four migrations behind, and nothing could tell us — 2026-08-24
+
+Found while scoping the recurring-engine port. `recurring_items` — the table migration 0060
+consolidated `planned_cashflow` + `recurring_rules` + `transaction_templates` into, and the one
+web's engine reads — **did not exist in the native schema on either platform.** Neither did
+`audience_groups`, `audience_group_members`, `price_offers`, `public_profiles`, or the `sip_*`
+columns on `investments`. PowerSync only creates local views for declared tables, so any ported
+`SELECT ... FROM recurring_items` would have failed at runtime on a device.
+
+It is not a hand-maintained file, which is what made this invisible. The pipeline is:
+
+```
+packages/db/src/index.ts (AppSchema)
+  → export-mobile-schema.mjs → vectors/mobile-schema.json
+  → gen-mobile-schema.mjs    → PocketCareSchema.kt + PocketCareSchema.swift
+```
+
+**Two independent faults, each silent on its own:**
+
+1. **`export-mobile-schema.mjs` aborted before writing.** It writes a temp copy of `index.ts`,
+   imports it, and `unlinkSync`s it in a `finally`. In a sandbox where deletes are not permitted
+   that `unlink` threw `EPERM` *out of the finally* — after the import had already succeeded, and
+   **before** `writeFileSync(mobile-schema.json)`. The only symptom was a JSON file that never
+   changed. Now the cleanup is wrapped in its own try/catch and warns instead of aborting: leaving
+   a git-ignored temp file behind is untidy, not writing the output is a correctness failure.
+
+2. **`gen-mobile-schema.mjs` wrote to a path that no longer exists.** It emitted
+   `care/pocket/domain/db/PocketCareSchema.kt` with `package care.pocket.domain.db`, long after
+   Android moved to `com.sanvya.app`. Running it created a **second, orphaned** file and left the
+   real one — the one PowerSync and every repository read — untouched. It reported success. The
+   package now lives in one constant that both the path and the `package` line derive from.
+
+**The reason neither was caught: the two schema generators were not in the `parity` CI job.** Five
+generators were; these two were not, so the one job whose entire purpose is "generated output must
+match its source" was blind to the largest generated artifact in the repo. Both are in it now,
+with a `pnpm install` step — unlike the other five, the export imports `AppSchema` for real rather
+than parsing source text.
+
+**What the regeneration changed.** 63 tables → 64. Added `recurring_items`, `audience_groups`,
+`audience_group_members`, `price_offers`, `public_profiles`, and `alert_time_utc` on budgets,
+goals and loans. Removed `planned_cashflow`, `recurring_rules`, `recurring_groups` and
+`transaction_templates` — the pre-0060 design web has fully migrated off. Verified table-set and
+per-table column-set diffs before and after: **no table or column that any native code reads was
+lost.** No repository touches the four removed tables.
+
+One consequence: both `RepairRepository`s listed `planned_cashflow` in `REPAIR_ORDER` and **web's
+`apps/web/src/sync/repair.ts` does not** — drift that was harmless only while the schema was stale
+enough to still declare the table. Removed from both, restoring exact parity with web's list.
+
+**The generalisable bit, and it is the same lesson as §3a:** a generator that reports success is
+not evidence its output landed. Both faults here were "the tool said it worked." The check that
+would have caught either is the one the `parity` job already performs on everything else —
+regenerate, then `git diff --exit-code`.
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*

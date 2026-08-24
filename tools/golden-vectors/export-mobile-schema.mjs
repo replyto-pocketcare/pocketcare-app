@@ -51,7 +51,26 @@ let AppSchema;
 try {
   ({ AppSchema } = await import(`${tempPath}?t=${Date.now()}`));
 } finally {
-  unlinkSync(tempPath);
+  // Tidying up must not be able to fail the export.
+  //
+  // This used to be a bare `unlinkSync(tempPath)`. In a sandbox where deletes
+  // are not permitted it threw EPERM out of the `finally`, which aborted the
+  // script BEFORE it wrote mobile-schema.json -- while still printing nothing
+  // that looked like "the schema was not exported". The import had already
+  // succeeded, so the only symptom was a JSON file that silently never changed,
+  // and two native schema mirrors that quietly fell four migrations behind.
+  //
+  // The temp file is git-ignored and overwritten on every run, so leaving it
+  // behind is untidy; not writing the output is a correctness failure. Prefer
+  // the untidy one.
+  try {
+    unlinkSync(tempPath);
+  } catch (err) {
+    console.warn(
+      `export-mobile-schema.mjs: could not remove ${path.relative(repoRoot, tempPath)} ` +
+        `(${err.code ?? err.message}). Continuing -- delete it by hand if it lingers.`,
+    );
+  }
 }
 
 const tables = AppSchema.tables

@@ -56,6 +56,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      # export-mobile-schema.mjs imports packages/db's AppSchema, which needs
+      # @powersync/common resolvable. The other generators parse source text and
+      # need nothing installed.
+      - name: Install workspace deps
+        run: pnpm install --frozen-lockfile
       # Tokens, string catalogs and icon maps are GENERATED from the web
       # sources. Regenerating must be a no-op on a clean tree; a diff here means
       # generated output was hand-edited instead of its source.
@@ -67,6 +74,14 @@ jobs:
             node tools/parity/generate-icons.mjs
             node tools/parity/generate-money-format.mjs
             node tools/parity/generate-options.mjs
+            # The PowerSync client schema, mirrored into both native platforms.
+            # These were NOT in this list, and that is exactly why the mirrors
+            # fell four migrations behind packages/db/src/index.ts without a
+            # single job ever going red. Needs node_modules, hence the install
+            # step above -- unlike the five generators before it, the export
+            # imports AppSchema for real rather than parsing source.
+            node tools/golden-vectors/export-mobile-schema.mjs
+            node tools/golden-vectors/gen-mobile-schema.mjs
           } 2>&1 | tee parity.log
       - name: Fail if generated output drifted
         run: |

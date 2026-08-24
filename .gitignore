@@ -39,3 +39,8 @@ _tmp_*
 
 # iOS local build-configuration overrides (see apps/ios/Config/Sanvya.xcconfig).
 apps/ios/Config/Sanvya.local.xcconfig
+
+# Scratch file written by tools/golden-vectors/export-mobile-schema.mjs while it
+# imports AppSchema. Normally removed on the same run; ignored so a sandbox that
+# cannot delete it never leaves it staged.
+packages/db/src/__schema_export_temp__.ts
