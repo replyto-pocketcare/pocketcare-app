@@ -78,10 +78,10 @@ struct GroupDetailView: View {
             }
         }
         .task(id: groupId) { await viewModel.select(groupId) }
-        .sheet(isPresented: $showingAddExpense) {
+        .sanvyaFormPresentation(isPresented: $showingAddExpense) {
             AddExpenseView(viewModel: viewModel, members: viewModel.members)
         }
-        .sheet(item: $settleTarget) { target in
+        .sanvyaFormPresentation(item: $settleTarget) { target in
             SettleUpView(viewModel: viewModel, target: target)
         }
     }

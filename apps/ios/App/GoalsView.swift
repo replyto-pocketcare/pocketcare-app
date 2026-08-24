@@ -46,13 +46,13 @@ struct GoalsView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingCreateSheet) {
+            .sanvyaFormPresentation(isPresented: $showingCreateSheet) {
                 CreateGoalView(viewModel: viewModel)
             }
-            .sheet(item: $editingGoal) { goal in
+            .sanvyaFormPresentation(item: $editingGoal) { goal in
                 EditGoalView(goal: goal, viewModel: viewModel)
             }
-            .sheet(item: $allocatingGoal) { goal in
+            .sanvyaFormPresentation(item: $allocatingGoal) { goal in
                 AllocateGoalView(goal: goal, viewModel: viewModel)
             }
             .onAppear { viewModel.start() }

@@ -377,19 +377,42 @@ an explicit exit from a form with unsaved input is not a loss.
 width. Inside a `.fullScreenCover` there is no shell around it, so that navigation bar is the
 *only* chrome and is carrying Cancel/Save — it is not the duplicate the top-level screens had.
 
-### Current state — nothing matches this yet
+### Current state — corrected 2026-08-24, after checking rather than assuming
 
-| Screen | Android now | iOS now | Both need |
-|---|---|---|---|
-| CreateAccount, CreateTransaction | route | sheet | route + `.fullScreenCover`; dialog at >=600 |
-| CreateGoal, AddHolding, AddLoan | route | sheet | same |
-| CreateBudget, EditBudget, EditGoal | Dialog | sheet | route/cover at <600; Dialog at >=600 |
-| EditAccount, EditTransaction | Dialog | sheet | same |
-| EditLoan | route | sheet | same |
+The table that was here claimed five Android screens were `Dialog`s (CreateBudget, EditBudget,
+EditGoal, EditAccount, EditTransaction) and that "nothing matches this yet". **Both were wrong.**
+`SanvyaNavHost.kt` routes every one of them: `budgets/new`, `budgets/{id}/edit`, `goals/new`,
+`goals/{id}/edit`, `accounts/new`, `accounts/{id}/edit`, `transactions/new`,
+`transactions/{id}/edit`, `loans/new`. Android has been full-page at every width all along.
+
+The real state, verified against the nav host and every `.sheet(` call site:
+
+| | Compact (< 600) | Medium+ (>= 600) |
+|---|---|---|
+| **Android** | ✅ route — already correct | ❌ still a route where a dialog is wanted |
+| **iOS** | ✅ `.fullScreenCover` — fixed 2026-08-24 | ✅ `.sheet`, which at that width *is* the dialog |
+
+So the half that was actually broken was **iOS at phone width**: all 16 create/edit forms were
+`.sheet`, i.e. a card with the page visible behind it — the "scroll inside a dialog" the rule
+exists to prevent. `Components/FormPresentation.swift` now encodes the rule once, and the 16 call
+sites use `.sanvyaFormPresentation(isPresented:)` / `(item:)`.
+
+Three iOS `.sheet`s are deliberately untouched, because **a confirmation is not a form**: it has
+nothing to scroll and nothing to lose on dismissal.
+
+- `CreditCardsView` — "mark these EMIs paid?"
+- `LoansView` — `MarkPaidSheetView`
+- `GroupDetailView` — the UPI payment handoff
+
+**Remaining: Android at Medium and up.** A route cannot become a dialog by wrapping its content —
+navigating has already replaced the screen underneath, so a `Dialog` there would float over a blank
+page rather than over the list it came from. Closing it properly means the *caller* choosing
+between `navigate(...)` and setting dialog state, which is a nav-host change rather than a
+per-screen one. Tracked in `ABSENT-BY-DECISION.md`.
 
 Web's own route-vs-modal split (`/accounts/new` a route, Budgets a modal) is **no longer the
-reference** — it becomes width-driven like everything else. Tracked as **W2.1**, and it is now a
-three-platform change rather than five Android fixes.
+reference** — it becomes width-driven like everything else. Web is off-limits for now, so W2.1 is a
+two-platform change in practice; web's side is Akhilesh's when the live client next opens.
 
 ## 9. Deliberately not ported
 

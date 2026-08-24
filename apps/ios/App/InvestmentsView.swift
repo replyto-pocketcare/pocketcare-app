@@ -71,7 +71,7 @@ struct InvestmentsView: View {
             // it is the util row's (screen-specs/app-shell.md §7).
             .registerBack(drilledKey != nil) { drilledKey = nil }
         }
-        .sheet(isPresented: $showingAddSheet) {
+        .sanvyaFormPresentation(isPresented: $showingAddSheet) {
             AddHoldingView(initialGroupKey: drilledGroup?.key, viewModel: viewModel)
         }
     }

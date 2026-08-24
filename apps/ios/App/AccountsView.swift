@@ -55,10 +55,10 @@ struct AccountsView: View {
                     .padding(16)
                 }
             }
-            .sheet(isPresented: $showingCreateSheet) {
+            .sanvyaFormPresentation(isPresented: $showingCreateSheet) {
                 CreateAccountView()
             }
-            .sheet(item: $editingAccount) { entry in
+            .sanvyaFormPresentation(item: $editingAccount) { entry in
                 EditAccountView(accountId: entry.id)
             }
         }

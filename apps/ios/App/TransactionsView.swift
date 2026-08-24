@@ -58,10 +58,10 @@ struct TransactionsView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingCreateSheet) {
+            .sanvyaFormPresentation(isPresented: $showingCreateSheet) {
                 CreateTransactionView()
             }
-            .sheet(item: $editingId) { entry in
+            .sanvyaFormPresentation(item: $editingId) { entry in
                 EditTransactionView(transactionId: entry.id)
             }
         }

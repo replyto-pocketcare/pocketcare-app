@@ -152,10 +152,10 @@ struct DashboardView: View {
             }
         }
         .overlay(alignment: .bottomTrailing) { speedDial }
-        .sheet(isPresented: $showingCreateAccountSheet) {
+        .sanvyaFormPresentation(isPresented: $showingCreateAccountSheet) {
             CreateAccountView()
         }
-        .sheet(isPresented: $showingAddTransactionSheet) {
+        .sanvyaFormPresentation(isPresented: $showingAddTransactionSheet) {
             CreateTransactionView()
         }
         .fullScreenCover(isPresented: $showingReceiptCapture) {

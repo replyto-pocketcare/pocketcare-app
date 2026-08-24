@@ -26,7 +26,7 @@ struct SplitsView: View {
                 }
             }
             .registerBack(selectedGroupId != nil) { selectedGroupId = nil }
-            .sheet(isPresented: $showingCreateSheet) {
+            .sanvyaFormPresentation(isPresented: $showingCreateSheet) {
                 CreateGroupView(viewModel: viewModel, onCreated: { id in
                     showingCreateSheet = false
                     selectedGroupId = id

@@ -42,10 +42,10 @@ struct BudgetsView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingCreateSheet) {
+            .sanvyaFormPresentation(isPresented: $showingCreateSheet) {
                 CreateBudgetView()
             }
-            .sheet(item: $editingBudget) { budget in
+            .sanvyaFormPresentation(item: $editingBudget) { budget in
                 EditBudgetView(budget: budget, viewModel: viewModel)
             }
             .onAppear { viewModel.start() }

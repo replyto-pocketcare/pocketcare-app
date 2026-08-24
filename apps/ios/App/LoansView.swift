@@ -41,7 +41,7 @@ struct LoansView: View {
             }
             .registerBack(selectedLoanId != nil) { selectedLoanId = nil }
         }
-        .sheet(isPresented: $showingAddSheet) {
+        .sanvyaFormPresentation(isPresented: $showingAddSheet) {
             AddLoanView(viewModel: viewModel)
         }
         .onAppear { viewModel.start() }

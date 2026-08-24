@@ -33,6 +33,7 @@ Keep this current. Adding a row is part of the change that creates the gap, not 
 | Statements | Print | `window.print()` has no phone equivalent. Share/PDF export is a feature to design, not a button to add |
 | Statements | "Analyze" link | Targets `/statements/analyze`, which does not exist natively (see `StatementImportView` above) |
 | Statements | "Go Premium" button | Web links to `/settings`; there is **no native upgrade flow yet**, so the button would go nowhere |
+| Android, Medium+ (>= 600dp) | Create/edit forms are still a **route**, where the rule wants a dialog | A route cannot become a dialog by wrapping its content: navigating has already replaced the screen underneath, so the dialog would float over a blank page rather than over the list it came from. Closing it means the *caller* choosing between `navigate(...)` and dialog state — a nav-host change, not a per-screen one. iOS is done at both widths; Android is done at Compact |
 | Login | Password reset / "forgot password" | Web has a 3-step recovery flow (`resetPasswordForEmail` → OTP → set password). Not ported; the entry point is absent rather than dead |
 
 ## Platform-honest divergences (present, but not web's implementation)
