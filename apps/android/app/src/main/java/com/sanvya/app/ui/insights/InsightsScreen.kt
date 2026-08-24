@@ -162,7 +162,7 @@ private val TYPE_LABEL = mapOf(
     "weekly_summary" to "Weekly recap", "budget_warning" to "Budget alert", "savings_achievement" to "Achievement",
     "spending_trend" to "Spending trend", "category_breakdown" to "Breakdown", "streak" to "Streak",
     "biggest_expense" to "Biggest expense", "weekday_pattern" to "Spending pattern", "label_breakdown" to "By label",
-    "subscriptions_load" to S.Translation.navSubscriptions(sRes()), "month_pace" to "Month pace", "no_spend_days" to "No-spend days",
+    "subscriptions_load" to "Subscriptions", "month_pace" to "Month pace", "no_spend_days" to "No-spend days",
     "goal_progress" to "Goal progress", "category_spike" to "Category spike", "avg_daily_spend" to "Daily average",
     "dividend_income" to "Dividend income", "portfolio_projection" to "Projected wealth", "mindfulness" to "Mindful spending",
 )

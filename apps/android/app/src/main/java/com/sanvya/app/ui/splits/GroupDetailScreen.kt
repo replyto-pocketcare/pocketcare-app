@@ -25,7 +25,7 @@ import com.sanvya.app.i18n.sRes
 /**
  * Real port of apps/web/app/groups/[id]/page.tsx (task #30). See
  * docs/mobile/screen-specs/splits.md for the deliberate scope cut (equal-
- * split S.Splits.addExpense(sRes()) only; invite/itemized deferred).
+ * split "Add expense" only; invite/itemized deferred).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

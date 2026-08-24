@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Real port of web's S.Recurring.groupNewCta modal (task #30). Was previously a dead
+/// Real port of web's "New group" modal (task #30). Was previously a dead
 /// mockup -- `Create` just called `dismiss()`, no member picker, no
 /// currency, nothing persisted.
 struct CreateGroupView: View {

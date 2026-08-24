@@ -27,6 +27,9 @@ import com.sanvya.app.i18n.sRes
 private val BUDGET_CURRENCIES = FormOptions.currencies
 private val BUDGET_PERIODS = FormOptions.periods
 
+/** `@Composable` because it resolves a string resource — it is display copy,
+ *  and every caller is already a composable. */
+@Composable
 internal fun periodChipLabel(p: String) = when (p) {
     "daily" -> S.Budgets.periodDaily(sRes())
     "weekly" -> S.Budgets.periodWeekly(sRes())
@@ -35,7 +38,7 @@ internal fun periodChipLabel(p: String) = when (p) {
 }
 
 /**
- * Real create form, matching apps/web/app/budgets/page.tsx's S.Budgets.newBudget(sRes())
+ * Real create form, matching apps/web/app/budgets/page.tsx's "New budget"
  * modal field-for-field per docs/mobile/screen-specs/budgets.md. Android had
  * no Budgets screens at all before this pass (2026-08-06, task #24).
  */

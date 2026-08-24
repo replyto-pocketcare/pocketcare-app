@@ -164,6 +164,64 @@ function report(file, english) {
   return { file, lits, exact, near, none };
 }
 
+/**
+ * Byte ranges of every `@Composable`-annotated function body in a Kotlin file.
+ *
+ * Finding the body brace is fiddlier than it looks. The first `{` after the
+ * annotation is usually NOT the body — `onDismiss: () -> Unit = {}` in the
+ * parameter list gets there first, and brace-matching from it yields a
+ * two-character range that puts the whole real body "outside". So: walk to the
+ * parameter list, match parentheses to its close, then take the first `{` after
+ * that.
+ *
+ * An expression-bodied composable (`@Composable fun x() = when (…) {`) has no
+ * body brace at paren-depth 0 before the `=`; those are matched from the `=`
+ * instead, which is imprecise but errs toward including, and a false positive
+ * here is caught by the compiler rather than shipped.
+ */
+/** Byte ranges of every `//` line comment and every block comment. */
+function commentRanges(src) {
+  const out = [];
+  for (const m of src.matchAll(/\/\*[\s\S]*?\*\//g)) out.push([m.index, m.index + m[0].length]);
+  for (const m of src.matchAll(/\/\/[^\n]*/g)) out.push([m.index, m.index + m[0].length]);
+  return out;
+}
+
+function composableRanges(src) {
+  const ranges = [];
+  for (const m of src.matchAll(/@Composable\b/g)) {
+    const funAt = src.indexOf("fun", m.index);
+    if (funAt === -1) continue;
+    // Bail if another declaration intervenes — the annotation was not this fun's.
+    if (/\b(class|object|interface|val|var)\b/.test(src.slice(m.index, funAt))) continue;
+
+    let i = src.indexOf("(", funAt);
+    if (i === -1) continue;
+    let depth = 0;
+    for (; i < src.length; i++) {
+      if (src[i] === "(") depth++;
+      else if (src[i] === ")" && --depth === 0) { i++; break; }
+    }
+    // Past the parameter list: either a body `{` or an `=` expression body.
+    const brace = src.indexOf("{", i);
+    const eq = src.indexOf("=", i);
+    const nl = src.indexOf("\n", i);
+    let open;
+    if (eq !== -1 && eq < brace && eq < nl + 200) open = src.indexOf("{", eq);
+    else open = brace;
+    if (open === -1) continue;
+
+    depth = 0;
+    let j = open;
+    for (; j < src.length; j++) {
+      if (src[j] === "{") depth++;
+      else if (src[j] === "}" && --depth === 0) break;
+    }
+    ranges.push([open, j]);
+  }
+  return ranges;
+}
+
 function walkFiles(dir) {
   const out = [];
   for (const e of readdirSync(dir)) {
@@ -207,13 +265,36 @@ function apply(file, english) {
 
   let src = readFileSync(abs, "utf8");
   let applied = 0;
+
+  // `sRes()` needs a composition, so on Kotlin a literal may only be rewritten
+  // if it sits inside a `@Composable` body. Three CI rounds were spent learning
+  // that a "Screen.kt" file is not all composable: `periodChipLabel` is a plain
+  // helper, `TYPE_LABEL` is a top-level `val` map, and a resource cannot be
+  // resolved from either. Swift has no such constraint — its accessors are
+  // plain statics.
+  const allowed = isSwift ? null : composableRanges(src);
+  // Comments are excluded from substitution on BOTH platforms. `literalsIn`
+  // strips them before *finding* literals, but `apply` rewrites the raw source
+  // — so a quoted phrase in a doc comment got replaced with an accessor call.
+  // Harmless to the compiler and destructive to the provenance notes that make
+  // this port reviewable; it corrupted nine comments before this existed.
+  const comments = commentRanges(src);
+  const inComment = (i) => comments.some(([a, b]) => i >= a && i < b);
+  const inAllowed = (i) =>
+    !inComment(i) && (allowed === null || allowed.some(([a, b]) => i >= a && i < b));
+
   for (const [lit, h] of r.exact) {
     const call = isSwift ? accessorFor(h.ns, h.k) : `${accessorFor(h.ns, h.k)}(sRes())`;
     // Whole-literal only: never touch a fragment of a larger string.
     const needle = `"${lit}"`;
-    if (!src.includes(needle)) continue;
-    src = src.split(needle).join(call);
-    applied++;
+    let out = "", cursor = 0, hit = false;
+    for (let i = src.indexOf(needle); i !== -1; i = src.indexOf(needle, cursor)) {
+      out += src.slice(cursor, i);
+      if (inAllowed(i)) { out += call; hit = true; } else { out += needle; }
+      cursor = i + needle.length;
+    }
+    out += src.slice(cursor);
+    if (hit) { src = out; applied++; }
   }
   if (applied) {
     const imports = isSwift ? [] : ["com.sanvya.app.i18n.S", "com.sanvya.app.i18n.sRes"];

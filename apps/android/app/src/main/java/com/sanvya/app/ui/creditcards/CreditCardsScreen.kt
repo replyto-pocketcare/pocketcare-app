@@ -143,7 +143,7 @@ private fun CreditCardPanel(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         // Card face -- mirrors CreditCard.tsx: gradient from the account's own
         // color, network = account name (no real "network" concept exists),
-        // masked digits, S.Cards.cardHolder(sRes()) placeholder (no session-username plumbing
+        // masked digits, "Card holder" placeholder (no session-username plumbing
         // wired up for this label yet), currency in the bottom corner.
         Box(
             modifier = Modifier.fillMaxWidth().aspectRatio(1.586f)

@@ -3,7 +3,7 @@ import Domain
 
 /// Real port of apps/web/app/groups/[id]/page.tsx (task #30). See
 /// docs/mobile/screen-specs/splits.md for the deliberate scope cut
-/// (equal-split S.Splits.addExpense only; invite/itemized deferred). Embedded
+/// (equal-split "Add expense" only; invite/itemized deferred). Embedded
 /// content within SplitsView's own NavigationStack (its back button lives
 /// in the parent's toolbar), matching LoanDetailContentView's convention.
 struct GroupDetailView: View {

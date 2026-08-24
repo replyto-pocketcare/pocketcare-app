@@ -9,7 +9,7 @@ struct PayViaUpiSheet: View {
     let amountMinor: Int64
     var note: String = "Sanvya settle-up"
     /// Called with the built intent's `tr=` reference just before dismissing,
-    /// when the user taps S.Payments.payMarkPaid -- added task #30 so
+    /// when the user taps "Mark as paid" -- added task #30 so
     /// Splits' settle-up flow can record a "pending" settlement the payee
     /// still has to confirm (matches PayViaUpi.tsx's own `onPaid: (ref:
     /// string) => void` prop). Optional/no-op default so this stays a

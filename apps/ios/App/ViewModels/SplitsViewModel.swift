@@ -8,7 +8,7 @@ import Supabase
 /// Real port of apps/web/app/friends/page.tsx's hub (task #30). See
 /// docs/mobile/screen-specs/splits.md. Replaces the previous version's
 /// `"Friend" // Placeholder` name bug -- names are now resolved via a real
-/// connections join, matching web's `profiles.get(id)?.name ?? S.Groups.someone`.
+/// connections join, matching web's `profiles.get(id)?.name ?? "Someone"`.
 ///
 /// Multi-Task watch pattern (each `watch*` stream its own long-running
 /// Task, recomputing shared UI state on every emission) matches

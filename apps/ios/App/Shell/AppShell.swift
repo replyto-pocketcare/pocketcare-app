@@ -276,7 +276,7 @@ private struct AddPopover: View {
                         Button { onSelect(item) } label: {
                             HStack(spacing: 10) {
                                 SanvyaIconView(item.glyph, size: 17, tint: .text)
-                                Text(item.label())
+                                Text(item.label)
                                     .sanvyaStyle(SanvyaType.button)
                                     .foregroundStyle(Color.text)
                                 Spacer()
