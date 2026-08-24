@@ -12,8 +12,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sanvya.app.data.auth.AuthRepository
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.handleDeeplinks
 import com.sanvya.app.domain.repository.PushRepository
 import com.sanvya.app.theme.SanvyaTheme
 import androidx.compose.runtime.collectAsState
@@ -30,11 +28,6 @@ import org.koin.android.ext.android.inject
 class MainActivity : ComponentActivity() {
     private val pushRepository: PushRepository by inject()
     private val authRepository: AuthRepository by inject()
-
-    // Needed only to hand OAuth callback URIs back to supabase-kt. Nothing
-    // else in :app touches the Supabase client directly -- reads and writes go
-    // through repositories.
-    private val supabaseClient: SupabaseClient by inject()
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -57,7 +50,7 @@ class MainActivity : ComponentActivity() {
         // onNewIntent. Wiring only onCreate produces the flow that works
         // exactly once, on the first launch after install, and then silently
         // stops working, which is a miserable thing to debug.
-        supabaseClient.handleDeeplinks(intent)
+        authRepository.handleAuthCallback(intent)
 
         askNotificationPermission()
         
@@ -87,7 +80,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        supabaseClient.handleDeeplinks(intent)
+        authRepository.handleAuthCallback(intent)
     }
 
     private fun askNotificationPermission() {

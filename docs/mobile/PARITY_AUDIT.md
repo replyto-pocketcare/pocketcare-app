@@ -666,10 +666,23 @@ notices until a user writes in.
 The G mark is the same path data on all three platforms, on the same 18×18 viewport — web's SVG,
 Android's vector drawable, iOS's `Shape`. Not tinted, per Google's branding rules.
 
-`signInWithGoogle(idToken:)` is **kept on both platforms**, unused. It is the better UX for the
-non-guest case (Credential Manager's bottom sheet on Android; the Sign in with Google SDK on iOS)
-and can be layered on later as a fast path — but only for non-guests, and only once the
-browser flow is proven.
+`signInWithGoogle(idToken:)` is **kept on both platforms**, unused for now. It is the better UX
+for the non-guest case (Credential Manager's bottom sheet on Android; the Sign in with Google SDK
+on iOS).
+
+**Akhilesh chose this shape on 2026-08-24: ship the browser flow now, add the native picker
+after.** So the finished state is a two-branch `continueWithGoogle()`:
+
+| Session state | Flow | Why |
+|---|---|---|
+| No guest — fresh install, or signed out | **native picker** (`signInWithGoogle(idToken)`) | the common case, and the one that should feel native |
+| Guest exists | **browser** (`linkIdentity`) | the only flow that can link; anything else orphans their data |
+
+The branch already exists and already asks `isGuest()`; adding the picker is filling in one arm.
+That is queued as **W1.6** in §7. It needs an Android OAuth client ID with the SHA-1 of every
+signing key, and an iOS OAuth client ID — **both from Google Cloud Console, not Firebase.**
+Firebase is not involved in authentication anywhere in this codebase; `firebase-messaging` is in
+`:app` for push only, and iOS has no Firebase at all.
 
 #### What you still have to set up
 
@@ -758,6 +771,14 @@ height gate on Expanded) and `FEATURE_SENSOR_HINGE_ANGLE` / `sw600dp`, **not** w
 (Akhilesh, 2026-08-23). Orientation: phones portrait, tablets and foldables free. Every class
 change is a resize, not a relaunch — nothing may be lost across one.
 Spec: `screen-specs/app-shell.md` §1, §1a, §1b. Both platforms done 2026-08-23.
+
+**W1.6 — native Google account picker**, as the non-guest arm of `continueWithGoogle()` on both
+platforms. Credential Manager (`androidx.credentials` + `googleid`) on Android, the Sign in with
+Google SDK or `ASAuthorization` on iOS. The guest arm stays the browser flow forever — it is the
+only one that can `linkIdentity`. **The trap:** Supabase validates the ID token against the **Web**
+client ID, not the platform one; the platform IDs exist only so Google's own picker will show up.
+Passing the platform ID fails as an audience mismatch that reads like a misconfiguration. Blocked
+on Akhilesh creating the two client IDs (Google Cloud Console — not Firebase).
 
 **W2.1 — create/edit surfaces, all three platforms**: full page below 600dp, dialog or side
 panel at 600dp and up. One rule, width-driven, replacing both Android's drift and web's own

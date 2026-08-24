@@ -90,13 +90,6 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.navigation.compose)
 
-    // Google sign-in runs in a Custom Tab (see LoginScreen / GoogleAuth.kt).
-    // supabase-kt drives it, but the Custom Tabs client library is declared
-    // here explicitly rather than relied on transitively -- the failure mode
-    // if it is absent is a full browser app-switch that drops the back stack,
-    // which is easy to mistake for a Supabase misconfiguration.
-    implementation(libs.androidx.browser)
-
     // Task #62 (Receipt Scan capture): camera preview + in-memory frame
     // capture, on-device OCR. See docs/mobile/screen-specs/receipt-scan.md.
     implementation(libs.camerax.core)

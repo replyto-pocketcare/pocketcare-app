@@ -65,6 +65,14 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.supabase.functions)
 
+    // Custom Tabs, for the Google sign-in browser flow supabase-kt launches
+    // from this module. Declared explicitly rather than relied on transitively:
+    // if it is absent the flow falls back to a full browser app-switch that
+    // drops the back stack on some OEMs, which is easy to mistake for a
+    // Supabase misconfiguration. It lives here, not in :app, because :app never
+    // touches the auth flow directly -- that was the whole bug above.
+    implementation(libs.androidx.browser)
+
     // Ktor OkHttp engine — required by supabase-kt on Android.
     implementation(libs.ktor.client.okhttp)
 

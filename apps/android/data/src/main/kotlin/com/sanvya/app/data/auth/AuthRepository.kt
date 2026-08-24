@@ -1,6 +1,8 @@
 package com.sanvya.app.data.auth
 
+import android.content.Intent
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.handleDeeplinks
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +33,25 @@ interface AuthRepository {
 
     /** Link-or-sign-in with Google. See Auth.kt's `continueWithGoogle`. */
     suspend fun continueWithGoogle()
+
+    /**
+     * Feed an OAuth callback Intent back to Supabase, completing a sign-in that
+     * `continueWithGoogle()` started in the browser.
+     *
+     * This exists so `:app` never names `SupabaseClient`. MainActivity used to
+     * inject the client and call `handleDeeplinks(intent)` on it directly,
+     * which does not compile: supabase-kt is an `implementation` dependency of
+     * `:data`, so it is deliberately absent from `:app`'s compile classpath.
+     * (Same shape of mistake as the `androidx.window` one in W1.5 — an
+     * `implementation` dep is invisible to consumers by design, and reaching
+     * for it is the compiler telling you the layering is wrong, not that the
+     * dependency is missing.)
+     *
+     * Not suspending: supabase-kt parses the URI and hands the session to its
+     * own scope, and MainActivity has no coroutine scope at that point in
+     * `onCreate`/`onNewIntent`.
+     */
+    fun handleAuthCallback(intent: Intent)
 
     suspend fun signInWithGoogle(idToken: String)
     suspend fun sendOtp(email: String)
@@ -82,6 +103,10 @@ class AuthRepositoryImpl(
 
     override suspend fun continueWithGoogle() {
         com.sanvya.app.data.auth.continueWithGoogle(client)
+    }
+
+    override fun handleAuthCallback(intent: Intent) {
+        client.handleDeeplinks(intent)
     }
 
     override suspend fun signInWithGoogle(idToken: String) {
