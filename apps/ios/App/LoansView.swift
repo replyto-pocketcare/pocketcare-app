@@ -17,7 +17,11 @@ struct LoansView: View {
     @State private var showingAddSheet = false
 
     var body: some View {
-        NavigationStack {
+        SanvyaPage(selectedLoanId != nil ? "" : S.Loans.title) {
+            Button(action: { showingAddSheet = true }) {
+                Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
+            }
+        } content: {
             Group {
                 if let selectedLoanId {
                     LoanDetailContentView(loanId: selectedLoanId, onBack: { self.selectedLoanId = nil }, onDeleted: { self.selectedLoanId = nil })
@@ -35,19 +39,7 @@ struct LoansView: View {
                     }
                 }
             }
-            .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(selectedLoanId != nil ? "" : S.Loans.title)
             .registerBack(selectedLoanId != nil) { selectedLoanId = nil }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if selectedLoanId == nil {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button(action: { showingAddSheet = true }) {
-                            Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
-                        }
-                    }
-                }
-            }
         }
         .sheet(isPresented: $showingAddSheet) {
             AddLoanView(viewModel: viewModel)

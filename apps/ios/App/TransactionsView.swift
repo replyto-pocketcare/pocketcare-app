@@ -12,7 +12,11 @@ struct TransactionsView: View {
     @State private var showingCreateSheet = false
 
     var body: some View {
-        NavigationStack {
+        SanvyaPage(S.Transactions.title) {
+            Button(action: { showingCreateSheet = true }) {
+                Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
+            }
+        } content: {
             VStack(spacing: 10) {
                 TextField("Search note or label", text: $viewModel.query)
                     .textFieldStyle(.roundedBorder)
@@ -51,15 +55,6 @@ struct TransactionsView: View {
                             }
                         }
                         .padding(16)
-                    }
-                }
-            }
-            .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(S.Transactions.title)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: { showingCreateSheet = true }) {
-                        Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
                     }
                 }
             }

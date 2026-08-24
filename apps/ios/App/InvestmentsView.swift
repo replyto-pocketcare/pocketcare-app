@@ -23,7 +23,11 @@ struct InvestmentsView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        SanvyaPage(drilledGroup?.label ?? S.Translation.navInvestments) {
+            Button(action: { showingAddSheet = true }) {
+                Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
+            }
+        } content: {
             Group {
                 if viewModel.invAccounts.isEmpty {
                     emptyAccountState
@@ -61,22 +65,11 @@ struct InvestmentsView: View {
                     }
                 }
             }
-            .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(drilledGroup?.label ?? S.Translation.navInvestments)
             // Drill-in is local state, not a route, so the shell cannot
             // infer it — the screen says so and the util row shows Back.
             // Not a toolbar button: a screen gets ONE back affordance and
             // it is the util row's (screen-specs/app-shell.md §7).
             .registerBack(drilledKey != nil) { drilledKey = nil }
-            .toolbar {
-                if !viewModel.invAccounts.isEmpty {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button(action: { showingAddSheet = true }) {
-                            Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
-                        }
-                    }
-                }
-            }
         }
         .sheet(isPresented: $showingAddSheet) {
             AddHoldingView(initialGroupKey: drilledGroup?.key, viewModel: viewModel)

@@ -16,7 +16,13 @@ struct BudgetsView: View {
     @State private var viewModel = BudgetsViewModel()
 
     var body: some View {
-        NavigationStack {
+        SanvyaPage(S.Budgets.title) {
+            Button(action: { showingCreateSheet = true }) {
+                Image(systemName: "plus")
+                    .font(.headline)
+                    .foregroundColor(Color.accent)
+            }
+        } content: {
             Group {
                 if viewModel.budgets.isEmpty {
                     emptyState
@@ -33,17 +39,6 @@ struct BudgetsView: View {
                             }
                         }
                         .padding(16)
-                    }
-                }
-            }
-            .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(S.Budgets.title)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: { showingCreateSheet = true }) {
-                        Image(systemName: "plus")
-                            .font(.headline)
-                            .foregroundColor(Color.accent)
                     }
                 }
             }

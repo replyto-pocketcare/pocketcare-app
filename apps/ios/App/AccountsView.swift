@@ -21,7 +21,19 @@ struct AccountsView: View {
     private let columns = [GridItem(.adaptive(minimum: 260), spacing: 12)]
 
     var body: some View {
-        NavigationStack {
+        SanvyaPage(S.Accounts.title) {
+            if viewModel.archivedCount > 0 {
+                Button(viewModel.showArchived ? S.Accounts.hideArchived : "Show archived (\(viewModel.archivedCount))") {
+                    viewModel.toggleShowArchived()
+                }
+                .font(.caption)
+            }
+            Button(action: { showingCreateSheet = true }) {
+                Image(systemName: "plus")
+                    .font(.headline)
+                    .foregroundColor(Color.accent)
+            }
+        } content: {
             ScrollView {
                 if viewModel.visible.isEmpty {
                     Text(S.Accounts.noAccounts)
@@ -41,23 +53,6 @@ struct AccountsView: View {
                         }
                     }
                     .padding(16)
-                }
-            }
-            .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(S.Accounts.title)
-            .toolbar {
-                ToolbarItemGroup(placement: .primaryAction) {
-                    if viewModel.archivedCount > 0 {
-                        Button(viewModel.showArchived ? S.Accounts.hideArchived : "Show archived (\(viewModel.archivedCount))") {
-                            viewModel.toggleShowArchived()
-                        }
-                        .font(.caption)
-                    }
-                    Button(action: { showingCreateSheet = true }) {
-                        Image(systemName: "plus")
-                            .font(.headline)
-                            .foregroundColor(Color.accent)
-                    }
                 }
             }
             .sheet(isPresented: $showingCreateSheet) {

@@ -46,10 +46,14 @@ fun SanvyaPage(
             horizontalArrangement = Arrangement.spacedBy(SanvyaMetrics.PageHeader.headerGap),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // An empty title renders no heading at all rather than an empty
+            // one — a screen holding a drill-down in local state clears its
+            // title on the way in, and an empty H1 would still reserve a line.
+            //
             // `compact = true` is web's own choice, not a native concession:
             // globals.css drops h1 to 22px below 860px, and that is the size a
             // phone actually renders.
-            H1(title, compact = true)
+            if (title.isNotEmpty()) H1(title, compact = true)
             Spacer(modifier = Modifier.weight(1f))
             action()
         }

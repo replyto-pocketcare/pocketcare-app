@@ -13,7 +13,11 @@ struct SplitsView: View {
     @State private var selectedGroupId: String?
 
     var body: some View {
-        NavigationStack {
+        SanvyaPage(selectedGroupId != nil ? "" : S.Splits.eyebrow) {
+            Button(action: { showingCreateSheet = true }) {
+                Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
+            }
+        } content: {
             Group {
                 if let selectedGroupId {
                     GroupDetailView(groupId: selectedGroupId, onBack: { self.selectedGroupId = nil })
@@ -21,19 +25,7 @@ struct SplitsView: View {
                     hub
                 }
             }
-            .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(selectedGroupId != nil ? "" : S.Splits.eyebrow)
             .registerBack(selectedGroupId != nil) { selectedGroupId = nil }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if selectedGroupId == nil {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button(action: { showingCreateSheet = true }) {
-                            Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
-                        }
-                    }
-                }
-            }
             .sheet(isPresented: $showingCreateSheet) {
                 CreateGroupView(viewModel: viewModel, onCreated: { id in
                     showingCreateSheet = false

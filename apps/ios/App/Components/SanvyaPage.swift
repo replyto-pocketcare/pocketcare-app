@@ -38,10 +38,16 @@ struct SanvyaPage<Action: View, Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: SanvyaMetrics.PageHeader.sectionGap) {
             HStack(alignment: .center, spacing: SanvyaMetrics.PageHeader.headerGap) {
-                // `compact: true` is web's own choice, not a native concession:
-                // globals.css drops h1 to 22px below 860px, and that is the size
-                // a phone actually renders.
-                SanvyaH1(title, compact: true)
+                // An empty title renders no heading at all rather than an empty
+                // one. Screens that hold a drill-down in local state clear their
+                // title on the way in (`selectedLoanId != nil ? "" : …`), and an
+                // empty `SanvyaH1` would still reserve a line of 22pt.
+                if !title.isEmpty {
+                    // `compact: true` is web's own choice, not a native
+                    // concession: globals.css drops h1 to 22px below 860px, and
+                    // that is the size a phone actually renders.
+                    SanvyaH1(title, compact: true)
+                }
                 Spacer(minLength: 0)
                 action()
             }

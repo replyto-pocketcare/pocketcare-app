@@ -13,7 +13,11 @@ struct GoalsView: View {
     @State private var viewModel = GoalsViewModel()
 
     var body: some View {
-        NavigationStack {
+        SanvyaPage(S.Goals.title) {
+            Button(action: { showingCreateSheet = true }) {
+                Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
+            }
+        } content: {
             Group {
                 if viewModel.goals.isEmpty {
                     emptyState
@@ -39,15 +43,6 @@ struct GoalsView: View {
                             }
                         }
                         .padding(16)
-                    }
-                }
-            }
-            .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(S.Goals.title)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: { showingCreateSheet = true }) {
-                        Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
                     }
                 }
             }

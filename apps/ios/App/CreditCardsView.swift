@@ -19,7 +19,7 @@ struct CreditCardsView: View {
     @State private var viewModel = CreditCardsViewModel()
 
     var body: some View {
-        NavigationStack {
+        SanvyaPage("Credit Cards") {
             Group {
                 if !viewModel.loaded {
                     ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -36,9 +36,6 @@ struct CreditCardsView: View {
                     }
                 }
             }
-            .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Credit Cards")
-            .navigationBarTitleDisplayMode(.inline)
             .onAppear { viewModel.start() }
             .onDisappear { viewModel.cancel() }
             .sheet(isPresented: Binding(get: { !viewModel.coveredEmis.isEmpty }, set: { if !$0 { viewModel.skipMarkEmisPaid() } })) {
