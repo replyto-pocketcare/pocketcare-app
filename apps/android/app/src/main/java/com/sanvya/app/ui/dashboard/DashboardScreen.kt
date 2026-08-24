@@ -36,9 +36,12 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.ui.Prefs
 import com.sanvya.app.ui.accountColor
-import java.text.NumberFormat
-import java.util.Locale
 import kotlin.math.abs
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.formatMoneyUnmasked
+import com.sanvya.app.ui.colorForId
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Dashboard — ported from apps/web/app/page.tsx per
@@ -51,7 +54,6 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    onOpenDrawer: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onAddAccount: () -> Unit = {},
     onViewAccounts: () -> Unit = {},
@@ -68,12 +70,7 @@ fun DashboardScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Dashboard", fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = colors.text2)
-                    }
-                },
+                title = { Text(S.Translation.navHome(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 actions = {
                     IconButton(onClick = { Prefs.setAmountsHidden(!amountsHidden) }) {
                         Icon(
@@ -83,42 +80,19 @@ fun DashboardScreen(
                         )
                     }
                     IconButton(onClick = onViewTransactions) {
-                        Icon(Icons.Default.Receipt, contentDescription = "Transactions", tint = colors.text2)
+                        Icon(Icons.Default.Receipt, contentDescription = S.Translation.navTransactions(sRes()), tint = colors.text2)
                     }
                     IconButton(onClick = onOpenSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = colors.text2)
+                        Icon(Icons.Default.Settings, contentDescription = S.Translation.commonSettings(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )
         },
-        floatingActionButton = {
-            // Speed dial -- real port of AddSpeedDial (apps/web/app/
-            // AppShell.tsx), Dashboard-only on web (`pathname === "/"`), and
-            // the first quick-add control on either mobile platform (task
-            // #62 -- verified by grep, no FAB/SpeedDial symbol existed
-            // before this). See docs/mobile/screen-specs/receipt-scan.md.
-            var speedDialOpen by remember { mutableStateOf(false) }
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (speedDialOpen) {
-                    ExtendedFloatingActionButton(
-                        onClick = { speedDialOpen = false; onScanReceipt() },
-                        containerColor = colors.surface,
-                        icon = { Icon(Icons.Default.Receipt, contentDescription = null, tint = colors.text) },
-                        text = { Text("Scan bill / receipt", color = colors.text) },
-                    )
-                    ExtendedFloatingActionButton(
-                        onClick = { speedDialOpen = false; onAddTransaction() },
-                        containerColor = colors.surface,
-                        icon = { Icon(Icons.Default.Add, contentDescription = null, tint = colors.text) },
-                        text = { Text("Add transaction", color = colors.text) },
-                    )
-                }
-                FloatingActionButton(onClick = { speedDialOpen = !speedDialOpen }, containerColor = colors.accent) {
-                    Icon(Icons.Default.Add, contentDescription = if (speedDialOpen) "Close" else "Add", tint = colors.surface)
-                }
-            }
-        },
+        // No floatingActionButton: the shell's centre "+" is the app's one add
+        // affordance, on every screen, exactly as on web. The speed dial that
+        // used to live here was this app's only quick-add control before the
+        // shell existed; keeping it would put two "+" buttons on the dashboard.
     ) { padding ->
         if (uiState.accounts.isEmpty()) {
             EmptyDashboard(onAddAccount = onAddAccount, modifier = Modifier.padding(padding))
@@ -181,7 +155,7 @@ private fun EmptyDashboard(onAddAccount: () -> Unit = {}, modifier: Modifier = M
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Text("Welcome to Sanvya", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                Text(S.Onboarding.wtIntroTitle(sRes()), fontSize = 26.sp, fontWeight = FontWeight.Bold, color = colors.text)
                 Text(
                     "Start by adding your first account — just your own note of somewhere your money sits. " +
                         "Nothing here connects to your bank; you type the amounts in yourself.",
@@ -205,14 +179,11 @@ private fun NetWorthHero(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val numberFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-            currency = java.util.Currency.getInstance("INR")
-            maximumFractionDigits = 2
-        }
-    }
-    val netFormatted = if (hidden) "••••••" else numberFormat.format(state.net.amount / 100.0)
-    val deltaFormatted = if (hidden) "••••" else numberFormat.format(abs(state.deltaMinor) / 100.0)
+    // `formatMoneyAware` already consults the setting, but this screen
+// distinguishes a long mask for the hero from a short one for the delta,
+// so the choice stays here and the formatter is asked for the unmasked form.
+    val netFormatted = if (hidden) "••••••" else formatMoneyUnmasked(state.net)
+    val deltaFormatted = if (hidden) "••••" else formatMoney(abs(state.deltaMinor), state.net.currency, mask = "••••")
     val up = state.deltaMinor >= 0
 
     Box(
@@ -229,7 +200,7 @@ private fun NetWorthHero(
         Column {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    text = if (state.showAvailable) "AVAILABLE NET WORTH" else "NET WORTH",
+                    text = if (state.showAvailable) S.Translation.netWorthAvailable(sRes()) else S.Translation.netWorthTitle(sRes()),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 1.sp,
@@ -243,7 +214,7 @@ private fun NetWorthHero(
                         .padding(horizontal = 12.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text = if (state.showAvailable) "Excluding blocked" else "Including blocked",
+                        text = if (state.showAvailable) "Excluding blocked" else S.Translation.netWorthWithBlocked(sRes()),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFFEAF0DA),
@@ -339,12 +310,6 @@ private fun AccountsCard(
     onViewAll: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val numberFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-            currency = java.util.Currency.getInstance("INR")
-            maximumFractionDigits = 2
-        }
-    }
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
@@ -356,7 +321,7 @@ private fun AccountsCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Accounts", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                Text(S.Translation.navAccounts(sRes()), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text)
                 val suffix = if (accounts.size > 8) " (${accounts.size})" else ""
                 Text(
                     "View all$suffix",
@@ -391,7 +356,7 @@ private fun AccountsCard(
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = if (hidden) "••••••" else numberFormat.format(item.balance.amount / 100.0),
+                            text = if (hidden) "••••••" else formatMoneyUnmasked(item.balance),
                             fontSize = 14.5.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White,

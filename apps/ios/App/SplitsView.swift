@@ -7,7 +7,6 @@ import Domain
 /// settle-up used to show ₹1200 no matter the real balance) --
 /// settle-up now lives on GroupDetailView, fed by real balances.
 struct SplitsView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var selectedTab = 0 // 0: Groups & Trips, 1: Friends
     @State private var viewModel = SplitsViewModel()
     @State private var showingCreateSheet = false
@@ -23,24 +22,10 @@ struct SplitsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(selectedGroupId != nil ? "" : "Splits")
+            .navigationTitle(selectedGroupId != nil ? "" : S.Splits.eyebrow)
+            .registerBack(selectedGroupId != nil) { selectedGroupId = nil }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                // Same leading button toggles hamburger/back depending on
-                // selection state -- matches LoansView's established
-                // list/detail convention, not a new pattern.
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        if selectedGroupId != nil {
-                            selectedGroupId = nil
-                        } else {
-                            withAnimation(.spring()) { isDrawerOpen.toggle() }
-                        }
-                    } label: {
-                        Image(systemName: selectedGroupId != nil ? "chevron.left" : "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
                 if selectedGroupId == nil {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: { showingCreateSheet = true }) {
@@ -80,8 +65,8 @@ struct SplitsView: View {
             }
 
             Picker("Section", selection: $selectedTab) {
-                Text("Groups & Trips").tag(0)
-                Text("Friends").tag(1)
+                Text(S.Splits.groupsAndTrips).tag(0)
+                Text(S.Splits.sectionsFriends).tag(1)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
@@ -111,10 +96,10 @@ struct SplitsView: View {
                             ForEach(viewModel.friends) { friend in
                                 RowTile(
                                     title: friend.name,
-                                    subtitle: friend.isOwed ? "Owes you" : "You owe",
+                                    subtitle: friend.isOwed ? S.Splits.sectionsOwesYou : S.Splits.sectionsYouOwe,
                                     action: {
                                         Task {
-                                            if let id = await viewModel.openOrCreateDirectGroup(otherUserId: friend.id, currency: "INR") {
+                                            if let id = await viewModel.openOrCreateDirectGroup(otherUserId: friend.id, currency: baseCurrencyNow()) {
                                                 selectedGroupId = id
                                             }
                                         }
@@ -163,5 +148,5 @@ struct SplitsView: View {
 }
 
 #Preview {
-    SplitsView(isDrawerOpen: .constant(false))
+    SplitsView()
 }

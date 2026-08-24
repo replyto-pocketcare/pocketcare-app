@@ -14,6 +14,7 @@ import com.sanvya.app.data.auth.AuthRepository
 import com.sanvya.app.domain.repository.PushRepository
 import com.sanvya.app.theme.SanvyaTheme
 import com.sanvya.app.ui.navigation.SanvyaNavHost
+import com.sanvya.app.ui.shell.ProvideWindowClass
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -36,7 +37,14 @@ class MainActivity : ComponentActivity() {
         
         setContent {
             SanvyaTheme {
-                SanvyaNavHost()
+                // Publishes the window class and device type, and applies the
+                // orientation policy (phones portrait; tablets and foldables
+                // free). Wraps everything, including the nav host, because a
+                // width-class change must reach every screen -- not just the
+                // shell's own chrome.
+                ProvideWindowClass {
+                    SanvyaNavHost()
+                }
             }
         }
     }

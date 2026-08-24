@@ -28,8 +28,23 @@ public struct MindfulInsight: Sendable {
     public let severity: String?
 }
 
-/// Tier 1 insights (no tagging required).
-public func computeTier1Insights(_ txns: [TransactionForInsight]) -> [MindfulInsight] {
+/// The small-purchase-drift threshold, in MAJOR units.
+private let smallPurchaseMajor: Double = 200
+
+/**
+ Tier 1 insights (no tagging required).
+
+ Takes the currency and the caller's formatter, which is this codebase's
+ established "domain never formats currency, screens do" convention —
+ `GenContext` already carries both. The original port interpolated a bare
+ `total / 100`, which was wrong in any currency that does not have two minor
+ units and could not be hidden by the hide-amounts toggle.
+ */
+public func computeTier1Insights(
+    _ txns: [TransactionForInsight],
+    currency: String,
+    fmt: (Int64) -> String
+) -> [MindfulInsight] {
     var insights: [MindfulInsight] = []
     if txns.isEmpty { return insights }
 
@@ -51,13 +66,21 @@ public func computeTier1Insights(_ txns: [TransactionForInsight]) -> [MindfulIns
         ))
     }
 
-    // Small-purchase drift (<200 major units == <20000 minor).
-    let smallTxns = txns.filter { $0.amount < 20_000 }
+    // Small-purchase drift.
+    //
+    // The threshold is derived, not written down: 20000 minor units is 200 only
+    // in a 2-decimal currency. In JPY it meant 20,000 yen and in KWD 20 dinar.
+    let threshold = fromMajor(smallPurchaseMajor, currency).amount
+
+    // Same-currency only. Summing yen into dollars produced a number that was
+    // not an amount in any currency, then labelled it with one.
+    let smallTxns = txns.filter { $0.currency == currency && $0.amount < threshold }
     if smallTxns.count > 5 {
-        let totalSmall = smallTxns.reduce(0) { $0 + $1.amount }
+        let totalSmall = smallTxns.reduce(Int64(0)) { $0 + $1.amount }
         insights.append(MindfulInsight(
             id: "small_purchase_drift", type: "tier1", title: "Small-purchase drift",
-            body: "You had \(smallTxns.count) spends under 200, totaling \(Double(totalSmall) / 100.0).", severity: "info"
+            body: "You had \(smallTxns.count) spends under \(fmt(threshold)), totaling \(fmt(totalSmall)).",
+            severity: "info"
         ))
     }
     return insights

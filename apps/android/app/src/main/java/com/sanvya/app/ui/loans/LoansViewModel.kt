@@ -18,16 +18,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.text.NumberFormat
 import java.time.LocalDate
-import java.util.Currency
 import java.util.Locale
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.baseCurrencyNow
 
-/** Base/display currency -- loans are always created in the base currency
- * (matches web: `AddLoan` inserts with `currency: base`, no per-loan
- * currency picker exists). Hardcoded "INR" matching Dashboard/
- * Investments' own established simplification. */
-private const val BASE_CURRENCY = "INR"
 
 private val NON_INVESTMENT_TYPES = setOf("stocks", "mutual_funds", "demat")
 
@@ -62,7 +57,7 @@ class LoansViewModel : ViewModel(), KoinComponent {
     private val _loans = MutableStateFlow<List<LoanUiModel>>(emptyList())
     val loans: StateFlow<List<LoanUiModel>> = _loans
 
-    private val _totalEmiFormatted = MutableStateFlow(formatMoney(0L))
+    private val _totalEmiFormatted = MutableStateFlow(formatMoney(0L, baseCurrencyNow()))
     val totalEmiFormatted: StateFlow<String> = _totalEmiFormatted
 
     private val _fundingAccounts = MutableStateFlow<List<FundingAccountOption>>(emptyList())
@@ -89,10 +84,10 @@ class LoansViewModel : ViewModel(), KoinComponent {
                     val remaining = if (tenure > 0) maxOf(0, tenure - paid) else null
                     val closed = tenure > 0 && remaining == 0
                     val range = loanRange(l.startDate, tenure)
-                    val cur = l.currency.ifBlank { BASE_CURRENCY }
+                    val cur = l.currency.ifBlank { baseCurrencyNow() }
                     val emiAmount = l.emiAmount
                     if (emiAmount != null) {
-                        totalEmiBase += if (cur == BASE_CURRENCY) emiAmount else convert(money(emiAmount, cur), BASE_CURRENCY, rates(cur, BASE_CURRENCY)).amount
+                        totalEmiBase += if (cur == baseCurrencyNow()) emiAmount else convert(money(emiAmount, cur), baseCurrencyNow(), rates(cur, baseCurrencyNow())).amount
                     }
                     LoanUiModel(
                         id = l.id,
@@ -107,7 +102,7 @@ class LoansViewModel : ViewModel(), KoinComponent {
                     )
                 }
                 _loans.value = uis
-                _totalEmiFormatted.value = formatMoney(totalEmiBase)
+                _totalEmiFormatted.value = formatMoney(totalEmiBase, baseCurrencyNow())
             }
         }
     }
@@ -123,13 +118,13 @@ class LoansViewModel : ViewModel(), KoinComponent {
         if (lender.trim().isEmpty() && principalMajorText.isBlank()) return "Enter a lender or a loan amount."
         val userId = authRepository.currentUserId.value ?: return "Couldn't determine the current user."
         return try {
-            val principalMinor = fromMajor(principalMajorText.toDoubleOrNull() ?: 0.0, BASE_CURRENCY).amount
+            val principalMinor = fromMajor(principalMajorText.toDoubleOrNull() ?: 0.0, baseCurrencyNow()).amount
             val dueDay = dueDayText.toIntOrNull()?.coerceIn(1, 31)
             loansRepository.create(
                 userId,
                 NewLoanInput(
-                    lender = lender.trim(), currency = BASE_CURRENCY, principal = principalMinor,
-                    emiAmount = emiMajorText?.toDoubleOrNull()?.let { fromMajor(it, BASE_CURRENCY).amount },
+                    lender = lender.trim(), currency = baseCurrencyNow(), principal = principalMinor,
+                    emiAmount = emiMajorText?.toDoubleOrNull()?.let { fromMajor(it, baseCurrencyNow()).amount },
                     interestRate = interestRateText.toDoubleOrNull() ?: 0.0,
                     tenureMonths = tenureText.toIntOrNull(), startDate = startDate, emiDueDay = dueDay,
                     autoMarkPaid = autoMarkPaid, rateType = rateType, fundingAccountId = fundingAccountId,
@@ -178,11 +173,3 @@ internal fun loanRange(startIso: String?, tenure: Int): String? {
     }
 }
 
-internal fun formatMoney(minor: Long, currency: String = "INR"): String = try {
-    NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-        this.currency = Currency.getInstance(currency)
-        maximumFractionDigits = 0
-    }.format(toMajor(money(minor, currency)))
-} catch (e: Exception) {
-    "$currency ${minor / 100.0}"
-}

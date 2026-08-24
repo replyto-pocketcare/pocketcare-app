@@ -7,36 +7,37 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 
 // GENERATED FILE — do not hand-edit.
-// Source: apps/web/app/globals.css :root / :root[data-theme="dark"]
+// Source: apps/web/app/globals.css + tools/parity/tokens.spec.mjs
 // Regenerate with: node tools/parity/generate-tokens.mjs
 
 /**
- * Semantic token holder — mirrors the CSS custom properties exactly (same
- * names, same values) so a screen reading `LocalSanvyaColors.current.accent`
- * is reading the same source-derived value web reads from `var(--accent)`.
+ * Semantic token holder — the same names and values as the CSS custom
+ * properties, so `LocalSanvyaColors.current.accent` and web's `var(--accent)`
+ * are the same number from the same source.
  */
 data class SanvyaColors(
-    val bg: androidx.compose.ui.graphics.Color,
-    val surface: androidx.compose.ui.graphics.Color,
-    val surface2: androidx.compose.ui.graphics.Color,
-    val border: androidx.compose.ui.graphics.Color,
-    val borderStrong: androidx.compose.ui.graphics.Color,
-    val sidebar: androidx.compose.ui.graphics.Color,
-    val text: androidx.compose.ui.graphics.Color,
-    val text2: androidx.compose.ui.graphics.Color,
-    val text3: androidx.compose.ui.graphics.Color,
-    val accent: androidx.compose.ui.graphics.Color,
-    val accentHover: androidx.compose.ui.graphics.Color,
-    val accentSoft: androidx.compose.ui.graphics.Color,
-    val accentGhost: androidx.compose.ui.graphics.Color,
-    val positive: androidx.compose.ui.graphics.Color,
-    val negative: androidx.compose.ui.graphics.Color,
-    val warning: androidx.compose.ui.graphics.Color,
-    val teal: androidx.compose.ui.graphics.Color,
-    val sage: androidx.compose.ui.graphics.Color,
-    val forest: androidx.compose.ui.graphics.Color
+    val bg: Color,
+    val surface: Color,
+    val surface2: Color,
+    val border: Color,
+    val borderStrong: Color,
+    val sidebar: Color,
+    val text: Color,
+    val text2: Color,
+    val text3: Color,
+    val accent: Color,
+    val accentHover: Color,
+    val accentSoft: Color,
+    val accentGhost: Color,
+    val positive: Color,
+    val negative: Color,
+    val warning: Color,
+    val teal: Color,
+    val sage: Color,
+    val forest: Color
 )
 
 private val lightTokens = SanvyaColors(
@@ -83,41 +84,75 @@ private val darkTokens = SanvyaColors(
     forest = SanvyaDarkColors.forest
 )
 
+data class SanvyaShadows(
+    val shadow: SanvyaShadow,
+    val shadowLg: SanvyaShadow,
+    val shadowAccent: SanvyaShadow
+)
+
+private val lightShadows = SanvyaShadows(
+    shadow = SanvyaLightShadows.shadow,
+    shadowLg = SanvyaLightShadows.shadowLg,
+    shadowAccent = SanvyaLightShadows.shadowAccent
+)
+
+private val darkShadows = SanvyaShadows(
+    shadow = SanvyaDarkShadows.shadow,
+    shadowLg = SanvyaDarkShadows.shadowLg,
+    shadowAccent = SanvyaDarkShadows.shadowAccent
+)
+
 val LocalSanvyaColors = staticCompositionLocalOf { lightTokens }
+val LocalSanvyaShadows = staticCompositionLocalOf { lightShadows }
 
 @Composable
 fun SanvyaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val tokens = if (darkTheme) darkTokens else lightTokens
+    val shadows = if (darkTheme) darkShadows else lightShadows
 
-    // MaterialTheme wiring so standard Material 3 components (ripples, default
-    // surfaces) land close to the design system too — screens should still
-    // prefer LocalSanvyaColors.current for anything that needs to match web
-    // exactly (this is the same relationship web's globals.css vars have to
-    // its .card/.btn/.chip classes vs raw browser defaults).
+    // Material 3 wiring so stock components (ripples, dialogs, text fields the
+    // app has not replaced yet) land close to the design system. Screens still
+    // prefer LocalSanvyaColors.current for anything that must match web
+    // exactly — the same relationship globals.css's vars have to .card/.btn.
     val colorScheme = if (darkTheme) {
         darkColorScheme(
             background = tokens.bg,
             surface = tokens.surface,
+            surfaceVariant = tokens.surface2,
             primary = tokens.accent,
+            onPrimary = Color.White,
             onBackground = tokens.text,
             onSurface = tokens.text,
+            onSurfaceVariant = tokens.text2,
+            outline = tokens.border,
             error = tokens.negative,
         )
     } else {
         lightColorScheme(
             background = tokens.bg,
             surface = tokens.surface,
+            surfaceVariant = tokens.surface2,
             primary = tokens.accent,
+            onPrimary = Color.White,
             onBackground = tokens.text,
             onSurface = tokens.text,
+            onSurfaceVariant = tokens.text2,
+            outline = tokens.border,
             error = tokens.negative,
         )
     }
 
-    CompositionLocalProvider(LocalSanvyaColors provides tokens) {
-        MaterialTheme(colorScheme = colorScheme, content = content)
+    CompositionLocalProvider(
+        LocalSanvyaColors provides tokens,
+        LocalSanvyaShadows provides shadows,
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = sanvyaMaterialTypography(),
+            content = content,
+        )
     }
 }

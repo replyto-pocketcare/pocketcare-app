@@ -21,6 +21,9 @@ import com.sanvya.app.theme.SanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import java.text.NumberFormat
 import java.util.Locale
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 private val LINE_KINDS = listOf("item", "tax", "service_charge", "tip", "discount")
 
@@ -57,8 +60,8 @@ fun ReceiptReviewScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Check the details", fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2) } },
+                title = { Text(S.Receipts.reviewTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )
         },
@@ -70,7 +73,7 @@ fun ReceiptReviewScreen(
         val d = draft
         if (d == null) {
             Box(Modifier.padding(padding).fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-                Text(error ?: "That scan is no longer available.", color = colors.text2, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(error ?: S.Receipts.reviewNotFound(sRes()), color = colors.text2, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
             return@Scaffold
         }
@@ -91,21 +94,21 @@ fun ReceiptReviewScreen(
                     Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlinedTextField(
                             value = d.merchant ?: "", onValueChange = { viewModel.setMerchant(it) },
-                            label = { Text("Merchant") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                            label = { Text(S.Receipts.reviewMerchant(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                         )
                         OutlinedTextField(
                             value = d.occurredAt ?: "", onValueChange = { viewModel.setOccurredAt(it) },
                             label = { Text("Date (YYYY-MM-DD)") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                         )
-                        Text("Paid from", fontSize = 12.sp, color = colors.text2)
+                        Text(S.Receipts.reviewAccount(sRes()), fontSize = 12.sp, color = colors.text2)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             accounts.forEach { a ->
                                 FilterChip(selected = accountId == a.id, onClick = { viewModel.setAccountId(a.id) }, label = { Text(a.name) })
                             }
                         }
-                        Text("Category", fontSize = 12.sp, color = colors.text2)
+                        Text(S.Receipts.reviewCategory(sRes()), fontSize = 12.sp, color = colors.text2)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilterChip(selected = categoryId == null, onClick = { viewModel.setCategoryId(null) }, label = { Text("Uncategorised") })
+                            FilterChip(selected = categoryId == null, onClick = { viewModel.setCategoryId(null) }, label = { Text(S.Receipts.reviewNoCategory(sRes())) })
                             categories.forEach { c ->
                                 FilterChip(selected = categoryId == c.id, onClick = { viewModel.setCategoryId(c.id) }, label = { Text(c.name) })
                             }
@@ -115,7 +118,7 @@ fun ReceiptReviewScreen(
             }
 
             item {
-                Text("Items & charges", fontWeight = FontWeight.Bold, color = colors.text, fontSize = 15.sp)
+                Text(S.Receipts.reviewItems(sRes()), fontWeight = FontWeight.Bold, color = colors.text, fontSize = 15.sp)
             }
             items(d.lines, key = { it.id }) { line ->
                 LineEditor(
@@ -137,16 +140,16 @@ fun ReceiptReviewScreen(
                 Card(colors = CardDefaults.cardColors(containerColor = colors.surface), shape = RoundedCornerShape(SanvyaRadius.radiusLg)) {
                     Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         subs?.let { s ->
-                            SubtotalRow("Items", s.items, d.currency)
-                            if (s.discount != 0L) SubtotalRow("Discount", s.discount, d.currency)
-                            if (s.serviceCharge != 0L) SubtotalRow("Service charge", s.serviceCharge, d.currency)
-                            if (s.tax != 0L) SubtotalRow("Tax", s.tax, d.currency)
-                            if (s.tip != 0L) SubtotalRow("Tip", s.tip, d.currency)
+                            SubtotalRow(S.Receipts.reviewSubtotalItems(sRes()), s.items, d.currency)
+                            if (s.discount != 0L) SubtotalRow(S.Receipts.kindDiscount(sRes()), s.discount, d.currency)
+                            if (s.serviceCharge != 0L) SubtotalRow(S.Receipts.kindServiceCharge(sRes()), s.serviceCharge, d.currency)
+                            if (s.tax != 0L) SubtotalRow(S.Receipts.kindTax(sRes()), s.tax, d.currency)
+                            if (s.tip != 0L) SubtotalRow(S.Receipts.kindTip(sRes()), s.tip, d.currency)
                         }
                         OutlinedTextField(
                             value = d.total?.let { formatMajor(it, digits) } ?: "",
                             onValueChange = { v -> viewModel.setTotal(parseMajor(v, digits)) },
-                            label = { Text("Total on the receipt") },
+                            label = { Text(S.Receipts.reviewTotal(sRes())) },
                             singleLine = true,
                             modifier = Modifier.widthIn(max = 220.dp),
                         )
@@ -158,7 +161,7 @@ fun ReceiptReviewScreen(
                                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Text(
                                         if (balanced) "Adds up: ${formatMoney(r.computed, d.currency)} ✓"
-                                        else if (r.reason == "missing_total") "Enter the total printed on the receipt."
+                                        else if (r.reason == "missing_total") S.Receipts.reviewNeedTotal(sRes())
                                         else "Lines add up to ${formatMoney(r.computed, d.currency)}, but the receipt says ${r.stated?.let { formatMoney(it, d.currency) } ?: "—"}.",
                                         fontSize = 13.sp,
                                         color = colors.text,
@@ -188,10 +191,10 @@ fun ReceiptReviewScreen(
                         }
                         error?.let { Text(it, color = colors.negative, fontSize = 12.sp) }
                         Button(onClick = { viewModel.saveAsTransaction() }, enabled = canSave, modifier = Modifier.fillMaxWidth()) {
-                            Text(if (saving) "Saving…" else "Save transaction")
+                            Text(if (saving) S.Translation.commonSaving(sRes()) else S.Receipts.reviewSave(sRes()))
                         }
                         if (!balanced) {
-                            Text("The lines need to add up to the total before this can be saved.", fontSize = 11.sp, color = colors.text2)
+                            Text(S.Receipts.reviewMustBalance(sRes()), fontSize = 11.sp, color = colors.text2)
                         }
                     }
                 }
@@ -217,11 +220,11 @@ private fun LineEditor(line: ReceiptLine, digits: Int, colors: SanvyaColors, onC
                 OutlinedTextField(
                     value = line.description,
                     onValueChange = { onChange(line.copy(description = it)) },
-                    label = { Text("Description") },
+                    label = { Text(S.Receipts.reviewDescription(sRes())) },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = onRemove) { Icon(Icons.Default.Close, contentDescription = "Remove line", tint = colors.text2) }
+                IconButton(onClick = onRemove) { Icon(Icons.Default.Close, contentDescription = S.Receipts.reviewRemoveLine(sRes()), tint = colors.text2) }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
@@ -230,7 +233,7 @@ private fun LineEditor(line: ReceiptLine, digits: Int, colors: SanvyaColors, onC
                         val n = v.trim().toDoubleOrNull()
                         onChange(line.copy(quantity = if (v.isBlank() || n == null) null else Math.round(n * 1000)))
                     },
-                    label = { Text("Qty") },
+                    label = { Text(S.Receipts.reviewQty(sRes())) },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )
@@ -240,7 +243,7 @@ private fun LineEditor(line: ReceiptLine, digits: Int, colors: SanvyaColors, onC
                         val minor = parseMajor(v, digits) ?: 0L
                         onChange(line.copy(amount = if (line.kind == "discount") -Math.abs(minor) else Math.abs(minor)))
                     },
-                    label = { Text("Amount") },
+                    label = { Text(S.Receipts.reviewAmount(sRes())) },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )

@@ -15,7 +15,6 @@ import Data
 private let FALLBACK_PALETTE = ["#3e4a38", "#b06a4f", "#5f6647", "#7c4a3a", "#2b2723"]
 
 struct CreditCardsView: View {
-    @Binding var isDrawerOpen: Bool
     @Binding var currentTab: NavTab
     @State private var viewModel = CreditCardsViewModel()
 
@@ -40,15 +39,6 @@ struct CreditCardsView: View {
             .background(Color.bg.ignoresSafeArea())
             .navigationTitle("Credit Cards")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) { isDrawerOpen.toggle() }
-                    } label: {
-                        Image(systemName: "line.3.horizontal").imageScale(.large)
-                    }
-                }
-            }
             .onAppear { viewModel.start() }
             .onDisappear { viewModel.cancel() }
             .sheet(isPresented: Binding(get: { !viewModel.coveredEmis.isEmpty }, set: { if !$0 { viewModel.skipMarkEmisPaid() } })) {
@@ -108,7 +98,7 @@ private struct CreditCardPanelView: View {
                 Button { withAnimation { expanded.toggle() } } label: {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Spent this cycle").font(.caption).foregroundColor(Color.text2)
+                            Text(S.Cards.spentThisCycle).font(.caption).foregroundColor(Color.text2)
                             Text(card.owedFormatted).font(.system(size: 26, weight: .bold)).foregroundColor(Color.negative)
                             if let l = card.creditLimitFormatted { Text("of \(l) limit").font(.caption).foregroundColor(Color.text2) }
                         }
@@ -116,7 +106,7 @@ private struct CreditCardPanelView: View {
                         if !expanded, card.hasCycle {
                             VStack(alignment: .trailing, spacing: 2) {
                                 if let due = card.dueThisCycleFormatted {
-                                    Text("Due this cycle").font(.caption).foregroundColor(Color.text2)
+                                    Text(S.Cards.dueThisCycle).font(.caption).foregroundColor(Color.text2)
                                     Text(due).font(.system(size: 18, weight: .bold)).foregroundColor(card.dueThisCycle != 0 ? Color.negative : Color.positive)
                                 }
                                 if let payBy = card.payByIso {
@@ -135,26 +125,26 @@ private struct CreditCardPanelView: View {
                             if let spend = card.newSpendFormatted { Text("+\(spend) new spend since the last statement").font(.caption2).foregroundColor(Color.text2) }
                             if let stmtDate = card.statementDateIso { Text("Statement: \(stmtDate.toDisplayDate())").font(.caption2).foregroundColor(Color.text2) }
                             if !editing {
-                                Button("Edit details") { editing = true; limit = ""; dueAmt = "" }.font(.footnote)
+                                Button(S.Cards.editDetails) { editing = true; limit = ""; dueAmt = "" }.font(.footnote)
                             }
                         }
 
                         if editing {
-                            TextField("Statement day", text: $stmt).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
-                            TextField("Due day", text: $due).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
-                            TextField("Credit limit", text: $limit).keyboardType(.decimalPad).textFieldStyle(.roundedBorder)
-                            TextField("Amount due", text: $dueAmt).keyboardType(.decimalPad).textFieldStyle(.roundedBorder)
+                            TextField(S.Cards.statementDay, text: $stmt).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
+                            TextField(S.Cards.dueDay, text: $due).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
+                            TextField(S.Cards.creditLimit, text: $limit).keyboardType(.decimalPad).textFieldStyle(.roundedBorder)
+                            TextField(S.Cards.amountDue, text: $dueAmt).keyboardType(.decimalPad).textFieldStyle(.roundedBorder)
                             TextField("Card number (last 4)", text: $last4).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
                                 .onChange(of: last4) { _, v in last4 = String(v.filter(\.isNumber).suffix(4)) }
                             HStack {
-                                Button("Save") {
+                                Button(S.Cards.save) {
                                     Task {
                                         error = await viewModel.saveCycle(accountId: card.id, currency: card.currency, statementDayText: stmt, dueDayText: due, creditLimitMajorText: limit, dueAmountMajorText: dueAmt, last4: last4, existingCreditLimit: card.creditLimit)
                                         if error == nil { editing = false }
                                     }
                                 }
                                 .buttonStyle(.borderedProminent)
-                                if card.hasCycle { Button("Cancel") { editing = false } }
+                                if card.hasCycle { Button(S.Cards.cancel) { editing = false } }
                             }
                         }
 
@@ -175,8 +165,8 @@ private struct CreditCardPanelView: View {
                             }
                         }
                         HStack {
-                            TextField("Amount", text: $amountText).keyboardType(.decimalPad).textFieldStyle(.roundedBorder)
-                            Button("Settle") {
+                            TextField(S.Cards.amountPlaceholder, text: $amountText).keyboardType(.decimalPad).textFieldStyle(.roundedBorder)
+                            Button(S.Cards.settle) {
                                 Task {
                                     if let from = fromId ?? sources.first?.id {
                                         error = await viewModel.settle(cardAccountId: card.id, currency: card.currency, fromAccountId: from, amountMajorText: amountText)
@@ -216,12 +206,12 @@ private struct CreditCardPanelView: View {
                 Spacer()
                 HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("CARD HOLDER").font(.system(size: 9, weight: .bold)).foregroundColor(.white.opacity(0.7))
-                        Text("Card holder").font(.subheadline).fontWeight(.bold).foregroundColor(.white)
+                        Text(S.Cards.cardHolder).font(.system(size: 9, weight: .bold)).foregroundColor(.white.opacity(0.7))
+                        Text(S.Cards.cardHolder).font(.subheadline).fontWeight(.bold).foregroundColor(.white)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("CURRENCY").font(.system(size: 9, weight: .bold)).foregroundColor(.white.opacity(0.7))
+                        Text(S.Accounts.currency).font(.system(size: 9, weight: .bold)).foregroundColor(.white.opacity(0.7))
                         Text(card.currency).font(.subheadline).fontWeight(.bold).foregroundColor(.white)
                     }
                 }
@@ -241,7 +231,7 @@ private struct CoveredEmisSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Mark EMIs paid?").font(.title3).fontWeight(.bold).foregroundColor(Color.text)
+            Text(S.Cards.emiCoveredTitle).font(.title3).fontWeight(.bold).foregroundColor(Color.text)
             Text("This payment covers \(covered.count) instalment(s) charged to this card. Mark them paid?")
                 .font(.subheadline).foregroundColor(Color.text2)
             ForEach(covered, id: \.emiNo) { c in
@@ -256,8 +246,8 @@ private struct CoveredEmisSheet: View {
             }
             HStack {
                 Spacer()
-                Button("Not now") { onSkip() }
-                Button("Mark paid") { onConfirm() }.buttonStyle(.borderedProminent)
+                Button(S.Cards.emiCoveredSkip) { onSkip() }
+                Button(S.Cards.emiCoveredConfirm) { onConfirm() }.buttonStyle(.borderedProminent)
             }
         }
         .padding(20)
@@ -273,12 +263,10 @@ private func shade(_ color: Color, _ percent: Double) -> Color {
     return Color(red: ch(r), green: ch(g), blue: ch(b), opacity: Double(a))
 }
 
+/// A card face shows the user's own balances — masked like everywhere else.
+/// The removed copy hardcoded INR and ÷100.
 private func formatMoneyINRForCards(_ minor: Int64) -> String {
-    let f = NumberFormatter()
-    f.numberStyle = .currency
-    f.currencyCode = "INR"
-    f.maximumFractionDigits = 0
-    return f.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "₹\(Double(minor) / 100.0)"
+    formatMoney(minor, baseCurrencyNow())
 }
 
 private extension String {
@@ -293,5 +281,5 @@ private extension String {
 }
 
 #Preview {
-    CreditCardsView(isDrawerOpen: .constant(false), currentTab: .constant(.cards))
+    CreditCardsView(currentTab: .constant(.cards))
 }

@@ -11,9 +11,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.text.NumberFormat
-import java.util.Currency
-import java.util.Locale
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.baseCurrencyNow
 
 /** Real port of apps/web/app/friends/page.tsx's hub (task #30). See
  * docs/mobile/screen-specs/splits.md. Replaces the previous version's
@@ -101,11 +100,15 @@ class SplitsViewModel : ViewModel(), KoinComponent {
     private suspend fun refreshOverview(uid: String) {
         val ov = splitsRepository.splitOverview(uid)
 
+        // These roll up across groups, so they report in the user's base
+        // currency. The per-group rows below take each group's own currency.
+        val base = baseCurrencyNow()
+
         _overview.value = SplitOverviewUiModel(
-            netPositionFormatted = (if (ov.netPosition >= 0) "+" else "−") + formatMoney(kotlin.math.abs(ov.netPosition)),
+            netPositionFormatted = (if (ov.netPosition >= 0) "+" else "−") + formatMoney(kotlin.math.abs(ov.netPosition), base),
             netPositive = ov.netPosition >= 0,
-            owedFormatted = formatMoney(ov.owed),
-            oweFormatted = formatMoney(ov.owe),
+            owedFormatted = formatMoney(ov.owed, base),
+            oweFormatted = formatMoney(ov.owe, base),
         )
 
         _groups.value = ov.groups.map { g ->
@@ -117,7 +120,7 @@ class SplitsViewModel : ViewModel(), KoinComponent {
                 memberCount = g.peopleCount,
                 dateRange = g.group.startDate,
                 net = g.net,
-                netBalanceFormatted = if (g.net == 0L) "Settled up" else (if (isOwed) "You are owed ${formatMoney(g.net)}" else "You owe ${formatMoney(-g.net)}"),
+                netBalanceFormatted = if (g.net == 0L) "Settled up" else (if (isOwed) "You are owed ${formatMoney(g.net, g.group.currency)}" else "You owe ${formatMoney(-g.net, g.group.currency)}"),
                 isOwed = isOwed,
             )
         }
@@ -128,7 +131,7 @@ class SplitsViewModel : ViewModel(), KoinComponent {
                 id = bal.userId,
                 name = nameOf(bal.userId),
                 net = bal.net,
-                balanceFormatted = formatMoney(kotlin.math.abs(bal.net)),
+                balanceFormatted = formatMoney(kotlin.math.abs(bal.net), base),
                 isOwed = isOwed,
             )
         }.sortedByDescending { kotlin.math.abs(it.net) }
@@ -172,11 +175,3 @@ class SplitsViewModel : ViewModel(), KoinComponent {
     }
 }
 
-internal fun formatMoney(minor: Long, currency: String = "INR"): String = try {
-    NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-        this.currency = Currency.getInstance(currency)
-        maximumFractionDigits = 2
-    }.format(minor / 100.0)
-} catch (e: Exception) {
-    "$currency ${minor / 100.0}"
-}

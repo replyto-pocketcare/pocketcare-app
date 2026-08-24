@@ -10,6 +10,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sanvya.app.theme.LocalSanvyaColors
 import kotlinx.coroutines.launch
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * "+ Add funds" / "+ Block funds" dialog, matching apps/web/app/goals/
@@ -36,7 +38,7 @@ fun AllocateGoalDialog(goal: GoalUiModel, viewModel: GoalsViewModel, onDismiss: 
     var saving by rememberSaveable { mutableStateOf(false) }
     var errorText by rememberSaveable { mutableStateOf<String?>(null) }
 
-    val actionLabel = if (goal.isEmergencyFund) "Add" else "Block"
+    val actionLabel = if (goal.isEmergencyFund) S.Goals.add(sRes()) else S.Goals.block(sRes())
     val remainingMajor = goal.remainingMinor / 100.0
 
     AlertDialog(
@@ -52,7 +54,7 @@ fun AllocateGoalDialog(goal: GoalUiModel, viewModel: GoalsViewModel, onDismiss: 
                             value = savingsAccounts.find { it.id == sourceAccountId }?.name ?: savingsAccounts.first().name,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("From account") },
+                            label = { Text(S.Goals.fromAccount(sRes())) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         )
@@ -87,8 +89,8 @@ fun AllocateGoalDialog(goal: GoalUiModel, viewModel: GoalsViewModel, onDismiss: 
                         if (err != null) errorText = err else onDismiss()
                     }
                 },
-            ) { Text(if (saving) "Saving…" else actionLabel) }
+            ) { Text(if (saving) S.Translation.commonSaving(sRes()) else actionLabel) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(S.Goals.cancel(sRes())) } },
     )
 }

@@ -1,11 +1,10 @@
 package com.sanvya.app.ui.navigation
 
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,6 +12,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.sanvya.app.ui.ComingSoonScreen
+import com.sanvya.app.ui.shell.AddAction
+import com.sanvya.app.ui.shell.AppShell
 import com.sanvya.app.ui.SettingsScreen
 import com.sanvya.app.ui.accounts.AccountsScreen
 import com.sanvya.app.ui.accounts.CreateAccountScreen
@@ -36,88 +37,54 @@ import com.sanvya.app.ui.splits.SplitsScreen
 import com.sanvya.app.ui.transactions.CreateTransactionScreen
 import com.sanvya.app.ui.transactions.EditTransactionScreen
 import com.sanvya.app.ui.transactions.TransactionsScreen
-import kotlinx.coroutines.launch
 
 /**
- * Root nav graph. `MainActivity.kt` referenced this (unqualified,
- * `com.sanvya.app.ui.navigation.SanvyaNavHost`) before this file existed —
- * verified 2026-08-05, another dangling reference (alongside SanvyaTheme,
- * the missing Application class, and Prefs — see docs/plans/
- * mobile-pixel-parity-plan.md and the 2026-08-05 AUDIT_HISTORY.md entry).
+ * Root nav graph, wrapped in the app shell.
  *
- * Wrapped in a `ModalNavigationDrawer` added 2026-08-05 (see
- * docs/mobile/screen-specs/navigation-drawer.md) -- Akhilesh caught that
- * Dashboard had no hamburger menu at all, and iOS's equivalent
- * (MainTabView/DrawerMenuView) turned out to be the real, pre-existing
- * pattern this was missing. Android keeps its own push/pop back-stack
- * per top-level section (idiomatic here, already working for Accounts/
- * Transactions' CRUD sub-routes) rather than copying iOS's flat
- * tab-switch architecture -- the drawer is an added entry point on top of
- * it, matching standard Android convention: root destinations
- * (Dashboard) show the hamburger and open the drawer; non-root/detail
- * screens (Accounts, Transactions, their New/Edit sub-routes) keep their
- * existing back arrow, since "Up" from them always means "back to
- * Dashboard" regardless of whether you arrived via the drawer or via
- * Dashboard's own buttons.
+ * `MainActivity.kt` referenced this before this file existed — one of several
+ * dangling references found on 2026-08-05 (alongside `SanvyaTheme`, the missing
+ * Application class and `Prefs`).
  *
- * Routes to screens that are actually real: "dashboard", "settings",
- * "accounts", "accounts/new", "accounts/{accountId}/edit", "transactions",
- * "transactions/new", "transactions/{transactionId}/edit", "budgets",
- * "budgets/new", "budgets/{budgetId}/edit", "goals", "goals/new",
- * "goals/{goalId}/edit", "investments", "investments/new?groupKey={groupKey}"
- * (2026-08-06, task #26), "loans", "loans/new", "loans/{loanId}"
- * (2026-08-06, task #27 -- edit happens inline on the detail screen, not a
- * separate route, matching web's [id]/page.tsx), "cards" (task #29),
- * "splits", "splits/{groupId}" (2026-08-07, task #30 -- a friend's row
- * routes here too, against their hidden 1:1 group; see
- * docs/mobile/screen-specs/splits.md). Every drawer item without
- * a real screen yet
- * routes to "coming_soon/{title}" (a
- * shared placeholder, matching iOS's own `PlaceholderView` for its
- * not-yet-built tabs) rather than a dead link or a silently-omitted menu
- * entry -- each one gets swapped for a real destination as its own screen
- * lands (docs/mobile/TODO.md Phase 3 tracks each one).
+ * **The Material navigation drawer that used to wrap this is gone** (2026-08-23).
+ * It was added on 2026-08-05 to give the Dashboard a hamburger it was missing,
+ * on the reasoning that iOS's `DrawerMenuView` was "the real, pre-existing
+ * pattern". Both were wrong about the source: web's phone layout has never had
+ * a drawer. It has a floating bottom bar with four user-customizable slots, a
+ * raised centre "+", and a grouped More sheet — see
+ * `docs/mobile/screen-specs/app-shell.md`. `AppShell` is that, and the two
+ * drawers are deleted rather than kept alongside it.
+ *
+ * Routes remain as before; every destination without a real screen still lands
+ * on `coming_soon/{title}` rather than a dead link, and each is tracked in
+ * `docs/mobile/PARITY_AUDIT.md` §4.
  */
 @Composable
 fun SanvyaNavHost() {
     val navController = rememberNavController()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            DrawerContent(
-                // Known minor limitation: `currentRoute` here is the
-                // resolved backstack route (works for the 4 real,
-                // param-less destinations), but `entry.destination.route`
-                // for "coming_soon/{title}" is the PATTERN, not the
-                // resolved "coming_soon/<encoded title>" value -- so the
-                // selected-highlight and the `route != currentRoute` guard
-                // below never quite match for coming-soon items. Cosmetic
-                // only (worst case: re-navigating to the same placeholder,
-                // or it never highlighting as selected) -- not worth a
-                // second route-comparison scheme for a screen that's a
-                // stand-in itself.
-                currentRoute = currentRoute,
-                onNavigate = { route ->
-                    scope.launch { drawerState.close() }
-                    if (route != currentRoute) {
-                        navController.navigate(route) {
-                            popUpTo("dashboard") { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    }
-                },
-            )
+    // The screen currently on top registers its own "+" action here; the shell
+    // falls back to the default (add transaction / scan receipt) for the rest.
+    var pageAction by remember { mutableStateOf<AddAction?>(null) }
+
+    AppShell(
+        currentRoute = currentRoute,
+        onNavigate = { route ->
+            if (route != currentRoute) {
+                navController.navigate(route) {
+                    popUpTo("dashboard") { inclusive = false }
+                    launchSingleTop = true
+                }
+            }
         },
+        onBack = { navController.popBackStack() },
+        pageAction = pageAction,
+        onSetPageAction = { pageAction = it },
     ) {
     NavHost(navController = navController, startDestination = "dashboard") {
         composable("dashboard") {
             DashboardScreen(
-                onOpenDrawer = { scope.launch { drawerState.open() } },
                 onOpenSettings = { navController.navigate("settings") },
                 onAddAccount = { navController.navigate("accounts/new") },
                 onViewAccounts = { navController.navigate("accounts") },
@@ -146,7 +113,6 @@ fun SanvyaNavHost() {
         composable("settings") {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onOpenDrawer = { scope.launch { drawerState.open() } },
             )
         }
         composable(
@@ -156,7 +122,6 @@ fun SanvyaNavHost() {
             val encoded = entry.arguments?.getString("title") ?: ""
             ComingSoonScreen(
                 title = java.net.URLDecoder.decode(encoded, "UTF-8"),
-                onOpenDrawer = { scope.launch { drawerState.open() } },
             )
         }
         composable("accounts") {
@@ -318,7 +283,6 @@ fun SanvyaNavHost() {
         }
         composable("splits") {
             SplitsScreen(
-                onOpenDrawer = { scope.launch { drawerState.open() } },
                 onOpenGroup = { id -> navController.navigate("splits/$id") },
             )
         }

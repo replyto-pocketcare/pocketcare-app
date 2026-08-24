@@ -17,9 +17,15 @@ class Prefs: ObservableObject {
     static let shared = Prefs()
 
     private let defaults = UserDefaults.standard
-    private static let hideKey = "amountsHidden"
+    /// `nonisolated` and internal, not private: MoneyFormat.swift reads these
+    /// keys from contexts with no actor at all, so the hide-amounts rule can be
+    /// honoured everywhere. The class is `@MainActor` for its `@Published`
+    /// state; these two are immutable `String` constants and carry none of it.
+    /// One key, one meaning.
+    nonisolated static let hideKey = "amountsHidden"
     private static let themeKey = "theme"
-    private static let currencyKey = "baseCurrency"
+    /// Same reasoning as `hideKey`.
+    nonisolated static let currencyKey = "baseCurrency"
 
     @Published var amountsHidden: Bool {
         didSet { defaults.set(amountsHidden, forKey: Prefs.hideKey) }
@@ -34,25 +40,15 @@ class Prefs: ObservableObject {
     private init() {
         amountsHidden = defaults.bool(forKey: Prefs.hideKey)
         theme = defaults.string(forKey: Prefs.themeKey) ?? "light"
-        baseCurrency = defaults.string(forKey: Prefs.currencyKey) ?? "INR"
+        baseCurrency = defaults.string(forKey: Prefs.currencyKey) ?? FormOptions.defaultCurrency
     }
 }
 
-@MainActor
-func formatMoneyAware(_ money: Domain.Money, mask: String = "••••") -> String {
-    if Prefs.shared.amountsHidden {
-        return mask
-    }
-    let major = Domain.toMajor(money)
-    return String(format: "₹%.2f", major)
-}
-
-private let currencies = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"]
-private let genders: [(String, String)] = [("", "Not specified"), ("female", "Female"), ("male", "Male"), ("non-binary", "Non-binary"), ("prefer not to say", "Prefer not to say")]
-private let countries = ["", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other"]
+private let currencies = FormOptions.currencies
+private let genders: [(String, String)] = FormOptions.genders.map { ($0.value, $0.label) }
+private let countries = FormOptions.countries
 
 struct SettingsView: View {
-    @Binding var isDrawerOpen: Bool
     @Environment(\.dismiss) private var dismiss
     @StateObject private var prefs = Prefs.shared
 
@@ -69,7 +65,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 // MARK: Account
-                Section(header: Text("Account")) {
+                Section(header: Text(S.Settings.account)) {
                     if viewModel.session?.isGuest == true {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("You're using Sanvya as a guest.\(viewModel.session?.daysLeft.map { " Your data will be deleted in \($0) day\($0 == 1 ? "" : "s") unless you create an account." } ?? "")")
@@ -91,22 +87,22 @@ struct SettingsView: View {
                     }
 
                     HStack {
-                        TextField("Your name", text: $username)
-                        Button(viewModel.usernameSaved ? "Saved" : "Save") { viewModel.saveUsername(username) }
+                        TextField(S.Settings.yourName, text: $username)
+                        Button(viewModel.usernameSaved ? S.Settings.saved : S.Settings.save) { viewModel.saveUsername(username) }
                     }
                 }
 
                 // MARK: Appearance
-                Section(header: Text("Appearance")) {
+                Section(header: Text(S.Settings.appearance)) {
                     Picker("Theme", selection: $prefs.theme) {
-                        Text("Light").tag("light")
-                        Text("Dark").tag("dark")
+                        Text(S.Settings.light).tag("light")
+                        Text(S.Settings.dark).tag("dark")
                     }
                     .pickerStyle(.segmented)
                 }
 
                 // MARK: Privacy
-                Section(header: Text("Privacy"), footer: Text("Mask balances and transaction amounts across the app.")) {
+                Section(header: Text(S.Settings.privacy), footer: Text("Mask balances and transaction amounts across the app.")) {
                     Toggle("Hide Amounts", isOn: $prefs.amountsHidden)
                         .tint(Color.accent)
                 }
@@ -120,7 +116,7 @@ struct SettingsView: View {
                         ForEach(countries, id: \.self) { c in Text(c.isEmpty ? "Not specified" : c).tag(c) }
                     }
                     HStack {
-                        Button("Save") { viewModel.saveProfile(gender: profileGenderSel, country: profileCountrySel) }
+                        Button(S.Settings.save) { viewModel.saveProfile(gender: profileGenderSel, country: profileCountrySel) }
                         if let msg = viewModel.profileMsg {
                             Text(msg).font(.footnote).foregroundColor(Color.text2)
                         }
@@ -129,7 +125,7 @@ struct SettingsView: View {
 
                 // MARK: Notifications (existing)
                 if let notif = viewModel.notifPrefs {
-                    Section(header: Text("Notifications"), footer: Text("Get alerted about bills, budgets, low balances and unusual spend.")) {
+                    Section(header: Text(S.Translation.navNotifications), footer: Text("Get alerted about bills, budgets, low balances and unusual spend.")) {
                         Toggle("Push notifications", isOn: Binding(
                             get: { notif.push_enabled == 1 },
                             set: { viewModel.updatePref(keyPath: \.push_enabled, value: $0) }
@@ -162,7 +158,7 @@ struct SettingsView: View {
                 }
 
                 // MARK: Base currency
-                Section(header: Text("Base Currency"), footer: Text("Used as the default across new accounts and reports.")) {
+                Section(header: Text(S.Settings.baseCurrency), footer: Text("Used as the default across new accounts and reports.")) {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 6) {
                             ForEach(currencies, id: \.self) { c in
@@ -247,8 +243,8 @@ struct SettingsView: View {
                 }
 
                 // MARK: Help & support
-                Section(header: Text("Help & Support")) {
-                    Button("Contact support") {
+                Section(header: Text(S.Settings.help)) {
+                    Button(S.Settings.contactSupport) {
                         if let url = URL(string: "mailto:support@sanvya.app") { UIApplication.shared.open(url) }
                     }
                 }
@@ -257,28 +253,19 @@ struct SettingsView: View {
                 Section {
                     HStack {
                         Spacer()
-                        Button("Sign out") { confirmSignout = true }
+                        Button(S.Settings.signoutTitle) { confirmSignout = true }
                         Spacer()
-                        Button("Delete account") { confirmDelete = true }
+                        Button(S.Settings.deleteAccount) { confirmDelete = true }
                             .foregroundColor(.red)
                         Spacer()
                     }
                 }
             }
-            .navigationTitle("Settings")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) { isDrawerOpen.toggle() }
-                    } label: {
-                        Image(systemName: "line.3.horizontal").imageScale(.large)
-                    }
-                }
-            }
+            .navigationTitle(S.Settings.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Translation.commonClose) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
             .background(Color.bg)
@@ -299,17 +286,17 @@ struct SettingsView: View {
             }
             .onChange(of: viewModel.profileGender) { _, v in profileGenderSel = v }
             .onChange(of: viewModel.profileCountry) { _, v in profileCountrySel = v }
-            .alert("Sign out?", isPresented: $confirmSignout) {
-                Button("Cancel", role: .cancel) {}
-                Button("Sign out anyway", role: .destructive) { viewModel.signOut() }
+            .alert(S.Settings.signoutTitle, isPresented: $confirmSignout) {
+                Button(S.Settings.cancel, role: .cancel) {}
+                Button(S.Settings.signOutAnyway, role: .destructive) { viewModel.signOut() }
             } message: {
                 Text(viewModel.session?.isGuest == true
                     ? "You're a guest — signing out deletes this device's data with nothing backed up."
                     : "You can sign back in any time to restore your data.")
             }
-            .alert("Delete account", isPresented: $confirmDelete) {
-                Button("Cancel", role: .cancel) {}
-                Button(viewModel.deleting ? "Deleting…" : "Delete everything", role: .destructive) { viewModel.deleteAccount() }
+            .alert(S.Settings.deleteAccount, isPresented: $confirmDelete) {
+                Button(S.Settings.cancel, role: .cancel) {}
+                Button(viewModel.deleting ? S.Settings.deleting : S.Settings.deleteEverything, role: .destructive) { viewModel.deleteAccount() }
                     .disabled(viewModel.deleting)
             } message: {
                 Text("This permanently deletes your account and data. This can't be undone." + (viewModel.deleteError.map { "\n\($0)" } ?? ""))

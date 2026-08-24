@@ -104,22 +104,28 @@ public final class SplitsViewModel {
         do { try await refreshOverview(userId: userId) } catch { errorMessage = error.localizedDescription }
     }
 
-    private func nameOf(_ id: String) -> String { namesById[id] ?? "Someone" }
+    private func nameOf(_ id: String) -> String { namesById[id] ?? S.Groups.someone }
 
     private func refreshOverview(userId: String) async throws {
         let ov = try await splitsRepository.splitOverview(userId: userId)
 
+        // These three roll up across groups, so they are reported in the user's
+        // BASE currency — not INR, which is what was hardcoded here. The
+        // per-group rows below already used `g.group.currency` correctly, which
+        // is what made the inconsistency easy to miss.
+        let base = baseCurrencyNow()
+
         self.overview = OverviewUiModel(
-            netPositionFormatted: (ov.netPosition >= 0 ? "+" : "\u{2212}") + formatMoney(abs(ov.netPosition), "INR"),
+            netPositionFormatted: (ov.netPosition >= 0 ? "+" : "\u{2212}") + formatMoney(abs(ov.netPosition), base),
             netPositive: ov.netPosition >= 0,
-            owedFormatted: formatMoney(ov.owed, "INR"),
-            oweFormatted: formatMoney(ov.owe, "INR")
+            owedFormatted: formatMoney(ov.owed, base),
+            oweFormatted: formatMoney(ov.owe, base)
         )
 
         self.groups = ov.groups.map { g in
             let isOwed = g.net > 0
             let text: String
-            if g.net == 0 { text = "Settled up" }
+            if g.net == 0 { text = S.Groups.settledTitle }
             else if isOwed { text = "You are owed \(formatMoney(g.net, g.group.currency))" }
             else { text = "You owe \(formatMoney(-g.net, g.group.currency))" }
             return SplitGroupUiModel(id: g.group.id, name: g.group.name, kind: g.group.kind, memberCount: g.peopleCount, dateRange: g.group.startDate, net: g.net, netBalanceFormatted: text, isOwed: isOwed)
@@ -127,12 +133,20 @@ public final class SplitsViewModel {
 
         self.friends = ov.direct.map { bal in
             let isOwed = bal.net > 0
-            return FriendEdgeUiModel(id: bal.userId, name: nameOf(bal.userId), net: bal.net, balanceFormatted: formatMoney(abs(bal.net), "INR"), isOwed: isOwed)
+            return FriendEdgeUiModel(id: bal.userId, name: nameOf(bal.userId), net: bal.net, balanceFormatted: formatMoney(abs(bal.net), base), isOwed: isOwed)
         }.sorted { abs($0.net) > abs($1.net) }
     }
 
+    /// The signed-in user id, resolving it if this is the first call.
+    private func currentOrResolvedUserId() async -> String? {
+        if let userId { return userId }
+        return await resolveUserId()
+    }
+
     public func createGroup(name: String, kind: String, currency: String, memberIds: [String]) async -> String? {
-        guard let userId = userId ?? (await resolveUserId()), !name.isEmpty else { return nil }
+        // Not `userId ?? (await resolveUserId())`: `??`'s right side is an
+        // autoclosure, and an autoclosure cannot be async.
+        guard !name.isEmpty, let userId = await currentOrResolvedUserId() else { return nil }
         do {
             return try await splitsRepository.createGroup(userId: userId, name: name, kind: kind, currency: currency, memberUserIds: memberIds)
         } catch {
@@ -146,7 +160,7 @@ public final class SplitsViewModel {
     /// GroupDetailView against that hidden group rather than a second,
     /// near-duplicate "person ledger" screen.
     public func openOrCreateDirectGroup(otherUserId: String, currency: String) async -> String? {
-        guard let userId = userId ?? (await resolveUserId()) else { return nil }
+        guard let userId = await currentOrResolvedUserId() else { return nil }
         do {
             return try await splitsRepository.getOrCreateDirectGroup(userId: userId, otherUserId: otherUserId, otherName: nameOf(otherUserId), currency: currency)
         } catch {

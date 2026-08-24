@@ -8,7 +8,6 @@ struct StatementUiModel: Identifiable {
 }
 
 struct StatementsView: View {
-    @Binding var isDrawerOpen: Bool
     
     @State private var searchQuery: String = ""
     
@@ -46,19 +45,7 @@ struct StatementsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Statements")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) {
-                            isDrawerOpen.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
-            }
+            .navigationTitle(S.Statements.title)
             .navigationBarTitleDisplayMode(.inline)
 
         }
@@ -111,5 +98,5 @@ struct StatementCard: View {
 }
 
 #Preview {
-    StatementsView(isDrawerOpen: .constant(false))
+    StatementsView()
 }

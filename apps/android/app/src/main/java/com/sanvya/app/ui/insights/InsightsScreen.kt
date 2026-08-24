@@ -36,6 +36,8 @@ import com.sanvya.app.theme.SanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import kotlinx.coroutines.launch
 import kotlin.math.min
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Real port of apps/web/src/ui/feed/{InsightFeed,InsightCard,Charts2D,
@@ -84,7 +86,7 @@ private fun LockedInsightsState(colors: SanvyaColors, onUpgrade: () -> Unit) {
                     "See weekly recaps, budget alerts, spending patterns and more -- generated automatically from your own data.",
                     fontSize = 14.sp, color = colors.text2, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
-                Button(onClick = onUpgrade) { Text("Go premium") }
+                Button(onClick = onUpgrade) { Text(S.Insights.goPremium(sRes())) }
             }
         }
     }

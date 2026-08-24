@@ -133,7 +133,7 @@ public final class LoanDetailViewModel {
     }
 
     private func buildUiModel(_ l: Loan) -> LoanDetailUiModel {
-        let cur = l.currency.isEmpty ? "INR" : l.currency
+        let cur = l.currency.isEmpty ? baseCurrencyNow() : l.currency
         let tenure = l.tenureMonths ?? 0
         let emi = l.emiAmount ?? 0
         let dueDay = l.emiDueDay
@@ -197,10 +197,10 @@ public final class LoanDetailViewModel {
 
         return LoanDetailUiModel(
             id: l.id,
-            lender: (l.lender?.isEmpty == false) ? l.lender! : "Loan",
+            lender: (l.lender?.isEmpty == false) ? l.lender! : S.Loans.loanFallback,
             principalFormatted: formatMoney(l.principal, cur),
-            emiFormatted: isVariable ? "Varies" : (emi > 0 ? formatMoney(emi, cur) : "—"),
-            interestRateText: hasInterest ? "\(formatRate(l.interestRate ?? 0))% p.a.\(isVariable ? " (variable)" : "")" : (isVariable ? "Variable" : "—"),
+            emiFormatted: isVariable ? S.Loans.varies : (emi > 0 ? formatMoney(emi, cur) : "—"),
+            interestRateText: hasInterest ? "\(formatRate(l.interestRate ?? 0))% p.a.\(isVariable ? " (variable)" : "")" : (isVariable ? S.Loans.variable : "—"),
             emisPaidText: tenure > 0 ? "\(effective.count) / \(tenure)" : "\(effective.count)",
             nextEmiDueFormatted: (nextEmiDue != nil && remaining != 0) ? fmtDateLong(nextEmiDue) : "—",
             remainingText: remaining.map { "\($0) EMI\($0 == 1 ? "" : "s") left" } ?? "—",
@@ -282,7 +282,7 @@ public final class LoanDetailViewModel {
         tenureText: String, startDate: String, dueDayText: String, rateType: String, alertTimeUtc: String
     ) async -> String? {
         guard let l = latestLoan else { return "Loan not found." }
-        let cur = l.currency.isEmpty ? "INR" : l.currency
+        let cur = l.currency.isEmpty ? baseCurrencyNow() : l.currency
         do {
             let principalMinor = fromMajor(Double(principalMajorText) ?? 0, cur).amount
             let isVariable = rateType == "variable"

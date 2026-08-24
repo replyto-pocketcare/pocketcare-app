@@ -26,6 +26,8 @@ import org.koin.core.component.inject
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.baseCurrencyNow
 
 enum class EmiRowState { PAID, AUTO_MARKED, DUE }
 
@@ -132,7 +134,7 @@ class LoanDetailViewModel : ViewModel(), KoinComponent {
     }
 
     private fun buildUiModel(l: Loan): LoanDetailUiModel {
-        val cur = l.currency.ifBlank { "INR" }
+        val cur = l.currency.ifBlank { baseCurrencyNow() }
         val tenure = l.tenureMonths ?: 0
         val emi = l.emiAmount ?: 0L
         val dueDay = l.emiDueDay
@@ -282,7 +284,7 @@ class LoanDetailViewModel : ViewModel(), KoinComponent {
         tenureText: String, startDate: String, dueDayText: String, rateType: String, alertTimeUtc: String,
     ): String? {
         val l = latestLoan ?: return "Loan not found."
-        val cur = l.currency.ifBlank { "INR" }
+        val cur = l.currency.ifBlank { baseCurrencyNow() }
         return try {
             val principalMinor = fromMajor(principalMajorText.toDoubleOrNull() ?: 0.0, cur).amount
             val isVariable = rateType == "variable"

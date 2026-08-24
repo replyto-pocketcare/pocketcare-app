@@ -37,6 +37,8 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.sanvya.app.theme.LocalSanvyaColors
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Receipt capture -- real port of apps/web/app/receipts/new/page.tsx's
@@ -78,9 +80,9 @@ fun ReceiptCaptureScreen(
         containerColor = Color.Black,
         topBar = {
             TopAppBar(
-                title = { Text("Scan a bill or receipt", fontWeight = FontWeight.Bold, color = Color.White) },
+                title = { Text(S.Receipts.captureTitle(sRes()), fontWeight = FontWeight.Bold, color = Color.White) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White) }
+                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = Color.White) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black),
             )
@@ -116,8 +118,8 @@ fun ReceiptCaptureScreen(
                             Text(
                                 when (stage) {
                                     is CaptureStage.Reading -> "Reading…"
-                                    is CaptureStage.Understanding -> "Making sense of it…"
-                                    else -> "Preparing…"
+                                    is CaptureStage.Understanding -> S.Receipts.stageUnderstanding(sRes())
+                                    else -> S.Data.preparing(sRes())
                                 },
                                 color = Color.White,
                                 fontWeight = FontWeight.SemiBold,
@@ -210,11 +212,11 @@ private fun MismatchCard(message: String, colors: com.sanvya.app.theme.SanvyaCol
     Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
         Card(colors = CardDefaults.cardColors(containerColor = colors.surface)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text("We couldn't read this cleanly", fontWeight = FontWeight.Bold, color = colors.text)
+                Text(S.Receipts.captureUnclearTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text)
                 Text(message, fontSize = 13.sp, color = colors.text2)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = onEditManually) { Text("Edit it myself") }
-                    OutlinedButton(onClick = onRetake) { Text("Retake") }
+                    Button(onClick = onEditManually) { Text(S.Receipts.captureEditManually(sRes())) }
+                    OutlinedButton(onClick = onRetake) { Text(S.Receipts.captureRetake(sRes())) }
                 }
             }
         }

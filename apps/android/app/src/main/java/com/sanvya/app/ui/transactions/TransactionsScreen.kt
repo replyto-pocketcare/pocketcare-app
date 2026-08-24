@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Transactions list — ported from apps/web/app/transactions/page.tsx +
@@ -47,15 +49,15 @@ fun TransactionsScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Transactions", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Transactions.title(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 actions = {
                     IconButton(onClick = onAddTransaction) {
-                        Icon(Icons.Default.Add, contentDescription = "Add transaction", tint = colors.accent)
+                        Icon(Icons.Default.Add, contentDescription = S.Transactions.addTitle(sRes()), tint = colors.accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -88,7 +90,7 @@ fun TransactionsScreen(
 
             if (items.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No matching transactions", color = colors.text2, fontSize = 14.sp)
+                    Text(S.Transactions.noMatching(sRes()), color = colors.text2, fontSize = 14.sp)
                 }
             } else {
                 LazyColumn(

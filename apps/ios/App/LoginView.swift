@@ -11,7 +11,7 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 32) {
-                Text("Sanvya")
+                Text(S.Translation.appName)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(Color.accent)
@@ -72,7 +72,7 @@ struct LoginView: View {
                     .padding(.vertical, 8)
                     
                     Button(action: { onLoginSuccess() }) {
-                        Text("Continue with Google")
+                        Text(S.Login.continueGoogle)
                             .font(.headline)
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity)

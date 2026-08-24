@@ -1,6 +1,6 @@
 import SwiftUI
 
-private let GOAL_CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"]
+private let GOAL_CURRENCIES = FormOptions.currencies
 
 /// Real create form, matching apps/web/app/goals/page.tsx's inline "New
 /// goal" card field-for-field per docs/mobile/screen-specs/goals.md. Was
@@ -16,7 +16,7 @@ struct CreateGoalView: View {
 
     @State private var name = ""
     @State private var targetText = ""
-    @State private var currency = "INR"
+    @State private var currency = FormOptions.defaultCurrency
     @State private var isEmergencyFund = false
     @State private var alertTime = "09:00"
     @State private var saving = false
@@ -25,7 +25,7 @@ struct CreateGoalView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Goal name")) {
+                Section(header: Text(S.Goals.goalName)) {
                     TextField("e.g. Emergency Fund", text: $name)
                 }
 
@@ -33,7 +33,7 @@ struct CreateGoalView: View {
                     HStack {
                         TextField("0", text: $targetText)
                             .keyboardType(.decimalPad)
-                        Picker("Currency", selection: $currency) {
+                        Picker(S.Accounts.currency, selection: $currency) {
                             ForEach(GOAL_CURRENCIES, id: \.self) { Text($0).tag($0) }
                         }
                         .pickerStyle(.menu)
@@ -73,11 +73,11 @@ struct CreateGoalView: View {
                     .listRowBackground(Color.accent)
                 }
             }
-            .navigationTitle("New Goal")
+            .navigationTitle(S.Goals.newGoal)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Goals.cancel) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
         }

@@ -11,7 +11,7 @@ Turborepo + pnpm 9 + Node 22 (`.nvmrc`) · TS strict, erasable-syntax only in sh
 ## Golden rules (never violate — full versions in CLAUDE.md)
 1. Money = integer minor units via `@sanvya/money`. Never floats.
 2. Balances derive from the append-only ledger; corrections are compensating entries, never mutation.
-3. Everything server-side lives in the **`sanvya`** schema — schema-qualify every direct call/RPC.
+3. Everything server-side lives in the **`pocketcare`** Postgres schema — schema-qualify every direct call/RPC. (The product was renamed; the schema was not. `0001_init.sql` creates `pocketcare`, all 200+ later migration references use it, web's 10 `schema("pocketcare")` call sites use it, and `SupabaseConnector.DB_SCHEMA` is `"pocketcare"` on both native platforms. This line said `sanvya` until 2026-08-23 and would have sent any new RPC call to a 404.)
 4. Server authoritative; client DB is an offline cache reconciled by sync.
 5. Multi-currency: store native currency + ISO code; convert only at display via `exchange_rates` (as-of date). Cross-currency transfers capture `fx_rate` + `to_amount`.
 6. **Never a cross-row constraint on a synced table** — PowerSync uploads ops in separate transactions; partial sets wedge the queue forever. Enforce client-side + server *audit* function.

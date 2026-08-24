@@ -1,43 +1,37 @@
 import SwiftUI
 
-/// ACCOUNT_COLORS + colorForId, ported byte-for-byte from
-/// apps/web/src/colors.ts. Deliberately distinct from the earthy design
-/// tokens in Theme.swift -- includes jewel tones (indigo/violet/denim) --
-/// used only for per-account chip coloring.
-///
-/// Extracted 2026-08-05 (was inlined in DashboardView.swift; the Accounts
-/// screen needs the same palette -- see docs/mobile/screen-specs/accounts.md
-/// "Shared: colorForId" and the Phase B checklist's "component reuse, no
-/// inline re-implementation" rule).
-let accountColors: [Color] = [
-    Color(red: 0x3E / 255, green: 0x4A / 255, blue: 0x38 / 255),
-    Color(red: 0x5F / 255, green: 0x66 / 255, blue: 0x47 / 255),
-    Color(red: 0x6B / 255, green: 0x7A / 255, blue: 0x4F / 255),
-    Color(red: 0x9C / 255, green: 0xAE / 255, blue: 0x8E / 255),
-    Color(red: 0xB0 / 255, green: 0x6A / 255, blue: 0x4F / 255),
-    Color(red: 0xC9 / 255, green: 0x8A / 255, blue: 0x72 / 255),
-    Color(red: 0xA8 / 255, green: 0x50 / 255, blue: 0x3A / 255),
-    Color(red: 0x7C / 255, green: 0x4A / 255, blue: 0x3A / 255),
-    Color(red: 0x5F / 255, green: 0x46 / 255, blue: 0x36 / 255),
-    Color(red: 0xC9 / 255, green: 0xB7 / 255, blue: 0x9C / 255),
-    Color(red: 0xC0 / 255, green: 0x8A / 255, blue: 0x3E / 255),
-    Color(red: 0x4F / 255, green: 0x46 / 255, blue: 0xE5 / 255),
-    Color(red: 0x6D / 255, green: 0x5A / 255, blue: 0xCF / 255),
-    Color(red: 0x3F / 255, green: 0x5A / 255, blue: 0x8A / 255),
-    Color(red: 0x2F / 255, green: 0x6F / 255, blue: 0x6A / 255),
-    Color(red: 0x7A / 255, green: 0x4A / 255, blue: 0x6B / 255),
-    Color(red: 0x4B / 255, green: 0x55 / 255, blue: 0x63 / 255),
-    Color(red: 0x2B / 255, green: 0x27 / 255, blue: 0x23 / 255),
-]
+/**
+ Per-account chip colours, derived from the generated palette.
 
+ Deliberately distinct from the earthy design tokens in Theme.swift — this
+ includes jewel tones (indigo/violet/denim) and is used only for colouring one
+ account against another.
+
+ The palette itself is NOT declared here. It lives once, in
+ `packages/core/catalog`, and reaches this target as `FormOptions.accountColors`
+ — hex strings, because hex is what gets written to `accounts.color` and all
+ three apps must agree on the string. This file only converts.
+ */
+// Parsing goes through the validated `Color(hex:)` below rather than a second
+// scanner — the catalog's values are known-good, but a private duplicate that
+// skipped validation would be the third hex parser in this app.
+private func paletteColor(_ hex: String) -> Color { Color(hex: hex) ?? .gray }
+
+let accountColors: [Color] = FormOptions.accountColors.map(paletteColor)
+
+private let fallbackAccountColor = paletteColor(FormOptions.fallbackAccountColor)
+
+/**
+ A stable colour for an account with none set.
+
+ Delegates to the generated `colorForId` rather than re-deriving the hash: this
+ has to agree with web and Android about a colour the user has already seen.
+ */
 func colorForId(_ id: String?) -> Color {
-    guard let id, !id.isEmpty else { return Color(red: 0x7C / 255, green: 0x72 / 255, blue: 0x64 / 255) }
-    var h: UInt32 = 0
-    for scalar in id.unicodeScalars {
-        h = h &* 31 &+ scalar.value
-    }
-    return accountColors[Int(h % UInt32(accountColors.count))]
+    guard let id, !id.isEmpty else { return fallbackAccountColor }
+    return paletteColor(FormOptions.colorForId(id))
 }
+
 
 func accountColor(explicit: String?, id: String) -> Color {
     if let explicit, !explicit.isEmpty, let parsed = Color(hex: explicit) {

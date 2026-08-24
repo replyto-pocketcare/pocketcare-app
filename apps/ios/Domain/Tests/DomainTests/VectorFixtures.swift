@@ -30,6 +30,43 @@ struct Vector {
     }
 }
 
+
+/// Undo JSONSerialization's decimal promotion.
+///
+/// Foundation parses a high-precision JSON literal like `0.006666666666666667`
+/// into an **NSDecimalNumber**, not a double-backed NSNumber. Converting that
+/// decimal back with `.doubleValue` goes through base 10 and lands one ULP away
+/// from the binary-nearest double — which is what every other platform, and
+/// Swift's own arithmetic, produces:
+///
+///     expected: NSDecimalNumber(0.006666666666666668, bits 0x3f7b4e81b4e81b50)
+///     actual:   __NSCFNumber   (0.006666666666666667, bits 0x3f7b4e81b4e81b4f)
+///
+/// That is a parsing artifact, not a disagreement about the value: the vector
+/// JSON round-trips bit-exactly through `Double`, verified independently. So it
+/// is fixed here, at the boundary where the artifact is introduced, rather than
+/// by loosening the comparison — a golden vector must keep comparing exactly.
+///
+/// Only values that are actually fractional or exponential are converted.
+/// Foundation also promotes integers too large for Int64, and those must keep
+/// their decimal representation rather than be flattened into a Double.
+private func normalizeDecimals(_ value: Any) -> Any {
+    switch value {
+    case let decimal as NSDecimalNumber:
+        let text = decimal.description
+        guard text.contains(".") || text.lowercased().contains("e"), let d = Double(text) else {
+            return value
+        }
+        return NSNumber(value: d)
+    case let array as [Any]:
+        return array.map(normalizeDecimals)
+    case let dict as [String: Any]:
+        return dict.mapValues(normalizeDecimals)
+    default:
+        return value
+    }
+}
+
 enum VectorFixtures {
     /// The vectors directory at the repo root -- the single fixture
     /// source shared with the Android runner (plan section 3). SwiftPM's
@@ -64,6 +101,6 @@ enum VectorFixtures {
                 userInfo: [NSLocalizedDescriptionKey: "\(domain).json did not decode to a JSON array (path: \(fileURL.path))"]
             )
         }
-        return array.compactMap { Vector(json: $0) }
+        return array.compactMap { Vector(json: normalizeDecimals($0)) }
     }
 }

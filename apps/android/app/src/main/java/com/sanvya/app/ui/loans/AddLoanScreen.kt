@@ -23,6 +23,10 @@ import com.sanvya.app.ui.budgets.DatePickerDialogSimple
 import com.sanvya.app.ui.budgets.TimePickerDialogSimple
 import com.sanvya.app.ui.budgets.localToUtcTime
 import kotlinx.coroutines.launch
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Ported from apps/web/app/loans/page.tsx's `AddLoan` inline modal per
@@ -60,7 +64,7 @@ fun AddLoanScreen(
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
     var fundingMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
-    val principalMinor = principal.toDoubleOrNull()?.let { fromMajor(it, "INR").amount } ?: 0L
+    val principalMinor = principal.toDoubleOrNull()?.let { fromMajor(it, baseCurrencyNow()).amount } ?: 0L
     val computedEmiMinor = if (rateType == "fixed") emiFromPrincipal(principalMinor, rate.toDoubleOrNull() ?: 0.0, tenure.toIntOrNull() ?: 0) else 0L
     val computedEmiMajor = if (computedEmiMinor > 0) formatMajorPlain(computedEmiMinor) else ""
     val emiValue = if (rateType == "variable") "" else if (emiTouched) emi else computedEmiMajor
@@ -69,10 +73,10 @@ fun AddLoanScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Add loan", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Loans.addLoan(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -83,12 +87,12 @@ fun AddLoanScreen(
             modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            OutlinedTextField(value = lender, onValueChange = { lender = it }, label = { Text("Lender") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = lender, onValueChange = { lender = it }, label = { Text(S.Loans.lender(sRes())) }, modifier = Modifier.fillMaxWidth())
 
-            Text("Interest type", fontSize = 13.sp, color = colors.text2)
+            Text(S.Loans.interestType(sRes()), fontSize = 13.sp, color = colors.text2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = rateType == "fixed", onClick = { rateType = "fixed" }, label = { Text("Fixed") })
-                FilterChip(selected = rateType == "variable", onClick = { rateType = "variable" }, label = { Text("Variable") })
+                FilterChip(selected = rateType == "fixed", onClick = { rateType = "fixed" }, label = { Text(S.Loans.fixed(sRes())) })
+                FilterChip(selected = rateType == "variable", onClick = { rateType = "variable" }, label = { Text(S.Loans.variable(sRes())) })
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -99,14 +103,14 @@ fun AddLoanScreen(
                 )
                 OutlinedTextField(
                     value = tenure, onValueChange = { tenure = it.filter { c -> c.isDigit() } },
-                    label = { Text("Tenure (months)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    label = { Text(S.Loans.tenureMonths(sRes())) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = rate, onValueChange = { rate = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text(if (rateType == "variable") "Current interest %" else "Interest % p.a.") },
+                    label = { Text(if (rateType == "variable") "Current interest %" else S.Loans.interestPa(sRes())) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.weight(1f),
                 )
                 if (rateType == "fixed") {
@@ -121,10 +125,10 @@ fun AddLoanScreen(
                 if (computedEmiMinor > 0) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            if (emiTouched) "Auto-calculated EMI was ${formatMoney(computedEmiMinor)}" else "EMI auto-calculated from principal, rate & tenure.",
+                            if (emiTouched) "Auto-calculated EMI was ${formatMoney(computedEmiMinor, baseCurrencyNow())}" else "EMI auto-calculated from principal, rate & tenure.",
                             fontSize = 12.sp, color = colors.text2,
                         )
-                        if (emiTouched) TextButton(onClick = { emiTouched = false; emi = "" }) { Text("Use it", fontSize = 11.sp) }
+                        if (emiTouched) TextButton(onClick = { emiTouched = false; emi = "" }) { Text(S.Loans.useIt(sRes()), fontSize = 11.sp) }
                     }
                 }
             } else {
@@ -150,17 +154,17 @@ fun AddLoanScreen(
                 }
             }
 
-            Text("Where is this EMI charged?", fontSize = 13.sp, color = colors.text2)
+            Text(S.Loans.chargedTo(sRes()), fontSize = 13.sp, color = colors.text2)
             ExposedDropdownMenuBox(expanded = fundingMenuExpanded, onExpandedChange = { fundingMenuExpanded = it }) {
                 val selected = fundingAccounts.find { it.id == fundingId }
                 OutlinedTextField(
-                    value = selected?.let { "${it.name}${if (it.isCreditCard) " · credit card" else ""}" } ?: "Not linked — I'll mark each EMI paid myself",
+                    value = selected?.let { "${it.name}${if (it.isCreditCard) " · credit card" else ""}" } ?: S.Loans.notLinked(sRes()),
                     onValueChange = {}, readOnly = true,
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = fundingMenuExpanded) },
                 )
                 ExposedDropdownMenu(expanded = fundingMenuExpanded, onDismissRequest = { fundingMenuExpanded = false }) {
-                    DropdownMenuItem(text = { Text("Not linked — I'll mark each EMI paid myself") }, onClick = { fundingId = ""; fundingMenuExpanded = false })
+                    DropdownMenuItem(text = { Text(S.Loans.notLinked(sRes())) }, onClick = { fundingId = ""; fundingMenuExpanded = false })
                     fundingAccounts.forEach { a ->
                         DropdownMenuItem(text = { Text("${a.name}${if (a.isCreditCard) " · credit card" else ""}") }, onClick = { fundingId = a.id; fundingMenuExpanded = false })
                     }
@@ -168,8 +172,8 @@ fun AddLoanScreen(
             }
             Text(
                 if (fundingAccounts.find { it.id == fundingId }?.isCreditCard == true)
-                    "Each EMI will be added to this card when it falls due, and counted in the card's total due."
-                else "When an EMI falls due it'll be recorded against this account automatically.",
+                    S.Loans.chargedToCardHint(sRes())
+                else S.Loans.chargedToHint(sRes()),
                 fontSize = 11.5.sp, color = colors.text2,
             )
 
@@ -202,7 +206,7 @@ fun AddLoanScreen(
                 enabled = !saving && (lender.trim().isNotEmpty() || principal.isNotBlank()),
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             ) {
-                Text(if (saving) "Adding…" else "Add loan")
+                Text(if (saving) S.Translation.commonAdding(sRes()) else S.Loans.addLoan(sRes()))
             }
         }
     }

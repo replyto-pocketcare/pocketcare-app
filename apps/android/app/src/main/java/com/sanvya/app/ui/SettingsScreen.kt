@@ -12,6 +12,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+// rememberSaveable is in runtime.saveable, NOT runtime — the wildcard above
+// does not reach it. Its absence cascaded into 11 compile errors here,
+// including a baffling one about WideNavigationRailValue.not().
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,15 +30,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.data.repository.FailedWriteItem
 import com.sanvya.app.data.repository.StrandedRow
 import com.sanvya.app.theme.*
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
-private val CURRENCIES = listOf("INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED")
-private val GENDERS = listOf("" to "Not specified", "female" to "Female", "male" to "Male", "non-binary" to "Non-binary", "prefer not to say" to "Prefer not to say")
-private val COUNTRIES = listOf("", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other")
+private val CURRENCIES = FormOptions.currencies
+private val GENDERS = FormOptions.genders.map { it.value to it.label }
+private val COUNTRIES = FormOptions.countries
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onOpenDrawer: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel()
 ) {
@@ -86,12 +91,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) {
-                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Open Drawer")
-                    }
-                },
+                title = { Text(S.Settings.title(sRes()), fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
@@ -106,7 +106,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // ---- Account ----
-            SettingsCard(title = "Account") {
+            SettingsCard(title = S.Settings.account(sRes())) {
                 if (session?.isGuest == true) {
                     Box(
                         modifier = Modifier
@@ -148,31 +148,31 @@ fun SettingsScreen(
                     )
                 }
 
-                Text("Display name", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(S.Settings.displayName(sRes()), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text("Your name") },
+                        label = { Text(S.Settings.yourName(sRes())) },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                     )
                     OutlinedButton(onClick = { viewModel.saveUsername(username) }) {
-                        Text(if (usernameSaved) "Saved" else "Save")
+                        Text(if (usernameSaved) S.Settings.saved(sRes()) else S.Settings.save(sRes()))
                     }
                 }
             }
 
             // ---- Appearance ----
-            SettingsCard(title = "Appearance") {
+            SettingsCard(title = S.Settings.appearance(sRes())) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FilterChip(selected = theme == "light", onClick = { viewModel.setTheme("light") }, label = { Text("Light") })
-                    FilterChip(selected = theme == "dark", onClick = { viewModel.setTheme("dark") }, label = { Text("Dark") })
+                    FilterChip(selected = theme == "light", onClick = { viewModel.setTheme("light") }, label = { Text(S.Settings.light(sRes())) })
+                    FilterChip(selected = theme == "dark", onClick = { viewModel.setTheme("dark") }, label = { Text(S.Settings.dark(sRes())) })
                 }
             }
 
             // ---- Privacy ----
-            SettingsCard(title = "Privacy") {
+            SettingsCard(title = S.Settings.privacy(sRes())) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -216,28 +216,28 @@ fun SettingsScreen(
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Button(onClick = { viewModel.saveProfile(gender, country) }) { Text("Save") }
+                    Button(onClick = { viewModel.saveProfile(gender, country) }) { Text(S.Settings.save(sRes())) }
                     profileMsg?.let { Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
             }
 
             // ---- Notifications (existing) ----
             if (notifPrefs != null) {
-                SettingsCard(title = "Notifications", subtitle = "Get alerted about bills, budgets, low balances and unusual spend.") {
+                SettingsCard(title = S.Translation.navNotifications(sRes()), subtitle = "Get alerted about bills, budgets, low balances and unusual spend.") {
                     NotificationToggleRow("Push notifications", notifPrefs!!.push_enabled == 1L) { v -> viewModel.updatePref { it.copy(push_enabled = if (v) 1 else 0) } }
                     NotificationToggleRow("Upcoming EMIs & bills", notifPrefs!!.emi_due == 1L) { v -> viewModel.updatePref { it.copy(emi_due = if (v) 1 else 0) } }
                     NotificationToggleRow("Budget limits", notifPrefs!!.budget == 1L) { v -> viewModel.updatePref { it.copy(budget = if (v) 1 else 0) } }
                     NotificationToggleRow("Low balance", notifPrefs!!.low_balance == 1L) { v -> viewModel.updatePref { it.copy(low_balance = if (v) 1 else 0) } }
                     NotificationToggleRow("Unusual transactions", notifPrefs!!.outlier == 1L) { v -> viewModel.updatePref { it.copy(outlier = if (v) 1 else 0) } }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                    Text("Groups & trips", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(S.Groups.title(sRes()), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     NotificationToggleRow("Group activity", notifPrefs!!.group_invite == 1L) { v -> viewModel.updatePref { it.copy(group_invite = if (v) 1 else 0) } }
                     NotificationToggleRow("Shared expenses", notifPrefs!!.group_expense == 1L) { v -> viewModel.updatePref { it.copy(group_expense = if (v) 1 else 0) } }
                 }
             }
 
             // ---- Base currency ----
-            SettingsCard(title = "Base Currency", subtitle = "Used as the default across new accounts and reports.") {
+            SettingsCard(title = S.Settings.baseCurrency(sRes()), subtitle = "Used as the default across new accounts and reports.") {
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     CURRENCIES.forEach { c ->
                         FilterChip(selected = c == baseCurrency, onClick = { viewModel.setBaseCurrency(c) }, label = { Text(c) })
@@ -338,13 +338,13 @@ fun SettingsScreen(
             }
 
             // ---- Help & support ----
-            SettingsCard(title = "Help & Support") {
+            SettingsCard(title = S.Settings.help(sRes())) {
                 OutlinedButton(onClick = {
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
                         data = android.net.Uri.parse("mailto:support@sanvya.app")
                     }
                     try { context.startActivity(intent) } catch (_: Exception) { /* no mail app */ }
-                }) { Text("Contact support") }
+                }) { Text(S.Settings.contactSupport(sRes())) }
             }
 
             // ---- Sign out / delete ----
@@ -353,11 +353,11 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    OutlinedButton(onClick = { confirmSignout = true }) { Text("Sign out") }
+                    OutlinedButton(onClick = { confirmSignout = true }) { Text(S.Settings.signoutTitle(sRes())) }
                     OutlinedButton(
                         onClick = { confirmDelete = true },
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    ) { Text("Delete account") }
+                    ) { Text(S.Settings.deleteAccount(sRes())) }
                 }
             }
         }
@@ -366,7 +366,7 @@ fun SettingsScreen(
     if (confirmSignout) {
         AlertDialog(
             onDismissRequest = { confirmSignout = false },
-            title = { Text("Sign out?") },
+            title = { Text(S.Settings.signoutTitle(sRes())) },
             text = {
                 Text(
                     if (session?.isGuest == true) "You're a guest — signing out deletes this device's data with nothing backed up."
@@ -375,17 +375,17 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { confirmSignout = false; viewModel.signOut() }) {
-                    Text("Sign out anyway", color = MaterialTheme.colorScheme.error)
+                    Text(S.Settings.signOutAnyway(sRes()), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { confirmSignout = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { confirmSignout = false }) { Text(S.Settings.cancel(sRes())) } },
         )
     }
 
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { if (!deleting) confirmDelete = false },
-            title = { Text("Delete account", color = MaterialTheme.colorScheme.error) },
+            title = { Text(S.Settings.deleteAccount(sRes()), color = MaterialTheme.colorScheme.error) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("This permanently deletes your account and data. This can't be undone.")
@@ -394,10 +394,10 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(enabled = !deleting, onClick = { viewModel.deleteAccount() }) {
-                    Text(if (deleting) "Deleting…" else "Delete everything", color = MaterialTheme.colorScheme.error)
+                    Text(if (deleting) S.Settings.deleting(sRes()) else S.Settings.deleteEverything(sRes()), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(enabled = !deleting, onClick = { confirmDelete = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(enabled = !deleting, onClick = { confirmDelete = false }) { Text(S.Settings.cancel(sRes())) } },
         )
     }
 }

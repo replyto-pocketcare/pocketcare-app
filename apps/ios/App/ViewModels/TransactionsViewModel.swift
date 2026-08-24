@@ -39,15 +39,6 @@ public final class TransactionsViewModel {
     private var categoryMap: [String: CategoryRow] = [:]
     private var labelNames: [String: [String]] = [:]
 
-    private let formatter: NumberFormatter = {
-        let fmt = NumberFormatter()
-        fmt.numberStyle = .currency
-        fmt.currencyCode = "INR"
-        fmt.maximumFractionDigits = 2
-        fmt.locale = Locale(identifier: "en_IN")
-        return fmt
-    }()
-
     public init(ledgerRepository: LedgerRepository) {
         self.ledgerRepository = ledgerRepository
     }
@@ -114,7 +105,7 @@ public final class TransactionsViewModel {
     }
 
     private func toListItem(_ txn: TransactionRow) -> TransactionListItem {
-        let categoryName = txn.categoryId.flatMap { categoryMap[$0]?.name } ?? "Uncategorised"
+        let categoryName = txn.categoryId.flatMap { categoryMap[$0]?.name } ?? S.Transactions.uncategorised
         let labels = labelNames[txn.id]
         let labelsCsv = labels?.joined(separator: ", ")
         var raw = (txn.description ?? labelsCsv ?? categoryName).trimmingCharacters(in: .whitespaces)
@@ -126,15 +117,14 @@ public final class TransactionsViewModel {
         let account = accountMap[txn.accountId]
 
         let sign = txn.type == "expense" ? "\u{2212}" : (txn.type == "income" ? "+" : "")
-        let amt = Double(txn.amount) / 100.0
-        let formatted = formatter.string(from: NSNumber(value: amt)) ?? "₹0.00"
+        let formatted = formatMoney(txn.amount, txn.currency)
 
         let dateFormatted: String
         if let date = parseOccurredAt(txn.occurredAt) {
             if Calendar.current.isDateInToday(date) {
-                dateFormatted = "Today"
+                dateFormatted = S.Statements.today
             } else if Calendar.current.isDateInYesterday(date) {
-                dateFormatted = "Yesterday"
+                dateFormatted = S.Statements.yesterday
             } else {
                 let df = DateFormatter()
                 df.dateFormat = "MMM d"

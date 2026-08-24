@@ -61,7 +61,7 @@ struct ReceiptCaptureView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", action: onCancel).foregroundColor(.white)
+                    Button(S.Translation.commonCancel, action: onCancel).foregroundColor(.white)
                 }
             }
             .toolbarBackground(.black, for: .navigationBar)
@@ -75,20 +75,20 @@ struct ReceiptCaptureView: View {
     private var stageLabel: String {
         switch viewModel.stage {
         case .reading: return "Reading…"
-        case .understanding: return "Making sense of it…"
-        default: return "Preparing…"
+        case .understanding: return S.Receipts.stageUnderstanding
+        default: return S.Data.preparing
         }
     }
 
     @ViewBuilder
     private func mismatchCard(reason: String) -> some View {
         VStack(spacing: 14) {
-            Text("We couldn't read this cleanly").font(.headline).fontWeight(.bold).foregroundColor(.text)
+            Text(S.Receipts.captureUnclearTitle).font(.headline).fontWeight(.bold).foregroundColor(.text)
             Text(viewModel.mismatchMessage(reason)).font(.caption).foregroundColor(.text2).multilineTextAlignment(.center)
             HStack(spacing: 10) {
-                Button("Edit it myself") { viewModel.editManually() }
+                Button(S.Receipts.captureEditManually) { viewModel.editManually() }
                     .buttonStyle(.borderedProminent)
-                Button("Retake") { viewModel.retake(); showingPicker = true }
+                Button(S.Receipts.captureRetake) { viewModel.retake(); showingPicker = true }
                     .buttonStyle(.bordered)
             }
         }

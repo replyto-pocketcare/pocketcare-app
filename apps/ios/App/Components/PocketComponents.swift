@@ -1,3 +1,17 @@
+//
+//  DEPRECATED — superseded by the token-driven components in
+//  SanvyaSurfaces.swift / SanvyaControls.swift / SanvyaFeedback.swift /
+//  SanvyaText.swift / SanvyaIconView.swift / SanvyaOverlays.swift.
+//
+//  Everything here was hand-styled against eyeballed values rather than the
+//  generated design tokens, which is exactly the drift the parity work exists
+//  to remove (docs/plans/mobile-pixel-parity-plan.md §1). Screens migrate to
+//  the Sanvya* components as each is rebuilt against its spec; this file is
+//  deleted when its last call site is gone.
+//
+//  Do not add anything to it, and do not use it in a new screen.
+//
+
 import SwiftUI
 
 public struct PocketCard<Content: View>: View {

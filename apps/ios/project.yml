@@ -38,6 +38,9 @@ targets:
         # PLACEHOLDER bundle id — confirm the real reverse-DNS id before any
         # store submission (plan §10; same open item the RN scaffold hit).
         PRODUCT_BUNDLE_IDENTIFIER: com.sanvya.app
+        # iPhone + iPad. Already the Xcode default; stated so nobody has to
+        # look it up to know the iPad build is deliberate (W1.5).
+        TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_ENTITLEMENTS: App/Sanvya.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # "6" not "6.0" — Xcode's SWIFT_VERSION (Swift Language Version)
@@ -54,6 +57,29 @@ targets:
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
+        # Orientation policy (Akhilesh, 2026-08-23): phones portrait, tablets
+        # free. Declared rather than set at runtime, so the system applies it
+        # before the first frame instead of after one has already been laid out
+        # the wrong way round.
+        #
+        # There is no shipping iOS foldable and no hinge API to ask about one.
+        # If that changes it joins the ~ipad row -- see
+        # docs/mobile/screen-specs/app-shell.md §1b.
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        # Bundled faces. Inter is the app typeface (variable, so the design's
+        # 550/650 weights resolve exactly — see App/Theme/Font.swift); the
+        # icon face is the same Material Symbols subset web serves, so a glyph
+        # is identical across all three platforms. Rebuild both with
+        # tools/parity/build-fonts.sh.
+        UIAppFonts:
+          - InterVariable.ttf
+          - SanvyaIcons.ttf
 
   SanvyaTests:
     type: bundle.unit-test

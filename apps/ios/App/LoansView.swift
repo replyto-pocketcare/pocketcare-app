@@ -12,7 +12,6 @@ import SwiftUI
 /// established Investments drill-in / Goals sheet conventions rather than
 /// introducing a new navigation pattern.
 struct LoansView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var viewModel = LoansViewModel()
     @State private var selectedLoanId: String?
     @State private var showingAddSheet = false
@@ -37,21 +36,10 @@ struct LoansView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(selectedLoanId != nil ? "" : "Loans")
+            .navigationTitle(selectedLoanId != nil ? "" : S.Loans.title)
+            .registerBack(selectedLoanId != nil) { selectedLoanId = nil }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        if selectedLoanId != nil {
-                            selectedLoanId = nil
-                        } else {
-                            withAnimation(.spring()) { isDrawerOpen.toggle() }
-                        }
-                    } label: {
-                        Image(systemName: selectedLoanId != nil ? "chevron.left" : "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
                 if selectedLoanId == nil {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: { showingAddSheet = true }) {
@@ -71,7 +59,7 @@ struct LoansView: View {
     private var totalCard: some View {
         HStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Total EMIs / month").font(.caption).foregroundColor(Color.text2)
+                Text(S.Loans.totalEmisMonth).font(.caption).foregroundColor(Color.text2)
                 Text(viewModel.totalEmiFormatted).font(.title).fontWeight(.bold).foregroundColor(Color.text)
             }
             Spacer()
@@ -86,7 +74,7 @@ struct LoansView: View {
     private var emptyState: some View {
         VStack(spacing: 10) {
             Text("≈").font(.system(size: 26))
-            Text("No loans yet").font(.title3).fontWeight(.bold).foregroundColor(Color.text)
+            Text(S.Loans.noLoansTitle).font(.title3).fontWeight(.bold).foregroundColor(Color.text)
             Text("Track EMIs, interest, and payoff progress for any loan.")
                 .font(.subheadline).foregroundColor(Color.text2).multilineTextAlignment(.center)
             Button(action: { showingAddSheet = true }) {
@@ -109,7 +97,7 @@ struct LoanRowCardView: View {
                 HStack(alignment: .top) {
                     Text(loan.lender).font(.subheadline).fontWeight(.bold).foregroundColor(Color.text)
                     Spacer()
-                    Text(loan.active ? "Active" : "Closed")
+                    Text(loan.active ? S.Loans.active : S.Loans.closed)
                         .font(.caption2).fontWeight(.semibold)
                         .foregroundColor(loan.active ? Color.positive : Color.text2)
                         .padding(.horizontal, 9).padding(.vertical, 3)
@@ -128,12 +116,12 @@ struct LoanRowCardView: View {
                 Divider()
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Loan amount").font(.caption2).foregroundColor(Color.text2)
+                        Text(S.Loans.loanAmount).font(.caption2).foregroundColor(Color.text2)
                         Text(loan.principalFormatted).font(.subheadline).fontWeight(.semibold).foregroundColor(Color.text)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("EMI amount").font(.caption2).foregroundColor(Color.text2)
+                        Text(S.Loans.emiAmount).font(.caption2).foregroundColor(Color.text2)
                         Text(loan.emiFormatted).font(.subheadline).fontWeight(.semibold).foregroundColor(Color.text)
                     }
                 }
@@ -174,8 +162,8 @@ struct LoanDetailContentView: View {
         .onAppear { viewModel.load(id: loanId) }
         .onDisappear { viewModel.cancel() }
         .alert("Delete \(viewModel.uiModel?.lender ?? "loan")?", isPresented: $showDeleteConfirm) {
-            Button("Delete", role: .destructive) { viewModel.delete(onDone: onDeleted) }
-            Button("Cancel", role: .cancel) {}
+            Button(S.Loans.delete, role: .destructive) { viewModel.delete(onDone: onDeleted) }
+            Button(S.Loans.cancel, role: .cancel) {}
         } message: {
             Text("This removes the loan and its EMI history.")
         }
@@ -201,35 +189,35 @@ struct LoanDetailContentView: View {
                 HStack {
                     Text(model.lender).font(.title2).fontWeight(.bold).foregroundColor(Color.text)
                     Spacer()
-                    Button("Edit") { editing = true }.foregroundColor(Color.accent)
-                    Button("Delete") { showDeleteConfirm = true }.foregroundColor(Color.negative)
+                    Button(S.Loans.edit) { editing = true }.foregroundColor(Color.accent)
+                    Button(S.Loans.delete) { showDeleteConfirm = true }.foregroundColor(Color.negative)
                 }
 
                 HStack(spacing: 10) {
-                    SummaryCardView(label: "Principal", value: model.principalFormatted)
-                    SummaryCardView(label: "Monthly EMI", value: model.emiFormatted)
+                    SummaryCardView(label: S.Loans.cardPrincipal, value: model.principalFormatted)
+                    SummaryCardView(label: S.Loans.cardMonthlyEmi, value: model.emiFormatted)
                 }
                 HStack(spacing: 10) {
-                    SummaryCardView(label: "Interest rate", value: model.interestRateText)
-                    SummaryCardView(label: "EMIs paid", value: model.emisPaidText)
+                    SummaryCardView(label: S.Loans.cardInterestRate, value: model.interestRateText)
+                    SummaryCardView(label: S.Loans.cardEmisPaid, value: model.emisPaidText)
                 }
 
                 VStack(spacing: 10) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Next EMI due").font(.caption).foregroundColor(Color.text2)
+                            Text(S.Loans.nextEmiDue).font(.caption).foregroundColor(Color.text2)
                             Text(model.nextEmiDueFormatted).font(.headline).foregroundColor(Color.text)
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text("Remaining").font(.caption).foregroundColor(Color.text2)
+                            Text(S.Loans.remaining).font(.caption).foregroundColor(Color.text2)
                             Text(model.remainingText).font(.headline).foregroundColor(Color.text)
                         }
                     }
                     if model.isVariable, let v = model.variablePaidFormatted {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Paid so far").font(.caption).foregroundColor(Color.text2)
+                                Text(S.Loans.paidSoFar).font(.caption).foregroundColor(Color.text2)
                                 Text(v).font(.headline).foregroundColor(Color.text)
                             }
                             Spacer()
@@ -237,7 +225,7 @@ struct LoanDetailContentView: View {
                     } else if let ti = model.totalInterestFormatted {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Total interest (schedule)").font(.caption).foregroundColor(Color.text2)
+                                Text(S.Loans.totalInterestSchedule).font(.caption).foregroundColor(Color.text2)
                                 Text(ti).font(.headline).foregroundColor(Color.negative)
                             }
                             Spacer()
@@ -255,7 +243,7 @@ struct LoanDetailContentView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Auto-mark past-due EMIs paid").font(.subheadline).fontWeight(.semibold).foregroundColor(Color.text)
-                            Text((model.autoMarkPaid ? "On" : "Off") + (model.autoMarkDueDayText.isEmpty ? "" : " · \(model.autoMarkDueDayText)"))
+                            Text((model.autoMarkPaid ? "On" : S.Loans.off) + (model.autoMarkDueDayText.isEmpty ? "" : " · \(model.autoMarkDueDayText)"))
                                 .font(.caption).foregroundColor(Color.text2)
                         }
                         Spacer()
@@ -267,7 +255,7 @@ struct LoanDetailContentView: View {
                     .cornerRadius(12)
                 }
 
-                Text(model.isVariable ? "Month-by-month EMIs" : "Amortization schedule")
+                Text(model.isVariable ? "Month-by-month EMIs" : S.Loans.amortTitle)
                     .font(.caption).fontWeight(.semibold).foregroundColor(Color.text2)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -330,9 +318,9 @@ private struct EmiRowCardView: View {
                     case .autoMarked:
                         chip("Auto-marked", Color.positive, nil)
                     case .paid:
-                        chip("Paid", Color.positive, onUnmark)
+                        chip(S.Loans.paidCheck, Color.positive, onUnmark)
                     case .due:
-                        chip("Mark paid", Color.orange, onMark)
+                        chip(S.Loans.markPaid, Color.orange, onMark)
                     }
                     Text(row.state != .due ? "on \(row.paidOnOrDueFormatted)" : "due \(row.dueFormatted)")
                         .font(.caption2).foregroundColor(Color.text2)
@@ -344,19 +332,19 @@ private struct EmiRowCardView: View {
 
             if isVariable {
                 HStack {
-                    Text("EMI this month").font(.caption2).foregroundColor(Color.text2)
+                    Text(S.Loans.emiThisMonth).font(.caption2).foregroundColor(Color.text2)
                     Spacer()
                     TextField("0", text: $amountText)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 90)
-                    Button("Save") { onSaveVariableAmount(amountText) }.font(.caption)
+                    Button(S.Loans.save) { onSaveVariableAmount(amountText) }.font(.caption)
                 }
                 .padding(14)
             } else {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Principal").font(.caption2).foregroundColor(Color.text2)
+                        Text(S.Loans.cardPrincipal).font(.caption2).foregroundColor(Color.text2)
                         Text(row.principalFormatted ?? "—").font(.subheadline).fontWeight(.semibold).foregroundColor(Color.text)
                     }
                     Spacer()
@@ -367,7 +355,7 @@ private struct EmiRowCardView: View {
                         }
                     } else {
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text("Balance").font(.caption2).foregroundColor(Color.text2)
+                            Text(S.Loans.balance).font(.caption2).foregroundColor(Color.text2)
                             Text(row.balanceFormatted ?? "—").font(.subheadline).fontWeight(.semibold).foregroundColor(Color.text)
                         }
                     }
@@ -430,10 +418,10 @@ struct MarkPaidSheetView: View {
                         Text([dueLabel.isEmpty ? nil : "Due \(dueLabel)", emiAmountFormatted].compactMap { $0 }.joined(separator: " · "))
                             .font(.caption).foregroundColor(Color.text2)
                     }
-                    DatePicker("Paid on", selection: $paidOn, displayedComponents: .date)
+                    DatePicker(S.Loans.paidOn, selection: $paidOn, displayedComponents: .date)
                 }
                 Section(header: Text("Also record as an expense")) {
-                    Picker("Account", selection: $accountId) {
+                    Picker(S.Translation.settingsAccount, selection: $accountId) {
                         Text("Don't record").tag("")
                         ForEach(accounts) { a in
                             Text("\(a.name) · \(a.balanceFormatted)").tag(a.id)
@@ -441,7 +429,7 @@ struct MarkPaidSheetView: View {
                     }
                 }
                 Section {
-                    Button(accountId.isEmpty ? "Mark paid" : "Mark paid & record") {
+                    Button(accountId.isEmpty ? S.Loans.markPaid : S.Loans.markPaidRecord) {
                         let fmt = DateFormatter()
                         fmt.dateFormat = "yyyy-MM-dd"
                         onConfirm(fmt.string(from: paidOn), accountId.isEmpty ? nil : accountId)
@@ -454,7 +442,7 @@ struct MarkPaidSheetView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Loans.cancel) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
             .onAppear { accountId = defaultAccountId ?? "" }
@@ -463,5 +451,5 @@ struct MarkPaidSheetView: View {
 }
 
 #Preview {
-    LoansView(isDrawerOpen: .constant(false))
+    LoansView()
 }

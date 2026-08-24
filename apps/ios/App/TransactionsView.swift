@@ -7,7 +7,6 @@ import Factory
 /// (EditTransactionView didn't exist), and the ViewModel's category name
 /// was a hardcoded "General".
 struct TransactionsView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var viewModel = Container.shared.transactionsViewModel()
     @State private var editingId: EditingTransactionId?
     @State private var showingCreateSheet = false
@@ -37,7 +36,7 @@ struct TransactionsView: View {
 
                 ScrollView {
                     if viewModel.items.isEmpty {
-                        Text("No matching transactions")
+                        Text(S.Transactions.noMatching)
                             .foregroundColor(Color.text2)
                             .padding(.top, 40)
                     } else {
@@ -56,15 +55,8 @@ struct TransactionsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Transactions")
+            .navigationTitle(S.Transactions.title)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) { isDrawerOpen.toggle() }
-                    } label: {
-                        Image(systemName: "line.3.horizontal").imageScale(.large)
-                    }
-                }
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {
                         Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
@@ -133,5 +125,5 @@ private struct TransactionRowView: View {
 }
 
 #Preview {
-    TransactionsView(isDrawerOpen: .constant(false))
+    TransactionsView()
 }

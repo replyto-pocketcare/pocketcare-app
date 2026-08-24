@@ -24,6 +24,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import kotlin.math.roundToInt
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Ported from apps/web/app/goals/page.tsx per
@@ -61,15 +63,15 @@ fun GoalsScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Goals", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Goals.title(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 actions = {
                     IconButton(onClick = onAddGoal) {
-                        Icon(Icons.Default.Add, contentDescription = "New goal", tint = colors.accent)
+                        Icon(Icons.Default.Add, contentDescription = S.Goals.newGoal(sRes()), tint = colors.accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -140,7 +142,7 @@ private fun GoalRowCard(goal: GoalUiModel, onClick: () -> Unit, onAllocate: () -
                     Text(goal.name, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = colors.text)
                     if (goal.funded) {
                         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = colors.accent, modifier = Modifier.size(14.dp))
-                        Text("Funded", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
+                        Text(S.Goals.funded(sRes()), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
                     } else if (goal.isEmergencyFund) {
                         Text("· liquid", fontSize = 12.sp, color = colors.text2)
                     }

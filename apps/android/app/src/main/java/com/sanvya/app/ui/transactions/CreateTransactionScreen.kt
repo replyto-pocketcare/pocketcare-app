@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.accounts.ChipRow
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * New transaction — ported from transactions/new/page.tsx's regular
@@ -48,10 +51,10 @@ fun CreateTransactionScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Add transaction", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Transactions.addTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -66,12 +69,12 @@ fun CreateTransactionScreen(
             ) {
                 Text("Add an account first", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.text)
                 Spacer(Modifier.height(12.dp))
-                Button(onClick = onAddAccountFirst) { Text("New account") }
+                Button(onClick = onAddAccountFirst) { Text(S.Transactions.newAccountCta(sRes())) }
             }
             return@Scaffold
         }
 
-        val currency = account?.currency ?: "INR"
+        val currency = account?.currency ?: baseCurrencyNow()
 
         Column(
             modifier = Modifier
@@ -131,7 +134,7 @@ fun CreateTransactionScreen(
                 }
             }
 
-            Text(if (uiState.type == "transfer") "From account" else "Account", fontSize = 13.sp, color = colors.text2)
+            Text(if (uiState.type == "transfer") S.Transactions.fromAccount(sRes()) else S.Transactions.account(sRes()), fontSize = 13.sp, color = colors.text2)
             ChipRow(
                 options = accounts.map { it.id },
                 selected = account?.id ?: "",
@@ -141,7 +144,7 @@ fun CreateTransactionScreen(
             )
 
             if (uiState.type == "transfer") {
-                Text("To account", fontSize = 13.sp, color = colors.text2)
+                Text(S.Transactions.toAccount(sRes()), fontSize = 13.sp, color = colors.text2)
                 ChipRow(
                     options = accounts.filter { it.id != account?.id }.map { it.id },
                     selected = toAccount?.id ?: "",
@@ -161,7 +164,7 @@ fun CreateTransactionScreen(
             }
 
             if (uiState.type != "transfer") {
-                Text("Category", fontSize = 13.sp, color = colors.text2)
+                Text(S.Transactions.category(sRes()), fontSize = 13.sp, color = colors.text2)
                 CategoryPicker(
                     categories = relevantCategories,
                     selectedId = uiState.categoryId,
@@ -169,7 +172,7 @@ fun CreateTransactionScreen(
                 )
 
                 if (relevantPaymentMethods.isNotEmpty()) {
-                    Text("Payment method", fontSize = 13.sp, color = colors.text2)
+                    Text(S.Transactions.paymentMethod(sRes()), fontSize = 13.sp, color = colors.text2)
                     ChipRow(
                         options = relevantPaymentMethods.map { it.id },
                         selected = uiState.paymentMethod,
@@ -180,7 +183,7 @@ fun CreateTransactionScreen(
                 }
             }
 
-            Text("Labels (optional)", fontSize = 13.sp, color = colors.text2)
+            Text(S.Transactions.labelsOptional(sRes()), fontSize = 13.sp, color = colors.text2)
             LabelPickerRow(
                 available = labelOptions.map { it.name },
                 selected = uiState.selectedLabels,
@@ -192,7 +195,7 @@ fun CreateTransactionScreen(
             OutlinedTextField(
                 value = uiState.note,
                 onValueChange = viewModel::setNote,
-                label = { Text("Note (optional)") },
+                label = { Text(S.Transactions.noteOptional(sRes())) },
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -207,7 +210,7 @@ fun CreateTransactionScreen(
                 enabled = viewModel.canSave(),
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             ) {
-                Text(if (uiState.saving) "Saving…" else "Save")
+                Text(if (uiState.saving) S.Transactions.saving(sRes()) else S.Translation.commonSave(sRes()))
             }
         }
     }
@@ -248,10 +251,10 @@ internal fun LabelPickerRow(
             OutlinedTextField(
                 value = draft,
                 onValueChange = { draft = it },
-                placeholder = { Text("New label") },
+                placeholder = { Text(S.Labels.newLabel(sRes())) },
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = { onAddNew(draft); draft = "" }) { Text("Add") }
+            TextButton(onClick = { onAddNew(draft); draft = "" }) { Text(S.Transactions.add(sRes())) }
         }
     }
 }

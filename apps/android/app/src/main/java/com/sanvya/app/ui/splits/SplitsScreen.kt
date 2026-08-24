@@ -20,6 +20,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
+import com.sanvya.app.ui.FormOptions
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Real port of apps/web/app/friends/page.tsx's hub (task #30) -- replaces
@@ -29,7 +33,6 @@ import com.sanvya.app.theme.SanvyaRadius
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SplitsScreen(
-    onOpenDrawer: () -> Unit,
     onOpenGroup: (String) -> Unit,
     viewModel: SplitsViewModel = viewModel(),
 ) {
@@ -45,9 +48,8 @@ fun SplitsScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Splits", fontWeight = FontWeight.Bold, color = colors.text) },
-                navigationIcon = { IconButton(onClick = onOpenDrawer) { Icon(Icons.Default.Menu, contentDescription = "Menu", tint = colors.text2) } },
-                actions = { IconButton(onClick = { showCreate = true }) { Icon(Icons.Default.Add, contentDescription = "New group", tint = colors.accent) } },
+                title = { Text(S.Splits.eyebrow(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
+                actions = { IconButton(onClick = { showCreate = true }) { Icon(Icons.Default.Add, contentDescription = S.Splits.newGroupCta(sRes()), tint = colors.accent) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
             )
         },
@@ -71,8 +73,8 @@ fun SplitsScreen(
             }
 
             TabRow(selectedTabIndex = tab, containerColor = colors.bg, contentColor = colors.accent) {
-                Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("Groups & Trips") })
-                Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("Friends") })
+                Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(S.Splits.groupsAndTrips(sRes())) })
+                Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(S.Splits.sectionsFriends(sRes())) })
             }
 
             when {
@@ -87,7 +89,7 @@ fun SplitsScreen(
                 else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(friends, key = { it.id }) { f ->
                         FriendRow(f, colors) {
-                            viewModel.openOrCreateDirectGroup(f.id, "INR") { id -> id?.let(onOpenGroup) }
+                            viewModel.openOrCreateDirectGroup(f.id, baseCurrencyNow()) { id -> id?.let(onOpenGroup) }
                         }
                     }
                 }
@@ -139,7 +141,7 @@ private fun FriendRow(f: FriendEdgeUiModel, colors: com.sanvya.app.theme.SanvyaC
         ) { Text(initials(f.name), color = colors.surface, fontWeight = FontWeight.Bold, fontSize = 14.sp) }
         Column(Modifier.weight(1f)) {
             Text(f.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.text)
-            Text(if (f.isOwed) "Owes you" else "You owe", fontSize = 12.sp, color = if (f.isOwed) colors.positive else colors.negative)
+            Text(if (f.isOwed) S.Splits.sectionsOwesYou(sRes()) else S.Splits.sectionsYouOwe(sRes()), fontSize = 12.sp, color = if (f.isOwed) colors.positive else colors.negative)
         }
         Text(f.balanceFormatted, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = if (f.isOwed) colors.positive else colors.negative)
     }
@@ -168,25 +170,25 @@ private fun CreateGroupSheet(viewModel: SplitsViewModel, onDismiss: () -> Unit, 
     val connections by viewModel.connections.collectAsState()
     var name by remember { mutableStateOf("") }
     var kind by remember { mutableStateOf("group") }
-    var currency by remember { mutableStateOf("INR") }
+    var currency by remember { mutableStateOf(FormOptions.DEFAULT_CURRENCY) }
     var selected by remember { mutableStateOf(setOf<String>()) }
     var error by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
 
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = colors.surface) {
         Column(Modifier.padding(20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("New group", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.text)
-            OutlinedTextField(name, { name = it }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            Text(S.Splits.newGroupCta(sRes()), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.text)
+            OutlinedTextField(name, { name = it }, label = { Text(S.Cashflow.name(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("group" to "Group", "trip" to "Trip").forEach { (value, label) ->
+                listOf("group" to S.Splits.kindGroup(sRes()), "trip" to S.Splits.kindTrip(sRes())).forEach { (value, label) ->
                     FilterChip(selected = kind == value, onClick = { kind = value }, label = { Text(label) })
                 }
             }
 
-            Text("Currency", fontSize = 12.sp, color = colors.text2)
+            Text(S.Accounts.currency(sRes()), fontSize = 12.sp, color = colors.text2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("INR", "USD", "EUR").forEach { c ->
+                FormOptions.currencies.forEach { c ->
                     FilterChip(selected = currency == c, onClick = { currency = c }, label = { Text(c) })
                 }
             }
@@ -221,7 +223,7 @@ private fun CreateGroupSheet(viewModel: SplitsViewModel, onDismiss: () -> Unit, 
                 },
                 enabled = name.isNotBlank() && !saving,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(if (saving) "Creating..." else "Create group") }
+            ) { Text(if (saving) S.Groups.creating(sRes()) else "Create group") }
         }
     }
 }

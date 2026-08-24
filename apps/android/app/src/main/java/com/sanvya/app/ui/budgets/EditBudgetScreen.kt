@@ -19,6 +19,8 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.StringListSaver
 import com.sanvya.app.ui.transactions.LabelPickerRow
 import kotlinx.coroutines.launch
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Real edit form + delete, matching apps/web/app/budgets/page.tsx's
@@ -83,7 +85,7 @@ fun EditBudgetScreen(
                 title = { Text("Edit Budget", fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -111,7 +113,7 @@ fun EditBudgetScreen(
             )
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Alert at", color = colors.text2, fontSize = 13.sp)
+                Text(S.Budgets.alertAt(sRes()), color = colors.text2, fontSize = 13.sp)
                 OutlinedTextField(
                     value = thresholdText,
                     onValueChange = { thresholdText = it.filter { c -> c.isDigit() } },
@@ -127,7 +129,7 @@ fun EditBudgetScreen(
                 selectedCategoryIds = if (id in selectedCategoryIds) selectedCategoryIds - id else selectedCategoryIds + id
             })
 
-            Text("Labels (optional)", color = colors.text2, fontSize = 13.sp)
+            Text(S.Budgets.labelsOptional(sRes()), color = colors.text2, fontSize = 13.sp)
             LabelPickerRow(
                 available = labelNames,
                 selected = selectedLabels,
@@ -174,7 +176,7 @@ fun EditBudgetScreen(
                 enabled = !saving,
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             ) {
-                Text(if (saving) "Saving…" else "Save Changes")
+                Text(if (saving) S.Translation.commonSaving(sRes()) else S.Translation.commonSaveChanges(sRes()))
             }
 
             OutlinedButton(
@@ -182,7 +184,7 @@ fun EditBudgetScreen(
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.negative),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Delete Budget")
+                Text(S.Budgets.deleteBudgetAria(sRes()))
             }
         }
     }
@@ -198,15 +200,15 @@ fun EditBudgetScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete this budget?") },
+            title = { Text(S.Budgets.deleteTitle(sRes())) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteConfirm = false
                     viewModel.delete(budget.id)
                     onDeleted()
-                }) { Text("Delete", color = colors.negative) }
+                }) { Text(S.Translation.commonDelete(sRes()), color = colors.negative) }
             },
-            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text(S.Budgets.cancel(sRes())) } },
         )
     }
 }

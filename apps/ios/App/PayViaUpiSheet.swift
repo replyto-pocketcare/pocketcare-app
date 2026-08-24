@@ -9,7 +9,7 @@ struct PayViaUpiSheet: View {
     let amountMinor: Int64
     var note: String = "Sanvya settle-up"
     /// Called with the built intent's `tr=` reference just before dismissing,
-    /// when the user taps "I've paid — tell them" -- added task #30 so
+    /// when the user taps "Mark as paid" -- added task #30 so
     /// Splits' settle-up flow can record a "pending" settlement the payee
     /// still has to confirm (matches PayViaUpi.tsx's own `onPaid: (ref:
     /// string) => void` prop). Optional/no-op default so this stays a
@@ -61,7 +61,7 @@ struct PayViaUpiSheet: View {
                         showFallback = true
                     }
                 }) {
-                    Text("Open UPI App")
+                    Text(S.Payments.payOpenApp)
                         .font(.headline)
                         .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
@@ -73,7 +73,7 @@ struct PayViaUpiSheet: View {
 
                 if !showFallback {
                     Button(action: { showFallback = true }) {
-                        Text("Didn't open? Pay another way")
+                        Text(S.Payments.payDidntOpen)
                             .font(.caption)
                             .foregroundColor(Color.text2)
                     }
@@ -103,7 +103,7 @@ struct PayViaUpiSheet: View {
                                 .font(.caption)
                                 .fontDesign(.monospaced)
                             Spacer()
-                            Button("Copy Amount") {
+                            Button(S.Payments.payCopyAmount) {
                                 UIPasteboard.general.string = amountRupees
                                 copiedNotice = "Copied Amount"
                             }
@@ -128,7 +128,7 @@ struct PayViaUpiSheet: View {
                     onPaid(builtIntent?.ref ?? "")
                     dismiss()
                 }) {
-                    Text("I've paid — tell them")
+                    Text(S.Payments.payMarkPaid)
                         .font(.headline)
                         .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
@@ -145,11 +145,11 @@ struct PayViaUpiSheet: View {
             }
             .padding(20)
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Pay via UPI")
+            .navigationTitle(S.Payments.payButton)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(S.Translation.commonCancel) { dismiss() }
                         .foregroundColor(Color.text2)
                 }
             }

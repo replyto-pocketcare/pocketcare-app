@@ -83,4 +83,11 @@ dependencies {
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-messaging")
+
+    // W1.5: :app had no test source set at all. Added for the device-type and
+    // window-class mapping -- both are small pure functions, and both decide
+    // things (portrait lock, sidebar vs bottom bar) whose failure mode is
+    // "wrong on a device nobody has to hand".
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlin.test.junit)
 }

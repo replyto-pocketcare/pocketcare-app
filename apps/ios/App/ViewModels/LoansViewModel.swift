@@ -5,11 +5,6 @@ import Domain
 import Data
 import Supabase
 
-/// Base/display currency -- loans are always created in the base currency
-/// (matches web: `AddLoan` inserts with `currency: base`, no per-loan
-/// currency picker exists), matching Android's LoansViewModel.kt /
-/// InvestmentsViewModel.swift's own established simplification.
-private let BASE_CURRENCY = "INR"
 private let NON_INVESTMENT_TYPES: Set<String> = ["stocks", "mutual_funds", "demat"]
 
 /// Ported from apps/web/app/loans/page.tsx per docs/mobile/screen-specs/
@@ -54,7 +49,7 @@ public final class LoansViewModel {
     }
 
     public var loans: [LoanUiModel] = []
-    public var totalEmiFormatted: String = formatMoney(0, BASE_CURRENCY)
+    public var totalEmiFormatted: String = formatMoney(0, baseCurrencyNow())
     public var fundingAccounts: [FundingAccountOption] = []
 
     private var observeTask: Task<Void, Never>?
@@ -103,23 +98,23 @@ public final class LoansViewModel {
             let remaining = tenure > 0 ? max(0, tenure - paid) : nil
             let closed = tenure > 0 && remaining == 0
             let range = loanRange(l.startDate, tenure)
-            let cur = l.currency.isEmpty ? BASE_CURRENCY : l.currency
+            let cur = l.currency.isEmpty ? baseCurrencyNow() : l.currency
             if let emi = l.emiAmount {
-                totalEmiBase += cur == BASE_CURRENCY ? emi : ((try? convert(money(emi, cur), to: BASE_CURRENCY, rate: rates(cur, BASE_CURRENCY)).amount) ?? emi)
+                totalEmiBase += cur == baseCurrencyNow() ? emi : ((try? convert(money(emi, cur), to: baseCurrencyNow(), rate: rates(cur, baseCurrencyNow())).amount) ?? emi)
             }
             return LoanUiModel(
                 id: l.id,
-                lender: (l.lender?.isEmpty == false) ? l.lender! : "Loan",
+                lender: (l.lender?.isEmpty == false) ? l.lender! : S.Loans.loanFallback,
                 active: !closed,
                 rangeOrRate: range ?? (l.interestRate.map { "\(formatRate($0))% p.a." } ?? "—"),
                 paidCountText: tenure > 0 ? "\(paid) / \(tenure) paid" : "\(paid) paid",
                 progress: tenure > 0 ? min(1.0, max(0.0, Double(paid) / Double(tenure))) : 0,
                 hasTenure: tenure > 0,
                 principalFormatted: formatMoney(l.principal, cur),
-                emiFormatted: l.emiAmount.map { formatMoney($0, cur) } ?? (l.rateType == "variable" ? "Varies" : "—")
+                emiFormatted: l.emiAmount.map { formatMoney($0, cur) } ?? (l.rateType == "variable" ? S.Loans.varies : "—")
             )
         }
-        totalEmiFormatted = formatMoney(totalEmiBase, BASE_CURRENCY)
+        totalEmiFormatted = formatMoney(totalEmiBase, baseCurrencyNow())
     }
 
     /// Matches web's `AddLoan.save()`: requires a lender name or a
@@ -134,13 +129,13 @@ public final class LoansViewModel {
         if trimmedLender.isEmpty && principalMajorText.isEmpty { return "Enter a lender or a loan amount." }
         guard let userId = await resolveUserId() else { return "Couldn't determine the current user." }
         do {
-            let principalMinor = fromMajor(Double(principalMajorText) ?? 0, BASE_CURRENCY).amount
+            let principalMinor = fromMajor(Double(principalMajorText) ?? 0, baseCurrencyNow()).amount
             let dueDay = Int(dueDayText).map { min(31, max(1, $0)) }
             try await loansRepository.create(
                 userId: userId,
                 input: NewLoanInput(
-                    lender: trimmedLender, currency: BASE_CURRENCY, principal: principalMinor,
-                    emiAmount: emiMajorText.flatMap { Double($0) }.map { fromMajor($0, BASE_CURRENCY).amount },
+                    lender: trimmedLender, currency: baseCurrencyNow(), principal: principalMinor,
+                    emiAmount: emiMajorText.flatMap { Double($0) }.map { fromMajor($0, baseCurrencyNow()).amount },
                     interestRate: Double(interestRateText) ?? 0, tenureMonths: Int(tenureText),
                     startDate: startDate, emiDueDay: dueDay, autoMarkPaid: autoMarkPaid, rateType: rateType,
                     fundingAccountId: fundingAccountId, alertTimeUtc: alertTimeUtc
@@ -202,16 +197,6 @@ func formatRate(_ r: Double) -> String {
     r == r.rounded() ? String(Int64(r)) : String(r)
 }
 
-func formatMoney(_ minor: Int64, _ currency: String) -> String {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .currency
-    formatter.currencyCode = currency
-    formatter.maximumFractionDigits = 0
-    formatter.locale = Locale(identifier: "en_IN")
-    return formatter.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "\(currency) \(Double(minor) / 100.0)"
-}
+// formatMoney moved to App/Components/MoneyFormat.swift — one formatter,
+// hide-amounts aware, fraction digits from minorUnits(currency).
 
-func formatMajorPlain(_ minor: Int64) -> String {
-    let major = Double(minor) / 100.0
-    return major == major.rounded() ? String(Int64(major)) : String(major)
-}

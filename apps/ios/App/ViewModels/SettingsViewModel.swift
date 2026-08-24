@@ -105,14 +105,22 @@ class SettingsViewModel {
         // One-shot read is enough for Settings (unlike Insights, which needs
         // a live watch for its premium gate) -- take the first emission only.
         guard let stream = try? prefsRepo.watchEntitlement() else { return }
-        for await row in stream {
-            guard let row else {
-                entitlement = EntitlementUi(tier: "free", isPaid: false)
+        // `AsyncThrowingStream` iteration itself throws, and this function is
+        // `async` rather than `async throws` — so the do/catch is required, not
+        // decorative. Offline keeps whatever tier was last known instead of
+        // silently downgrading someone to free.
+        do {
+            for try await row in stream {
+                guard let row else {
+                    entitlement = EntitlementUi(tier: "free", isPaid: false)
+                    return
+                }
+                let paid = isPaid(tier: row.tier, premiumTrialStartDate: row.premiumTrialStartDate, compTier: row.compTier, compUntil: row.compUntil, now: Date())
+                entitlement = EntitlementUi(tier: row.tier ?? "free", isPaid: paid)
                 return
             }
-            let paid = isPaid(tier: row.tier, premiumTrialStartDate: row.premiumTrialStartDate, compTier: row.compTier, compUntil: row.compUntil, now: Date())
-            entitlement = EntitlementUi(tier: row.tier ?? "free", isPaid: paid)
-            return
+        } catch {
+            /* offline — keep the last known tier */
         }
     }
 
@@ -218,7 +226,7 @@ class SettingsViewModel {
                 }
                 profileGender = gender
                 profileCountry = country
-                profileMsg = "Saved."
+                profileMsg = S.Settings.saved
             } catch {
                 profileMsg = error.localizedDescription
             }

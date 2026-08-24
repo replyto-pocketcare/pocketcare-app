@@ -22,6 +22,9 @@ import com.sanvya.app.ui.budgets.DatePickerDialogSimple
 import com.sanvya.app.ui.budgets.TimePickerDialogSimple
 import com.sanvya.app.ui.budgets.localToUtcTime
 import kotlinx.coroutines.launch
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Ported from apps/web/app/loans/[id]/page.tsx's `EditLoan` inline form per
@@ -70,10 +73,10 @@ fun EditLoanScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Edit loan", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Loans.editTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -84,12 +87,12 @@ fun EditLoanScreen(
             modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            OutlinedTextField(value = lender, onValueChange = { lender = it }, label = { Text("Lender") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = lender, onValueChange = { lender = it }, label = { Text(S.Loans.lender(sRes())) }, modifier = Modifier.fillMaxWidth())
 
-            Text("Interest type", fontSize = 13.sp, color = colors.text2)
+            Text(S.Loans.interestType(sRes()), fontSize = 13.sp, color = colors.text2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = rateType == "fixed", onClick = { rateType = "fixed" }, label = { Text("Fixed") })
-                FilterChip(selected = rateType == "variable", onClick = { rateType = "variable" }, label = { Text("Variable") })
+                FilterChip(selected = rateType == "fixed", onClick = { rateType = "fixed" }, label = { Text(S.Loans.fixed(sRes())) })
+                FilterChip(selected = rateType == "variable", onClick = { rateType = "variable" }, label = { Text(S.Loans.variable(sRes())) })
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -100,14 +103,14 @@ fun EditLoanScreen(
                 )
                 OutlinedTextField(
                     value = tenure, onValueChange = { tenure = it.filter { c -> c.isDigit() } },
-                    label = { Text("Tenure (months)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    label = { Text(S.Loans.tenureMonths(sRes())) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = rate, onValueChange = { rate = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text(if (rateType == "variable") "Current interest %" else "Interest % p.a.") },
+                    label = { Text(if (rateType == "variable") "Current interest %" else S.Loans.interestPa(sRes())) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.weight(1f),
                 )
                 if (rateType == "fixed") {
@@ -125,7 +128,7 @@ fun EditLoanScreen(
                             if (emiTouched) "Auto-calculated EMI would be ${formatMoney(computedEmiMinor, model.currency)}" else "EMI auto-calculated from principal, rate & tenure.",
                             fontSize = 12.sp, color = colors.text2,
                         )
-                        if (emiTouched) TextButton(onClick = { emiTouched = false; emi = "" }) { Text("Use it", fontSize = 11.sp) }
+                        if (emiTouched) TextButton(onClick = { emiTouched = false; emi = "" }) { Text(S.Loans.useIt(sRes()), fontSize = 11.sp) }
                     }
                 }
             } else {
@@ -171,7 +174,7 @@ fun EditLoanScreen(
                 enabled = !saving && (lender.trim().isNotEmpty() || principal.isNotBlank()),
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             ) {
-                Text(if (saving) "Saving…" else "Save changes")
+                Text(if (saving) S.Loans.savingEllipsis(sRes()) else S.Translation.commonSaveChanges(sRes()))
             }
         }
     }

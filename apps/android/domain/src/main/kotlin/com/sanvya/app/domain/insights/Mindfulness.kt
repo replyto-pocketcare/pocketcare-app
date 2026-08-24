@@ -1,5 +1,6 @@
 package com.sanvya.app.domain.insights
 
+import com.sanvya.app.domain.money.fromMajor
 import java.time.Instant
 
 // Ported verbatim from packages/core/mindfulness/src/index.ts (92 lines) for
@@ -19,8 +20,23 @@ data class TransactionForInsight(
 
 data class MindfulInsight(val id: String, val type: String, val title: String, val body: String, val severity: String?)
 
-/** Tier 1 insights (no tagging required). */
-fun computeTier1Insights(txns: List<TransactionForInsight>): List<MindfulInsight> {
+/** The small-purchase-drift threshold, in MAJOR units. */
+private const val SMALL_PURCHASE_MAJOR = 200.0
+
+/**
+ * Tier 1 insights (no tagging required).
+ *
+ * Takes the currency and the caller's formatter, which is this codebase's
+ * established "domain never formats currency, screens do" convention --
+ * `GenContext` already carries both. The original port interpolated a bare
+ * `total / 100.0`, which was wrong in any currency that does not have two
+ * minor units and could not be hidden by the hide-amounts toggle.
+ */
+fun computeTier1Insights(
+    txns: List<TransactionForInsight>,
+    currency: String,
+    fmt: (Long) -> String,
+): List<MindfulInsight> {
     val insights = mutableListOf<MindfulInsight>()
     if (txns.isEmpty()) return insights
 
@@ -38,13 +54,21 @@ fun computeTier1Insights(txns: List<TransactionForInsight>): List<MindfulInsight
         ))
     }
 
-    // Small-purchase drift (<200 major units == <20000 minor).
-    val smallTxns = txns.filter { it.amount < 20_000 }
+    // Small-purchase drift.
+    //
+    // The threshold is derived, not written down: 20000 minor units is 200 only
+    // in a 2-decimal currency. In JPY it meant 20,000 yen and in KWD 20 dinar.
+    val threshold = fromMajor(SMALL_PURCHASE_MAJOR, currency).amount
+
+    // Same-currency only. Summing yen into dollars produced a number that was
+    // not an amount in any currency, then labelled it with one.
+    val smallTxns = txns.filter { it.currency == currency && it.amount < threshold }
     if (smallTxns.size > 5) {
         val totalSmall = smallTxns.sumOf { it.amount }
         insights.add(MindfulInsight(
             id = "small_purchase_drift", type = "tier1", title = "Small-purchase drift",
-            body = "You had ${smallTxns.size} spends under 200, totaling ${totalSmall / 100.0}.", severity = "info",
+            body = "You had ${smallTxns.size} spends under ${fmt(threshold)}, totaling ${fmt(totalSmall)}.",
+            severity = "info",
         ))
     }
     return insights

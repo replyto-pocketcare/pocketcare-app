@@ -3,7 +3,7 @@ package com.sanvya.app.theme
 import androidx.compose.ui.graphics.Color
 
 // GENERATED FILE — do not hand-edit.
-// Source: apps/web/app/globals.css :root / :root[data-theme="dark"]
+// Source: apps/web/app/globals.css + tools/parity/tokens.spec.mjs
 // Regenerate with: node tools/parity/generate-tokens.mjs
 
 object SanvyaLightColors {

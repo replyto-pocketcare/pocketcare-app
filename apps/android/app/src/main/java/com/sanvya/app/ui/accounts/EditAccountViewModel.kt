@@ -15,9 +15,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.text.NumberFormat
 import java.time.Instant
-import java.util.Locale
+import com.sanvya.app.ui.formatMoneyAware
 
 /** Persisted ledger text, stays English by design -- matches
  * accounts/[id]/edit/page.tsx's ADJUSTMENT_TITLE exactly (data, not UI
@@ -54,11 +53,6 @@ class EditAccountViewModel(
     private val authRepository: AuthRepository by inject()
 
     private val accountId: String = checkNotNull(savedStateHandle["accountId"]) { "EditAccountViewModel needs an accountId nav arg" }
-
-    private val numberFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-        currency = java.util.Currency.getInstance("INR")
-        maximumFractionDigits = 2
-    }
 
     private val form = MutableStateFlow<FormEdits?>(null) // null until the loaded row seeds it
     private val ui = MutableStateFlow(EditAccountUiState())
@@ -98,7 +92,7 @@ class EditAccountViewModel(
                         includeInNetWorth = seeded.includeInNetWorth,
                         allowNegative = seeded.allowNegative,
                         currentBalance = balance,
-                        currentBalanceFormatted = balance?.let { numberFormat.format(it.amount / 100.0) } ?: "…",
+                        currentBalanceFormatted = balance?.let { formatMoneyAware(it) } ?: "…",
                         archived = account.isArchived,
                     )
                 }
@@ -200,7 +194,7 @@ class EditAccountViewModel(
                 )
             }
             ui.value = ui.value.copy(
-                balanceMessage = "Balance updated to ${numberFormat.format(target.amount / 100.0)}",
+                balanceMessage = "Balance updated to ${formatMoneyAware(target)}",
                 targetBalance = "",
             )
         }

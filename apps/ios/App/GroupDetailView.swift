@@ -22,13 +22,13 @@ struct GroupDetailView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         HStack {
-                            Text(viewModel.group?.name ?? "Group").font(.title2).fontWeight(.bold).foregroundColor(.text)
+                            Text(viewModel.group?.name ?? S.Groups.kindGroup).font(.title2).fontWeight(.bold).foregroundColor(.text)
                             Spacer()
-                            PrimaryButton("Add expense") { showingAddExpense = true }
+                            PrimaryButton(S.Splits.addExpense) { showingAddExpense = true }
                                 .frame(width: 140)
                         }
 
-                        sectionHeader("Members")
+                        sectionHeader(S.Groups.membersTitle)
                         VStack(spacing: 4) {
                             ForEach(viewModel.members) { m in
                                 Button(action: { if !m.isSelf { settleTarget = m } }) {
@@ -40,7 +40,7 @@ struct GroupDetailView: View {
                         }
 
                         if !viewModel.expenses.isEmpty {
-                            sectionHeader("Expenses")
+                            sectionHeader(S.Groups.expensesTitle)
                             VStack(spacing: 4) {
                                 ForEach(viewModel.expenses) { e in
                                     HStack {
@@ -102,8 +102,8 @@ struct GroupDetailView: View {
     }
 
     private func memberBalanceText(_ m: MemberUiModel) -> String {
-        if m.net == 0 { return "Settled up" }
-        return m.net > 0 ? "Owes you \(formatMoney(m.net, "INR"))" : "You owe \(formatMoney(-m.net, "INR"))"
+        if m.net == 0 { return S.Groups.settledTitle }
+        return m.net > 0 ? "Owes you \(formatMoney(m.net, baseCurrencyNow()))" : "You owe \(formatMoney(-m.net, baseCurrencyNow()))"
     }
 }
 
@@ -133,8 +133,8 @@ private struct AddExpenseView: View {
             Form {
                 Section {
                     Text("Split equally among the people you select below.").font(.caption).foregroundColor(.text2)
-                    TextField("Description", text: $description)
-                    TextField("Amount", text: $amount).keyboardType(.decimalPad)
+                    TextField(S.Receipts.reviewDescription, text: $description)
+                    TextField(S.Translation.transactionAmount, text: $amount).keyboardType(.decimalPad)
                 }
                 Section(header: Text("Paid by")) {
                     Picker("Paid by", selection: $payerId) {
@@ -142,13 +142,13 @@ private struct AddExpenseView: View {
                     }
                 }
                 if !viewModel.accounts.isEmpty {
-                    Section(header: Text("Paid from")) {
-                        Picker("Account", selection: Binding(get: { accountId ?? viewModel.accounts.first?.id ?? "" }, set: { accountId = $0 })) {
+                    Section(header: Text(S.Receipts.reviewAccount)) {
+                        Picker(S.Translation.settingsAccount, selection: Binding(get: { accountId ?? viewModel.accounts.first?.id ?? "" }, set: { accountId = $0 })) {
                             ForEach(viewModel.accounts) { a in Text(a.name).tag(a.id) }
                         }
                     }
                 }
-                Section(header: Text("Split between")) {
+                Section(header: Text(S.Transactions.splitBetween)) {
                     ForEach(members) { m in
                         Button(action: { toggle(m.userId) }) {
                             HStack {
@@ -162,17 +162,17 @@ private struct AddExpenseView: View {
                 if let error { Text(error).foregroundColor(.negative).font(.caption) }
                 Section {
                     Button(action: save) {
-                        Text(saving ? "Saving..." : "Add expense").frame(maxWidth: .infinity)
+                        Text(saving ? S.Translation.commonSaving : S.Splits.addExpense).frame(maxWidth: .infinity)
                     }
                     .disabled(amount.isEmpty || payerId.isEmpty || participantIds.isEmpty || saving)
                     .listRowBackground(Color.accent)
                     .foregroundColor(.white)
                 }
             }
-            .navigationTitle("Add expense")
+            .navigationTitle(S.Splits.addExpense)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.foregroundColor(.text2) }
+                ToolbarItem(placement: .cancellationAction) { Button(S.Groups.cancel) { dismiss() }.foregroundColor(.text2) }
             }
         }
     }
@@ -214,7 +214,7 @@ private struct SettleUpView: View {
         NavigationStack {
             Form {
                 Section(header: Text("Settle up with \(target.name)")) {
-                    TextField("Amount", text: $amount).keyboardType(.decimalPad)
+                    TextField(S.Translation.transactionAmount, text: $amount).keyboardType(.decimalPad)
                 }
                 if direction == "paid" {
                     Section {
@@ -222,15 +222,15 @@ private struct SettleUpView: View {
                             if case .fetching = viewModel.upiStage {
                                 HStack { ProgressView(); Text("Preparing the payment\u{2026}") }
                             } else {
-                                Text("Pay via UPI")
+                                Text(S.Payments.payButton)
                             }
                         }
                         .disabled({ if case .fetching = viewModel.upiStage { return true }; return false }())
                     }
                 }
                 if !viewModel.accounts.isEmpty {
-                    Section(header: Text("Account")) {
-                        Picker("Account", selection: Binding(get: { accountId ?? viewModel.accounts.first?.id ?? "" }, set: { accountId = $0 })) {
+                    Section(header: Text(S.Translation.settingsAccount)) {
+                        Picker(S.Translation.settingsAccount, selection: Binding(get: { accountId ?? viewModel.accounts.first?.id ?? "" }, set: { accountId = $0 })) {
                             ForEach(viewModel.accounts) { a in Text(a.name).tag(a.id) }
                         }
                     }
@@ -243,10 +243,10 @@ private struct SettleUpView: View {
                     .disabled(amount.isEmpty || saving)
                 }
             }
-            .navigationTitle("Settle up")
+            .navigationTitle(S.Splits.settleUp)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { viewModel.resetUpiStage(); dismiss() }.foregroundColor(.text2) }
+                ToolbarItem(placement: .cancellationAction) { Button(S.Groups.cancel) { viewModel.resetUpiStage(); dismiss() }.foregroundColor(.text2) }
             }
         }
         .sheet(isPresented: isUpiSheetPresented) {

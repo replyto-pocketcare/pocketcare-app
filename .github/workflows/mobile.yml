@@ -1,0 +1,247 @@
+name: Mobile
+
+# Real compilers for the native apps.
+#
+# This workflow exists because there is no Gradle/Xcode toolchain in the agent
+# sandbox (maven.google.com, Maven Central and download.swift.org are blocked by
+# egress policy), which is how ~18 tasks once got marked DONE against files that
+# did not exist. See docs/mobile/PARITY_AUDIT.md §2 — CI is the compiler of
+# record for apps/android and apps/ios.
+#
+# The `report` job writes each run's outcome and captured compiler output to the
+# orphan `ci-logs` branch. That is not belt-and-braces: the agent sandbox's proxy
+# refuses api.github.com/repos/... for this repository, so run status and logs
+# cannot be polled the usual way — but plain git can. Push to trigger, fetch
+# `ci-logs` to read the result.
+
+on:
+  push:
+    branches: [main, "mobile/**"]
+    paths:
+      - "apps/android/**"
+      - "apps/ios/**"
+      - "tools/parity/**"
+      - "packages/core/i18n/**"
+      - ".github/workflows/mobile.yml"
+  pull_request:
+    paths:
+      - "apps/android/**"
+      - "apps/ios/**"
+      - "tools/parity/**"
+      - "packages/core/i18n/**"
+      - ".github/workflows/mobile.yml"
+  workflow_dispatch:
+    inputs:
+      run_ios:
+        description: "Run the iOS job (costs macOS runner minutes)"
+        type: boolean
+        default: true
+      run_android:
+        description: "Run the Android job"
+        type: boolean
+        default: true
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  parity:
+    name: Generated-artifact drift check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      # Tokens, string catalogs and icon maps are GENERATED from the web
+      # sources. Regenerating must be a no-op on a clean tree; a diff here means
+      # generated output was hand-edited instead of its source.
+      - name: Regenerate
+        run: |
+          set -o pipefail
+          { node tools/parity/generate-tokens.mjs
+            node tools/parity/generate-i18n.mjs
+            node tools/parity/generate-icons.mjs
+            node tools/parity/generate-money-format.mjs
+            node tools/parity/generate-options.mjs
+          } 2>&1 | tee parity.log
+      - name: Fail if generated output drifted
+        run: |
+          if ! git diff --exit-code | tee -a parity.log; then
+            echo "::error::Generated native artifacts are out of date. Run the generators in tools/parity and commit the result." | tee -a parity.log
+            exit 1
+          fi
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: log-parity, path: parity.log, retention-days: 7, if-no-files-found: ignore }
+
+  android:
+    name: Android — assemble + unit tests
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_android }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - name: Install SDK packages for compileSdk 36
+        run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0" > /dev/null
+      - uses: gradle/actions/setup-gradle@v4
+      # --continue: report EVERY failing task, not just the first. Each run
+      # costs a round trip through a human (the agent sandbox cannot push), so
+      # a run that stops at the first broken task wastes most of its value.
+      - name: Assemble + test
+        working-directory: apps/android
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon --stacktrace --continue build test 2>&1 | tee ../../android.log
+      # Lint prints only its FIRST failure to stdout and puts the rest in an
+      # HTML/XML report — which is an artifact, and artifacts need the API the
+      # agent sandbox cannot reach. So the full list is folded into the log,
+      # where the ci-logs branch will carry it.
+      - name: Expand the lint report
+        if: always()
+        run: |
+          python3 - <<'PY' | tee -a android.log
+          import glob, xml.etree.ElementTree as ET
+          files = glob.glob("apps/android/**/build/reports/lint-results-*.xml", recursive=True)
+          if not files:
+              print("[lint] no XML report produced")
+          for path in sorted(set(files)):
+              root = ET.parse(path).getroot()
+              issues = [i for i in root.iter("issue") if i.get("severity") == "Error"]
+              print(f"[lint] {path}: {len(issues)} error(s)")
+              for issue in issues:
+                  loc = issue.find("location")
+                  where = f'{loc.get("file")}:{loc.get("line")}' if loc is not None else "?"
+                  print(f'  {issue.get("id")}  {where}\n    {issue.get("message")}')
+          PY
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: log-android, path: android.log, retention-days: 7, if-no-files-found: ignore }
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reports
+          path: |
+            apps/android/**/build/reports/**
+            apps/android/**/build/outputs/logs/**
+          retention-days: 7
+
+  ios:
+    name: iOS — xcodegen + build + tests
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_ios }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      # project.yml is the source of truth; the .xcodeproj is derived and is not
+      # committed. This is what prevents the "new .swift file was never added to
+      # project.pbxproj so the app doesn't compile" bug class.
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: apps/ios
+        run: |
+          set -o pipefail
+          xcodegen generate 2>&1 | tee ../../ios.log
+      # Every step records its own status and keeps going. A failing Domain
+      # vector must not hide whether the SwiftUI app compiles — that is the
+      # signal a macOS runner exists to produce, and losing it costs a whole
+      # round trip. The job fails at the end if anything failed.
+      - name: Swift packages (Domain + Data)
+        id: swiftpm
+        continue-on-error: true
+        working-directory: apps/ios
+        run: |
+          set -o pipefail
+          rc=0
+          swift test --package-path Domain 2>&1 | tee -a ../../ios.log || rc=1
+          swift build --package-path Data 2>&1 | tee -a ../../ios.log || rc=1
+          exit $rc
+      - name: Pick an available simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available --json \
+            | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for k,v in d.items() if 'iOS' in k for x in v if x.get('isAvailable') and 'iPhone' in x['name']))")
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "Using simulator $UDID" | tee -a ios.log
+      - name: Build + test the app scheme
+        id: xcodebuild
+        continue-on-error: true
+        working-directory: apps/ios
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Sanvya.xcodeproj \
+            -scheme Sanvya \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee -a ../../ios.log
+      - name: Fail if either stage failed
+        if: steps.swiftpm.outcome == 'failure' || steps.xcodebuild.outcome == 'failure'
+        run: |
+          echo "swiftpm=${{ steps.swiftpm.outcome }} xcodebuild=${{ steps.xcodebuild.outcome }}"
+          exit 1
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: log-ios, path: ios.log, retention-days: 7, if-no-files-found: ignore }
+
+  report:
+    name: Publish results to the ci-logs branch
+    needs: [parity, android, ios]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: logs, pattern: "log-*", merge-multiple: true }
+      - name: Assemble and push the report
+        env:
+          PARITY: ${{ needs.parity.result }}
+          ANDROID: ${{ needs.android.result }}
+          IOS: ${{ needs.ios.result }}
+        run: |
+          set -euo pipefail
+          DIR="runs/${GITHUB_RUN_ID}-$(git rev-parse --short HEAD)"
+          mkdir -p "/tmp/out/$DIR"
+          {
+            echo "run_id:   $GITHUB_RUN_ID"
+            echo "sha:      $GITHUB_SHA"
+            echo "ref:      $GITHUB_REF"
+            echo "parity:   $PARITY"
+            echo "android:  $ANDROID"
+            echo "ios:      $IOS"
+          } > "/tmp/out/$DIR/summary.txt"
+          cp logs/*.log "/tmp/out/$DIR/" 2>/dev/null || true
+          # Compiler errors are what the reader is actually after; hoist them so
+          # a failing run can be diagnosed without paging through a full log.
+          grep -hnE "error:|FAILED|FAILURE|\*\* BUILD FAILED|Compilation error|e: " logs/*.log \
+            > "/tmp/out/$DIR/errors.txt" 2>/dev/null || true
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Orphan branch: build logs share no history with the code.
+          if git ls-remote --exit-code --heads origin ci-logs >/dev/null 2>&1; then
+            git fetch origin ci-logs --depth 1
+            git checkout -B ci-logs origin/ci-logs
+          else
+            git checkout --orphan ci-logs
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p "$DIR"
+          cp -r "/tmp/out/$DIR/." "$DIR/"
+          cp "$DIR/summary.txt" latest.txt
+          git add -A "$DIR" latest.txt
+          git commit -m "ci: $GITHUB_RUN_ID parity=$PARITY android=$ANDROID ios=$IOS"
+          # Another run may have landed between fetch and push.
+          for i in 1 2 3 4 5; do
+            git push origin ci-logs && exit 0
+            git fetch origin ci-logs --depth 1 && git rebase origin/ci-logs || true
+            sleep $((i * 3))
+          done
+          echo "::error::could not push ci-logs after 5 attempts"
+          exit 1

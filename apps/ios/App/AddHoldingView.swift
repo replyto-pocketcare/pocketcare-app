@@ -30,13 +30,13 @@ struct AddHoldingView: View {
     @State private var errorText: String?
 
     private var isLump: Bool { assetClass == .fd }
-    private var currency: String { viewModel.invAccounts.first(where: { $0.id == accountId })?.currency ?? "INR" }
+    private var currency: String { viewModel.invAccounts.first(where: { $0.id == accountId })?.currency ?? baseCurrencyNow() }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Type")) {
-                    Picker("Type", selection: $assetClass) {
+                Section(header: Text(S.Accounts.typeLabel)) {
+                    Picker(S.Accounts.typeLabel, selection: $assetClass) {
                         ForEach(AssetClass.allCases, id: \.self) { c in
                             Text("\(c.icon) \(c.label)").tag(c)
                         }
@@ -45,8 +45,8 @@ struct AddHoldingView: View {
                 }
 
                 if viewModel.invAccounts.count > 1 {
-                    Section(header: Text("Investment account")) {
-                        Picker("Account", selection: $accountId) {
+                    Section(header: Text(S.Investments.investmentAccount)) {
+                        Picker(S.Translation.settingsAccount, selection: $accountId) {
                             ForEach(viewModel.invAccounts) { a in
                                 Text(a.name).tag(a.id)
                             }
@@ -55,14 +55,14 @@ struct AddHoldingView: View {
                 }
 
                 Section {
-                    TextField(assetClass == .stock || assetClass == .mf ? "Symbol / name" : "Name", text: $name)
+                    TextField(assetClass == .stock || assetClass == .mf ? "Symbol / name" : S.Cashflow.name, text: $name)
                     if assetClass == .stock {
                         TextField("Exchange (NSE / BSE)", text: $exchange)
                             .textInputAutocapitalization(.characters)
                     }
                 }
 
-                Section(header: Text(isLump ? "Amount" : "Quantity & cost")) {
+                Section(header: Text(isLump ? S.Translation.transactionAmount : "Quantity & cost")) {
                     if isLump {
                         TextField("Amount invested (\(currency))", text: $costText).keyboardType(.decimalPad)
                     } else {
@@ -73,7 +73,7 @@ struct AddHoldingView: View {
 
                 if assetClass == .fd {
                     Section(header: Text("Fixed deposit details")) {
-                        TextField("Interest % p.a.", text: $rateText).keyboardType(.decimalPad)
+                        TextField(S.Investments.interestPa, text: $rateText).keyboardType(.decimalPad)
                         TextField("Maturity (YYYY-MM-DD)", text: $maturityText)
                     }
                 }
@@ -112,7 +112,7 @@ struct AddHoldingView: View {
                     Button(action: save) {
                         if saving { ProgressView() }
                         else {
-                            Text("Add investment").font(.headline).fontWeight(.bold)
+                            Text(S.Investments.addInvestment).font(.headline).fontWeight(.bold)
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .foregroundColor(Color.surface)
                         }
@@ -121,11 +121,11 @@ struct AddHoldingView: View {
                     .listRowBackground(Color.accent)
                 }
             }
-            .navigationTitle("Add investment")
+            .navigationTitle(S.Investments.addInvestment)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Translation.commonCancel) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
         }
@@ -151,7 +151,7 @@ struct AddHoldingView: View {
 
     private var quantityLabel: String {
         let w = assetClass.unitWord
-        return w.isEmpty ? "Quantity" : w.prefix(1).uppercased() + String(w.dropFirst())
+        return w.isEmpty ? S.Investments.quantity : w.prefix(1).uppercased() + String(w.dropFirst())
     }
 
     private var costLabel: String {

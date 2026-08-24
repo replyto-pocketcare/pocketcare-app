@@ -58,7 +58,7 @@ enum ReceiptDraftJson {
         return ReceiptDraft(
             merchant: root["merchant"] as? String,
             occurredAt: root["occurredAt"] as? String,
-            currency: root["currency"] as? String ?? "INR",
+            currency: root["currency"] as? String ?? FormOptions.defaultCurrency,
             lines: lines,
             total: (root["total"] as? NSNumber)?.int64Value,
             confidence: (root["confidence"] as? NSNumber)?.intValue ?? 0,

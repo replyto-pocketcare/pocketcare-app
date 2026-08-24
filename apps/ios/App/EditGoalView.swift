@@ -30,8 +30,8 @@ struct EditGoalView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Goal name")) {
-                    TextField("Goal name", text: $name)
+                Section(header: Text(S.Goals.goalName)) {
+                    TextField(S.Goals.goalName, text: $name)
                 }
 
                 Section(header: Text("Target amount (\(goal.currency))")) {
@@ -55,7 +55,7 @@ struct EditGoalView: View {
                         if saving {
                             ProgressView()
                         } else {
-                            Text("Save Changes")
+                            Text(S.Translation.commonSaveChanges)
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .frame(maxWidth: .infinity, alignment: .center)
@@ -78,17 +78,17 @@ struct EditGoalView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Goals.cancel) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
-            .confirmationDialog("Delete this goal?", isPresented: $showingDeleteConfirm, titleVisibility: .visible) {
-                Button("Delete", role: .destructive) {
+            .confirmationDialog(S.Goals.deleteTitle, isPresented: $showingDeleteConfirm, titleVisibility: .visible) {
+                Button(S.Goals.delete, role: .destructive) {
                     Task {
                         await viewModel.delete(id: goal.id)
                         dismiss()
                     }
                 }
-                Button("Cancel", role: .cancel) {}
+                Button(S.Goals.cancel, role: .cancel) {}
             }
         }
     }

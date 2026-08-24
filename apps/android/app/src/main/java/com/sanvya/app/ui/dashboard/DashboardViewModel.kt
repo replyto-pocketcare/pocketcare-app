@@ -14,11 +14,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.text.NumberFormat
-import java.util.Locale
 import java.time.format.DateTimeFormatter
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.formatMoneyAware
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.ui.FormOptions
 
 /**
  * Net-worth hero content — mirrors apps/web/app/page.tsx's NetWorthHero
@@ -51,8 +53,8 @@ data class DashboardTxnRow(
 )
 
 data class NetWorthHeroState(
-    val net: com.sanvya.app.domain.money.Money = money(0, "INR"),
-    val base: String = "INR",
+    val net: com.sanvya.app.domain.money.Money = money(0, FormOptions.DEFAULT_CURRENCY),
+    val base: String = FormOptions.DEFAULT_CURRENCY,
     val showAvailable: Boolean = false,
     val deltaMinor: Long = 0,
     val hasTrend: Boolean = false,
@@ -60,9 +62,9 @@ data class NetWorthHeroState(
 )
 
 data class DashboardUiState(
-    val netWorthFormatted: String = "₹0.00",
-    val assetsFormatted: String = "₹0.00",
-    val liabilitiesFormatted: String = "₹0.00",
+    val netWorthFormatted: String = formatMoney(0, FormOptions.DEFAULT_CURRENCY),
+    val assetsFormatted: String = formatMoney(0, FormOptions.DEFAULT_CURRENCY),
+    val liabilitiesFormatted: String = formatMoney(0, FormOptions.DEFAULT_CURRENCY),
     val accounts: List<AccountWithBalance> = emptyList(),
     val recentTransactions: List<DashboardTxnRow> = emptyList(),
     val hero: NetWorthHeroState = NetWorthHeroState(),
@@ -74,11 +76,6 @@ data class DashboardUiState(
 class DashboardViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
 
-    private val numberFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-        currency = java.util.Currency.getInstance("INR")
-        maximumFractionDigits = 2
-    }
-
     /** Mirrors page.tsx's `showAvailable` local state (net-worth toggle). */
     private val showAvailable = MutableStateFlow(false)
 
@@ -87,7 +84,7 @@ class DashboardViewModel : ViewModel(), KoinComponent {
     }
 
     val uiState: StateFlow<DashboardUiState> = combine(
-        ledgerRepository.watchNetWorth("INR"),
+        ledgerRepository.watchNetWorth(baseCurrencyNow()),
         ledgerRepository.watchAccountBalances(includeArchived = false),
         ledgerRepository.watchRecentTransactions(limit = 10),
         ledgerRepository.watchMonthlyIncomeExpense(),
@@ -103,8 +100,7 @@ class DashboardViewModel : ViewModel(), KoinComponent {
         val recentUiTxns = txns.map { txn ->
             val isIncome = txn.type == "income"
             val sign = if (isIncome) "+" else "-"
-            val amt = (txn.amount / 100.0)
-            val account = accountMap[txn.accountId]?.account
+                        val account = accountMap[txn.accountId]?.account
 
             val formattedDate = try {
                 val odt = OffsetDateTime.parse(txn.occurredAt)
@@ -124,7 +120,7 @@ class DashboardViewModel : ViewModel(), KoinComponent {
             DashboardTxnRow(
                 id = txn.id,
                 description = txn.description ?: txn.note ?: "Transaction",
-                amount = "$sign${numberFormat.format(amt)}",
+                amount = "$sign${formatMoney(txn.amount, account?.currency ?: baseCurrencyNow())}",
                 date = formattedDate,
                 accountName = account?.name ?: "Unknown Account",
                 categoryName = "General",
@@ -158,9 +154,9 @@ class DashboardViewModel : ViewModel(), KoinComponent {
         val net = if (showAvail) netWorth.available else netWorth.total
 
         DashboardUiState(
-            netWorthFormatted = numberFormat.format(netWorth.total.amount / 100.0),
-            assetsFormatted = numberFormat.format(assets / 100.0),
-            liabilitiesFormatted = numberFormat.format(Math.abs(liabilities) / 100.0),
+            netWorthFormatted = formatMoneyAware(netWorth.total),
+            assetsFormatted = formatMoney(assets, netWorth.base),
+            liabilitiesFormatted = formatMoney(kotlin.math.abs(liabilities), netWorth.base),
             accounts = accounts,
             recentTransactions = recentUiTxns,
             hero = NetWorthHeroState(

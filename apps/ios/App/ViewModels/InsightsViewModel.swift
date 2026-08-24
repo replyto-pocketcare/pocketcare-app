@@ -4,7 +4,6 @@ import Factory
 import Domain
 import Data
 
-private let BASE_CURRENCY = "INR"
 
 private let utcCal: Calendar = { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!; return c }()
 private func ymd(_ d: Date) -> String {
@@ -26,7 +25,7 @@ private func weekdayIndex(_ d: Date) -> Int { utcCal.component(.weekday, from: d
 /// generators.ts (task #28), replacing an entirely fake predecessor
 /// (InsightsView/InsightsViewModel hardcoded a nonexistent "StreamTV"
 /// subscription and a made-up "dining" keyword heuristic, yet were the one
-/// LIVE Insights screen on iOS -- wired into MainTabView.swift, unlike
+/// LIVE Insights screen on iOS -- wired into ContentView.swift, unlike
 /// Android's dead-code stub). See docs/mobile/screen-specs/insights.md for
 /// the full source-verified spec this was built from, and Android's
 /// InsightsViewModel.kt (same session) for the mirrored implementation.
@@ -201,7 +200,7 @@ public final class InsightsViewModel {
         var catExpenseByName: [String: Int64] = [:]
         for t in thisMonthExpenseTxns {
             if let cid = t.categoryId { catExpenseById[cid, default: 0] += t.amount }
-            let name = t.categoryId.flatMap { catNameById[$0] } ?? "Uncategorised"
+            let name = t.categoryId.flatMap { catNameById[$0] } ?? S.Receipts.reviewNoCategory
             catExpenseByName[name, default: 0] += t.amount
         }
         let cats = catExpenseByName.map { CatAgg($0.key, $0.value) }.sorted { $0.expense > $1.expense }
@@ -287,14 +286,14 @@ public final class InsightsViewModel {
 
         // ---- top expenses (this month) ----
         let topExpenses = thisMonthExpenseTxns.sorted { $0.amount > $1.amount }.prefix(6)
-            .map { TopExpense(($0.description ?? $0.note ?? "Expense").trimmingCharacters(in: .whitespacesAndNewlines), $0.amount) }
+            .map { TopExpense(($0.description ?? $0.note ?? S.Translation.transactionExpense).trimmingCharacters(in: .whitespacesAndNewlines), $0.amount) }
 
         // ---- subscriptions (monthly-normalised) ----
         func norm(_ amt: Int64, _ cycle: String?) -> Int64 {
             switch cycle { case "yearly": return amt / 12; case "weekly": return (amt * 52) / 12; case "quarterly": return amt / 3; default: return amt }
         }
         let subs = latestSubs.map { s -> SubAgg in
-            let name = (s.name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "Subscription"
+            let name = (s.name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? S.Cashflow.subscription
             return SubAgg(name, norm(s.amount, s.billingCycle))
         }
         let subsTotal = subs.reduce(0) { $0 + $1.monthly }
@@ -313,7 +312,7 @@ public final class InsightsViewModel {
         for t in txns where t.type == "expense" {
             let day = String(t.occurredAt.prefix(10))
             guard let dDate = dateFromYmd(day), dDate >= fourMonthsAgo else { continue }
-            let name = t.categoryId.flatMap { catNameById[$0] } ?? "Uncategorised"
+            let name = t.categoryId.flatMap { catNameById[$0] } ?? S.Receipts.reviewNoCategory
             let ym = String(t.occurredAt.prefix(7))
             priorByCatYm[name, default: [:]][ym, default: 0] += t.amount
         }
@@ -336,7 +335,7 @@ public final class InsightsViewModel {
         if !latestHoldings.isEmpty {
             let lite = latestHoldings.map { HoldingLite(symbol: $0.symbol, exchange: $0.exchange, quantity: $0.quantity, currency: $0.currency) }
             let divRows = latestDividends.map { DivRow(symbol: $0.symbol, exchange: $0.exchange, exDate: $0.exDate, payDate: $0.payDate, amount: $0.amount, currency: $0.currency) }
-            let events = computeDividendEvents(lite, divRows, rates, BASE_CURRENCY)
+            let events = computeDividendEvents(lite, divRows, rates, baseCurrencyNow())
             let summary = dividendSummary(events)
             let buckets = bucketize(events, .month).map { SeriesPoint($0.label, Double($0.value) / 100.0) }
             dividends = DividendAgg(holdings: latestHoldings.count, trailing12: summary.trailing12, upcoming12: summary.upcoming12, total: summary.total, buckets: buckets)
@@ -349,7 +348,7 @@ public final class InsightsViewModel {
                 let q = bySymEx[qKey(h.symbol, h.exchange)] ?? bySym[h.symbol.uppercased()]
                 let perShare = q.map { Double($0.price) } ?? Double(h.avgCost ?? 0)
                 let ccy = q?.currency ?? h.currency
-                let rate = ccy == BASE_CURRENCY ? 1.0 : rates(ccy, BASE_CURRENCY)
+                let rate = ccy == baseCurrencyNow() ? 1.0 : rates(ccy, baseCurrencyNow())
                 currentValue += perShare * h.quantity * rate
             }
             let projGrowthPct = 7; let projYears = 15
@@ -381,7 +380,7 @@ public final class InsightsViewModel {
             .map { TransactionForInsight(id: $0.id, amount: $0.amount, currency: $0.currency, occurredAt: $0.occurredAt, intent: $0.intent, categoryId: $0.categoryId) }
 
         return GenContext(
-            currency: BASE_CURRENCY, now: now, nowIso: nowIso, fmt: formatMoneyINR,
+            currency: baseCurrencyNow(), now: now, nowIso: nowIso, fmt: formatMoneyINR,
             days: days, months: months, cats: cats, labels: labels, budgets: budgets,
             streak: streak, txnDays7: txnDays7, topExpenses: Array(topExpenses),
             weekday: weekday, weekdayTop: weekdayTop, subs: subs, subsTotal: subsTotal,
@@ -396,12 +395,12 @@ public final class InsightsViewModel {
 /// TransactionsViewModel.swift/DashboardView.swift entry). A free function
 /// (not a method) so it captures no `self`/actor isolation at all, safe to
 /// hand to GenContext.fmt's plain `@Sendable` closure type as-is.
+/// Insight cards are amounts on screen like any other, so they go through the
+/// one masking formatter. This stays a free function with no actor isolation so
+/// it can still be handed to GenContext.fmt's `@Sendable` closure type —
+/// `formatMoney` is deliberately non-isolated for exactly this reason.
 private func formatMoneyINR(_ minor: Int64) -> String {
-    let f = NumberFormatter()
-    f.numberStyle = .currency
-    f.currencyCode = BASE_CURRENCY
-    f.maximumFractionDigits = 0
-    return f.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "\(BASE_CURRENCY) \(Double(minor) / 100.0)"
+    formatMoney(minor, baseCurrencyNow())
 }
 
 private func dateFromYmd(_ s: String) -> Date? {

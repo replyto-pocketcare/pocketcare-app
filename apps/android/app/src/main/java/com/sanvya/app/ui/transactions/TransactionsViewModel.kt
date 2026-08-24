@@ -11,11 +11,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.text.NumberFormat
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.ui.formatMoney
 
 /** Type filter chips -- matches transactions/page.tsx's TYPES exactly. */
 val TX_TYPE_FILTERS = listOf("all", "income", "expense", "transfer")
@@ -42,11 +42,6 @@ enum class TxAmountColor { POSITIVE, DEFAULT }
  * session; there was no TransactionsScreen.kt to ever surface it). */
 class TransactionsViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
-
-    private val numberFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-        currency = java.util.Currency.getInstance("INR")
-        maximumFractionDigits = 2
-    }
 
     val query = MutableStateFlow("")
     val typeFilter = MutableStateFlow("all")
@@ -121,7 +116,7 @@ class TransactionsViewModel : ViewModel(), KoinComponent {
 
         val sign = if (txn.type == "expense") "−" else if (txn.type == "income") "+" else ""
         val amountColor = if (txn.type == "income") TxAmountColor.POSITIVE else TxAmountColor.DEFAULT
-        val amountFormatted = "$sign${numberFormat.format(txn.amount / 100.0)}"
+        val amountFormatted = "$sign${formatMoney(txn.amount, account?.currency ?: baseCurrencyNow())}"
 
         val dateFormatted = try {
             val zdt = OffsetDateTime.parse(txn.occurredAt).atZoneSameInstant(ZoneId.systemDefault())

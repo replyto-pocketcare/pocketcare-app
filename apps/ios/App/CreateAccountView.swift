@@ -17,7 +17,7 @@ struct CreateAccountView: View {
 
     @State private var name = ""
     @State private var type = "savings"
-    @State private var currency = "INR"
+    @State private var currency = FormOptions.defaultCurrency
     @State private var color = accountColorHex[0]
     @State private var includeInNetWorth = true
     // nil = "follow type default", matches web's `allowNeg: Boolean | null`
@@ -33,23 +33,23 @@ struct CreateAccountView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     // Load-bearing copy, not decorative -- keep verbatim (spec).
-                    Text("Nothing here connects to your bank. You're naming a place your money sits and typing in the amount yourself.")
+                    Text(S.Accounts.noBankLink)
                         .font(.system(size: 13.5))
                         .foregroundColor(Color.text2)
 
-                    TextField("Account name", text: $name)
+                    TextField(S.Accounts.accountName, text: $name)
                         .textFieldStyle(.roundedBorder)
 
-                    Text("Type").font(.system(size: 13)).foregroundColor(Color.text2)
+                    Text(S.Accounts.typeLabel).font(.system(size: 13)).foregroundColor(Color.text2)
                     ChipRow(options: accountTypes, selected: type, label: accountTypeLabel, onSelect: { type = $0 })
 
-                    Text("Currency").font(.system(size: 13)).foregroundColor(Color.text2)
+                    Text(S.Accounts.currency).font(.system(size: 13)).foregroundColor(Color.text2)
                     ChipRow(options: accountCurrencies, selected: currency, onSelect: { currency = $0 })
 
-                    Text("Colour").font(.system(size: 13)).foregroundColor(Color.text2)
+                    Text(S.Accounts.colour).font(.system(size: 13)).foregroundColor(Color.text2)
                     ColorSwatchRow(selected: color, onSelect: { color = $0 })
 
-                    Toggle("Include in net worth", isOn: $includeInNetWorth)
+                    Toggle(S.Accounts.includeShort, isOn: $includeInNetWorth)
                     AllowNegativeToggle(isOn: Binding(
                         get: { allowNegativeEffective },
                         set: { allowNegativeOverride = $0 }
@@ -60,7 +60,7 @@ struct CreateAccountView: View {
                         .textFieldStyle(.roundedBorder)
 
                     Button(action: save) {
-                        Text(saving ? "Saving…" : "Save")
+                        Text(saving ? S.Accounts.saving : S.Accounts.save)
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .foregroundColor(.white)
@@ -73,11 +73,11 @@ struct CreateAccountView: View {
                 .padding(16)
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("New account")
+            .navigationTitle(S.Accounts.newAccount)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(S.Accounts.cancel) { dismiss() }
                         .foregroundColor(Color.text2)
                 }
             }

@@ -36,7 +36,7 @@ struct EditTransactionView: View {
     @State private var paymentMethod = ""
     @State private var note = ""
     @State private var intent: String?
-    @State private var currency = "INR"
+    @State private var currency = FormOptions.defaultCurrency
     @State private var occurredAt = Date()
 
     @State private var saving = false
@@ -52,18 +52,18 @@ struct EditTransactionView: View {
         NavigationStack {
             Group {
                 if !loaded {
-                    ProgressView("Loading…").frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ProgressView(S.Transactions.loading).frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 14) {
-                            Picker("Type", selection: $type) {
-                                Text("Expense").tag("expense")
-                                Text("Income").tag("income")
-                                Text("Transfer").tag("transfer")
+                            Picker(S.Transactions.auditType, selection: $type) {
+                                Text(S.Transactions.filterExpense).tag("expense")
+                                Text(S.Transactions.filterIncome).tag("income")
+                                Text(S.Transactions.filterTransfer).tag("transfer")
                             }
                             .pickerStyle(.segmented)
 
-                            Text("Account").font(.system(size: 13)).foregroundColor(Color.text2)
+                            Text(S.Transactions.account).font(.system(size: 13)).foregroundColor(Color.text2)
                             ChipRow(options: accounts.map(\.id), selected: accountId,
                                     label: { id in accounts.first { $0.id == id }?.name ?? "" },
                                     onSelect: { accountId = $0 })
@@ -75,18 +75,18 @@ struct EditTransactionView: View {
                             } else {
                                 itemsEditor
 
-                                Text("Category").font(.system(size: 13)).foregroundColor(Color.text2)
+                                Text(S.Transactions.category).font(.system(size: 13)).foregroundColor(Color.text2)
                                 CategoryPickerView(categories: relevantCategories, selectedId: $categoryId)
 
                                 if !relevantPaymentMethods.isEmpty {
-                                    Text("Payment method").font(.system(size: 13)).foregroundColor(Color.text2)
+                                    Text(S.Transactions.paymentMethod).font(.system(size: 13)).foregroundColor(Color.text2)
                                     ChipRow(options: relevantPaymentMethods.map(\.id), selected: paymentMethod,
                                             label: { id in relevantPaymentMethods.first { $0.id == id }?.label ?? "" },
                                             onSelect: { paymentMethod = $0 })
                                 }
                             }
 
-                            Text("Labels").font(.system(size: 13)).foregroundColor(Color.text2)
+                            Text(S.Transactions.labels).font(.system(size: 13)).foregroundColor(Color.text2)
                             LabelPickerRow(available: labelOptions.map(\.name), selected: $selectedLabels)
 
                             if type == "expense" {
@@ -98,19 +98,19 @@ struct EditTransactionView: View {
                                 }
                             }
 
-                            TextField("Note", text: $note).textFieldStyle(.roundedBorder)
+                            TextField(S.Transactions.note, text: $note).textFieldStyle(.roundedBorder)
 
-                            DatePicker("Date", selection: $occurredAt, displayedComponents: [.date, .hourAndMinute])
+                            DatePicker(S.Transactions.date, selection: $occurredAt, displayedComponents: [.date, .hourAndMinute])
 
                             if let error { Text(error).foregroundColor(Color.negative).font(.system(size: 13)) }
 
                             HStack(spacing: 10) {
-                                Button(saving ? "Saving…" : "Save changes", action: save)
+                                Button(saving ? S.Transactions.saving : S.Transactions.saveChanges, action: save)
                                     .buttonStyle(.borderedProminent)
                                     .disabled(saving)
-                                Button("Cancel") { dismiss() }.buttonStyle(.bordered)
+                                Button(S.Transactions.cancel) { dismiss() }.buttonStyle(.bordered)
                                 Spacer()
-                                Button("Delete") { confirmDelete = true }.foregroundColor(Color.negative)
+                                Button(S.Transactions.delete) { confirmDelete = true }.foregroundColor(Color.negative)
                             }
                         }
                         .padding(16)
@@ -118,16 +118,16 @@ struct EditTransactionView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Edit transaction")
+            .navigationTitle(S.Transactions.editTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }.foregroundColor(Color.text2)
+                    Button(S.Translation.commonClose) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
-            .confirmationDialog("Delete this transaction?", isPresented: $confirmDelete, titleVisibility: .visible) {
-                Button("Delete", role: .destructive) { delete() }
-                Button("Cancel", role: .cancel) {}
+            .confirmationDialog(S.Transactions.deleteConfirmTitle, isPresented: $confirmDelete, titleVisibility: .visible) {
+                Button(S.Transactions.delete, role: .destructive) { delete() }
+                Button(S.Transactions.cancel, role: .cancel) {}
             } message: {
                 Text("This can't be undone from here.")
             }
@@ -150,7 +150,7 @@ struct EditTransactionView: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach($items) { $item in
                 HStack {
-                    TextField(items.count > 1 ? "Item" : "What for?", text: $item.description)
+                    TextField(items.count > 1 ? S.Receipts.kindItem : "What for?", text: $item.description)
                         .textFieldStyle(.roundedBorder)
                     TextField("0.00", text: $item.value)
                         .keyboardType(.decimalPad)

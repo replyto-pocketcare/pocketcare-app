@@ -92,6 +92,11 @@ public extension Container {
         self { LoansRepository(db: self.powerSyncDatabase()) }.singleton
     }
 
+    /// The shell's bell badge and the notifications inbox.
+    var notificationsRepository: Factory<NotificationsRepository> {
+        self { NotificationsRepository(db: self.powerSyncDatabase()) }.singleton
+    }
+
     var prefsRepository: Factory<PrefsRepository> {
         self { PrefsRepository(db: self.powerSyncDatabase()) }.singleton
     }

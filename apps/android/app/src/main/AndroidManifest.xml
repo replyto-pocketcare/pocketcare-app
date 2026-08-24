@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Task #62 (Receipt Scan capture) -- first camera use in this app.
+    <!-- Task #62 (Receipt Scan capture): first camera use in this app.
          android:required="false" on the feature: a device with no camera
          should still install the app, just can't use this one screen (same
          posture Google recommends for an optional-camera app). -->
@@ -17,9 +17,26 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
+        <!-- W1.5 (tablets, foldables, multi-window).
+
+             configChanges: without it, every rotation, fold and split-screen
+             drag DESTROYS and recreates the Activity. Compose re-lays-out from
+             the new size on its own, so a recreation buys nothing and costs
+             everything not explicitly saved. Google's adaptive-apps guidance
+             says to handle these rather than be recreated, and it matters most
+             on the exact devices this wave is for.
+
+             screenOrientation is deliberately absent: the policy is per device
+             type (phones portrait, tablets and foldables free) and lives in
+             ui/shell/WindowClass.kt, which the manifest cannot express.
+
+             resizeableActivity is already the default at targetSdk 36; stated
+             explicitly so nobody has to look it up to know it is intentional. -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:resizeableActivity="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density|keyboardHidden|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

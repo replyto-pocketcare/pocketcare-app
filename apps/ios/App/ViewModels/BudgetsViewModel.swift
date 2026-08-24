@@ -74,14 +74,6 @@ public final class BudgetsViewModel {
 
     private var tasks: [Task<Void, Never>] = []
 
-    private let numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "INR"
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }()
-
     public init() {}
 
     public func start() {
@@ -136,7 +128,7 @@ public final class BudgetsViewModel {
                 let catIds = try await budgetRepository.categoryIds(budgetId: b.id)
                 let labelNames = try await budgetRepository.labelNames(budgetId: b.id)
                 let catNames = catIds.compactMap { id in self.expenseCategories.first { $0.id == id }?.name }
-                let scopeLabel = (catNames + labelNames).isEmpty ? "All spending" : (catNames + labelNames).joined(separator: ", ")
+                let scopeLabel = (catNames + labelNames).isEmpty ? S.Budgets.allSpending : (catNames + labelNames).joined(separator: ", ")
                 let win = periodWindow(period: b.period, startDate: b.startDate, endDate: b.endDate)
                 let isCustom = b.startDate != nil && b.endDate != nil
                 let timeframeText = isCustom ? win.label : "\(periodLabel(b.period)) · \(win.label)"
@@ -281,13 +273,7 @@ public final class BudgetsViewModel {
     }
 
     private func formatMoney(_ m: Money) -> String {
-        let major = toMajor(m)
-        return numberFormatter.string(from: NSNumber(value: major)) ?? "\(m.currency) 0"
-    }
-
-    private func formatMajorPlain(_ minor: Int64) -> String {
-        let major = Double(minor) / 100.0
-        return major == major.rounded() ? String(Int(major)) : String(major)
+        formatMoneyAware(m)
     }
 
     private func todayYmd() -> Ymd {
@@ -341,10 +327,10 @@ func localToUtcTime(_ localTime: String) -> String {
 
 private func periodLabel(_ period: String) -> String {
     switch period {
-    case "daily": return "Daily"
-    case "weekly": return "Weekly"
-    case "yearly": return "Yearly"
-    default: return "Monthly"
+    case "daily": return S.Budgets.periodDaily
+    case "weekly": return S.Budgets.periodWeekly
+    case "yearly": return S.Budgets.periodYearly
+    default: return S.Budgets.periodMonthly
     }
 }
 

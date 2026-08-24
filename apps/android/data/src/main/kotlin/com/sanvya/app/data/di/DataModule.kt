@@ -59,6 +59,10 @@ val dataModule = module {
     single { com.sanvya.app.data.repository.UpiRepository(get()) }
     single { SubscriptionsRepository(get()) }
     single { com.sanvya.app.data.repository.PrefsRepository(get()) }
+    // Settings' own data access — keeps SupabaseClient/PowerSyncDatabase out of :app.
+    single { com.sanvya.app.data.repository.SettingsRepository(get(), get()) }
+    // The shell's bell badge and the notifications inbox.
+    single { com.sanvya.app.data.repository.NotificationsRepository(get()) }
     single {
         val auth: AuthRepository = get()
         ReceiptsRepository(db = get(), getUserId = { auth.currentUserId.value ?: "" })

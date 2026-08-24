@@ -7,7 +7,6 @@ import SwiftUI
 /// The Cashflow tab is removed entirely (invented UI, see the ViewModel's
 /// header comment); this is Goals-only now, matching the real web page.
 struct GoalsView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var showingCreateSheet = false
     @State private var editingGoal: GoalsViewModel.GoalUiModel?
     @State private var allocatingGoal: GoalsViewModel.GoalUiModel?
@@ -44,15 +43,8 @@ struct GoalsView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Goals")
+            .navigationTitle(S.Goals.title)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) { isDrawerOpen.toggle() }
-                    } label: {
-                        Image(systemName: "line.3.horizontal").imageScale(.large)
-                    }
-                }
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingCreateSheet = true }) {
                         Image(systemName: "plus").font(.headline).foregroundColor(Color.accent)
@@ -113,7 +105,7 @@ private struct GoalRowCard: View {
                                 Text(goal.name).font(.headline).fontWeight(.bold).foregroundColor(Color.text)
                                 if goal.funded {
                                     Image(systemName: "checkmark.circle.fill").font(.caption).foregroundColor(Color.accent)
-                                    Text("Funded").font(.caption).fontWeight(.semibold).foregroundColor(Color.accent)
+                                    Text(S.Goals.funded).font(.caption).fontWeight(.semibold).foregroundColor(Color.accent)
                                 } else if goal.isEmergencyFund {
                                     Text("· liquid").font(.caption).foregroundColor(Color.text2)
                                 }
@@ -162,5 +154,5 @@ private struct GoalRowCard: View {
 }
 
 #Preview {
-    GoalsView(isDrawerOpen: .constant(false))
+    GoalsView()
 }

@@ -34,15 +34,6 @@ public final class AccountsViewModel {
 
     private var all: [AccountUiModel] = []
 
-    private var numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "INR"
-        formatter.locale = Locale(identifier: "en_IN")
-        formatter.maximumFractionDigits = 2
-        return formatter
-    }()
-
     public init() {
         Task { await startObserving() }
     }
@@ -63,14 +54,13 @@ public final class AccountsViewModel {
             let balances = try await ledgerRepository.accountBalances(includeArchived: true)
             all = balances.map { acctWithBal in
                 let acct = acctWithBal.account
-                let major = Double(acctWithBal.balance.amount) / 100.0
                 return AccountUiModel(
                     id: acct.id,
                     name: acct.name,
                     type: acct.type,
                     currency: acct.currency,
                     color: acct.color,
-                    balanceFormatted: numberFormatter.string(from: NSNumber(value: major)) ?? "₹0.00",
+                    balanceFormatted: formatMoneyAware(acctWithBal.balance),
                     isArchived: acct.isArchived,
                     includeInNetWorth: acct.includeInNetWorth
                 )

@@ -25,7 +25,7 @@ object Prefs : KoinComponent {
     private const val THEME_KEY = "theme"
     private const val CURRENCY_KEY = "baseCurrency"
     private const val DEFAULT_THEME = "light"
-    private const val DEFAULT_CURRENCY = "INR"
+    private const val DEFAULT_CURRENCY = FormOptions.DEFAULT_CURRENCY
 
     private val context: Context by inject()
 
@@ -64,9 +64,11 @@ object Prefs : KoinComponent {
 
     /**
      * Mirrors apps/web/src/prefs.ts's useBaseCurrency/setBaseCurrency (same
-     * key, same "INR" default). Persisted and reactive here; wiring it into
-     * every screen's money formatting (today all hardcode "INR", matching
-     * formatMoney's default param) is a follow-up, not part of this change.
+     * key, same default). Read through `baseCurrencyNow()` in MoneyFormat.kt by
+     * everything that rolls up across accounts — net worth, portfolio
+     * subtotals, insights, a cross-group split position. It was write-only
+     * until 2026-08-23: eleven screens hardcoded INR, so choosing USD in
+     * Settings changed nothing anywhere.
      */
     private val _baseCurrency: MutableStateFlow<String> by lazy {
         MutableStateFlow(sharedPrefs.getString(CURRENCY_KEY, DEFAULT_CURRENCY) ?: DEFAULT_CURRENCY)

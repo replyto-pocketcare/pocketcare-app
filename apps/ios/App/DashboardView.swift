@@ -1,5 +1,6 @@
 import SwiftUI
 import Factory
+import Domain
 
 /// Wraps a `String` for `.fullScreenCover(item:)`, which needs `Identifiable`
 /// -- used to present ReceiptReviewView keyed by scan id (task #62).
@@ -9,7 +10,6 @@ private struct IdentifiableString: Identifiable {
 }
 
 struct DashboardView: View {
-    @Binding var isDrawerOpen: Bool
     @State private var viewModel = Container.shared.dashboardViewModel()
     // Hide-amounts is a real, load-bearing toggle (Settings > "Hide Amounts",
     // apps/web's useMoneyFmt()) -- was missing entirely from this screen
@@ -66,7 +66,7 @@ struct DashboardView: View {
                             // Accounts Section
                             VStack(alignment: .leading, spacing: 10) {
                                 HStack {
-                                    Text("Accounts")
+                                    Text(S.Translation.navAccounts)
                                         .font(.title3)
                                         .fontWeight(.bold)
                                         .foregroundColor(Color.text)
@@ -125,18 +125,8 @@ struct DashboardView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("Sanvya")
+            .navigationTitle(S.Translation.appName)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        withAnimation(.spring()) {
-                            isDrawerOpen.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .imageScale(.large)
-                    }
-                }
                 // Hide/Show -- apps/web/app/page.tsx's header chip row has
                 // Customize/Hide-Show/Account+; Android's toolbar
                 // (DashboardScreen.kt) only ported the hide/show eye-toggle
@@ -198,11 +188,11 @@ struct DashboardView: View {
     private var speedDial: some View {
         VStack(alignment: .trailing, spacing: 10) {
             if speedDialOpen {
-                speedDialAction(icon: "doc.text.viewfinder", label: "Scan bill / receipt") {
+                speedDialAction(icon: "doc.text.viewfinder", label: S.Translation.fabScanReceipt) {
                     speedDialOpen = false
                     showingReceiptCapture = true
                 }
-                speedDialAction(icon: "plus", label: "Add transaction") {
+                speedDialAction(icon: "plus", label: S.Translation.fabAddTransaction) {
                     speedDialOpen = false
                     showingAddTransactionSheet = true
                 }
@@ -233,13 +223,10 @@ struct DashboardView: View {
         }
     }
 
+    /// Amounts here are in the user's base currency, not always INR — the old
+    /// local formatter hardcoded both the currency and ÷100.
     private func formatCents(_ cents: Int64) -> String {
-        let fmt = NumberFormatter()
-        fmt.numberStyle = .currency
-        fmt.currencyCode = "INR"
-        fmt.maximumFractionDigits = 2
-        fmt.locale = Locale(identifier: "en_IN")
-        return fmt.string(from: NSNumber(value: Double(cents) / 100.0)) ?? "₹0.00"
+        formatMoneyUnmasked(Domain.money(cents, baseCurrencyNow()))
     }
 }
 
@@ -256,7 +243,7 @@ struct DashboardEmptyStateView: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            Text("Welcome to Sanvya")
+            Text(S.Onboarding.wtIntroTitle)
                 .font(.system(size: 26, weight: .bold))
                 .foregroundColor(Color.text)
                 .multilineTextAlignment(.center)
@@ -309,7 +296,7 @@ struct WidgetsComingSoonCard: View {
 }
 
 #Preview {
-    DashboardView(isDrawerOpen: .constant(false))
+    DashboardView()
 }
 
 // MARK: - Net-worth hero
@@ -327,12 +314,7 @@ struct WidgetsComingSoonCard: View {
 // non-Sendable shape as `ISO8601DateFormatter` -- fixed preemptively here to
 // the same pattern before the real compiler hits it too.
 private func formatMinor(_ minor: Int64) -> String {
-    let fmt = NumberFormatter()
-    fmt.numberStyle = .currency
-    fmt.currencyCode = "INR"
-    fmt.maximumFractionDigits = 2
-    fmt.locale = Locale(identifier: "en_IN")
-    return fmt.string(from: NSNumber(value: Double(minor) / 100.0)) ?? "₹0.00"
+    formatMoneyAware(Domain.money(minor, baseCurrencyNow()))
 }
 
 struct NetWorthHeroView: View {
@@ -346,13 +328,13 @@ struct NetWorthHeroView: View {
         let deltaText = hidden ? "••••" : formatMinor(abs(state.deltaMinor))
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text(state.showAvailable ? "AVAILABLE NET WORTH" : "NET WORTH")
+                Text(state.showAvailable ? S.Translation.netWorthAvailable : S.Translation.netWorthTitle)
                     .font(.system(size: 12, weight: .semibold))
                     .tracking(1)
                     .foregroundColor(Color(red: 0.776, green: 0.804, blue: 0.702)) // #c6cdb3
                 Spacer()
                 Button(action: onToggle) {
-                    Text(state.showAvailable ? "Excluding blocked" : "Including blocked")
+                    Text(state.showAvailable ? "Excluding blocked" : S.Translation.netWorthWithBlocked)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(Color(red: 0.918, green: 0.941, blue: 0.855)) // #eaf0da
                         .padding(.horizontal, 12)

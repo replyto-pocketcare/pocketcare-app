@@ -18,6 +18,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.budgets.TimePickerDialogSimple
 import kotlinx.coroutines.launch
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Real edit form + delete, matching apps/web/app/goals/page.tsx's
@@ -74,7 +76,7 @@ fun EditGoalScreen(
                 title = { Text("Edit Goal", fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -88,7 +90,7 @@ fun EditGoalScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Goal name") },
+                label = { Text(S.Goals.goalName(sRes())) },
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -120,7 +122,7 @@ fun EditGoalScreen(
                 enabled = !saving,
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             ) {
-                Text(if (saving) "Saving…" else "Save Changes")
+                Text(if (saving) S.Translation.commonSaving(sRes()) else S.Translation.commonSaveChanges(sRes()))
             }
 
             OutlinedButton(
@@ -144,15 +146,15 @@ fun EditGoalScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete this goal?") },
+            title = { Text(S.Goals.deleteTitle(sRes())) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteConfirm = false
                     viewModel.delete(goal.id)
                     onDeleted()
-                }) { Text("Delete", color = colors.negative) }
+                }) { Text(S.Goals.delete(sRes()), color = colors.negative) }
             },
-            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text(S.Goals.cancel(sRes())) } },
         )
     }
 }

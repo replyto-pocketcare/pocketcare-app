@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Ported from apps/web/app/loans/page.tsx per
@@ -46,10 +48,10 @@ fun LoansScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Loans", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Loans.title(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 actions = {
@@ -65,7 +67,7 @@ fun LoansScreen(
             Box(modifier = Modifier.padding(padding).fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("≈", fontSize = 26.sp)
-                    Text("No loans yet", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                    Text(S.Loans.noLoansTitle(sRes()), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
                     Text(
                         "Track EMIs, interest, and payoff progress for any loan.",
                         fontSize = 14.sp,
@@ -95,7 +97,7 @@ fun LoansScreen(
                         verticalAlignment = Alignment.Bottom,
                     ) {
                         Column {
-                            Text("Total EMIs / month", fontSize = 13.sp, color = colors.text2)
+                            Text(S.Loans.totalEmisMonth(sRes()), fontSize = 13.sp, color = colors.text2)
                             Text(totalEmi, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = colors.text)
                         }
                         Text("${loans.size} loan${if (loans.size == 1) "" else "s"}", fontSize = 13.sp, color = colors.text2)
@@ -125,7 +127,7 @@ private fun LoanRowCard(loan: LoanUiModel, onClick: () -> Unit) {
                     modifier = Modifier.clip(RoundedCornerShape(50)).background(if (loan.active) colors.positive.copy(alpha = 0.15f) else colors.border)
                         .padding(horizontal = 9.dp, vertical = 3.dp),
                 ) {
-                    Text(if (loan.active) "Active" else "Closed", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = if (loan.active) colors.positive else colors.text2)
+                    Text(if (loan.active) S.Loans.active(sRes()) else S.Loans.closed(sRes()), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = if (loan.active) colors.positive else colors.text2)
                 }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -146,11 +148,11 @@ private fun LoanRowCard(loan: LoanUiModel, onClick: () -> Unit) {
             HorizontalDivider()
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("Loan amount", fontSize = 11.sp, color = colors.text2)
+                    Text(S.Loans.loanAmount(sRes()), fontSize = 11.sp, color = colors.text2)
                     Text(loan.principalFormatted, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.text)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("EMI amount", fontSize = 11.sp, color = colors.text2)
+                    Text(S.Loans.emiAmount(sRes()), fontSize = 11.sp, color = colors.text2)
                     Text(loan.emiFormatted, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.text)
                 }
             }

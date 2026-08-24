@@ -15,8 +15,8 @@ struct CategoryPickerView: View {
 
     var body: some View {
         let roots = categories.filter { $0.parentId == nil }
-        Picker("Category", selection: $selectedId) {
-            Text("Uncategorised").tag(String?.none)
+        Picker(S.Transactions.category, selection: $selectedId) {
+            Text(S.Transactions.uncategorised).tag(String?.none)
             ForEach(roots, id: \.id) { parent in
                 Text(parent.name).tag(String?.some(parent.id))
                 ForEach(categories.filter { $0.parentId == parent.id }, id: \.id) { child in
@@ -53,9 +53,9 @@ struct LabelPickerRow: View {
                 }
             }
             HStack {
-                TextField("New label", text: $draft)
+                TextField(S.Labels.newLabel, text: $draft)
                     .textFieldStyle(.roundedBorder)
-                Button("Add") {
+                Button(S.Transactions.add) {
                     let trimmed = draft.trimmingCharacters(in: .whitespaces)
                     if !trimmed.isEmpty, !selected.contains(trimmed) { selected.append(trimmed) }
                     draft = ""

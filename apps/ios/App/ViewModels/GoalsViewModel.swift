@@ -237,31 +237,14 @@ public final class GoalsViewModel {
         return try? await authRepository.ensureUser()
     }
 
-    private func formatMajorPlain(_ minor: Int64) -> String {
-        let major = Double(minor) / 100.0
-        return major == major.rounded() ? String(Int64(major)) : String(major)
-    }
 }
 
 /// Locale-aware compact currency (e.g. ₹1.5L for INR, $1.2K otherwise) --
 /// approximates web's `Intl.NumberFormat(..., { notation: "compact" })`
 /// rather than reimplementing its exact breakpoints, per the spec's
 /// "Deferred" note (acceptable drift, not pixel-critical).
-private func compactMoney(_ minor: Int64, _ currency: String) -> String {
-    let major = Double(minor) / 100.0
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .currency
-    formatter.currencyCode = currency
-    formatter.maximumFractionDigits = major >= 1000 ? 1 : 0
-    if abs(major) >= 10_000_000 {
-        return (formatter.string(from: NSNumber(value: major / 10_000_000)) ?? "") + "Cr"
-    } else if abs(major) >= 100_000 {
-        return (formatter.string(from: NSNumber(value: major / 100_000)) ?? "") + "L"
-    } else if abs(major) >= 1000 {
-        return (formatter.string(from: NSNumber(value: major / 1000)) ?? "") + "K"
-    }
-    return formatter.string(from: NSNumber(value: major)) ?? "\(currency) 0"
-}
+// compactMoney moved to App/Components/MoneyFormat.swift — one copy, masked,
+// with the divisor from minorUnits(currency) rather than a hardcoded 100.
 
 // utcToLocalTime/localToUtcTime are NOT redeclared here -- they're already
 // internal (module-default access, no `private`) top-level functions in

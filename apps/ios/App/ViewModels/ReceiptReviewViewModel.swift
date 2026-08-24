@@ -19,9 +19,9 @@ import Domain
 @Observable
 @MainActor
 public final class ReceiptReviewViewModel {
-    @Injected(\.receiptsRepository) private var receiptsRepository
-    @Injected(\.ledgerRepository) private var ledgerRepository
-    @Injected(\.authRepository) private var authRepository
+    @ObservationIgnored @Injected(\.receiptsRepository) private var receiptsRepository
+    @ObservationIgnored @Injected(\.ledgerRepository) private var ledgerRepository
+    @ObservationIgnored @Injected(\.authRepository) private var authRepository
     private var tasks: [Task<Void, Never>] = []
     private var scanId: String = ""
 
@@ -48,7 +48,7 @@ public final class ReceiptReviewViewModel {
             if let json = row?.parsedJson, let d = ReceiptDraftJson.decode(json) {
                 draft = d
             } else {
-                error = "We couldn't reopen this scan. Please scan it again."
+                error = S.Receipts.reviewCorrupt
             }
         } catch {
             self.error = error.localizedDescription
@@ -112,12 +112,12 @@ public final class ReceiptReviewViewModel {
 
     /// One-tap fix: "Add {delta} as a line".
     public func addDifferenceAsLine() {
-        patch { balanceWithLine($0, "fix-\(Int(Date().timeIntervalSince1970 * 1000))", "Unmatched") }
+        patch { balanceWithLine($0, "fix-\(Int(Date().timeIntervalSince1970 * 1000))", S.Receipts.reviewUnmatched) }
     }
 
     /// One-tap fix: "Use {computed} as the total".
     public func useComputedTotal() {
-        patch { d in ReceiptDraft(merchant: d.merchant, occurredAt: d.occurredAt, currency: d.currency, lines: d.lines, total: reconcile(d).computed, confidence: d.confidence, engine: d.engine, rawText: d.rawText) }
+        patch { adoptComputedTotal($0) }
     }
 
     public func saveAsTransaction() {
@@ -159,7 +159,7 @@ public final class ReceiptReviewViewModel {
     }
 
     private static func describeItem(_ description: String, _ quantity: Int64?, _ unit: String?) -> String {
-        let name = description.trimmingCharacters(in: .whitespaces).isEmpty ? "Item" : description.trimmingCharacters(in: .whitespaces)
+        let name = description.trimmingCharacters(in: .whitespaces).isEmpty ? S.Receipts.kindItem : description.trimmingCharacters(in: .whitespaces)
         guard let quantity else { return name }
         let q = Double(quantity) / 1000.0
         let qtyText: String

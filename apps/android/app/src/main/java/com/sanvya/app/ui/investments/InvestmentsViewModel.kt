@@ -25,16 +25,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Currency
-import java.util.Locale
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.baseCurrencyNow
 
-/** Base/display currency for portfolio subtotals -- hardcoded "INR" matching
- * DashboardViewModel.watchNetWorth("INR")'s own established simplification
- * (no user-facing base-currency setting exists in this app yet). */
-private const val BASE_CURRENCY = "INR"
 
 private val DEMAT_TYPES = setOf("demat", "stocks", "mutual_funds")
 
@@ -95,7 +90,7 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
     private val _groups = MutableStateFlow<List<GroupUiModel>>(emptyList())
     val groups: StateFlow<List<GroupUiModel>> = _groups
 
-    private val _totalValueFormatted = MutableStateFlow("₹0")
+    private val _totalValueFormatted = MutableStateFlow(formatMoney(0, baseCurrencyNow()))
     val totalValueFormatted: StateFlow<String> = _totalValueFormatted
 
     private val _totalGainFormatted = MutableStateFlow("")
@@ -140,8 +135,8 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
 
                 val rows = holdings.map { it.toHoldingRow() }
                 val groupsResult = buildGroups(rows) { amount, currency ->
-                    if (currency == BASE_CURRENCY) amount
-                    else convert(money(amount, currency), BASE_CURRENCY, rates(currency, BASE_CURRENCY)).amount
+                    if (currency == baseCurrencyNow()) amount
+                    else convert(money(amount, currency), baseCurrencyNow(), rates(currency, baseCurrencyNow())).amount
                 }
                 val byGroupKey = holdings.groupBy { groupKeyOf(it.toHoldingRow()) }
 
@@ -150,9 +145,9 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
                         key = g.key,
                         label = g.label,
                         holdingsCount = g.holdings.size,
-                        valueFormatted = formatMoney(g.value, BASE_CURRENCY),
-                        costFormatted = formatMoney(g.cost, BASE_CURRENCY),
-                        gainFormatted = "${if (g.gain >= 0) "+" else ""}${formatMoney(g.gain, BASE_CURRENCY)} (${"%+.1f".format(g.gainPct)}%)",
+                        valueFormatted = formatMoney(g.value, baseCurrencyNow()),
+                        costFormatted = formatMoney(g.cost, baseCurrencyNow()),
+                        gainFormatted = "${if (g.gain >= 0) "+" else ""}${formatMoney(g.gain, baseCurrencyNow())} (${"%+.1f".format(g.gainPct)}%)",
                         gainPositive = g.gain >= 0,
                         gainPctFormatted = "%+.1f%%".format(g.gainPct),
                         holdings = (byGroupKey[g.key] ?: emptyList()).map { it.toUiModel() },
@@ -160,9 +155,9 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
                 }
 
                 val totals = portfolioTotals(groupsResult)
-                _totalValueFormatted.value = formatMoney(totals.value, BASE_CURRENCY)
+                _totalValueFormatted.value = formatMoney(totals.value, baseCurrencyNow())
                 _totalGainPositive.value = totals.gain >= 0
-                _totalGainFormatted.value = "${if (totals.gain >= 0) "+" else ""}${formatMoney(totals.gain, BASE_CURRENCY)} (${"%+.1f".format(totals.gainPct)}%)"
+                _totalGainFormatted.value = "${if (totals.gain >= 0) "+" else ""}${formatMoney(totals.gain, baseCurrencyNow())} (${"%+.1f".format(totals.gainPct)}%)"
             }.collect {}
         }
     }
@@ -204,11 +199,24 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
             isListedClass = isListed(cls),
             fdExtra = fdExtra,
             rawQuantity = quantity,
-            rawAvgCostMajor = avgCost?.let { formatMajorPlain(it) } ?: "",
-            rawCurrentValueMajor = currentValue?.let { formatMajorPlain(it) } ?: "",
+            rawAvgCostMajor = avgCost?.let { formatMajorPlain(it, currency) } ?: "",
+            rawCurrentValueMajor = currentValue?.let { formatMajorPlain(it, currency) } ?: "",
             rawAnnualRate = annualRate?.let { if (it == Math.floor(it)) it.toLong().toString() else it.toString() } ?: "",
             currency = currency,
         )
+    }
+
+    /**
+     * The unformatted major-unit value, for a field the user is about to edit.
+     *
+     * Deliberately NOT `formatMoney`: an input field must contain something the
+     * user can type back, so no symbol, no grouping and no mask. It is still
+     * currency-aware — it used to divide by 100, which put an extra two decimal
+     * places into a JPY field and dropped one from a KWD field.
+     */
+    private fun formatMajorPlain(minor: Long, currency: String): String {
+        val major = toMajor(money(minor, currency))
+        return if (major == Math.floor(major)) major.toLong().toString() else major.toString()
     }
 
     /** Matches AddInvestmentDialog's scoped-down submit(): validates, funds
@@ -297,17 +305,4 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun formatMoney(minor: Long, currency: String): String = try {
-        NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
-            this.currency = Currency.getInstance(currency)
-            maximumFractionDigits = 0
-        }.format(toMajor(money(minor, currency)))
-    } catch (e: Exception) {
-        "$currency ${minor / 100.0}"
     }
-
-    private fun formatMajorPlain(minor: Long): String {
-        val major = minor / 100.0
-        return if (major == Math.floor(major)) major.toLong().toString() else major.toString()
-    }
-}

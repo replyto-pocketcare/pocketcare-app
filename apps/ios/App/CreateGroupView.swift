@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Real port of web's "New Group" modal (task #30). Was previously a dead
+/// Real port of web's "New group" modal (task #30). Was previously a dead
 /// mockup -- `Create` just called `dismiss()`, no member picker, no
 /// currency, nothing persisted.
 struct CreateGroupView: View {
@@ -10,7 +10,7 @@ struct CreateGroupView: View {
 
     @State private var name: String = ""
     @State private var kind: String = "group"
-    @State private var currency: String = "INR"
+    @State private var currency: String = FormOptions.defaultCurrency
     @State private var selectedMembers: Set<String> = []
     @State private var error: String?
     @State private var saving = false
@@ -20,18 +20,18 @@ struct CreateGroupView: View {
             Form {
                 Section {
                     Picker("Kind", selection: $kind) {
-                        Text("Group").tag("group")
-                        Text("Trip").tag("trip")
+                        Text(S.Groups.kindGroup).tag("group")
+                        Text(S.Groups.kindTrip).tag("trip")
                     }
                     .pickerStyle(.segmented)
                 }
 
                 Section(header: Text("Details")) {
                     TextField(kind == "trip" ? "Trip name (e.g. Goa Trip)" : "Group name (e.g. Roommates)", text: $name)
-                    Picker("Currency", selection: $currency) {
-                        Text("INR").tag("INR")
-                        Text("USD").tag("USD")
-                        Text("EUR").tag("EUR")
+                    Picker(S.Accounts.currency, selection: $currency) {
+                        // Was a hand-written three-item list — the only picker
+                        // in the app that offered fewer than the other nine.
+                        ForEach(FormOptions.currencies, id: \.self) { Text($0).tag($0) }
                     }
                 }
 
@@ -64,11 +64,11 @@ struct CreateGroupView: View {
                     .listRowBackground(Color.accent)
                 }
             }
-            .navigationTitle(kind == "trip" ? "New Trip" : "New Group")
+            .navigationTitle(kind == "trip" ? "New Trip" : S.Recurring.groupNewCta)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(S.Groups.cancel) { dismiss() }
                         .foregroundColor(Color.text2)
                 }
             }

@@ -24,6 +24,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import kotlinx.coroutines.launch
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Ported from apps/web/app/investments/page.tsx per
@@ -70,11 +72,11 @@ fun InvestmentsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(drilledGroup?.label ?: "Investments", fontWeight = FontWeight.Bold, color = colors.text)
+                    Text(drilledGroup?.label ?: S.Translation.navInvestments(sRes()), fontWeight = FontWeight.Bold, color = colors.text)
                 },
                 navigationIcon = {
                     IconButton(onClick = { if (drilledGroup != null) drilledKey = null else onBack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 actions = {
@@ -92,7 +94,7 @@ fun InvestmentsScreen(
             Box(modifier = Modifier.padding(padding).fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("▤", fontSize = 26.sp)
-                    Text("No investment account yet", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                    Text(S.Investments.noInvAccountTitle(sRes()), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
                     Text(
                         "Add a demat, stocks, or mutual-funds account to start tracking investments.",
                         fontSize = 14.sp,
@@ -230,10 +232,10 @@ private fun HoldingTile(holding: HoldingUiModel, onUpdate: (String, String, Stri
                 Text(holding.fdExtra?.let { "${holding.metaLine} · $it" } ?: holding.metaLine, fontSize = 11.sp, color = colors.text2)
                 Row {
                     IconButton(onClick = { editing = !editing }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = colors.text2, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Edit, contentDescription = S.Investments.edit(sRes()), tint = colors.text2, modifier = Modifier.size(16.dp))
                     }
                     IconButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Delete, contentDescription = "Remove", tint = colors.negative, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Delete, contentDescription = S.Investments.remove(sRes()), tint = colors.negative, modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -242,7 +244,7 @@ private fun HoldingTile(holding: HoldingUiModel, onUpdate: (String, String, Stri
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = quantityText, onValueChange = { quantityText = it },
-                        label = { Text(if (holding.isListedClass) "Quantity" else "Quantity") },
+                        label = { Text(if (holding.isListedClass) S.Investments.quantity(sRes()) else S.Investments.quantity(sRes())) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     OutlinedTextField(
@@ -265,11 +267,11 @@ private fun HoldingTile(holding: HoldingUiModel, onUpdate: (String, String, Stri
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { editing = false }) { Text("Cancel") }
+                        TextButton(onClick = { editing = false }) { Text(S.Investments.cancel(sRes())) }
                         Button(onClick = {
                             onUpdate(quantityText, avgCostText, currentValueText, annualRateText)
                             editing = false
-                        }) { Text("Save") }
+                        }) { Text(S.Investments.save(sRes())) }
                     }
                 }
             }
@@ -280,9 +282,9 @@ private fun HoldingTile(holding: HoldingUiModel, onUpdate: (String, String, Stri
                     title = { Text("Remove ${holding.label}?") },
                     text = { Text("This removes the holding. It doesn't reverse any transfer used to fund it.") },
                     confirmButton = {
-                        TextButton(onClick = { onDelete(); showDeleteConfirm = false }) { Text("Remove", color = colors.negative) }
+                        TextButton(onClick = { onDelete(); showDeleteConfirm = false }) { Text(S.Investments.remove(sRes()), color = colors.negative) }
                     },
-                    dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") } },
+                    dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text(S.Investments.cancel(sRes())) } },
                 )
             }
         }

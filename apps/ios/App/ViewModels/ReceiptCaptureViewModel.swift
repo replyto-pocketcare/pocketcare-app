@@ -6,7 +6,7 @@ import Domain
 
 /// Mirrors `ScanStage` (apps/web/src/receipts/scan.ts) minus the AI stage --
 /// see docs/mobile/screen-specs/receipt-scan.md scope note #2.
-enum CaptureStage: Equatable {
+public enum CaptureStage: Equatable {
     case idle
     case preparing
     case reading
@@ -28,7 +28,7 @@ enum CaptureStage: Equatable {
 @Observable
 @MainActor
 public final class ReceiptCaptureViewModel {
-    @Injected(\.receiptsRepository) private var receiptsRepository
+    @ObservationIgnored @Injected(\.receiptsRepository) private var receiptsRepository
     private var pendingDraft: ReceiptDraft?
 
     public var stage: CaptureStage = .idle
@@ -51,7 +51,7 @@ public final class ReceiptCaptureViewModel {
     public func onTextRecognized(_ rawText: String) {
         stage = .understanding
         let today = ISO8601DateFormatter().string(from: Date()).prefix(10)
-        let draft = parseReceiptText(rawText, ParseOptions(currency: "INR", today: String(today), engine: "tesseract"))
+        let draft = parseReceiptText(rawText, ParseOptions(currency: baseCurrencyNow(), today: String(today), engine: "tesseract"))
         pendingDraft = draft
         let rec = reconcile(draft)
         if rec.ok {
@@ -80,9 +80,9 @@ public final class ReceiptCaptureViewModel {
     /// Mirrors `describeMismatch` exactly.
     public func mismatchMessage(_ reason: String) -> String {
         switch reason {
-        case "no_lines": return "We couldn't find any items on this receipt."
-        case "missing_total": return "We read the items but couldn't find the total."
-        default: return "The items we read don't add up to the printed total."
+        case "no_lines": return S.Receipts.captureUnclearNoLines
+        case "missing_total": return S.Receipts.captureUnclearNoTotal
+        default: return S.Receipts.captureUnclearMismatch
         }
     }
 

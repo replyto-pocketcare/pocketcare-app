@@ -18,6 +18,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.domain.investments.AssetClass
 import com.sanvya.app.theme.LocalSanvyaColors
 import kotlinx.coroutines.launch
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * Scoped-down port of apps/web/src/investments/AddDialog.tsx's
@@ -59,7 +62,7 @@ fun AddHoldingScreen(
     var accountId by rememberSaveable { mutableStateOf(invAccounts.firstOrNull()?.id ?: "") }
     LaunchedEffect(invAccounts) { if (accountId.isBlank()) accountId = invAccounts.firstOrNull()?.id ?: "" }
     val account = invAccounts.find { it.id == accountId }
-    val currency = account?.currency ?: "INR"
+    val currency = account?.currency ?: baseCurrencyNow()
 
     var name by rememberSaveable { mutableStateOf("") }
     var exchange by rememberSaveable { mutableStateOf(initialExchange ?: "") }
@@ -83,10 +86,10 @@ fun AddHoldingScreen(
         containerColor = colors.bg,
         topBar = {
             TopAppBar(
-                title = { Text("Add investment", fontWeight = FontWeight.Bold, color = colors.text) },
+                title = { Text(S.Investments.addInvestment(sRes()), fontWeight = FontWeight.Bold, color = colors.text) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.text2)
+                        Icon(Icons.Default.ArrowBack, contentDescription = S.Translation.commonBack(sRes()), tint = colors.text2)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bg),
@@ -97,7 +100,7 @@ fun AddHoldingScreen(
             modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text("Type", fontSize = 13.sp, color = colors.text2)
+            Text(S.Accounts.typeLabel(sRes()), fontSize = 13.sp, color = colors.text2)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AssetClass.values().forEach { c ->
                     FilterChip(
@@ -109,7 +112,7 @@ fun AddHoldingScreen(
             }
 
             if (invAccounts.size > 1) {
-                Text("Investment account", fontSize = 13.sp, color = colors.text2)
+                Text(S.Investments.investmentAccount(sRes()), fontSize = 13.sp, color = colors.text2)
                 ExposedDropdownMenuBox(expanded = accountMenuExpanded, onExpandedChange = { accountMenuExpanded = it }) {
                     OutlinedTextField(
                         value = account?.name ?: "",
@@ -129,7 +132,7 @@ fun AddHoldingScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text(if (assetClass == AssetClass.STOCK || assetClass == AssetClass.MF) "Symbol / name" else "Name") },
+                label = { Text(if (assetClass == AssetClass.STOCK || assetClass == AssetClass.MF) "Symbol / name" else S.Cashflow.name(sRes())) },
                 placeholder = { Text("e.g. ${if (assetClass == AssetClass.STOCK) "RELIANCE" else assetClass.label}") },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -156,7 +159,7 @@ fun AddHoldingScreen(
                     OutlinedTextField(
                         value = quantityText,
                         onValueChange = { quantityText = it },
-                        label = { Text(assetClass.unitWord.replaceFirstChar { it.uppercase() }.ifBlank { "Quantity" }) },
+                        label = { Text(assetClass.unitWord.replaceFirstChar { it.uppercase() }.ifBlank { S.Investments.quantity(sRes()) }) },
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f),
                     )
@@ -175,7 +178,7 @@ fun AddHoldingScreen(
                     OutlinedTextField(
                         value = rateText,
                         onValueChange = { rateText = it },
-                        label = { Text("Interest % p.a.") },
+                        label = { Text(S.Investments.interestPa(sRes())) },
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f),
                     )
@@ -259,7 +262,7 @@ fun AddHoldingScreen(
                 enabled = !saving && accountId.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             ) {
-                Text(if (saving) "Adding…" else "Add investment")
+                Text(if (saving) S.Translation.commonAdding(sRes()) else S.Investments.addInvestment(sRes()))
             }
         }
     }
