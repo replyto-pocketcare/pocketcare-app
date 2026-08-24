@@ -353,11 +353,23 @@ guest. Plus `/auth/callback` for the OAuth return.
 | Google | ✅ OAuth redirect | ✅ `signInWithGoogle(idToken)` | ✅ + Apple |
 | Guest → account upgrade | ✅ | ✅ `upgradeGuestWithEmail` | ✅ |
 | **Email + password sign-in** | ✅ | ❌ **absent** | ❌ **absent** |
-| **A login screen** | ✅ | ❌ **no `ui/login` at all** | ✅ `LoginView.swift` |
+| **A login screen** | ✅ | ❌ **no `ui/login` at all** | ✅ `LoginView.swift` — **was a facade until 2026-08-24**, see below |
 
 Two concrete gaps:
 
 1. **Android has no login screen.** The data layer is complete and nothing calls it.
+
+   **1a. iOS's looked like one and was not.** Until 2026-08-24 `LoginView` set a local
+   `otpSent = true` on "Continue with Email" and called `onLoginSuccess()` directly on
+   "Verify & Sign In" — it never reached `sendOtp` or `verifyOtp`. Any address and any code, or
+   no code at all, produced the same result, and no session was ever created. `AuthViewModel` had
+   working implementations the entire time; the view kept its own `@State` mirrors and called
+   none of them. Now rewired to the view model.
+
+   The lesson generalises past this screen: **a dead control is worse than a missing one.** The
+   Google button was the same shape — present, tappable, calling `onLoginSuccess()` — so it has
+   been removed rather than left looking functional. It comes back when the native `idToken`
+   flow is actually wired.
 2. **`signInWithPassword` exists on neither platform.** Anyone who registered with a password on
    web cannot sign in on mobile at all. Native uses a **different token shape for Google**
    (`idToken` via the native SDK) than web's OAuth redirect — that is correct for mobile, not a
