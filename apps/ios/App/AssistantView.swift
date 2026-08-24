@@ -1,153 +1,27 @@
 import SwiftUI
 
-struct ChatMessageUiItem: Identifiable {
-    let id: String
-    let text: String
-    let isUser: Bool
-    let timeFormatted: String
-    let richInsight: RichInsightUiItem?
-}
-
-struct RichInsightUiItem {
-    let title: String
-    let mainStat: String
-    let subtitle: String
-}
-
+/// Sanvya AI assistant.
+///
+/// **What was here was a fabricated conversation.** Three hardcoded chat
+/// messages — including "You've spent ₹6,400 on Food & Dining in July 2026
+/// across 14 transactions. That's 80% of your ₹8,000 monthly dining budget",
+/// rendered in a styled insight card with a progress figure — plus a composer
+/// that appended whatever you typed to a local array and answered nothing.
+///
+/// Invented figures are the worst thing to leave in a finance app. They are not
+/// obviously fake: they are plausible, specific, currency-formatted, and sit
+/// exactly where a real answer would. A user reading that would have no way to
+/// know their dining budget had not been consulted.
+///
+/// The real assistant is a substantial port and is not started: web's is
+/// ~1,670 lines across `AssistantChat.tsx` (the streaming chat), `tools.ts`
+/// (the LLM tool surface over the ledger), `richMessage.tsx` (insight cards),
+/// `summary.ts` (the context it sends) and `speech.ts` + `MicButton.tsx`
+/// (on-device voice — note the earlier audit claim that "web has no voice
+/// input" was wrong).
+///
+/// Until then this says so, using the same honest placeholder Search and Help
+/// already use. See `docs/mobile/ABSENT-BY-DECISION.md`.
 struct AssistantView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var inputText: String = ""
-
-    @State private var messages: [ChatMessageUiItem] = [
-        ChatMessageUiItem(
-            id: "1",
-            text: "Hello! I'm your Sanvya AI financial assistant. Ask me anything about your spending, splits, budgets, or net worth.",
-            isUser: false,
-            timeFormatted: "10:14 AM",
-            richInsight: nil
-        ),
-        ChatMessageUiItem(
-            id: "2",
-            text: "How much did I spend on dining out this month?",
-            isUser: true,
-            timeFormatted: "10:15 AM",
-            richInsight: nil
-        ),
-        ChatMessageUiItem(
-            id: "3",
-            text: "You've spent ₹6,400 on Food & Dining in July 2026 across 14 transactions. That's 80% of your ₹8,000 monthly dining budget.",
-            isUser: false,
-            timeFormatted: "10:15 AM",
-            richInsight: RichInsightUiItem(
-                title: "Monthly Dining Budget Status",
-                mainStat: "₹6,400 / ₹8,000",
-                subtitle: "80% used • 5 days remaining in period"
-            )
-        )
-    ]
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack(spacing: 14) {
-                        ForEach(messages) { msg in
-                            VStack(alignment: msg.isUser ? .trailing : .leading, spacing: 4) {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(msg.text)
-                                        .font(.subheadline)
-                                        .foregroundColor(msg.isUser ? Color.surface : Color.text)
-
-                                    if let insight = msg.richInsight {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(insight.title)
-                                                .font(.caption2)
-                                                .fontWeight(.bold)
-                                                .foregroundColor(Color.text2)
-                                            Text(insight.mainStat)
-                                                .font(.headline)
-                                                .fontWeight(.bold)
-                                                .foregroundColor(Color.accent)
-                                            Text(insight.subtitle)
-                                                .font(.caption2)
-                                                .foregroundColor(Color.text)
-                                        }
-                                        .padding(10)
-                                        .background(Color.surface2)
-                                        .cornerRadius(10)
-                                    }
-                                }
-                                .padding(14)
-                                .background(msg.isUser ? Color.accent : Color.surface)
-                                .cornerRadius(16)
-                                .frame(maxWidth: 280, alignment: msg.isUser ? .trailing : .leading)
-
-                                Text(msg.timeFormatted)
-                                    .font(.caption2)
-                                    .foregroundColor(Color.text2)
-                            }
-                            .frame(maxWidth: .infinity, alignment: msg.isUser ? .trailing : .leading)
-                        }
-                    }
-                    .padding(16)
-                }
-
-                // Composer bar
-                HStack(spacing: 10) {
-                    // A microphone button used to sit here. It toggled
-                    // `isRecording`, swapped to a stop icon and turned accent
-                    // — so it LOOKED like it was recording — while capturing no
-                    // audio and transcribing nothing. Web's assistant has no
-                    // voice input at all, so this was invented UI that only
-                    // ever pretended. Removed rather than implemented:
-                    // building it would be adding a feature web does not have,
-                    // which is the opposite of this branch's job.
-
-                    TextField("Ask Sanvya AI…", text: $inputText)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(Color.surface)
-                        .cornerRadius(20)
-
-                    Button(action: {
-                        if !inputText.isEmpty {
-                            messages.append(
-                                ChatMessageUiItem(
-                                    id: UUID().uuidString,
-                                    text: inputText,
-                                    isUser: true,
-                                    timeFormatted: "Just now",
-                                    richInsight: nil
-                                )
-                            )
-                            inputText = ""
-                        }
-                    }) {
-                        Image(systemName: "paperplane.fill")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(Color.surface)
-                            .frame(width: 40, height: 40)
-                            .background(Color.accent)
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(12)
-                .background(Color.surface)
-            }
-            .background(Color.bg.ignoresSafeArea())
-            .navigationTitle("✨ Sanvya AI")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(S.Translation.commonClose) { dismiss() }
-                        .foregroundColor(Color.text2)
-                }
-            }
-        }
-    }
-}
-
-#Preview {
-    AssistantView()
+    var body: some View { PlaceholderView(title: S.Translation.navAssistant) }
 }

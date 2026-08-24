@@ -12,6 +12,10 @@
 > Generated 2026-08-23 by direct file inspection. Update the tables in place whenever a row's real
 > status changes; put dated narrative in `AUDIT_HISTORY.md`, never here.
 
+> **Deliberate gaps live in [`ABSENT-BY-DECISION.md`](ABSENT-BY-DECISION.md)** — every native
+> gap that is a decision rather than an oversight, with the reason and what would close it.
+> Adding a row there is part of the change that creates the gap, not a follow-up.
+
 ## 0. Size of the job (measured, not estimated)
 
 | Surface | Lines | Note |
