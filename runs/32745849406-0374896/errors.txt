@@ -1,0 +1,202 @@
+104:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:115:30 Argument type mismatch: actual type is 'String?', but 'String' was expected.
+105:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:115:42 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+106:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:116:36 Unresolved reference 'getStringOptional'.
+107:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:117:38 Unresolved reference 'getStringOptional'.
+108:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:118:39 Unresolved reference 'getLongOptional'.
+109:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:119:42 Unresolved reference 'getLongOptional'.
+110:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:120:39 Unresolved reference 'getStringOptional'.
+111:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:121:41 Unresolved reference 'getStringOptional'.
+112:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:122:40 Unresolved reference 'getStringOptional'.
+113:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:123:39 Unresolved reference 'getLongOptional'.
+114:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:124:46 Unresolved reference 'getStringOptional'.
+115:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:142:32 Return type mismatch: expected 'Any', actual 'String?'.
+116:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:142:45 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+117:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:181:39 Cannot infer type for type parameter 'RowType'. Specify it explicitly.
+118:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:188:36 Return type mismatch: expected 'Any', actual 'String?'.
+119:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:188:49 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+120:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:82:14 Argument type mismatch: actual type is 'String?', but 'String' was expected.
+121:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:82:31 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+122:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:83:28 Unresolved reference 'getStringOptional'.
+123:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:84:23 Unresolved reference 'getStringOptional'.
+124:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:85:25 Unresolved reference 'getLongOptional'.
+125:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:86:27 Unresolved reference 'getStringOptional'.
+126:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:87:28 Unresolved reference 'getStringOptional'.
+127:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:88:32 Unresolved reference 'getLongOptional'.
+128:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:89:26 Unresolved reference 'getStringOptional'.
+129:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:90:28 Unresolved reference 'getStringOptional'.
+130:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:91:30 Unresolved reference 'getStringOptional'.
+131:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:92:29 Unresolved reference 'getStringOptional'.
+132:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:93:27 Unresolved reference 'getBooleanOptional'.
+133:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:94:25 Unresolved reference 'getBooleanOptional'.
+134:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:95:31 Unresolved reference 'getStringOptional'.
+135:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:96:30 Unresolved reference 'getStringOptional'.
+136:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:97:23 Unresolved reference 'getStringOptional'.
+137:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:98:32 Unresolved reference 'getStringOptional'.
+138:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:99:25 Unresolved reference 'getStringOptional'.
+139:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:100:31 Unresolved reference 'getStringOptional'.
+140:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:158:32 Cannot infer type for type parameter 'RowType'. Specify it explicitly.
+141:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:161:26 Cannot infer type for type parameter 'RowType'. Specify it explicitly.
+142:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:161:28 Return type mismatch: expected 'Any', actual 'String?'.
+143:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:161:41 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+144:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:170:50 Cannot infer type for type parameter 'T'. Specify it explicitly.
+145:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:170:54 Cannot infer type for type parameter 'T'. Specify it explicitly.
+147:> Task :data:compileReleaseKotlin FAILED
+148:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:115:30 Argument type mismatch: actual type is 'String?', but 'String' was expected.
+149:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:115:42 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+150:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:116:36 Unresolved reference 'getStringOptional'.
+151:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:117:38 Unresolved reference 'getStringOptional'.
+152:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:118:39 Unresolved reference 'getLongOptional'.
+153:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:119:42 Unresolved reference 'getLongOptional'.
+154:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:120:39 Unresolved reference 'getStringOptional'.
+155:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:121:41 Unresolved reference 'getStringOptional'.
+156:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:122:40 Unresolved reference 'getStringOptional'.
+157:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:123:39 Unresolved reference 'getLongOptional'.
+158:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:124:46 Unresolved reference 'getStringOptional'.
+159:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:142:32 Return type mismatch: expected 'Any', actual 'String?'.
+160:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:142:45 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+161:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:181:39 Cannot infer type for type parameter 'RowType'. Specify it explicitly.
+162:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:188:36 Return type mismatch: expected 'Any', actual 'String?'.
+163:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LoanAutoPostRepository.kt:188:49 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+164:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:82:14 Argument type mismatch: actual type is 'String?', but 'String' was expected.
+165:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:82:31 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+166:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:83:28 Unresolved reference 'getStringOptional'.
+167:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:84:23 Unresolved reference 'getStringOptional'.
+168:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:85:25 Unresolved reference 'getLongOptional'.
+169:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:86:27 Unresolved reference 'getStringOptional'.
+170:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:87:28 Unresolved reference 'getStringOptional'.
+171:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:88:32 Unresolved reference 'getLongOptional'.
+172:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:89:26 Unresolved reference 'getStringOptional'.
+173:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:90:28 Unresolved reference 'getStringOptional'.
+174:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:91:30 Unresolved reference 'getStringOptional'.
+175:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:92:29 Unresolved reference 'getStringOptional'.
+176:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:93:27 Unresolved reference 'getBooleanOptional'.
+177:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:94:25 Unresolved reference 'getBooleanOptional'.
+178:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:95:31 Unresolved reference 'getStringOptional'.
+179:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:96:30 Unresolved reference 'getStringOptional'.
+180:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:97:23 Unresolved reference 'getStringOptional'.
+181:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:98:32 Unresolved reference 'getStringOptional'.
+182:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:99:25 Unresolved reference 'getStringOptional'.
+183:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:100:31 Unresolved reference 'getStringOptional'.
+184:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:158:32 Cannot infer type for type parameter 'RowType'. Specify it explicitly.
+185:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:161:26 Cannot infer type for type parameter 'RowType'. Specify it explicitly.
+186:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:161:28 Return type mismatch: expected 'Any', actual 'String?'.
+187:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:161:41 Argument type mismatch: actual type is 'String', but 'Int' was expected.
+188:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:170:50 Cannot infer type for type parameter 'T'. Specify it explicitly.
+189:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RecurringRepository.kt:170:54 Cannot infer type for type parameter 'T'. Specify it explicitly.
+193:> Task :data:compileDebugKotlin FAILED
+194:> Task :app:processDebugMainManifest FAILED
+221:> Task :app:processReleaseMainManifest FAILED
+245:FAILURE: Build completed with 4 failures.
+252:   > Compilation error. See log for more details
+409:Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+450:   > Compilation error. See log for more details
+613:Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+1056:BUILD FAILED in 4m 5s
+10:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+14:    |              `- error: invalid redeclaration of 'floorDiv'
+18:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+22:    |              `- error: invalid redeclaration of 'floorMod'
+26:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+30:    |              `- error: invalid redeclaration of 'floorDiv'
+34:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+38:    |              `- error: invalid redeclaration of 'floorMod'
+42:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+46:    |              `- error: invalid redeclaration of 'floorDiv'
+50:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+54:    |              `- error: invalid redeclaration of 'floorMod'
+58:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+62:    |              `- error: invalid redeclaration of 'floorDiv'
+66:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+70:    |              `- error: invalid redeclaration of 'floorMod'
+74:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+78:    |              `- error: invalid redeclaration of 'floorDiv'
+82:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+86:    |              `- error: invalid redeclaration of 'floorMod'
+90:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+94:    |              `- error: invalid redeclaration of 'floorDiv'
+98:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+102:    |              `- error: invalid redeclaration of 'floorMod'
+106:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+110:    |              `- error: invalid redeclaration of 'floorDiv'
+114:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+118:    |              `- error: invalid redeclaration of 'floorMod'
+122:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+126:    |              `- error: invalid redeclaration of 'floorDiv'
+130:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+134:    |              `- error: invalid redeclaration of 'floorMod'
+138:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+142:    |              `- error: invalid redeclaration of 'floorDiv'
+146:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+150:    |              `- error: invalid redeclaration of 'floorMod'
+154:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+158:    |              `- error: invalid redeclaration of 'floorDiv'
+162:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+166:    |              `- error: invalid redeclaration of 'floorMod'
+178:error: emit-module command failed with exit code 1 (use -v to see invocation)
+189:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+193:    |              `- error: invalid redeclaration of 'floorDiv'
+197:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+201:    |              `- error: invalid redeclaration of 'floorMod'
+204:error: fatalError
+572:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+576:    |              `- error: invalid redeclaration of 'floorDiv'
+580:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+584:    |              `- error: invalid redeclaration of 'floorMod'
+588:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+592:    |              `- error: invalid redeclaration of 'floorDiv'
+596:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+600:    |              `- error: invalid redeclaration of 'floorMod'
+604:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+608:    |              `- error: invalid redeclaration of 'floorDiv'
+612:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+616:    |              `- error: invalid redeclaration of 'floorMod'
+620:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+624:    |              `- error: invalid redeclaration of 'floorDiv'
+628:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+632:    |              `- error: invalid redeclaration of 'floorMod'
+636:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+640:    |              `- error: invalid redeclaration of 'floorDiv'
+644:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+648:    |              `- error: invalid redeclaration of 'floorMod'
+652:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+656:    |              `- error: invalid redeclaration of 'floorDiv'
+660:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+664:    |              `- error: invalid redeclaration of 'floorMod'
+668:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+672:    |              `- error: invalid redeclaration of 'floorDiv'
+676:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+680:    |              `- error: invalid redeclaration of 'floorMod'
+684:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+688:    |              `- error: invalid redeclaration of 'floorDiv'
+692:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+696:    |              `- error: invalid redeclaration of 'floorMod'
+700:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+704:    |              `- error: invalid redeclaration of 'floorDiv'
+708:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+712:    |              `- error: invalid redeclaration of 'floorMod'
+716:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+720:    |              `- error: invalid redeclaration of 'floorDiv'
+724:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+728:    |              `- error: invalid redeclaration of 'floorMod'
+880:error: emit-module command failed with exit code 1 (use -v to see invocation)
+891:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+895:    |              `- error: invalid redeclaration of 'floorDiv'
+899:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+903:    |              `- error: invalid redeclaration of 'floorMod'
+1009:  PowerSyncSQLiteCore: https://github.com/powersync-ja/powersync-sqlite-core-swift.git @ 0.4.13
+1011:  Supabase: https://github.com/supabase/supabase-swift.git @ 2.54.1
+1013:  CSQLite: https://github.com/powersync-ja/CSQLite.git @ 3.51.2
+1032:note: Building targets in dependency order
+1033:note: Target dependency graph (47 targets)
+1238:Build description signature: af4cea4d5d612700aaea0fb84896baaf
+2467:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+2474:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+2496:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+2694:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+2812:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:176:14: error: invalid redeclaration of 'floorDiv'
+2815:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Finance.swift:309:6: note: 'floorDiv' previously declared here
+2818:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Finance.swift:309:6: note: 'floorDiv' previously declared here
+2821:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Budget.swift:182:14: error: invalid redeclaration of 'floorMod'
+2824:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Finance.swift:315:6: note: 'floorMod' previously declared here
+2827:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Sources/Domain/Finance.swift:315:6: note: 'floorMod' previously declared here
+2928:** TEST FAILED **
