@@ -52,13 +52,15 @@ final class ShellViewModel {
         tasks.append(Task { [weak self] in
             guard let self else { return }
             do {
-                for try await row in try await self.prefsRepository.watchEntitlement() {
+                for try await row in try self.prefsRepository.watchEntitlement() {
+                    // Labelled, and `now` is a Date: the Swift signature takes
+                    // a Date where Kotlin's takes epoch millis.
                     self.canScan = isPaid(
-                        row?.tier,
-                        row?.premiumTrialStartDate,
-                        row?.compTier,
-                        row?.compUntil,
-                        Int64(Date().timeIntervalSince1970 * 1000)
+                        tier: row?.tier,
+                        premiumTrialStartDate: row?.premiumTrialStartDate,
+                        compTier: row?.compTier,
+                        compUntil: row?.compUntil,
+                        now: Date()
                     )
                 }
             } catch {

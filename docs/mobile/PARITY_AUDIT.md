@@ -340,3 +340,34 @@ the mindfulness port simply never asked. Passing the formatter rather than a cur
 pair is what fixes the hide-amounts leak, since web hands it `useMoneyFmt()`.
 
 Web typechecks clean; the two native halves await CI.
+
+### Open 2026-08-23 — hardcoded `"INR"` on both native platforms
+
+A separate family from the `×100` bugs, and a wider sweep than one commit should carry. Some of
+these are legitimate (a currency picker's list, a `?? "INR"` fallback matching web's default);
+these are not:
+
+- `apps/ios/.../DashboardViewModel.swift:84` — `ledgerRepository.netWorth(base: "INR")`. Net
+  worth is computed in a currency the user may not use.
+- `apps/ios/.../DashboardViewModel.swift:10-11` — `Money(amount: 0, currency: "INR")` and
+  `base: String = "INR"` as initial state, so the first frame is wrong before data lands.
+- `apps/android/.../loans/LoansViewModel.kt:181` — `formatMoney(minor, currency: String = "INR")`.
+  A **default parameter** for a currency: every call site that omits it is silently INR, and the
+  compiler cannot flag one.
+- `apps/android/.../loans/LoansViewModel.kt:30` — `private const val BASE_CURRENCY = "INR"`, with
+  a comment admitting it is hardcoded to match Dashboard.
+- `apps/android/.../loans/AddLoanScreen.kt:63` — `fromMajor(it, "INR")` when parsing input, so a
+  loan in any other currency is stored with the wrong scale.
+- `apps/android/.../transactions/{Edit,}TransactionsViewModel.kt` — `Currency.getInstance("INR")`
+  and `currency: String = "INR"`.
+- `apps/ios/.../SplitsView.swift:102` — `openOrCreateDirectGroup(..., currency: "INR")`.
+
+Fixed already, in the same file that surfaced it: `SplitsViewModel`'s overview roll-ups
+(`netPosition`, `owed`, `owe`) and its direct-balance rows now use `baseCurrencyNow()`. The
+per-group rows beside them already used `g.group.currency` correctly, which is exactly what made
+the inconsistency easy to miss.
+
+The rest needs a base-currency source on both platforms (web has `useBaseCurrency()`) and should
+be one change set with a lint rule or test behind it — a hardcoded currency is invisible in
+review, and a **default parameter** of `"INR"` is worse than a literal because no call site
+shows it.
