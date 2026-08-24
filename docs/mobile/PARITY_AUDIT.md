@@ -1044,6 +1044,41 @@ rather than buried** — `packages/core/i18n` is shared with the live client, an
 web is off-limits. A missing key that web's own code asks for is the narrowest possible exception;
 anything wider should be Akhilesh's call.
 
+### Statements: iOS had invented a different feature — 2026-08-24
+
+`StatementsView.swift` was not a mock of web's Statements screen. It was a **different feature that
+does not exist**: a searchable list of "July 2026", "June 2026", "2025 Annual Statement" cards, the
+last wearing a premium padlock. Nothing backed any of it, and there is no statement-generation
+feature anywhere in the product for such a list to show. Android had no screen at all, which was at
+least honest about the gap.
+
+Web's `/statements` is a **date-ranged view of real transactions** — from/to dates, an
+income/expense/net summary, the transaction list, behind the paid gate. Both platforms now have
+that, sharing a new `LedgerRepository.watchTransactionsInRange`.
+
+Two details in that query are easy to lose and are carried deliberately:
+
+- **`type != 'opening_balance'`** — an opening balance is a bookkeeping entry, not something the
+  user did. Including it puts a phantom line on the statement and inflates income.
+- **`>= start AND < end`, with `end` advanced a whole day by the caller.** `occurred_at` is a
+  timestamp; comparing `< end` against the bare date silently drops everything that happened after
+  midnight on the final day.
+
+**`entitlementKnown` is a third state, not defensiveness.** With `isPaid` defaulting to false and
+the view rendering immediately, every cold start would flash "Go Premium" at a paying user before
+the local entitlement row had been read. The screen renders neither the statement nor the upsell
+until the row has been seen once; an unreadable row keeps the gate **closed** but leaves the state
+unknown, so the upsell still does not flash.
+
+**Absent rather than faked**, because web's versions do not translate:
+
+| Web | Why not ported |
+|---|---|
+| Print (`window.print()`) | No phone equivalent. A share/PDF export is a feature to design, not a button to add. |
+| "Analyze" → `/statements/analyze` | A separate screen that does not exist natively. `StatementImportView` is the *other* iOS fabrication — tracked separately. |
+| "Go Premium" button | Web links to `/settings`; there is no native upgrade flow yet, so a button here would go nowhere. |
+| `<input type="date">` | SwiftUI has `DatePicker`; Compose has no equivalent primitive. Taking it on iOS alone would put the two platforms out of step over a control neither spec has settled, so both use an ISO text field for now. |
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*

@@ -268,6 +268,30 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
         mapper = ::transactionMapper,
     )
 
+    /**
+     * Transactions inside a date range, for the Statements screen.
+     *
+     * Matches statements/page.tsx's query exactly, including two details that
+     * are easy to lose:
+     *
+     * - **`type != 'opening_balance'`.** An opening balance is a bookkeeping
+     *   entry, not something the user did. Including it would put a phantom
+     *   line on the statement and inflate the income total.
+     * - **`>= start AND < end`**, with `end` already advanced one day by the
+     *   caller. A `BETWEEN` on ISO timestamps would silently drop everything
+     *   that happened after midnight on the last day.
+     */
+    fun watchTransactionsInRange(startIso: String, endIso: String): Flow<List<TransactionRow>> = db.watch(
+        """
+            SELECT * FROM transactions
+             WHERE deleted_at IS NULL AND type != 'opening_balance'
+               AND occurred_at >= ? AND occurred_at < ?
+             ORDER BY occurred_at
+        """.trimIndent(),
+        parameters = listOf(startIso, endIso),
+        mapper = ::transactionMapper,
+    )
+
     /** Income/expense totals grouped by month (all accounts, minor units) --
      * matches apps/web/app/page.tsx's NetWorthHero query exactly (same SQL,
      * same GROUP BY/ORDER BY), which the dashboard hero's sparkline + this-

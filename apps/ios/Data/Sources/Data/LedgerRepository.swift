@@ -319,6 +319,33 @@ public final class LedgerRepository: @unchecked Sendable {
         )
     }
 
+    /// Transactions inside a date range, for the Statements screen.
+    ///
+    /// Matches statements/page.tsx's query exactly, including two details that
+    /// are easy to lose:
+    ///
+    /// - **`type != 'opening_balance'`.** An opening balance is a bookkeeping
+    ///   entry, not something the user did. Including it would put a phantom
+    ///   line on the statement and inflate the income total.
+    /// - **`>= start AND < end`**, with `end` already advanced one day by the
+    ///   caller. A `BETWEEN` on ISO timestamps would silently drop everything
+    ///   that happened after midnight on the last day.
+    public func watchTransactionsInRange(
+        startIso: String,
+        endIso: String
+    ) throws -> AsyncThrowingStream<[TransactionRow], Error> {
+        try db.watch(
+            sql: """
+                SELECT * FROM transactions
+                 WHERE deleted_at IS NULL AND type != 'opening_balance'
+                   AND occurred_at >= ? AND occurred_at < ?
+                 ORDER BY occurred_at
+                """,
+            parameters: [startIso, endIso],
+            mapper: transactionMapper
+        )
+    }
+
     /// All categories (reactive) -- matches transactions/new/page.tsx's
     /// categories query. Added 2026-08-05 for the Transactions screens
     /// (docs/mobile/screen-specs/transactions.md); mirrors Android's

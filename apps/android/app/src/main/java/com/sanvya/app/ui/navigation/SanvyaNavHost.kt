@@ -130,6 +130,11 @@ fun SanvyaNavHost() {
             com.sanvya.app.ui.recurring.RecurringScreen()
         }
 
+        // Also had no screen and fell through to coming_soon.
+        composable("statements") {
+            com.sanvya.app.ui.statements.StatementsScreen()
+        }
+
         composable("accounts") {
             AccountsScreen(
                 onBack = { navController.popBackStack() },
