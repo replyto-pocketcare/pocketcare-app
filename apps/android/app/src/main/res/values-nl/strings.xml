@@ -1007,6 +1007,7 @@
         <item quantity="one">%1$d item</item>
         <item quantity="other">%1$d items</item>
     </plurals>
+    <string name="recurring_net_monthly">Netto maandelijkse cashflow</string>
     <string name="recurring_next">volgende %1$s</string>
     <string name="recurring_payment">Betaling</string>
     <string name="recurring_payments">Betalingen</string>

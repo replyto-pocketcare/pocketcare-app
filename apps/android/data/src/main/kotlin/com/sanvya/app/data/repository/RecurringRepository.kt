@@ -123,6 +123,24 @@ class RecurringRepository(
         else -> "expense"
     }
 
+    /**
+     * Every active commitment, for the Recurring screen's monthly summary.
+     *
+     * Mirrors web's `useRecurringItems()` — `active = 1`, ordered by `next_due`,
+     * and NOT filtered by direction, because savings are excluded by the
+     * summary rather than by the query (they still post, and still appear under
+     * "Due now"; they simply have no browsable list on this screen).
+     */
+    fun watchActiveItems(): Flow<List<Item>> = db.watch(
+        sql = """
+            SELECT $COLUMNS FROM recurring_items
+             WHERE deleted_at IS NULL AND active = 1
+             ORDER BY next_due
+        """.trimIndent(),
+        parameters = emptyList(),
+        mapper = ::map,
+    )
+
     /** Items due today or earlier that do NOT auto-post — the ones asking to be confirmed. */
     fun watchDueItems(todayIso: String): Flow<List<Item>> = db.watch(
         sql = """

@@ -114,6 +114,24 @@ public final class RecurringRepository: @unchecked Sendable {
         }
     }
 
+    /// Every active commitment, for the Recurring screen's monthly summary.
+    ///
+    /// Mirrors web's `useRecurringItems()` — `active = 1`, ordered by
+    /// `next_due`, and NOT filtered by direction, because savings are excluded
+    /// by the summary rather than by the query (they still post, and still
+    /// appear under "Due now"; they simply have no browsable list here).
+    public func watchActiveItems() throws -> AsyncThrowingStream<[Item], Error> {
+        try db.watch(
+            sql: """
+                SELECT \(Self.columns) FROM recurring_items
+                 WHERE deleted_at IS NULL AND active = 1
+                 ORDER BY next_due
+                """,
+            parameters: [],
+            mapper: map
+        )
+    }
+
     /// Items due today or earlier that do NOT auto-post — the ones asking to be confirmed.
     public func watchDueItems(todayIso: String) throws -> AsyncThrowingStream<[Item], Error> {
         try db.watch(

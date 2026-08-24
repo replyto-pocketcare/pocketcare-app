@@ -995,6 +995,55 @@ and was wrong only in comparison with the other two platforms. Neither is findab
 on its own — the first needs a second device or a sync round trip, the second needs a code path
 nobody had exercised.
 
+### The Recurring screen — 2026-08-24
+
+`recurring` was a nav-catalog id on both platforms with **no screen behind it on either** —
+Android fell through to `coming_soon/{title}`, iOS rendered a `PlaceholderView`. Both are real
+screens now, ported from `apps/web/app/recurring/page.tsx`, and they drive the engines ported
+earlier today: `watchActiveItems`, `watchDueItems`, `postOnce` and `skipOnce` all had no callers
+until now.
+
+Present: net monthly cashflow, the two sides drawn to scale against each other, a row per
+direction with its monthly total and item count, and "Due now" with Skip and Record wired to the
+real engine.
+
+**Everything is a monthly equivalent**, via the vector-tested `monthlyEquivalent` — a weekly bill
+and a yearly subscription are only comparable once normalised, and raw amounts are never summed
+across frequencies.
+
+**Savings are excluded from the net, not merely unlisted.** A SIP is a transfer between your own
+accounts: the money leaves the current account but not your net worth, so counting it as an outflow
+would understate what you actually have spare. They still post through the same engine and still
+appear under "Due now". Web's `summary.ts` argues this at length; the native ports carry the same
+reasoning rather than the conclusion alone.
+
+**Deliberately not built yet, and absent rather than dead:**
+
+- **Create/edit.** Web opens `RecurringModal`. The native equivalent is W2.1's job (full page below
+  600dp, dialog or side panel above; `.fullScreenCover` on iOS phones), and a "+" that opened
+  nothing is exactly the dead control this audit keeps finding.
+- **`/recurring/[direction]`.** The per-direction list is a separate web route. The direction rows
+  are therefore **not tappable** — they read as summary rows, not as links to somewhere that does
+  not exist.
+
+#### One shared-package change, and why it was the right call
+
+Web renders that headline as `t("netMonthly", "Net monthly cashflow")` — an **inline default**,
+because the key is missing from the `recurring` namespace. So hi and nl users see English there
+today. `cashflow.netMonthly` exists but says "Net monthly cashflow **(after savings)**", which is
+the wrong label for a figure that *excludes* savings rather than deducting them — using it would
+have been a quiet lie.
+
+So `netMonthly` was added to `recurring/{en,hi,nl}.json`. English is byte-identical to web's inline
+default, so web's rendering is unchanged in English and *fixed* in hi/nl. The hi/nl strings are not
+invented: they are `cashflow.netMonthly`'s existing approved translations with the
+"(after savings)" parenthetical dropped.
+
+**This is the only change outside `apps/android`/`apps/ios`/`docs` in this pass, and it is flagged
+rather than buried** — `packages/core/i18n` is shared with the live client, and the rule is that
+web is off-limits. A missing key that web's own code asks for is the narrowest possible exception;
+anything wider should be Akhilesh's call.
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*

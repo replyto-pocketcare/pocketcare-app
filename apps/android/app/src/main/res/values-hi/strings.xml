@@ -1007,6 +1007,7 @@
         <item quantity="one">%1$d आइटम</item>
         <item quantity="other">%1$d आइटम</item>
     </plurals>
+    <string name="recurring_net_monthly">शुद्ध मासिक नकदी प्रवाह</string>
     <string name="recurring_next">अगला %1$s</string>
     <string name="recurring_payment">भुगतान</string>
     <string name="recurring_payments">भुगतान</string>

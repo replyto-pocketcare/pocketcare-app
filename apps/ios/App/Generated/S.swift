@@ -1279,6 +1279,7 @@ public enum S {
         public static func itemCount(count: Int) -> String {
             String(format: String(localized: "recurring:itemCount", defaultValue: "", table: "Localizable"), count)
         }
+        public static var netMonthly: String { String(localized: "recurring:netMonthly", table: "Localizable") }
         public static func next(date: CVarArg) -> String {
             String(format: String(localized: "recurring:next", table: "Localizable"), date)
         }

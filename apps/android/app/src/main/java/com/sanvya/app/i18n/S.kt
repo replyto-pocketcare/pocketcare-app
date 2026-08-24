@@ -1153,6 +1153,7 @@ object S {
         fun incomes(res: Resources): String = res.getString(R.string.recurring_incomes)
         fun itemCount(res: Resources, count: Int): String =
             res.getQuantityString(R.plurals.recurring_item_count, count, count)
+        fun netMonthly(res: Resources): String = res.getString(R.string.recurring_net_monthly)
         fun next(res: Resources, date: Any): String =
             res.getString(R.string.recurring_next, date)
         fun payment(res: Resources): String = res.getString(R.string.recurring_payment)

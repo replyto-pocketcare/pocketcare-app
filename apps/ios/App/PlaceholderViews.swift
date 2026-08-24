@@ -22,10 +22,6 @@ struct SearchView: View {
     var body: some View { PlaceholderView(title: S.Translation.navSearch, ) }
 }
 
-struct RecurringView: View {
-    var body: some View { PlaceholderView(title: S.Translation.navRecurring, ) }
-}
-
 struct HelpView: View {
     var body: some View { PlaceholderView(title: S.Translation.navHelp, ) }
 }

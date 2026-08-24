@@ -21764,6 +21764,29 @@
         }
       }
     },
+    "recurring:netMonthly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Net monthly cashflow"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शुद्ध मासिक नकदी प्रवाह"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netto maandelijkse cashflow"
+          }
+        }
+      }
+    },
     "recurring:next": {
       "extractionState": "manual",
       "localizations": {

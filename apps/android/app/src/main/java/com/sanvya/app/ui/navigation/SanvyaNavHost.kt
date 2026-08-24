@@ -124,6 +124,12 @@ fun SanvyaNavHost() {
                 title = java.net.URLDecoder.decode(encoded, "UTF-8"),
             )
         }
+        // `recurring` was a nav-catalog id with no screen behind it, so tapping
+        // it landed on coming_soon/{title}. It has a real screen now.
+        composable("recurring") {
+            com.sanvya.app.ui.recurring.RecurringScreen()
+        }
+
         composable("accounts") {
             AccountsScreen(
                 onBack = { navController.popBackStack() },
