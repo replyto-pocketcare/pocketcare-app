@@ -24,9 +24,15 @@ import Factory
    anyone who registered with a password could not sign in here at all.
  */
 struct LoginView: View {
-    var onLoginSuccess: () -> Void
-    var onContinueAsGuest: () -> Void
-
+    // No `onLoginSuccess` / `onContinueAsGuest` closures.
+    //
+    // They used to exist and do nothing: SanvyaApp passed an empty body with
+    // the comment "AuthState will update automatically" — which is true, the
+    // gate switches on `authState` — and a guest closure that called
+    // `continueAsGuest()` a second time, after this view had already called it.
+    // (Harmless only because `authEnsureUser` returns early when a session
+    // exists.) A parameter every caller passes and nobody acts on is the same
+    // facade this screen was rebuilt to remove, one layer up.
     @State private var viewModel = Container.shared.authViewModel()
 
     var body: some View {
@@ -64,10 +70,7 @@ struct LoginView: View {
                 // neither a sign-in nor a sign-up, which is why web shows it in
                 // both modes and only swaps the label.
                 SanvyaButton(ghost: true) {
-                    Task {
-                        await viewModel.continueWithGoogle()
-                        if viewModel.error == nil { onLoginSuccess() }
-                    }
+                    Task { await viewModel.continueWithGoogle() }
                 } label: {
                     HStack(spacing: 10) {
                         GoogleMark()
@@ -78,10 +81,7 @@ struct LoginView: View {
                 .disabled(viewModel.isLoading)
 
                 SanvyaButton(ghost: true) {
-                    Task {
-                        await viewModel.continueAsGuest()
-                        if viewModel.error == nil { onContinueAsGuest() }
-                    }
+                    Task { await viewModel.continueAsGuest() }
                 } label: {
                     Text(S.Onboarding.tryGuest)
                 }
@@ -119,7 +119,6 @@ struct LoginView: View {
                 Task {
                     if viewModel.mode == .password {
                         await viewModel.signInWithPassword()
-                        if viewModel.error == nil { onLoginSuccess() }
                     } else {
                         await viewModel.sendOtp()
                     }
@@ -157,13 +156,11 @@ struct LoginView: View {
                 .keyboardType(.numberPad)
 
             SanvyaButton {
-                Task {
-                    await viewModel.verifyOtpAndSignIn()
-                    // Only on success. The old screen called this
-                    // unconditionally, which is how a failed verify still let
-                    // you in.
-                    if viewModel.error == nil { onLoginSuccess() }
-                }
+                // The gate in SanvyaApp watches `authState`, so a successful
+                // verify moves the app on by itself. The old screen called an
+                // `onLoginSuccess()` closure unconditionally here, which is how
+                // a FAILED verify still let you in.
+                Task { await viewModel.verifyOtpAndSignIn() }
             } label: {
                 Text(viewModel.isLoading ? S.Login.verifying : S.Login.verifyCode)
             }

@@ -736,7 +736,9 @@ file. They are catalog entries now — the version catalog exists precisely to s
 - [ ] `currentUserId` either works or is removed so nothing can depend on it.
 - [ ] A real device signs in, writes, force-quits, reopens, and sees its data — offline and on.
 - [ ] Guest → account upgrade preserves the guest's local data on both platforms.
-- [ ] Auth gate, pending invite, and launch-time materialisation ported.
+- [x] Auth gate on both. *(2026-08-24 — iOS's `SanvyaApp` already had one; this audit said it did
+      not, which was stale. Its two callbacks were dead parameters and are gone.)*
+- [ ] Pending invite and launch-time materialisation ported.
 - [ ] Sync L3 (P2.7) unblocked — still needs a test Supabase + PowerSync project.
 
 ## 7. Work queue (waves — supersedes the coarse phase table in TODO.md)
