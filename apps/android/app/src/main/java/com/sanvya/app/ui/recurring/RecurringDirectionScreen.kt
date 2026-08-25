@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -59,7 +58,6 @@ import com.sanvya.app.ui.components.SanvyaText
  * - **Add and Edit.** The recurring form (`RecurringModal`) is not ported to
  *   either platform, so there is nothing for them to open.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RecurringDirectionScreen(
     slug: RecurringDirectionSlug,
