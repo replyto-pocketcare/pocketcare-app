@@ -315,6 +315,33 @@
     <string name="categories_top_level">— hoofdniveau —</string>
     <string name="categories_under">onder %1$s</string>
 
+    <!-- dashboard -->
+    <string name="dashboard_add_widget">Widget toevoegen</string>
+    <string name="dashboard_add_widget_intro">Kies een tegel om aan je dashboard toe te voegen. Grootte en volgorde pas je direct op de pagina aan.</string>
+    <string name="dashboard_all_added">Elke widget staat al op je dashboard.</string>
+    <string name="dashboard_customize">Aanpassen</string>
+    <string name="dashboard_empty_body">Voeg een widget toe om je geld in één oogopslag te zien.</string>
+    <string name="dashboard_empty_title">Je dashboard is leeg</string>
+    <string name="dashboard_move_down">Omlaag</string>
+    <string name="dashboard_move_up">Omhoog</string>
+    <string name="dashboard_premium">Premium</string>
+    <string name="dashboard_premium_note">Premium-tegels ontgrendel je met een Lite- of Pro-abonnement.</string>
+    <string name="dashboard_tile_budgets">Budgetten</string>
+    <string name="dashboard_tile_by_category">Uitgaven per categorie</string>
+    <string name="dashboard_tile_by_label">Uitgaven per label</string>
+    <string name="dashboard_tile_cashflow">Kasstroom</string>
+    <string name="dashboard_tile_currencies">Over valuta\'s</string>
+    <string name="dashboard_tile_goals">Doelen</string>
+    <string name="dashboard_tile_month_compare">Deze maand versus vorige</string>
+    <string name="dashboard_tile_net_trend">Trend netto kasstroom</string>
+    <string name="dashboard_tile_recent">Recente activiteit</string>
+    <string name="dashboard_tile_spending">Uitgaven deze maand</string>
+    <string name="dashboard_tile_splits">Gedeeld &amp; verschuldigd</string>
+    <string name="dashboard_tile_subscriptions">Abonnementen</string>
+    <string name="dashboard_tile_trends">Uitgaventrends</string>
+    <string name="dashboard_tile_upcoming">Aankomende betalingen</string>
+    <string name="dashboard_width">Breedte</string>
+
     <!-- data -->
     <string name="data_back_to_settings">Terug naar instellingen</string>
     <string name="data_csv_file">CSV-bestand</string>

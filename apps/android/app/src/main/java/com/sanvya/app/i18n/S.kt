@@ -373,6 +373,34 @@ object S {
             res.getString(R.string.categories_under, name)
     }
 
+    object Dashboard {
+        fun addWidget(res: Resources): String = res.getString(R.string.dashboard_add_widget)
+        fun addWidgetIntro(res: Resources): String = res.getString(R.string.dashboard_add_widget_intro)
+        fun allAdded(res: Resources): String = res.getString(R.string.dashboard_all_added)
+        fun customize(res: Resources): String = res.getString(R.string.dashboard_customize)
+        fun emptyBody(res: Resources): String = res.getString(R.string.dashboard_empty_body)
+        fun emptyTitle(res: Resources): String = res.getString(R.string.dashboard_empty_title)
+        fun moveDown(res: Resources): String = res.getString(R.string.dashboard_move_down)
+        fun moveUp(res: Resources): String = res.getString(R.string.dashboard_move_up)
+        fun premium(res: Resources): String = res.getString(R.string.dashboard_premium)
+        fun premiumNote(res: Resources): String = res.getString(R.string.dashboard_premium_note)
+        fun tileBudgets(res: Resources): String = res.getString(R.string.dashboard_tile_budgets)
+        fun tileByCategory(res: Resources): String = res.getString(R.string.dashboard_tile_by_category)
+        fun tileByLabel(res: Resources): String = res.getString(R.string.dashboard_tile_by_label)
+        fun tileCashflow(res: Resources): String = res.getString(R.string.dashboard_tile_cashflow)
+        fun tileCurrencies(res: Resources): String = res.getString(R.string.dashboard_tile_currencies)
+        fun tileGoals(res: Resources): String = res.getString(R.string.dashboard_tile_goals)
+        fun tileMonthCompare(res: Resources): String = res.getString(R.string.dashboard_tile_month_compare)
+        fun tileNetTrend(res: Resources): String = res.getString(R.string.dashboard_tile_net_trend)
+        fun tileRecent(res: Resources): String = res.getString(R.string.dashboard_tile_recent)
+        fun tileSpending(res: Resources): String = res.getString(R.string.dashboard_tile_spending)
+        fun tileSplits(res: Resources): String = res.getString(R.string.dashboard_tile_splits)
+        fun tileSubscriptions(res: Resources): String = res.getString(R.string.dashboard_tile_subscriptions)
+        fun tileTrends(res: Resources): String = res.getString(R.string.dashboard_tile_trends)
+        fun tileUpcoming(res: Resources): String = res.getString(R.string.dashboard_tile_upcoming)
+        fun width(res: Resources): String = res.getString(R.string.dashboard_width)
+    }
+
     object Data {
         fun backToSettings(res: Resources): String = res.getString(R.string.data_back_to_settings)
         fun csvFile(res: Resources): String = res.getString(R.string.data_csv_file)

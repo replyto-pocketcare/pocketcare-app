@@ -1,0 +1,29 @@
+{
+  "tile": {
+    "recent": "Recent activity",
+    "spending": "Spending this month",
+    "upcoming": "Upcoming payments",
+    "trends": "Expense trends",
+    "splits": "Friends & splits",
+    "budgets": "Budgets",
+    "goals": "Goals",
+    "subscriptions": "Subscriptions",
+    "cashflow": "Cashflow",
+    "netTrend": "Net cashflow trend",
+    "byCategory": "Spending by category",
+    "byLabel": "Spending by label",
+    "monthCompare": "This month vs last",
+    "currencies": "Across currencies"
+  },
+  "customize": "Customize",
+  "addWidget": "Add a widget",
+  "addWidgetIntro": "Pick a tile to add to your dashboard. Resize and reorder it right on the page.",
+  "allAdded": "Every widget is already on your dashboard.",
+  "premium": "Premium",
+  "premiumNote": "Premium tiles unlock with a Lite or Pro plan.",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
+  "width": "Width",
+  "emptyTitle": "Your dashboard is empty",
+  "emptyBody": "Add a widget to see your money at a glance."
+}

@@ -315,6 +315,33 @@
     <string name="categories_top_level">— top level —</string>
     <string name="categories_under">under %1$s</string>
 
+    <!-- dashboard -->
+    <string name="dashboard_add_widget">Add a widget</string>
+    <string name="dashboard_add_widget_intro">Pick a tile to add to your dashboard. Resize and reorder it right on the page.</string>
+    <string name="dashboard_all_added">Every widget is already on your dashboard.</string>
+    <string name="dashboard_customize">Customize</string>
+    <string name="dashboard_empty_body">Add a widget to see your money at a glance.</string>
+    <string name="dashboard_empty_title">Your dashboard is empty</string>
+    <string name="dashboard_move_down">Move down</string>
+    <string name="dashboard_move_up">Move up</string>
+    <string name="dashboard_premium">Premium</string>
+    <string name="dashboard_premium_note">Premium tiles unlock with a Lite or Pro plan.</string>
+    <string name="dashboard_tile_budgets">Budgets</string>
+    <string name="dashboard_tile_by_category">Spending by category</string>
+    <string name="dashboard_tile_by_label">Spending by label</string>
+    <string name="dashboard_tile_cashflow">Cashflow</string>
+    <string name="dashboard_tile_currencies">Across currencies</string>
+    <string name="dashboard_tile_goals">Goals</string>
+    <string name="dashboard_tile_month_compare">This month vs last</string>
+    <string name="dashboard_tile_net_trend">Net cashflow trend</string>
+    <string name="dashboard_tile_recent">Recent activity</string>
+    <string name="dashboard_tile_spending">Spending this month</string>
+    <string name="dashboard_tile_splits">Friends &amp; splits</string>
+    <string name="dashboard_tile_subscriptions">Subscriptions</string>
+    <string name="dashboard_tile_trends">Expense trends</string>
+    <string name="dashboard_tile_upcoming">Upcoming payments</string>
+    <string name="dashboard_width">Width</string>
+
     <!-- data -->
     <string name="data_back_to_settings">Back to settings</string>
     <string name="data_csv_file">CSV file</string>

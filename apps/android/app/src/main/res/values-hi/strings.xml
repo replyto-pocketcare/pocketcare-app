@@ -315,6 +315,33 @@
     <string name="categories_top_level">— शीर्ष स्तर —</string>
     <string name="categories_under">%1$s के अंतर्गत</string>
 
+    <!-- dashboard -->
+    <string name="dashboard_add_widget">विजेट जोड़ें</string>
+    <string name="dashboard_add_widget_intro">अपने डैशबोर्ड में जोड़ने के लिए एक टाइल चुनें। आकार और क्रम पेज पर ही बदलें।</string>
+    <string name="dashboard_all_added">हर विजेट पहले से आपके डैशबोर्ड पर है।</string>
+    <string name="dashboard_customize">अनुकूलित करें</string>
+    <string name="dashboard_empty_body">एक नज़र में अपना पैसा देखने के लिए विजेट जोड़ें।</string>
+    <string name="dashboard_empty_title">आपका डैशबोर्ड खाली है</string>
+    <string name="dashboard_move_down">नीचे ले जाएँ</string>
+    <string name="dashboard_move_up">ऊपर ले जाएँ</string>
+    <string name="dashboard_premium">प्रीमियम</string>
+    <string name="dashboard_premium_note">प्रीमियम टाइलें Lite या Pro प्लान के साथ खुलती हैं।</string>
+    <string name="dashboard_tile_budgets">बजट</string>
+    <string name="dashboard_tile_by_category">श्रेणी अनुसार खर्च</string>
+    <string name="dashboard_tile_by_label">लेबल अनुसार खर्च</string>
+    <string name="dashboard_tile_cashflow">नकदी प्रवाह</string>
+    <string name="dashboard_tile_currencies">सभी मुद्राओं में</string>
+    <string name="dashboard_tile_goals">लक्ष्य</string>
+    <string name="dashboard_tile_month_compare">इस महीने बनाम पिछला महीना</string>
+    <string name="dashboard_tile_net_trend">शुद्ध नकदी प्रवाह का रुझान</string>
+    <string name="dashboard_tile_recent">हाल की गतिविधि</string>
+    <string name="dashboard_tile_spending">इस महीने का खर्च</string>
+    <string name="dashboard_tile_splits">साझा और बकाया</string>
+    <string name="dashboard_tile_subscriptions">सदस्यताएँ</string>
+    <string name="dashboard_tile_trends">खर्च के रुझान</string>
+    <string name="dashboard_tile_upcoming">आगामी भुगतान</string>
+    <string name="dashboard_width">चौड़ाई</string>
+
     <!-- data -->
     <string name="data_back_to_settings">सेटिंग्स पर वापस</string>
     <string name="data_csv_file">CSV फ़ाइल</string>

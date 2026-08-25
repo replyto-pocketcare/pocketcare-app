@@ -413,6 +413,34 @@ public enum S {
         }
     }
 
+    public enum Dashboard {
+        public static var addWidget: String { String(localized: "dashboard:addWidget", table: "Localizable") }
+        public static var addWidgetIntro: String { String(localized: "dashboard:addWidgetIntro", table: "Localizable") }
+        public static var allAdded: String { String(localized: "dashboard:allAdded", table: "Localizable") }
+        public static var customize: String { String(localized: "dashboard:customize", table: "Localizable") }
+        public static var emptyBody: String { String(localized: "dashboard:emptyBody", table: "Localizable") }
+        public static var emptyTitle: String { String(localized: "dashboard:emptyTitle", table: "Localizable") }
+        public static var moveDown: String { String(localized: "dashboard:moveDown", table: "Localizable") }
+        public static var moveUp: String { String(localized: "dashboard:moveUp", table: "Localizable") }
+        public static var premium: String { String(localized: "dashboard:premium", table: "Localizable") }
+        public static var premiumNote: String { String(localized: "dashboard:premiumNote", table: "Localizable") }
+        public static var tileBudgets: String { String(localized: "dashboard:tile.budgets", table: "Localizable") }
+        public static var tileByCategory: String { String(localized: "dashboard:tile.byCategory", table: "Localizable") }
+        public static var tileByLabel: String { String(localized: "dashboard:tile.byLabel", table: "Localizable") }
+        public static var tileCashflow: String { String(localized: "dashboard:tile.cashflow", table: "Localizable") }
+        public static var tileCurrencies: String { String(localized: "dashboard:tile.currencies", table: "Localizable") }
+        public static var tileGoals: String { String(localized: "dashboard:tile.goals", table: "Localizable") }
+        public static var tileMonthCompare: String { String(localized: "dashboard:tile.monthCompare", table: "Localizable") }
+        public static var tileNetTrend: String { String(localized: "dashboard:tile.netTrend", table: "Localizable") }
+        public static var tileRecent: String { String(localized: "dashboard:tile.recent", table: "Localizable") }
+        public static var tileSpending: String { String(localized: "dashboard:tile.spending", table: "Localizable") }
+        public static var tileSplits: String { String(localized: "dashboard:tile.splits", table: "Localizable") }
+        public static var tileSubscriptions: String { String(localized: "dashboard:tile.subscriptions", table: "Localizable") }
+        public static var tileTrends: String { String(localized: "dashboard:tile.trends", table: "Localizable") }
+        public static var tileUpcoming: String { String(localized: "dashboard:tile.upcoming", table: "Localizable") }
+        public static var width: String { String(localized: "dashboard:width", table: "Localizable") }
+    }
+
     public enum Data {
         public static var backToSettings: String { String(localized: "data:backToSettings", table: "Localizable") }
         public static var csvFile: String { String(localized: "data:csvFile", table: "Localizable") }

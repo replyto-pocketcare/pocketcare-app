@@ -1,0 +1,29 @@
+{
+  "tile": {
+    "recent": "Recente activiteit",
+    "spending": "Uitgaven deze maand",
+    "upcoming": "Aankomende betalingen",
+    "trends": "Uitgaventrends",
+    "splits": "Gedeeld & verschuldigd",
+    "budgets": "Budgetten",
+    "goals": "Doelen",
+    "subscriptions": "Abonnementen",
+    "cashflow": "Kasstroom",
+    "netTrend": "Trend netto kasstroom",
+    "byCategory": "Uitgaven per categorie",
+    "byLabel": "Uitgaven per label",
+    "monthCompare": "Deze maand versus vorige",
+    "currencies": "Over valuta's"
+  },
+  "customize": "Aanpassen",
+  "addWidget": "Widget toevoegen",
+  "addWidgetIntro": "Kies een tegel om aan je dashboard toe te voegen. Grootte en volgorde pas je direct op de pagina aan.",
+  "allAdded": "Elke widget staat al op je dashboard.",
+  "premium": "Premium",
+  "premiumNote": "Premium-tegels ontgrendel je met een Lite- of Pro-abonnement.",
+  "moveUp": "Omhoog",
+  "moveDown": "Omlaag",
+  "width": "Breedte",
+  "emptyTitle": "Je dashboard is leeg",
+  "emptyBody": "Voeg een widget toe om je geld in één oogopslag te zien."
+}
