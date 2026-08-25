@@ -35,7 +35,6 @@ Keep this current. Adding a row is part of the change that creates the gap, not 
 | Statements | Print | `window.print()` has no phone equivalent. Share/PDF export is a feature to design, not a button to add |
 | Statements | "Analyze" link | Targets `/statements/analyze`, which does not exist natively (see `StatementImportView` above) |
 | Statements | "Go Premium" button | Web links to `/settings`; there is **no native upgrade flow yet**, so the button would go nowhere |
-| Login | Password reset / "forgot password" | Web has a 3-step recovery flow (`resetPasswordForEmail` → OTP → set password). Not ported; the entry point is absent rather than dead |
 | Android forms, crossing 600dp **while open** | The open form closes rather than transforming into a dialog | `formDestination` captures the width class when the graph is built, so crossing the threshold rebuilds the graph. Rotating a tablet mid-form loses unsaved input. The alternative — registering both shapes and swapping — changes destination identity, which loses the same input less predictably. Recorded rather than hidden |
 
 ## Platform-honest divergences (present, but not web's implementation)

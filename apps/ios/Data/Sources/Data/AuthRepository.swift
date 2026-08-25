@@ -16,6 +16,15 @@ public protocol AuthRepository: Sendable {
     func signUp(email: String, password: String, username: String) async throws
     func signInWithPassword(email: String, password: String) async throws
 
+    /// Password reset, step 1 — send a 6-digit code. See Auth.swift.
+    func sendPasswordReset(email: String) async throws
+
+    /// Step 2 — verify it. Uses the `.recovery` OTP type, not the generic one.
+    func verifyPasswordResetCode(email: String, token: String) async throws
+
+    /// Step 3 — set the new password on the recovery session.
+    func setPassword(_ password: String) async throws
+
     /// Link-or-sign-in with Google. See Auth.swift's `authContinueWithGoogle`.
     func continueWithGoogle() async throws
 
@@ -120,6 +129,18 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
         try await authSignInWithApple(client: client, idToken: idToken, nonce: nonce)
     }
     
+    public func sendPasswordReset(email: String) async throws {
+        try await authSendPasswordReset(client: client, email: email)
+    }
+
+    public func verifyPasswordResetCode(email: String, token: String) async throws {
+        try await authVerifyPasswordResetCode(client: client, email: email, token: token)
+    }
+
+    public func setPassword(_ password: String) async throws {
+        try await authSetPassword(client: client, password: password)
+    }
+
     public func signOut() async throws {
         try await authSignOut(client: client)
     }

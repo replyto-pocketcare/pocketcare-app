@@ -66,6 +66,7 @@ fun LoginScreen(
     val busy by viewModel.busy.collectAsState()
     val error by viewModel.error.collectAsState()
     val otpSent by viewModel.otpSent.collectAsState()
+    val resetStage by viewModel.resetStage.collectAsState()
 
     // Survives rotation and process death: retyping an email after the keyboard
     // rotated the screen is a small thing that feels like a broken app.
@@ -73,11 +74,31 @@ fun LoginScreen(
     var password by rememberSaveable { mutableStateOf("") }
     var code by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(Mode.Password) }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
 
     Column(
         modifier = Modifier.fillMaxSize().background(colors.bg).padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
+        if (resetStage != AuthViewModel.ResetStage.NONE) {
+            PasswordResetFlow(
+                stage = resetStage,
+                viewModel = viewModel,
+                email = email,
+                onEmailChange = { email = it },
+                code = code,
+                onCodeChange = { code = it },
+                password = password,
+                onPasswordChange = { password = it },
+                confirmPassword = confirmPassword,
+                onConfirmPasswordChange = { confirmPassword = it },
+                busy = busy,
+                error = error,
+                onSignedIn = onSignedIn,
+            )
+            return@Column
+        }
+
         H1(S.Translation.appName(sRes()), compact = false)
         Spacer(Modifier.padding(top = 8.dp))
         H2(if (otpSent) S.Login.verifyTitle(sRes()) else S.Login.signinTitle(sRes()))
@@ -169,6 +190,16 @@ fun LoginScreen(
                 )
             }
 
+            if (mode == Mode.Password) {
+                SanvyaButton(
+                    onClick = { viewModel.startPasswordReset() },
+                    ghost = true,
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                ) {
+                    SanvyaText(S.Login.forgotPassword(sRes()), style = SanvyaType.button)
+                }
+            }
+
             SanvyaButton(
                 onClick = {
                     mode = if (mode == Mode.Password) Mode.Otp else Mode.Password
@@ -231,3 +262,170 @@ fun LoginScreen(
         }
     }
 }
+
+
+/**
+ * Password reset — send a code, verify it, choose a new password.
+ *
+ * Ported from login/page.tsx's `startReset` / `verifyAndFinish` (the
+ * `otpType === "recovery"` branch) / `setNewPassword`. Absent on both native
+ * platforms until now: a web-registered user who forgot their password had no
+ * way through on a phone.
+ *
+ * It takes over the whole screen rather than sitting under the sign-in form.
+ * Three steps stacked below a sign-in form is the "scroll inside a dialog"
+ * problem in a different costume.
+ */
+@Composable
+private fun PasswordResetFlow(
+    stage: AuthViewModel.ResetStage,
+    viewModel: AuthViewModel,
+    email: String,
+    onEmailChange: (String) -> Unit,
+    code: String,
+    onCodeChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
+    busy: Boolean,
+    error: String?,
+    onSignedIn: () -> Unit,
+) {
+    val colors = LocalSanvyaColors.current
+
+    H2(
+        if (stage == AuthViewModel.ResetStage.NEW_PASSWORD) S.Login.newPwTitle(sRes())
+        else S.Login.resetTitle(sRes()),
+    )
+    SanvyaText(
+        when (stage) {
+            AuthViewModel.ResetStage.EMAIL -> S.Login.resetSub(sRes())
+            // Deliberately the "if an account exists" wording, not a
+            // confirmation that one does -- see Auth.kt's sendPasswordReset.
+            AuthViewModel.ResetStage.CODE -> S.Login.sentReset(sRes(), email)
+            else -> S.Login.setNewPwDefault(sRes())
+        },
+        style = SanvyaType.statLabel,
+        color = colors.text2,
+        modifier = Modifier.padding(top = 6.dp, bottom = 18.dp),
+    )
+
+    when (stage) {
+        AuthViewModel.ResetStage.EMAIL -> {
+            SanvyaInput(
+                value = email,
+                onValueChange = onEmailChange,
+                placeholder = S.Login.emailLabel(sRes()),
+                enabled = !busy,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.padding(top = 10.dp))
+            SanvyaButton(
+                onClick = { viewModel.sendPasswordReset(email) },
+                enabled = !busy && email.isNotBlank(),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                SanvyaText(
+                    if (busy) S.Login.saving(sRes()) else S.Login.sendResetCode(sRes()),
+                    style = SanvyaType.button,
+                )
+            }
+        }
+
+        AuthViewModel.ResetStage.CODE -> {
+            SanvyaInput(
+                value = code,
+                onValueChange = onCodeChange,
+                placeholder = S.Login.codePlaceholder(sRes()),
+                enabled = !busy,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.padding(top = 10.dp))
+            SanvyaButton(
+                onClick = { viewModel.verifyPasswordResetCode(email, code) },
+                enabled = !busy && code.isNotBlank(),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                SanvyaText(
+                    if (busy) S.Login.verifying(sRes()) else S.Login.verifyCode(sRes()),
+                    style = SanvyaType.button,
+                )
+            }
+        }
+
+        else -> {
+            SanvyaInput(
+                value = password,
+                onValueChange = onPasswordChange,
+                placeholder = S.Login.newPw(sRes()),
+                enabled = !busy,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.padding(top = 10.dp))
+            SanvyaInput(
+                value = confirmPassword,
+                onValueChange = onConfirmPasswordChange,
+                placeholder = S.Login.confirmNewPw(sRes()),
+                enabled = !busy,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.padding(top = 10.dp))
+            SanvyaButton(
+                onClick = { viewModel.setPassword(password, onSignedIn) },
+                // Both rules are web's, checked here so the user is told before
+                // a round trip rather than after one.
+                enabled = !busy && password.length >= MIN_PASSWORD_LENGTH && password == confirmPassword,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                SanvyaText(
+                    if (busy) S.Login.saving(sRes()) else S.Login.updatePw(sRes()),
+                    style = SanvyaType.button,
+                )
+            }
+            // Web validates on submit and shows one message; showing it live
+            // under the field is the same information, sooner.
+            if (password.isNotEmpty() && password.length < MIN_PASSWORD_LENGTH) {
+                SanvyaText(
+                    S.Login.errPwLen(sRes()),
+                    style = SanvyaType.statLabel,
+                    color = colors.text2,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            } else if (confirmPassword.isNotEmpty() && password != confirmPassword) {
+                SanvyaText(
+                    S.Login.errPwMatch(sRes()),
+                    style = SanvyaType.statLabel,
+                    color = colors.text2,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        }
+    }
+
+    error?.let {
+        SanvyaText(
+            it,
+            style = SanvyaType.statLabel,
+            color = colors.negative,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+    }
+
+    SanvyaButton(
+        onClick = { viewModel.cancelPasswordReset() },
+        ghost = true,
+        modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+    ) {
+        SanvyaText(S.Login.backToSignin(sRes()), style = SanvyaType.button)
+    }
+}
+
+/** Web's `password.length < 8` check, named rather than inline. */
+private const val MIN_PASSWORD_LENGTH = 8

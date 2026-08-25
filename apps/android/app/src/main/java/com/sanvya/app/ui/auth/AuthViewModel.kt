@@ -41,11 +41,51 @@ class AuthViewModel : ViewModel(), KoinComponent {
     private val _busy = MutableStateFlow(false)
     val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
+    /**
+     * Where the password-reset flow has got to, if it has started.
+     *
+     * A separate axis from [otpSent], not a fifth value of it: sign-in-by-OTP
+     * and reset-by-OTP both show a 6-digit code field, but they verify with
+     * DIFFERENT OTP types and end somewhere different. Collapsing them into one
+     * flag is how the wrong type gets used.
+     */
+    private val _resetStage = MutableStateFlow(ResetStage.NONE)
+    val resetStage: StateFlow<ResetStage> = _resetStage.asStateFlow()
+
     /** True once a code has been sent, so the screen shows the code step. */
     private val _otpSent = MutableStateFlow(false)
     val otpSent: StateFlow<Boolean> = _otpSent.asStateFlow()
 
     fun clearError() { _error.value = null }
+
+    /** Enter the reset flow from the sign-in screen. */
+    fun startPasswordReset() {
+        _resetStage.value = ResetStage.EMAIL
+        _error.value = null
+    }
+
+    /** Leave it — back to ordinary sign-in. */
+    fun cancelPasswordReset() {
+        _resetStage.value = ResetStage.NONE
+        _error.value = null
+    }
+
+    /** Step 1 — send the code. Advances even though the call cannot tell us
+     *  whether the account exists; see Auth.kt on why it must not. */
+    fun sendPasswordReset(email: String) =
+        run({ _resetStage.value = ResetStage.CODE }) { authRepository.sendPasswordReset(email) }
+
+    /** Step 2 — verify. Success leaves a short-lived recovery session. */
+    fun verifyPasswordResetCode(email: String, token: String) =
+        run({ _resetStage.value = ResetStage.NEW_PASSWORD }) {
+            authRepository.verifyPasswordResetCode(email, token)
+        }
+
+    /** Step 3 — set it. The auth gate takes over once the session is live. */
+    fun setPassword(password: String, onDone: () -> Unit = {}) =
+        run({ _resetStage.value = ResetStage.NONE; onDone() }) {
+            authRepository.setPassword(password)
+        }
 
     fun backToEmail() {
         _otpSent.value = false
@@ -103,4 +143,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
      * looking at this screen.
      */
     fun continueWithGoogle() = run { authRepository.continueWithGoogle() }
+
+    /** The three steps of a password reset, plus "not resetting". */
+    enum class ResetStage { NONE, EMAIL, CODE, NEW_PASSWORD }
 }

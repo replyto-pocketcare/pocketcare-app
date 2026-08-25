@@ -58,6 +58,15 @@ interface AuthRepository {
     suspend fun verifyOtp(email: String, token: String)
     suspend fun signUp(email: String, password: String, username: String)
     suspend fun signInWithPassword(email: String, password: String)
+
+    /** Password reset, step 1 — send a 6-digit code. See Auth.kt. */
+    suspend fun sendPasswordReset(email: String)
+
+    /** Step 2 — verify it. Uses the RECOVERY OTP type, not the generic one. */
+    suspend fun verifyPasswordResetCode(email: String, token: String)
+
+    /** Step 3 — set the new password on the recovery session. */
+    suspend fun setPassword(password: String)
     suspend fun signOut()
 }
 
@@ -145,6 +154,18 @@ class AuthRepositoryImpl(
             this.email = email
             this.password = password
         }
+    }
+
+    override suspend fun sendPasswordReset(email: String) {
+        com.sanvya.app.data.auth.sendPasswordReset(client, email)
+    }
+
+    override suspend fun verifyPasswordResetCode(email: String, token: String) {
+        com.sanvya.app.data.auth.verifyPasswordResetCode(client, email, token)
+    }
+
+    override suspend fun setPassword(password: String) {
+        com.sanvya.app.data.auth.setPassword(client, password)
     }
 
     override suspend fun signOut() {

@@ -40,6 +40,23 @@ struct LoginView: View {
             Spacer(minLength: 0)
 
             VStack(alignment: .leading, spacing: 20) {
+                if viewModel.resetStage != .none {
+                    passwordResetFlow
+                } else {
+                    signInFlow
+                }
+            }
+            .padding(24)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.bg.ignoresSafeArea())
+    }
+
+    @ViewBuilder
+    private var signInFlow: some View {
+        Group {
                 SanvyaH1(S.Translation.appName, compact: false)
                     .foregroundStyle(Color.accent)
 
@@ -87,13 +104,117 @@ struct LoginView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .disabled(viewModel.isLoading)
-            }
-            .padding(24)
-
-            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.bg.ignoresSafeArea())
+    }
+
+    /// Password reset — send a code, verify it, choose a new password.
+    ///
+    /// Ported from login/page.tsx's `startReset` / `verifyAndFinish`'s
+    /// `recovery` branch / `setNewPassword`. Absent on both native platforms
+    /// until now: a web-registered user who forgot their password had no way
+    /// through on a phone.
+    ///
+    /// It takes over the whole screen rather than sitting under the sign-in
+    /// form — three steps stacked below a form is the "scroll inside a dialog"
+    /// problem in a different costume.
+    @ViewBuilder
+    private var passwordResetFlow: some View {
+        SanvyaH2(viewModel.resetStage == .newPassword ? S.Login.newPwTitle : S.Login.resetTitle)
+
+        Text(resetSubtitle)
+            .sanvyaStyle(SanvyaType.statLabel)
+            .foregroundStyle(Color.text2)
+            .fixedSize(horizontal: false, vertical: true)
+
+        switch viewModel.resetStage {
+        case .email:
+            SanvyaInput(text: $viewModel.email, placeholder: S.Login.emailLabel)
+                .textContentType(.emailAddress)
+                .keyboardType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            SanvyaButton {
+                Task { await viewModel.sendPasswordReset() }
+            } label: {
+                Text(viewModel.isLoading ? S.Login.saving : S.Login.sendResetCode)
+            }
+            .frame(maxWidth: .infinity)
+            .disabled(viewModel.isLoading || viewModel.email.isEmpty)
+
+        case .code:
+            SanvyaInput(text: $viewModel.otp, placeholder: S.Login.codePlaceholder)
+                .textContentType(.oneTimeCode)
+                .keyboardType(.numberPad)
+            SanvyaButton {
+                Task { await viewModel.verifyPasswordResetCode() }
+            } label: {
+                Text(viewModel.isLoading ? S.Login.verifying : S.Login.verifyCode)
+            }
+            .frame(maxWidth: .infinity)
+            .disabled(viewModel.isLoading || viewModel.otp.isEmpty)
+
+        default:
+            SanvyaInput(text: $viewModel.password, placeholder: S.Login.newPw, isSecure: true)
+                .textContentType(.newPassword)
+            SanvyaInput(text: $viewModel.confirmPassword, placeholder: S.Login.confirmNewPw, isSecure: true)
+                .textContentType(.newPassword)
+            SanvyaButton {
+                Task { await viewModel.setNewPassword() }
+            } label: {
+                Text(viewModel.isLoading ? S.Login.saving : S.Login.updatePw)
+            }
+            .frame(maxWidth: .infinity)
+            // Both rules are web's, checked here so the user is told before a
+            // round trip rather than after one.
+            .disabled(
+                viewModel.isLoading
+                    || viewModel.password.count < AuthViewModel.minPasswordLength
+                    || viewModel.password != viewModel.confirmPassword
+            )
+            if let hint = passwordHint {
+                Text(hint)
+                    .sanvyaStyle(SanvyaType.statLabel)
+                    .foregroundStyle(Color.text2)
+            }
+        }
+
+        if let error = viewModel.error {
+            Text(error)
+                .sanvyaStyle(SanvyaType.statLabel)
+                .foregroundStyle(Color.negative)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+
+        SanvyaButton(ghost: true) {
+            viewModel.cancelPasswordReset()
+        } label: {
+            Text(S.Login.backToSignin)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var resetSubtitle: String {
+        switch viewModel.resetStage {
+        case .email: S.Login.resetSub
+        // Deliberately the "if an account exists" wording, not a confirmation
+        // that one does — see Auth.swift's authSendPasswordReset.
+        case .code: S.Login.sentReset(email: viewModel.email)
+        default: S.Login.setNewPwDefault
+        }
+    }
+
+    /// Web validates on submit and shows one message; showing it live under the
+    /// field is the same information, sooner.
+    private var passwordHint: String? {
+        if !viewModel.password.isEmpty,
+           viewModel.password.count < AuthViewModel.minPasswordLength {
+            return S.Login.errPwLen
+        }
+        if !viewModel.confirmPassword.isEmpty,
+           viewModel.password != viewModel.confirmPassword {
+            return S.Login.errPwMatch
+        }
+        return nil
     }
 
     private var emailStep: some View {
@@ -134,6 +255,15 @@ struct LoginView: View {
                 viewModel.isLoading || viewModel.email.isEmpty ||
                 (viewModel.mode == .password && viewModel.password.isEmpty)
             )
+
+            if viewModel.mode == .password {
+                SanvyaButton(ghost: true) {
+                    viewModel.startPasswordReset()
+                } label: {
+                    Text(S.Login.forgotPassword)
+                }
+                .frame(maxWidth: .infinity)
+            }
 
             SanvyaButton(ghost: true) {
                 viewModel.mode = viewModel.mode == .password ? .otp : .password

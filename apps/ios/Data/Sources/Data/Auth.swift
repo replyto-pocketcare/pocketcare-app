@@ -86,6 +86,43 @@ public func authSignInWithGoogle(client: SupabaseClient, idToken: String, nonce:
     )
 }
 
+// MARK: - Password reset
+//
+// Three steps, matching login/page.tsx: send a code, verify it, set the new
+// password. Nothing about it is guessable from the sign-in flow, because the
+// middle step uses a DIFFERENT OTP type.
+
+/// Send a 6-digit reset code to `email`.
+///
+/// Deliberately does not report whether an account exists. Supabase succeeds
+/// either way and web's copy says "If an account exists for …, we sent it a
+/// code" for the same reason: an endpoint that answers "no such user" is an
+/// account-enumeration oracle.
+public func authSendPasswordReset(client: SupabaseClient, email: String) async throws {
+    try await client.auth.resetPasswordForEmail(email)
+}
+
+/// Verify a reset code. **`.recovery`, not `.email`.**
+///
+/// The generic email type will not verify a recovery code — same six digits,
+/// same address, different grant. Getting this wrong fails as "invalid token",
+/// which reads like the user mistyped it.
+///
+/// On success the client holds a short-lived recovery session, which is what
+/// makes the `update(user:)` in `authSetPassword` permissible.
+public func authVerifyPasswordResetCode(
+    client: SupabaseClient,
+    email: String,
+    token: String
+) async throws {
+    try await client.auth.verifyOTP(email: email, token: token, type: .recovery)
+}
+
+/// Set the new password on the recovery session established above.
+public func authSetPassword(client: SupabaseClient, password: String) async throws {
+    try await client.auth.update(user: UserAttributes(password: password))
+}
+
 // MARK: - signUp / signInWithPassword
 
 /// Register a fresh account with email + password.

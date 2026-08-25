@@ -173,6 +173,49 @@ suspend fun currentAuthState(client: SupabaseClient, isOnline: Boolean): AuthSta
 }
 
 // ---------------------------------------------------------------------------
+// Password reset
+// ---------------------------------------------------------------------------
+//
+// Three steps, matching login/page.tsx: send a code, verify it, set the new
+// password. Nothing about this is guessable from the sign-in flow, because the
+// middle step uses a DIFFERENT OTP type.
+
+/**
+ * Send a 6-digit reset code to [email].
+ *
+ * Deliberately does not report whether an account exists. Supabase succeeds
+ * either way and web's copy says "If an account exists for …, we sent it a
+ * code" for the same reason: an endpoint that answers "no such user" is an
+ * account-enumeration oracle.
+ */
+suspend fun sendPasswordReset(client: SupabaseClient, email: String) {
+    client.auth.resetPasswordForEmail(email)
+}
+
+/**
+ * Verify a reset code. **`OtpType.Email.RECOVERY`, not `EMAIL`.**
+ *
+ * The generic email type will not verify a recovery code — same six digits,
+ * same address, different grant. Getting this wrong fails as "invalid token",
+ * which reads like the user mistyped it.
+ *
+ * On success the client holds a short-lived recovery session, which is what
+ * makes the `updateUser` in [setPassword] permissible.
+ */
+suspend fun verifyPasswordResetCode(client: SupabaseClient, email: String, token: String) {
+    client.auth.verifyEmailOtp(
+        type = io.github.jan.supabase.auth.OtpType.Email.RECOVERY,
+        email = email,
+        token = token,
+    )
+}
+
+/** Set the new password on the recovery session established above. */
+suspend fun setPassword(client: SupabaseClient, password: String) {
+    client.auth.updateUser { this.password = password }
+}
+
+// ---------------------------------------------------------------------------
 // Google — and why it is a browser flow rather than Credential Manager
 // ---------------------------------------------------------------------------
 //

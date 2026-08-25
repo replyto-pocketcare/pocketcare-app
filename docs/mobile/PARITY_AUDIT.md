@@ -381,6 +381,7 @@ guest. Plus `/auth/callback` for the OAuth return.
 | **Email + password sign-in** | ✅ | ✅ `signInWithPassword` + `signUp` | ✅ added 2026-08-24 — was absent on iOS only |
 | **Username on sign-up** | ✅ `data: { username }` | ✅ fixed 2026-08-24 — was accepted and discarded | ✅ added 2026-08-24 |
 | **A login screen** | ✅ | ✅ `ui/auth/LoginScreen.kt` (2026-08-24) | ✅ `LoginView.swift` — **was a facade until 2026-08-24**, see below |
+| **Password reset** | ✅ 3-step recovery | ✅ added 2026-08-24 | ✅ added 2026-08-24 |
 
 Both gaps below are now closed — the text is kept because how they were found is the point.
 
