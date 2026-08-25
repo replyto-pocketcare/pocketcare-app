@@ -29,6 +29,10 @@ struct AppShell<Content: View>: View {
     @State private var moreOpen = false
     @State private var customizeOpen = false
     @State private var addOpen = false
+    /// A guest tapping "Create an account". `LoginView` is normally the auth
+    /// gate ABOVE this shell (`SanvyaApp`), so a guest -- who is signed in --
+    /// could never reach it. Web links both guest chips to `/login`.
+    @State private var signInOpen = false
     @State private var pageBack: (() -> Void)?
 
     @Environment(\.sanvyaWindowClass) private var windowClass
@@ -62,6 +66,13 @@ struct AppShell<Content: View>: View {
                 compactBody
             }
         }
+        // A full-screen cover, not a sheet: this is the whole login screen, and
+        // a card with the app showing behind it reads as optional.
+        .fullScreenCover(isPresented: $signInOpen) { LoginView() }
+        // The only exit. Four of LoginView's methods finish in-screen and one
+        // (Google) returns through the browser, so the cover cannot close
+        // itself on a callback -- it closes when the guest stops being one.
+        .onChange(of: viewModel.isGuest) { _, guest in if !guest { signInOpen = false } }
         .environment(\.addActionSetter) { pageAction = $0 }
         .environment(\.backActionSetter) { pageBack = $0 }
         // Both overlays belong to the bottom bar. At `.expanded` the bar is gone
@@ -76,6 +87,7 @@ struct AppShell<Content: View>: View {
                 guestDaysLeft: viewModel.guestDaysLeft,
                 appVersion: appVersion,
                 onSelect: { tab in moreOpen = false; select(tab) },
+                onSignIn: { moreOpen = false; signInOpen = true },
                 onCustomize: { moreOpen = false; customizeOpen = true },
                 onFeedback: { moreOpen = false },
                 onClose: { moreOpen = false }
@@ -136,7 +148,8 @@ struct AppShell<Content: View>: View {
                     guestDaysLeft: viewModel.guestDaysLeft,
                     appVersion: appVersion,
                     onSelect: select,
-                    onFeedback: {}
+                    onFeedback: {},
+                    onSignIn: { signInOpen = true }
                 )
 
                 VStack(spacing: 0) {

@@ -1,6 +1,8 @@
 package com.sanvya.app.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,9 +18,12 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.ui.shell.LocalWindowClass
 import com.sanvya.app.ui.shell.SanvyaWindowClass
 import com.sanvya.app.ui.ComingSoonScreen
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.shell.AddAction
 import com.sanvya.app.ui.shell.AppShell
 import com.sanvya.app.ui.SettingsScreen
@@ -106,6 +111,24 @@ private fun NavGraphBuilder.formDestination(
     }
 }
 
+/**
+ * A destination that exists only so the nav entry pointing at it is not a
+ * crash.
+ *
+ * `ComingSoonScreen`'s own doc comment has said since the drawer was built that
+ * it exists "so a tap on an unbuilt drawer item behaves identically on both
+ * platforms instead of doing nothing or **crashing**". Nothing was ever routed
+ * to it. `search`, `reflect`, `assistant`, `help` and `notifications` are in
+ * `NAV_GROUPS`, in the side nav, and two of them in the bottom-bar catalog --
+ * and none of them was a destination, so every tap called
+ * `navController.navigate("search")` on a route the graph does not contain and
+ * threw `IllegalArgumentException`. iOS shows a `PlaceholderView` for the same
+ * five; this is the equivalent.
+ */
+private fun NavGraphBuilder.comingSoon(route: String, label: (android.content.res.Resources) -> String) {
+    composable(route) { ComingSoonScreen(title = label(sRes())) }
+}
+
 @Composable
 fun SanvyaNavHost() {
     val navController = rememberNavController()
@@ -174,6 +197,32 @@ fun SanvyaNavHost() {
                 title = java.net.URLDecoder.decode(encoded, "UTF-8"),
             )
         }
+        // Web offers all five in NAV_GROUPS; neither platform has built any of
+        // them. Placeholders, not crashes -- see comingSoon() above.
+        comingSoon("search", S.Translation::navSearch)
+        comingSoon("reflect", S.Translation::navReflect)
+        comingSoon("assistant", S.Translation::navAssistant)
+        comingSoon("help", S.Translation::navHelp)
+        comingSoon("notifications", S.Translation::navNotifications)
+        // The guest banner in the More sheet and the side nav both link here,
+        // matching web's `<Link href="/login">`. LoginScreen is normally the
+        // auth gate ABOVE this graph (MainActivity), so a guest -- who is
+        // signed in -- could never reach it: the tap navigated to a route that
+        // did not exist. Signing in from here upgrades the guest in place and
+        // pops back to whatever they were looking at.
+        composable("login") {
+            // Two exits, because the four in-screen methods and Google leave by
+            // different doors. OTP / password / set-password / guest call
+            // `onSignedIn` directly; Google returns through the browser and
+            // only flips the session, so without the second one a successful
+            // Google upgrade would leave the user staring at the login form
+            // they had just completed.
+            val shellViewModel: com.sanvya.app.ui.shell.ShellViewModel = viewModel()
+            val stillGuest by shellViewModel.isGuest.collectAsState()
+            LaunchedEffect(stillGuest) { if (!stillGuest) navController.popBackStack() }
+            com.sanvya.app.ui.auth.LoginScreen(onSignedIn = { navController.popBackStack() })
+        }
+
         // `recurring` was a nav-catalog id with no screen behind it, so tapping
         // it landed on coming_soon/{title}. It has a real screen now.
         composable("recurring") {

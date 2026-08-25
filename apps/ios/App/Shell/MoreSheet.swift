@@ -72,6 +72,10 @@ struct MoreSheet: View {
     let guestDaysLeft: Int?
     let appVersion: String
     let onSelect: (NavTab) -> Void
+    /// Web's `<Link href="/login">` on the guest block. This block was not
+    /// tappable at all, so the one affordance a guest has for keeping their
+    /// data did nothing.
+    let onSignIn: () -> Void
     let onCustomize: () -> Void
     let onFeedback: () -> Void
     let onClose: () -> Void
@@ -121,23 +125,26 @@ struct MoreSheet: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 if isGuest {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(guestDaysLeft.map { "Guest · \($0) days until data is deleted" } ?? S.Settings.guestBold)
-                            .sanvyaStyle(SanvyaType.statLabel)
-                            .foregroundStyle(Color.text)
-                        Text(S.Onboarding.createAccount)
-                            .sanvyaStyle(SanvyaType.statLabel)
-                            .foregroundStyle(Color.accent)
+                    Button(action: onSignIn) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(guestDaysLeft.map { "Guest · \($0) days until data is deleted" } ?? S.Settings.guestBold)
+                                .sanvyaStyle(SanvyaType.statLabel)
+                                .foregroundStyle(Color.text)
+                            Text(S.Onboarding.createAccount)
+                                .sanvyaStyle(SanvyaType.statLabel)
+                                .foregroundStyle(Color.accent)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.accentGhost)
+                        .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.row, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: SanvyaRadius.row, style: .continuous)
+                                .strokeBorder(Color.accentSoft, lineWidth: 1)
+                        )
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.accentGhost)
-                    .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.row, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: SanvyaRadius.row, style: .continuous)
-                            .strokeBorder(Color.accentSoft, lineWidth: 1)
-                    )
+                    .buttonStyle(SanvyaPressStyle())
                 }
                 SanvyaButton(ghost: true, action: onFeedback) {
                     SanvyaIconView(SanvyaIcons.chatBubble, size: 16, tint: .text)

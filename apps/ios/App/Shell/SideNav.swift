@@ -23,6 +23,9 @@ struct SideNav: View {
     let appVersion: String
     let onSelect: (NavTab) -> Void
     let onFeedback: () -> Void
+    /// Web's `<Link href="/login">` on this same chip. It used to open
+    /// Settings, which is a different screen with a different job.
+    let onSignIn: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: SanvyaMetrics.Expanded.sidebarGap) {
@@ -148,7 +151,7 @@ struct SideNav: View {
                 .padding(.bottom, SanvyaMetrics.Expanded.footPaddingTop)
 
             if isGuest {
-                Button { onSelect(.settings) } label: {
+                Button { onSignIn() } label: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(guestDaysLeft.map { "Guest · \($0)d left" } ?? S.Settings.guestBold)
                             .sanvyaStyle(SanvyaType.sideNavGuest)
