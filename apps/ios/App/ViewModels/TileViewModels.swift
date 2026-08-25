@@ -352,7 +352,10 @@ final class GoalsTileViewModel {
 
     private func watchGoals(_ userId: String) async {
         do {
-            for try await rows in try goalsRepository.watchGoals(userId: userId) {
+            // `await try`, not `try`: GoalsRepository is an `actor` on iOS
+            // (LedgerRepository is a class), so reaching it hops actors.
+            // GoalsViewModel already calls it this way.
+            for try await rows in try await goalsRepository.watchGoals(userId: userId) {
                 goals = rows
                 rebuild()
             }
@@ -361,7 +364,7 @@ final class GoalsTileViewModel {
 
     private func watchAllocations(_ userId: String) async {
         do {
-            for try await rows in try goalsRepository.watchAllocations(userId: userId) {
+            for try await rows in try await goalsRepository.watchAllocations(userId: userId) {
                 allocations = rows
                 rebuild()
             }
