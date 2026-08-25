@@ -146,54 +146,74 @@ non-existent on the strength of the nine.
 
 ## 4. Route → platform map
 
-Legend: ✅ built & spec-checked · ⚠️ built, unverified or spec drifted · 🔶 partial · ❌ missing · 🚫 n/a
+**Re-verified 2026-08-25** by enumerating every `apps/web/app/**/page.tsx`, every file under
+`apps/android/.../ui/` and `apps/ios/App/`, and both nav graphs. Line counts are `wc -l` on that
+date. What this pass verified: *does a real screen exist and is it reachable*. What it did **not**
+re-verify: field-level parity inside a screen — those notes are carried forward from the pass that
+wrote them, and each is dated in its own section below.
+
+Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not built (placeholder) ·
+🚫 n/a on native
 
 | Web route | Web source (lines) | Android | iOS | Status |
 |---|---|---|---|---|
-| `/` dashboard | `app/page.tsx` (634) + `src/dashboard/tiles.tsx` (1022) + `src/dashboard.ts` + `Suggestions.tsx` | `ui/dashboard/DashboardScreen.kt` (410) | `DashboardView.swift` (444) | 🔶 hero + accounts strip + FAB only. **12-tile catalog, drag-reorder/resize, edit mode absent on both** |
-| `/accounts` | `app/accounts/page.tsx` (126) | `ui/accounts/AccountsScreen.kt` (156) | `AccountsView.swift` (133) | ⚠️ |
-| `/accounts/new` | (165) | `CreateAccountScreen.kt` (183) | `CreateAccountView.swift` (128) | ⚠️ credit-card/demat branches + `MultiCurrencyCard` deferred |
-| `/accounts/[id]/edit` | (189) | `EditAccountScreen.kt` (210) | `EditAccountView.swift` (271) | ⚠️ |
-| `/transactions` | (92) + `src/ui/TransactionTile.tsx` (273) | `TransactionsScreen.kt` (156) | `TransactionsView.swift` (137) | ⚠️ |
-| `/transactions/new` | (674) | `CreateTransactionScreen.kt` (257) | `CreateTransactionView.swift` (262) | 🔶 splits-create, templates, auto-categorize deferred |
-| `/transactions/[id]/edit` | (449) | `EditTransactionScreen.kt` (218) | `EditTransactionView.swift` (315) | 🔶 edit-history audit modal missing |
-| `/cards` | (352) + `src/cards/*` | `creditcards/CreditCardsScreen.kt` (307) | `CreditCardsView.swift` (297) | ⚠️ `docs/features/cards.md` is stale (describes a retired 3D wallet) |
-| `/friends` (splits hub) | (493) + `src/splits/hooks.ts` (398) | `splits/SplitsScreen.kt` (227) | `SplitsView.swift` (167) | 🔶 FriendInsights/Patterns panel not rendered; tiles redesign of 2026-08-12 not ported |
-| `/groups` | (19) redirect → `/friends` | 🚫 | 🚫 | 🚫 |
-| `/groups/[id]` | (364) + `src/splits/write.ts` (304) | `splits/GroupDetailScreen.kt` (281) | `GroupDetailView.swift` (313) | 🔶 equal-split only; percent/exact/itemized, group edit/delete missing |
-| `/search` | (148) | ❌ | ❌ `SearchView` is a `PlaceholderView` | ❌ |
-| `/budgets` | (410) | `budgets/BudgetsScreen.kt` (140) + Create/Edit | `BudgetsView.swift` (151) + Create/Edit | ⚠️ |
-| `/goals` | (304) + `src/goals/GoalCelebration.tsx` (222) | `goals/GoalsScreen.kt` (171) + Create/Edit/Allocate | `GoalsView.swift` (166) + Create/Edit/Allocate | 🔶 GoalCelebration not ported |
-| `/recurring` | (218) + `src/recurring/engine.ts` (251) | `recurring/RecurringScreen.kt` | `RecurringView.swift` | 🔶 no shell "+" — web registers it via `useRegisterAddAction`, no native screen registers into `AddAction` yet |
-| `/recurring/[direction]` | (157) | `recurring/RecurringDirectionScreen.kt` + Form | `RecurringDirectionView.swift` + Form | 🔶 category donut (shared `DonutChart` is a refactor); preset chips + alert time absent by decision |
-| `src/cashflow/RecurringModal.tsx` | (155) | `recurring/RecurringFormScreen.kt` | `RecurringFormView.swift` | 🔶 preset name chips (hardcoded English on web) and alert time absent — see ABSENT-BY-DECISION.md |
-| `/loans` | (249) | `loans/LoansScreen.kt` (159) + Add/Edit | `LoansView.swift` (467) + Add/Edit | ⚠️ |
-| `/loans/[id]` | (484) + `src/loans/settleEmis.ts` | `loans/LoanDetailScreen.kt` (369) | inside `LoansView.swift` | ⚠️ auto-post surfacing + recurring groups missing |
-| `/investments` | (370) + `src/investments/*` | `investments/InvestmentsScreen.kt` (290) + AddHolding | `InvestmentsView.swift` (248) + AddHolding | 🔶 live catalog picker, SIP recurring transfer, CSV/XLSX import deferred |
-| `/reflect` | (97) + `src/reflect/IntentCard.tsx` (141) | ❌ | ❌ `ReflectView` is a `PlaceholderView` | ❌ |
-| `/insights` | (60) + `src/insights/generators.ts` (422) + `InsightFeed.tsx` (224) | `insights/InsightsScreen.kt` (376) | `InsightsView.swift` (515) | ⚠️ 18 generators ported; full-bleed feed layout + entitlement CTA need re-check |
-| `/statements` | (145) | ❌ | `StatementsView.swift` (102) | ❌ / **🩹 MOCK** — four hardcoded `StatementUiModel` rows ("July 2026", "01 Jul - 31 Jul"). No repository, no view model. Shows fiction that looks like data |
-| `/statements/analyze` | (329) + `src/statements/parsePdf.ts` | ❌ | `StatementImportView.swift` (89) | ❌ / **🩹 MOCK** — a hardcoded filename (`HDFC_Statement_July2026.pdf`), a hardcoded account (`HDFC Primary Savings (*4821)`) and four invented transactions incl. a ₹1,25,000 salary credit. Parses nothing |
-| `/assistant` | (9) + `src/assistant/AssistantChat.tsx` (644) + `richMessage.tsx` (384) + `tools.ts` (276) + `MicButton.tsx` (91) + `speech.ts` (90) | ❌ | `AssistantView.swift` (153) | ❌ / **🩹 MOCK** — seeded with hardcoded messages; sending appends your text and nothing answers. No repository, no tools, no voice. 153L against web's ~1,670 |
-| `/settings` | (272) | `ui/SettingsScreen.kt` (527) | `SettingsView.swift` (413) | ⚠️ Security/crypto, Language, Categories/Labels, Import-Export links absent |
-| `/settings/categories` | (157) | ❌ | ❌ | ❌ |
+| `/` dashboard | `app/page.tsx` (634) + `src/dashboard/*` (1320) | `dashboard/DashboardScreen.kt` (375) | `DashboardView.swift` (427) | 🔶 **largest gap in the app.** Hero + accounts strip + FAB only. The **12-tile catalog, drag-reorder/resize and edit mode are absent on both** — 1,022 lines of `tiles.tsx`. Both screens tell the user so in place of the grid |
+| `/accounts` | (126) | `accounts/AccountsScreen.kt` (148) | `AccountsView.swift` (119) | 🔶 |
+| `/accounts/new` | (165) | `CreateAccountScreen.kt` (176) | `CreateAccountView.swift` (128) | 🔶 credit-card/demat branches + `MultiCurrencyCard` deferred |
+| `/accounts/[id]/edit` | (189) | `EditAccountScreen.kt` (203) | `EditAccountView.swift` (261) | 🔶 |
+| `/transactions` | (92) + `TransactionTile.tsx` (273) | `TransactionsScreen.kt` (148) | `TransactionsView.swift` (124) | 🔶 |
+| `/transactions/new` | (674) | `CreateTransactionScreen.kt` (251) | `CreateTransactionView.swift` (262) | 🔶 splits-create, templates, auto-categorise deferred |
+| `/transactions/[id]/edit` | (449) | `EditTransactionScreen.kt` (211) | `EditTransactionView.swift` (315) | 🔶 edit-history audit modal missing |
+| `/cards` | (352) + `src/cards` (75) | `creditcards/CreditCardsScreen.kt` (307) | `CreditCardsView.swift` (282) | 🔶 |
+| `/friends` (shared & owed) | (493) + `src/splits/*` (1432) | `splits/SplitsScreen.kt` (226) | `SplitsView.swift` (144) | 🔶 FriendInsights/Patterns panel not rendered; 2026-08-12 tiles redesign not ported |
+| `/groups/[id]` | (364) | `splits/GroupDetailScreen.kt` (275) | `GroupDetailView.swift` (313) | 🔶 equal-split only; percent/exact/itemised and group edit/delete missing |
+| `/budgets` (+ new/edit) | (410) | `budgets/*` (650) | `BudgetsView` + Create/Edit (531) | 🔶 |
+| `/goals` (+ new/edit/allocate) | (304) + `GoalCelebration.tsx` (222) | `goals/*` (557) | `GoalsView` + Create/Edit/Allocate (475) | 🔶 GoalCelebration not ported |
+| `/recurring` | (218) + `src/recurring` (334) | `recurring/RecurringScreen.kt` (257) | `RecurringView.swift` (217) | 🔶 no shell "+" — web registers it via `useRegisterAddAction`; no native screen registers into `AddAction` yet |
+| `/recurring/[direction]` | (157) | `RecurringDirectionScreen.kt` (205) | `RecurringDirectionView.swift` (182) | 🔶 category donut absent (shared `DonutChart` is a refactor of two working screens) |
+| `src/cashflow/RecurringModal.tsx` | (155) | `RecurringFormScreen.kt` (316) | `RecurringFormView.swift` (202) | 🔶 preset name chips + alert time absent by decision (2026-08-25) |
+| `/loans` (+ new/edit) | (249) | `loans/LoansScreen.kt` (151) + Add/Edit | `LoansView.swift` (447) + Add/Edit | 🔶 |
+| `/loans/[id]` | (484) + `src/loans` (368) | `loans/LoanDetailScreen.kt` (359) | inside `LoansView.swift` | 🔶 auto-post surfacing + recurring groups missing |
+| `/investments` | (370) + `src/investments` (1787) | `investments/*` (850) | `InvestmentsView` + AddHolding (414) | 🔶 live catalog picker, SIP recurring transfer, CSV/XLSX import deferred |
+| `/insights` | (60) + `src/insights` (789) | `insights/InsightsScreen.kt` (378) | `InsightsView.swift` (505) | 🔶 18 generators ported; full-bleed feed layout + entitlement CTA need re-check |
+| `/statements` | (145) + `src/statements` (781) | `statements/StatementsScreen.kt` (193) | `StatementsView.swift` (143) | 🔶 real on both since 2026-08-24. Print, Analyze link and Go-Premium absent by decision |
+| `/login` | (334) | `auth/LoginScreen.kt` (430) | `LoginView.swift` (427) | 🔶 all four methods on both; **no live Google sign-in has ever completed**, guest upgrade unverified |
+| `/receipts/new` | (339) + `src/receipts` (860) | `receipts/ReceiptCaptureScreen.kt` (274) | `ReceiptCaptureView.swift` (207) | 🔶 camera only; no PDF/gallery, no AI escalation |
+| `/receipts/review` | (501) | `receipts/ReceiptReviewScreen.kt` (283) | `ReceiptReviewView.swift` (259) | 🔶 text-only OCR path (no word boxes) |
+| `/settings` | (272) | `SettingsScreen.kt` (527) | `SettingsView.swift` (400) | 🔶 Security/crypto, Language, Categories/Labels and Import-Export links absent |
+| `/receipts/split` | (522) | ❌ | ❌ | ❌ "Split this bill" shown disabled on both. Android's `FLOW_ROOTS` still names the route |
+| `/settings/categories` | (157) | ❌ | ❌ | ❌ no category management on either |
 | `/settings/labels` | (89) | ❌ | ❌ | ❌ |
-| `/data` (import/export) | (154) + `src/data/importCsv.ts` (243) | ❌ | ❌ | ❌ |
-| `/notifications` | (75) + `src/notifications/hooks.ts` | ❌ | ❌ placeholder | ❌ |
-| `/help` | (152) | ❌ | ❌ `HelpView` is a `PlaceholderView` | ❌ |
-| `/onboarding` | (119) + `src/onboarding/Walkthrough.tsx` (368) | ❌ | `WalkthroughView.swift` (121) | ❌ / 🔶 |
-| `/login` | (334) | ✅ `ui/auth/LoginScreen.kt` | ✅ `LoginView.swift` | 🔶 all four methods on both (2026-08-24); no live Google sign-in yet, in-place upgrade unverified |
-| `/join?token=` | (53) | ❌ | ❌ | ❌ needs App Links / Universal Links + real domain |
-| `/auth/callback` | (87) | ❌ | ❌ | ❌ |
-| `/receipts/new` | (339) + `src/receipts/{scan,ocr,image}.ts` | `receipts/ReceiptCaptureScreen.kt` (272) | `ReceiptCaptureView.swift` (207) | ⚠️ camera-only; no PDF/gallery, no AI escalation |
-| `/receipts/review` | (501) | `receipts/ReceiptReviewScreen.kt` (283) | `ReceiptReviewView.swift` (265) | ⚠️ text-only OCR path (no word boxes) |
-| `/receipts/split` | (522) + `src/splits/writeItemized.ts` (258) | ❌ | ❌ | ❌ "Split this bill" is shown disabled on both |
+| `/data` (import/export) | (154) + `src/data` (509) | ❌ | ❌ | ❌ no way to get data out of either app |
+| `/statements/analyze` | (329) | ❌ | ❌ | ❌ iOS's fabricated version was deleted 2026-08-24 |
+| `/assistant` | (9) + `src/assistant` (1669) | ❌ `ComingSoonScreen` | ❌ `AssistantView` (27) placeholder | ❌ biggest single unbuilt feature |
+| `/search` | (148) | ❌ `ComingSoonScreen` | ❌ `SearchView` placeholder | ❌ |
+| `/reflect` | (97) + `src/reflect` (160) | ❌ `ComingSoonScreen` | ❌ `ReflectView` placeholder | ❌ |
+| `/help` | (152) | ❌ `ComingSoonScreen` | ❌ `HelpView` placeholder | ❌ |
+| `/notifications` | (75) + `src/notifications` (350) | ❌ `ComingSoonScreen` | ❌ placeholder | ❌ the bell in both shells leads here |
+| `/onboarding` + `src/onboarding/Walkthrough.tsx` | (119) + (446) | ❌ nothing | ❌ **`WalkthroughView.swift` (121) is orphaned** — referenced only by its own `#Preview`, never rendered | ❌ first-run walkthrough shows on **neither** app. Akhilesh's call: wire the partial or delete it and port `Walkthrough.tsx` properly |
+| `/groups` | (19) redirect → `/friends` | 🚫 | 🚫 | 🚫 |
 | `/subscriptions` | (8) redirect → `/recurring` | 🚫 | 🚫 | 🚫 |
-| `/admin/*` | 7 pages | 🚫 web-only, English-only | 🚫 | 🚫 out of scope |
+| `/join?token=` | (53) | ❌ | ❌ | ❌ needs App Links / Universal Links + a real domain |
+| `/auth/callback` | (87) | 🚫 | 🚫 | 🚫 a native app cannot host an HTTP route; both use a custom scheme |
+| `/admin/*` | 7 pages (1291) | 🚫 | 🚫 | 🚫 web-only, English-only, out of scope |
 
-**Dead native screens to delete** (they mirror web routes that no longer exist): iOS
-`TemplatesView`, `CashflowView` in `PlaceholderViews.swift` + their `NavTab` cases; any Android
-`comingSoonRoute` entries for the same.
+### Score, honestly
+
+| | Android | iOS |
+|---|---|---|
+| Web routes in scope for native (44 total, less 7 `/admin`, 2 redirects, `/auth/callback`) | 35 | 35 |
+| Ported and reachable | **23** | **23** |
+| Not built (honest placeholder) | 12 | 12 |
+| Ported with **zero** recorded gaps | 0 | 0 |
+
+Not one screen is gap-free. That is not pessimism — it is what "🔶" has meant in this table since
+it was written, and rounding it up to ✅ is how a port convinces itself it is finished.
+
+The two platforms are now at the **same** coverage, screen for screen. They were not on
+2026-08-24: iOS had Statements and a Walkthrough file that Android did not, and Android had a
+Recurring form that iOS did not. Both of those closed this week.
+
 
 ## 5. Shared component inventory
 
