@@ -15,15 +15,19 @@
     "monthCompare": "This month vs last",
     "currencies": "Across currencies"
   },
-  "customize": "Customize",
   "addWidget": "Add a widget",
   "addWidgetIntro": "Pick a tile to add to your dashboard. Resize and reorder it right on the page.",
   "allAdded": "Every widget is already on your dashboard.",
+  "customize": "Customize",
+  "emptyBody": "Add a widget to see your money at a glance.",
+  "emptyRecent": "No transactions yet.",
+  "emptySpending": "No spending recorded this month.",
+  "emptyTitle": "Your dashboard is empty",
+  "emptyUpcoming": "Nothing due.",
+  "moreCategories": "+{{count}} more",
+  "moveDown": "Move down",
+  "moveUp": "Move up",
   "premium": "Premium",
   "premiumNote": "Premium tiles unlock with a Lite or Pro plan.",
-  "moveUp": "Move up",
-  "moveDown": "Move down",
-  "width": "Width",
-  "emptyTitle": "Your dashboard is empty",
-  "emptyBody": "Add a widget to see your money at a glance."
+  "width": "Width"
 }

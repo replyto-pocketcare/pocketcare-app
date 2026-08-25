@@ -321,7 +321,11 @@
     <string name="dashboard_all_added">Every widget is already on your dashboard.</string>
     <string name="dashboard_customize">Customize</string>
     <string name="dashboard_empty_body">Add a widget to see your money at a glance.</string>
+    <string name="dashboard_empty_recent">No transactions yet.</string>
+    <string name="dashboard_empty_spending">No spending recorded this month.</string>
     <string name="dashboard_empty_title">Your dashboard is empty</string>
+    <string name="dashboard_empty_upcoming">Nothing due.</string>
+    <string name="dashboard_more_categories">+%1$s more</string>
     <string name="dashboard_move_down">Move down</string>
     <string name="dashboard_move_up">Move up</string>
     <string name="dashboard_premium">Premium</string>

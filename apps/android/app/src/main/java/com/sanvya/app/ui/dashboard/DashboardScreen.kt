@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
@@ -60,11 +59,19 @@ fun DashboardScreen(
     onViewTransactions: () -> Unit = {},
     onAddTransaction: () -> Unit = {},
     onScanReceipt: () -> Unit = {},
+    onOpenTile: (String) -> Unit = {},
     viewModel: DashboardViewModel = viewModel(),
+    shellViewModel: com.sanvya.app.ui.shell.ShellViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val amountsHidden by Prefs.amountsHidden.collectAsState()
     val colors = LocalSanvyaColors.current
+    // Entitlement gates the five premium tiles. The shell already computes it
+    // for the receipt-scan lock; asking it again here rather than re-deriving
+    // isPaid() is the same reason the palettes moved into FormOptions.
+    val isPaid by shellViewModel.canScan.collectAsState()
+    var editing by rememberSaveable { mutableStateOf(false) }
+    var addOpen by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = colors.bg,
@@ -77,6 +84,16 @@ fun DashboardScreen(
                             imageVector = if (amountsHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = if (amountsHidden) "Show amounts" else "Hide amounts",
                             tint = colors.text2,
+                        )
+                    }
+                    // "Customize" — web's header chip. It had nothing to open
+                    // until the tile grid existed; it does now.
+                    TextButton(onClick = { editing = !editing }) {
+                        Text(
+                            if (editing) S.Translation.commonDone(sRes()) else S.Dashboard.customize(sRes()),
+                            color = colors.accent,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
                     IconButton(onClick = onViewTransactions) {
@@ -118,28 +135,26 @@ fun DashboardScreen(
                     onViewAll = onViewAccounts,
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
-                // Tile catalog (recent/spending/trends/budgets/goals/etc.) is
-                // explicitly deferred -- see docs/mobile/screen-specs/dashboard.md
-                // "Explicitly deferred". This card says so instead of silently
-                // omitting the section or faking a grid.
-                Card(
-                    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = colors.surface),
-                    shape = RoundedCornerShape(SanvyaRadius.radiusLg),
-                ) {
-                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("More widgets coming soon", fontWeight = FontWeight.SemiBold, color = colors.text)
-                        Text(
-                            "Spending, budgets, goals, and trend tiles are on the way.",
-                            fontSize = 13.sp,
-                            color = colors.text2,
-                        )
+                DashboardTileGrid(
+                    editing = editing,
+                    isPaid = isPaid,
+                    onOpen = onOpenTile,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+                if (editing) {
+                    SanvyaButton(
+                        onClick = { addOpen = true },
+                        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                    ) {
+                        SanvyaText(S.Dashboard.addWidget(sRes()), style = SanvyaType.button)
                     }
                 }
                 Spacer(Modifier.height(8.dp))
             }
         }
     }
+
+    AddWidgetSheet(open = addOpen, isPaid = isPaid, onClose = { addOpen = false })
 }
 
 @Composable

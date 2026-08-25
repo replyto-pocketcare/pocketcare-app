@@ -164,6 +164,11 @@ fun SanvyaNavHost() {
                 onViewTransactions = { navController.navigate("transactions") },
                 onAddTransaction = { navController.navigate("transactions/new") },
                 onScanReceipt = { navController.navigate("receipts/new") },
+                // A tile's "more details" tap. The route comes from the
+                // generated catalog, which the generator has already checked
+                // against the NavTab enum on the iOS side -- and every value it
+                // can produce is registered above.
+                onOpenTile = { route -> navController.navigate(route) },
             )
         }
         composable("receipts/new") {

@@ -419,7 +419,13 @@ public enum S {
         public static var allAdded: String { String(localized: "dashboard:allAdded", table: "Localizable") }
         public static var customize: String { String(localized: "dashboard:customize", table: "Localizable") }
         public static var emptyBody: String { String(localized: "dashboard:emptyBody", table: "Localizable") }
+        public static var emptyRecent: String { String(localized: "dashboard:emptyRecent", table: "Localizable") }
+        public static var emptySpending: String { String(localized: "dashboard:emptySpending", table: "Localizable") }
         public static var emptyTitle: String { String(localized: "dashboard:emptyTitle", table: "Localizable") }
+        public static var emptyUpcoming: String { String(localized: "dashboard:emptyUpcoming", table: "Localizable") }
+        public static func moreCategories(count: CVarArg) -> String {
+            String(format: String(localized: "dashboard:moreCategories", table: "Localizable"), count)
+        }
         public static var moveDown: String { String(localized: "dashboard:moveDown", table: "Localizable") }
         public static var moveUp: String { String(localized: "dashboard:moveUp", table: "Localizable") }
         public static var premium: String { String(localized: "dashboard:premium", table: "Localizable") }

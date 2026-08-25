@@ -1,28 +1,19 @@
 package com.sanvya.app.ui.transactions
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
-import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.components.SanvyaPage
@@ -92,57 +83,6 @@ fun TransactionsScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun TransactionRowCard(
-    item: TransactionListItem,
-    colors: com.sanvya.app.theme.SanvyaColors,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(SanvyaRadius.radiusSm))
-            .background(colors.surface)
-            .clickable(onClick = onClick)
-            .padding(14.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Box(
-            modifier = Modifier.size(34.dp).clip(CircleShape).background(item.avatarColor),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(item.avatarLetter, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(item.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (item.subtitle.isNotEmpty()) {
-                Text(item.subtitle, fontSize = 11.5.sp, color = colors.text2, maxLines = 2)
-            }
-            if (item.tags.isNotEmpty()) {
-                Text(
-                    item.tags.joinToString("  ·  ") { it.text },
-                    fontSize = 11.5.sp,
-                    color = colors.text2,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            item.accountName?.let {
-                Text(it, fontSize = 11.5.sp, color = colors.text2)
-            }
-        }
-        Column(horizontalAlignment = Alignment.End) {
-            Text(
-                item.amountFormatted,
-                fontSize = 14.5.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (item.amountColor == TxAmountColor.POSITIVE) colors.positive else colors.text,
-            )
-            Text(item.dateFormatted, fontSize = 11.sp, color = colors.text2)
         }
     }
 }

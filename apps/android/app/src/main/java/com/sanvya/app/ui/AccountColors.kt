@@ -25,6 +25,19 @@ private fun parseHex(hex: String): Color {
 
 val ACCOUNT_COLORS: List<Color> = FormOptions.accountColors.map(::parseHex)
 
+/**
+ * The two CHART palettes, which are neither the account palette nor each other.
+ *
+ * Web keeps them in two files -- `insights/types.ts` and `dashboard/tiles.tsx`
+ * -- and they have drifted apart at the last two entries, despite the first
+ * one's comment claiming they match. Both are generated into `FormOptions` now,
+ * so the drift is at least honest and in one place. Insights' copy used to be a
+ * `private val` inside InsightsScreen.kt, unreachable by anything else, which
+ * is how the dashboard nearly acquired a fifth hand-typed copy.
+ */
+val CHART_COLORS: List<Color> = FormOptions.chartColors.map(::parseHex)
+val DASHBOARD_CHART_COLORS: List<Color> = FormOptions.dashboardChartColors.map(::parseHex)
+
 private val FALLBACK_COLOR = parseHex(FormOptions.FALLBACK_ACCOUNT_COLOR)
 
 /**

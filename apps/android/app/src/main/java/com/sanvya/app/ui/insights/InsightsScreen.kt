@@ -252,10 +252,10 @@ private fun resolveColor(token: String?, index: Int, fallbackAccent: Color, colo
     else -> fallbackAccent
 }
 
-private val INSIGHT_PALETTE_COMPOSE = listOf(
-    Color(0xFFB06A4F), Color(0xFF5F7A52), Color(0xFFC08A3E), Color(0xFF9CAE8E),
-    Color(0xFF3E4A38), Color(0xFFC98A72), Color(0xFF7C7264), Color(0xFF5F6647),
-)
+// Was eight hand-typed Color(0xFF…) literals, private to this file. It is
+// web's INSIGHT_PALETTE, so it is generated into FormOptions now and parsed
+// once in AccountColors.kt -- see CHART_COLORS' comment for why that mattered.
+private val INSIGHT_PALETTE_COMPOSE = com.sanvya.app.ui.CHART_COLORS
 
 @Composable
 private fun BarsChart(series: List<SeriesPoint>, horizontal: Boolean, accent: Color, colors: SanvyaColors) {

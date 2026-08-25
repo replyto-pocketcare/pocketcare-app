@@ -111,6 +111,34 @@ function investmentAccountTypes() {
 
 const INVESTMENT_ACCOUNT_TYPES = investmentAccountTypes();
 const ACCOUNT_COLORS = stringArray("ACCOUNT_COLORS");
+
+/**
+ * The two CHART palettes, which are not the account palette and not each other.
+ *
+ * Web keeps them in two files and they have drifted: INSIGHT_PALETTE's own
+ * comment says it "matches the Insights page PIE", and it does not -- the last
+ * two entries differ. Native had copied one of them by hand into a `private`
+ * val inside InsightsScreen, so there were four copies across the repo and no
+ * way to notice the fifth being wrong.
+ *
+ * Ported verbatim, drift included. PIE's `#4f46e5` is an indigo in a palette
+ * that is otherwise entirely earth-toned, and it is REACHED -- the spending
+ * tile charts seven categories, so it colours the seventh bar. That looks like
+ * a stray Tailwind default rather than a decision, but it is web's decision to
+ * unmake, not this port's. Flagged in PARITY_AUDIT.md §"Web bugs found while
+ * porting".
+ */
+const INSIGHTS_SRC = path.join(REPO_ROOT, "apps/web/src/insights/types.ts");
+const TILES_SRC = path.join(REPO_ROOT, "apps/web/src/dashboard/tiles.tsx");
+const hexArray = (src, decl, what) => {
+  const m = src.match(new RegExp(`${decl}[^\\[]*\\[([^\\]]*)\\]`));
+  if (!m) throw new Error(`generate-options: ${what} not found`);
+  const out = [...m[1].matchAll(/"(#[0-9a-fA-F]{6})"/g)].map((x) => x[1]);
+  if (!out.length) throw new Error(`generate-options: ${what} parsed to an empty list`);
+  return out;
+};
+const CHART_PALETTE = hexArray(readFileSync(INSIGHTS_SRC, "utf8"), "export const INSIGHT_PALETTE", "INSIGHT_PALETTE");
+const DASHBOARD_PALETTE = hexArray(readFileSync(TILES_SRC, "utf8"), "const PIE", "the dashboard PIE palette");
 const COUNTRIES = stringArray("COUNTRIES");
 const GENDERS = genders();
 const DEFAULT_CURRENCY = scalar("DEFAULT_CURRENCY");
@@ -167,6 +195,12 @@ object FormOptions {
     val accountColors = listOf(${ktList(ACCOUNT_COLORS)})
 
     val defaultAccountColor = accountColors.first()
+
+    /** Insights' multi-series palette -- web's INSIGHT_PALETTE. */
+    val chartColors = listOf(${ktList(CHART_PALETTE)})
+
+    /** The dashboard tiles' palette -- web's PIE. NOT the same list. */
+    val dashboardChartColors = listOf(${ktList(DASHBOARD_PALETTE)})
 
     const val FALLBACK_ACCOUNT_COLOR = "${FALLBACK_ACCOUNT_COLOR}"
 
@@ -246,6 +280,12 @@ public enum FormOptions {
 
     public static let defaultAccountColor = accountColors[0]
 
+    /// Insights' multi-series palette — web's INSIGHT_PALETTE.
+    public static let chartColors = [${swiftList(CHART_PALETTE)}]
+
+    /// The dashboard tiles' palette — web's PIE. NOT the same list.
+    public static let dashboardChartColors = [${swiftList(DASHBOARD_PALETTE)}]
+
     public static let fallbackAccountColor = "${FALLBACK_ACCOUNT_COLOR}"
 
     /// \`value\` is what is stored. \`label\` is English and NOT yet translated —
@@ -294,6 +334,7 @@ for (const [out, body] of [[ANDROID_OUT, androidKt], [IOS_OUT, iosSwift]]) {
 console.log(
   `catalog: ${CURRENCIES.length} currencies, ${PERIODS.length} periods, ` +
     `${ACCOUNT_TYPES.length} account types (${INVESTMENT_ACCOUNT_TYPES.length} investment), ${ACCOUNT_COLORS.length} colours, ` +
+    `${CHART_PALETTE.length}+${DASHBOARD_PALETTE.length} chart colours, ` +
     `${GENDERS.length} genders, ${COUNTRIES.length} countries.`,
 );
 console.log("Wrote:");

@@ -11,29 +11,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import com.sanvya.app.ui.baseCurrencyNow
-import com.sanvya.app.ui.formatMoney
 
 /** Type filter chips -- matches transactions/page.tsx's TYPES exactly. */
 val TX_TYPE_FILTERS = listOf("all", "income", "expense", "transfer")
 
-data class TransactionListItem(
-    val id: String,
-    val title: String,
-    val subtitle: String,
-    val tags: List<TxTag>,
-    val accountName: String?,
-    val amountFormatted: String,
-    val amountColor: TxAmountColor,
-    val dateFormatted: String,
-    val avatarColor: androidx.compose.ui.graphics.Color,
-    val avatarLetter: String,
-)
 
-enum class TxAmountColor { POSITIVE, DEFAULT }
 
 /** No-arg + KoinComponent, matches AccountsViewModel/DashboardViewModel's
  * established pattern -- previous version took `LedgerRepository` as a
@@ -92,7 +74,7 @@ class TransactionsViewModel : ViewModel(), KoinComponent {
             }
             .sortedByDescending { it.occurredAt }
             .take(200)
-            .map { txn -> toListItem(txn, accountMap, categoryMap, labelNames[txn.id]) }
+            .map { txn -> transactionListItem(txn, accountMap, categoryMap, labelNames[txn.id]) }
             .toList()
     }.stateIn(
         scope = viewModelScope,
@@ -100,47 +82,4 @@ class TransactionsViewModel : ViewModel(), KoinComponent {
         initialValue = emptyList(),
     )
 
-    private fun toListItem(
-        txn: TransactionRow,
-        accountMap: Map<String, com.sanvya.app.data.repository.Account>,
-        categoryMap: Map<String, com.sanvya.app.data.repository.CategoryRow>,
-        labels: List<String>?,
-    ): TransactionListItem {
-        val categoryName = txn.categoryId?.let { categoryMap[it]?.name } ?: "Uncategorised"
-        val labelsCsv = labels?.joinToString(", ")
-        val raw = (txn.description ?: labelsCsv ?: categoryName).trim().ifEmpty { txn.type }
-        val title = merchantTitle(raw)
-        val subtitle = if (raw != title) raw else ""
-        val tags = txTags(categoryName, labels)
-        val account = accountMap[txn.accountId]
-
-        val sign = if (txn.type == "expense") "−" else if (txn.type == "income") "+" else ""
-        val amountColor = if (txn.type == "income") TxAmountColor.POSITIVE else TxAmountColor.DEFAULT
-        val amountFormatted = "$sign${formatMoney(txn.amount, account?.currency ?: baseCurrencyNow())}"
-
-        val dateFormatted = try {
-            val zdt = OffsetDateTime.parse(txn.occurredAt).atZoneSameInstant(ZoneId.systemDefault())
-            val today = OffsetDateTime.now().atZoneSameInstant(ZoneId.systemDefault())
-            when (zdt.toLocalDate()) {
-                today.toLocalDate() -> "Today"
-                today.toLocalDate().minusDays(1) -> "Yesterday"
-                else -> zdt.format(DateTimeFormatter.ofPattern("MMM d"))
-            }
-        } catch (e: Exception) {
-            txn.occurredAt.take(10)
-        }
-
-        return TransactionListItem(
-            id = txn.id,
-            title = title,
-            subtitle = subtitle,
-            tags = tags,
-            accountName = account?.name,
-            amountFormatted = amountFormatted,
-            amountColor = amountColor,
-            dateFormatted = dateFormatted,
-            avatarColor = avatarColor(title),
-            avatarLetter = (title.firstOrNull() ?: '•').uppercase(),
-        )
-    }
 }

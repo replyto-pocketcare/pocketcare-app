@@ -44,6 +44,12 @@ public enum FormOptions {
 
     public static let defaultAccountColor = accountColors[0]
 
+    /// Insights' multi-series palette — web's INSIGHT_PALETTE.
+    public static let chartColors = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#7c7264", "#5f6647"]
+
+    /// The dashboard tiles' palette — web's PIE. NOT the same list.
+    public static let dashboardChartColors = ["#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#4f46e5", "#7c7264"]
+
     public static let fallbackAccountColor = "#7c7264"
 
     /// `value` is what is stored. `label` is English and NOT yet translated —

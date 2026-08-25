@@ -43,6 +43,12 @@ object FormOptions {
 
     val defaultAccountColor = accountColors.first()
 
+    /** Insights' multi-series palette -- web's INSIGHT_PALETTE. */
+    val chartColors = listOf("#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#7c7264", "#5f6647")
+
+    /** The dashboard tiles' palette -- web's PIE. NOT the same list. */
+    val dashboardChartColors = listOf("#b06a4f", "#5f7a52", "#c08a3e", "#9cae8e", "#3e4a38", "#c98a72", "#4f46e5", "#7c7264")
+
     const val FALLBACK_ACCOUNT_COLOR = "#7c7264"
 
     /**

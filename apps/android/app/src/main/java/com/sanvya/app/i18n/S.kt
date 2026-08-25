@@ -379,7 +379,12 @@ object S {
         fun allAdded(res: Resources): String = res.getString(R.string.dashboard_all_added)
         fun customize(res: Resources): String = res.getString(R.string.dashboard_customize)
         fun emptyBody(res: Resources): String = res.getString(R.string.dashboard_empty_body)
+        fun emptyRecent(res: Resources): String = res.getString(R.string.dashboard_empty_recent)
+        fun emptySpending(res: Resources): String = res.getString(R.string.dashboard_empty_spending)
         fun emptyTitle(res: Resources): String = res.getString(R.string.dashboard_empty_title)
+        fun emptyUpcoming(res: Resources): String = res.getString(R.string.dashboard_empty_upcoming)
+        fun moreCategories(res: Resources, count: Any): String =
+            res.getString(R.string.dashboard_more_categories, count)
         fun moveDown(res: Resources): String = res.getString(R.string.dashboard_move_down)
         fun moveUp(res: Resources): String = res.getString(R.string.dashboard_move_up)
         fun premium(res: Resources): String = res.getString(R.string.dashboard_premium)

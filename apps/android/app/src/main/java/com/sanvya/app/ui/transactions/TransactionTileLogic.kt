@@ -1,6 +1,14 @@
 package com.sanvya.app.ui.transactions
 
 import androidx.compose.ui.graphics.Color
+import com.sanvya.app.data.repository.Account
+import com.sanvya.app.data.repository.CategoryRow
+import com.sanvya.app.data.repository.TransactionRow
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.ui.formatMoney
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * Ported byte-for-byte from apps/web/src/ui/TransactionTile.tsx's
@@ -50,4 +58,76 @@ fun txTags(categoryName: String?, labels: List<String>?): List<TxTag> {
     }
     for (n in names) out += TxTag("label", n)
     return out
+}
+
+/* ------------------------------------------------------------------ *
+ * The row model, and the one function that builds it.
+ *
+ * Both lived inside TransactionsViewModel, private, until 2026-08-25 --
+ * which is why this file's own comment above says the dashboard's Recent
+ * Activity tile "should use this too, not a second copy". It could not: the
+ * shape it needed was sealed inside a view model it had no business owning.
+ *
+ * Promoted rather than copied. Re-inlining is the failure mode this section of
+ * the audit exists to catch, and it had already happened twice (DonutChart and
+ * this row are both listed there).
+ * ------------------------------------------------------------------ */
+
+data class TransactionListItem(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val tags: List<TxTag>,
+    val accountName: String?,
+    val amountFormatted: String,
+    val amountColor: TxAmountColor,
+    val dateFormatted: String,
+    val avatarColor: androidx.compose.ui.graphics.Color,
+    val avatarLetter: String,
+)
+
+enum class TxAmountColor { POSITIVE, DEFAULT }
+
+fun transactionListItem(
+    txn: TransactionRow,
+    accountMap: Map<String, Account>,
+    categoryMap: Map<String, CategoryRow>,
+    labels: List<String>?,
+): TransactionListItem {
+    val categoryName = txn.categoryId?.let { categoryMap[it]?.name } ?: "Uncategorised"
+    val labelsCsv = labels?.joinToString(", ")
+    val raw = (txn.description ?: labelsCsv ?: categoryName).trim().ifEmpty { txn.type }
+    val title = merchantTitle(raw)
+    val subtitle = if (raw != title) raw else ""
+    val tags = txTags(categoryName, labels)
+    val account = accountMap[txn.accountId]
+
+    val sign = if (txn.type == "expense") "−" else if (txn.type == "income") "+" else ""
+    val amountColor = if (txn.type == "income") TxAmountColor.POSITIVE else TxAmountColor.DEFAULT
+    val amountFormatted = "$sign${formatMoney(txn.amount, account?.currency ?: baseCurrencyNow())}"
+
+    val dateFormatted = try {
+        val zdt = OffsetDateTime.parse(txn.occurredAt).atZoneSameInstant(ZoneId.systemDefault())
+        val today = OffsetDateTime.now().atZoneSameInstant(ZoneId.systemDefault())
+        when (zdt.toLocalDate()) {
+            today.toLocalDate() -> "Today"
+            today.toLocalDate().minusDays(1) -> "Yesterday"
+            else -> zdt.format(DateTimeFormatter.ofPattern("MMM d"))
+        }
+    } catch (e: Exception) {
+        txn.occurredAt.take(10)
+    }
+
+    return TransactionListItem(
+        id = txn.id,
+        title = title,
+        subtitle = subtitle,
+        tags = tags,
+        accountName = account?.name,
+        amountFormatted = amountFormatted,
+        amountColor = amountColor,
+        dateFormatted = dateFormatted,
+        avatarColor = avatarColor(title),
+        avatarLetter = (title.firstOrNull() ?: '•').uppercase(),
+    )
 }

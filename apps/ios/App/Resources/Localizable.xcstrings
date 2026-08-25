@@ -6881,6 +6881,52 @@
         }
       }
     },
+    "dashboard:emptyRecent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No transactions yet."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी तक कोई लेन-देन नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen transacties."
+          }
+        }
+      }
+    },
+    "dashboard:emptySpending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No spending recorded this month."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस महीने कोई खर्च दर्ज नहीं है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze maand nog geen uitgaven vastgelegd."
+          }
+        }
+      }
+    },
     "dashboard:emptyTitle": {
       "extractionState": "manual",
       "localizations": {
@@ -6900,6 +6946,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Je dashboard is leeg"
+          }
+        }
+      }
+    },
+    "dashboard:emptyUpcoming": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing due."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुछ भी देय नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niets openstaand."
+          }
+        }
+      }
+    },
+    "dashboard:moreCategories": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@ more"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@ और"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@ meer"
           }
         }
       }

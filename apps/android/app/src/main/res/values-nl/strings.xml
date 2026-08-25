@@ -321,7 +321,11 @@
     <string name="dashboard_all_added">Elke widget staat al op je dashboard.</string>
     <string name="dashboard_customize">Aanpassen</string>
     <string name="dashboard_empty_body">Voeg een widget toe om je geld in één oogopslag te zien.</string>
+    <string name="dashboard_empty_recent">Nog geen transacties.</string>
+    <string name="dashboard_empty_spending">Deze maand nog geen uitgaven vastgelegd.</string>
     <string name="dashboard_empty_title">Je dashboard is leeg</string>
+    <string name="dashboard_empty_upcoming">Niets openstaand.</string>
+    <string name="dashboard_more_categories">+%1$s meer</string>
     <string name="dashboard_move_down">Omlaag</string>
     <string name="dashboard_move_up">Omhoog</string>
     <string name="dashboard_premium">Premium</string>
