@@ -2,11 +2,23 @@ package com.sanvya.app.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sanvya.app.data.auth.AuthRepository
+import com.sanvya.app.data.repository.BudgetRepository
+import com.sanvya.app.data.repository.GoalsRepository
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.RecurringRepository
+import com.sanvya.app.data.repository.SplitsRepository
+import com.sanvya.app.domain.budget.budgetProgress
+import com.sanvya.app.domain.money.Money
 import com.sanvya.app.ui.transactions.TransactionListItem
 import com.sanvya.app.ui.transactions.transactionListItem
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -153,4 +165,162 @@ class UpcomingTileViewModel : ViewModel(), KoinComponent {
                 .map { UpcomingRow(it.id, it.name, it.nextDue, it.amount, it.currency) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+}
+
+/* ------------------------------ Budgets ----------------------------- */
+
+data class BudgetMini(
+    val id: String,
+    val label: String,
+    val spentMinor: Long,
+    val limitMinor: Long,
+    val currency: String,
+    val pct: Float,
+    val overLimit: Boolean,
+    val atOrOverThreshold: Boolean,
+)
+
+class BudgetsTileViewModel : ViewModel(), KoinComponent {
+    private val budgetRepository: BudgetRepository by inject()
+
+    private val _rows = MutableStateFlow<List<BudgetMini>>(emptyList())
+    val rows: StateFlow<List<BudgetMini>> = _rows.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            budgetRepository.watchBudgets().collectLatest { budgets ->
+                // Web takes six and shows however many fit; native rows size to
+                // their content, so six IS the count.
+                val top = budgets.take(6)
+                _rows.value = top.map { budget ->
+                    // spentThisPeriod is a suspend call per budget -- the same
+                    // N+1 web does in BudgetMini's useEffect. Six rows, and the
+                    // alternative is a bespoke aggregate query that would then
+                    // have to agree with the repository's own period maths.
+                    val spent = runCatching { budgetRepository.spentThisPeriod(budget) }
+                        .getOrElse { Money(0, budget.currency) }
+                    val limit = Money(budget.limitAmount, budget.currency)
+                    val progress = budgetProgress(limit, spent, budget.thresholdPct.toDouble())
+                    BudgetMini(
+                        id = budget.id,
+                        label = budget.name?.takeIf { it.isNotBlank() } ?: budget.period,
+                        spentMinor = spent.amount,
+                        limitMinor = limit.amount,
+                        currency = budget.currency,
+                        // pct is Infinity for a zero limit; the bar clamps, but
+                        // Float.POSITIVE_INFINITY through coerceIn would stay
+                        // infinite, so it is pinned here instead.
+                        pct = if (progress.pct.isFinite()) progress.pct.toFloat() else 100f,
+                        overLimit = progress.overLimit,
+                        atOrOverThreshold = progress.atOrOverThreshold,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/* ------------------------------- Goals ------------------------------ */
+
+data class GoalMini(
+    val id: String,
+    val name: String,
+    val isEmergencyFund: Boolean,
+    val savedMinor: Long,
+    val targetMinor: Long,
+    val currency: String,
+    val pct: Float,
+)
+
+class GoalsTileViewModel : ViewModel(), KoinComponent {
+    private val goalsRepository: GoalsRepository by inject()
+    private val authRepository: AuthRepository by inject()
+
+    private val _rows = MutableStateFlow<List<GoalMini>>(emptyList())
+    val rows: StateFlow<List<GoalMini>> = _rows.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            // The user id is required by both queries. filterNotNull rather
+            // than `?: return`: the shell creates a guest before any screen
+            // renders, but this view model can be constructed in the same frame
+            // and a bare return would leave the tile permanently empty.
+            val userId = authRepository.currentUserId.filterNotNull().first()
+            combine(
+                goalsRepository.watchGoals(userId),
+                goalsRepository.watchAllocations(userId),
+            ) { goals, allocations ->
+                val savedByGoal = allocations.groupBy { it.goalId }
+                    .mapValues { (_, rows) -> rows.sumOf { it.amountBlocked } }
+                // Web orders emergency funds first, then by priority, and takes
+                // six. The repository already returns that order.
+                goals.take(6).map { goal ->
+                    val saved = savedByGoal[goal.id] ?: 0L
+                    GoalMini(
+                        id = goal.id,
+                        name = goal.name,
+                        isEmergencyFund = goal.isEmergencyFund,
+                        savedMinor = saved,
+                        targetMinor = goal.targetAmount,
+                        currency = goal.currency,
+                        pct = if (goal.targetAmount > 0) {
+                            minOf(100f, (saved.toFloat() / goal.targetAmount) * 100f)
+                        } else 0f,
+                    )
+                }
+            }.collectLatest { _rows.value = it }
+        }
+    }
+}
+
+/* ------------------------------ Splits ------------------------------ */
+
+data class SplitsTileState(
+    val owedMinor: Long = 0,
+    val oweMinor: Long = 0,
+    val rows: List<FriendBalanceRow> = emptyList(),
+    val hiddenCount: Int = 0,
+)
+
+data class FriendBalanceRow(val userId: String, val name: String, val netMinor: Long)
+
+class SplitsTileViewModel : ViewModel(), KoinComponent {
+    private val splitsRepository: SplitsRepository by inject()
+    private val authRepository: AuthRepository by inject()
+
+    private val _state = MutableStateFlow(SplitsTileState())
+    val state: StateFlow<SplitsTileState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val userId = authRepository.currentUserId.filterNotNull().first()
+            combine(
+                splitsRepository.watchFriendBalances(userId),
+                // `watchConnections` is the only profile source in this
+                // repository; web reads a profiles map. Same rows, and a
+                // balance with nobody attached still renders -- with an empty
+                // name rather than an invented "Someone", which would look like
+                // a real person you owe money to.
+                splitsRepository.watchConnections(userId),
+            ) { balances, profiles ->
+                // Ranked by SIZE of the balance, not by sign -- web sorts on
+                // abs(net), so the person you owe most and the person who owes
+                // you most both surface.
+                val ranked = balances.filter { it.net != 0L }.sortedByDescending { kotlin.math.abs(it.net) }
+                val top = ranked.take(8)
+                SplitsTileState(
+                    owedMinor = balances.sumOf { maxOf(0L, it.net) },
+                    oweMinor = balances.sumOf { maxOf(0L, -it.net) },
+                    rows = top.map { balance ->
+                        FriendBalanceRow(
+                            userId = balance.userId,
+                            name = profiles.firstOrNull { it.id == balance.userId }?.name ?: "",
+                            netMinor = balance.net,
+                        )
+                    },
+                    hiddenCount = (ranked.size - top.size).coerceAtLeast(0),
+                )
+            }.collectLatest { _state.value = it }
+        }
+    }
 }

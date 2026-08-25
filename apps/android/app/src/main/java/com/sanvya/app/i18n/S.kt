@@ -378,13 +378,19 @@ object S {
         fun addWidgetIntro(res: Resources): String = res.getString(R.string.dashboard_add_widget_intro)
         fun allAdded(res: Resources): String = res.getString(R.string.dashboard_all_added)
         fun customize(res: Resources): String = res.getString(R.string.dashboard_customize)
+        fun efShort(res: Resources): String = res.getString(R.string.dashboard_ef_short)
         fun emptyBody(res: Resources): String = res.getString(R.string.dashboard_empty_body)
+        fun emptyBudgets(res: Resources): String = res.getString(R.string.dashboard_empty_budgets)
+        fun emptyGoals(res: Resources): String = res.getString(R.string.dashboard_empty_goals)
         fun emptyRecent(res: Resources): String = res.getString(R.string.dashboard_empty_recent)
         fun emptySpending(res: Resources): String = res.getString(R.string.dashboard_empty_spending)
+        fun emptySplits(res: Resources): String = res.getString(R.string.dashboard_empty_splits)
         fun emptyTitle(res: Resources): String = res.getString(R.string.dashboard_empty_title)
         fun emptyUpcoming(res: Resources): String = res.getString(R.string.dashboard_empty_upcoming)
         fun moreCategories(res: Resources, count: Any): String =
             res.getString(R.string.dashboard_more_categories, count)
+        fun moreItems(res: Resources, count: Any): String =
+            res.getString(R.string.dashboard_more_items, count)
         fun moveDown(res: Resources): String = res.getString(R.string.dashboard_move_down)
         fun moveUp(res: Resources): String = res.getString(R.string.dashboard_move_up)
         fun premium(res: Resources): String = res.getString(R.string.dashboard_premium)
@@ -404,6 +410,8 @@ object S {
         fun tileTrends(res: Resources): String = res.getString(R.string.dashboard_tile_trends)
         fun tileUpcoming(res: Resources): String = res.getString(R.string.dashboard_tile_upcoming)
         fun width(res: Resources): String = res.getString(R.string.dashboard_width)
+        fun youAreOwed(res: Resources): String = res.getString(R.string.dashboard_you_are_owed)
+        fun youOwe(res: Resources): String = res.getString(R.string.dashboard_you_owe)
     }
 
     object Data {

@@ -19,15 +19,22 @@
   "addWidgetIntro": "Kies een tegel om aan je dashboard toe te voegen. Grootte en volgorde pas je direct op de pagina aan.",
   "allAdded": "Elke widget staat al op je dashboard.",
   "customize": "Aanpassen",
+  "efShort": "Noodfonds",
   "emptyBody": "Voeg een widget toe om je geld in één oogopslag te zien.",
+  "emptyBudgets": "Nog geen budgetten.",
+  "emptyGoals": "Nog geen doelen.",
   "emptyRecent": "Nog geen transacties.",
   "emptySpending": "Deze maand nog geen uitgaven vastgelegd.",
+  "emptySplits": "Nog geen openstaande saldi.",
   "emptyTitle": "Je dashboard is leeg",
   "emptyUpcoming": "Niets openstaand.",
   "moreCategories": "+{{count}} meer",
+  "moreItems": "+{{count}} meer",
   "moveDown": "Omlaag",
   "moveUp": "Omhoog",
   "premium": "Premium",
   "premiumNote": "Premium-tegels ontgrendel je met een Lite- of Pro-abonnement.",
-  "width": "Breedte"
+  "width": "Breedte",
+  "youAreOwed": "Jij krijgt",
+  "youOwe": "Jij bent verschuldigd"
 }

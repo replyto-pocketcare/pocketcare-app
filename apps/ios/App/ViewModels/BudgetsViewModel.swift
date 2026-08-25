@@ -276,16 +276,6 @@ public final class BudgetsViewModel {
         formatMoneyAware(m)
     }
 
-    private func todayYmd() -> Ymd {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-        let now = Date()
-        return Ymd(
-            year: calendar.component(.year, from: now),
-            month: calendar.component(.month, from: now),
-            day: calendar.component(.day, from: now)
-        )
-    }
 }
 
 /// Ported from apps/web/src/time.ts's utcToLocalTime/localToUtcTime exactly

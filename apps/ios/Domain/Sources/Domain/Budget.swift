@@ -43,6 +43,26 @@ public struct Ymd: Equatable, Comparable, CustomStringConvertible, Sendable {
     }
 }
 
+/**
+ Today, at UTC — the `asOf` every period calculation is measured against.
+
+ Was `private func todayYmd()` inside `BudgetsViewModel`, which is why the
+ dashboard's Budgets tile could not reach it. UTC, not local: Android's
+ `spentThisPeriod` defaults to `LocalDate.now(ZoneOffset.UTC)`, and a budget
+ period that rolled over at a different instant on each device would make the
+ same budget read differently on a phone and a browser.
+ */
+public func todayYmd() -> Ymd {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    let now = Date()
+    return Ymd(
+        year: calendar.component(.year, from: now),
+        month: calendar.component(.month, from: now),
+        day: calendar.component(.day, from: now)
+    )
+}
+
 private func isLeapYearYmd(_ y: Int) -> Bool {
     (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
 }

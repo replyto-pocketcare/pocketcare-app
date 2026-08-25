@@ -275,7 +275,11 @@ public final class BudgetRepository: @unchecked Sendable {
     /// Sum of expenses in the budget's window, honoring its category/label
     /// scope. [asOf] is a UTC calendar day (already truncated by the
     /// caller, matching this port's established periodBounds() convention).
-    public func spentThisPeriod(budget: BudgetLike, asOf: Ymd) async throws -> Money {
+    /// `asOf` defaults to today at UTC, matching Android's
+    /// `asOf: LocalDate = LocalDate.now(ZoneOffset.UTC)`. Before that default
+    /// existed every caller passed its own idea of "today", and one of them
+    /// was a `private` helper inside a view model.
+    public func spentThisPeriod(budget: BudgetLike, asOf: Ymd = todayYmd()) async throws -> Money {
         let start: Ymd
         let endExclusive: Ymd
         if let s = budget.startDate, let e = budget.endDate {

@@ -248,3 +248,230 @@ final class UpcomingTileViewModel {
         }
     }
 }
+
+/* ------------------------------ Budgets ----------------------------- */
+
+struct BudgetMini: Identifiable, Sendable {
+    let id: String
+    let label: String
+    let spentMinor: Int64
+    let limitMinor: Int64
+    let currency: String
+    let pct: Double
+    let overLimit: Bool
+    let atOrOverThreshold: Bool
+}
+
+@Observable
+@MainActor
+final class BudgetsTileViewModel {
+    @ObservationIgnored
+    @Injected(\.budgetRepository) private var budgetRepository
+
+    public private(set) var rows: [BudgetMini] = []
+
+    private var task: Task<Void, Never>?
+
+    func start() {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await budgets in try self.budgetRepository.watchBudgets() {
+                    // Web takes six and shows however many fit; native rows
+                    // size to their content, so six IS the count.
+                    var built: [BudgetMini] = []
+                    for budget in budgets.prefix(6) {
+                        // spentThisPeriod is an async call per budget — the
+                        // same N+1 web does in BudgetMini's useEffect. Six
+                        // rows, and the alternative is a bespoke aggregate
+                        // query that would then have to agree with the
+                        // repository's own period maths.
+                        let spent = (try? await self.budgetRepository.spentThisPeriod(budget: budget))
+                            ?? Money(amount: 0, currency: budget.currency)
+                        let limit = Money(amount: budget.limitAmount, currency: budget.currency)
+                        guard let progress = try? budgetProgress(limit, spent, Double(budget.thresholdPct)) else { continue }
+                        built.append(BudgetMini(
+                            id: budget.id,
+                            label: (budget.name?.isEmpty == false ? budget.name! : budget.period),
+                            spentMinor: spent.amount,
+                            limitMinor: limit.amount,
+                            currency: budget.currency,
+                            // pct is infinite for a zero limit; the bar clamps,
+                            // but infinity through a clamp stays infinite, so
+                            // it is pinned here instead.
+                            pct: progress.pct.isFinite ? progress.pct : 100,
+                            overLimit: progress.overLimit,
+                            atOrOverThreshold: progress.atOrOverThreshold
+                        ))
+                    }
+                    self.rows = built
+                }
+            } catch {}
+        }
+    }
+}
+
+/* ------------------------------- Goals ------------------------------ */
+
+struct GoalMini: Identifiable, Sendable {
+    let id: String
+    let name: String
+    let isEmergencyFund: Bool
+    let savedMinor: Int64
+    let targetMinor: Int64
+    let currency: String
+    let pct: Double
+}
+
+@Observable
+@MainActor
+final class GoalsTileViewModel {
+    @ObservationIgnored
+    @Injected(\.goalsRepository) private var goalsRepository
+    @ObservationIgnored
+    @Injected(\.authRepository) private var authRepository
+
+    public private(set) var rows: [GoalMini] = []
+
+    private var task: Task<Void, Never>?
+    private var goals: [Goal] = []
+    private var allocations: [GoalAllocation] = []
+
+    func start() {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            guard let userId = await self.resolveUserId() else { return }
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { await self.watchGoals(userId) }
+                group.addTask { await self.watchAllocations(userId) }
+            }
+        }
+    }
+
+    private func watchGoals(_ userId: String) async {
+        do {
+            for try await rows in try goalsRepository.watchGoals(userId: userId) {
+                goals = rows
+                rebuild()
+            }
+        } catch {}
+    }
+
+    private func watchAllocations(_ userId: String) async {
+        do {
+            for try await rows in try goalsRepository.watchAllocations(userId: userId) {
+                allocations = rows
+                rebuild()
+            }
+        } catch {}
+    }
+
+    private func rebuild() {
+        var savedByGoal: [String: Int64] = [:]
+        for allocation in allocations {
+            savedByGoal[allocation.goalId, default: 0] += allocation.amountBlocked
+        }
+        // Web orders emergency funds first, then by priority, and takes six.
+        // The repository already returns that order.
+        rows = goals.prefix(6).map { goal in
+            let saved = savedByGoal[goal.id] ?? 0
+            return GoalMini(
+                id: goal.id,
+                name: goal.name,
+                isEmergencyFund: goal.isEmergencyFund,
+                savedMinor: saved,
+                targetMinor: goal.targetAmount,
+                currency: goal.currency,
+                pct: goal.targetAmount > 0
+                    ? min(100, (Double(saved) / Double(goal.targetAmount)) * 100)
+                    : 0
+            )
+        }
+    }
+
+    /// Spelled out, not `currentUserId ?? (try? await ensureUser())` — `??`'s
+    /// right side is an `@autoclosure` and cannot contain an `await`. The
+    /// parity job greps for that exact mistake because it has reached CI more
+    /// than once; it caught this file too.
+    private func resolveUserId() async -> String? {
+        if let existing = authRepository.currentUserId { return existing }
+        return try? await authRepository.ensureUser()
+    }
+
+}
+
+/* ------------------------------ Splits ------------------------------ */
+
+struct FriendBalanceRow: Identifiable, Sendable {
+    let id: String
+    let name: String
+    let netMinor: Int64
+}
+
+@Observable
+@MainActor
+final class SplitsTileViewModel {
+    @ObservationIgnored
+    @Injected(\.splitsRepository) private var splitsRepository
+    @ObservationIgnored
+    @Injected(\.authRepository) private var authRepository
+
+    public private(set) var owedMinor: Int64 = 0
+    public private(set) var oweMinor: Int64 = 0
+    public private(set) var rows: [FriendBalanceRow] = []
+    public private(set) var hiddenCount = 0
+
+    private var task: Task<Void, Never>?
+
+    /// `friendBalances` is a ONE-SHOT read on iOS, not a stream — see
+    /// SplitsRepository's REACTIVITY NOTE: every derived balance view is a
+    /// snapshot here because `AsyncThrowingStream` has no `combine`. So this
+    /// re-reads it whenever the connections watch fires, which is the same
+    /// pattern SplitsViewModel already uses. **Android's repository combines
+    /// two watches and is genuinely reactive**, which makes this one of the
+    /// few real behavioural asymmetries left; recorded in
+    /// ABSENT-BY-DECISION.md rather than hidden behind a matching signature.
+    func start() {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            guard let userId = await self.resolveUserId() else { return }
+            do {
+                for try await connections in try self.splitsRepository.watchConnections(userId: userId) {
+                    await self.refresh(userId: userId, connections: connections)
+                }
+            } catch {}
+        }
+    }
+
+    private func refresh(userId: String, connections: [UserProfile]) async {
+        guard let balances = try? await splitsRepository.friendBalances(userId: userId) else { return }
+        let namesById = Dictionary(uniqueKeysWithValues: connections.map { ($0.id, $0.name) })
+        // Ranked by SIZE of the balance, not by sign — web sorts on abs(net),
+        // so the person you owe most and the person who owes you most both
+        // surface.
+        let ranked = balances.filter { $0.net != 0 }.sorted { abs($0.net) > abs($1.net) }
+        let top = ranked.prefix(8)
+
+        owedMinor = balances.reduce(Int64(0)) { $0 + max(0, $1.net) }
+        oweMinor = balances.reduce(Int64(0)) { $0 + max(0, -$1.net) }
+        hiddenCount = max(0, ranked.count - top.count)
+        rows = top.map {
+            // An empty name rather than an invented "Someone", which would look
+            // like a real person you owe money to.
+            FriendBalanceRow(id: $0.userId, name: namesById[$0.userId] ?? "", netMinor: $0.net)
+        }
+    }
+
+    /// Spelled out, not `currentUserId ?? (try? await ensureUser())` — `??`'s
+    /// right side is an `@autoclosure` and cannot contain an `await`. The
+    /// parity job greps for that exact mistake because it has reached CI more
+    /// than once; it caught this file too.
+    private func resolveUserId() async -> String? {
+        if let existing = authRepository.currentUserId { return existing }
+        return try? await authRepository.ensureUser()
+    }
+
+}

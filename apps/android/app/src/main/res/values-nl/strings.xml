@@ -320,12 +320,17 @@
     <string name="dashboard_add_widget_intro">Kies een tegel om aan je dashboard toe te voegen. Grootte en volgorde pas je direct op de pagina aan.</string>
     <string name="dashboard_all_added">Elke widget staat al op je dashboard.</string>
     <string name="dashboard_customize">Aanpassen</string>
+    <string name="dashboard_ef_short">Noodfonds</string>
     <string name="dashboard_empty_body">Voeg een widget toe om je geld in één oogopslag te zien.</string>
+    <string name="dashboard_empty_budgets">Nog geen budgetten.</string>
+    <string name="dashboard_empty_goals">Nog geen doelen.</string>
     <string name="dashboard_empty_recent">Nog geen transacties.</string>
     <string name="dashboard_empty_spending">Deze maand nog geen uitgaven vastgelegd.</string>
+    <string name="dashboard_empty_splits">Nog geen openstaande saldi.</string>
     <string name="dashboard_empty_title">Je dashboard is leeg</string>
     <string name="dashboard_empty_upcoming">Niets openstaand.</string>
     <string name="dashboard_more_categories">+%1$s meer</string>
+    <string name="dashboard_more_items">+%1$s meer</string>
     <string name="dashboard_move_down">Omlaag</string>
     <string name="dashboard_move_up">Omhoog</string>
     <string name="dashboard_premium">Premium</string>
@@ -345,6 +350,8 @@
     <string name="dashboard_tile_trends">Uitgaventrends</string>
     <string name="dashboard_tile_upcoming">Aankomende betalingen</string>
     <string name="dashboard_width">Breedte</string>
+    <string name="dashboard_you_are_owed">Jij krijgt</string>
+    <string name="dashboard_you_owe">Jij bent verschuldigd</string>
 
     <!-- data -->
     <string name="data_back_to_settings">Terug naar instellingen</string>

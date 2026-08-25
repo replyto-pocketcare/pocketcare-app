@@ -6858,6 +6858,29 @@
         }
       }
     },
+    "dashboard:efShort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EF"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपातकालीन"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noodfonds"
+          }
+        }
+      }
+    },
     "dashboard:emptyBody": {
       "extractionState": "manual",
       "localizations": {
@@ -6877,6 +6900,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Voeg een widget toe om je geld in één oogopslag te zien."
+          }
+        }
+      }
+    },
+    "dashboard:emptyBudgets": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No budgets yet."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी तक कोई बजट नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen budgetten."
+          }
+        }
+      }
+    },
+    "dashboard:emptyGoals": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No goals yet."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी तक कोई लक्ष्य नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen doelen."
           }
         }
       }
@@ -6923,6 +6992,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Deze maand nog geen uitgaven vastgelegd."
+          }
+        }
+      }
+    },
+    "dashboard:emptySplits": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No open balances yet."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी कोई बकाया नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen openstaande saldi."
           }
         }
       }
@@ -6974,6 +7066,29 @@
       }
     },
     "dashboard:moreCategories": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@ more"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@ और"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@ meer"
+          }
+        }
+      }
+    },
+    "dashboard:moreItems": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -7429,6 +7544,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Breedte"
+          }
+        }
+      }
+    },
+    "dashboard:youAreOwed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're owed"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपको मिलना है"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jij krijgt"
+          }
+        }
+      }
+    },
+    "dashboard:youOwe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You owe"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप पर बकाया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jij bent verschuldigd"
           }
         }
       }

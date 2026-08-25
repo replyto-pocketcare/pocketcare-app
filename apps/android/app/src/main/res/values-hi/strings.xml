@@ -320,12 +320,17 @@
     <string name="dashboard_add_widget_intro">अपने डैशबोर्ड में जोड़ने के लिए एक टाइल चुनें। आकार और क्रम पेज पर ही बदलें।</string>
     <string name="dashboard_all_added">हर विजेट पहले से आपके डैशबोर्ड पर है।</string>
     <string name="dashboard_customize">अनुकूलित करें</string>
+    <string name="dashboard_ef_short">आपातकालीन</string>
     <string name="dashboard_empty_body">एक नज़र में अपना पैसा देखने के लिए विजेट जोड़ें।</string>
+    <string name="dashboard_empty_budgets">अभी तक कोई बजट नहीं।</string>
+    <string name="dashboard_empty_goals">अभी तक कोई लक्ष्य नहीं।</string>
     <string name="dashboard_empty_recent">अभी तक कोई लेन-देन नहीं।</string>
     <string name="dashboard_empty_spending">इस महीने कोई खर्च दर्ज नहीं है।</string>
+    <string name="dashboard_empty_splits">अभी कोई बकाया नहीं।</string>
     <string name="dashboard_empty_title">आपका डैशबोर्ड खाली है</string>
     <string name="dashboard_empty_upcoming">कुछ भी देय नहीं।</string>
     <string name="dashboard_more_categories">+%1$s और</string>
+    <string name="dashboard_more_items">+%1$s और</string>
     <string name="dashboard_move_down">नीचे ले जाएँ</string>
     <string name="dashboard_move_up">ऊपर ले जाएँ</string>
     <string name="dashboard_premium">प्रीमियम</string>
@@ -345,6 +350,8 @@
     <string name="dashboard_tile_trends">खर्च के रुझान</string>
     <string name="dashboard_tile_upcoming">आगामी भुगतान</string>
     <string name="dashboard_width">चौड़ाई</string>
+    <string name="dashboard_you_are_owed">आपको मिलना है</string>
+    <string name="dashboard_you_owe">आप पर बकाया</string>
 
     <!-- data -->
     <string name="data_back_to_settings">सेटिंग्स पर वापस</string>

@@ -19,15 +19,22 @@
   "addWidgetIntro": "Pick a tile to add to your dashboard. Resize and reorder it right on the page.",
   "allAdded": "Every widget is already on your dashboard.",
   "customize": "Customize",
+  "efShort": "EF",
   "emptyBody": "Add a widget to see your money at a glance.",
+  "emptyBudgets": "No budgets yet.",
+  "emptyGoals": "No goals yet.",
   "emptyRecent": "No transactions yet.",
   "emptySpending": "No spending recorded this month.",
+  "emptySplits": "No open balances yet.",
   "emptyTitle": "Your dashboard is empty",
   "emptyUpcoming": "Nothing due.",
   "moreCategories": "+{{count}} more",
+  "moreItems": "+{{count}} more",
   "moveDown": "Move down",
   "moveUp": "Move up",
   "premium": "Premium",
   "premiumNote": "Premium tiles unlock with a Lite or Pro plan.",
-  "width": "Width"
+  "width": "Width",
+  "youAreOwed": "You're owed",
+  "youOwe": "You owe"
 }

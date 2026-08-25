@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,11 +45,13 @@ import com.sanvya.app.ui.transactions.TransactionRowCard
  */
 val TileId.isBuilt: Boolean
     get() = when (this) {
-        TileId.RECENT, TileId.SPENDING, TileId.UPCOMING -> true
-        TileId.TRENDS,
-        TileId.SPLITS,
+        TileId.RECENT,
+        TileId.SPENDING,
+        TileId.UPCOMING,
         TileId.BUDGETS,
         TileId.GOALS,
+        TileId.SPLITS -> true
+        TileId.TRENDS,
         TileId.SUBSCRIPTIONS,
         TileId.CASHFLOW,
         TileId.NET_TREND,
@@ -75,6 +78,9 @@ fun TileView(id: TileId, editing: Boolean, onOpen: () -> Unit) {
         TileId.RECENT -> RecentTile(open)
         TileId.SPENDING -> SpendingTile(open)
         TileId.UPCOMING -> UpcomingTile(open)
+        TileId.BUDGETS -> BudgetsTile(open)
+        TileId.GOALS -> GoalsTile(open)
+        TileId.SPLITS -> SplitsTile(open)
         else -> Unit
     }
 }
@@ -189,7 +195,7 @@ private fun SpendingTile(onOpen: (() -> Unit)?) {
             }
             if (state.hiddenCount > 0) {
                 SanvyaText(
-                    S.Dashboard.moreCategories(sRes(), state.hiddenCount),
+                    S.Dashboard.moreItems(sRes(), state.hiddenCount),
                     style = SanvyaType.statLabel,
                     color = colors.text2,
                 )
@@ -232,6 +238,164 @@ private fun UpcomingTile(onOpen: (() -> Unit)?) {
                         SanvyaText(formatMoney(it, row.currency ?: currency), style = SanvyaType.body)
                     }
                 }
+            }
+        }
+    }
+}
+
+/* ------------------------------ Budgets ----------------------------- */
+
+@Composable
+private fun BudgetsTile(onOpen: (() -> Unit)?) {
+    val viewModel: BudgetsTileViewModel = viewModel()
+    val rows by viewModel.rows.collectAsState()
+
+    HeroTile(S.Dashboard.tileBudgets(sRes()), HeroTint.BUDGETS, onOpen) {
+        if (rows.isEmpty()) {
+            SanvyaText(S.Dashboard.emptyBudgets(sRes()), style = SanvyaType.body, color = heroInkMuted)
+            return@HeroTile
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            rows.forEach { budget ->
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        SanvyaText(
+                            budget.label,
+                            style = SanvyaType.statLabel,
+                            color = heroInk,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        SanvyaText(
+                            formatMoney(budget.spentMinor, budget.currency) +
+                                " / " + formatMoney(budget.limitMinor, budget.currency),
+                            style = SanvyaType.statLabel,
+                            color = heroInkMuted,
+                            maxLines = 1,
+                        )
+                    }
+                    // Three fills, not one: over-limit, at-threshold, and fine.
+                    // Web's own colours -- they are pale on purpose, because
+                    // the track sits on a gradient and a saturated bar would
+                    // fight it.
+                    LightBar(
+                        pct = budget.pct,
+                        color = when {
+                            budget.overLimit -> Color(0xFFF0D8C9)
+                            budget.atOrOverThreshold -> Color(0xFFF3E4C6)
+                            else -> Color(0xFFDDE7C9)
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/* ------------------------------- Goals ------------------------------ */
+
+@Composable
+private fun GoalsTile(onOpen: (() -> Unit)?) {
+    val viewModel: GoalsTileViewModel = viewModel()
+    val rows by viewModel.rows.collectAsState()
+
+    HeroTile(S.Dashboard.tileGoals(sRes()), HeroTint.GOALS, onOpen) {
+        if (rows.isEmpty()) {
+            SanvyaText(S.Dashboard.emptyGoals(sRes()), style = SanvyaType.body, color = heroInkMuted)
+            return@HeroTile
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            rows.forEach { goal ->
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        SanvyaText(
+                            goal.name + if (goal.isEmergencyFund) " · " + S.Dashboard.efShort(sRes()) else "",
+                            style = SanvyaType.statLabel,
+                            color = heroInk,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        SanvyaText(
+                            formatMoney(goal.savedMinor, goal.currency) +
+                                " / " + formatMoney(goal.targetMinor, goal.currency),
+                            style = SanvyaType.statLabel,
+                            color = heroInkMuted,
+                            maxLines = 1,
+                        )
+                    }
+                    LightBar(
+                        pct = goal.pct,
+                        color = if (goal.isEmergencyFund) Color(0xFFC6CDB3) else Color(0xFFF3E4C6),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/* ------------------------------ Splits ------------------------------ */
+
+@Composable
+private fun SplitsTile(onOpen: (() -> Unit)?) {
+    val colors = LocalSanvyaColors.current
+    val viewModel: SplitsTileViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+    val currency = baseCurrencyNow()
+
+    TileShell(S.Dashboard.tileSplits(sRes()), onOpen) {
+        Row(horizontalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
+            Column {
+                SanvyaText(S.Dashboard.youAreOwed(sRes()), style = SanvyaType.statLabel, color = colors.text2)
+                SanvyaText(formatMoney(state.owedMinor, currency), style = SanvyaType.statValue, color = colors.positive)
+            }
+            Column {
+                SanvyaText(S.Dashboard.youOwe(sRes()), style = SanvyaType.statLabel, color = colors.text2)
+                SanvyaText(formatMoney(state.oweMinor, currency), style = SanvyaType.statValue, color = colors.negative)
+            }
+        }
+        if (state.rows.isEmpty()) {
+            Column(Modifier.padding(top = 10.dp)) {
+                SanvyaText(S.Dashboard.emptySplits(sRes()), style = SanvyaType.statLabel, color = colors.text2)
+            }
+            return@TileShell
+        }
+        Column(
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(top = 10.dp),
+        ) {
+            state.rows.forEach { row ->
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    SanvyaText(
+                        row.name,
+                        style = SanvyaType.statLabel,
+                        color = colors.text,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    SanvyaText(
+                        if (row.netMinor > 0) {
+                            // Web builds this as `owes you ${amount}` from the
+                            // same two inline fragments; they exist as keys
+                            // because Splits already renders them.
+                            S.Splits.owesYouInline(sRes()) + " " + formatMoney(row.netMinor, currency)
+                        } else {
+                            S.Splits.youOweInline(sRes()) + " " + formatMoney(-row.netMinor, currency)
+                        },
+                        style = SanvyaType.statLabel,
+                        color = if (row.netMinor > 0) colors.positive else colors.negative,
+                        maxLines = 1,
+                    )
+                }
+            }
+            if (state.hiddenCount > 0) {
+                SanvyaText(
+                    S.Dashboard.moreItems(sRes(), state.hiddenCount),
+                    style = SanvyaType.statLabel,
+                    color = colors.text2,
+                )
             }
         }
     }

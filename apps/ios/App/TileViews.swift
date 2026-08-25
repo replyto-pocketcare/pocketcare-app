@@ -16,8 +16,8 @@ import Domain
 extension TileId {
     var isBuilt: Bool {
         switch self {
-        case .recent, .spending, .upcoming: return true
-        case .trends, .splits, .budgets, .goals, .subscriptions, .cashflow,
+        case .recent, .spending, .upcoming, .budgets, .goals, .splits: return true
+        case .trends, .subscriptions, .cashflow,
              .netTrend, .byCategory, .byLabel, .monthCompare, .currencies: return false
         }
     }
@@ -42,6 +42,9 @@ struct TileView: View {
         case .recent: RecentTile(onOpen: open)
         case .spending: SpendingTile(onOpen: open)
         case .upcoming: UpcomingTile(onOpen: open)
+        case .budgets: BudgetsTile(onOpen: open)
+        case .goals: GoalsTile(onOpen: open)
+        case .splits: SplitsTile(onOpen: open)
         default: EmptyView()
         }
     }
@@ -203,6 +206,158 @@ private struct UpcomingTile: View {
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+        })
+        .onAppear { viewModel.start() }
+    }
+}
+
+/* ------------------------------ Budgets ----------------------------- */
+
+private struct BudgetsTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = BudgetsTileViewModel()
+
+    var body: some View {
+        HeroTile(title: S.Dashboard.tileBudgets, tint: .budgets, onOpen: onOpen) {
+            if viewModel.rows.isEmpty {
+                Text(S.Dashboard.emptyBudgets)
+                    .sanvyaStyle(SanvyaType.body)
+                    .foregroundStyle(heroInkMuted)
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(viewModel.rows) { budget in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 8) {
+                                Text(budget.label)
+                                    .sanvyaStyle(SanvyaType.statLabel)
+                                    .foregroundStyle(heroInk)
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
+                                Text("\(formatMoney(budget.spentMinor, budget.currency)) / \(formatMoney(budget.limitMinor, budget.currency))")
+                                    .sanvyaStyle(SanvyaType.statLabel)
+                                    .foregroundStyle(heroInkMuted)
+                                    .lineLimit(1)
+                            }
+                            // Three fills, not one: over-limit, at-threshold,
+                            // and fine. Web's own colours — pale on purpose,
+                            // because the track sits on a gradient and a
+                            // saturated bar would fight it.
+                            LightBar(
+                                pct: budget.pct,
+                                color: budget.overLimit
+                                    ? Color(hex: "#f0d8c9")!
+                                    : (budget.atOrOverThreshold ? Color(hex: "#f3e4c6")! : Color(hex: "#dde7c9")!)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        .onAppear { viewModel.start() }
+    }
+}
+
+/* ------------------------------- Goals ------------------------------ */
+
+private struct GoalsTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = GoalsTileViewModel()
+
+    var body: some View {
+        HeroTile(title: S.Dashboard.tileGoals, tint: .goals, onOpen: onOpen) {
+            if viewModel.rows.isEmpty {
+                Text(S.Dashboard.emptyGoals)
+                    .sanvyaStyle(SanvyaType.body)
+                    .foregroundStyle(heroInkMuted)
+            } else {
+                VStack(alignment: .leading, spacing: 14) {
+                    ForEach(viewModel.rows) { goal in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 8) {
+                                Text(goal.isEmergencyFund ? "\(goal.name) · \(S.Dashboard.efShort)" : goal.name)
+                                    .sanvyaStyle(SanvyaType.statLabel)
+                                    .foregroundStyle(heroInk)
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
+                                Text("\(formatMoney(goal.savedMinor, goal.currency)) / \(formatMoney(goal.targetMinor, goal.currency))")
+                                    .sanvyaStyle(SanvyaType.statLabel)
+                                    .foregroundStyle(heroInkMuted)
+                                    .lineLimit(1)
+                            }
+                            LightBar(
+                                pct: goal.pct,
+                                color: goal.isEmergencyFund ? Color(hex: "#c6cdb3")! : Color(hex: "#f3e4c6")!
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        .onAppear { viewModel.start() }
+    }
+}
+
+/* ------------------------------ Splits ------------------------------ */
+
+private struct SplitsTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = SplitsTileViewModel()
+
+    var body: some View {
+        TileShell(title: S.Dashboard.tileSplits, onOpen: onOpen, content: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(S.Dashboard.youAreOwed)
+                            .sanvyaStyle(SanvyaType.statLabel)
+                            .foregroundStyle(Color.text2)
+                        Text(formatMoney(viewModel.owedMinor, baseCurrencyNow()))
+                            .sanvyaStyle(SanvyaType.statValue)
+                            .foregroundStyle(Color.positive)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(S.Dashboard.youOwe)
+                            .sanvyaStyle(SanvyaType.statLabel)
+                            .foregroundStyle(Color.text2)
+                        Text(formatMoney(viewModel.oweMinor, baseCurrencyNow()))
+                            .sanvyaStyle(SanvyaType.statValue)
+                            .foregroundStyle(Color.negative)
+                    }
+                    Spacer(minLength: 0)
+                }
+
+                if viewModel.rows.isEmpty {
+                    Text(S.Dashboard.emptySplits)
+                        .sanvyaStyle(SanvyaType.statLabel)
+                        .foregroundStyle(Color.text2)
+                } else {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(viewModel.rows) { row in
+                            HStack(spacing: 8) {
+                                Text(row.name)
+                                    .sanvyaStyle(SanvyaType.statLabel)
+                                    .foregroundStyle(Color.text)
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
+                                // Web builds this from the same two inline
+                                // fragments; they exist as keys because Splits
+                                // already renders them.
+                                Text(row.netMinor > 0
+                                     ? "\(S.Splits.owesYouInline) \(formatMoney(row.netMinor, baseCurrencyNow()))"
+                                     : "\(S.Splits.youOweInline) \(formatMoney(-row.netMinor, baseCurrencyNow()))")
+                                    .sanvyaStyle(SanvyaType.statLabel)
+                                    .foregroundStyle(row.netMinor > 0 ? Color.positive : Color.negative)
+                                    .lineLimit(1)
+                            }
+                        }
+                        if viewModel.hiddenCount > 0 {
+                            Text(S.Dashboard.moreItems(count: viewModel.hiddenCount))
+                                .sanvyaStyle(SanvyaType.statLabel)
+                                .foregroundStyle(Color.text2)
+                        }
                     }
                 }
             }

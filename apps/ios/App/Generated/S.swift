@@ -418,13 +418,20 @@ public enum S {
         public static var addWidgetIntro: String { String(localized: "dashboard:addWidgetIntro", table: "Localizable") }
         public static var allAdded: String { String(localized: "dashboard:allAdded", table: "Localizable") }
         public static var customize: String { String(localized: "dashboard:customize", table: "Localizable") }
+        public static var efShort: String { String(localized: "dashboard:efShort", table: "Localizable") }
         public static var emptyBody: String { String(localized: "dashboard:emptyBody", table: "Localizable") }
+        public static var emptyBudgets: String { String(localized: "dashboard:emptyBudgets", table: "Localizable") }
+        public static var emptyGoals: String { String(localized: "dashboard:emptyGoals", table: "Localizable") }
         public static var emptyRecent: String { String(localized: "dashboard:emptyRecent", table: "Localizable") }
         public static var emptySpending: String { String(localized: "dashboard:emptySpending", table: "Localizable") }
+        public static var emptySplits: String { String(localized: "dashboard:emptySplits", table: "Localizable") }
         public static var emptyTitle: String { String(localized: "dashboard:emptyTitle", table: "Localizable") }
         public static var emptyUpcoming: String { String(localized: "dashboard:emptyUpcoming", table: "Localizable") }
         public static func moreCategories(count: CVarArg) -> String {
             String(format: String(localized: "dashboard:moreCategories", table: "Localizable"), count)
+        }
+        public static func moreItems(count: CVarArg) -> String {
+            String(format: String(localized: "dashboard:moreItems", table: "Localizable"), count)
         }
         public static var moveDown: String { String(localized: "dashboard:moveDown", table: "Localizable") }
         public static var moveUp: String { String(localized: "dashboard:moveUp", table: "Localizable") }
@@ -445,6 +452,8 @@ public enum S {
         public static var tileTrends: String { String(localized: "dashboard:tile.trends", table: "Localizable") }
         public static var tileUpcoming: String { String(localized: "dashboard:tile.upcoming", table: "Localizable") }
         public static var width: String { String(localized: "dashboard:width", table: "Localizable") }
+        public static var youAreOwed: String { String(localized: "dashboard:youAreOwed", table: "Localizable") }
+        public static var youOwe: String { String(localized: "dashboard:youOwe", table: "Localizable") }
     }
 
     public enum Data {
