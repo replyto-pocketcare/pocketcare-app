@@ -181,6 +181,36 @@ fun SanvyaNavHost() {
                 onOpenDirection = { slug -> navController.navigate("recurring/${slug.slug}") },
             )
         }
+        // Create / edit. formDestination, so W2.1's rule applies for free: a
+        // full page below 600dp, a dialog at 600dp and up.
+        formDestination(
+            "recurring/new/{direction}",
+            windowClass,
+            arguments = listOf(navArgument("direction") { type = NavType.StringType }),
+        ) { entry ->
+            com.sanvya.app.ui.recurring.RecurringFormScreen(
+                slug = com.sanvya.app.ui.recurring.RecurringDirectionSlug
+                    .from(entry.arguments?.getString("direction"))
+                    ?: com.sanvya.app.ui.recurring.RecurringDirectionSlug.EXPENSE,
+                onDone = { navController.popBackStack() },
+            )
+        }
+        formDestination(
+            "recurring/{direction}/{itemId}/edit",
+            windowClass,
+            arguments = listOf(
+                navArgument("direction") { type = NavType.StringType },
+                navArgument("itemId") { type = NavType.StringType },
+            ),
+        ) { entry ->
+            com.sanvya.app.ui.recurring.RecurringFormScreen(
+                slug = com.sanvya.app.ui.recurring.RecurringDirectionSlug
+                    .from(entry.arguments?.getString("direction"))
+                    ?: com.sanvya.app.ui.recurring.RecurringDirectionSlug.EXPENSE,
+                editingId = entry.arguments?.getString("itemId"),
+                onDone = { navController.popBackStack() },
+            )
+        }
         composable(
             "recurring/{direction}",
             arguments = listOf(navArgument("direction") { type = NavType.StringType }),
@@ -191,7 +221,11 @@ fun SanvyaNavHost() {
             val slug = com.sanvya.app.ui.recurring.RecurringDirectionSlug
                 .from(entry.arguments?.getString("direction"))
                 ?: com.sanvya.app.ui.recurring.RecurringDirectionSlug.EXPENSE
-            com.sanvya.app.ui.recurring.RecurringDirectionScreen(slug = slug)
+            com.sanvya.app.ui.recurring.RecurringDirectionScreen(
+                slug = slug,
+                onAdd = { navController.navigate("recurring/new/${slug.slug}") },
+                onEdit = { id -> navController.navigate("recurring/${slug.slug}/$id/edit") },
+            )
         }
 
         // Also had no screen and fell through to coming_soon.

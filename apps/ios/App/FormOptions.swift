@@ -26,6 +26,16 @@ public enum FormOptions {
 
     public static let accountTypes = ["savings", "current", "credit_card", "cash", "mutual_funds", "stocks", "demat"]
 
+    /// Accounts that only RECORD investments — they hold holdings, not
+    /// spendable money. Every picker that moves real money filters these out.
+    public static let investmentAccountTypes = ["demat", "stocks", "mutual_funds"]
+
+    /// True when the type is an investment account. Mirrors web isInvestmentAccount.
+    public static func isInvestmentAccount(_ type: String?) -> Bool {
+        guard let type, !type.isEmpty else { return false }
+        return investmentAccountTypes.contains(type)
+    }
+
     /**
      Hex, not `Color`: this is what gets written to `accounts.color`, so all
      three apps must agree on the string. Converted at the point of use.

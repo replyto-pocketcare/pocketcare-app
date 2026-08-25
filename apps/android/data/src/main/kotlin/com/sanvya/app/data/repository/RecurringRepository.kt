@@ -294,6 +294,64 @@ class RecurringRepository(
     }
 
     /**
+     * What the create/edit form supplies. Mirrors web's `RecurringInput`, with
+     * one deliberate difference: [amountMinor] is already in minor units.
+     *
+     * Web's `toRow` does `Math.round(inp.amount * 100)` — a hardcoded x100,
+     * which is wrong for every currency that is not two-decimal (JPY has none,
+     * BHD has three) and against this repo's own golden rule 1. The conversion
+     * happens in the view model here, through `fromMajor`, which asks
+     * `minorUnits(currency)`.
+     */
+    data class Input(
+        val direction: String,
+        val name: String,
+        val amountMinor: Long,
+        val currency: String,
+        val accountId: String?,
+        val toAccountId: String? = null,
+        val categoryId: String? = null,
+        val frequency: String,
+        val firstDue: String,
+        val autoPost: Boolean,
+        val alertTimeUtc: String? = null,
+    )
+
+    private fun Input.toRow(): Map<String, Any?> = mapOf(
+        "direction" to direction,
+        "name" to name.trim(),
+        "amount" to amountMinor,
+        "currency" to currency,
+        "frequency" to frequency,
+        // Web hardcodes 1 here too. Every interval in the UI is "every 1
+        // <frequency>"; the column exists for a multiplier no screen offers yet.
+        "interval_count" to 1L,
+        "next_due" to firstDue,
+        "account_id" to accountId,
+        "to_account_id" to toAccountId,
+        "category_id" to categoryId,
+        // Booleans are INTEGER 0/1 in this schema -- pass Long, not Boolean,
+        // matching setAccountArchived's convention elsewhere in :data.
+        "auto_post" to if (autoPost) 1L else 0L,
+        "alert_time_utc" to alertTimeUtc,
+    )
+
+    /** New commitment. `active = 1`, nothing generated yet. */
+    suspend fun create(userId: String, input: Input): String = insertRow(
+        db, "recurring_items", userId,
+        input.toRow() + mapOf("active" to 1L, "last_generated" to null),
+    )
+
+    /**
+     * Edit an existing one.
+     *
+     * `last_generated` is deliberately untouched: editing the amount of a rent
+     * commitment does not un-post the months already posted, and clearing it
+     * would make the engine's history read as if nothing had ever run.
+     */
+    suspend fun update(id: String, input: Input) = updateRow(db, "recurring_items", id, input.toRow())
+
+    /**
      * Stop a commitment.
      *
      * A soft delete (`deleted_at`), like every other removal in this app —

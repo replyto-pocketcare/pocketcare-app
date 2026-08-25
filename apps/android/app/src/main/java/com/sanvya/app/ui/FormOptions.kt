@@ -27,6 +27,15 @@ object FormOptions {
     val accountTypes = listOf("savings", "current", "credit_card", "cash", "mutual_funds", "stocks", "demat")
 
     /**
+     * Accounts that only RECORD investments — they hold holdings, not spendable
+     * money. Every picker that moves real money filters these out.
+     */
+    val investmentAccountTypes = listOf("demat", "stocks", "mutual_funds")
+
+    /** True when the type is an investment account. Mirrors web isInvestmentAccount. */
+    fun isInvestmentAccount(type: String?): Boolean = !type.isNullOrEmpty() && type in investmentAccountTypes
+
+    /**
      * Hex, not `Color`: this is what gets written to `accounts.color`, so all
      * three apps must agree on the string. Converted at the point of use.
      */

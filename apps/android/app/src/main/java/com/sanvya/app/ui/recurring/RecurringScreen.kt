@@ -61,10 +61,12 @@ private const val BAR_TINT_ALPHA = 0.18f
  * - **Savings/SIPs are excluded**, exactly as on web: a SIP is a transfer
  *   between your own accounts, so counting it as an outflow would understate
  *   what you have spare. They still post and still appear under "Due now".
- * - **Create/edit is not here yet.** Web opens `RecurringModal`; the native
- *   equivalent belongs to W2.1 (full page below 600dp, dialog above), and a
- *   button that opened nothing would be the dead control this audit keeps
- *   finding.
+ * - **Create/edit lives on the direction screens**, not here. Web puts this
+ *   page's Add in the bottom bar via `useRegisterAddAction` (a two-item
+ *   payment/income menu); no native screen registers into `AddAction` yet, so
+ *   there is no honest place to put it on this page. `RecurringFormScreen`
+ *   exists as of 2026-08-25 and the direction screens open it. Recorded in
+ *   ABSENT-BY-DECISION.md.
  * - **The direction rows ARE tappable now** — `/recurring/[direction]` exists
  *   as of 2026-08-24. They were inert until it did.
  */

@@ -28,10 +28,12 @@ Keep this current. Adding a row is part of the change that creates the gap, not 
 
 | Screen | What's absent | Why |
 |---|---|---|
-| Recurring | Create/edit (web's `RecurringModal`) | Belongs to **W2.1** — full page below 600dp, dialog/side panel above, `.fullScreenCover` on iOS phones. A "+" opening nothing is the dead control this audit keeps finding |
 | Recurring → direction | The **category donut** | Both platforms have a `DonutChart`, but each is `private` inside its Insights screen. Sharing one is a refactor of two working screens, not part of this port. The chips carry the names and percentages — the information — and web's own comment calls a single-slice donut "decoration, not information" |
-| Recurring → direction | **Add** and **Edit** | `RecurringModal` is not ported to either platform, so there is nothing for them to open. Same reason the overview has no "+" |
-| Recurring → direction | Web's **kebab menu** | With Edit absent there are only two actions. Hiding two buttons behind a third tap is worse than showing them |
+| Recurring → direction | Web's **kebab menu** | Three actions on a card that has room for three buttons. Hiding them behind a third tap is worse than showing them |
+| Recurring form | **Preset name chips** ("Salary", "Rent", "Electricity"…) | They only fill the name field — pure convenience, no hidden behaviour — and web's list is **hardcoded English** in `RecurringModal.tsx`. Porting it verbatim would put untranslated strings in a screen that is otherwise fully localised. It needs a catalogue entry first |
+| Recurring form | **Alert time** | `alert_time_utc` is written as `null`. A time-of-day picker is a control neither platform's spec has settled, and **the reminder that would consume the column is not built on either platform** — so the field would store a preference nothing reads |
+| Recurring form | A **date picker** for "First due" | Plain ISO text on both, same as Statements. SwiftUI has `DatePicker` and Compose does not; adopting it on one platform only would put the two screens out of step on a field the user rarely changes |
+| Recurring overview + direction | The **shell's contextual "+"** | Web registers each screen's Add into the bottom bar via `useRegisterAddAction` — the overview registers a two-item menu (payment / income), the direction screen a single button. Both native shells have the mechanism (`AddAction`), **but no screen on either platform registers into it, and iOS's `.button` case in `AppShell.runAdd()` is literally `break`** — a no-op. Until that channel is wired end-to-end, Add is an in-page button on the direction screens and the overview has none. Tracked as its own task |
 | Statements | Print | `window.print()` has no phone equivalent. Share/PDF export is a feature to design, not a button to add |
 | Statements | "Analyze" link | Targets `/statements/analyze`, which does not exist natively (see `StatementImportView` above) |
 | Statements | "Go Premium" button | Web links to `/settings`; there is **no native upgrade flow yet**, so the button would go nowhere |

@@ -289,6 +289,85 @@ public final class RecurringRepository: @unchecked Sendable {
         )
     }
 
+    /// What the create/edit form supplies. Mirrors web's `RecurringInput`, with
+    /// one deliberate difference: `amountMinor` is already in minor units.
+    ///
+    /// Web's `toRow` does `Math.round(inp.amount * 100)` — a hardcoded ×100,
+    /// which is wrong for every currency that is not two-decimal (JPY has none,
+    /// BHD has three) and against this repo's own golden rule 1. The conversion
+    /// happens in the view model here, through `fromMajor`, which asks
+    /// `minorUnits(currency)`.
+    public struct Input: Sendable {
+        public let direction: String
+        public let name: String
+        public let amountMinor: Int64
+        public let currency: String
+        public let accountId: String?
+        public let toAccountId: String?
+        public let categoryId: String?
+        public let frequency: String
+        public let firstDue: String
+        public let autoPost: Bool
+        public let alertTimeUtc: String?
+
+        public init(
+            direction: String, name: String, amountMinor: Int64, currency: String,
+            accountId: String?, toAccountId: String? = nil, categoryId: String? = nil,
+            frequency: String, firstDue: String, autoPost: Bool, alertTimeUtc: String? = nil
+        ) {
+            self.direction = direction
+            self.name = name
+            self.amountMinor = amountMinor
+            self.currency = currency
+            self.accountId = accountId
+            self.toAccountId = toAccountId
+            self.categoryId = categoryId
+            self.frequency = frequency
+            self.firstDue = firstDue
+            self.autoPost = autoPost
+            self.alertTimeUtc = alertTimeUtc
+        }
+
+        var row: [String: Sendable?] {
+            [
+                "direction": direction,
+                "name": name.trimmingCharacters(in: .whitespacesAndNewlines),
+                "amount": amountMinor,
+                "currency": currency,
+                "frequency": frequency,
+                // Web hardcodes 1 here too. Every interval in the UI is "every
+                // 1 <frequency>"; the column exists for a multiplier no screen
+                // offers yet.
+                "interval_count": Int64(1),
+                "next_due": firstDue,
+                "account_id": accountId,
+                "to_account_id": toAccountId,
+                "category_id": categoryId,
+                // Booleans are INTEGER 0/1 in this schema.
+                "auto_post": Int64(autoPost ? 1 : 0),
+                "alert_time_utc": alertTimeUtc,
+            ]
+        }
+    }
+
+    /// New commitment. `active = 1`, nothing generated yet.
+    @discardableResult
+    public func create(userId: String, input: Input) async throws -> String {
+        var values = input.row
+        values["active"] = Int64(1)
+        values["last_generated"] = nil
+        return try await insertRow(db: db, table: "recurring_items", userId: userId, values: values)
+    }
+
+    /// Edit an existing one.
+    ///
+    /// `last_generated` is deliberately untouched: editing the amount of a rent
+    /// commitment does not un-post the months already posted, and clearing it
+    /// would make the engine's history read as if nothing had ever run.
+    public func update(id: String, input: Input) async throws {
+        try await updateRow(db: db, table: "recurring_items", id: id, values: input.row)
+    }
+
     /// Stop a commitment.
     ///
     /// A soft delete (`deleted_at`), like every other removal in this app —

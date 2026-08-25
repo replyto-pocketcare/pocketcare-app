@@ -13,14 +13,24 @@ import Domain
 ///   two working screens, not part of this port. The chips below carry the
 ///   names and the percentages — the information — and web's own comment calls
 ///   a single-slice donut "decoration, not information".
-/// - **Add and Edit.** The recurring form (`RecurringModal`) is not ported to
-///   either platform, so there is nothing for them to open.
+/// - ~~Add and Edit~~ — **built 2026-08-25** (`RecurringFormView`).
+/// - **The shell's contextual "+".** Web registers this screen's Add into the
+///   bottom bar via `useRegisterAddAction`. Both native shells have the
+///   mechanism (`AddAction`) but no screen registers into it, and iOS's
+///   `.button` case is `break` — a no-op. Until that channel is wired, Add is
+///   an in-page button here, which is what Android already does.
 struct RecurringDirectionView: View {
     let slug: RecurringDirectionSlug
     var onBack: () -> Void
 
     @State private var viewModel: RecurringDirectionViewModel
     @State private var confirmingRemoval: String?
+    @State private var adding = false
+    @State private var editing: EditTarget?
+
+    /// `.sanvyaFormPresentation(item:)` needs an `Identifiable`, and a bare
+    /// `String` is not one.
+    private struct EditTarget: Identifiable { let id: String }
 
     init(slug: RecurringDirectionSlug, onBack: @escaping () -> Void) {
         self.slug = slug
@@ -35,8 +45,13 @@ struct RecurringDirectionView: View {
     var body: some View {
         ScrollView {
             SanvyaPage(isIncome ? S.Recurring.incomes : S.Recurring.payments) {
-                Button(action: onBack) {
-                    Text(S.Translation.commonBack).foregroundStyle(Color.text2)
+                HStack(spacing: 8) {
+                    Button(action: onBack) {
+                        Text(S.Translation.commonBack).foregroundStyle(Color.text2)
+                    }
+                    SanvyaButton { adding = true } label: {
+                        Text(S.Recurring.add)
+                    }
                 }
             } content: {
                 summaryCard
@@ -53,6 +68,12 @@ struct RecurringDirectionView: View {
         }
         .background(Color.bg.ignoresSafeArea())
         .onAppear { viewModel.start() }
+        .sanvyaFormPresentation(isPresented: $adding) {
+            RecurringFormView(slug: slug)
+        }
+        .sanvyaFormPresentation(item: $editing) { target in
+            RecurringFormView(slug: slug, editingId: target.id)
+        }
         // Removal is confirmed, matching web. It is a soft delete and therefore
         // recoverable in the database, but not by the user from this screen.
         .alert(
@@ -140,10 +161,13 @@ struct RecurringDirectionView: View {
                         .sanvyaStyle(SanvyaType.body)
                         .foregroundStyle(tint)
                 }
-                // Two plain buttons rather than web's kebab menu: with Edit
-                // absent there are only two actions, and hiding two buttons
-                // behind a third tap is worse than showing them.
+                // Three plain buttons rather than web's kebab menu: hiding
+                // three actions behind a third tap is worse than showing them
+                // on a card that has room.
                 HStack(spacing: 8) {
+                    SanvyaButton(ghost: true) { editing = EditTarget(id: item.id) } label: {
+                        Text(S.Recurring.edit)
+                    }
                     SanvyaButton(ghost: true) { viewModel.recordNow(id: item.id) } label: {
                         Text(S.Recurring.postNow)
                     }

@@ -42,6 +42,12 @@ const IOS_OUT = path.join(REPO_ROOT, "apps/ios/App/FormOptions.swift");
 
 const src = readFileSync(SRC, "utf8");
 
+// INVESTMENT_ACCOUNT_TYPES lives in packages/types, not the catalog: it is a
+// behavioural rule about which accounts can move money, not a picker's option
+// list. Read as a second source rather than duplicated into the catalog.
+const TYPES_SRC = path.join(REPO_ROOT, "packages/types/src/index.ts");
+const typesSrc = readFileSync(TYPES_SRC, "utf8");
+
 /** Pull a `export const NAME = [ … ] as const;` string array out of the source. */
 function stringArray(name) {
   const m = src.match(new RegExp(`export const ${name} = \\[([\\s\\S]*?)\\] as const;`));
@@ -69,6 +75,41 @@ function genders() {
 const CURRENCIES = stringArray("CURRENCIES");
 const PERIODS = stringArray("PERIODS");
 const ACCOUNT_TYPES = stringArray("ACCOUNT_TYPES");
+
+/**
+ * INVESTMENT_ACCOUNT_TYPES, resolved through the AccountType map.
+ *
+ * `stringArray` cannot read it: unlike every other list here it is declared as
+ * `readonly AccountType[]` rather than `as const`, and its entries are
+ * `AccountType.Demat`-style references rather than string literals.
+ *
+ * It matters enough to generate rather than retype. Accounts that only RECORD
+ * investments cannot pay a bill or settle a split — money would have to be
+ * sold, settled and withdrawn first — so every picker that moves real money
+ * filters on this list. Three strings copied into two native codebases is three
+ * strings that silently stop matching the day a fourth type is added.
+ */
+function investmentAccountTypes() {
+  const map = typesSrc.match(/export const AccountType = \{([\s\S]*?)\} as const;/);
+  if (!map) throw new Error("generate-options: AccountType map not found");
+  const byName = Object.fromEntries(
+    [...map[1].matchAll(/(\w+):\s*"([^"]*)"/g)].map(([, name, value]) => [name, value]),
+  );
+
+  const list = typesSrc.match(/export const INVESTMENT_ACCOUNT_TYPES[^=]*=\s*\[([\s\S]*?)\];/);
+  if (!list) throw new Error("generate-options: INVESTMENT_ACCOUNT_TYPES not found");
+  const values = [...list[1].matchAll(/AccountType\.(\w+)/g)].map(([, name]) => {
+    const value = byName[name];
+    // A silent undefined here would emit a filter that excludes nothing, i.e.
+    // demat accounts quietly offered as a way to pay a credit card bill.
+    if (!value) throw new Error(`generate-options: AccountType.${name} has no value`);
+    return value;
+  });
+  if (values.length === 0) throw new Error("generate-options: INVESTMENT_ACCOUNT_TYPES parsed to 0 rows");
+  return values;
+}
+
+const INVESTMENT_ACCOUNT_TYPES = investmentAccountTypes();
 const ACCOUNT_COLORS = stringArray("ACCOUNT_COLORS");
 const COUNTRIES = stringArray("COUNTRIES");
 const GENDERS = genders();
@@ -109,6 +150,15 @@ object FormOptions {
     val periods = listOf(${ktList(PERIODS)})
 
     val accountTypes = listOf(${ktList(ACCOUNT_TYPES)})
+
+    /**
+     * Accounts that only RECORD investments — they hold holdings, not spendable
+     * money. Every picker that moves real money filters these out.
+     */
+    val investmentAccountTypes = listOf(${ktList(INVESTMENT_ACCOUNT_TYPES)})
+
+    /** True when the type is an investment account. Mirrors web isInvestmentAccount. */
+    fun isInvestmentAccount(type: String?): Boolean = !type.isNullOrEmpty() && type in investmentAccountTypes
 
     /**
      * Hex, not \`Color\`: this is what gets written to \`accounts.color\`, so all
@@ -178,6 +228,16 @@ public enum FormOptions {
 
     public static let accountTypes = [${swiftList(ACCOUNT_TYPES)}]
 
+    /// Accounts that only RECORD investments — they hold holdings, not
+    /// spendable money. Every picker that moves real money filters these out.
+    public static let investmentAccountTypes = [${swiftList(INVESTMENT_ACCOUNT_TYPES)}]
+
+    /// True when the type is an investment account. Mirrors web isInvestmentAccount.
+    public static func isInvestmentAccount(_ type: String?) -> Bool {
+        guard let type, !type.isEmpty else { return false }
+        return investmentAccountTypes.contains(type)
+    }
+
     /**
      Hex, not \`Color\`: this is what gets written to \`accounts.color\`, so all
      three apps must agree on the string. Converted at the point of use.
@@ -233,7 +293,7 @@ for (const [out, body] of [[ANDROID_OUT, androidKt], [IOS_OUT, iosSwift]]) {
 
 console.log(
   `catalog: ${CURRENCIES.length} currencies, ${PERIODS.length} periods, ` +
-    `${ACCOUNT_TYPES.length} account types, ${ACCOUNT_COLORS.length} colours, ` +
+    `${ACCOUNT_TYPES.length} account types (${INVESTMENT_ACCOUNT_TYPES.length} investment), ${ACCOUNT_COLORS.length} colours, ` +
     `${GENDERS.length} genders, ${COUNTRIES.length} countries.`,
 );
 console.log("Wrote:");

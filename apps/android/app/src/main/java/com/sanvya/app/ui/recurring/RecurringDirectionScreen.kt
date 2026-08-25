@@ -55,12 +55,13 @@ import com.sanvya.app.ui.components.SanvyaText
  *   working screens, not part of this port. The chips below carry the names and
  *   the percentages — the information — and web's own comment calls a
  *   single-slice donut "decoration, not information".
- * - **Add and Edit.** The recurring form (`RecurringModal`) is not ported to
- *   either platform, so there is nothing for them to open.
+ * - ~~Add and Edit~~ — **built 2026-08-24** (`RecurringFormScreen`).
  */
 @Composable
 fun RecurringDirectionScreen(
     slug: RecurringDirectionSlug,
+    onAdd: () -> Unit = {},
+    onEdit: (String) -> Unit = {},
     viewModel: RecurringDirectionViewModel = viewModel(),
 ) {
     val colors = LocalSanvyaColors.current
@@ -79,6 +80,11 @@ fun RecurringDirectionScreen(
     SanvyaPage(
         title = if (isIncome) S.Recurring.incomes(sRes()) else S.Recurring.payments(sRes()),
         modifier = Modifier.verticalScroll(rememberScrollState()),
+        action = {
+            SanvyaButton(onClick = onAdd) {
+                SanvyaText(S.Recurring.add(sRes()), style = SanvyaType.button)
+            }
+        },
     ) {
         SanvyaCard(padding = PaddingValues(18.dp)) {
             Eyebrow(S.Recurring.perMonthLabel(sRes()))
@@ -154,9 +160,12 @@ fun RecurringDirectionScreen(
                     }
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Two plain buttons rather than web's kebab menu: with
-                        // Edit absent there are only two actions, and hiding two
-                        // buttons behind a third tap is worse than showing them.
+                        // Three plain buttons rather than web's kebab menu:
+                        // hiding three actions behind a third tap is worse than
+                        // showing them on a card that has room.
+                        SanvyaButton(onClick = { onEdit(item.id) }, ghost = true) {
+                            SanvyaText(S.Recurring.edit(sRes()), style = SanvyaType.button)
+                        }
                         SanvyaButton(onClick = { viewModel.recordNow(item.id) }, ghost = true) {
                             SanvyaText(S.Recurring.postNow(sRes()), style = SanvyaType.button)
                         }
