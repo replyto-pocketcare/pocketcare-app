@@ -117,6 +117,14 @@ class VectorRunnerTest {
         runDomain("finance")
     }
     @Test
+    fun `dashboard-grid`() {
+        // TileGrid.kt's packRows(). Unusually, these vectors are the SPEC:
+        // there is no web function to record, because the browser packs the
+        // dashboard in CSS.
+        com.sanvya.app.domain.dashboard.registerTileGridVectors()
+        runDomain("dashboard-grid")
+    }
+    @Test
     fun `recurring-advance`() {
         // Recurring.kt's advance(). The vectors pre-dated the implementation --
         // re-pinned to clamping 2026-08-23, unenforced until now.

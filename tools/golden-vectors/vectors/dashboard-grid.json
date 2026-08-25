@@ -1,0 +1,315 @@
+[
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 2
+        },
+        {
+          "id": "b",
+          "columns": 4
+        },
+        {
+          "id": "c",
+          "columns": 1
+        }
+      ],
+      "columns": 1
+    },
+    "expected": [
+      [
+        "a"
+      ],
+      [
+        "b"
+      ],
+      [
+        "c"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 2
+        },
+        {
+          "id": "b",
+          "columns": 2
+        }
+      ],
+      "columns": 4
+    },
+    "expected": [
+      [
+        "a",
+        "b"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 2
+        },
+        {
+          "id": "b",
+          "columns": 2
+        },
+        {
+          "id": "c",
+          "columns": 2
+        }
+      ],
+      "columns": 4
+    },
+    "expected": [
+      [
+        "a",
+        "b"
+      ],
+      [
+        "c"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 1
+        },
+        {
+          "id": "b",
+          "columns": 1
+        },
+        {
+          "id": "c",
+          "columns": 1
+        },
+        {
+          "id": "d",
+          "columns": 1
+        }
+      ],
+      "columns": 4
+    },
+    "expected": [
+      [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 1
+        },
+        {
+          "id": "b",
+          "columns": 1
+        },
+        {
+          "id": "c",
+          "columns": 4
+        },
+        {
+          "id": "d",
+          "columns": 1
+        }
+      ],
+      "columns": 4
+    },
+    "expected": [
+      [
+        "a",
+        "b"
+      ],
+      [
+        "c"
+      ],
+      [
+        "d"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 4
+        }
+      ],
+      "columns": 4
+    },
+    "expected": [
+      [
+        "a"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 2
+        },
+        {
+          "id": "b",
+          "columns": 2
+        }
+      ],
+      "columns": 2
+    },
+    "expected": [
+      [
+        "a"
+      ],
+      [
+        "b"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [],
+      "columns": 4
+    },
+    "expected": []
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 1
+        },
+        {
+          "id": "b",
+          "columns": 2
+        },
+        {
+          "id": "c",
+          "columns": 1
+        }
+      ],
+      "columns": 4
+    },
+    "expected": [
+      [
+        "a",
+        "b",
+        "c"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 4
+        },
+        {
+          "id": "b",
+          "columns": 1
+        }
+      ],
+      "columns": 2
+    },
+    "expected": [
+      [
+        "a"
+      ],
+      [
+        "b"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 2
+        },
+        {
+          "id": "b",
+          "columns": 2
+        }
+      ],
+      "columns": 0
+    },
+    "expected": [
+      [
+        "a"
+      ],
+      [
+        "b"
+      ]
+    ]
+  },
+  {
+    "fn": "packRows",
+    "input": {
+      "tiles": [
+        {
+          "id": "a",
+          "columns": 0
+        },
+        {
+          "id": "b",
+          "columns": 0
+        },
+        {
+          "id": "c",
+          "columns": 0
+        },
+        {
+          "id": "d",
+          "columns": 0
+        },
+        {
+          "id": "e",
+          "columns": 0
+        }
+      ],
+      "columns": 4
+    },
+    "expected": [
+      [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      [
+        "e"
+      ]
+    ]
+  }
+]

@@ -95,6 +95,13 @@ final class VectorRunnerTests: XCTestCase {
         registerFinanceVectors()
         try runDomain("finance")
     }
+    func testDashboardGrid() throws {
+        // TileGrid.swift's packRows(). Unusually, these vectors are the SPEC:
+        // there is no web function to record, because the browser packs the
+        // dashboard in CSS.
+        registerTileGridVectors()
+        try runDomain("dashboard-grid")
+    }
     func testRecurringAdvance() throws {
         // Recurring.swift's advance(). The vectors pre-dated the implementation
         // -- re-pinned to clamping 2026-08-23, unenforced until now.
