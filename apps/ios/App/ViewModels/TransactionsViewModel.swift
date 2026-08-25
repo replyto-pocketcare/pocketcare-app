@@ -101,51 +101,11 @@ public final class TransactionsViewModel {
             .sorted { $0.occurredAt > $1.occurredAt }
             .prefix(200)
 
-        items = filtered.map { toListItem($0) }
-    }
-
-    private func toListItem(_ txn: TransactionRow) -> TransactionListItem {
-        let categoryName = txn.categoryId.flatMap { categoryMap[$0]?.name } ?? S.Transactions.uncategorised
-        let labels = labelNames[txn.id]
-        let labelsCsv = labels?.joined(separator: ", ")
-        var raw = (txn.description ?? labelsCsv ?? categoryName).trimmingCharacters(in: .whitespaces)
-        if raw.isEmpty { raw = txn.type }
-        let title = merchantTitle(raw)
-        let subtitle = raw != title ? raw : ""
-        let tags = txTags(categoryName, labels)
-        let tagsText = tags.map(\.text).joined(separator: "  ·  ")
-        let account = accountMap[txn.accountId]
-
-        let sign = txn.type == "expense" ? "\u{2212}" : (txn.type == "income" ? "+" : "")
-        let formatted = formatMoney(txn.amount, txn.currency)
-
-        let dateFormatted: String
-        if let date = parseOccurredAt(txn.occurredAt) {
-            if Calendar.current.isDateInToday(date) {
-                dateFormatted = S.Statements.today
-            } else if Calendar.current.isDateInYesterday(date) {
-                dateFormatted = S.Statements.yesterday
-            } else {
-                let df = DateFormatter()
-                df.dateFormat = "MMM d"
-                dateFormatted = df.string(from: date)
-            }
-        } else {
-            dateFormatted = String(txn.occurredAt.prefix(10))
+        items = filtered.map {
+            transactionListItem($0, accountMap: accountMap, categoryMap: categoryMap, labels: labelNames[$0.id])
         }
-
-        return TransactionListItem(
-            id: txn.id,
-            title: title,
-            subtitle: subtitle,
-            tagsText: tagsText,
-            accountName: account?.name,
-            amountFormatted: "\(sign)\(formatted)",
-            isPositive: txn.type == "income",
-            dateFormatted: dateFormatted,
-            avatarLetter: String((title.first ?? "•")).uppercased()
-        )
     }
+
 }
 
 /// Tries with-fractional-seconds first, falls back to the plain ISO8601

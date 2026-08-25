@@ -19,6 +19,15 @@ private func paletteColor(_ hex: String) -> Color { Color(hex: hex) ?? .gray }
 
 let accountColors: [Color] = FormOptions.accountColors.map(paletteColor)
 
+/// The two CHART palettes, which are neither the account palette nor each other.
+///
+/// Web keeps them in two files — `insights/types.ts` and `dashboard/tiles.tsx` —
+/// and they have drifted apart at the last two entries, despite the first one's
+/// comment claiming they match. Both are generated into `FormOptions` now, so
+/// the drift is at least honest and in one place.
+let chartColors: [Color] = FormOptions.chartColors.map(paletteColor)
+let dashboardChartColors: [Color] = FormOptions.dashboardChartColors.map(paletteColor)
+
 private let fallbackAccountColor = paletteColor(FormOptions.fallbackAccountColor)
 
 /**

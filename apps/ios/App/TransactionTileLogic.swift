@@ -1,4 +1,5 @@
 import SwiftUI
+import Data
 
 /// Ported byte-for-byte from apps/web/src/ui/TransactionTile.tsx's
 /// avatarColor/merchantTitle/txTags -- the shared row logic used everywhere
@@ -55,4 +56,63 @@ func txTags(_ categoryName: String?, _ labels: [String]?) -> [TxTag] {
     }
     for n in names { out.append(TxTag(icon: "label", text: n)) }
     return out
+}
+
+/* ------------------------------------------------------------------ *
+ * The one function that builds a row's model.
+ *
+ * It lived inside TransactionsViewModel, private, until 2026-08-25 — which is
+ * why this file's header says the dashboard's Recent Activity tile "should use
+ * this too, not a second copy". It could not: the builder it needed was sealed
+ * inside a view model it had no business owning.
+ *
+ * Promoted rather than copied. Re-inlining is the failure mode the audit's
+ * component inventory exists to catch, and it had already happened twice.
+ * ------------------------------------------------------------------ */
+
+func transactionListItem(
+    _ txn: TransactionRow,
+    accountMap: [String: Account],
+    categoryMap: [String: CategoryRow],
+    labels: [String]?
+) -> TransactionListItem {
+    let categoryName = txn.categoryId.flatMap { categoryMap[$0]?.name } ?? S.Transactions.uncategorised
+    let labelsCsv = labels?.joined(separator: ", ")
+    var raw = (txn.description ?? labelsCsv ?? categoryName).trimmingCharacters(in: .whitespaces)
+    if raw.isEmpty { raw = txn.type }
+    let title = merchantTitle(raw)
+    let subtitle = raw != title ? raw : ""
+    let tags = txTags(categoryName, labels)
+    let tagsText = tags.map(\.text).joined(separator: "  ·  ")
+    let account = accountMap[txn.accountId]
+
+    let sign = txn.type == "expense" ? "\u{2212}" : (txn.type == "income" ? "+" : "")
+    let formatted = formatMoney(txn.amount, txn.currency)
+
+    let dateFormatted: String
+    if let date = parseOccurredAt(txn.occurredAt) {
+        if Calendar.current.isDateInToday(date) {
+            dateFormatted = S.Statements.today
+        } else if Calendar.current.isDateInYesterday(date) {
+            dateFormatted = S.Statements.yesterday
+        } else {
+            let df = DateFormatter()
+            df.dateFormat = "MMM d"
+            dateFormatted = df.string(from: date)
+        }
+    } else {
+        dateFormatted = String(txn.occurredAt.prefix(10))
+    }
+
+    return TransactionListItem(
+        id: txn.id,
+        title: title,
+        subtitle: subtitle,
+        tagsText: tagsText,
+        accountName: account?.name,
+        amountFormatted: "\(sign)\(formatted)",
+        isPositive: txn.type == "income",
+        dateFormatted: dateFormatted,
+        avatarLetter: String((title.first ?? "•")).uppercased()
+    )
 }

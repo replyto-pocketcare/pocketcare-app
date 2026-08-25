@@ -10,7 +10,18 @@ private struct IdentifiableString: Identifiable {
 }
 
 struct DashboardView: View {
+    /// A tile's "more details" tap writes here, the same channel Insights and
+    /// Cards already use. The shell owns navigation; nothing here pushes its
+    /// own NavigationStack.
+    @Binding var currentTab: NavTab
+
     @State private var viewModel = Container.shared.dashboardViewModel()
+    /// Entitlement gates the five premium tiles. The shell already computes it
+    /// for the receipt-scan lock, so this asks it rather than re-deriving
+    /// isPaid() — the same reason the chart palettes moved into FormOptions.
+    @State private var shellViewModel = ShellViewModel()
+    @State private var editing = false
+    @State private var addOpen = false
     // Hide-amounts is a real, load-bearing toggle (Settings > "Hide Amounts",
     // apps/web's useMoneyFmt()) -- was missing entirely from this screen
     // until 2026-08-05 (found auditing for the Accounts screen pass, fixed
@@ -119,7 +130,17 @@ struct DashboardView: View {
                             // Android's DashboardScreen.kt card exactly (found
                             // missing on iOS 2026-08-06, Akhilesh: "I don't see
                             // an option to add widgets").
-                            WidgetsComingSoonCard()
+                            DashboardTileGrid(
+                                editing: editing,
+                                isPaid: shellViewModel.canScan,
+                                onOpen: { currentTab = $0 }
+                            )
+                            if editing {
+                                SanvyaButton { addOpen = true } label: {
+                                    Text(S.Dashboard.addWidget)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
                         }
                         .padding(16)
                     }
@@ -133,14 +154,20 @@ struct DashboardView: View {
                 // (DashboardScreen.kt) only ported the hide/show eye-toggle
                 // of those three (plus Transactions/Settings icons, which
                 // duplicate paths the hamburger drawer already covers on
-                // both platforms). Matching Android's actual header exactly
-                // here rather than the fuller web spec, so the two mobile
-                // apps stay in lockstep -- "Customize" and a header
-                // "+Account" are both skipped for the same reason Android
-                // skipped them: account creation is already one tap away
-                // (empty-state CTA when there are none, Accounts screen's
-                // own "+" once there are some), and Customize has nothing
-                // to open until the tile catalog itself is built.
+                // both platforms). A header "+Account" is still skipped for
+                // the reason Android skipped it: account creation is already
+                // one tap away (empty-state CTA when there are none, the
+                // Accounts screen's own "+" once there are some).
+                //
+                // "Customize" was skipped too, because it had nothing to open
+                // until the tile catalog itself was built. It does now, so it
+                // is here — on both platforms, in the same pass.
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button { editing.toggle() } label: {
+                        Text(editing ? S.Translation.commonDone : S.Dashboard.customize)
+                            .foregroundColor(Color.accent)
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         prefs.amountsHidden.toggle()
@@ -177,6 +204,10 @@ struct DashboardView: View {
                 onCancel: { reviewingScanId = nil }
             )
         }
+        .sanvyaModal(isPresented: $addOpen, label: S.Dashboard.addWidget) {
+            AddWidgetSheet(isPaid: shellViewModel.canScan, onClose: { addOpen = false })
+        }
+        .task { shellViewModel.start() }
         .onAppear {
             viewModel.start()
         }
@@ -275,29 +306,8 @@ struct DashboardEmptyStateView: View {
     }
 }
 
-/// Stand-in for the deferred 12-tile customizable grid -- matches Android's
-/// DashboardScreen.kt "More widgets coming soon" card exactly (word for
-/// word), so the two platforms say the same thing rather than one being
-/// silent about it.
-struct WidgetsComingSoonCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("More widgets coming soon")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(Color.text)
-            Text("Spending, budgets, goals, and trend tiles are on the way.")
-                .font(.system(size: 13))
-                .foregroundColor(Color.text2)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(20)
-        .background(Color.surface)
-        .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusLg, style: .continuous))
-    }
-}
-
 #Preview {
-    DashboardView()
+    DashboardView(currentTab: .constant(.dashboard))
 }
 
 // MARK: - Net-worth hero

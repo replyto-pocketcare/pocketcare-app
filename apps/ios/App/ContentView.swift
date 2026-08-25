@@ -24,7 +24,7 @@ struct ContentView: View {
     @ViewBuilder
     private func screen(for tab: Binding<NavTab>) -> some View {
         switch tab.wrappedValue {
-        case .dashboard:     DashboardView()
+        case .dashboard:     DashboardView(currentTab: tab)
         case .assistant:     AssistantView()
 
         case .accounts:      AccountsView()
