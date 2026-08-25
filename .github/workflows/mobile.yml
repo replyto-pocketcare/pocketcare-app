@@ -104,6 +104,11 @@ jobs:
       # through a human to push again.
       - name: Known Swift traps
         run: node tools/parity/check-swift-traps.mjs 2>&1 | tee -a parity.log
+      # Same idea, other platform. Kotlin's error for a missing import names an
+      # unrelated class in an unrelated library -- see the script's header --
+      # so this one saves more debugging than the Swift greps do.
+      - name: Kotlin imports
+        run: node tools/parity/check-kotlin-imports.mjs 2>&1 | tee -a parity.log
       - name: Fail if generated output drifted
         run: |
           if ! git diff --exit-code | tee -a parity.log; then

@@ -86,6 +86,7 @@ Not gaps — the opposite. Each of these was written after the same error reache
 | Guard | Catches | Where |
 |---|---|---|
 | `tools/parity/check-swift-traps.mjs` | `await` inside `??` (its RHS is an `@autoclosure`, so the compiler blames the `??` and the message names neither); `UUID().uuidString` on a persisted id (Swift's is UPPERCASE, SQLite compares TEXT case-sensitively) | `parity` CI job — seconds, not a 10-minute macOS build |
+| `tools/parity/check-kotlin-imports.mjs` | A Kotlin symbol used without an import. Kotlin's error for this names an unrelated class: a missing `rememberSaveable` produced *"Cannot access 'fun WideNavigationRailValue.not()'"*, because an untyped `editing` resolved `!editing` against a Material3 extension. `rememberSaveable` is the specific trap — it is in `androidx.compose.runtime.saveable`, so the `runtime.*` wildcard most screens already have does **not** cover it | `parity` CI job |
 | Schema generators in `parity` | `PocketCareSchema.kt/.swift` drifting from `packages/db`'s `AppSchema`. They were **not** in the job, which is how the native schema fell four migrations behind in silence | `parity` CI job |
 
 ---
