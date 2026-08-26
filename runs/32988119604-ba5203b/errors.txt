@@ -1,0 +1,112 @@
+879:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+883:     |                         `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+887:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+891:     |                          `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+905:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+909:     |                         `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+913:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+917:     |                          `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+931:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+935:     |                         `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+939:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+943:     |                          `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+957:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+961:     |                         `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+965:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+969:     |                          `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+983:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+987:     |                         `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+991:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+995:     |                          `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1009:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1013:     |                         `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1017:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1021:     |                          `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1035:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1039:     |                         `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1043:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1047:     |                          `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1061:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1065:     |                         `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1069:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1073:     |                          `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1087:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1091:     |                         `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1095:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1099:     |                          `- error: reference to captured var 'rateMap' in concurrently-executing code [#SendableClosureCaptures]
+1129: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1134:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1142: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1153: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1158:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1166: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1177: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1182:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1190: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1201: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1206:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1214: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1225: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1230:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1238: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1249: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1254:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1262: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1273: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1278:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1286: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1297: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1302:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1310: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1321: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1326:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1334: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1342:320 |                         .in("id", value: chunk)
+1344:    |                          `- note: use 'in(_:values:)' instead
+1351:206 |                         try await rel.delete().in("id", value: ids).execute()
+1353:    |                                                `- note: use 'in(_:values:)' instead
+1378:320 |                         .in("id", value: chunk)
+1380:    |                          `- note: use 'in(_:values:)' instead
+1387:206 |                         try await rel.delete().in("id", value: ids).execute()
+1389:    |                                                `- note: use 'in(_:values:)' instead
+1414:320 |                         .in("id", value: chunk)
+1416:    |                          `- note: use 'in(_:values:)' instead
+1423:206 |                         try await rel.delete().in("id", value: ids).execute()
+1425:    |                                                `- note: use 'in(_:values:)' instead
+1450:320 |                         .in("id", value: chunk)
+1452:    |                          `- note: use 'in(_:values:)' instead
+1459:206 |                         try await rel.delete().in("id", value: ids).execute()
+1461:    |                                                `- note: use 'in(_:values:)' instead
+1486:320 |                         .in("id", value: chunk)
+1488:    |                          `- note: use 'in(_:values:)' instead
+1495:206 |                         try await rel.delete().in("id", value: ids).execute()
+1497:    |                                                `- note: use 'in(_:values:)' instead
+1522:320 |                         .in("id", value: chunk)
+1524:    |                          `- note: use 'in(_:values:)' instead
+1531:206 |                         try await rel.delete().in("id", value: ids).execute()
+1533:    |                                                `- note: use 'in(_:values:)' instead
+1558:320 |                         .in("id", value: chunk)
+1560:    |                          `- note: use 'in(_:values:)' instead
+1567:206 |                         try await rel.delete().in("id", value: ids).execute()
+1569:    |                                                `- note: use 'in(_:values:)' instead
+1594:320 |                         .in("id", value: chunk)
+1596:    |                          `- note: use 'in(_:values:)' instead
+1603:206 |                         try await rel.delete().in("id", value: ids).execute()
+1605:    |                                                `- note: use 'in(_:values:)' instead
+1630:320 |                         .in("id", value: chunk)
+1632:    |                          `- note: use 'in(_:values:)' instead
+1639:206 |                         try await rel.delete().in("id", value: ids).execute()
+1641:    |                                                `- note: use 'in(_:values:)' instead
+1767:  Supabase: https://github.com/supabase/supabase-swift.git @ 2.54.1
+1770:  CSQLite: https://github.com/powersync-ja/CSQLite.git @ 3.51.2
+1771:  PowerSyncSQLiteCore: https://github.com/powersync-ja/powersync-sqlite-core-swift.git @ 0.4.13
+1788:note: Building targets in dependency order
+1789:note: Target dependency graph (47 targets)
+1994:Build description signature: 50b0f9e55ffadffa03b5b9faaa984204
+3221:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3274:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3387:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3967:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+7825:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:170:25: error: reference to captured var 'rateMap' in concurrently-executing code
+7828:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:171:26: error: reference to captured var 'rateMap' in concurrently-executing code
+7955:** TEST FAILED **
