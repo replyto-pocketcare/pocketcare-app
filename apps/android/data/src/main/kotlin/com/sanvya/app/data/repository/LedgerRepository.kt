@@ -70,6 +70,7 @@ import com.sanvya.app.domain.ledger.deriveBalance
 import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.itemsReconcile
 import com.sanvya.app.domain.money.money
+import com.sanvya.app.domain.splits.SplitPosting
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -269,6 +270,57 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
     fun watchAllTransactions(): Flow<List<TransactionRow>> = db.watch(
         "SELECT * FROM transactions WHERE deleted_at IS NULL ORDER BY occurred_at DESC",
         mapper = ::transactionMapper,
+    )
+
+    /**
+     * The Search screen's haystack -- web's `app/search/page.tsx` query.
+     *
+     * Three details that are the query, not decoration:
+     *
+     * - **`type != 'opening_balance'`.** An opening balance is bookkeeping, not
+     *   something the user did, and it is not searchable on web either.
+     * - **`LIMIT 2000`.** Search filters in memory, so the cap is what stops a
+     *   decade of history from being held in RAM to answer one query. It is
+     *   web's number; the visible result cap (300) is separate and lives in
+     *   domain's `SEARCH_RESULT_LIMIT`.
+     * - **Newest first.** `searchTransactions` preserves input order, so the
+     *   ORDER BY here IS the result order.
+     */
+    fun watchSearchTransactions(): Flow<List<TransactionRow>> = db.watch(
+        """
+        SELECT * FROM transactions
+         WHERE deleted_at IS NULL AND type != 'opening_balance'
+         ORDER BY occurred_at DESC LIMIT 2000
+        """.trimIndent(),
+        mapper = ::transactionMapper,
+    )
+
+    /**
+     * Every split posting joined to its transaction -- web's `useSplitInfo`.
+     *
+     * Returns domain's [SplitPosting] rather than a data-local twin: the
+     * aggregation that consumes it is vector-tested in domain, and a second row
+     * shape here would exist only to be copied into the first.
+     */
+    fun watchSplitPostings(): Flow<List<SplitPosting>> = db.watch(
+        """
+        SELECT ep.transaction_id AS txid, ep.expense_id AS eid, ep.role AS role,
+               t.amount AS amount, t.currency AS currency, e.group_id AS gid
+          FROM expense_postings ep
+          JOIN transactions t ON t.id = ep.transaction_id AND t.deleted_at IS NULL
+          LEFT JOIN expenses e ON e.id = ep.expense_id
+         WHERE ep.deleted_at IS NULL AND ep.expense_id IS NOT NULL
+        """.trimIndent(),
+        mapper = { cursor ->
+            SplitPosting(
+                transactionId = cursor.getString("txid"),
+                expenseId = cursor.getString("eid"),
+                role = cursor.getString("role"),
+                amountMinor = cursor.getLongOptional("amount") ?: 0L,
+                currency = cursor.getString("currency"),
+                groupId = cursor.getStringOptional("gid"),
+            )
+        },
     )
 
     /**

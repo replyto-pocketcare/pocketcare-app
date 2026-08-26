@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import Data
+import Domain
 
 public struct TransactionListItem: Identifiable, Sendable {
     public let id: String
@@ -10,6 +11,9 @@ public struct TransactionListItem: Identifiable, Sendable {
     public let accountName: String?
     public let amountFormatted: String
     public let isPositive: Bool
+    /// True when this row stands for a whole split expense rather than one
+    /// posting of it — the row shows a "Split" chip and the amount you paid.
+    public let isSplit: Bool
     public let dateFormatted: String
     public let avatarLetter: String
 }
@@ -38,6 +42,7 @@ public final class TransactionsViewModel {
     private var accountMap: [String: Account] = [:]
     private var categoryMap: [String: CategoryRow] = [:]
     private var labelNames: [String: [String]] = [:]
+    private var splitInfo: [String: SplitInfo] = [:]
 
     public init(ledgerRepository: LedgerRepository) {
         self.ledgerRepository = ledgerRepository
@@ -77,6 +82,14 @@ public final class TransactionsViewModel {
                 }
             } catch { print("Error watching transaction labels: \(error)") }
         })
+        tasks.append(Task {
+            do {
+                for try await postings in try ledgerRepository.watchSplitPostings() {
+                    self.splitInfo = splitInfoByTransaction(postings)
+                    self.recompute()
+                }
+            } catch { print("Error watching split postings: \(error)") }
+        })
     }
 
     public func cancel() {
@@ -101,8 +114,27 @@ public final class TransactionsViewModel {
             .sorted { $0.occurredAt > $1.occurredAt }
             .prefix(200)
 
-        items = filtered.map {
-            transactionListItem($0, accountMap: accountMap, categoryMap: categoryMap, labels: labelNames[$0.id])
+        // Collapse AFTER the cap, which is web's order: it queries with
+        // `LIMIT 200` and collapses the page it got back. Collapsing first
+        // would let a page of split siblings pull older rows into view and
+        // make the list's length depend on how many splits it happened to
+        // contain.
+        //
+        // This was missing until 2026-08-26. A split expense writes up to three
+        // ledger rows, so this list showed one dinner as three lines with three
+        // different amounts, where the browser has always shown one.
+        let byId = Dictionary(uniqueKeysWithValues: filtered.map { ($0.id, $0) })
+        let visible = collapseSplitRowIds(filtered.map(\.id), splitInfo)
+
+        items = visible.compactMap { id in
+            guard let txn = byId[id] else { return nil }
+            return transactionListItem(
+                txn,
+                accountMap: accountMap,
+                categoryMap: categoryMap,
+                labels: labelNames[id],
+                split: splitInfo[id]
+            )
         }
     }
 

@@ -101,6 +101,19 @@ final class VectorRunnerTests: XCTestCase {
         registerTrendVectors()
         try runDomain("dashboard-trend")
     }
+    func testSearch() throws {
+        // Search.swift's searchTransactions()/activeFilterCount(). Web's filter
+        // is inline in a page component, so the vectors record the PORT and
+        // three of them pin a deliberate divergence — see SearchVectors.swift.
+        registerSearchVectors()
+        try runDomain("search")
+    }
+    func testSplitsCollapse() throws {
+        // SplitsCollapse.swift. The collapse half was generated from web's real
+        // exported function; the aggregation half was transcribed from a hook.
+        registerSplitsCollapseVectors()
+        try runDomain("splits-collapse")
+    }
     func testDashboardGrid() throws {
         // TileGrid.swift's packRows(). Unusually, these vectors are the SPEC:
         // there is no web function to record, because the browser packs the

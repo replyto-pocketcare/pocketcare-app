@@ -124,6 +124,21 @@ class VectorRunnerTest {
         runDomain("dashboard-trend")
     }
     @Test
+    fun search() {
+        // Search.kt's searchTransactions()/activeFilterCount(). Web's filter is
+        // inline in a page component, so the vectors record the PORT and three
+        // of them pin a deliberate divergence -- see SearchVectors.kt.
+        com.sanvya.app.domain.search.registerSearchVectors()
+        runDomain("search")
+    }
+    @Test
+    fun `splits-collapse`() {
+        // Collapse.kt. The collapse half was generated from web's real exported
+        // function; the aggregation half was transcribed from a hook.
+        com.sanvya.app.domain.splits.registerSplitsCollapseVectors()
+        runDomain("splits-collapse")
+    }
+    @Test
     fun `dashboard-grid`() {
         // TileGrid.kt's packRows(). Unusually, these vectors are the SPEC:
         // there is no web function to record, because the browser packs the

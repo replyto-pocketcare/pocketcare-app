@@ -68,7 +68,15 @@ public struct AccountBalance: Sendable {
     }
 }
 
-public typealias RateLookup = (String, String) -> Double
+/// Resolves an FX rate between two currency codes.
+///
+/// `@Sendable`, unlike Kotlin's plain `typealias RateLookup` — Swift 6 needs it
+/// and Kotlin has no equivalent to need. Every lookup this codebase builds
+/// closes over an immutable `[String: Double]` table and nothing else, so the
+/// annotation records a property these closures already have rather than
+/// imposing a new one. Without it a rate lookup cannot cross an `AsyncStream`
+/// combinator, which is where CI run 32940348246 found it.
+public typealias RateLookup = @Sendable (String, String) -> Double
 
 /// Aggregate net worth in the base currency (feature #13).
 /// - includeBlocked: when false, blocked amounts are excluded (available view, #9)

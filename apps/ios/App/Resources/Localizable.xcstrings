@@ -30631,6 +30631,29 @@
         }
       }
     },
+    "transactions:splitChip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Split"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बँटा"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gedeeld"
+          }
+        }
+      }
+    },
     "transactions:splitExpense": {
       "extractionState": "manual",
       "localizations": {

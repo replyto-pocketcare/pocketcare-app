@@ -1420,6 +1420,7 @@
     <string name="transactions_shares_mismatch">Shares total %1$s of %2$s — must match</string>
     <string name="transactions_someone">Someone</string>
     <string name="transactions_split_between">Split between:</string>
+    <string name="transactions_split_chip">Split</string>
     <string name="transactions_split_expense">Split this expense</string>
     <string name="transactions_start_from_template">Start from a template…</string>
     <string name="transactions_template_limit_msg">Free plans can keep up to %1$s templates. Upgrade to Premium for unlimited templates.</string>

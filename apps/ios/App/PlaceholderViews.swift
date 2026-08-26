@@ -18,10 +18,6 @@ struct PlaceholderView: View {
     }
 }
 
-struct SearchView: View {
-    var body: some View { PlaceholderView(title: S.Translation.navSearch, ) }
-}
-
 struct HelpView: View {
     var body: some View { PlaceholderView(title: S.Translation.navHelp, ) }
 }

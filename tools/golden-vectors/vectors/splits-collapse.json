@@ -1,0 +1,692 @@
+[
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": []
+    },
+    "expected": {}
+  },
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": [
+        {
+          "transactionId": "t1",
+          "expenseId": "e1",
+          "role": "own_share",
+          "amountMinor": 30000,
+          "currency": "INR",
+          "groupId": null
+        },
+        {
+          "transactionId": "t2",
+          "expenseId": "e1",
+          "role": "lend",
+          "amountMinor": 70000,
+          "currency": "INR",
+          "groupId": "g1"
+        }
+      ]
+    },
+    "expected": {
+      "t1": {
+        "expenseId": "e1",
+        "groupId": null,
+        "displayPaid": 100000,
+        "yourShare": 30000,
+        "owedToYou": 70000,
+        "youOwe": 0,
+        "currency": "INR"
+      },
+      "t2": {
+        "expenseId": "e1",
+        "groupId": null,
+        "displayPaid": 100000,
+        "yourShare": 30000,
+        "owedToYou": 70000,
+        "youOwe": 0,
+        "currency": "INR"
+      }
+    }
+  },
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": [
+        {
+          "transactionId": "t3",
+          "expenseId": "e2",
+          "role": "borrow",
+          "amountMinor": 45000,
+          "currency": "INR",
+          "groupId": null
+        }
+      ]
+    },
+    "expected": {
+      "t3": {
+        "expenseId": "e2",
+        "groupId": null,
+        "displayPaid": 45000,
+        "yourShare": 45000,
+        "owedToYou": 0,
+        "youOwe": 45000,
+        "currency": "INR"
+      }
+    }
+  },
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": [
+        {
+          "transactionId": "t4",
+          "expenseId": "e3",
+          "role": "borrow",
+          "amountMinor": 20000,
+          "currency": "INR",
+          "groupId": "g2"
+        }
+      ]
+    },
+    "expected": {
+      "t4": {
+        "expenseId": "e3",
+        "groupId": "g2",
+        "displayPaid": 20000,
+        "yourShare": 20000,
+        "owedToYou": 0,
+        "youOwe": 20000,
+        "currency": "INR"
+      }
+    }
+  },
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": [
+        {
+          "transactionId": "t5",
+          "expenseId": "e4",
+          "role": "own_share",
+          "amountMinor": 12500,
+          "currency": "INR",
+          "groupId": null
+        }
+      ]
+    },
+    "expected": {
+      "t5": {
+        "expenseId": "e4",
+        "groupId": null,
+        "displayPaid": 12500,
+        "yourShare": 12500,
+        "owedToYou": 0,
+        "youOwe": 0,
+        "currency": "INR"
+      }
+    }
+  },
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": [
+        {
+          "transactionId": "t6",
+          "expenseId": "e5",
+          "role": "own_share",
+          "amountMinor": 10000,
+          "currency": "INR",
+          "groupId": "g3"
+        },
+        {
+          "transactionId": "t7",
+          "expenseId": "e5",
+          "role": "lend",
+          "amountMinor": 5000,
+          "currency": "INR",
+          "groupId": "g3"
+        },
+        {
+          "transactionId": "t8",
+          "expenseId": "e5",
+          "role": "borrow",
+          "amountMinor": 2500,
+          "currency": "INR",
+          "groupId": "g3"
+        }
+      ]
+    },
+    "expected": {
+      "t6": {
+        "expenseId": "e5",
+        "groupId": "g3",
+        "displayPaid": 15000,
+        "yourShare": 12500,
+        "owedToYou": 5000,
+        "youOwe": 2500,
+        "currency": "INR"
+      },
+      "t7": {
+        "expenseId": "e5",
+        "groupId": "g3",
+        "displayPaid": 15000,
+        "yourShare": 12500,
+        "owedToYou": 5000,
+        "youOwe": 2500,
+        "currency": "INR"
+      },
+      "t8": {
+        "expenseId": "e5",
+        "groupId": "g3",
+        "displayPaid": 15000,
+        "yourShare": 12500,
+        "owedToYou": 5000,
+        "youOwe": 2500,
+        "currency": "INR"
+      }
+    }
+  },
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": [
+        {
+          "transactionId": "t9",
+          "expenseId": "e6",
+          "role": "own_share",
+          "amountMinor": 1000,
+          "currency": "INR",
+          "groupId": null
+        },
+        {
+          "transactionId": "t10",
+          "expenseId": "e7",
+          "role": "own_share",
+          "amountMinor": 2000,
+          "currency": "INR",
+          "groupId": null
+        },
+        {
+          "transactionId": "t11",
+          "expenseId": "e6",
+          "role": "lend",
+          "amountMinor": 3000,
+          "currency": "INR",
+          "groupId": null
+        },
+        {
+          "transactionId": "t12",
+          "expenseId": "e7",
+          "role": "borrow",
+          "amountMinor": 4000,
+          "currency": "INR",
+          "groupId": null
+        }
+      ]
+    },
+    "expected": {
+      "t9": {
+        "expenseId": "e6",
+        "groupId": null,
+        "displayPaid": 4000,
+        "yourShare": 1000,
+        "owedToYou": 3000,
+        "youOwe": 0,
+        "currency": "INR"
+      },
+      "t11": {
+        "expenseId": "e6",
+        "groupId": null,
+        "displayPaid": 4000,
+        "yourShare": 1000,
+        "owedToYou": 3000,
+        "youOwe": 0,
+        "currency": "INR"
+      },
+      "t10": {
+        "expenseId": "e7",
+        "groupId": null,
+        "displayPaid": 2000,
+        "yourShare": 6000,
+        "owedToYou": 0,
+        "youOwe": 4000,
+        "currency": "INR"
+      },
+      "t12": {
+        "expenseId": "e7",
+        "groupId": null,
+        "displayPaid": 2000,
+        "yourShare": 6000,
+        "owedToYou": 0,
+        "youOwe": 4000,
+        "currency": "INR"
+      }
+    }
+  },
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": [
+        {
+          "transactionId": "t13",
+          "expenseId": "e8",
+          "role": "settle",
+          "amountMinor": 9999,
+          "currency": "INR",
+          "groupId": null
+        },
+        {
+          "transactionId": "t14",
+          "expenseId": "e8",
+          "role": "own_share",
+          "amountMinor": 1000,
+          "currency": "INR",
+          "groupId": null
+        }
+      ]
+    },
+    "expected": {
+      "t13": {
+        "expenseId": "e8",
+        "groupId": null,
+        "displayPaid": 1000,
+        "yourShare": 1000,
+        "owedToYou": 0,
+        "youOwe": 0,
+        "currency": "INR"
+      },
+      "t14": {
+        "expenseId": "e8",
+        "groupId": null,
+        "displayPaid": 1000,
+        "yourShare": 1000,
+        "owedToYou": 0,
+        "youOwe": 0,
+        "currency": "INR"
+      }
+    }
+  },
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": [
+        {
+          "transactionId": "t15",
+          "expenseId": "e9",
+          "role": "own_share",
+          "amountMinor": 1000,
+          "currency": "INR",
+          "groupId": null
+        },
+        {
+          "transactionId": "t16",
+          "expenseId": "e9",
+          "role": "own_share",
+          "amountMinor": 2000,
+          "currency": "INR",
+          "groupId": null
+        }
+      ]
+    },
+    "expected": {
+      "t15": {
+        "expenseId": "e9",
+        "groupId": null,
+        "displayPaid": 3000,
+        "yourShare": 3000,
+        "owedToYou": 0,
+        "youOwe": 0,
+        "currency": "INR"
+      },
+      "t16": {
+        "expenseId": "e9",
+        "groupId": null,
+        "displayPaid": 3000,
+        "yourShare": 3000,
+        "owedToYou": 0,
+        "youOwe": 0,
+        "currency": "INR"
+      }
+    }
+  },
+  {
+    "fn": "splitInfoByTransaction",
+    "input": {
+      "rows": [
+        {
+          "transactionId": "t17",
+          "expenseId": "e10",
+          "role": "own_share",
+          "amountMinor": 4200,
+          "currency": "JPY",
+          "groupId": null
+        },
+        {
+          "transactionId": "t18",
+          "expenseId": "e10",
+          "role": "lend",
+          "amountMinor": 800,
+          "currency": "JPY",
+          "groupId": null
+        }
+      ]
+    },
+    "expected": {
+      "t17": {
+        "expenseId": "e10",
+        "groupId": null,
+        "displayPaid": 5000,
+        "yourShare": 4200,
+        "owedToYou": 800,
+        "youOwe": 0,
+        "currency": "JPY"
+      },
+      "t18": {
+        "expenseId": "e10",
+        "groupId": null,
+        "displayPaid": 5000,
+        "yourShare": 4200,
+        "owedToYou": 800,
+        "youOwe": 0,
+        "currency": "JPY"
+      }
+    }
+  },
+  {
+    "fn": "collapseSplitRowIds",
+    "input": {
+      "ids": [],
+      "info": {}
+    },
+    "expected": []
+  },
+  {
+    "fn": "collapseSplitRowIds",
+    "input": {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "info": {}
+    },
+    "expected": [
+      "a",
+      "b",
+      "c"
+    ]
+  },
+  {
+    "fn": "collapseSplitRowIds",
+    "input": {
+      "ids": [
+        "t1",
+        "t2",
+        "x"
+      ],
+      "info": {
+        "t1": {
+          "expenseId": "e1",
+          "groupId": null,
+          "displayPaid": 100000,
+          "yourShare": 30000,
+          "owedToYou": 70000,
+          "youOwe": 0,
+          "currency": "INR"
+        },
+        "t2": {
+          "expenseId": "e1",
+          "groupId": null,
+          "displayPaid": 100000,
+          "yourShare": 30000,
+          "owedToYou": 70000,
+          "youOwe": 0,
+          "currency": "INR"
+        }
+      }
+    },
+    "expected": [
+      "t1",
+      "x"
+    ]
+  },
+  {
+    "fn": "collapseSplitRowIds",
+    "input": {
+      "ids": [
+        "t2",
+        "t1",
+        "x"
+      ],
+      "info": {
+        "t1": {
+          "expenseId": "e1",
+          "groupId": null,
+          "displayPaid": 100000,
+          "yourShare": 30000,
+          "owedToYou": 70000,
+          "youOwe": 0,
+          "currency": "INR"
+        },
+        "t2": {
+          "expenseId": "e1",
+          "groupId": null,
+          "displayPaid": 100000,
+          "yourShare": 30000,
+          "owedToYou": 70000,
+          "youOwe": 0,
+          "currency": "INR"
+        }
+      }
+    },
+    "expected": [
+      "t2",
+      "x"
+    ]
+  },
+  {
+    "fn": "collapseSplitRowIds",
+    "input": {
+      "ids": [
+        "t6",
+        "t7",
+        "t8"
+      ],
+      "info": {
+        "t6": {
+          "expenseId": "e5",
+          "groupId": "g3",
+          "displayPaid": 15000,
+          "yourShare": 12500,
+          "owedToYou": 5000,
+          "youOwe": 2500,
+          "currency": "INR"
+        },
+        "t7": {
+          "expenseId": "e5",
+          "groupId": "g3",
+          "displayPaid": 15000,
+          "yourShare": 12500,
+          "owedToYou": 5000,
+          "youOwe": 2500,
+          "currency": "INR"
+        },
+        "t8": {
+          "expenseId": "e5",
+          "groupId": "g3",
+          "displayPaid": 15000,
+          "yourShare": 12500,
+          "owedToYou": 5000,
+          "youOwe": 2500,
+          "currency": "INR"
+        }
+      }
+    },
+    "expected": [
+      "t6"
+    ]
+  },
+  {
+    "fn": "collapseSplitRowIds",
+    "input": {
+      "ids": [
+        "t9",
+        "t10",
+        "t11",
+        "t12"
+      ],
+      "info": {
+        "t9": {
+          "expenseId": "e6",
+          "groupId": null,
+          "displayPaid": 4000,
+          "yourShare": 1000,
+          "owedToYou": 3000,
+          "youOwe": 0,
+          "currency": "INR"
+        },
+        "t11": {
+          "expenseId": "e6",
+          "groupId": null,
+          "displayPaid": 4000,
+          "yourShare": 1000,
+          "owedToYou": 3000,
+          "youOwe": 0,
+          "currency": "INR"
+        },
+        "t10": {
+          "expenseId": "e7",
+          "groupId": null,
+          "displayPaid": 2000,
+          "yourShare": 6000,
+          "owedToYou": 0,
+          "youOwe": 4000,
+          "currency": "INR"
+        },
+        "t12": {
+          "expenseId": "e7",
+          "groupId": null,
+          "displayPaid": 2000,
+          "yourShare": 6000,
+          "owedToYou": 0,
+          "youOwe": 4000,
+          "currency": "INR"
+        }
+      }
+    },
+    "expected": [
+      "t9",
+      "t10"
+    ]
+  },
+  {
+    "fn": "collapseSplitRowIds",
+    "input": {
+      "ids": [
+        "t11",
+        "t12",
+        "t9",
+        "t10"
+      ],
+      "info": {
+        "t9": {
+          "expenseId": "e6",
+          "groupId": null,
+          "displayPaid": 4000,
+          "yourShare": 1000,
+          "owedToYou": 3000,
+          "youOwe": 0,
+          "currency": "INR"
+        },
+        "t11": {
+          "expenseId": "e6",
+          "groupId": null,
+          "displayPaid": 4000,
+          "yourShare": 1000,
+          "owedToYou": 3000,
+          "youOwe": 0,
+          "currency": "INR"
+        },
+        "t10": {
+          "expenseId": "e7",
+          "groupId": null,
+          "displayPaid": 2000,
+          "yourShare": 6000,
+          "owedToYou": 0,
+          "youOwe": 4000,
+          "currency": "INR"
+        },
+        "t12": {
+          "expenseId": "e7",
+          "groupId": null,
+          "displayPaid": 2000,
+          "yourShare": 6000,
+          "owedToYou": 0,
+          "youOwe": 4000,
+          "currency": "INR"
+        }
+      }
+    },
+    "expected": [
+      "t11",
+      "t12"
+    ]
+  },
+  {
+    "fn": "collapseSplitRowIds",
+    "input": {
+      "ids": [
+        "z1",
+        "t9",
+        "z2",
+        "t11",
+        "z3"
+      ],
+      "info": {
+        "t9": {
+          "expenseId": "e6",
+          "groupId": null,
+          "displayPaid": 4000,
+          "yourShare": 1000,
+          "owedToYou": 3000,
+          "youOwe": 0,
+          "currency": "INR"
+        },
+        "t11": {
+          "expenseId": "e6",
+          "groupId": null,
+          "displayPaid": 4000,
+          "yourShare": 1000,
+          "owedToYou": 3000,
+          "youOwe": 0,
+          "currency": "INR"
+        },
+        "t10": {
+          "expenseId": "e7",
+          "groupId": null,
+          "displayPaid": 2000,
+          "yourShare": 6000,
+          "owedToYou": 0,
+          "youOwe": 4000,
+          "currency": "INR"
+        },
+        "t12": {
+          "expenseId": "e7",
+          "groupId": null,
+          "displayPaid": 2000,
+          "yourShare": 6000,
+          "owedToYou": 0,
+          "youOwe": 4000,
+          "currency": "INR"
+        }
+      }
+    },
+    "expected": [
+      "z1",
+      "t9",
+      "z2",
+      "z3"
+    ]
+  }
+]

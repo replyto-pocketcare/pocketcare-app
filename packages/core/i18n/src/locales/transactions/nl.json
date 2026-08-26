@@ -37,6 +37,7 @@
   "onlyYou": "Deze groep bestaat voorlopig alleen uit jou — nodig eerst iemand uit via de groepspagina.",
   "mode": { "equal": "Gelijk", "exact": "Exact", "percent": "Percentage" },
   "splitBetween": "Splitsen tussen:",
+  "splitChip": "Gedeeld",
   "sharesMatch": "Aandelen totaal {{sum}} van {{total}} ✓",
   "sharesMismatch": "Aandelen totaal {{sum}} van {{total}} — moet kloppen",
   "percentMatch": "Percentage totaal {{pct}}% ✓",

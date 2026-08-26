@@ -37,6 +37,7 @@
   "onlyYou": "इस समूह में अभी सिर्फ़ आप हैं — पहले समूह पेज से किसी को आमंत्रित करें।",
   "mode": { "equal": "बराबर", "exact": "सटीक", "percent": "प्रतिशत" },
   "splitBetween": "इनके बीच बाँटें:",
+  "splitChip": "बँटा",
   "sharesMatch": "हिस्से का कुल {{total}} में से {{sum}} ✓",
   "sharesMismatch": "हिस्से का कुल {{total}} में से {{sum}} — मेल खाना चाहिए",
   "percentMatch": "प्रतिशत कुल {{pct}}% ✓",

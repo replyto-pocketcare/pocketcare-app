@@ -1597,6 +1597,7 @@ object S {
             res.getString(R.string.transactions_shares_mismatch, sum, total)
         fun someone(res: Resources): String = res.getString(R.string.transactions_someone)
         fun splitBetween(res: Resources): String = res.getString(R.string.transactions_split_between)
+        fun splitChip(res: Resources): String = res.getString(R.string.transactions_split_chip)
         fun splitExpense(res: Resources): String = res.getString(R.string.transactions_split_expense)
         fun startFromTemplate(res: Resources): String = res.getString(R.string.transactions_start_from_template)
         fun templateLimitMsg(res: Resources, limit: Any): String =

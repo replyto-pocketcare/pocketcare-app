@@ -18,7 +18,7 @@ struct TransactionsView: View {
             }
         } content: {
             VStack(spacing: 10) {
-                TextField("Search note or label", text: $viewModel.query)
+                TextField(S.Transactions.searchPlaceholder, text: $viewModel.query)
                     .textFieldStyle(.roundedBorder)
                     .padding(.horizontal, 16)
 
@@ -26,7 +26,10 @@ struct TransactionsView: View {
                     HStack(spacing: 8) {
                         ForEach(txTypeFilters, id: \.self) { ty in
                             let selected = ty == viewModel.typeFilter
-                            Button(ty.capitalized) { viewModel.typeFilter = ty }
+                            // The chip label is a translated string, not the
+                            // filter KEY capitalised. `ty.capitalized`
+                            // rendered "All"/"Income" in every language.
+                            Button(txTypeFilterLabel(ty)) { viewModel.typeFilter = ty }
                                 .font(.system(size: 12, weight: .semibold))
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
@@ -70,6 +73,20 @@ struct TransactionsView: View {
     }
 
     struct EditingTransactionId: Identifiable { let id: String }
+}
+
+/// The translated label for a type-filter key.
+///
+/// Shared with the Search screen, which offers the same four chips from the
+/// same `search` namespace on web — the keys differ per namespace, the mapping
+/// does not, so it is written once here.
+func txTypeFilterLabel(_ key: String) -> String {
+    switch key {
+    case "income": S.Transactions.filterIncome
+    case "expense": S.Transactions.filterExpense
+    case "transfer": S.Transactions.filterTransfer
+    default: S.Transactions.filterAll
+    }
 }
 
 #Preview {

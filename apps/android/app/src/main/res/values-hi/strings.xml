@@ -1420,6 +1420,7 @@
     <string name="transactions_shares_mismatch">हिस्से का कुल %2$s में से %1$s — मेल खाना चाहिए</string>
     <string name="transactions_someone">कोई</string>
     <string name="transactions_split_between">इनके बीच बाँटें:</string>
+    <string name="transactions_split_chip">बँटा</string>
     <string name="transactions_split_expense">इस खर्च को बाँटें</string>
     <string name="transactions_start_from_template">टेम्पलेट से शुरू करें…</string>
     <string name="transactions_template_limit_msg">मुफ़्त प्लान अधिकतम %1$s टेम्पलेट रख सकते हैं। असीमित टेम्पलेट के लिए प्रीमियम में अपग्रेड करें।</string>

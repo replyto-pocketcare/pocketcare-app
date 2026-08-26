@@ -1770,6 +1770,7 @@ public enum S {
         }
         public static var someone: String { String(localized: "transactions:someone", table: "Localizable") }
         public static var splitBetween: String { String(localized: "transactions:splitBetween", table: "Localizable") }
+        public static var splitChip: String { String(localized: "transactions:splitChip", table: "Localizable") }
         public static var splitExpense: String { String(localized: "transactions:splitExpense", table: "Localizable") }
         public static var startFromTemplate: String { String(localized: "transactions:startFromTemplate", table: "Localizable") }
         public static func templateLimitMsg(limit: CVarArg) -> String {

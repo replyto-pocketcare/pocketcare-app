@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 
@@ -54,7 +56,18 @@ fun TransactionRowCard(
             Text(item.avatarLetter, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(item.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    item.title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (item.isSplit) SplitChip(colors)
+            }
             if (item.subtitle.isNotEmpty()) {
                 Text(item.subtitle, fontSize = 11.5.sp, color = colors.text2, maxLines = 2)
             }
@@ -81,4 +94,26 @@ fun TransactionRowCard(
             Text(item.dateFormatted, fontSize = 11.sp, color = colors.text2)
         }
     }
+}
+
+/**
+ * The "Split" pill on a collapsed split row -- web's `SplitChip`.
+ *
+ * Its own composable rather than an inline Box: three screens list
+ * transactions, and the chip belongs to the row, not to any one of them.
+ */
+@Composable
+private fun SplitChip(colors: com.sanvya.app.theme.SanvyaColors) {
+    Text(
+        S.Transactions.splitChip(sRes()).uppercase(),
+        fontSize = 10.5.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.3.sp,
+        color = colors.accent,
+        maxLines = 1,
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(colors.accentGhost)
+            .padding(horizontal = 7.dp, vertical = 1.dp),
+    )
 }

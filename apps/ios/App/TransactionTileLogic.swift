@@ -70,11 +70,19 @@ func txTags(_ categoryName: String?, _ labels: [String]?) -> [TxTag] {
  * component inventory exists to catch, and it had already happened twice.
  * ------------------------------------------------------------------ */
 
+/// - Parameter split: set when this row is the surviving posting of a collapsed
+///   split expense. It changes three things, all of them web's rules: the
+///   amount becomes what you actually PAID (`displayPaid`, in the expense's own
+///   currency) rather than this one posting's figure, the sign is always
+///   negative and the colour never the income green, and the account name is
+///   dropped — a split spans up to three accounts, so naming one would be a
+///   lie.
 func transactionListItem(
     _ txn: TransactionRow,
     accountMap: [String: Account],
     categoryMap: [String: CategoryRow],
-    labels: [String]?
+    labels: [String]?,
+    split: SplitInfo? = nil
 ) -> TransactionListItem {
     let categoryName = txn.categoryId.flatMap { categoryMap[$0]?.name } ?? S.Transactions.uncategorised
     let labelsCsv = labels?.joined(separator: ", ")
@@ -86,8 +94,9 @@ func transactionListItem(
     let tagsText = tags.map(\.text).joined(separator: "  ·  ")
     let account = accountMap[txn.accountId]
 
-    let sign = txn.type == "expense" ? "\u{2212}" : (txn.type == "income" ? "+" : "")
-    let formatted = formatMoney(txn.amount, txn.currency)
+    let isSplit = split != nil
+    let sign = (isSplit || txn.type == "expense") ? "\u{2212}" : (txn.type == "income" ? "+" : "")
+    let formatted = formatMoney(split?.displayPaid ?? txn.amount, split?.currency ?? txn.currency)
 
     let dateFormatted: String
     if let date = parseOccurredAt(txn.occurredAt) {
@@ -109,9 +118,10 @@ func transactionListItem(
         title: title,
         subtitle: subtitle,
         tagsText: tagsText,
-        accountName: account?.name,
+        accountName: isSplit ? nil : account?.name,
         amountFormatted: "\(sign)\(formatted)",
-        isPositive: txn.type == "income",
+        isPositive: txn.type == "income" && !isSplit,
+        isSplit: isSplit,
         dateFormatted: dateFormatted,
         avatarLetter: String((title.first ?? "•")).uppercased()
     )

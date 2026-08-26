@@ -377,6 +377,58 @@ public final class LedgerRepository: @unchecked Sendable {
         )
     }
 
+    /// The Search screen's haystack — web's `app/search/page.tsx` query.
+    ///
+    /// Three details that are the query, not decoration:
+    ///
+    /// - **`type != 'opening_balance'`.** An opening balance is bookkeeping,
+    ///   not something the user did, and it is not searchable on web either.
+    /// - **`LIMIT 2000`.** Search filters in memory, so the cap is what stops
+    ///   a decade of history from being held in RAM to answer one query. It is
+    ///   web's number; the visible result cap (300) is separate and lives in
+    ///   Domain's `searchResultLimit`.
+    /// - **Newest first.** `searchTransactions` preserves input order, so the
+    ///   ORDER BY here IS the result order.
+    public func watchSearchTransactions() throws -> AsyncThrowingStream<[TransactionRow], Error> {
+        try db.watch(
+            sql: """
+                SELECT * FROM transactions
+                 WHERE deleted_at IS NULL AND type != 'opening_balance'
+                 ORDER BY occurred_at DESC LIMIT 2000
+                """,
+            parameters: [],
+            mapper: transactionMapper
+        )
+    }
+
+    /// Every split posting joined to its transaction — web's `useSplitInfo`.
+    ///
+    /// Returns Domain's `SplitPosting` rather than a Data-local twin: the
+    /// aggregation that consumes it is vector-tested in Domain, and a second
+    /// row shape here would exist only to be copied into the first.
+    public func watchSplitPostings() throws -> AsyncThrowingStream<[SplitPosting], Error> {
+        try db.watch(
+            sql: """
+                SELECT ep.transaction_id AS txid, ep.expense_id AS eid, ep.role AS role,
+                       t.amount AS amount, t.currency AS currency, e.group_id AS gid
+                  FROM expense_postings ep
+                  JOIN transactions t ON t.id = ep.transaction_id AND t.deleted_at IS NULL
+                  LEFT JOIN expenses e ON e.id = ep.expense_id
+                 WHERE ep.deleted_at IS NULL AND ep.expense_id IS NOT NULL
+                """,
+            parameters: []
+        ) { cursor in
+            SplitPosting(
+                transactionId: try cursor.getString(name: "txid"),
+                expenseId: try cursor.getString(name: "eid"),
+                role: try cursor.getString(name: "role"),
+                amountMinor: try cursor.getInt64(name: "amount"),
+                currency: try cursor.getString(name: "currency"),
+                groupId: try cursor.getStringOptional(name: "gid")
+            )
+        }
+    }
+
     /// Transactions inside a date range, for the Statements screen.
     ///
     /// Matches statements/page.tsx's query exactly, including two details that

@@ -1,0 +1,2921 @@
+[
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1",
+      "t2",
+      "t3",
+      "t4",
+      "t5",
+      "t6",
+      "t7"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "swiggy",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "swiggy",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "SWIGGY",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "SWIGGY",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "food",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1",
+      "t5"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "food",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "travel",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t4",
+      "t6"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "travel",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "credit card",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t4"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "credit card",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "499.00",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "499.00",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "1200",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t2"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "1200",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "nothing here",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": []
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "nothing here",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "income",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t2"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "income",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 1
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "transfer",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t3"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "transfer",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 1
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "expense",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1",
+      "t4",
+      "t5",
+      "t6",
+      "t7"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "expense",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 1
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "acc-2",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t3",
+      "t5"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "acc-2",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 1
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "2026-08-20",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1",
+      "t2",
+      "t3"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "2026-08-20",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 1
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "2026-07-31",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t5",
+      "t6",
+      "t7"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "2026-07-31",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 1
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "2026-08-19",
+        "to": "2026-08-21",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t2",
+      "t3",
+      "t4"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "2026-08-19",
+        "to": "2026-08-21",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 2
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "1000",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t2",
+      "t3",
+      "t6"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "1000",
+        "max": ""
+      }
+    },
+    "expected": 1
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": "500"
+      }
+    },
+    "expected": [
+      "t1",
+      "t4",
+      "t5",
+      "t7"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": "500"
+      }
+    },
+    "expected": 1
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "100",
+        "max": "5000"
+      }
+    },
+    "expected": [
+      "t1",
+      "t3",
+      "t4",
+      "t5",
+      "t7"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "100",
+        "max": "5000"
+      }
+    },
+    "expected": 2
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "abc",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1",
+      "t2",
+      "t3",
+      "t4",
+      "t5",
+      "t6",
+      "t7"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "abc",
+        "max": ""
+      }
+    },
+    "expected": 1
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1",
+      "t2",
+      "t3",
+      "t4",
+      "t5",
+      "t6",
+      "t7"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "hdfc",
+        "type": "expense",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "100",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1",
+      "t7"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "hdfc",
+        "type": "expense",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "100",
+        "max": ""
+      }
+    },
+    "expected": 2
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "  swiggy  ",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t1"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "  swiggy  ",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 0
+  },
+  {
+    "fn": "searchTransactions",
+    "input": {
+      "rows": [
+        {
+          "id": "t1",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-22T09:00:00.000Z",
+          "amountMinor": 49900,
+          "currency": "INR",
+          "description": "UPI/SWIGGY/1234/Order",
+          "categoryName": "Food",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t2",
+          "type": "income",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-21T09:00:00.000Z",
+          "amountMinor": 12000000,
+          "currency": "INR",
+          "note": "Salary August",
+          "categoryName": "Salary",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t3",
+          "type": "transfer",
+          "accountId": "acc-1",
+          "toAccountId": "acc-2",
+          "occurredAt": "2026-08-20T09:00:00.000Z",
+          "amountMinor": 500000,
+          "currency": "INR",
+          "description": "To savings",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        },
+        {
+          "id": "t4",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-08-19T09:00:00.000Z",
+          "amountMinor": 32550,
+          "currency": "INR",
+          "labels": "Travel, Work",
+          "description": "Uber ride",
+          "methodLabel": "Credit card",
+          "categoryName": "Transport",
+          "accountName": "ICICI Credit",
+          "accountType": "credit_card"
+        },
+        {
+          "id": "t5",
+          "type": "expense",
+          "accountId": "acc-2",
+          "occurredAt": "2026-07-04T09:00:00.000Z",
+          "amountMinor": 15000,
+          "currency": "INR",
+          "description": "Coffee",
+          "categoryName": "Food",
+          "accountName": "Cash",
+          "accountType": "cash"
+        },
+        {
+          "id": "t6",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-06-15T09:00:00.000Z",
+          "amountMinor": 42000,
+          "currency": "JPY",
+          "description": "Tokyo hotel",
+          "categoryName": "Travel",
+          "accountName": "Wise",
+          "accountType": "bank"
+        },
+        {
+          "id": "t7",
+          "type": "expense",
+          "accountId": "acc-1",
+          "occurredAt": "2026-05-02T09:00:00.000Z",
+          "amountMinor": -25000,
+          "currency": "INR",
+          "description": "Refund adjustment",
+          "categoryName": "Shopping",
+          "accountName": "HDFC Savings",
+          "accountType": "bank"
+        }
+      ],
+      "criteria": {
+        "query": "",
+        "type": "transfer",
+        "accountId": "acc-1",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": [
+      "t3"
+    ]
+  },
+  {
+    "fn": "activeFilterCount",
+    "input": {
+      "criteria": {
+        "query": "",
+        "type": "transfer",
+        "accountId": "acc-1",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      }
+    },
+    "expected": 2
+  }
+]

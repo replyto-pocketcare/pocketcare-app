@@ -19,10 +19,13 @@ struct TransactionRowView: View {
                 .overlay(Text(item.avatarLetter).font(.system(size: 14, weight: .bold)).foregroundColor(.white))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.title)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color.text)
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(item.title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color.text)
+                        .lineLimit(1)
+                    if item.isSplit { SplitChip() }
+                }
                 if !item.subtitle.isEmpty {
                     Text(item.subtitle)
                         .font(.system(size: 11.5))
@@ -52,5 +55,22 @@ struct TransactionRowView: View {
         .padding(14)
         .background(Color.surface)
         .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusSm, style: .continuous))
+    }
+}
+
+/// The "Split" pill on a collapsed split row — web's `SplitChip`.
+///
+/// Its own view rather than an inline capsule: three screens list transactions,
+/// and the chip belongs to the row, not to any one of them.
+private struct SplitChip: View {
+    var body: some View {
+        Text(S.Transactions.splitChip.uppercased())
+            .font(.system(size: 10.5, weight: .bold))
+            .kerning(0.3)
+            .foregroundColor(Color.accent)
+            .lineLimit(1)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 1)
+            .background(Color.accentGhost, in: Capsule())
     }
 }

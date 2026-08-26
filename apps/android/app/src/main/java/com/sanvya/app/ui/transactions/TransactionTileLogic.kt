@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.sanvya.app.data.repository.Account
 import com.sanvya.app.data.repository.CategoryRow
 import com.sanvya.app.data.repository.TransactionRow
-import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.domain.splits.SplitInfo
 import com.sanvya.app.ui.formatMoney
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -81,6 +81,11 @@ data class TransactionListItem(
     val accountName: String?,
     val amountFormatted: String,
     val amountColor: TxAmountColor,
+    /**
+     * True when this row stands for a whole split expense rather than one
+     * posting of it -- the row shows a "Split" chip and the amount you paid.
+     */
+    val isSplit: Boolean,
     val dateFormatted: String,
     val avatarColor: androidx.compose.ui.graphics.Color,
     val avatarLetter: String,
@@ -88,11 +93,20 @@ data class TransactionListItem(
 
 enum class TxAmountColor { POSITIVE, DEFAULT }
 
+/**
+ * @param split set when this row is the surviving posting of a collapsed split
+ *   expense. It changes three things, all of them web's rules: the amount
+ *   becomes what you actually PAID (`displayPaid`, in the expense's own
+ *   currency) rather than this one posting's figure, the sign is always
+ *   negative and the colour never the income green, and the account name is
+ *   dropped -- a split spans up to three accounts, so naming one would be a lie.
+ */
 fun transactionListItem(
     txn: TransactionRow,
     accountMap: Map<String, Account>,
     categoryMap: Map<String, CategoryRow>,
     labels: List<String>?,
+    split: SplitInfo? = null,
 ): TransactionListItem {
     val categoryName = txn.categoryId?.let { categoryMap[it]?.name } ?: "Uncategorised"
     val labelsCsv = labels?.joinToString(", ")
@@ -102,9 +116,16 @@ fun transactionListItem(
     val tags = txTags(categoryName, labels)
     val account = accountMap[txn.accountId]
 
-    val sign = if (txn.type == "expense") "−" else if (txn.type == "income") "+" else ""
-    val amountColor = if (txn.type == "income") TxAmountColor.POSITIVE else TxAmountColor.DEFAULT
-    val amountFormatted = "$sign${formatMoney(txn.amount, account?.currency ?: baseCurrencyNow())}"
+    val isSplit = split != null
+    val sign = if (isSplit || txn.type == "expense") "−" else if (txn.type == "income") "+" else ""
+    val amountColor =
+        if (txn.type == "income" && !isSplit) TxAmountColor.POSITIVE else TxAmountColor.DEFAULT
+    // The TRANSACTION's currency, not the account's. Web passes `tx.currency`
+    // here; reading the account's meant a foreign-currency charge on a rupee
+    // card rendered with the wrong symbol, and `baseCurrencyNow()` as the
+    // fallback hid it whenever the account lookup missed.
+    val amountFormatted =
+        "$sign${formatMoney(split?.displayPaid ?: txn.amount, split?.currency ?: txn.currency)}"
 
     val dateFormatted = try {
         val zdt = OffsetDateTime.parse(txn.occurredAt).atZoneSameInstant(ZoneId.systemDefault())
@@ -123,9 +144,10 @@ fun transactionListItem(
         title = title,
         subtitle = subtitle,
         tags = tags,
-        accountName = account?.name,
+        accountName = if (isSplit) null else account?.name,
         amountFormatted = amountFormatted,
         amountColor = amountColor,
+        isSplit = isSplit,
         dateFormatted = dateFormatted,
         avatarColor = avatarColor(title),
         avatarLetter = (title.firstOrNull() ?: '•').uppercase(),

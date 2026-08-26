@@ -1420,6 +1420,7 @@
     <string name="transactions_shares_mismatch">Aandelen totaal %1$s van %2$s — moet kloppen</string>
     <string name="transactions_someone">Iemand</string>
     <string name="transactions_split_between">Splitsen tussen:</string>
+    <string name="transactions_split_chip">Gedeeld</string>
     <string name="transactions_split_expense">Deze uitgave splitsen</string>
     <string name="transactions_start_from_template">Begin met een sjabloon…</string>
     <string name="transactions_template_limit_msg">Gratis abonnementen kunnen tot %1$s sjablonen bewaren. Upgrade naar Premium voor onbeperkte sjablonen.</string>

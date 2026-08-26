@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.TransactionRow
+import com.sanvya.app.domain.splits.SplitInfo
+import com.sanvya.app.domain.splits.collapseSplitRowIds
+import com.sanvya.app.domain.splits.splitInfoByTransaction
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +39,7 @@ class TransactionsViewModel : ViewModel(), KoinComponent {
         val accounts: List<com.sanvya.app.data.repository.Account>,
         val categories: List<com.sanvya.app.data.repository.CategoryRow>,
         val labelNames: Map<String, List<String>>,
+        val splitInfo: Map<String, SplitInfo>,
     )
 
     private val source: StateFlow<Source> = combine(
@@ -43,11 +47,14 @@ class TransactionsViewModel : ViewModel(), KoinComponent {
         ledgerRepository.watchAccounts(includeArchived = true),
         ledgerRepository.watchCategories(),
         ledgerRepository.watchTransactionLabelNames(),
-    ) { txns, accounts, categories, labelNames -> Source(txns, accounts, categories, labelNames) }
+        ledgerRepository.watchSplitPostings(),
+    ) { txns, accounts, categories, labelNames, postings ->
+        Source(txns, accounts, categories, labelNames, splitInfoByTransaction(postings))
+    }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Source(emptyList(), emptyList(), emptyList(), emptyMap()),
+            initialValue = Source(emptyList(), emptyList(), emptyList(), emptyMap(), emptyMap()),
         )
 
     /** Matches transactions/page.tsx's query: excludes opening_balance rows,
@@ -57,12 +64,12 @@ class TransactionsViewModel : ViewModel(), KoinComponent {
      * for a local offline cache of this size). */
     val items: StateFlow<List<TransactionListItem>> = combine(
         source, query, typeFilter,
-    ) { (txns, accounts, categories, labelNames), q, ty ->
+    ) { (txns, accounts, categories, labelNames, splitInfo), q, ty ->
         val accountMap = accounts.associateBy { it.id }
         val categoryMap = categories.associateBy { it.id }
         val needle = q.trim().lowercase()
 
-        txns
+        val page = txns
             .asSequence()
             .filter { it.type != "opening_balance" }
             .filter { ty == "all" || it.type == ty }
@@ -74,8 +81,22 @@ class TransactionsViewModel : ViewModel(), KoinComponent {
             }
             .sortedByDescending { it.occurredAt }
             .take(200)
-            .map { txn -> transactionListItem(txn, accountMap, categoryMap, labelNames[txn.id]) }
             .toList()
+
+        // Collapse AFTER the cap, which is web's order: it queries with
+        // `LIMIT 200` and collapses the page it got back. Collapsing first
+        // would let a page of split siblings pull older rows into view and make
+        // the list's length depend on how many splits it happened to contain.
+        //
+        // This was missing until 2026-08-26. A split expense writes up to three
+        // ledger rows, so this list showed one dinner as three lines with three
+        // different amounts, where the browser has always shown one.
+        val byId = page.associateBy { it.id }
+        collapseSplitRowIds(page.map { it.id }, splitInfo).mapNotNull { id ->
+            byId[id]?.let { txn ->
+                transactionListItem(txn, accountMap, categoryMap, labelNames[id], splitInfo[id])
+            }
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

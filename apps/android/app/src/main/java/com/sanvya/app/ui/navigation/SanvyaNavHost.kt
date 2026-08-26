@@ -202,9 +202,13 @@ fun SanvyaNavHost() {
                 title = java.net.URLDecoder.decode(encoded, "UTF-8"),
             )
         }
-        // Web offers all five in NAV_GROUPS; neither platform has built any of
-        // them. Placeholders, not crashes -- see comingSoon() above.
-        comingSoon("search", S.Translation::navSearch)
+        composable("search") {
+            com.sanvya.app.ui.search.SearchScreen(
+                onEditTransaction = { id -> navController.navigate("transactions/$id/edit") },
+            )
+        }
+        // Four of the five NAV_GROUPS entries web offers are still unbuilt on
+        // both platforms. Placeholders, not crashes -- see comingSoon() above.
         comingSoon("reflect", S.Translation::navReflect)
         comingSoon("assistant", S.Translation::navAssistant)
         comingSoon("help", S.Translation::navHelp)

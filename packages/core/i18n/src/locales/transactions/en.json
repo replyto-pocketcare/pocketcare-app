@@ -37,6 +37,7 @@
   "onlyYou": "This group has only you so far — invite someone from the group page first.",
   "mode": { "equal": "Equally", "exact": "Exact", "percent": "Percent" },
   "splitBetween": "Split between:",
+  "splitChip": "Split",
   "sharesMatch": "Shares total {{sum}} of {{total}} ✓",
   "sharesMismatch": "Shares total {{sum}} of {{total}} — must match",
   "percentMatch": "Percent total {{pct}}% ✓",
