@@ -51,7 +51,30 @@ const WATCHED = [
  * Not declared in this repo, and the whole reason the check exists: it is one
  * package deeper than the wildcard everybody already has.
  */
-const EXTERNAL = { rememberSaveable: "androidx.compose.runtime.saveable" };
+const EXTERNAL = {
+  rememberSaveable: "androidx.compose.runtime.saveable",
+  // Added after the charts extraction broke the build a second time. MOVING a
+  // block is the dangerous case: the file it came from had
+  // `androidx.compose.foundation.layout.*`, which silently covered these, and a
+  // hand-written explicit import list for the new file cannot know what a
+  // wildcard was providing. If you move code out of a file with a wildcard
+  // import, assume you are missing something and check.
+  // These are EXTENSION functions, always written as `Modifier.fillMaxWidth()`
+  // -- i.e. they look qualified but still need the import. `extension: true`
+  // makes the check match the dotted form too, which is the whole point: the
+  // first version of this rule missed `fillMaxHeight` for exactly that reason
+  // while catching `min` on the same line.
+  fillMaxHeight: { pkg: "androidx.compose.foundation.layout", extension: true },
+  fillMaxWidth: { pkg: "androidx.compose.foundation.layout", extension: true },
+  fillMaxSize: { pkg: "androidx.compose.foundation.layout", extension: true },
+  // `weight` is deliberately ABSENT. It is a member of RowScope/ColumnScope,
+  // not a top-level extension, so it arrives with Row/Column and needs no
+  // import — adding it produced 17 false positives across the app, which is
+  // how a guard teaches people to ignore it.
+  min: "kotlin.math",
+  max: "kotlin.math",
+  roundToInt: { pkg: "kotlin.math", extension: true },
+};
 
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
@@ -102,11 +125,13 @@ for (const file of files) {
     .join("\n")
     .replace(/"(?:[^"\\]|\\.)*"/g, '""');
 
-  const check = (name, candidatePkgs) => {
+  const check = (name, candidatePkgs, isExtension = false) => {
     // A qualified use (`com.sanvya.app.ui.formatMoney(...)` or `Foo.name`)
-    // needs no import, so only bare uses count.
+    // needs no import, so only bare uses count -- EXCEPT for extension
+    // functions, which are always written dotted and still need one.
     const used = new RegExp(`(?<![.\\w])${name}\\s*[\\(\\.\\{]`).test(body)
-      || new RegExp(`(?<![.\\w])${name}::`).test(body);
+      || new RegExp(`(?<![.\\w])${name}::`).test(body)
+      || (isExtension && new RegExp(`\\.${name}\\s*\\(`).test(body));
     if (!used) return;
     if (candidatePkgs.includes(pkg)) return;
     for (const p of candidatePkgs) {
@@ -120,7 +145,11 @@ for (const file of files) {
   };
 
   for (const [name, pkgs] of declaredIn) check(name, [...pkgs]);
-  for (const [name, pkg2] of Object.entries(EXTERNAL)) check(name, [pkg2]);
+  for (const [name, spec] of Object.entries(EXTERNAL)) {
+    const pkg2 = typeof spec === "string" ? spec : spec.pkg;
+    const isExtension = typeof spec === "object" && spec.extension === true;
+    check(name, [pkg2], isExtension);
+  }
 }
 
 console.log(`kotlin-imports: ${files.length} files, ${WATCHED.length + Object.keys(EXTERNAL).length} symbols, ${hits} hit(s)`);
