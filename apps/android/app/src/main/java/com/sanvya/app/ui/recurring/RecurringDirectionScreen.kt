@@ -37,6 +37,8 @@ import com.sanvya.app.theme.SanvyaShape
 import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.colorForId
 import com.sanvya.app.ui.components.Eyebrow
+import com.sanvya.app.ui.components.SanvyaDonutChart
+import com.sanvya.app.domain.insights.SeriesPoint
 import com.sanvya.app.ui.components.SanvyaButton
 import com.sanvya.app.ui.components.SanvyaCard
 import com.sanvya.app.ui.components.SanvyaPage
@@ -98,6 +100,24 @@ fun RecurringDirectionScreen(
             // Web only draws the mix once there is more than one slice; a single
             // full-width bar restating the total above it is noise.
             if (state.categories.size > 1) {
+                Spacer(Modifier.height(14.dp))
+                // The donut web draws. It was recorded as absent on 2026-08-24
+                // for one reason -- DonutChart was `private` inside the
+                // Insights screen on both platforms. It is a shared component
+                // now, so the reason is gone and so is the gap. The chips stay:
+                // web has both, and a donut with no legend names nothing.
+                SanvyaDonutChart(
+                    series = state.categories.map { slice ->
+                        SeriesPoint(
+                            label = if (slice.isUncategorised) S.Cashflow.noCategory(sRes()) else slice.name,
+                            value = slice.sharePct.toDouble(),
+                        )
+                    },
+                    centerLabel = null,
+                    centerSub = null,
+                    accent = tint,
+                    colors = colors,
+                )
                 Spacer(Modifier.height(14.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),

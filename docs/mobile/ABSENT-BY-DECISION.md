@@ -24,13 +24,13 @@ Keep this current. Adding a row is part of the change that creates the gap, not 
 | iOS `LoginView` Google button | Present, tappable, called `onLoginSuccess()` directly | Removed 2026-08-23, then **built for real** 2026-08-24 | ✅ Done |
 | Android More sheet + side nav | Five entries (`search`, `reflect`, `assistant`, `help`, `notifications`) and the guest "Create an account" chip navigated to routes **the nav graph did not contain** — `IllegalArgumentException` on tap, including from the customisable bottom bar and the tablet side nav's always-visible search icon | Routed to `ComingSoonScreen` / the real login screen | ✅ Done 2026-08-25 |
 | iOS guest "Create an account" chip | Not tappable in the More sheet; opened **Settings** in the side nav. Web links both to `/login` | Opens the login screen as a full-screen cover; closes when the guest flag clears | ✅ Done 2026-08-25 |
+| Recurring → direction category donut | Absent, because `DonutChart` was `private` inside the Insights screen on **both** platforms | Drawn. All five chart primitives moved to shared components 2026-08-26 | ✅ Done — the reason was never the donut, it was where the drawing lived |
 | iOS `AssistantView` mic button | Toggled `isRecording`, swapped to a stop icon, turned accent — captured no audio | Removed with the rest of the view | With the assistant port. **Web does have voice** (`speech.ts` + `MicButton.tsx`) — an earlier audit entry claiming otherwise was wrong |
 
 ## Controls deliberately not built
 
 | Screen | What's absent | Why |
 |---|---|---|
-| Recurring → direction | The **category donut** | Both platforms have a `DonutChart`, but each is `private` inside its Insights screen. Sharing one is a refactor of two working screens, not part of this port. The chips carry the names and percentages — the information — and web's own comment calls a single-slice donut "decoration, not information" |
 | Recurring → direction | Web's **kebab menu** | Three actions on a card that has room for three buttons. Hiding them behind a third tap is worse than showing them |
 | Recurring form | **Preset name chips** ("Salary", "Rent", "Electricity"…) | They only fill the name field — pure convenience, no hidden behaviour — and web's list is **hardcoded English** in `RecurringModal.tsx`. Porting it verbatim would put untranslated strings in a screen that is otherwise fully localised. It needs a catalogue entry first |
 | Recurring form | **Alert time** | `alert_time_utc` is written as `null`. A time-of-day picker is a control neither platform's spec has settled, and **the reminder that would consume the column is not built on either platform** — so the field would store a preference nothing reads |

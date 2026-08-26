@@ -17,22 +17,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.domain.insights.InsightCard
 import com.sanvya.app.domain.insights.InsightTheme
-import com.sanvya.app.domain.insights.SeriesPoint
-import com.sanvya.app.domain.insights.VisualSpec
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaColors
+import com.sanvya.app.ui.components.SanvyaVisualChart
 import com.sanvya.app.theme.SanvyaRadius
 import kotlinx.coroutines.launch
 import kotlin.math.min
@@ -180,7 +175,7 @@ private fun InsightCardView(card: InsightCard, colors: SanvyaColors, onCta: (Str
             contentAlignment = Alignment.Center,
         ) {
             val visual = card.visual
-            if (visual != null) VisualChart(visual, accent, colors) else {
+            if (visual != null) SanvyaVisualChart(visual, accent, colors) else {
                 Text(card.headline, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
@@ -227,152 +222,3 @@ private fun InsightCardView(card: InsightCard, colors: SanvyaColors, onCta: (Str
         }
     }
 }
-
-// ---- charts ----
-
-@Composable
-private fun VisualChart(visual: VisualSpec, accent: Color, colors: SanvyaColors) {
-    when (visual) {
-        is VisualSpec.Bars -> BarsChart(visual.series, visual.horizontal, accent, colors)
-        is VisualSpec.Area -> AreaChart(visual.series, accent)
-        is VisualSpec.Donut -> DonutChart(visual.series, visual.centerLabel, visual.centerSub, accent, colors)
-        is VisualSpec.Gauge -> GaugeChart(visual.value, visual.max, visual.warnAt, visual.dangerAt, visual.centerLabel, accent, colors)
-        is VisualSpec.Progress -> ProgressChart(visual.value, visual.target, visual.centerLabel, accent, colors)
-    }
-}
-
-private fun resolveColor(token: String?, index: Int, fallbackAccent: Color, colors: SanvyaColors): Color = when (token) {
-    "positive" -> colors.positive
-    "warning" -> colors.warning
-    "negative" -> colors.negative
-    "forest" -> colors.forest
-    "accent" -> colors.accent
-    "border" -> colors.border
-    null -> INSIGHT_PALETTE_COMPOSE[index % INSIGHT_PALETTE_COMPOSE.size]
-    else -> fallbackAccent
-}
-
-// Was eight hand-typed Color(0xFF…) literals, private to this file. It is
-// web's INSIGHT_PALETTE, so it is generated into FormOptions now and parsed
-// once in AccountColors.kt -- see CHART_COLORS' comment for why that mattered.
-private val INSIGHT_PALETTE_COMPOSE = com.sanvya.app.ui.CHART_COLORS
-
-@Composable
-private fun BarsChart(series: List<SeriesPoint>, horizontal: Boolean, accent: Color, colors: SanvyaColors) {
-    if (series.isEmpty()) return
-    val maxVal = series.maxOf { it.value }.let { if (it <= 0) 1.0 else it }
-    if (horizontal) {
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            series.forEachIndexed { i, s ->
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-                    Text(s.label, fontSize = 11.sp, color = colors.text2, modifier = Modifier.width(76.dp))
-                    Box(Modifier.weight(1f).fillMaxHeight(0.6f)) {
-                        Box(
-                            Modifier.fillMaxWidth(fraction = (s.value / maxVal).toFloat().coerceIn(0.02f, 1f)).fillMaxHeight()
-                                .clip(RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp))
-                                .background(resolveColor(s.color, i, accent, colors)),
-                        )
-                    }
-                }
-            }
-        }
-    } else {
-        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
-            series.forEachIndexed { i, s ->
-                Column(Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
-                    Text(if (s.value != 0.0) fmtCompact(s.value) else "", fontSize = 9.sp, color = colors.text2)
-                    Box(
-                        Modifier.fillMaxWidth(0.6f).fillMaxHeight(fraction = (s.value / maxVal).toFloat().coerceIn(0.02f, 1f))
-                            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                            .background(resolveColor(s.color, i, accent, colors)),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(s.label, fontSize = 10.sp, color = colors.text2)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AreaChart(series: List<SeriesPoint>, accent: Color) {
-    if (series.size < 2) return
-    Canvas(Modifier.fillMaxSize().padding(vertical = 16.dp, horizontal = 8.dp)) {
-        val maxV = series.maxOf { it.value }; val minV = min(0.0, series.minOf { it.value })
-        val range = (maxV - minV).let { if (it <= 0.0) 1.0 else it }
-        val stepX = size.width / (series.size - 1)
-        fun yOf(v: Double) = size.height - ((v - minV) / range * size.height).toFloat()
-        val path = Path()
-        val fillPath = Path()
-        series.forEachIndexed { i, s ->
-            val x = i * stepX; val y = yOf(s.value)
-            if (i == 0) { path.moveTo(x, y); fillPath.moveTo(x, size.height); fillPath.lineTo(x, y) } else { path.lineTo(x, y); fillPath.lineTo(x, y) }
-        }
-        fillPath.lineTo((series.size - 1) * stepX, size.height); fillPath.close()
-        drawPath(fillPath, color = accent.copy(alpha = 0.18f))
-        drawPath(path, color = accent, style = Stroke(width = 6f, cap = StrokeCap.Round))
-    }
-}
-
-@Composable
-private fun DonutChart(series: List<SeriesPoint>, centerLabel: String?, centerSub: String?, accent: Color, colors: SanvyaColors) {
-    if (series.isEmpty()) return
-    val total = series.sumOf { it.value }.let { if (it <= 0.0) 1.0 else it }
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize(0.9f)) {
-            val stroke = size.minDimension * 0.16f
-            var startAngle = -90f
-            series.forEachIndexed { i, s ->
-                val sweep = (s.value / total * 360.0).toFloat()
-                drawArc(
-                    color = resolveColor(s.color, i, accent, colors), startAngle = startAngle, sweepAngle = sweep * 0.96f, useCenter = false,
-                    topLeft = Offset(stroke / 2, stroke / 2), size = Size(size.width - stroke, size.height - stroke),
-                    style = Stroke(width = stroke, cap = StrokeCap.Round),
-                )
-                startAngle += sweep
-            }
-        }
-        if (centerLabel != null || centerSub != null) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                centerLabel?.let { Text(it, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text) }
-                centerSub?.let { Text(it, fontSize = 11.sp, color = colors.text2) }
-            }
-        }
-    }
-}
-
-@Composable
-private fun GaugeChart(value: Double, max: Double, warnAt: Double?, dangerAt: Double?, centerLabel: String?, accent: Color, colors: SanvyaColors) {
-    val ratio = if (max > 0) (value / max).coerceIn(0.0, 1.0) else 0.0
-    val color = when {
-        value >= (dangerAt ?: max) -> colors.negative
-        value >= (warnAt ?: max * 0.8) -> colors.warning
-        else -> accent
-    }
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize(0.85f)) {
-            val stroke = size.minDimension * 0.14f
-            val sweepTotal = 240f; val start = 150f
-            val r = androidx.compose.ui.geometry.Rect(Offset(stroke / 2, stroke / 2), Size(size.width - stroke, size.height - stroke))
-            drawArc(colors.border, start, sweepTotal, false, r.topLeft, r.size, style = Stroke(width = stroke, cap = StrokeCap.Round))
-            drawArc(color, start, sweepTotal * ratio.toFloat(), false, r.topLeft, r.size, style = Stroke(width = stroke, cap = StrokeCap.Round))
-        }
-        Text(centerLabel ?: "${(ratio * 100).toInt()}%", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
-    }
-}
-
-@Composable
-private fun ProgressChart(value: Double, target: Double?, centerLabel: String?, accent: Color, colors: SanvyaColors) {
-    val ratio = if (target != null && target > 0) (value / target).coerceIn(0.0, 1.0) else 0.5
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize(0.85f)) {
-            val stroke = size.minDimension * 0.13f
-            val r = androidx.compose.ui.geometry.Rect(Offset(stroke / 2, stroke / 2), Size(size.width - stroke, size.height - stroke))
-            drawArc(colors.border, -90f, 360f, false, r.topLeft, r.size, style = Stroke(width = stroke, cap = StrokeCap.Round))
-            drawArc(accent, -90f, 360f * ratio.toFloat(), false, r.topLeft, r.size, style = Stroke(width = stroke, cap = StrokeCap.Round))
-        }
-        Text(centerLabel ?: "${(ratio * 100).toInt()}%", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
-    }
-}
-
-private fun fmtCompact(v: Double): String = if (v == 0.0) "" else if (v >= 1000) "${(v / 1000).let { if (it == it.toInt().toDouble()) it.toInt().toString() else "%.1f".format(it) }}k" else if (v == v.toLong().toDouble()) v.toLong().toString() else "%.0f".format(v)

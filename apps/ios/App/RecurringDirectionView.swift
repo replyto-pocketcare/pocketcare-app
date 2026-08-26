@@ -109,6 +109,25 @@ struct RecurringDirectionView: View {
                 // Web only draws the mix once there is more than one slice; a
                 // single chip restating the total above it is noise.
                 if viewModel.categories.count > 1 {
+                    // The donut web draws. It was recorded as absent on
+                    // 2026-08-24 for one reason — DonutChart was `private`
+                    // inside the Insights screen on both platforms. It is a
+                    // shared component now, so the reason is gone and so is the
+                    // gap. The chips stay: web has both, and a donut with no
+                    // legend names nothing.
+                    SanvyaDonutChart(
+                        series: viewModel.categories.map { slice in
+                            // Positional: SeriesPoint's init takes unlabelled
+                            // arguments on iOS.
+                            SeriesPoint(
+                                slice.isUncategorised ? S.Cashflow.noCategory : slice.name,
+                                Double(slice.sharePct)
+                            )
+                        },
+                        centerLabel: nil,
+                        centerSub: nil,
+                        accent: tint
+                    )
                     categoryChips
                 }
             }
