@@ -1,0 +1,1376 @@
+[
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "",
+      "expanded": []
+    },
+    "expected": [
+      {
+        "id": "e1",
+        "childCount": 2,
+        "isOpen": false,
+        "children": [
+          "e1a",
+          "e1b"
+        ]
+      },
+      {
+        "id": "e2",
+        "childCount": 2,
+        "isOpen": false,
+        "children": [
+          "e2a",
+          "e2b"
+        ]
+      },
+      {
+        "id": "e3",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      },
+      {
+        "id": "e4",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      },
+      {
+        "id": "i1",
+        "childCount": 1,
+        "isOpen": false,
+        "children": [
+          "i1a"
+        ]
+      },
+      {
+        "id": "i2",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "",
+      "expanded": [
+        "e1"
+      ]
+    },
+    "expected": [
+      {
+        "id": "e1",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e1a",
+          "e1b"
+        ]
+      },
+      {
+        "id": "e2",
+        "childCount": 2,
+        "isOpen": false,
+        "children": [
+          "e2a",
+          "e2b"
+        ]
+      },
+      {
+        "id": "e3",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      },
+      {
+        "id": "e4",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      },
+      {
+        "id": "i1",
+        "childCount": 1,
+        "isOpen": false,
+        "children": [
+          "i1a"
+        ]
+      },
+      {
+        "id": "i2",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "",
+      "expanded": [
+        "e1",
+        "e2",
+        "i1"
+      ]
+    },
+    "expected": [
+      {
+        "id": "e1",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e1a",
+          "e1b"
+        ]
+      },
+      {
+        "id": "e2",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e2a",
+          "e2b"
+        ]
+      },
+      {
+        "id": "e3",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      },
+      {
+        "id": "e4",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      },
+      {
+        "id": "i1",
+        "childCount": 1,
+        "isOpen": true,
+        "children": [
+          "i1a"
+        ]
+      },
+      {
+        "id": "i2",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "",
+      "expanded": [
+        "nope"
+      ]
+    },
+    "expected": [
+      {
+        "id": "e1",
+        "childCount": 2,
+        "isOpen": false,
+        "children": [
+          "e1a",
+          "e1b"
+        ]
+      },
+      {
+        "id": "e2",
+        "childCount": 2,
+        "isOpen": false,
+        "children": [
+          "e2a",
+          "e2b"
+        ]
+      },
+      {
+        "id": "e3",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      },
+      {
+        "id": "e4",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      },
+      {
+        "id": "i1",
+        "childCount": 1,
+        "isOpen": false,
+        "children": [
+          "i1a"
+        ]
+      },
+      {
+        "id": "i2",
+        "childCount": 0,
+        "isOpen": false,
+        "children": []
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "food",
+      "expanded": []
+    },
+    "expected": [
+      {
+        "id": "e1",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e1a",
+          "e1b"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "FOOD",
+      "expanded": []
+    },
+    "expected": [
+      {
+        "id": "e1",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e1a",
+          "e1b"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "taxi",
+      "expanded": []
+    },
+    "expected": [
+      {
+        "id": "e2",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e2b"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "grocer",
+      "expanded": []
+    },
+    "expected": [
+      {
+        "id": "e1",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e1a"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "zzz",
+      "expanded": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "shopping",
+      "expanded": []
+    },
+    "expected": [
+      {
+        "id": "e3",
+        "childCount": 0,
+        "isOpen": true,
+        "children": []
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "s",
+      "expanded": []
+    },
+    "expected": [
+      {
+        "id": "e1",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e1a",
+          "e1b"
+        ]
+      },
+      {
+        "id": "e2",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e2a",
+          "e2b"
+        ]
+      },
+      {
+        "id": "e3",
+        "childCount": 0,
+        "isOpen": true,
+        "children": []
+      },
+      {
+        "id": "e4",
+        "childCount": 0,
+        "isOpen": true,
+        "children": []
+      },
+      {
+        "id": "i1",
+        "childCount": 1,
+        "isOpen": true,
+        "children": [
+          "i1a"
+        ]
+      },
+      {
+        "id": "i2",
+        "childCount": 0,
+        "isOpen": true,
+        "children": []
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": "taxi",
+      "expanded": [
+        "e1",
+        "e2"
+      ]
+    },
+    "expected": [
+      {
+        "id": "e2",
+        "childCount": 2,
+        "isOpen": true,
+        "children": [
+          "e2b"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [
+        {
+          "id": "e1",
+          "name": "Food",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e1a",
+          "name": "Groceries",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e1b",
+          "name": "Restaurants",
+          "kind": "expense",
+          "parentId": "e1"
+        },
+        {
+          "id": "e2",
+          "name": "Transport",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e2a",
+          "name": "Fuel",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e2b",
+          "name": "Taxi",
+          "kind": "expense",
+          "parentId": "e2"
+        },
+        {
+          "id": "e3",
+          "name": "Shopping",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "e4",
+          "name": "Uncategorised",
+          "kind": "expense",
+          "parentId": null
+        },
+        {
+          "id": "i1",
+          "name": "Salary",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "i1a",
+          "name": "Bonus",
+          "kind": "income",
+          "parentId": "i1"
+        },
+        {
+          "id": "i2",
+          "name": "Interest",
+          "kind": "income",
+          "parentId": null
+        },
+        {
+          "id": "o1",
+          "name": "Orphan child",
+          "kind": "expense",
+          "parentId": "missing-parent"
+        }
+      ],
+      "search": " ",
+      "expanded": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [],
+      "search": "",
+      "expanded": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "categoryTree",
+    "input": {
+      "categories": [],
+      "search": "food",
+      "expanded": []
+    },
+    "expected": []
+  }
+]

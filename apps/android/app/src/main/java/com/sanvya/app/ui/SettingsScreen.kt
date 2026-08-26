@@ -41,6 +41,8 @@ private val COUNTRIES = FormOptions.countries
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit = {},
+    onManageCategories: () -> Unit = {},
+    onManageLabels: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel()
 ) {
     val scrollState = rememberScrollState()
@@ -241,6 +243,25 @@ fun SettingsScreen(
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     CURRENCIES.forEach { c ->
                         FilterChip(selected = c == baseCurrency, onClick = { viewModel.setBaseCurrency(c) }, label = { Text(c) })
+                    }
+                }
+            }
+
+            // ---- Categories & labels ----
+            //
+            // Web's `#categories` section. Neither native Settings screen had
+            // it, so both taxonomy screens were unreachable even once they
+            // existed.
+            SettingsCard(
+                title = S.Settings.catsLabels(sRes()),
+                subtitle = S.Settings.catsLabelsDesc(sRes()),
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = onManageCategories) {
+                        Text(S.Settings.manageCategories(sRes()))
+                    }
+                    OutlinedButton(onClick = onManageLabels) {
+                        Text(S.Settings.manageLabels(sRes()))
                     }
                 }
             }

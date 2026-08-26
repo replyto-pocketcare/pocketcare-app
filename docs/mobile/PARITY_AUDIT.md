@@ -180,10 +180,10 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/login` | (334) | `auth/LoginScreen.kt` (430) | `LoginView.swift` (427) | 🔶 all four methods on both; **no live Google sign-in has ever completed**, guest upgrade unverified |
 | `/receipts/new` | (339) + `src/receipts` (860) | `receipts/ReceiptCaptureScreen.kt` (274) | `ReceiptCaptureView.swift` (207) | 🔶 camera only; no PDF/gallery, no AI escalation |
 | `/receipts/review` | (501) | `receipts/ReceiptReviewScreen.kt` (283) | `ReceiptReviewView.swift` (259) | 🔶 text-only OCR path (no word boxes) |
-| `/settings` | (272) | `SettingsScreen.kt` (527) | `SettingsView.swift` (400) | 🔶 Security/crypto, Language, Categories/Labels and Import-Export links absent |
+| `/settings` | (272) | `SettingsScreen.kt` (527) | `SettingsView.swift` (400) | 🔶 Categories/Labels section added 2026-08-26. Absent: Security/crypto, Language, Import-Export links |
 | `/receipts/split` | (522) | ❌ | ❌ | ❌ "Split this bill" shown disabled on both. Android's `FLOW_ROOTS` still names the route |
-| `/settings/categories` | (157) | ❌ | ❌ | ❌ no category management on either |
-| `/settings/labels` | (89) | ❌ | ❌ | ❌ |
+| `/settings/categories` | (157) | `taxonomy/CategoriesScreen.kt` (280) | `TaxonomyViews.swift` (CategoriesView) | 🔶 **Built 2026-08-26.** Tree with search, expand/collapse, inline rename, add with kind + parent, soft delete. Absent: the Auto-categorize card — it drives `src/categorize/` (905 lines), which is its own port |
+| `/settings/labels` | (89) | `taxonomy/LabelsScreen.kt` (185) | `TaxonomyViews.swift` (LabelsView) | 🔶 **Built 2026-08-26.** Search, add, inline rename + recolour, soft delete. Colour is the app's 18-swatch palette, not web's free `<input type="color">` — see the divergence note |
 | `/data` (import/export) | (154) + `src/data` (509) | ❌ | ❌ | ❌ no way to get data out of either app |
 | `/statements/analyze` | (329) | ❌ | ❌ | ❌ iOS's fabricated version was deleted 2026-08-24 |
 | `/assistant` | (9) + `src/assistant` (1669) | ❌ `ComingSoonScreen` | ❌ `AssistantView` (27) placeholder | ❌ biggest single unbuilt feature |
@@ -1211,6 +1211,48 @@ honest fix is for the builder to return structure the VIEW names — a
 `categoryName: String?` and a `TxDateLabel` sealed type instead of two baked
 strings — which changes `TransactionListItem` on both platforms. Not done here,
 because doing it inside a Search commit would have buried it.
+
+### Categories and Labels, and three hex parsers — 2026-08-26
+
+Both taxonomy screens are built on both platforms, and Settings now has the
+`Categories & labels` section that reaches them — neither native Settings screen
+had it, so these screens would have been unreachable even once they existed.
+
+`categoryTree` is in Domain with 15 vectors. Web computes it inline in a
+component's render and it has four branches, three of which only appear while
+something is typed in the search box: a parent with no matching descendant is
+hidden; every surviving parent is FORCED open while searching; a parent that
+matches shows all its children; a parent that does not shows only the matching
+ones. That is exactly the kind of thing two ports drift on silently.
+
+**Three components promoted, because a second copy was about to be written:**
+
+- `ColorSwatchRow` on Android — it was inline and private in
+  `CreateAccountScreen`, and Labels needed the same control. iOS already had one.
+- `ConfirmDialog` on Android — web reaches its confirm through a `useConfirm()`
+  hook returning a promise, which has no Compose equivalent, so this platform
+  had **four** hand-rolled `AlertDialog`s and was about to get a fifth.
+- `parseHexColor` — there were **three** hex parsers in the Android app module:
+  one in `AccountColors.kt` and a private copy in each account form, the second
+  of which had been renamed `parseHexColorEdit` purely to dodge a redeclaration
+  clash with the first. Two swallowed a malformed string as grey and the third
+  threw, so the same stored value could render or crash depending on which
+  screen you were on. One parser now, with the safe fallback.
+
+**Deliberate divergence, recorded:** web picks a label's colour with a free
+`<input type="color">`. Compose has no equivalent control, and adopting one on
+iOS alone would put the two platforms out of step over a control neither spec
+has settled — the same call `RecurringFormView` made about dates. Both platforms
+use the app's existing 18-swatch palette, which is web's own `ACCOUNT_COLORS`,
+and which additionally cannot produce the white-on-white a free picker can.
+
+**Not ported: the Auto-categorize card** at the top of web's Categories page. It
+drives `apps/web/src/categorize/` — 905 lines of on-device merchant matching
+with its own seed taxonomy, normaliser and semantic matcher. That is its own
+port, not a corner of this screen, and it is the same engine `transactions/new`
+already defers. Its strings are also the one place web ships **untranslated**
+copy: every `t()` call in that card passes an inline English `defaultValue` and
+none of the keys exist in `packages/core/i18n`.
 
 ### Done-when for this section
 

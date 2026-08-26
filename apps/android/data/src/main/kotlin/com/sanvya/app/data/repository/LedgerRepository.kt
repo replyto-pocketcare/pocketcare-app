@@ -646,6 +646,80 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
      * for credit_card accounts (liabilities that carry a negative/owed
      * balance) and false otherwise, unless the caller passes an explicit
      * value -- matches `row.allow_negative ?? row.type === "credit_card"`. */
+    // ---------------------- Categories and labels ----------------------
+    //
+    // The taxonomy screens' writes. Web does them through generic
+    // `insertRow`/`updateRow`/`softDelete` helpers that take a table name and a
+    // map; these are typed per table instead, because a string table name and
+    // an untyped bag of columns is exactly the shape that let web's own
+    // `insertRow` grow a hardcoded list of tables it must not stamp a `user_id`
+    // onto.
+    //
+    // Deletes are SOFT on both tables. A category or label may be referenced by
+    // transactions that have already synced to other devices; removing the row
+    // would orphan them. `deleted_at` is what every read here already filters
+    // on, and it is what syncs.
+
+    suspend fun createCategory(
+        userId: String,
+        name: String,
+        kind: String,
+        parentId: String? = null,
+    ): String {
+        val id = newId()
+        val ts = nowIso()
+        db.execute(
+            sql = """INSERT INTO categories (id,user_id,name,kind,is_system,parent_id,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?)""",
+            // is_system = 0: a category the user typed is theirs to rename and
+            // delete. Web passes the same literal.
+            parameters = listOf(id, userId, name, kind, 0L, parentId, ts, ts),
+        )
+        return id
+    }
+
+    suspend fun renameCategory(id: String, name: String) {
+        val ts = nowIso()
+        db.execute(
+            sql = "UPDATE categories SET name = ?, updated_at = ? WHERE id = ?",
+            parameters = listOf(name, ts, id),
+        )
+    }
+
+    suspend fun deleteCategory(id: String) {
+        val ts = nowIso()
+        db.execute(
+            sql = "UPDATE categories SET deleted_at = ?, updated_at = ? WHERE id = ?",
+            parameters = listOf(ts, ts, id),
+        )
+    }
+
+    suspend fun createLabel(userId: String, name: String, color: String?): String {
+        val id = newId()
+        val ts = nowIso()
+        db.execute(
+            sql = "INSERT INTO labels (id,user_id,name,color,created_at,updated_at) VALUES (?,?,?,?,?,?)",
+            parameters = listOf(id, userId, name, color, ts, ts),
+        )
+        return id
+    }
+
+    suspend fun updateLabel(id: String, name: String, color: String?) {
+        val ts = nowIso()
+        db.execute(
+            sql = "UPDATE labels SET name = ?, color = ?, updated_at = ? WHERE id = ?",
+            parameters = listOf(name, color, ts, id),
+        )
+    }
+
+    suspend fun deleteLabel(id: String) {
+        val ts = nowIso()
+        db.execute(
+            sql = "UPDATE labels SET deleted_at = ?, updated_at = ? WHERE id = ?",
+            parameters = listOf(ts, ts, id),
+        )
+    }
+
     suspend fun createAccount(
         userId: String,
         name: String,

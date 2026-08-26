@@ -904,6 +904,82 @@ public final class LedgerRepository: @unchecked Sendable {
         return id
     }
 
+    // MARK: - Categories and labels
+    //
+    // The taxonomy screens' writes. Web does them through generic
+    // `insertRow`/`updateRow`/`softDelete` helpers that take a table name and a
+    // dictionary; these are typed per table instead, because a string table
+    // name and an untyped bag of columns is exactly the shape that let web's
+    // own `insertRow` grow a hardcoded list of tables it must not stamp a
+    // `user_id` onto.
+    //
+    // Deletes are SOFT on both tables. A category or label may be referenced by
+    // transactions that have already synced to other devices; removing the row
+    // would orphan them. `deleted_at` is what every read here already filters
+    // on, and it is what syncs.
+
+    public func createCategory(
+        userId: String,
+        name: String,
+        kind: String,
+        parentId: String? = nil
+    ) async throws -> String {
+        let id = newId()
+        let ts = nowIso()
+        try await db.execute(
+            sql: """
+                INSERT INTO categories (id,user_id,name,kind,is_system,parent_id,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?)
+                """,
+            // is_system = 0: a category the user typed is theirs to rename and
+            // delete. Web passes the same literal.
+            parameters: [id, userId, name, kind, 0, parentId, ts, ts]
+        )
+        return id
+    }
+
+    public func renameCategory(id: String, name: String) async throws {
+        let ts = nowIso()
+        try await db.execute(
+            sql: "UPDATE categories SET name = ?, updated_at = ? WHERE id = ?",
+            parameters: [name, ts, id]
+        )
+    }
+
+    public func deleteCategory(id: String) async throws {
+        let ts = nowIso()
+        try await db.execute(
+            sql: "UPDATE categories SET deleted_at = ?, updated_at = ? WHERE id = ?",
+            parameters: [ts, ts, id]
+        )
+    }
+
+    public func createLabel(userId: String, name: String, color: String?) async throws -> String {
+        let id = newId()
+        let ts = nowIso()
+        try await db.execute(
+            sql: "INSERT INTO labels (id,user_id,name,color,created_at,updated_at) VALUES (?,?,?,?,?,?)",
+            parameters: [id, userId, name, color, ts, ts]
+        )
+        return id
+    }
+
+    public func updateLabel(id: String, name: String, color: String?) async throws {
+        let ts = nowIso()
+        try await db.execute(
+            sql: "UPDATE labels SET name = ?, color = ?, updated_at = ? WHERE id = ?",
+            parameters: [name, color, ts, id]
+        )
+    }
+
+    public func deleteLabel(id: String) async throws {
+        let ts = nowIso()
+        try await db.execute(
+            sql: "UPDATE labels SET deleted_at = ?, updated_at = ? WHERE id = ?",
+            parameters: [ts, ts, id]
+        )
+    }
+
     /// Set/adjust the opening balance by appending a ledger entry -- never
     /// rewrites history. Matches PowerSyncAccountRepository.setOpeningBalance().
     public func setOpeningBalance(userId: String, accountId: String, balance: Money, occurredAt: String) async throws {

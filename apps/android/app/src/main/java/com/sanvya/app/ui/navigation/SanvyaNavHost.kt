@@ -191,8 +191,12 @@ fun SanvyaNavHost() {
         composable("settings") {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onManageCategories = { navController.navigate("settings/categories") },
+                onManageLabels = { navController.navigate("settings/labels") },
             )
         }
+        composable("settings/categories") { com.sanvya.app.ui.taxonomy.CategoriesScreen() }
+        composable("settings/labels") { com.sanvya.app.ui.taxonomy.LabelsScreen() }
         composable(
             "coming_soon/{title}",
             arguments = listOf(navArgument("title") { type = NavType.StringType }),

@@ -124,6 +124,13 @@ class VectorRunnerTest {
         runDomain("dashboard-trend")
     }
     @Test
+    fun `category-tree`() {
+        // CategoryTree.kt. Web computes this inside a component's render, so the
+        // vectors record a transcription of it -- see CategoryTreeVectors.kt.
+        com.sanvya.app.domain.taxonomy.registerCategoryTreeVectors()
+        runDomain("category-tree")
+    }
+    @Test
     fun search() {
         // Search.kt's searchTransactions()/activeFilterCount(). Web's filter is
         // inline in a page component, so the vectors record the PORT and three

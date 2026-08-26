@@ -170,6 +170,18 @@ struct SettingsView: View {
                     }
                 }
 
+                // MARK: Categories & labels
+                //
+                // Web's `#categories` section. Neither native Settings screen
+                // had it, so both taxonomy screens were unreachable even once
+                // they existed. `NavigationLink`, because this Form is already
+                // inside a NavigationStack — a sheet would put a second
+                // dismissal gesture on a screen that is a drill-down, not a task.
+                Section(header: Text(S.Settings.catsLabels), footer: Text(S.Settings.catsLabelsDesc)) {
+                    NavigationLink(S.Settings.manageCategories) { CategoriesView() }
+                    NavigationLink(S.Settings.manageLabels) { LabelsView() }
+                }
+
                 // MARK: Plan & billing
                 Section(header: Text("Plan & Billing")) {
                     Text("You're on the \(viewModel.entitlement.tier.capitalized) plan.")

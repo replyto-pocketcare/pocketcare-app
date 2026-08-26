@@ -101,6 +101,12 @@ final class VectorRunnerTests: XCTestCase {
         registerTrendVectors()
         try runDomain("dashboard-trend")
     }
+    func testCategoryTree() throws {
+        // CategoryTree.swift. Web computes this inside a component's render, so
+        // the vectors record a transcription of it — see CategoryTreeVectors.
+        registerCategoryTreeVectors()
+        try runDomain("category-tree")
+    }
     func testSearch() throws {
         // Search.swift's searchTransactions()/activeFilterCount(). Web's filter
         // is inline in a page component, so the vectors record the PORT and

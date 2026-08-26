@@ -24,6 +24,7 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.components.SanvyaPage
+import com.sanvya.app.ui.components.ColorSwatchRow
 
 /**
  * Edit account — ported from apps/web/app/accounts/[id]/edit/page.tsx per
@@ -77,19 +78,7 @@ fun EditAccountScreen(
                 onSelect = viewModel::setType, colors = colors)
 
             Text(S.Accounts.colour(sRes()), fontSize = 13.sp, color = colors.text2)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ACCOUNT_COLOR_HEX.forEach { hex ->
-                    val selected = hex == uiState.color
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(parseHexColorEdit(hex))
-                            .border(if (selected) 3.dp else 2.dp, if (selected) colors.text else colors.border, CircleShape)
-                            .clickable { viewModel.setColor(hex) },
-                    )
-                }
-            }
+            ColorSwatchRow(selected = uiState.color) { viewModel.setColor(it) }
 
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Checkbox(checked = uiState.includeInNetWorth, onCheckedChange = viewModel::setIncludeInNetWorth)
@@ -194,10 +183,4 @@ fun EditAccountScreen(
             )
         }
     }
-}
-
-private fun parseHexColorEdit(hex: String): Color = try {
-    Color(android.graphics.Color.parseColor(hex))
-} catch (e: IllegalArgumentException) {
-    Color.Gray
 }
