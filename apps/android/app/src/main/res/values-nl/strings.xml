@@ -1098,6 +1098,18 @@
     <string name="recurring_subtitle_pre">Salaris, huur, rekeningen en ander regelmatig geld — één keer instellen, wordt op schema geboekt. Voedt je </string>
     <string name="recurring_title">Terugkerende betalingen &amp; inkomsten</string>
 
+    <!-- reflect -->
+    <string name="reflect_done_body">Je hebt al je recente uitgaven bekeken.</string>
+    <string name="reflect_done_title">Je bent helemaal bij!</string>
+    <string name="reflect_greed">Luxe</string>
+    <string name="reflect_hint">Veeg naar links voor nodig, naar rechts voor luxe.</string>
+    <string name="reflect_left">Nog %1$s</string>
+    <string name="reflect_need">Nodig</string>
+    <string name="reflect_skip">Overslaan</string>
+    <string name="reflect_title">Reflectie</string>
+    <string name="reflect_undo">Ongedaan maken</string>
+    <string name="reflect_unknown">Onbekend</string>
+
     <!-- search -->
     <string name="search_all_accounts">Alle rekeningen</string>
     <string name="search_clear">Wissen</string>

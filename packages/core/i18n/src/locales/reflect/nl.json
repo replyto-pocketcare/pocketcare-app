@@ -1,0 +1,12 @@
+{
+  "title": "Reflectie",
+  "left": "Nog {{count}}",
+  "need": "Nodig",
+  "greed": "Luxe",
+  "undo": "Ongedaan maken",
+  "skip": "Overslaan",
+  "doneTitle": "Je bent helemaal bij!",
+  "doneBody": "Je hebt al je recente uitgaven bekeken.",
+  "hint": "Veeg naar links voor nodig, naar rechts voor luxe.",
+  "unknown": "Onbekend"
+}

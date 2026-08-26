@@ -217,9 +217,9 @@ fun SanvyaNavHost() {
             )
         }
         composable("help") { com.sanvya.app.ui.help.HelpScreen() }
-        // Two of the five NAV_GROUPS entries web offers are still unbuilt on
-        // both platforms. Placeholders, not crashes -- see comingSoon() above.
-        comingSoon("reflect", S.Translation::navReflect)
+        composable("reflect") { com.sanvya.app.ui.reflect.ReflectScreen() }
+        // The assistant is the one NAV_GROUPS entry still unbuilt on both
+        // platforms. A placeholder, not a crash -- see comingSoon() above.
         comingSoon("assistant", S.Translation::navAssistant)
         // The guest banner in the More sheet and the side nav both link here,
         // matching web's `<Link href="/login">`. LoginScreen is normally the

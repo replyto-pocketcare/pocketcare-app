@@ -18,11 +18,6 @@ struct PlaceholderView: View {
     }
 }
 
-// Added 2026-08-05 alongside the drawer-parity fix: a real web route
-// (apps/web/app/reflect/page.tsx) that this drawer was missing entirely, not
-// just missing a built screen for -- see
-// docs/mobile/screen-specs/navigation-drawer.md. Notifications joined it there
-// and has since been built.
-struct ReflectView: View {
-    var body: some View { PlaceholderView(title: S.Translation.navReflect, ) }
-}
+// Everything this file used to hold has been built. `PlaceholderView` itself
+// stays: `AssistantView` is the one nav entry still unbuilt on both platforms,
+// and a placeholder is what keeps its tap from being a crash.

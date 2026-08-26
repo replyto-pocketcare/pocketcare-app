@@ -1252,6 +1252,20 @@ object S {
         fun title(res: Resources): String = res.getString(R.string.recurring_title)
     }
 
+    object Reflect {
+        fun doneBody(res: Resources): String = res.getString(R.string.reflect_done_body)
+        fun doneTitle(res: Resources): String = res.getString(R.string.reflect_done_title)
+        fun greed(res: Resources): String = res.getString(R.string.reflect_greed)
+        fun hint(res: Resources): String = res.getString(R.string.reflect_hint)
+        fun left(res: Resources, count: Any): String =
+            res.getString(R.string.reflect_left, count)
+        fun need(res: Resources): String = res.getString(R.string.reflect_need)
+        fun skip(res: Resources): String = res.getString(R.string.reflect_skip)
+        fun title(res: Resources): String = res.getString(R.string.reflect_title)
+        fun undo(res: Resources): String = res.getString(R.string.reflect_undo)
+        fun unknown(res: Resources): String = res.getString(R.string.reflect_unknown)
+    }
+
     object Search {
         fun allAccounts(res: Resources): String = res.getString(R.string.search_all_accounts)
         fun clear(res: Resources): String = res.getString(R.string.search_clear)

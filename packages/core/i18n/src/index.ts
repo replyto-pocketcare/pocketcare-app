@@ -73,6 +73,10 @@ import categoriesEn from "./locales/categories/en.json";
 import categoriesHi from "./locales/categories/hi.json";
 import categoriesNl from "./locales/categories/nl.json";
 
+import reflectEn from "./locales/reflect/en.json";
+import reflectHi from "./locales/reflect/hi.json";
+import reflectNl from "./locales/reflect/nl.json";
+
 import notificationsEn from "./locales/notifications/en.json";
 import notificationsHi from "./locales/notifications/hi.json";
 import notificationsNl from "./locales/notifications/nl.json";
@@ -147,13 +151,13 @@ export const SUPPORTED_LANGUAGES: readonly Language[] = [
 ];
 
 export const resources = {
-  en: { translation: en, dashboard: dashboardEn, splits: splitsEn, accounts: accountsEn, transactions: transactionsEn, cards: cardsEn, budgets: budgetsEn, goals: goalsEn, templates: templatesEn, recurring: recurringEn, cashflow: cashflowEn, loans: loansEn, investments: investmentsEn, insights: insightsEn, categories: categoriesEn, labels: labelsEn, notifications: notificationsEn, search: searchEn, data: dataEn, groups: groupsEn, join: joinEn, help: helpEn, login: loginEn, settings: settingsEn, statements: statementsEn, statementsAnalyze: statementsAnalyzeEn, onboarding: onboardingEn, assistant: assistantEn, receipts: receiptsEn, payments: paymentsEn },
-  hi: { translation: hi, dashboard: dashboardHi, splits: splitsHi, accounts: accountsHi, transactions: transactionsHi, cards: cardsHi, budgets: budgetsHi, goals: goalsHi, templates: templatesHi, recurring: recurringHi, cashflow: cashflowHi, loans: loansHi, investments: investmentsHi, insights: insightsHi, categories: categoriesHi, labels: labelsHi, notifications: notificationsHi, search: searchHi, data: dataHi, groups: groupsHi, join: joinHi, help: helpHi, login: loginHi, settings: settingsHi, statements: statementsHi, statementsAnalyze: statementsAnalyzeHi, onboarding: onboardingHi, assistant: assistantHi, receipts: receiptsHi, payments: paymentsHi },
-  nl: { translation: nl, dashboard: dashboardNl, splits: splitsNl, accounts: accountsNl, transactions: transactionsNl, cards: cardsNl, budgets: budgetsNl, goals: goalsNl, templates: templatesNl, recurring: recurringNl, cashflow: cashflowNl, loans: loansNl, investments: investmentsNl, insights: insightsNl, categories: categoriesNl, labels: labelsNl, notifications: notificationsNl, search: searchNl, data: dataNl, groups: groupsNl, join: joinNl, help: helpNl, login: loginNl, settings: settingsNl, statements: statementsNl, statementsAnalyze: statementsAnalyzeNl, onboarding: onboardingNl, assistant: assistantNl, receipts: receiptsNl, payments: paymentsNl },
+  en: { translation: en, dashboard: dashboardEn, splits: splitsEn, accounts: accountsEn, transactions: transactionsEn, cards: cardsEn, budgets: budgetsEn, goals: goalsEn, templates: templatesEn, recurring: recurringEn, cashflow: cashflowEn, loans: loansEn, investments: investmentsEn, insights: insightsEn, categories: categoriesEn, labels: labelsEn, notifications: notificationsEn, reflect: reflectEn, search: searchEn, data: dataEn, groups: groupsEn, join: joinEn, help: helpEn, login: loginEn, settings: settingsEn, statements: statementsEn, statementsAnalyze: statementsAnalyzeEn, onboarding: onboardingEn, assistant: assistantEn, receipts: receiptsEn, payments: paymentsEn },
+  hi: { translation: hi, dashboard: dashboardHi, splits: splitsHi, accounts: accountsHi, transactions: transactionsHi, cards: cardsHi, budgets: budgetsHi, goals: goalsHi, templates: templatesHi, recurring: recurringHi, cashflow: cashflowHi, loans: loansHi, investments: investmentsHi, insights: insightsHi, categories: categoriesHi, labels: labelsHi, notifications: notificationsHi, reflect: reflectHi, search: searchHi, data: dataHi, groups: groupsHi, join: joinHi, help: helpHi, login: loginHi, settings: settingsHi, statements: statementsHi, statementsAnalyze: statementsAnalyzeHi, onboarding: onboardingHi, assistant: assistantHi, receipts: receiptsHi, payments: paymentsHi },
+  nl: { translation: nl, dashboard: dashboardNl, splits: splitsNl, accounts: accountsNl, transactions: transactionsNl, cards: cardsNl, budgets: budgetsNl, goals: goalsNl, templates: templatesNl, recurring: recurringNl, cashflow: cashflowNl, loans: loansNl, investments: investmentsNl, insights: insightsNl, categories: categoriesNl, labels: labelsNl, notifications: notificationsNl, reflect: reflectNl, search: searchNl, data: dataNl, groups: groupsNl, join: joinNl, help: helpNl, login: loginNl, settings: settingsNl, statements: statementsNl, statementsAnalyze: statementsAnalyzeNl, onboarding: onboardingNl, assistant: assistantNl, receipts: receiptsNl, payments: paymentsNl },
 } as const;
 
 /** Registered namespaces. `translation` is the default; features add their own. */
-export const NAMESPACES = ["translation", "dashboard", "splits", "accounts", "transactions", "cards", "budgets", "goals", "templates", "recurring", "cashflow", "loans", "investments", "insights", "categories", "labels", "notifications", "search", "data", "groups", "join", "help", "login", "settings", "statements", "statementsAnalyze", "onboarding", "assistant", "receipts", "payments"] as const;
+export const NAMESPACES = ["translation", "dashboard", "splits", "accounts", "transactions", "cards", "budgets", "goals", "templates", "recurring", "cashflow", "loans", "investments", "insights", "categories", "labels", "notifications", "reflect", "search", "data", "groups", "join", "help", "login", "settings", "statements", "statementsAnalyze", "onboarding", "assistant", "receipts", "payments"] as const;
 
 export function isRtl(languageCode: string): boolean {
   const base = languageCode.split("-")[0];

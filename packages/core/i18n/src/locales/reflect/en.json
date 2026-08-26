@@ -1,0 +1,12 @@
+{
+  "title": "Reflect",
+  "left": "{{count}} left",
+  "need": "Need",
+  "greed": "Greed",
+  "undo": "Undo",
+  "skip": "Skip",
+  "doneTitle": "All caught up!",
+  "doneBody": "You have reviewed all your recent spending.",
+  "hint": "Swipe left for need, right for greed.",
+  "unknown": "Unknown"
+}

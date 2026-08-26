@@ -188,7 +188,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/statements/analyze` | (329) | ❌ | ❌ | ❌ iOS's fabricated version was deleted 2026-08-24 |
 | `/assistant` | (9) + `src/assistant` (1669) | ❌ `ComingSoonScreen` | ❌ `AssistantView` (27) placeholder | ❌ biggest single unbuilt feature |
 | `/search` | (148) | `search/SearchScreen.kt` (232) | `SearchView.swift` (145) | 🔶 **Built 2026-08-26.** Query, type/account/date/amount filters, result count, collapsed split rows. Absent: the `?q=&type=&account=…` deep-link prefill — it exists so the assistant can hand over a pre-filtered search, and there is no native assistant to hand one over |
-| `/reflect` | (97) + `src/reflect` (160) | ❌ `ComingSoonScreen` | ❌ `ReflectView` placeholder | ❌ |
+| `/reflect` | (97) + `src/reflect` (160) | `reflect/ReflectScreen.kt` (300) | `ReflectView.swift` (200) | ✅ **Built 2026-08-26.** Swipeable card stack, need/greed buttons, undo, skip, counter, empty state. Two deliberate divergences away from web — see the session note |
 | `/help` | (152) | `help/HelpScreen.kt` (190) | `HelpView.swift` (110) | ✅ **Built 2026-08-26.** All 11 sections and 33 Q&A pairs, GENERATED from web's own `SECTIONS` by `tools/parity/generate-help.mjs`, plus search and expand/collapse. The one gap is web's too: the FAQ copy is English on all three |
 | `/notifications` | (75) + `src/notifications` (350) | `notifications/NotificationsScreen.kt` (215) | `NotificationsView.swift` (145) | 🔶 **Built 2026-08-26.** Inbox, unread tint, severity dot, mark-read, mark-all-read, dismiss, empty state. Absent: the row's `href` deep link — there is no web-path → native-route map yet |
 | `/onboarding` + `src/onboarding/Walkthrough.tsx` | (119) + (446) | ❌ nothing | ❌ **`WalkthroughView.swift` (121) is orphaned** — referenced only by its own `#Preview`, never rendered | ❌ first-run walkthrough shows on **neither** app. Akhilesh's call: wire the partial or delete it and port `Walkthrough.tsx` properly |
@@ -1318,6 +1318,39 @@ moving the copy into the i18n package and having web read it from there, which
 is a change to the live client and therefore Akhilesh's call. Until then,
 generating from web is what keeps the three copies identical rather than merely
 similar.
+
+### Reflect, and the last of the small screens — 2026-08-26
+
+Reflect is built on both platforms: the card stack over untagged expenses,
+swipe left for "need" and right for "greed", the two buttons for anyone who
+would rather tap, undo, skip, the counter and the empty state. Judging writes
+`transactions.intent`; skipping writes nothing and hides the card for this visit
+only, which is what web does.
+
+**Two deliberate divergences, both away from web's version:**
+
+1. Web's buttons read **"Need (←)" and "Greed (→)"** — keyboard hints on a
+   screen that, on a phone, has no keyboard. The arrows are dropped and the
+   swipe is explained in a line under the stack instead.
+2. Web paints the swipe tints and both buttons with **raw Material colours**
+   (`#4CAF50`, `#F44336`) rather than the design tokens every other surface in
+   the app uses. Both ports use `positive` and `negative`, which is what those
+   two hex values were reaching for. This is the fourth palette drift found on
+   web; the others are in the chart palettes.
+
+The undo history is local on both platforms, as it is on web. An undone
+judgement re-clears `intent`, which brings the row back into the query on its
+own; an undone skip just stops hiding it. Persisting the history would be a
+second source of truth for something the ledger already records.
+
+A new `reflect` i18n namespace, for the same reason `notifications` needed one:
+every string on web's Reflect page is a hardcoded English literal, down to
+"All caught up!" and "Loading...".
+
+**With this, the small-screens sweep is done.** Search, Categories, Labels,
+Notifications, Help and Reflect are all built on both platforms. `AssistantView`
+is the one nav entry still a placeholder — 1,669 lines on web, and its own
+piece of work.
 
 ### Done-when for this section
 

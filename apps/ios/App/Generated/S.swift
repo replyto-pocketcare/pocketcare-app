@@ -1389,6 +1389,21 @@ public enum S {
         public static var title: String { String(localized: "recurring:title", table: "Localizable") }
     }
 
+    public enum Reflect {
+        public static var doneBody: String { String(localized: "reflect:doneBody", table: "Localizable") }
+        public static var doneTitle: String { String(localized: "reflect:doneTitle", table: "Localizable") }
+        public static var greed: String { String(localized: "reflect:greed", table: "Localizable") }
+        public static var hint: String { String(localized: "reflect:hint", table: "Localizable") }
+        public static func left(count: CVarArg) -> String {
+            String(format: String(localized: "reflect:left", table: "Localizable"), count)
+        }
+        public static var need: String { String(localized: "reflect:need", table: "Localizable") }
+        public static var skip: String { String(localized: "reflect:skip", table: "Localizable") }
+        public static var title: String { String(localized: "reflect:title", table: "Localizable") }
+        public static var undo: String { String(localized: "reflect:undo", table: "Localizable") }
+        public static var unknown: String { String(localized: "reflect:unknown", table: "Localizable") }
+    }
+
     public enum Search {
         public static var allAccounts: String { String(localized: "search:allAccounts", table: "Localizable") }
         public static var clear: String { String(localized: "search:clear", table: "Localizable") }

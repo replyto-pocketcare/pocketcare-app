@@ -646,6 +646,71 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
      * for credit_card accounts (liabilities that carry a negative/owed
      * balance) and false otherwise, unless the caller passes an explicit
      * value -- matches `row.allow_negative ?? row.type === "credit_card"`. */
+    /**
+     * One row of the Reflect queue. The category and account names are joined
+     * in the query rather than resolved in the view model: this is the only
+     * reader that wants them ALONGSIDE the row, and the alternative is holding
+     * two more maps for a screen that shows one card at a time.
+     */
+    data class IntentQueueRow(
+        val id: String,
+        val description: String?,
+        val note: String?,
+        val amountMinor: Long,
+        val currency: String,
+        val occurredAt: String,
+        val categoryName: String?,
+        val accountName: String?,
+    )
+
+    /**
+     * The Reflect queue -- web's `useIntentQueue`.
+     *
+     * Untagged expenses only, newest first, capped at 50. `intent` is the
+     * mindfulness tag; a row that already has one has been judged and must not
+     * come back.
+     */
+    fun watchIntentQueue(limit: Int = 50): Flow<List<IntentQueueRow>> = db.watch(
+        """
+        SELECT t.id AS id, t.description AS description, t.note AS note,
+               t.amount AS amount, t.currency AS currency, t.occurred_at AS occurred_at,
+               c.name AS category_name, a.name AS account_name
+          FROM transactions t
+          LEFT JOIN categories c ON c.id = t.category_id
+          LEFT JOIN accounts a ON a.id = t.account_id
+         WHERE t.type = 'expense'
+           AND t.intent IS NULL
+           AND t.deleted_at IS NULL
+         ORDER BY t.occurred_at DESC
+         LIMIT ?
+        """.trimIndent(),
+        parameters = listOf(limit.toLong()),
+        mapper = { cursor ->
+            IntentQueueRow(
+                id = cursor.getString("id"),
+                description = cursor.getStringOptional("description"),
+                note = cursor.getStringOptional("note"),
+                amountMinor = cursor.getLongOptional("amount") ?: 0L,
+                currency = cursor.getString("currency"),
+                occurredAt = cursor.getString("occurred_at"),
+                categoryName = cursor.getStringOptional("category_name"),
+                accountName = cursor.getStringOptional("account_name"),
+            )
+        },
+    )
+
+    /**
+     * Tags an expense "need" or "greed", or clears the tag when [intent] is
+     * null -- which is what Reflect's Undo does.
+     */
+    suspend fun setIntent(id: String, intent: String?) {
+        val ts = nowIso()
+        db.execute(
+            sql = "UPDATE transactions SET intent = ?, updated_at = ? WHERE id = ?",
+            parameters = listOf(intent, ts, id),
+        )
+    }
+
     // ---------------------- Categories and labels ----------------------
     //
     // The taxonomy screens' writes. Web does them through generic

@@ -1098,6 +1098,18 @@
     <string name="recurring_subtitle_pre">Salary, rent, bills and other regular money — set once, posts on schedule. Feeds your </string>
     <string name="recurring_title">Recurring payments &amp; income</string>
 
+    <!-- reflect -->
+    <string name="reflect_done_body">You have reviewed all your recent spending.</string>
+    <string name="reflect_done_title">All caught up!</string>
+    <string name="reflect_greed">Greed</string>
+    <string name="reflect_hint">Swipe left for need, right for greed.</string>
+    <string name="reflect_left">%1$s left</string>
+    <string name="reflect_need">Need</string>
+    <string name="reflect_skip">Skip</string>
+    <string name="reflect_title">Reflect</string>
+    <string name="reflect_undo">Undo</string>
+    <string name="reflect_unknown">Unknown</string>
+
     <!-- search -->
     <string name="search_all_accounts">All accounts</string>
     <string name="search_clear">Clear</string>

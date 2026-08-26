@@ -1098,6 +1098,18 @@
     <string name="recurring_subtitle_pre">वेतन, किराया, बिल और अन्य नियमित पैसा — एक बार सेट करें, शेड्यूल पर पोस्ट होता है। यह आपके इसमें जुड़ता है </string>
     <string name="recurring_title">आवर्ती भुगतान और आय</string>
 
+    <!-- reflect -->
+    <string name="reflect_done_body">आपने अपना हाल का सारा खर्च देख लिया है।</string>
+    <string name="reflect_done_title">सब देख लिया!</string>
+    <string name="reflect_greed">चाहत</string>
+    <string name="reflect_hint">ज़रूरत के लिए बाईं ओर, चाहत के लिए दाईं ओर स्वाइप करें।</string>
+    <string name="reflect_left">%1$s बाकी</string>
+    <string name="reflect_need">ज़रूरत</string>
+    <string name="reflect_skip">छोड़ें</string>
+    <string name="reflect_title">मनन</string>
+    <string name="reflect_undo">पूर्ववत करें</string>
+    <string name="reflect_unknown">अज्ञात</string>
+
     <!-- search -->
     <string name="search_all_accounts">सभी खाते</string>
     <string name="search_clear">साफ़ करें</string>

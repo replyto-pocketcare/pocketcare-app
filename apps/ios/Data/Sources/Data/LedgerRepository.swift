@@ -909,6 +909,67 @@ public final class LedgerRepository: @unchecked Sendable {
         return id
     }
 
+    /// The Reflect queue — web's `useIntentQueue`.
+    ///
+    /// Untagged expenses only, newest first, capped at 50. `intent` is the
+    /// mindfulness tag; a row that already has one has been judged and must not
+    /// come back.
+    ///
+    /// The category and account names are joined here rather than resolved in
+    /// the view model: this is the only reader that wants them ALONGSIDE the
+    /// row, and the alternative is holding two more maps for a screen that
+    /// shows one card at a time.
+    public struct IntentQueueRow: Identifiable, Sendable {
+        public let id: String
+        public let description: String?
+        public let note: String?
+        public let amountMinor: Int64
+        public let currency: String
+        public let occurredAt: String
+        public let categoryName: String?
+        public let accountName: String?
+    }
+
+    public func watchIntentQueue(limit: Int = 50) throws -> AsyncThrowingStream<[IntentQueueRow], Error> {
+        try db.watch(
+            sql: """
+                SELECT t.id AS id, t.description AS description, t.note AS note,
+                       t.amount AS amount, t.currency AS currency, t.occurred_at AS occurred_at,
+                       c.name AS category_name, a.name AS account_name
+                  FROM transactions t
+                  LEFT JOIN categories c ON c.id = t.category_id
+                  LEFT JOIN accounts a ON a.id = t.account_id
+                 WHERE t.type = 'expense'
+                   AND t.intent IS NULL
+                   AND t.deleted_at IS NULL
+                 ORDER BY t.occurred_at DESC
+                 LIMIT ?
+                """,
+            parameters: [limit]
+        ) { cursor in
+            IntentQueueRow(
+                id: try cursor.getString(name: "id"),
+                description: try cursor.getStringOptional(name: "description"),
+                note: try cursor.getStringOptional(name: "note"),
+                amountMinor: try cursor.getInt64(name: "amount"),
+                currency: try cursor.getString(name: "currency"),
+                occurredAt: try cursor.getString(name: "occurred_at"),
+                categoryName: try cursor.getStringOptional(name: "category_name"),
+                accountName: try cursor.getStringOptional(name: "account_name")
+            )
+        }
+    }
+
+    /// Tags an expense "need" or "greed", or clears the tag when `intent` is
+    /// nil — which is what Reflect's Undo does.
+    public func setIntent(id: String, intent: String?) async throws {
+        let ts = nowIso()
+        try await db.execute(
+            sql: "UPDATE transactions SET intent = ?, updated_at = ? WHERE id = ?",
+            parameters: [intent, ts, id]
+        )
+    }
+
     // MARK: - Categories and labels
     //
     // The taxonomy screens' writes. Web does them through generic
