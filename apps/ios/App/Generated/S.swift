@@ -421,13 +421,16 @@ public enum S {
         public static var efShort: String { String(localized: "dashboard:efShort", table: "Localizable") }
         public static var emptyBody: String { String(localized: "dashboard:emptyBody", table: "Localizable") }
         public static var emptyBudgets: String { String(localized: "dashboard:emptyBudgets", table: "Localizable") }
+        public static var emptyCashflow: String { String(localized: "dashboard:emptyCashflow", table: "Localizable") }
         public static var emptyGoals: String { String(localized: "dashboard:emptyGoals", table: "Localizable") }
         public static var emptyLabels: String { String(localized: "dashboard:emptyLabels", table: "Localizable") }
         public static var emptyRecent: String { String(localized: "dashboard:emptyRecent", table: "Localizable") }
         public static var emptySpending: String { String(localized: "dashboard:emptySpending", table: "Localizable") }
         public static var emptySplits: String { String(localized: "dashboard:emptySplits", table: "Localizable") }
+        public static var emptySubscriptions: String { String(localized: "dashboard:emptySubscriptions", table: "Localizable") }
         public static var emptyTitle: String { String(localized: "dashboard:emptyTitle", table: "Localizable") }
         public static var emptyUpcoming: String { String(localized: "dashboard:emptyUpcoming", table: "Localizable") }
+        public static var inflow: String { String(localized: "dashboard:inflow", table: "Localizable") }
         public static var lastMonth: String { String(localized: "dashboard:lastMonth", table: "Localizable") }
         public static func moreCategories(count: CVarArg) -> String {
             String(format: String(localized: "dashboard:moreCategories", table: "Localizable"), count)
@@ -437,8 +440,17 @@ public enum S {
         }
         public static var moveDown: String { String(localized: "dashboard:moveDown", table: "Localizable") }
         public static var moveUp: String { String(localized: "dashboard:moveUp", table: "Localizable") }
+        public static var net: String { String(localized: "dashboard:net", table: "Localizable") }
+        public static var outflow: String { String(localized: "dashboard:outflow", table: "Localizable") }
+        public static var perMonth: String { String(localized: "dashboard:perMonth", table: "Localizable") }
         public static var premium: String { String(localized: "dashboard:premium", table: "Localizable") }
         public static var premiumNote: String { String(localized: "dashboard:premiumNote", table: "Localizable") }
+        public static func singleCurrency(base: CVarArg) -> String {
+            String(format: String(localized: "dashboard:singleCurrency", table: "Localizable"), base)
+        }
+        public static func spent(amount: CVarArg) -> String {
+            String(format: String(localized: "dashboard:spent", table: "Localizable"), amount)
+        }
         public static var thisMonth: String { String(localized: "dashboard:thisMonth", table: "Localizable") }
         public static var tileBudgets: String { String(localized: "dashboard:tile.budgets", table: "Localizable") }
         public static var tileByCategory: String { String(localized: "dashboard:tile.byCategory", table: "Localizable") }
@@ -454,6 +466,10 @@ public enum S {
         public static var tileSubscriptions: String { String(localized: "dashboard:tile.subscriptions", table: "Localizable") }
         public static var tileTrends: String { String(localized: "dashboard:tile.trends", table: "Localizable") }
         public static var tileUpcoming: String { String(localized: "dashboard:tile.upcoming", table: "Localizable") }
+        public static var trendLast1m: String { String(localized: "dashboard:trendLast1m", table: "Localizable") }
+        public static var trendLast1w: String { String(localized: "dashboard:trendLast1w", table: "Localizable") }
+        public static var trendLast1y: String { String(localized: "dashboard:trendLast1y", table: "Localizable") }
+        public static var trendLast3d: String { String(localized: "dashboard:trendLast3d", table: "Localizable") }
         public static var width: String { String(localized: "dashboard:width", table: "Localizable") }
         public static var youAreOwed: String { String(localized: "dashboard:youAreOwed", table: "Localizable") }
         public static var youOwe: String { String(localized: "dashboard:youOwe", table: "Localizable") }

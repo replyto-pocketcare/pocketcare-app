@@ -1,0 +1,401 @@
+[
+  {
+    "fn": "buildTrend",
+    "input": {
+      "dailyTotals": {
+        "2026-08-20": 1000,
+        "2026-08-21": 2500,
+        "2026-08-22": 0,
+        "2026-08-14": 700,
+        "2026-08-08": 300,
+        "2026-07-31": 999,
+        "2026-01-05": 4200
+      },
+      "period": "3d",
+      "todayIso": "2026-08-22"
+    },
+    "expected": [
+      {
+        "startIso": "2026-08-20",
+        "totalMinor": 1000
+      },
+      {
+        "startIso": "2026-08-21",
+        "totalMinor": 2500
+      },
+      {
+        "startIso": "2026-08-22",
+        "totalMinor": 0
+      }
+    ]
+  },
+  {
+    "fn": "buildTrend",
+    "input": {
+      "dailyTotals": {
+        "2026-08-20": 1000,
+        "2026-08-21": 2500,
+        "2026-08-22": 0,
+        "2026-08-14": 700,
+        "2026-08-08": 300,
+        "2026-07-31": 999,
+        "2026-01-05": 4200
+      },
+      "period": "1w",
+      "todayIso": "2026-08-22"
+    },
+    "expected": [
+      {
+        "startIso": "2026-08-16",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-17",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-18",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-19",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-20",
+        "totalMinor": 1000
+      },
+      {
+        "startIso": "2026-08-21",
+        "totalMinor": 2500
+      },
+      {
+        "startIso": "2026-08-22",
+        "totalMinor": 0
+      }
+    ]
+  },
+  {
+    "fn": "buildTrend",
+    "input": {
+      "dailyTotals": {
+        "2026-08-20": 1000,
+        "2026-08-21": 2500,
+        "2026-08-22": 0,
+        "2026-08-14": 700,
+        "2026-08-08": 300,
+        "2026-07-31": 999,
+        "2026-01-05": 4200
+      },
+      "period": "1m",
+      "todayIso": "2026-08-22"
+    },
+    "expected": [
+      {
+        "startIso": "2026-07-26",
+        "totalMinor": 999
+      },
+      {
+        "startIso": "2026-08-02",
+        "totalMinor": 300
+      },
+      {
+        "startIso": "2026-08-09",
+        "totalMinor": 700
+      },
+      {
+        "startIso": "2026-08-16",
+        "totalMinor": 3500
+      }
+    ]
+  },
+  {
+    "fn": "buildTrend",
+    "input": {
+      "dailyTotals": {
+        "2026-08-20": 1000,
+        "2026-08-21": 2500,
+        "2026-08-22": 0,
+        "2026-08-14": 700,
+        "2026-08-08": 300,
+        "2026-07-31": 999,
+        "2026-01-05": 4200
+      },
+      "period": "1y",
+      "todayIso": "2026-08-22"
+    },
+    "expected": [
+      {
+        "startIso": "2025-09-01",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2025-10-01",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2025-11-01",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2025-12-01",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-01-01",
+        "totalMinor": 4200
+      },
+      {
+        "startIso": "2026-02-01",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-03-01",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-04-01",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-05-01",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-06-01",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-07-01",
+        "totalMinor": 999
+      },
+      {
+        "startIso": "2026-08-01",
+        "totalMinor": 4500
+      }
+    ]
+  },
+  {
+    "fn": "buildTrend",
+    "input": {
+      "dailyTotals": {},
+      "period": "1w",
+      "todayIso": "2026-08-22"
+    },
+    "expected": [
+      {
+        "startIso": "2026-08-16",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-17",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-18",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-19",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-20",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-21",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-08-22",
+        "totalMinor": 0
+      }
+    ]
+  },
+  {
+    "fn": "buildTrend",
+    "input": {
+      "dailyTotals": {
+        "2026-02-28": 500,
+        "2026-03-01": 100
+      },
+      "period": "3d",
+      "todayIso": "2026-03-01"
+    },
+    "expected": [
+      {
+        "startIso": "2026-02-27",
+        "totalMinor": 0
+      },
+      {
+        "startIso": "2026-02-28",
+        "totalMinor": 500
+      },
+      {
+        "startIso": "2026-03-01",
+        "totalMinor": 100
+      }
+    ]
+  },
+  {
+    "fn": "buildTrend",
+    "input": {
+      "dailyTotals": {
+        "2026-08-20": 1000,
+        "2026-08-21": 2500,
+        "2026-08-22": 0,
+        "2026-08-14": 700,
+        "2026-08-08": 300,
+        "2026-07-31": 999,
+        "2026-01-05": 4200
+      },
+      "period": "1w",
+      "todayIso": "nonsense"
+    },
+    "expected": []
+  },
+  {
+    "fn": "monthlyCashflow",
+    "input": {
+      "rows": [
+        [
+          "2026-06",
+          "income",
+          5000
+        ],
+        [
+          "2026-06",
+          "expense",
+          2000
+        ],
+        [
+          "2026-07",
+          "expense",
+          900
+        ]
+      ],
+      "months": 8
+    },
+    "expected": [
+      {
+        "month": "2026-06",
+        "incomeMinor": 5000,
+        "expenseMinor": 2000
+      },
+      {
+        "month": "2026-07",
+        "incomeMinor": 0,
+        "expenseMinor": 900
+      }
+    ]
+  },
+  {
+    "fn": "monthlyCashflow",
+    "input": {
+      "rows": [
+        [
+          "2026-01",
+          "income",
+          1
+        ],
+        [
+          "2026-02",
+          "income",
+          2
+        ],
+        [
+          "2026-03",
+          "income",
+          3
+        ],
+        [
+          "2026-04",
+          "income",
+          4
+        ],
+        [
+          "2026-05",
+          "income",
+          5
+        ],
+        [
+          "2026-06",
+          "income",
+          6
+        ],
+        [
+          "2026-07",
+          "income",
+          7
+        ],
+        [
+          "2026-08",
+          "income",
+          8
+        ],
+        [
+          "2026-09",
+          "income",
+          9
+        ],
+        [
+          "2026-10",
+          "income",
+          10
+        ]
+      ],
+      "months": 8
+    },
+    "expected": [
+      {
+        "month": "2026-03",
+        "incomeMinor": 3,
+        "expenseMinor": 0
+      },
+      {
+        "month": "2026-04",
+        "incomeMinor": 4,
+        "expenseMinor": 0
+      },
+      {
+        "month": "2026-05",
+        "incomeMinor": 5,
+        "expenseMinor": 0
+      },
+      {
+        "month": "2026-06",
+        "incomeMinor": 6,
+        "expenseMinor": 0
+      },
+      {
+        "month": "2026-07",
+        "incomeMinor": 7,
+        "expenseMinor": 0
+      },
+      {
+        "month": "2026-08",
+        "incomeMinor": 8,
+        "expenseMinor": 0
+      },
+      {
+        "month": "2026-09",
+        "incomeMinor": 9,
+        "expenseMinor": 0
+      },
+      {
+        "month": "2026-10",
+        "incomeMinor": 10,
+        "expenseMinor": 0
+      }
+    ]
+  },
+  {
+    "fn": "monthlyCashflow",
+    "input": {
+      "rows": [],
+      "months": 8
+    },
+    "expected": []
+  }
+]

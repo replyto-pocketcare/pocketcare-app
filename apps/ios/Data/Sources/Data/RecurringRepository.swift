@@ -120,6 +120,34 @@ public final class RecurringRepository: @unchecked Sendable {
     /// `next_due`, and NOT filtered by direction, because savings are excluded
     /// by the summary rather than by the query (they still post, and still
     /// appear under "Due now"; they simply have no browsable list here).
+    /**
+     Active recurring PAYMENTS filed under the Subscriptions category.
+
+     Both spellings are matched because the seed taxonomy says "Subscriptions"
+     while an older recurring group said "Subscription", and a user who typed
+     either meant the same thing. Web's comment says exactly that, and the query
+     is web's.
+
+     `i.*`, not the shared column list: that list is unqualified column names and
+     this query joins `categories`, where a bare `id` is ambiguous. The mapper
+     reads by name, so the extra columns cost nothing.
+     */
+    public func watchSubscriptions() throws -> AsyncThrowingStream<[Item], Error> {
+        try db.watch(
+            sql: """
+                SELECT i.*
+                  FROM recurring_items i
+                  JOIN categories c ON c.id = i.category_id
+                 WHERE i.deleted_at IS NULL AND c.deleted_at IS NULL
+                   AND i.active = 1 AND i.direction = 'expense'
+                   AND lower(c.name) IN ('subscription', 'subscriptions')
+                 ORDER BY i.next_due
+                """,
+            parameters: [],
+            mapper: map
+        )
+    }
+
     public func watchActiveItems() throws -> AsyncThrowingStream<[Item], Error> {
         try db.watch(
             sql: """

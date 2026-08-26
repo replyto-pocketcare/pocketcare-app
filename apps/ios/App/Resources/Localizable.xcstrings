@@ -6927,6 +6927,29 @@
         }
       }
     },
+    "dashboard:emptyCashflow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No income or expenses yet."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी तक कोई आय या खर्च नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen inkomsten of uitgaven."
+          }
+        }
+      }
+    },
     "dashboard:emptyGoals": {
       "extractionState": "manual",
       "localizations": {
@@ -7042,6 +7065,29 @@
         }
       }
     },
+    "dashboard:emptySubscriptions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active subscriptions."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोई सक्रिय सदस्यता नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen actieve abonnementen."
+          }
+        }
+      }
+    },
     "dashboard:emptyTitle": {
       "extractionState": "manual",
       "localizations": {
@@ -7084,6 +7130,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Niets openstaand."
+          }
+        }
+      }
+    },
+    "dashboard:inflow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In"
           }
         }
       }
@@ -7203,6 +7272,75 @@
         }
       }
     },
+    "dashboard:net": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "net"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शुद्ध"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "netto"
+          }
+        }
+      }
+    },
+    "dashboard:outflow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uit"
+          }
+        }
+      }
+    },
+    "dashboard:perMonth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "per month"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रति माह"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "per maand"
+          }
+        }
+      }
+    },
     "dashboard:premium": {
       "extractionState": "manual",
       "localizations": {
@@ -7245,6 +7383,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Premium-tegels ontgrendel je met een Lite- of Pro-abonnement."
+          }
+        }
+      }
+    },
+    "dashboard:singleCurrency": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All your money is in %1$@. Add an account in another currency to see the split."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका सारा पैसा %1$@ में है। बँटवारा देखने के लिए किसी दूसरी मुद्रा का खाता जोड़ें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al je geld staat in %1$@. Voeg een rekening in een andere valuta toe om de verdeling te zien."
+          }
+        }
+      }
+    },
+    "dashboard:spent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spent %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ खर्च"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ uitgegeven"
           }
         }
       }
@@ -7590,6 +7774,98 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aankomende betalingen"
+          }
+        }
+      }
+    },
+    "dashboard:trendLast1m": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last month"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछला महीना"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorige maand"
+          }
+        }
+      }
+    },
+    "dashboard:trendLast1w": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last week"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछला सप्ताह"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorige week"
+          }
+        }
+      }
+    },
+    "dashboard:trendLast1y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last year"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछला वर्ष"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorig jaar"
+          }
+        }
+      }
+    },
+    "dashboard:trendLast3d": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 3 days"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछले 3 दिन"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laatste 3 dagen"
           }
         }
       }

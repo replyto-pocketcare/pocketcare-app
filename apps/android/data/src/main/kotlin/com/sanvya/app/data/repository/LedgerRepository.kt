@@ -357,6 +357,53 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
         },
     )
 
+    /**
+     * Monthly income/expense totals **with web's `lend` exclusion** — the
+     * series behind Cashflow, Net cashflow trend and This-month-vs-last.
+     *
+     * Web has TWO monthly queries and they differ: `NetWorthHero`'s has no
+     * exclusion (that is `watchMonthlyIncomeExpense` above), `useCashflow`'s
+     * does. Money you fronted for someone is not your expense, so a month in
+     * which you paid for a group dinner would otherwise read as a spending
+     * spike on the very charts meant to show your trend.
+     */
+    fun watchMonthlyCashflow(): Flow<List<MonthlyIncomeExpense>> = db.watch(
+        """SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total
+             FROM transactions
+            WHERE deleted_at IS NULL AND type IN ('income','expense')
+              AND id NOT IN (
+                    SELECT transaction_id FROM expense_postings
+                     WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+            GROUP BY ym, type ORDER BY ym""",
+        mapper = { cursor ->
+            MonthlyIncomeExpense(
+                yearMonth = cursor.getString("ym"),
+                type = cursor.getString("type"),
+                total = cursor.getLong("total"),
+            )
+        },
+    )
+
+    /**
+     * Daily expense totals since [sinceIso] — the raw material for `buildTrend`.
+     *
+     * Grouped by `date(occurred_at)`, which SQLite evaluates in UTC. Same
+     * caveat as the monthly buckets, and the same reason for keeping it: web's
+     * query is identical, and a native-only correction would make the two
+     * disagree about which day a late-evening coffee belongs to.
+     */
+    fun watchDailyExpenseSince(sinceIso: String): Flow<Map<String, Long>> = db.watch(
+        """SELECT date(occurred_at) as d, SUM(amount) as total
+             FROM transactions
+            WHERE deleted_at IS NULL AND type = 'expense' AND occurred_at >= ?
+              AND id NOT IN (
+                    SELECT transaction_id FROM expense_postings
+                     WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+            GROUP BY d ORDER BY d""",
+        parameters = listOf(sinceIso),
+        mapper = { cursor -> cursor.getString("d") to cursor.getLong("total") },
+    ).map { pairs -> pairs.toMap() }
+
     /** All accounts with their ledger-derived balances (reactive). */
     fun watchAccountBalances(includeArchived: Boolean = false): Flow<List<AccountWithBalance>> =
         combine(watchAccounts(includeArchived), watchLedgerEntries()) { accounts, entries ->

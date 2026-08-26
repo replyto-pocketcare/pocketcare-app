@@ -604,3 +604,210 @@ final class MonthCompareTileViewModel {
         return String(format: "%04d-%02d", parts.year ?? 0, parts.month ?? 0)
     }
 }
+
+/* ---------------------------- Trends --------------------------- */
+
+@Observable
+@MainActor
+final class TrendsTileViewModel {
+    @ObservationIgnored
+    @Injected(\.ledgerRepository) private var ledgerRepository
+
+    public private(set) var period: TrendPeriod = .oneMonth
+    public private(set) var buckets: [TrendBucket] = []
+    public private(set) var totalMinor: Int64 = 0
+
+    private var task: Task<Void, Never>?
+
+    func start() { restart() }
+
+    /// Changing the period swaps the QUERY rather than filtering a wider one in
+    /// memory — a year of daily rows is not something to hold just because the
+    /// user might pick "1y".
+    func setPeriod(_ next: TrendPeriod) {
+        guard next != period else { return }
+        period = next
+        restart()
+    }
+
+    private func restart() {
+        task?.cancel()
+        let period = self.period
+        task = Task { [weak self] in
+            guard let self else { return }
+            let todayIso = Self.todayIso()
+            let since = Self.sinceIso(period: period, todayIso: todayIso)
+            do {
+                for try await daily in try self.ledgerRepository.watchDailyExpenseSince(since) {
+                    self.buckets = buildTrend(daily, period: period, todayIso: todayIso)
+                    self.totalMinor = daily.values.reduce(0, +)
+                }
+            } catch {}
+        }
+    }
+
+    private static func days(_ period: TrendPeriod) -> Int {
+        switch period {
+        case .threeDays: return 3
+        case .oneWeek: return 7
+        case .oneMonth: return 28
+        case .oneYear: return 365
+        }
+    }
+
+    private static func calendarUTC() -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar
+    }
+
+    private static func todayIso() -> String {
+        let c = calendarUTC().dateComponents([.year, .month, .day], from: Date())
+        return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
+    }
+
+    private static func sinceIso(period: TrendPeriod, todayIso: String) -> String {
+        let calendar = calendarUTC()
+        let parts = todayIso.split(separator: "-").compactMap { Int($0) }
+        var components = DateComponents()
+        components.year = parts.first
+        components.month = parts.count > 1 ? parts[1] : 1
+        components.day = parts.count > 2 ? parts[2] : 1
+        let today = calendar.date(from: components) ?? Date()
+        let start = calendar.date(byAdding: .day, value: -(days(period) - 1), to: today) ?? today
+        let c = calendar.dateComponents([.year, .month, .day], from: start)
+        return String(format: "%04d-%02d-%02dT00:00:00", c.year ?? 0, c.month ?? 0, c.day ?? 0)
+    }
+}
+
+/* ------------------- Cashflow / net trend ---------------------- */
+
+@Observable
+@MainActor
+final class CashflowTileViewModel {
+    @ObservationIgnored
+    @Injected(\.ledgerRepository) private var ledgerRepository
+
+    public private(set) var months: [CashflowMonth] = []
+    private var task: Task<Void, Never>?
+
+    func start() {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await rows in try self.ledgerRepository.watchMonthlyCashflow() {
+                    self.months = monthlyCashflow(rows.map { ($0.yearMonth, $0.type, $0.total) })
+                }
+            } catch {}
+        }
+    }
+}
+
+/* ------------------------ Subscriptions ------------------------ */
+
+struct SubscriptionRow: Identifiable, Sendable {
+    let id: String
+    let name: String
+    let dueIso: String
+    let amountMinor: Int64?
+    let currency: String?
+}
+
+@Observable
+@MainActor
+final class SubscriptionsTileViewModel {
+    @ObservationIgnored
+    @Injected(\.recurringRepository) private var recurringRepository
+
+    public private(set) var monthlyMinor: Int64 = 0
+    public private(set) var rows: [SubscriptionRow] = []
+    public private(set) var hiddenCount = 0
+
+    private var task: Task<Void, Never>?
+
+    func start() {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await items in try self.recurringRepository.watchSubscriptions() {
+                    // Everything normalised to a MONTHLY equivalent so a yearly
+                    // plan and a monthly one are comparable — the same
+                    // vector-tested monthlyEquivalent the Recurring screen uses.
+                    self.monthlyMinor = items.reduce(Int64(0)) {
+                        $0 + monthlyEquivalent($1.amount ?? 0, $1.frequency)
+                    }
+                    let renewing = items.filter { !$0.nextDue.isEmpty }
+                    let top = renewing.prefix(8)
+                    self.hiddenCount = max(0, renewing.count - top.count)
+                    self.rows = top.map {
+                        SubscriptionRow(id: $0.id, name: $0.name, dueIso: $0.nextDue, amountMinor: $0.amount, currency: $0.currency)
+                    }
+                }
+            } catch {}
+        }
+    }
+}
+
+/* ----------------------- Across currencies --------------------- */
+
+struct CurrencySlice: Identifiable, Sendable {
+    let id: String
+    let currency: String
+    let nativeMinor: Int64
+    let baseMinor: Int64
+    let sharePct: Int
+}
+
+@Observable
+@MainActor
+final class CurrenciesTileViewModel {
+    @ObservationIgnored
+    @Injected(\.ledgerRepository) private var ledgerRepository
+
+    public private(set) var slices: [CurrencySlice] = []
+    private var task: Task<Void, Never>?
+
+    func start() {
+        guard task == nil else { return }
+        let repository = ledgerRepository
+        task = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let combined = combineLatest(
+                    try repository.watchAccountBalances(),
+                    try repository.watchRates()
+                )
+                for try await (balances, rates) in combined {
+                    self.rebuild(balances, rates)
+                }
+            } catch {}
+        }
+    }
+
+    private func rebuild(_ balances: [AccountWithBalance], _ rates: RateLookup) {
+        let base = baseCurrencyNow()
+        var native: [String: Int64] = [:]
+        for row in balances {
+            native[row.balance.currency, default: 0] += row.balance.amount
+        }
+        var inBase: [String: Int64] = [:]
+        for (currency, amount) in native {
+            inBase[currency] = Int64((Double(amount) * rates(currency, base)).rounded())
+        }
+        let total = inBase.values.reduce(Int64(0), +)
+        slices = native.keys
+            .sorted { (inBase[$0] ?? 0) > (inBase[$1] ?? 0) }
+            .map { currency in
+                let baseAmount = inBase[currency] ?? 0
+                return CurrencySlice(
+                    id: currency,
+                    currency: currency,
+                    nativeMinor: native[currency] ?? 0,
+                    baseMinor: baseAmount,
+                    sharePct: total != 0 ? Int((baseAmount * 100) / total) : 0
+                )
+            }
+    }
+}

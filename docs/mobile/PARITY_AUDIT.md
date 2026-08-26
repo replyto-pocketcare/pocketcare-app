@@ -157,7 +157,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 
 | Web route | Web source (lines) | Android | iOS | Status |
 |---|---|---|---|---|
-| `/` dashboard | `app/page.tsx` (634) + `src/dashboard/*` (1320) | `dashboard/DashboardScreen.kt` (375) | `DashboardView.swift` (427) | 🔶 **largest gap in the app.** Hero + accounts strip + FAB only. The **12-tile catalog, drag-reorder/resize and edit mode are absent on both** — 1,022 lines of `tiles.tsx`. Both screens tell the user so in place of the grid |
+| `/` dashboard | `app/page.tsx` (634) + `src/dashboard/*` (1320) | `dashboard/` (grid + 14 tiles) | `DashboardTileGrid` + `TileViews` | 🔶 **All fourteen tiles render** (2026-08-26), with the customisable grid, edit mode and the Add-a-widget picker. Absent: drag-to-reorder (move buttons instead), `grid-auto-flow: dense`, and web's measured row heights — all three recorded with reasons |
 | `/accounts` | (126) | `accounts/AccountsScreen.kt` (148) | `AccountsView.swift` (119) | 🔶 |
 | `/accounts/new` | (165) | `CreateAccountScreen.kt` (176) | `CreateAccountView.swift` (128) | 🔶 credit-card/demat branches + `MultiCurrencyCard` deferred |
 | `/accounts/[id]/edit` | (189) | `EditAccountScreen.kt` (203) | `EditAccountView.swift` (261) | 🔶 |

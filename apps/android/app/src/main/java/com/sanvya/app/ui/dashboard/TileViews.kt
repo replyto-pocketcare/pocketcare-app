@@ -35,6 +35,15 @@ import com.sanvya.app.domain.insights.SeriesPoint
 import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.toMajor
 import com.sanvya.app.ui.components.SanvyaBarsChart
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import com.sanvya.app.domain.dashboard.TrendPeriod
+import com.sanvya.app.ui.components.SanvyaAreaChart
+import com.sanvya.app.ui.components.SanvyaChip
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import com.sanvya.app.ui.transactions.TransactionRowCard
 
 /**
@@ -57,12 +66,12 @@ val TileId.isBuilt: Boolean
         TileId.SPLITS,
         TileId.BY_CATEGORY,
         TileId.BY_LABEL,
-        TileId.MONTH_COMPARE -> true
+        TileId.MONTH_COMPARE,
         TileId.TRENDS,
         TileId.SUBSCRIPTIONS,
         TileId.CASHFLOW,
         TileId.NET_TREND,
-        TileId.CURRENCIES -> false
+        TileId.CURRENCIES -> true
     }
 
 /**
@@ -88,7 +97,11 @@ fun TileView(id: TileId, editing: Boolean, onOpen: () -> Unit) {
         TileId.BY_CATEGORY -> ByCategoryTile(open)
         TileId.BY_LABEL -> ByLabelTile(open)
         TileId.MONTH_COMPARE -> MonthCompareTile(open)
-        else -> Unit
+        TileId.TRENDS -> TrendsTile(open)
+        TileId.CASHFLOW -> CashflowTile(open)
+        TileId.NET_TREND -> NetTrendTile(open)
+        TileId.SUBSCRIPTIONS -> SubscriptionsTile(open)
+        TileId.CURRENCIES -> CurrenciesTile(open)
     }
 }
 
@@ -492,5 +505,247 @@ private fun MonthCompareTile(onOpen: (() -> Unit)?) {
             accent = colors.accent,
             colors = colors,
         )
+    }
+}
+
+/* ---------------------------- Trends --------------------------- */
+
+/** Formats a bucket's start date for the axis. The DATE is what domain returns;
+ *  the label is built here, with the device's locale, because web's version
+ *  hardcodes English month names. */
+private fun bucketLabel(startIso: String, period: TrendPeriod): String {
+    val date = runCatching { LocalDate.parse(startIso) }.getOrNull() ?: return startIso
+    val pattern = if (period == TrendPeriod.ONE_YEAR) "MMM" else "d MMM"
+    return date.format(DateTimeFormatter.ofPattern(pattern))
+}
+
+@Composable
+private fun trendPeriodLabel(period: TrendPeriod): String = when (period) {
+    TrendPeriod.THREE_DAYS -> S.Dashboard.trendLast3d(sRes())
+    TrendPeriod.ONE_WEEK -> S.Dashboard.trendLast1w(sRes())
+    TrendPeriod.ONE_YEAR -> S.Dashboard.trendLast1y(sRes())
+    else -> S.Dashboard.trendLast1m(sRes())
+}
+
+@Composable
+private fun TrendsTile(onOpen: (() -> Unit)?) {
+    val colors = LocalSanvyaColors.current
+    val viewModel: TrendsTileViewModel = viewModel()
+    val period by viewModel.period.collectAsState()
+    val buckets by viewModel.buckets.collectAsState()
+    val totalMinor by viewModel.totalMinor.collectAsState()
+    val currency = baseCurrencyNow()
+
+    TileShell(S.Dashboard.tileTrends(sRes()), onOpen) {
+        // Chips, not web's <select>: this codebase has no select component, and
+        // four options is what a chip row is for.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TrendPeriod.entries.forEach { option ->
+                SanvyaChip(
+                    label = trendPeriodLabel(option),
+                    active = option == period,
+                    onClick = { viewModel.setPeriod(option) },
+                )
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        SanvyaText(
+            S.Dashboard.spent(sRes(), formatMoney(totalMinor, currency)) + " · " + trendPeriodLabel(period),
+            style = SanvyaType.statLabel,
+            color = colors.text2,
+        )
+        Spacer(Modifier.height(8.dp))
+        Box(Modifier.fillMaxWidth().height(140.dp)) {
+            SanvyaAreaChart(
+                series = buckets.map {
+                    SeriesPoint(bucketLabel(it.startIso, period), toMajor(Money(it.totalMinor, currency)))
+                },
+                accent = colors.accent,
+            )
+        }
+    }
+}
+
+/* ------------------- Cashflow / net trend ---------------------- */
+
+@Composable
+private fun CashflowTile(onOpen: (() -> Unit)?) {
+    val viewModel: CashflowTileViewModel = viewModel()
+    val months by viewModel.months.collectAsState()
+    val currency = baseCurrencyNow()
+
+    HeroTile(S.Dashboard.tileCashflow(sRes()), HeroTint.CASHFLOW, onOpen) {
+        if (months.isEmpty()) {
+            SanvyaText(S.Dashboard.emptyCashflow(sRes()), style = SanvyaType.body, color = heroInkMuted)
+            return@HeroTile
+        }
+        val totalIn = months.sumOf { it.incomeMinor }
+        val totalOut = months.sumOf { it.expenseMinor }
+        val net = totalIn - totalOut
+        Row(verticalAlignment = Alignment.Bottom) {
+            SanvyaText(
+                (if (net >= 0) "+" else "−") + formatMoney(kotlin.math.abs(net), currency),
+                style = SanvyaType.statValue,
+                color = heroInk,
+            )
+            SanvyaText(
+                " " + S.Dashboard.net(sRes()),
+                style = SanvyaType.statLabel,
+                color = heroInkMuted,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            SanvyaText(
+                S.Dashboard.inflow(sRes()) + " " + formatMoney(totalIn, currency),
+                style = SanvyaType.statLabel,
+                color = heroInkMuted,
+            )
+            SanvyaText(
+                S.Dashboard.outflow(sRes()) + " " + formatMoney(totalOut, currency),
+                style = SanvyaType.statLabel,
+                color = heroInkMuted,
+            )
+        }
+        Box(Modifier.fillMaxWidth().height(70.dp)) {
+            SanvyaAreaChart(
+                series = months.map { SeriesPoint(it.month, toMajor(Money(it.netMinor, currency))) },
+                accent = heroInk,
+            )
+        }
+    }
+}
+
+@Composable
+private fun NetTrendTile(onOpen: (() -> Unit)?) {
+    val colors = LocalSanvyaColors.current
+    val viewModel: CashflowTileViewModel = viewModel()
+    val months by viewModel.months.collectAsState()
+    val currency = baseCurrencyNow()
+
+    TileShell(S.Dashboard.tileNetTrend(sRes()), onOpen) {
+        if (months.isEmpty()) {
+            TileEmpty(S.Dashboard.emptyCashflow(sRes()))
+            return@TileShell
+        }
+        Box(Modifier.fillMaxWidth().height(140.dp)) {
+            SanvyaAreaChart(
+                series = months.map { SeriesPoint(it.month, toMajor(Money(it.netMinor, currency))) },
+                accent = colors.accent,
+            )
+        }
+    }
+}
+
+/* ------------------------ Subscriptions ------------------------ */
+
+@Composable
+private fun SubscriptionsTile(onOpen: (() -> Unit)?) {
+    val viewModel: SubscriptionsTileViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+    val currency = baseCurrencyNow()
+
+    HeroTile(S.Dashboard.tileSubscriptions(sRes()), HeroTint.SUBS, onOpen) {
+        if (state.rows.isEmpty()) {
+            SanvyaText(S.Dashboard.emptySubscriptions(sRes()), style = SanvyaType.body, color = heroInkMuted)
+            return@HeroTile
+        }
+        Row(verticalAlignment = Alignment.Bottom) {
+            SanvyaText(formatMoney(state.monthlyMinor, currency), style = SanvyaType.statValue, color = heroInk)
+            SanvyaText(
+                " " + S.Dashboard.perMonth(sRes()),
+                style = SanvyaType.statLabel,
+                color = heroInkMuted,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            state.rows.forEach { row ->
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    SanvyaText(
+                        row.name,
+                        style = SanvyaType.statLabel,
+                        color = heroInk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    SanvyaText(row.dueIso, style = SanvyaType.statLabel, color = heroInkMuted)
+                }
+            }
+            if (state.hiddenCount > 0) {
+                SanvyaText(
+                    S.Dashboard.moreItems(sRes(), state.hiddenCount),
+                    style = SanvyaType.statLabel,
+                    color = heroInkMuted,
+                )
+            }
+        }
+    }
+}
+
+/* ----------------------- Across currencies --------------------- */
+
+@Composable
+private fun CurrenciesTile(onOpen: (() -> Unit)?) {
+    val colors = LocalSanvyaColors.current
+    val viewModel: CurrenciesTileViewModel = viewModel()
+    val slices by viewModel.slices.collectAsState()
+    val base = baseCurrencyNow()
+
+    TileShell(S.Dashboard.tileCurrencies(sRes()), onOpen) {
+        // Web draws nothing below two currencies, and says so: one full-width
+        // bar labelled with the only currency you hold is not information.
+        if (slices.size < 2) {
+            TileEmpty(S.Dashboard.singleCurrency(sRes(), base))
+            return@TileShell
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(colors.surface2),
+        ) {
+            slices.forEachIndexed { index, slice ->
+                if (slice.sharePct <= 0) return@forEachIndexed
+                Box(
+                    Modifier
+                        .weight(slice.sharePct.toFloat())
+                        .fillMaxHeight()
+                        .background(DASHBOARD_CHART_COLORS[index % DASHBOARD_CHART_COLORS.size]),
+                )
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            slices.forEachIndexed { index, slice ->
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Spacer(
+                        Modifier
+                            .size(9.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(DASHBOARD_CHART_COLORS[index % DASHBOARD_CHART_COLORS.size]),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    SanvyaText(slice.currency, style = SanvyaType.statLabel, color = colors.text)
+                    Spacer(Modifier.width(6.dp))
+                    SanvyaText(
+                        formatMoney(slice.nativeMinor, slice.currency),
+                        style = SanvyaType.statLabel,
+                        color = colors.text2,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    SanvyaText(
+                        (if (slice.currency == base) "" else "≈ " + formatMoney(slice.baseMinor, base) + " · ") +
+                            "${slice.sharePct}%",
+                        style = SanvyaType.statLabel,
+                        color = colors.text2,
+                    )
+                }
+            }
+        }
     }
 }

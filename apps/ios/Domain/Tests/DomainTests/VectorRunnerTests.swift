@@ -95,6 +95,12 @@ final class VectorRunnerTests: XCTestCase {
         registerFinanceVectors()
         try runDomain("finance")
     }
+    func testDashboardTrend() throws {
+        // Trend.swift's buildTrend()/monthlyCashflow(). Vectors as SPEC again --
+        // web's version reads the clock and returns English labels.
+        registerTrendVectors()
+        try runDomain("dashboard-trend")
+    }
     func testDashboardGrid() throws {
         // TileGrid.swift's packRows(). Unusually, these vectors are the SPEC:
         // there is no web function to record, because the browser packs the

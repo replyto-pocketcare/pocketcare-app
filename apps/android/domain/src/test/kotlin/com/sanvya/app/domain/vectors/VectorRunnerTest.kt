@@ -117,6 +117,13 @@ class VectorRunnerTest {
         runDomain("finance")
     }
     @Test
+    fun `dashboard-trend`() {
+        // Trend.kt's buildTrend()/monthlyCashflow(). Vectors as SPEC again --
+        // web's version reads the clock and returns English labels.
+        com.sanvya.app.domain.dashboard.registerTrendVectors()
+        runDomain("dashboard-trend")
+    }
+    @Test
     fun `dashboard-grid`() {
         // TileGrid.kt's packRows(). Unusually, these vectors are the SPEC:
         // there is no web function to record, because the browser packs the

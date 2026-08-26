@@ -144,6 +144,35 @@ public struct NetWorth: Sendable {
 /// 2026-08-05, for the dashboard hero sparkline/delta -- see
 /// docs/mobile/screen-specs/dashboard.md).
 /// One grouped total with the name it was grouped by. Nil name = uncategorised.
+/// One day's expense total, before it is folded into a dictionary.
+private struct DailyTotal: Sendable {
+    let day: String
+    let total: Int64
+}
+
+private struct RateRow: Sendable {
+    let base: String
+    let quote: String
+    let rate: Double
+}
+
+/// The fold `rates()` and `watchRates()` share, so a snapshot and a stream can
+/// never disagree about which rate is "latest".
+private func rateLookup(_ rows: [RateRow]) -> RateLookup {
+    var rateMap: [String: Double] = [:]
+    for row in rows {
+        let key = "\(row.base)->\(row.quote)"
+        // First wins: the query is ORDER BY as_of DESC.
+        if rateMap[key] == nil { rateMap[key] = row.rate }
+    }
+    return { from, to in
+        if from == to { return 1.0 }
+        if let direct = rateMap["\(from)->\(to)"] { return direct }
+        if let inverse = rateMap["\(to)->\(from)"] { return 1.0 / inverse }
+        return 1.0
+    }
+}
+
 public struct NamedTotal: Sendable {
     public let name: String?
     public let total: Int64
@@ -599,24 +628,149 @@ public final class LedgerRepository: @unchecked Sendable {
         )
     }
 
+    /**
+     Monthly income/expense totals **with web's `lend` exclusion** — the series
+     behind Cashflow, Net cashflow trend and This-month-vs-last.
+
+     Web has TWO monthly queries and they differ: `NetWorthHero`'s has no
+     exclusion (that is `watchMonthlyIncomeExpense` above), `useCashflow`'s does.
+     Money you fronted for someone is not your expense, so a month in which you
+     paid for a group dinner would otherwise read as a spending spike on the very
+     charts meant to show your trend.
+     */
+    public func watchMonthlyCashflow() throws -> AsyncThrowingStream<[MonthlyIncomeExpense], Error> {
+        try db.watch(
+            sql: """
+                SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total
+                  FROM transactions
+                 WHERE deleted_at IS NULL AND type IN ('income','expense')
+                   AND id NOT IN (
+                         SELECT transaction_id FROM expense_postings
+                          WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+                 GROUP BY ym, type ORDER BY ym
+                """,
+            parameters: [],
+            mapper: monthlyIncomeExpenseMapper
+        )
+    }
+
+    /**
+     Daily expense totals since `sinceIso` — the raw material for `buildTrend`.
+
+     Grouped by `date(occurred_at)`, which SQLite evaluates in UTC. Same caveat
+     as the monthly buckets, and the same reason for keeping it: web's query is
+     identical, and a native-only correction would make the two disagree about
+     which day a late-evening coffee belongs to.
+     */
+    public func watchDailyExpenseSince(_ sinceIso: String) throws -> AsyncThrowingStream<[String: Int64], Error> {
+        let upstream = try db.watch(
+            sql: """
+                SELECT date(occurred_at) as d, SUM(amount) as total
+                  FROM transactions
+                 WHERE deleted_at IS NULL AND type = 'expense' AND occurred_at >= ?
+                   AND id NOT IN (
+                         SELECT transaction_id FROM expense_postings
+                          WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+                 GROUP BY d ORDER BY d
+                """,
+            parameters: [sinceIso],
+            mapper: { cursor in
+                DailyTotal(day: try cursor.getString(name: "d"), total: try cursor.getInt64(name: "total"))
+            }
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await rows in upstream {
+                        continuation.yield(Dictionary(uniqueKeysWithValues: rows.map { ($0.day, $0.total) }))
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    /// Minimal ledger-entry projection for balance derivation, REACTIVE.
+    public func watchLedgerEntries() throws -> AsyncThrowingStream<[LedgerEntry], Error> {
+        try db.watch(
+            sql: "SELECT type, account_id, amount, to_account_id, to_amount FROM transactions WHERE deleted_at IS NULL",
+            parameters: [],
+            mapper: ledgerEntryMapper
+        )
+    }
+
+    /**
+     All accounts with their ledger-derived balances, REACTIVE.
+
+     Android has combined these two watches since the Accounts screen was built;
+     this side was a snapshot for one reason — `AsyncThrowingStream` had no
+     `combineLatest`. It does now (`Streams.swift`), so this is the same two
+     queries Android combines, combined the same way. The one-shot
+     `accountBalances` stays for callers that want a single read.
+     */
+    public func watchAccountBalances(includeArchived: Bool = false) throws -> AsyncThrowingStream<[AccountWithBalance], Error> {
+        let combined = combineLatest(
+            try watchAccounts(includeArchived: includeArchived),
+            try watchLedgerEntries()
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await (accounts, entries) in combined {
+                        continuation.yield(accounts.map {
+                            AccountWithBalance(account: $0, balance: deriveBalance($0.id, $0.currency, entries))
+                        })
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
     /// Latest FX rate per currency pair, as of now, as a RateLookup for aggregateNetWorth.
     public func rates() async throws -> RateLookup {
         let rows = try await db.getAll(
             sql: "SELECT base_currency, quote_currency, rate, as_of FROM exchange_rates ORDER BY as_of DESC",
             parameters: []
         ) { cursor in
-            (try cursor.getString(name: "base_currency"), try cursor.getString(name: "quote_currency"), (try cursor.getDoubleOptional(name: "rate")) ?? 1.0)
+            RateRow(
+                base: try cursor.getString(name: "base_currency"),
+                quote: try cursor.getString(name: "quote_currency"),
+                rate: (try cursor.getDoubleOptional(name: "rate")) ?? 1.0
+            )
         }
-        var rateMap: [String: Double] = [:]
-        for (base, quote, rate) in rows {
-            let key = "\(base)->\(quote)"
-            if rateMap[key] == nil { rateMap[key] = rate }
-        }
-        return { from, to in
-            if from == to { return 1.0 }
-            if let direct = rateMap["\(from)->\(to)"] { return direct }
-            if let inverse = rateMap["\(to)->\(from)"] { return 1.0 / inverse }
-            return 1.0
+        return rateLookup(rows)
+    }
+
+    /// Latest FX rate per currency pair, REACTIVE — same fold as `rates()`.
+    public func watchRates() throws -> AsyncThrowingStream<RateLookup, Error> {
+        let upstream = try db.watch(
+            sql: "SELECT base_currency, quote_currency, rate, as_of FROM exchange_rates ORDER BY as_of DESC",
+            parameters: [],
+            mapper: { cursor in
+                RateRow(
+                    base: try cursor.getString(name: "base_currency"),
+                    quote: try cursor.getString(name: "quote_currency"),
+                    rate: (try cursor.getDoubleOptional(name: "rate")) ?? 1.0
+                )
+            }
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await rows in upstream { continuation.yield(rateLookup(rows)) }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 

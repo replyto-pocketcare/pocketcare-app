@@ -142,6 +142,29 @@ class RecurringRepository(
     )
 
     /** Items due today or earlier that do NOT auto-post — the ones asking to be confirmed. */
+    /**
+     * Active recurring PAYMENTS filed under the Subscriptions category.
+     *
+     * Both spellings are matched because the seed taxonomy says
+     * "Subscriptions" while an older recurring group said "Subscription", and a
+     * user who typed either meant the same thing. Web's comment says exactly
+     * that, and the query is web's.
+     */
+    fun watchSubscriptions(): Flow<List<Item>> = db.watch(
+        // `i.*`, not $COLUMNS: the shared list is unqualified column names and
+        // this query joins `categories`, where a bare `id` is ambiguous. The
+        // mapper reads by name, so the extra columns cost nothing.
+        """SELECT i.*
+             FROM recurring_items i
+             JOIN categories c ON c.id = i.category_id
+            WHERE i.deleted_at IS NULL AND c.deleted_at IS NULL
+              AND i.active = 1 AND i.direction = 'expense'
+              AND lower(c.name) IN ('subscription', 'subscriptions')
+            ORDER BY i.next_due""",
+        parameters = emptyList(),
+        mapper = ::map,
+    )
+
     fun watchDueItems(todayIso: String): Flow<List<Item>> = db.watch(
         sql = """
             SELECT $COLUMNS FROM recurring_items

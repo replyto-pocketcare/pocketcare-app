@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package com.sanvya.app.ui.dashboard
 
 import androidx.lifecycle.ViewModel
@@ -9,6 +11,15 @@ import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.RecurringRepository
 import com.sanvya.app.data.repository.SplitsRepository
 import com.sanvya.app.domain.budget.budgetProgress
+import com.sanvya.app.domain.dashboard.CashflowMonth
+import com.sanvya.app.domain.dashboard.TrendBucket
+import com.sanvya.app.domain.dashboard.TrendPeriod
+import com.sanvya.app.domain.dashboard.buildTrend
+import com.sanvya.app.domain.dashboard.monthlyCashflow
+import com.sanvya.app.domain.finance.monthlyEquivalent
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.domain.money.Money
 import com.sanvya.app.ui.transactions.TransactionListItem
 import com.sanvya.app.ui.transactions.transactionListItem
@@ -387,4 +398,127 @@ class MonthCompareTileViewModel : ViewModel(), KoinComponent {
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MonthCompareState())
+}
+
+/* ---------------------------- Trends --------------------------- */
+
+class TrendsTileViewModel : ViewModel(), KoinComponent {
+    private val ledgerRepository: LedgerRepository by inject()
+
+    private val _period = MutableStateFlow(TrendPeriod.ONE_MONTH)
+    val period: StateFlow<TrendPeriod> = _period.asStateFlow()
+
+    private val _buckets = MutableStateFlow<List<TrendBucket>>(emptyList())
+    val buckets: StateFlow<List<TrendBucket>> = _buckets.asStateFlow()
+
+    private val _totalMinor = MutableStateFlow(0L)
+    val totalMinor: StateFlow<Long> = _totalMinor.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            // flatMapLatest, so changing the period swaps the query rather than
+            // filtering a wider one in memory -- a year of daily rows is not
+            // something to hold just because the user might pick "1y".
+            _period.flatMapLatest { period ->
+                val today = LocalDate.now()
+                val since = today.minusDays(daysFor(period) - 1L).toString() + "T00:00:00"
+                ledgerRepository.watchDailyExpenseSince(since).map { daily -> period to daily }
+            }.collectLatest { (period, daily) ->
+                _buckets.value = buildTrend(daily, period, LocalDate.now().toString())
+                _totalMinor.value = daily.values.sum()
+            }
+        }
+    }
+
+    fun setPeriod(period: TrendPeriod) { _period.value = period }
+
+    private fun daysFor(period: TrendPeriod): Long = when (period) {
+        TrendPeriod.THREE_DAYS -> 3
+        TrendPeriod.ONE_WEEK -> 7
+        TrendPeriod.ONE_MONTH -> 28
+        TrendPeriod.ONE_YEAR -> 365
+    }
+}
+
+/* ------------------- Cashflow / net trend ---------------------- */
+
+class CashflowTileViewModel : ViewModel(), KoinComponent {
+    private val ledgerRepository: LedgerRepository by inject()
+
+    val months: StateFlow<List<CashflowMonth>> = ledgerRepository.watchMonthlyCashflow()
+        .map { rows -> monthlyCashflow(rows.map { Triple(it.yearMonth, it.type, it.total) }) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+}
+
+/* ------------------------ Subscriptions ------------------------ */
+
+data class SubscriptionRow(
+    val id: String,
+    val name: String,
+    val dueIso: String,
+    val amountMinor: Long?,
+    val currency: String?,
+)
+
+data class SubscriptionsState(
+    val monthlyMinor: Long = 0,
+    val rows: List<SubscriptionRow> = emptyList(),
+    val hiddenCount: Int = 0,
+)
+
+class SubscriptionsTileViewModel : ViewModel(), KoinComponent {
+    private val recurringRepository: RecurringRepository by inject()
+
+    val state: StateFlow<SubscriptionsState> = recurringRepository.watchSubscriptions()
+        .map { items ->
+            // Everything normalised to a MONTHLY equivalent so a yearly plan and
+            // a monthly one are comparable -- the same vector-tested
+            // monthlyEquivalent the Recurring screen uses.
+            val monthly = items.sumOf { monthlyEquivalent(it.amount ?: 0L, it.frequency) }
+            val renewing = items.filter { it.nextDue.isNotBlank() }
+            val top = renewing.take(8)
+            SubscriptionsState(
+                monthlyMinor = monthly,
+                rows = top.map { SubscriptionRow(it.id, it.name, it.nextDue, it.amount, it.currency) },
+                hiddenCount = (renewing.size - top.size).coerceAtLeast(0),
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SubscriptionsState())
+}
+
+/* ----------------------- Across currencies --------------------- */
+
+data class CurrencySlice(
+    val currency: String,
+    val nativeMinor: Long,
+    val baseMinor: Long,
+    val sharePct: Int,
+)
+
+class CurrenciesTileViewModel : ViewModel(), KoinComponent {
+    private val ledgerRepository: LedgerRepository by inject()
+
+    val slices: StateFlow<List<CurrencySlice>> = combine(
+        ledgerRepository.watchAccountBalances(),
+        ledgerRepository.watchRates(),
+    ) { balances, rates ->
+        val base = baseCurrencyNow()
+        val byCurrency = balances.groupBy { it.balance.currency }
+            .mapValues { (_, rows) -> rows.sumOf { it.balance.amount } }
+        val converted = byCurrency.mapValues { (currency, amount) ->
+            (amount * rates(currency, base)).toLong()
+        }
+        val total = converted.values.sum()
+        byCurrency.entries
+            .sortedByDescending { converted[it.key] ?: 0L }
+            .map { (currency, nativeAmount) ->
+                val inBase = converted[currency] ?: 0L
+                CurrencySlice(
+                    currency = currency,
+                    nativeMinor = nativeAmount,
+                    baseMinor = inBase,
+                    sharePct = if (total != 0L) ((inBase * 100) / total).toInt() else 0,
+                )
+            }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }

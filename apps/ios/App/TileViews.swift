@@ -16,9 +16,12 @@ import Domain
 extension TileId {
     var isBuilt: Bool {
         switch self {
+        // All fourteen. The `switch` keeps its no-`default` shape: a fifteenth
+        // tile in web's catalog must still fail the build until somebody
+        // decides.
         case .recent, .spending, .upcoming, .budgets, .goals, .splits,
-             .byCategory, .byLabel, .monthCompare: return true
-        case .trends, .subscriptions, .cashflow, .netTrend, .currencies: return false
+             .byCategory, .byLabel, .monthCompare,
+             .trends, .subscriptions, .cashflow, .netTrend, .currencies: return true
         }
     }
 }
@@ -48,7 +51,11 @@ struct TileView: View {
         case .byCategory: ByCategoryTile(onOpen: open)
         case .byLabel: ByLabelTile(onOpen: open)
         case .monthCompare: MonthCompareTile(onOpen: open)
-        default: EmptyView()
+        case .trends: TrendsTile(onOpen: open)
+        case .cashflow: CashflowTile(onOpen: open)
+        case .netTrend: NetTrendTile(onOpen: open)
+        case .subscriptions: SubscriptionsTile(onOpen: open)
+        case .currencies: CurrenciesTile(onOpen: open)
         }
     }
 }
@@ -467,5 +474,235 @@ private struct MonthCompareTile: View {
 
     private func major(_ minor: Int64) -> Double {
         toMajor(Money(amount: minor, currency: baseCurrencyNow()))
+    }
+}
+
+/* ---------------------------- Trends --------------------------- */
+
+/// Formats a bucket's start date for the axis. The DATE is what Domain returns;
+/// the label is built here, with the device's locale, because web's version
+/// hardcodes English month names.
+private func bucketLabel(_ startIso: String, _ period: TrendPeriod) -> String {
+    let parts = startIso.split(separator: "-").compactMap { Int($0) }
+    guard parts.count == 3 else { return startIso }
+    var components = DateComponents()
+    components.year = parts[0]; components.month = parts[1]; components.day = parts[2]
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    guard let date = calendar.date(from: components) else { return startIso }
+    let formatter = DateFormatter()
+    formatter.calendar = calendar
+    formatter.timeZone = calendar.timeZone
+    formatter.setLocalizedDateFormatFromTemplate(period == .oneYear ? "MMM" : "d MMM")
+    return formatter.string(from: date)
+}
+
+private func trendPeriodLabel(_ period: TrendPeriod) -> String {
+    switch period {
+    case .threeDays: return S.Dashboard.trendLast3d
+    case .oneWeek: return S.Dashboard.trendLast1w
+    case .oneYear: return S.Dashboard.trendLast1y
+    case .oneMonth: return S.Dashboard.trendLast1m
+    }
+}
+
+private struct TrendsTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = TrendsTileViewModel()
+
+    var body: some View {
+        TileShell(title: S.Dashboard.tileTrends, onOpen: onOpen, content: {
+            VStack(alignment: .leading, spacing: 8) {
+                // Chips, not web's <select>: this codebase has no select
+                // component, and four options is what a chip row is for.
+                FlowLayout(spacing: 8) {
+                    ForEach(TrendPeriod.allCases, id: \.self) { option in
+                        SanvyaChip(trendPeriodLabel(option), isActive: option == viewModel.period) {
+                            viewModel.setPeriod(option)
+                        }
+                    }
+                }
+                Text("\(S.Dashboard.spent(amount: formatMoney(viewModel.totalMinor, baseCurrencyNow()))) · \(trendPeriodLabel(viewModel.period))")
+                    .sanvyaStyle(SanvyaType.statLabel)
+                    .foregroundStyle(Color.text2)
+                SanvyaAreaChart(
+                    series: viewModel.buckets.map {
+                        SeriesPoint(bucketLabel($0.startIso, viewModel.period), toMajor(Money(amount: $0.totalMinor, currency: baseCurrencyNow())))
+                    },
+                    accent: Color.accent
+                )
+                .frame(height: 140)
+            }
+        })
+        .onAppear { viewModel.start() }
+    }
+}
+
+/* ------------------- Cashflow / net trend ---------------------- */
+
+private struct CashflowTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = CashflowTileViewModel()
+
+    var body: some View {
+        HeroTile(title: S.Dashboard.tileCashflow, tint: .cashflow, onOpen: onOpen) {
+            if viewModel.months.isEmpty {
+                Text(S.Dashboard.emptyCashflow)
+                    .sanvyaStyle(SanvyaType.body)
+                    .foregroundStyle(heroInkMuted)
+            } else {
+                let totalIn = viewModel.months.reduce(Int64(0)) { $0 + $1.incomeMinor }
+                let totalOut = viewModel.months.reduce(Int64(0)) { $0 + $1.expenseMinor }
+                let net = totalIn - totalOut
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .bottom, spacing: 4) {
+                        Text((net >= 0 ? "+" : "−") + formatMoney(abs(net), baseCurrencyNow()))
+                            .sanvyaStyle(SanvyaType.statValue)
+                            .foregroundStyle(heroInk)
+                        Text(S.Dashboard.net)
+                            .sanvyaStyle(SanvyaType.statLabel)
+                            .foregroundStyle(heroInkMuted)
+                            .padding(.bottom, 4)
+                    }
+                    HStack(spacing: 18) {
+                        Text("\(S.Dashboard.inflow) \(formatMoney(totalIn, baseCurrencyNow()))")
+                            .sanvyaStyle(SanvyaType.statLabel)
+                            .foregroundStyle(heroInkMuted)
+                        Text("\(S.Dashboard.outflow) \(formatMoney(totalOut, baseCurrencyNow()))")
+                            .sanvyaStyle(SanvyaType.statLabel)
+                            .foregroundStyle(heroInkMuted)
+                    }
+                    SanvyaAreaChart(
+                        series: viewModel.months.map { SeriesPoint($0.month, toMajor(Money(amount: $0.netMinor, currency: baseCurrencyNow()))) },
+                        accent: heroInk
+                    )
+                    .frame(height: 70)
+                }
+            }
+        }
+        .onAppear { viewModel.start() }
+    }
+}
+
+private struct NetTrendTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = CashflowTileViewModel()
+
+    var body: some View {
+        TileShell(title: S.Dashboard.tileNetTrend, onOpen: onOpen, content: {
+            if viewModel.months.isEmpty {
+                TileEmpty(text: S.Dashboard.emptyCashflow)
+            } else {
+                SanvyaAreaChart(
+                    series: viewModel.months.map { SeriesPoint($0.month, toMajor(Money(amount: $0.netMinor, currency: baseCurrencyNow()))) },
+                    accent: Color.accent
+                )
+                .frame(height: 140)
+            }
+        })
+        .onAppear { viewModel.start() }
+    }
+}
+
+/* ------------------------ Subscriptions ------------------------ */
+
+private struct SubscriptionsTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = SubscriptionsTileViewModel()
+
+    var body: some View {
+        HeroTile(title: S.Dashboard.tileSubscriptions, tint: .subs, onOpen: onOpen) {
+            if viewModel.rows.isEmpty {
+                Text(S.Dashboard.emptySubscriptions)
+                    .sanvyaStyle(SanvyaType.body)
+                    .foregroundStyle(heroInkMuted)
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .bottom, spacing: 4) {
+                        Text(formatMoney(viewModel.monthlyMinor, baseCurrencyNow()))
+                            .sanvyaStyle(SanvyaType.statValue)
+                            .foregroundStyle(heroInk)
+                        Text(S.Dashboard.perMonth)
+                            .sanvyaStyle(SanvyaType.statLabel)
+                            .foregroundStyle(heroInkMuted)
+                            .padding(.bottom, 4)
+                    }
+                    ForEach(viewModel.rows) { row in
+                        HStack(spacing: 8) {
+                            Text(row.name)
+                                .sanvyaStyle(SanvyaType.statLabel)
+                                .foregroundStyle(heroInk)
+                                .lineLimit(1)
+                            Spacer(minLength: 0)
+                            Text(row.dueIso)
+                                .sanvyaStyle(SanvyaType.statLabel)
+                                .foregroundStyle(heroInkMuted)
+                        }
+                    }
+                    if viewModel.hiddenCount > 0 {
+                        Text(S.Dashboard.moreItems(count: viewModel.hiddenCount))
+                            .sanvyaStyle(SanvyaType.statLabel)
+                            .foregroundStyle(heroInkMuted)
+                    }
+                }
+            }
+        }
+        .onAppear { viewModel.start() }
+    }
+}
+
+/* ----------------------- Across currencies --------------------- */
+
+private struct CurrenciesTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = CurrenciesTileViewModel()
+
+    var body: some View {
+        TileShell(title: S.Dashboard.tileCurrencies, onOpen: onOpen, content: {
+            // Web draws nothing below two currencies, and says so: one
+            // full-width bar labelled with the only currency you hold is not
+            // information.
+            if viewModel.slices.count < 2 {
+                TileEmpty(text: S.Dashboard.singleCurrency(base: baseCurrencyNow()))
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    GeometryReader { geo in
+                        HStack(spacing: 0) {
+                            ForEach(Array(viewModel.slices.enumerated()), id: \.element.id) { index, slice in
+                                Rectangle()
+                                    .fill(dashboardChartColors[index % dashboardChartColors.count])
+                                    .frame(width: geo.size.width * CGFloat(max(0, slice.sharePct)) / 100)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                    }
+                    .frame(height: 10)
+                    .background(Color.surface2)
+                    .clipShape(Capsule())
+
+                    ForEach(Array(viewModel.slices.enumerated()), id: \.element.id) { index, slice in
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(dashboardChartColors[index % dashboardChartColors.count])
+                                .frame(width: 9, height: 9)
+                            Text(slice.currency)
+                                .sanvyaStyle(SanvyaType.statLabel)
+                                .foregroundStyle(Color.text)
+                            Text(formatMoney(slice.nativeMinor, slice.currency))
+                                .sanvyaStyle(SanvyaType.statLabel)
+                                .foregroundStyle(Color.text2)
+                                .lineLimit(1)
+                            Spacer(minLength: 0)
+                            Text(slice.currency == baseCurrencyNow()
+                                 ? "\(slice.sharePct)%"
+                                 : "≈ \(formatMoney(slice.baseMinor, baseCurrencyNow())) · \(slice.sharePct)%")
+                                .sanvyaStyle(SanvyaType.statLabel)
+                                .foregroundStyle(Color.text2)
+                        }
+                    }
+                }
+            }
+        })
+        .onAppear { viewModel.start() }
     }
 }
