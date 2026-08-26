@@ -18,10 +18,6 @@ struct PlaceholderView: View {
     }
 }
 
-struct HelpView: View {
-    var body: some View { PlaceholderView(title: S.Translation.navHelp, ) }
-}
-
 // Added 2026-08-05 alongside the drawer-parity fix: a real web route
 // (apps/web/app/reflect/page.tsx) that this drawer was missing entirely, not
 // just missing a built screen for -- see

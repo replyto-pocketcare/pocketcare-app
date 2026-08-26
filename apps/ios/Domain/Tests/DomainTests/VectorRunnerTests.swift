@@ -101,6 +101,12 @@ final class VectorRunnerTests: XCTestCase {
         registerTrendVectors()
         try runDomain("dashboard-trend")
     }
+    func testHelpSearch() throws {
+        // HelpSearch.swift. The CONTENT is generated from web
+        // (tools/parity/generate-help.mjs); this pins the filter over it.
+        registerHelpSearchVectors()
+        try runDomain("help-search")
+    }
     func testTimeAgo() throws {
         // TimeAgo.swift. Web's version reads the clock inside a page module, so
         // the vectors record a transcription taking `now` as a parameter.

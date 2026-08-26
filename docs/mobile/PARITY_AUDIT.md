@@ -189,7 +189,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/assistant` | (9) + `src/assistant` (1669) | ❌ `ComingSoonScreen` | ❌ `AssistantView` (27) placeholder | ❌ biggest single unbuilt feature |
 | `/search` | (148) | `search/SearchScreen.kt` (232) | `SearchView.swift` (145) | 🔶 **Built 2026-08-26.** Query, type/account/date/amount filters, result count, collapsed split rows. Absent: the `?q=&type=&account=…` deep-link prefill — it exists so the assistant can hand over a pre-filtered search, and there is no native assistant to hand one over |
 | `/reflect` | (97) + `src/reflect` (160) | ❌ `ComingSoonScreen` | ❌ `ReflectView` placeholder | ❌ |
-| `/help` | (152) | ❌ `ComingSoonScreen` | ❌ `HelpView` placeholder | ❌ |
+| `/help` | (152) | `help/HelpScreen.kt` (190) | `HelpView.swift` (110) | ✅ **Built 2026-08-26.** All 11 sections and 33 Q&A pairs, GENERATED from web's own `SECTIONS` by `tools/parity/generate-help.mjs`, plus search and expand/collapse. The one gap is web's too: the FAQ copy is English on all three |
 | `/notifications` | (75) + `src/notifications` (350) | `notifications/NotificationsScreen.kt` (215) | `NotificationsView.swift` (145) | 🔶 **Built 2026-08-26.** Inbox, unread tint, severity dot, mark-read, mark-all-read, dismiss, empty state. Absent: the row's `href` deep link — there is no web-path → native-route map yet |
 | `/onboarding` + `src/onboarding/Walkthrough.tsx` | (119) + (446) | ❌ nothing | ❌ **`WalkthroughView.swift` (121) is orphaned** — referenced only by its own `#Preview`, never rendered | ❌ first-run walkthrough shows on **neither** app. Akhilesh's call: wire the partial or delete it and port `Walkthrough.tsx` properly |
 | `/groups` | (19) redirect → `/friends` | 🚫 | 🚫 | 🚫 |
@@ -1287,6 +1287,37 @@ a bulk statement over rows it never saw named would sync as nothing at all.
 like `/budgets`. Turning that into a native destination needs a path → route
 map that does not exist, and guessing one would send someone to the wrong
 screen — worse than a row that only marks itself read.
+
+### Help — generated, not transcribed — 2026-08-26
+
+Help is built on both platforms, and its content is **generated** from
+`apps/web/app/help/page.tsx`'s `SECTIONS` by a new parity generator. 11
+sections, 33 question/answer pairs. A FAQ is exactly the kind of content that
+goes stale the moment it exists in three places — nobody re-reads one to check
+it still matches — so the parity job now fails if web's copy has changed and the
+native copies have not.
+
+The generator also **validates every section icon** against the shared
+`MATERIAL_ICON` map, so a new icon on web fails the job rather than painting
+nothing on a phone. And because the generated content carries web's own
+`space_dashboard`-style name, both views resolve it through the
+`SanvyaIcons.byWebName` map the icon generator already emitted — no second
+mapping to keep in step.
+
+`filterHelp` is in Domain with 15 vectors. Three of them pin details that are
+easy to get wrong: a **whitespace-only query returns everything** (web trims
+this one, unlike the taxonomy search, which it does not — both behaviours are
+now pinned on their own screens), section **titles are not searched**, and a
+needle may **span the space** web inserts between a question and its answer.
+
+**The FAQ copy is English on all three platforms, and that is web's gap, not the
+port's.** All 33 questions and answers are string literals in that component
+rather than keys in `packages/core/i18n` — the chrome around them (title, search
+box, no-match line, footer) is translated, the content is not. Fixing it means
+moving the copy into the i18n package and having web read it from there, which
+is a change to the live client and therefore Akhilesh's call. Until then,
+generating from web is what keeps the three copies identical rather than merely
+similar.
 
 ### Done-when for this section
 

@@ -216,11 +216,11 @@ fun SanvyaNavHost() {
                 onOpenSettings = { navController.navigate("settings") },
             )
         }
-        // Three of the five NAV_GROUPS entries web offers are still unbuilt on
+        composable("help") { com.sanvya.app.ui.help.HelpScreen() }
+        // Two of the five NAV_GROUPS entries web offers are still unbuilt on
         // both platforms. Placeholders, not crashes -- see comingSoon() above.
         comingSoon("reflect", S.Translation::navReflect)
         comingSoon("assistant", S.Translation::navAssistant)
-        comingSoon("help", S.Translation::navHelp)
         // The guest banner in the More sheet and the side nav both link here,
         // matching web's `<Link href="/login">`. LoginScreen is normally the
         // auth gate ABOVE this graph (MainActivity), so a guest -- who is

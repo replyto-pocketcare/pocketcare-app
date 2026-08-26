@@ -1,0 +1,738 @@
+[
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": ""
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?",
+          "How do I begin?"
+        ]
+      },
+      {
+        "title": "Beta",
+        "items": [
+          "Splitting bills"
+        ]
+      },
+      {
+        "title": "Gamma",
+        "items": []
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "   "
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?",
+          "How do I begin?"
+        ]
+      },
+      {
+        "title": "Beta",
+        "items": [
+          "Splitting bills"
+        ]
+      },
+      {
+        "title": "Gamma",
+        "items": []
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "budget"
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "BUDGET"
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "  budget  "
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "account"
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "How do I begin?"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "ACCOUNT"
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "How do I begin?"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "period"
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "group"
+    },
+    "expected": [
+      {
+        "title": "Beta",
+        "items": [
+          "Splitting bills"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "zzz"
+    },
+    "expected": []
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "a"
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?",
+          "How do I begin?"
+        ]
+      },
+      {
+        "title": "Beta",
+        "items": [
+          "Splitting bills"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "?"
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?",
+          "How do I begin?"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "budget? A spending"
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "cap for a period"
+    },
+    "expected": [
+      {
+        "title": "Alpha",
+        "items": [
+          "What is a budget?"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "filterHelp",
+    "input": {
+      "sections": [
+        {
+          "icon": "flag",
+          "color": "#111111",
+          "title": "Alpha",
+          "items": [
+            {
+              "q": "What is a budget?",
+              "a": "A spending cap for a period."
+            },
+            {
+              "q": "How do I begin?",
+              "a": "Add your first ACCOUNT."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#222222",
+          "title": "Beta",
+          "items": [
+            {
+              "q": "Splitting bills",
+              "a": "Pick a group and a mode."
+            }
+          ]
+        },
+        {
+          "icon": "flag",
+          "color": "#333333",
+          "title": "Gamma",
+          "items": []
+        }
+      ],
+      "query": "Alpha"
+    },
+    "expected": []
+  }
+]

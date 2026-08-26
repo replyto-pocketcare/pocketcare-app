@@ -88,6 +88,10 @@ jobs:
             # is one id short drops whichever tile that user had added, on that
             # device only, and looks fine to everyone testing it.
             node tools/parity/generate-tiles.mjs
+            # The Help FAQ. 33 question/answer pairs that exist in one place on
+            # web and would otherwise exist in three, drifting quietly -- nobody
+            # re-reads a FAQ to check it still matches.
+            node tools/parity/generate-help.mjs
             # The PowerSync client schema, mirrored into both native platforms.
             # These were NOT in this list, and that is exactly why the mirrors
             # fell four migrations behind packages/db/src/index.ts without a

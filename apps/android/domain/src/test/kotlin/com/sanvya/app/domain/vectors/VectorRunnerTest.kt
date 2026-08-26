@@ -124,6 +124,13 @@ class VectorRunnerTest {
         runDomain("dashboard-trend")
     }
     @Test
+    fun `help-search`() {
+        // HelpSearch.kt. The CONTENT is generated from web
+        // (tools/parity/generate-help.mjs); this pins the filter over it.
+        com.sanvya.app.domain.help.registerHelpSearchVectors()
+        runDomain("help-search")
+    }
+    @Test
     fun `time-ago`() {
         // TimeAgo.kt. Web's version reads the clock inside a page module, so the
         // vectors record a transcription taking `now` as a parameter.
