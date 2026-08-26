@@ -787,6 +787,19 @@
     <string name="login_verifying">Verifiëren…</string>
     <string name="login_verify_title">Verifieer je e-mail</string>
 
+    <!-- notifications -->
+    <string name="notifications_days_ago">%1$s d geleden</string>
+    <string name="notifications_dismiss">Verwijderen</string>
+    <string name="notifications_empty_body">Meldingen over rekeningen, budgetten, lage saldi en ongebruikelijke uitgaven verschijnen hier.</string>
+    <string name="notifications_empty_title">Je bent helemaal bij</string>
+    <string name="notifications_enable_cta">Meldingen inschakelen</string>
+    <string name="notifications_hours_ago">%1$s u geleden</string>
+    <string name="notifications_just_now">zojuist</string>
+    <string name="notifications_mark_all_read">Alles als gelezen markeren</string>
+    <string name="notifications_minutes_ago">%1$s min geleden</string>
+    <string name="notifications_settings">Instellingen</string>
+    <string name="notifications_title">Meldingen</string>
+
     <!-- onboarding -->
     <string name="onboarding_create_account">Account maken</string>
     <string name="onboarding_footer">Maak een account om op alle apparaten te synchroniseren. Gastgegevens blijven op dit apparaat en worden 3 dagen bewaard.</string>

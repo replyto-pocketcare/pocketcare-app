@@ -1,0 +1,13 @@
+{
+  "title": "Notifications",
+  "markAllRead": "Mark all read",
+  "settings": "Settings",
+  "emptyTitle": "You're all caught up",
+  "emptyBody": "Alerts about bills, budgets, low balances and unusual spend will show up here.",
+  "enableCta": "Enable notifications",
+  "dismiss": "Dismiss",
+  "justNow": "just now",
+  "minutesAgo": "{{count}}m ago",
+  "hoursAgo": "{{count}}h ago",
+  "daysAgo": "{{count}}d ago"
+}

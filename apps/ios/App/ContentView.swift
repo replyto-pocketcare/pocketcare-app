@@ -45,7 +45,7 @@ struct ContentView: View {
 
         case .settings:      SettingsView()
         case .help:          HelpView()
-        case .notifications: NotificationsPlaceholderView()
+        case .notifications: NotificationsView(onOpenSettings: { tab.wrappedValue = .settings })
         }
     }
 }

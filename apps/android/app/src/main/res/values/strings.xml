@@ -787,6 +787,19 @@
     <string name="login_verifying">Verifying…</string>
     <string name="login_verify_title">Verify your email</string>
 
+    <!-- notifications -->
+    <string name="notifications_days_ago">%1$sd ago</string>
+    <string name="notifications_dismiss">Dismiss</string>
+    <string name="notifications_empty_body">Alerts about bills, budgets, low balances and unusual spend will show up here.</string>
+    <string name="notifications_empty_title">You\'re all caught up</string>
+    <string name="notifications_enable_cta">Enable notifications</string>
+    <string name="notifications_hours_ago">%1$sh ago</string>
+    <string name="notifications_just_now">just now</string>
+    <string name="notifications_mark_all_read">Mark all read</string>
+    <string name="notifications_minutes_ago">%1$sm ago</string>
+    <string name="notifications_settings">Settings</string>
+    <string name="notifications_title">Notifications</string>
+
     <!-- onboarding -->
     <string name="onboarding_create_account">Create account</string>
     <string name="onboarding_footer">Create an account to sync across devices. Guest data stays on this device and is kept for 3 days.</string>

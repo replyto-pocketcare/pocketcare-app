@@ -1020,6 +1020,26 @@ public enum S {
         public static var verifyTitle: String { String(localized: "login:verifyTitle", table: "Localizable") }
     }
 
+    public enum Notifications {
+        public static func daysAgo(count: CVarArg) -> String {
+            String(format: String(localized: "notifications:daysAgo", table: "Localizable"), count)
+        }
+        public static var dismiss: String { String(localized: "notifications:dismiss", table: "Localizable") }
+        public static var emptyBody: String { String(localized: "notifications:emptyBody", table: "Localizable") }
+        public static var emptyTitle: String { String(localized: "notifications:emptyTitle", table: "Localizable") }
+        public static var enableCta: String { String(localized: "notifications:enableCta", table: "Localizable") }
+        public static func hoursAgo(count: CVarArg) -> String {
+            String(format: String(localized: "notifications:hoursAgo", table: "Localizable"), count)
+        }
+        public static var justNow: String { String(localized: "notifications:justNow", table: "Localizable") }
+        public static var markAllRead: String { String(localized: "notifications:markAllRead", table: "Localizable") }
+        public static func minutesAgo(count: CVarArg) -> String {
+            String(format: String(localized: "notifications:minutesAgo", table: "Localizable"), count)
+        }
+        public static var settings: String { String(localized: "notifications:settings", table: "Localizable") }
+        public static var title: String { String(localized: "notifications:title", table: "Localizable") }
+    }
+
     public enum Onboarding {
         public static var createAccount: String { String(localized: "onboarding:createAccount", table: "Localizable") }
         public static var footer: String { String(localized: "onboarding:footer", table: "Localizable") }

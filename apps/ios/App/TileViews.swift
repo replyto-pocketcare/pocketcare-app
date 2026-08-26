@@ -486,26 +486,6 @@ private func bucketLabel(_ startIso: String, _ period: TrendPeriod) -> String {
     isoLabel(startIso, period == .oneYear ? "MMM" : "d MMM")
 }
 
-/// "12 Aug" in the device's locale — web's
-/// `toLocaleDateString(undefined, { month: "short", day: "numeric" })`.
-private func dayMonthLabel(_ iso: String) -> String { isoLabel(iso, "d MMM") }
-
-/// Formats the date part of an ISO string, or returns it unchanged if it is not
-/// one. `prefix(10)` because a `next_due` may carry a time component.
-private func isoLabel(_ iso: String, _ template: String) -> String {
-    let parts = iso.prefix(10).split(separator: "-").compactMap { Int($0) }
-    guard parts.count == 3 else { return iso }
-    var components = DateComponents()
-    components.year = parts[0]; components.month = parts[1]; components.day = parts[2]
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-    guard let date = calendar.date(from: components) else { return iso }
-    let formatter = DateFormatter()
-    formatter.calendar = calendar
-    formatter.timeZone = calendar.timeZone
-    formatter.setLocalizedDateFormatFromTemplate(template)
-    return formatter.string(from: date)
-}
 
 private func trendPeriodLabel(_ period: TrendPeriod) -> String {
     switch period {

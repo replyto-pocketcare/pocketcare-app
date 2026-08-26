@@ -75,4 +75,31 @@ public actor NotificationsRepository {
     public func markRead(id: String, at: String) async throws {
         try await updateRow(db: db, table: "notifications", id: id, values: ["read_at": at])
     }
+
+    /// Marks everything currently unread as read.
+    ///
+    /// Row by row rather than one bulk `UPDATE ... WHERE read_at IS NULL`,
+    /// which is what Android already does and what PowerSync needs: its upload
+    /// queue records a CRUD entry per row, and a bulk statement over rows it
+    /// never saw named would sync as nothing at all.
+    public func markAllRead(userId: String, at: String) async throws {
+        let ids: [String] = try await db.getAll(
+            sql: "SELECT id FROM notifications WHERE user_id = ? AND read_at IS NULL AND deleted_at IS NULL",
+            parameters: [userId],
+            mapper: { cursor in try cursor.getString(name: "id") }
+        )
+        for id in ids {
+            try await updateRow(db: db, table: "notifications", id: id, values: ["read_at": at])
+        }
+    }
+
+    /// Dismiss is a SOFT delete, as it is on web: the row has already synced to
+    /// this user's other devices, and dismissing on one should dismiss on all.
+    public func dismiss(id: String) async throws {
+        let ts = nowIso()
+        try await db.execute(
+            sql: "UPDATE notifications SET deleted_at = ?, updated_at = ? WHERE id = ?",
+            parameters: [ts, ts, id]
+        )
+    }
 }

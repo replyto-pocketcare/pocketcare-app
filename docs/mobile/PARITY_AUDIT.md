@@ -190,7 +190,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/search` | (148) | `search/SearchScreen.kt` (232) | `SearchView.swift` (145) | 🔶 **Built 2026-08-26.** Query, type/account/date/amount filters, result count, collapsed split rows. Absent: the `?q=&type=&account=…` deep-link prefill — it exists so the assistant can hand over a pre-filtered search, and there is no native assistant to hand one over |
 | `/reflect` | (97) + `src/reflect` (160) | ❌ `ComingSoonScreen` | ❌ `ReflectView` placeholder | ❌ |
 | `/help` | (152) | ❌ `ComingSoonScreen` | ❌ `HelpView` placeholder | ❌ |
-| `/notifications` | (75) + `src/notifications` (350) | ❌ `ComingSoonScreen` | ❌ placeholder | ❌ the bell in both shells leads here |
+| `/notifications` | (75) + `src/notifications` (350) | `notifications/NotificationsScreen.kt` (215) | `NotificationsView.swift` (145) | 🔶 **Built 2026-08-26.** Inbox, unread tint, severity dot, mark-read, mark-all-read, dismiss, empty state. Absent: the row's `href` deep link — there is no web-path → native-route map yet |
 | `/onboarding` + `src/onboarding/Walkthrough.tsx` | (119) + (446) | ❌ nothing | ❌ **`WalkthroughView.swift` (121) is orphaned** — referenced only by its own `#Preview`, never rendered | ❌ first-run walkthrough shows on **neither** app. Akhilesh's call: wire the partial or delete it and port `Walkthrough.tsx` properly |
 | `/groups` | (19) redirect → `/friends` | 🚫 | 🚫 | 🚫 |
 | `/subscriptions` | (8) redirect → `/recurring` | 🚫 | 🚫 | 🚫 |
@@ -1253,6 +1253,40 @@ port, not a corner of this screen, and it is the same engine `transactions/new`
 already defers. Its strings are also the one place web ships **untranslated**
 copy: every `t()` call in that card passes an inline English `defaultValue` and
 none of the keys exist in `packages/core/i18n`.
+
+### The notification inbox — 2026-08-26
+
+The bell in both shells has led to a placeholder since the shell was built. The
+repository, the unread-count watch and the badge all already existed; the screen
+they pointed at did not. It does now: the inbox, the unread tint, the severity
+dot, mark-read on tap, mark-all-read, dismiss, and web's empty state.
+
+**`timeAgo` is in Domain with 17 vectors, and it returns a SHAPE, not a string.**
+Web builds `` `${m}m ago` `` inline and then falls back to
+`toLocaleDateString()` — a hardcoded language and a localised one in the same
+five-line function. The port returns `justNow` / `minutes(n)` / `hours(n)` /
+`days(n)` / `on(iso)` and the view names it, which is the same split
+`buildTrend` already uses for its bucket labels.
+
+`DateLabels` was promoted on both platforms — `isoLabel` and `dayMonthLabel`
+were private inside the dashboard's tile views, and this screen needed the same
+formatting.
+
+**A new `notifications` i18n namespace.** Every string on web's notifications
+page is a hardcoded English literal — title, "Mark all read", the empty state,
+and every relative-time label. The namespace is new rather than moved, because
+moving it would mean editing `apps/web`. Both native platforms are translated;
+web is not, and will not be until someone wires the namespace up there.
+
+**Repository additions:** `markAllRead` on iOS (Android had it) and `dismiss` on
+both. `markAllRead` updates row by row rather than issuing one bulk
+`UPDATE ... WHERE read_at IS NULL` — PowerSync records a CRUD entry per row, so
+a bulk statement over rows it never saw named would sync as nothing at all.
+
+**Not ported: the row's deep link.** Web's row navigates to `n.href`, a web path
+like `/budgets`. Turning that into a native destination needs a path → route
+map that does not exist, and guessing one would send someone to the wrong
+screen — worse than a row that only marks itself read.
 
 ### Done-when for this section
 

@@ -29,6 +29,8 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.DASHBOARD_CHART_COLORS
 import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.ui.dayMonthLabel
+import com.sanvya.app.ui.isoLabel
 import com.sanvya.app.ui.components.Eyebrow
 import com.sanvya.app.ui.components.SanvyaCard
 import com.sanvya.app.ui.components.SanvyaText
@@ -44,8 +46,6 @@ import androidx.compose.foundation.layout.width
 import com.sanvya.app.domain.dashboard.TrendPeriod
 import com.sanvya.app.ui.components.SanvyaAreaChart
 import com.sanvya.app.ui.components.SanvyaChip
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import com.sanvya.app.ui.transactions.TransactionRowCard
 
 /**
@@ -518,16 +518,6 @@ private fun MonthCompareTile(onOpen: (() -> Unit)?) {
 private fun bucketLabel(startIso: String, period: TrendPeriod): String =
     isoLabel(startIso, if (period == TrendPeriod.ONE_YEAR) "MMM" else "d MMM")
 
-/** "12 Aug" in the device's locale -- web's
- *  `toLocaleDateString(undefined, { month: "short", day: "numeric" })`. */
-private fun dayMonthLabel(iso: String): String = isoLabel(iso, "d MMM")
-
-/** Formats the date part of an ISO string, or returns it unchanged if it is
- *  not one. `take(10)` because a `next_due` may carry a time component. */
-private fun isoLabel(iso: String, pattern: String): String {
-    val date = runCatching { LocalDate.parse(iso.take(10)) }.getOrNull() ?: return iso
-    return date.format(DateTimeFormatter.ofPattern(pattern))
-}
 
 @Composable
 private fun trendPeriodLabel(period: TrendPeriod): String = when (period) {

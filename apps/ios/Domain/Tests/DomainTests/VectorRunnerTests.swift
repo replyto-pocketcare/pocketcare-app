@@ -101,6 +101,12 @@ final class VectorRunnerTests: XCTestCase {
         registerTrendVectors()
         try runDomain("dashboard-trend")
     }
+    func testTimeAgo() throws {
+        // TimeAgo.swift. Web's version reads the clock inside a page module, so
+        // the vectors record a transcription taking `now` as a parameter.
+        registerTimeAgoVectors()
+        try runDomain("time-ago")
+    }
     func testCategoryTree() throws {
         // CategoryTree.swift. Web computes this inside a component's render, so
         // the vectors record a transcription of it — see CategoryTreeVectors.

@@ -211,12 +211,16 @@ fun SanvyaNavHost() {
                 onEditTransaction = { id -> navController.navigate("transactions/$id/edit") },
             )
         }
-        // Four of the five NAV_GROUPS entries web offers are still unbuilt on
+        composable("notifications") {
+            com.sanvya.app.ui.notifications.NotificationsScreen(
+                onOpenSettings = { navController.navigate("settings") },
+            )
+        }
+        // Three of the five NAV_GROUPS entries web offers are still unbuilt on
         // both platforms. Placeholders, not crashes -- see comingSoon() above.
         comingSoon("reflect", S.Translation::navReflect)
         comingSoon("assistant", S.Translation::navAssistant)
         comingSoon("help", S.Translation::navHelp)
-        comingSoon("notifications", S.Translation::navNotifications)
         // The guest banner in the More sheet and the side nav both link here,
         // matching web's `<Link href="/login">`. LoginScreen is normally the
         // auth gate ABOVE this graph (MainActivity), so a guest -- who is

@@ -124,6 +124,13 @@ class VectorRunnerTest {
         runDomain("dashboard-trend")
     }
     @Test
+    fun `time-ago`() {
+        // TimeAgo.kt. Web's version reads the clock inside a page module, so the
+        // vectors record a transcription taking `now` as a parameter.
+        com.sanvya.app.domain.notifications.registerTimeAgoVectors()
+        runDomain("time-ago")
+    }
+    @Test
     fun `category-tree`() {
         // CategoryTree.kt. Web computes this inside a component's render, so the
         // vectors record a transcription of it -- see CategoryTreeVectors.kt.

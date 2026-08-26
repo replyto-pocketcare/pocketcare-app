@@ -914,6 +914,23 @@ object S {
         fun verifyTitle(res: Resources): String = res.getString(R.string.login_verify_title)
     }
 
+    object Notifications {
+        fun daysAgo(res: Resources, count: Any): String =
+            res.getString(R.string.notifications_days_ago, count)
+        fun dismiss(res: Resources): String = res.getString(R.string.notifications_dismiss)
+        fun emptyBody(res: Resources): String = res.getString(R.string.notifications_empty_body)
+        fun emptyTitle(res: Resources): String = res.getString(R.string.notifications_empty_title)
+        fun enableCta(res: Resources): String = res.getString(R.string.notifications_enable_cta)
+        fun hoursAgo(res: Resources, count: Any): String =
+            res.getString(R.string.notifications_hours_ago, count)
+        fun justNow(res: Resources): String = res.getString(R.string.notifications_just_now)
+        fun markAllRead(res: Resources): String = res.getString(R.string.notifications_mark_all_read)
+        fun minutesAgo(res: Resources, count: Any): String =
+            res.getString(R.string.notifications_minutes_ago, count)
+        fun settings(res: Resources): String = res.getString(R.string.notifications_settings)
+        fun title(res: Resources): String = res.getString(R.string.notifications_title)
+    }
+
     object Onboarding {
         fun createAccount(res: Resources): String = res.getString(R.string.onboarding_create_account)
         fun footer(res: Resources): String = res.getString(R.string.onboarding_footer)

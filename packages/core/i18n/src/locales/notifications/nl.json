@@ -1,0 +1,13 @@
+{
+  "title": "Meldingen",
+  "markAllRead": "Alles als gelezen markeren",
+  "settings": "Instellingen",
+  "emptyTitle": "Je bent helemaal bij",
+  "emptyBody": "Meldingen over rekeningen, budgetten, lage saldi en ongebruikelijke uitgaven verschijnen hier.",
+  "enableCta": "Meldingen inschakelen",
+  "dismiss": "Verwijderen",
+  "justNow": "zojuist",
+  "minutesAgo": "{{count}} min geleden",
+  "hoursAgo": "{{count}} u geleden",
+  "daysAgo": "{{count}} d geleden"
+}

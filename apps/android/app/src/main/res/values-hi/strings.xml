@@ -787,6 +787,19 @@
     <string name="login_verifying">सत्यापित हो रहा है…</string>
     <string name="login_verify_title">अपना ईमेल सत्यापित करें</string>
 
+    <!-- notifications -->
+    <string name="notifications_days_ago">%1$s दिन पहले</string>
+    <string name="notifications_dismiss">हटाएँ</string>
+    <string name="notifications_empty_body">बिल, बजट, कम बैलेंस और असामान्य खर्च की सूचनाएँ यहाँ दिखेंगी।</string>
+    <string name="notifications_empty_title">सब देख लिया</string>
+    <string name="notifications_enable_cta">सूचनाएँ चालू करें</string>
+    <string name="notifications_hours_ago">%1$s घंटे पहले</string>
+    <string name="notifications_just_now">अभी</string>
+    <string name="notifications_mark_all_read">सभी पढ़ा हुआ चिह्नित करें</string>
+    <string name="notifications_minutes_ago">%1$s मिनट पहले</string>
+    <string name="notifications_settings">सेटिंग्स</string>
+    <string name="notifications_title">सूचनाएँ</string>
+
     <!-- onboarding -->
     <string name="onboarding_create_account">खाता बनाएं</string>
     <string name="onboarding_footer">उपकरणों में सिंक करने के लिए एक खाता बनाएं। अतिथि डेटा इसी उपकरण पर रहता है और 3 दिनों तक रखा जाता है।</string>

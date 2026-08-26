@@ -81,4 +81,12 @@ class NotificationsRepository(private val db: PowerSyncDatabase) {
         )
         for (id in unread) updateRow(db, "notifications", id, mapOf("read_at" to at))
     }
+
+    /**
+     * Dismiss is a SOFT delete, as it is on web: the row has already synced to
+     * this user's other devices, and dismissing on one should dismiss on all.
+     */
+    suspend fun dismiss(id: String) {
+        softDelete(db, "notifications", id)
+    }
 }
