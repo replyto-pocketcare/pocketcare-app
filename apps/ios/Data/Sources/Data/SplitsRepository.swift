@@ -27,15 +27,24 @@ import Domain
 // - createInvite/acceptInvite -- Supabase Edge Function HTTP calls, not the
 //   local PowerSync DB; belongs with P2.4 (auth) or a future networking layer.
 //
-// REACTIVITY NOTE (same asymmetry as LedgerRepository.swift, extended here):
-// single-table reads (groups/groupMembers/groupExpenses/groupSettlements/
-// connections) are real AsyncThrowingStream watches. ALL derived/composed
-// balance views (friendBalances, groupBalances, splitOverview,
-// friendInsights, personLedger) are one-shot async snapshots -- on BOTH
-// platforms this time (the Kotlin mirror also made these one-shot, not just
-// Swift), since combining 3-4 queries into one derived view would otherwise
-// roughly triple this file's size for a Phase-2 Done-when that doesn't
-// require live reactivity here.
+// REACTIVITY NOTE, corrected 2026-08-26. What it used to say: that the derived
+// balance views were one-shot "on BOTH platforms this time (the Kotlin mirror
+// also made these one-shot, not just Swift)". That was WRONG, and stale:
+// Android's watchFriendBalances has combined two watches since the Splits
+// screen was built. The note asserted parity that did not exist, which is worse
+// than saying nothing -- it is exactly the kind of claim a reader trusts instead
+// of checking.
+//
+// Where it actually stands now:
+// - Single-table reads (groups / groupMembers / groupExpenses /
+//   groupSettlements / connections) are real AsyncThrowingStream watches.
+// - watchFriendBalances is REACTIVE on both platforms, via combineLatest
+//   (Streams.swift) -- the operator whose absence was the real reason for all
+//   of this.
+// - groupBalances, splitOverview, friendInsights and personLedger are still
+//   one-shot snapshots here. splitOverview computes four things in one pass and
+//   a stream is the wrong shape for it; the other two have no Android watch to
+//   be behind. Not drift, but not finished either.
 
 public struct SplitGroup: Sendable {
     public let id: String
@@ -183,6 +192,25 @@ public struct PersonLine: Sendable {
 
 private struct Part: Sendable { let expenseId: String; let groupId: String; let userId: String; let paidAmount: Int64; let shareAmount: Int64 }
 private struct Sett: Sendable { let groupId: String; let fromUser: String; let toUser: String; let amount: Int64 }
+private func partMapper(_ cursor: SqlCursor) throws -> Part {
+    Part(
+        expenseId: try cursor.getString(name: "expense_id"),
+        groupId: try cursor.getString(name: "group_id"),
+        userId: try cursor.getString(name: "user_id"),
+        paidAmount: try cursor.getInt64(name: "paid_amount"),
+        shareAmount: try cursor.getInt64(name: "share_amount")
+    )
+}
+
+private func settMapper(_ cursor: SqlCursor) throws -> Sett {
+    Sett(
+        groupId: try cursor.getString(name: "group_id"),
+        fromUser: try cursor.getString(name: "from_user"),
+        toUser: try cursor.getString(name: "to_user"),
+        amount: try cursor.getInt64(name: "amount")
+    )
+}
+
 private struct SettRow: Sendable { let id: String; let fromUser: String; let toUser: String; let amount: Int64; let at: String }
 
 private func groupMapper(_ cursor: SqlCursor) throws -> SplitGroup {
@@ -353,23 +381,53 @@ public final class SplitsRepository: @unchecked Sendable {
 
     // ---- reads (one-shot; see REACTIVITY NOTE above) ----
 
+    /// Named so the reactive watch above and the snapshot below cannot drift
+    /// into asking two different questions.
+    static let allParticipantsSql = """
+        SELECT expense_id, group_id, user_id, paid_amount, share_amount FROM expense_participants
+        WHERE deleted_at IS NULL AND expense_id IN (SELECT id FROM expenses WHERE deleted_at IS NULL)
+        """
+    static let allSettlementsSql =
+        "SELECT group_id, from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL AND status <> 'disputed'"
+
+    /**
+     Global per-user balances across all of [userId]'s groups, REACTIVE.
+
+     Added 2026-08-26. Android has had `watchFriendBalances` since the Splits
+     screen was built, and this file's REACTIVITY NOTE claimed the Kotlin mirror
+     was one-shot too. It was not, and the note was stale — the asymmetry was
+     real, and the reason for it was that `AsyncThrowingStream` has no
+     `combineLatest`. It has one now (`Streams.swift`), so this is the same two
+     queries Android combines, combined the same way.
+
+     The one-shot `friendBalances` below stays as the snapshot form — it is the
+     shape a one-off read wants, and both go through the same two SQL constants
+     and the same `computeBalances`, so they cannot answer different questions.
+     */
+    public func watchFriendBalances(userId: String) throws -> AsyncThrowingStream<[FriendBalance], Error> {
+        let combined = combineLatest(
+            try db.watch(sql: Self.allParticipantsSql, parameters: [], mapper: partMapper),
+            try db.watch(sql: Self.allSettlementsSql, parameters: [], mapper: settMapper)
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await (parts, setts) in combined {
+                        continuation.yield(computeBalances(parts, setts, userId))
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
     /// Global per-user balances across all of [userId]'s groups.
     public func friendBalances(userId: String) async throws -> [FriendBalance] {
-        let parts = try await db.getAll(
-            sql: """
-                SELECT expense_id, group_id, user_id, paid_amount, share_amount FROM expense_participants
-                WHERE deleted_at IS NULL AND expense_id IN (SELECT id FROM expenses WHERE deleted_at IS NULL)
-                """,
-            parameters: []
-        ) { cursor in
-            Part(expenseId: try cursor.getString(name: "expense_id"), groupId: try cursor.getString(name: "group_id"), userId: try cursor.getString(name: "user_id"), paidAmount: try cursor.getInt64(name: "paid_amount"), shareAmount: try cursor.getInt64(name: "share_amount"))
-        }
-        let setts = try await db.getAll(
-            sql: "SELECT group_id, from_user, to_user, amount FROM settlements WHERE deleted_at IS NULL AND status <> 'disputed'",
-            parameters: []
-        ) { cursor in
-            Sett(groupId: try cursor.getString(name: "group_id"), fromUser: try cursor.getString(name: "from_user"), toUser: try cursor.getString(name: "to_user"), amount: try cursor.getInt64(name: "amount"))
-        }
+        let parts = try await db.getAll(sql: Self.allParticipantsSql, parameters: [], mapper: partMapper)
+        let setts = try await db.getAll(sql: Self.allSettlementsSql, parameters: [], mapper: settMapper)
         return computeBalances(parts, setts, userId)
     }
 

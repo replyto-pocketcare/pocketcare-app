@@ -427,31 +427,43 @@ final class SplitsTileViewModel {
     public private(set) var hiddenCount = 0
 
     private var task: Task<Void, Never>?
+    private var balances: [FriendBalance] = []
+    private var namesById: [String: String] = [:]
 
-    /// `friendBalances` is a ONE-SHOT read on iOS, not a stream — see
-    /// SplitsRepository's REACTIVITY NOTE: every derived balance view is a
-    /// snapshot here because `AsyncThrowingStream` has no `combine`. So this
-    /// re-reads it whenever the connections watch fires, which is the same
-    /// pattern SplitsViewModel already uses. **Android's repository combines
-    /// two watches and is genuinely reactive**, which makes this one of the
-    /// few real behavioural asymmetries left; recorded in
-    /// ABSENT-BY-DECISION.md rather than hidden behind a matching signature.
+    /// Two watches, both live. `watchFriendBalances` was a one-shot snapshot on
+    /// iOS until `combineLatest` existed (Streams.swift, 2026-08-26) — Android
+    /// had been reactive here all along.
     func start() {
         guard task == nil else { return }
         task = Task { [weak self] in
             guard let self else { return }
             guard let userId = await self.resolveUserId() else { return }
-            do {
-                for try await connections in try self.splitsRepository.watchConnections(userId: userId) {
-                    await self.refresh(userId: userId, connections: connections)
-                }
-            } catch {}
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { await self.watchNames(userId) }
+                group.addTask { await self.watchBalances(userId) }
+            }
         }
     }
 
-    private func refresh(userId: String, connections: [UserProfile]) async {
-        guard let balances = try? await splitsRepository.friendBalances(userId: userId) else { return }
-        let namesById = Dictionary(uniqueKeysWithValues: connections.map { ($0.id, $0.name) })
+    private func watchNames(_ userId: String) async {
+        do {
+            for try await connections in try splitsRepository.watchConnections(userId: userId) {
+                namesById = Dictionary(uniqueKeysWithValues: connections.map { ($0.id, $0.name) })
+                rebuild()
+            }
+        } catch {}
+    }
+
+    private func watchBalances(_ userId: String) async {
+        do {
+            for try await rows in try splitsRepository.watchFriendBalances(userId: userId) {
+                balances = rows
+                rebuild()
+            }
+        } catch {}
+    }
+
+    private func rebuild() {
         // Ranked by SIZE of the balance, not by sign — web sorts on abs(net),
         // so the person you owe most and the person who owes you most both
         // surface.
