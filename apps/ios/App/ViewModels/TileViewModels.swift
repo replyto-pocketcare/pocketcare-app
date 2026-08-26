@@ -107,7 +107,9 @@ final class RecentTileViewModel {
 /// One category's share of this month's spending.
 struct SpendSlice: Identifiable, Sendable {
     let id: String
-    let name: String
+    /// Nil for the uncategorised bucket — the VIEW names it, because i18n
+    /// belongs where the string is rendered.
+    let name: String?
     let totalMinor: Int64
     /// Share of the month's total, 0–100.
     let sharePct: Int
@@ -126,19 +128,6 @@ final class SpendingTileViewModel {
     public private(set) var hiddenCount = 0
 
     private var task: Task<Void, Never>?
-    private var categoryMap: [String: CategoryRow] = [:]
-    private var transactions: [TransactionRow] = []
-
-    func start() {
-        guard task == nil else { return }
-        task = Task { [weak self] in
-            guard let self else { return }
-            await withTaskGroup(of: Void.self) { group in
-                group.addTask { await self.watchTransactions() }
-                group.addTask { await self.watchCategories() }
-            }
-        }
-    }
 
     /// Web's `new Date(y, m, 1).toISOString()` — the first instant of this month.
     private var monthStartIso: String {
@@ -149,59 +138,44 @@ final class SpendingTileViewModel {
         return ISO8601DateFormatter().string(from: start)
     }
 
-    private func watchTransactions() async {
-        do {
-            // Open-ended: the repository's query is `occurred_at < ?`, so a
-            // sentinel far in the future includes anything dated later today.
-            // Web's query has no upper bound at all; inventing a second
-            // unbounded repository method for one caller would be worse than a
-            // sentinel that is obviously one.
-            for try await rows in try ledgerRepository.watchTransactionsInRange(
-                startIso: monthStartIso,
-                endIso: "9999-12-31T00:00:00Z"
-            ) {
-                transactions = rows
-                rebuild()
-            }
-        } catch {}
+    /**
+     Grouped in SQL now, not in Swift.
+
+     It used to read every transaction of the month and group them here, which
+     meant there was no subquery to hang web's `lend` exclusion on — so this
+     tile, alone on the dashboard, counted money you had fronted for someone as
+     your own spending. Moving the grouping into the query fixes the number and
+     drops the in-memory pass at the same time.
+     */
+    func start() {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await rows in try self.ledgerRepository.watchExpenseByCategorySince(self.monthStartIso) {
+                    self.rebuild(rows)
+                }
+            } catch {}
+        }
     }
 
-    private func watchCategories() async {
-        do {
-            for try await rows in try ledgerRepository.watchCategories() {
-                categoryMap = Dictionary(uniqueKeysWithValues: rows.map { ($0.id, $0) })
-                rebuild()
-            }
-        } catch {}
-    }
-
-    private func rebuild() {
-        // NOTE: web's query also excludes transactions with a `lend` expense
-        // posting — money you fronted for someone is not your spending. That
-        // exclusion is NOT applied here, because no native repository exposes
-        // expense_postings yet. Recorded in ABSENT-BY-DECISION.md rather than
-        // left to be discovered as a number that disagrees with the browser.
-        let expenses = transactions.filter { $0.type == "expense" }
-        let grouped = Dictionary(grouping: expenses, by: { $0.categoryId })
-            .map { key, rows in (key, rows.reduce(Int64(0)) { $0 + $1.amount }) }
-            .sorted { $0.1 > $1.1 }
-
-        let total = grouped.reduce(Int64(0)) { $0 + $1.1 }
-        let largest = grouped.first?.1 ?? 0
+    private func rebuild(_ rows: [NamedTotal]) {
+        let total = rows.reduce(Int64(0)) { $0 + $1.total }
+        let largest = rows.first?.total ?? 0
         // Web charts the top 7 and links the rest to Insights.
-        let top = grouped.prefix(7)
+        let top = rows.prefix(7)
 
         totalMinor = total
-        hiddenCount = max(0, grouped.count - top.count)
-        slices = top.map { categoryId, amount in
+        hiddenCount = max(0, rows.count - top.count)
+        slices = top.enumerated().map { index, row in
             SpendSlice(
-                id: categoryId ?? "uncategorised",
-                name: categoryId.flatMap { categoryMap[$0]?.name } ?? S.Transactions.uncategorised,
-                totalMinor: amount,
-                sharePct: total > 0 ? Int((amount * 100) / total) : 0,
+                id: row.name ?? "uncategorised-\(index)",
+                name: (row.name?.isEmpty == false) ? row.name : nil,
+                totalMinor: row.total,
+                sharePct: total > 0 ? Int((row.total * 100) / total) : 0,
                 // Web floors the fill at 3% so a tiny category still draws
                 // something — a zero-width bar reads as a rendering bug.
-                fillPct: largest > 0 ? max(3, Int((amount * 100) / largest)) : 0
+                fillPct: largest > 0 ? max(3, Int((row.total * 100) / largest)) : 0
             )
         }
     }

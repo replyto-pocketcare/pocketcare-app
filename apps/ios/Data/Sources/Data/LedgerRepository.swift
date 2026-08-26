@@ -629,6 +629,31 @@ public final class LedgerRepository: @unchecked Sendable {
     }
 
     /**
+     Expense totals grouped by CATEGORY, **since `sinceIso`** — web's
+     SpendingTile.
+
+     The by-category tile above has no date bound; this one does. Two methods
+     rather than one with an optional date: the `lend` exclusion and the
+     grouping are identical, and an optional parameter that changes the WHERE
+     clause is how a query quietly starts answering two questions.
+     */
+    public func watchExpenseByCategorySince(_ sinceIso: String) throws -> AsyncThrowingStream<[NamedTotal], Error> {
+        try db.watch(
+            sql: """
+                SELECT c.name AS name, SUM(t.amount) AS total
+                  FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
+                 WHERE t.deleted_at IS NULL AND t.type = 'expense' AND t.occurred_at >= ?
+                   AND t.id NOT IN (
+                         SELECT transaction_id FROM expense_postings
+                          WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+                 GROUP BY t.category_id ORDER BY total DESC
+                """,
+            parameters: [sinceIso],
+            mapper: namedTotalMapper
+        )
+    }
+
+    /**
      Monthly income/expense totals **with web's `lend` exclusion** — the series
      behind Cashflow, Net cashflow trend and This-month-vs-last.
 

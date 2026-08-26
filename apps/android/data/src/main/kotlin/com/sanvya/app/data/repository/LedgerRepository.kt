@@ -358,6 +358,29 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
     )
 
     /**
+     * Expense totals grouped by CATEGORY, **since [sinceIso]** — web's
+     * SpendingTile.
+     *
+     * The by-category tile above has no date bound; this one does. Two methods
+     * rather than one with a nullable date: the `lend` exclusion and the
+     * grouping are identical, and a nullable parameter that changes the WHERE
+     * clause is how a query quietly starts answering two questions.
+     */
+    fun watchExpenseByCategorySince(sinceIso: String): Flow<List<NamedTotal>> = db.watch(
+        """SELECT c.name AS name, SUM(t.amount) AS total
+             FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
+            WHERE t.deleted_at IS NULL AND t.type = 'expense' AND t.occurred_at >= ?
+              AND t.id NOT IN (
+                    SELECT transaction_id FROM expense_postings
+                     WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+            GROUP BY t.category_id ORDER BY total DESC""",
+        parameters = listOf(sinceIso),
+        mapper = { cursor ->
+            NamedTotal(name = cursor.getStringOptional("name"), total = cursor.getLong("total"))
+        },
+    )
+
+    /**
      * Monthly income/expense totals **with web's `lend` exclusion** — the
      * series behind Cashflow, Net cashflow trend and This-month-vs-last.
      *

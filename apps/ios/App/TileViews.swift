@@ -152,7 +152,7 @@ private struct SpendingTile: View {
                         ForEach(Array(viewModel.slices.enumerated()), id: \.element.id) { index, slice in
                             VStack(alignment: .leading, spacing: 5) {
                                 HStack(spacing: 8) {
-                                    Text(slice.name)
+                                    Text(slice.name ?? S.Transactions.uncategorised)
                                         .sanvyaStyle(SanvyaType.statLabel)
                                         .foregroundStyle(Color.text)
                                         .lineLimit(1)

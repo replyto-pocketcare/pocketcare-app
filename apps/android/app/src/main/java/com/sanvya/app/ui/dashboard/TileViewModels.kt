@@ -83,8 +83,13 @@ class RecentTileViewModel : ViewModel(), KoinComponent {
 
 /** One category's share of this month's spending. */
 data class SpendSlice(
-    val categoryId: String?,
-    val name: String,
+    /**
+     * Null for the uncategorised bucket — the VIEW names it, because a view
+     * model has no Resources and i18n belongs where the string is rendered.
+     * (This used to hold a category id, which the grouped query does not
+     * return; it was dead and filled with the name.)
+     */
+    val name: String?,
     val totalMinor: Long,
     /** Share of the month's total, 0-100. */
     val sharePct: Int,
@@ -105,49 +110,39 @@ class SpendingTileViewModel : ViewModel(), KoinComponent {
     private fun monthStartIso(): String =
         LocalDate.now().withDayOfMonth(1).atStartOfDay().atOffset(ZoneOffset.UTC).toString()
 
-    val state: StateFlow<SpendingTileState> = combine(
-        // Open-ended: `occurred_at < ?` with a sentinel far in the future, so a
-        // transaction dated later today is included. Web's query has no upper
-        // bound at all; this repository's does, and inventing a second
-        // unbounded method for one caller would be worse than a sentinel that
-        // is obviously one.
-        ledgerRepository.watchTransactionsInRange(monthStartIso(), "9999-12-31T00:00:00Z"),
-        ledgerRepository.watchCategories(),
-    ) { txns, categories ->
-        val categoryMap = categories.associateBy { it.id }
-        val expenses = txns.filter { it.type == "expense" }
-        // NOTE: web's query also excludes transactions with a `lend` expense
-        // posting -- money you fronted for someone is not your spending. That
-        // exclusion is NOT applied here, because no native repository exposes
-        // expense_postings yet. Recorded in ABSENT-BY-DECISION.md rather than
-        // left to be discovered as a number that disagrees with the browser.
-        val byCategory = expenses
-            .groupBy { it.categoryId }
-            .map { (categoryId, rows) ->
-                categoryId to rows.sumOf { it.amount }
-            }
-            .sortedByDescending { it.second }
-
-        val total = byCategory.sumOf { it.second }
-        val largest = byCategory.firstOrNull()?.second ?: 0L
-        // Web charts the top 7 and links the rest to Insights.
-        val top = byCategory.take(7)
-        SpendingTileState(
-            totalMinor = total,
-            slices = top.map { (categoryId, amount) ->
-                SpendSlice(
-                    categoryId = categoryId,
-                    name = categoryId?.let { categoryMap[it]?.name } ?: "Uncategorised",
-                    totalMinor = amount,
-                    sharePct = if (total > 0) ((amount * 100) / total).toInt() else 0,
-                    // Web floors the fill at 3% so a tiny category still draws
-                    // something -- a zero-width bar reads as a rendering bug.
-                    fillPct = if (largest > 0) maxOf(3, ((amount * 100) / largest).toInt()) else 0,
-                )
-            },
-            hiddenCount = (byCategory.size - top.size).coerceAtLeast(0),
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SpendingTileState())
+    /**
+     * Grouped in SQL now, not in Kotlin.
+     *
+     * It used to read every transaction of the month and group them here, which
+     * meant there was no subquery to hang web's `lend` exclusion on — so this
+     * tile, alone on the dashboard, counted money you had fronted for someone
+     * as your own spending. Moving the grouping into the query fixes the number
+     * and drops the in-memory pass at the same time.
+     */
+    val state: StateFlow<SpendingTileState> = ledgerRepository
+        .watchExpenseByCategorySince(monthStartIso())
+        .map { rows ->
+            val total = rows.sumOf { it.total }
+            val largest = rows.firstOrNull()?.total ?: 0L
+            // Web charts the top 7 and links the rest to Insights.
+            val top = rows.take(7)
+            SpendingTileState(
+                totalMinor = total,
+                slices = top.map { row ->
+                    SpendSlice(
+                        name = row.name?.takeIf { it.isNotBlank() },
+                        totalMinor = row.total,
+                        sharePct = if (total > 0) ((row.total * 100) / total).toInt() else 0,
+                        // Web floors the fill at 3% so a tiny category still
+                        // draws something -- a zero-width bar reads as a
+                        // rendering bug.
+                        fillPct = if (largest > 0) maxOf(3, ((row.total * 100) / largest).toInt()) else 0,
+                    )
+                },
+                hiddenCount = (rows.size - top.size).coerceAtLeast(0),
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SpendingTileState())
 }
 
 /* ----------------------------- Upcoming ----------------------------- */

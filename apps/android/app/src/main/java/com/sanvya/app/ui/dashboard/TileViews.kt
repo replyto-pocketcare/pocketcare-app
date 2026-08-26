@@ -183,7 +183,7 @@ private fun SpendingTile(onOpen: (() -> Unit)?) {
                 Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         SanvyaText(
-                            slice.name,
+                            slice.name ?: S.Transactions.uncategorised(sRes()),
                             style = SanvyaType.statLabel,
                             color = colors.text,
                             maxLines = 1,
