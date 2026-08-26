@@ -407,6 +407,11 @@ object S {
             res.getString(R.string.dashboard_single_currency, base)
         fun spent(res: Resources, amount: Any): String =
             res.getString(R.string.dashboard_spent, amount)
+        fun subsCount(res: Resources, count: Int): String =
+            res.getQuantityString(R.plurals.dashboard_subs_count, count, count)
+        fun subsCountSpent(res: Resources, count: Int, amount: Any): String =
+            res.getQuantityString(R.plurals.dashboard_subs_count_spent, count, count, amount)
+        fun subsSpentNote(res: Resources): String = res.getString(R.string.dashboard_subs_spent_note)
         fun thisMonth(res: Resources): String = res.getString(R.string.dashboard_this_month)
         fun tileBudgets(res: Resources): String = res.getString(R.string.dashboard_tile_budgets)
         fun tileByCategory(res: Resources): String = res.getString(R.string.dashboard_tile_by_category)

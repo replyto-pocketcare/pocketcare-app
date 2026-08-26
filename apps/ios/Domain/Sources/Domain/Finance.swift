@@ -388,3 +388,84 @@ public func isoToday() -> String {
     formatter.timeZone = TimeZone(identifier: "UTC")
     return formatter.string(from: Date())
 }
+
+/// Days since 1970-01-01 for a civil date (`m0` 0-based).
+///
+/// Howard Hinnant's `days_from_civil` -- the same proleptic-Gregorian count
+/// `java.time.LocalDate.toEpochDay()` returns on the Kotlin side and that
+/// `Date.UTC(y, m, d) / 86_400_000` returns in the TS source. Written out
+/// rather than routed through `Calendar`, which is locale- and
+/// calendar-identifier-sensitive and would make this a device-dependent
+/// number in a function whose whole job is to agree with two other platforms.
+func epochDay(_ y: Int, _ m0: Int, _ d: Int) -> Int {
+    let m = m0 + 1
+    let yy = y - (m <= 2 ? 1 : 0)
+    let era = (yy >= 0 ? yy : yy - 399) / 400
+    let yoe = yy - era * 400                                  // [0, 399]
+    let doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1  // [0, 365]
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy           // [0, 146096]
+    return era * 146_097 + doe - 719_468
+}
+
+/// How many times a recurring charge has been billed, from `startIso` to `asOfIso`.
+///
+/// The charge on the start date counts as the first one -- you pay a
+/// subscription when you sign up, not a month later -- so a subscription
+/// started today returns 1, not 0.
+///
+/// Monthly and yearly use CALENDAR arithmetic, never a fixed 30/365 days. A
+/// subscription started on the 31st bills on the 28th in February (clamped,
+/// same as `emiDueDate`), and approximating months as 30 days drifts a full
+/// extra charge roughly every five years -- on a lifetime total that is
+/// exactly the error someone would notice and distrust.
+///
+/// Returns 0 for an absent, unparseable, or future start date.
+///
+/// `asOfIso` is REQUIRED here where the TS source defaults it to `new Date()`.
+/// Nothing in Domain reads a clock -- that is what makes this vector-testable,
+/// and it is the same reason `effectivePaidEmis` takes one.
+public func chargesToDate(_ startIso: String?, _ period: String, _ asOfIso: String) -> Int {
+    guard let start = parseYmd(startIso), let asOf = parseYmd(String(asOfIso.prefix(10))) else { return 0 }
+
+    let startKey = isoOf(start.y, start.m, start.d)
+    let asOfKey = isoOf(asOf.y, asOf.m, asOf.d)
+    if asOfKey < startKey { return 0 } // starts in the future -- nothing billed yet
+
+    switch period {
+    case "daily", "weekly":
+        let days = epochDay(asOf.y, asOf.m, asOf.d) - epochDay(start.y, start.m, start.d)
+        return days / (period == "weekly" ? 7 : 1) + 1
+    case "monthly":
+        var months = (asOf.y - start.y) * 12 + (asOf.m - start.m)
+        // Not yet reached this month's billing day -> the last one hasn't
+        // happened. Clamped, so a 31st subscription bills on the 28th in February.
+        if asOf.d < min(start.d, daysInMonth(asOf.y, asOf.m)) { months -= 1 }
+        return max(0, months) + 1
+    case "yearly":
+        var years = asOf.y - start.y
+        let anniversary = isoOf(asOf.y, start.m, start.d)
+        if asOfKey < anniversary { years -= 1 }
+        return max(0, years) + 1
+    default:
+        // Unreachable on real data -- `frequency` is a closed set of those four
+        // (web's `Freq` in recurring/engine.ts). The TS source has no default
+        // branch and falls out of the switch returning `undefined`, which makes
+        // `estimatedSpentToDate` produce NaN and renders as the literal "NaN".
+        // Zero is the honest fallback: the estimate simply doesn't show. This
+        // is deliberately NOT `periodsPerYear[period]!`'s crash -- a dashboard
+        // tile should not take the app down over one bad row.
+        return 0
+    }
+}
+
+/// Estimated total billed for a recurring charge since it started.
+///
+/// **This is a projection, not observed spend.** Nothing links a transaction
+/// to a subscription, so this multiplies the current price by the number of
+/// billing dates that have passed. It assumes the price never changed and
+/// that no charge was missed, paused, or refunded. Anywhere it surfaces must
+/// say so -- presenting a derived figure as fact is the kind of thing that
+/// makes someone stop trusting every other number in the app.
+public func estimatedSpentToDate(_ amount: Int64, _ startIso: String?, _ period: String, _ asOfIso: String) -> Int64 {
+    amount * Int64(chargesToDate(startIso, period, asOfIso))
+}

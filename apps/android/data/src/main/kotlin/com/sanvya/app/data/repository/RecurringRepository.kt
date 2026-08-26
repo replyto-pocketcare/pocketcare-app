@@ -63,6 +63,25 @@ class RecurringRepository(
         val splitGroupId: String?,
     )
 
+    /**
+     * One row of the Subscriptions tile's query -- web's own six columns, not
+     * [Item]. See [watchSubscriptions] for why the tile does not reuse [Item].
+     */
+    data class Subscription(
+        val id: String,
+        val name: String,
+        val amount: Long,
+        val currency: String,
+        val frequency: String,
+        val nextDue: String?,
+        /**
+         * When the commitment was created. The only reliable "since when have I
+         * been paying this" signal there is -- nothing links a transaction to a
+         * subscription -- which is what `estimatedSpentToDate` counts from.
+         */
+        val createdAt: String?,
+    )
+
     private companion object {
         /** Mirrors web's RECURRING_COLUMNS, column for column. */
         const val COLUMNS =
@@ -149,12 +168,18 @@ class RecurringRepository(
      * "Subscriptions" while an older recurring group said "Subscription", and a
      * user who typed either meant the same thing. Web's comment says exactly
      * that, and the query is web's.
+     *
+     * Returns [Subscription], not [Item]: web's query selects six columns, one
+     * of which (`created_at`) [Item] does not carry, and every column is
+     * aliased so the join's ambiguous bare `id` never arises. Widening [Item]
+     * to hold `created_at` would force every OTHER query in this file to select
+     * it too -- the shared column list does not -- so the tile gets the row
+     * shape it actually needs instead.
      */
-    fun watchSubscriptions(): Flow<List<Item>> = db.watch(
-        // `i.*`, not $COLUMNS: the shared list is unqualified column names and
-        // this query joins `categories`, where a bare `id` is ambiguous. The
-        // mapper reads by name, so the extra columns cost nothing.
-        """SELECT i.*
+    fun watchSubscriptions(): Flow<List<Subscription>> = db.watch(
+        """SELECT i.id AS id, i.name AS name, COALESCE(i.amount, 0) AS amount,
+                  COALESCE(i.currency, '') AS currency, i.frequency AS frequency,
+                  i.next_due AS next_due, i.created_at AS created_at
              FROM recurring_items i
              JOIN categories c ON c.id = i.category_id
             WHERE i.deleted_at IS NULL AND c.deleted_at IS NULL
@@ -162,7 +187,17 @@ class RecurringRepository(
               AND lower(c.name) IN ('subscription', 'subscriptions')
             ORDER BY i.next_due""",
         parameters = emptyList(),
-        mapper = ::map,
+        mapper = { cursor ->
+            Subscription(
+                id = cursor.getString("id"),
+                name = cursor.getStringOptional("name") ?: "",
+                amount = cursor.getLongOptional("amount") ?: 0L,
+                currency = cursor.getStringOptional("currency") ?: "",
+                frequency = cursor.getStringOptional("frequency") ?: "monthly",
+                nextDue = cursor.getStringOptional("next_due"),
+                createdAt = cursor.getStringOptional("created_at"),
+            )
+        },
     )
 
     fun watchDueItems(todayIso: String): Flow<List<Item>> = db.watch(

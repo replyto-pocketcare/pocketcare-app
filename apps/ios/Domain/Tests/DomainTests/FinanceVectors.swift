@@ -192,4 +192,19 @@ func registerFinanceVectors() {
         )
         return result.sorted()
     }
+
+    FunctionRegistry.register(domain: "finance", fn: "chargesToDate") { input in
+        let d = input as! [String: Any]
+        return chargesToDate(nullableString(d["startIso"]), d["period"] as! String, d["asOfIso"] as! String)
+    }
+
+    FunctionRegistry.register(domain: "finance", fn: "estimatedSpentToDate") { input in
+        let d = input as! [String: Any]
+        return String(estimatedSpentToDate(
+            (d["amount"] as! NSNumber).int64Value,
+            nullableString(d["startIso"]),
+            d["period"] as! String,
+            d["asOfIso"] as! String
+        ))
+    }
 }

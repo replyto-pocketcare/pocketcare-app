@@ -128,14 +128,32 @@ public final class RecurringRepository: @unchecked Sendable {
      either meant the same thing. Web's comment says exactly that, and the query
      is web's.
 
-     `i.*`, not the shared column list: that list is unqualified column names and
-     this query joins `categories`, where a bare `id` is ambiguous. The mapper
-     reads by name, so the extra columns cost nothing.
+     Returns `Subscription`, not `Item`: web's query selects six columns, one of
+     which (`created_at`) `Item` does not carry, and every column is aliased so
+     the join's ambiguous bare `id` never arises. Widening `Item` to hold
+     `created_at` would force every OTHER query in this file to select it too --
+     the shared column list does not -- so the tile gets the row shape it
+     actually needs instead.
      */
-    public func watchSubscriptions() throws -> AsyncThrowingStream<[Item], Error> {
+    public struct Subscription: Sendable {
+        public let id: String
+        public let name: String
+        public let amount: Int64
+        public let currency: String
+        public let frequency: String
+        public let nextDue: String?
+        /// When the commitment was created. The only reliable "since when have
+        /// I been paying this" signal there is -- nothing links a transaction
+        /// to a subscription -- which is what `estimatedSpentToDate` counts from.
+        public let createdAt: String?
+    }
+
+    public func watchSubscriptions() throws -> AsyncThrowingStream<[Subscription], Error> {
         try db.watch(
             sql: """
-                SELECT i.*
+                SELECT i.id AS id, i.name AS name, COALESCE(i.amount, 0) AS amount,
+                       COALESCE(i.currency, '') AS currency, i.frequency AS frequency,
+                       i.next_due AS next_due, i.created_at AS created_at
                   FROM recurring_items i
                   JOIN categories c ON c.id = i.category_id
                  WHERE i.deleted_at IS NULL AND c.deleted_at IS NULL
@@ -143,9 +161,18 @@ public final class RecurringRepository: @unchecked Sendable {
                    AND lower(c.name) IN ('subscription', 'subscriptions')
                  ORDER BY i.next_due
                 """,
-            parameters: [],
-            mapper: map
-        )
+            parameters: []
+        ) { cursor in
+            Subscription(
+                id: try cursor.getString(name: "id"),
+                name: try cursor.getString(name: "name"),
+                amount: try cursor.getInt64(name: "amount"),
+                currency: try cursor.getString(name: "currency"),
+                frequency: try cursor.getString(name: "frequency"),
+                nextDue: try cursor.getStringOptional(name: "next_due"),
+                createdAt: try cursor.getStringOptional(name: "created_at")
+            )
+        }
     }
 
     public func watchActiveItems() throws -> AsyncThrowingStream<[Item], Error> {

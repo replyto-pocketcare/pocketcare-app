@@ -324,3 +324,83 @@ fun effectivePaidEmis(
     }
     return out
 }
+
+/**
+ * How many times a recurring charge has been billed, from [startIso] to [asOfIso].
+ *
+ * The charge on the start date counts as the first one -- you pay a
+ * subscription when you sign up, not a month later -- so a subscription
+ * started today returns 1, not 0.
+ *
+ * Monthly and yearly use CALENDAR arithmetic, never a fixed 30/365 days. A
+ * subscription started on the 31st bills on the 28th in February (clamped,
+ * same as [emiDueDate]), and approximating months as 30 days drifts a full
+ * extra charge roughly every five years -- on a lifetime total that is
+ * exactly the error someone would notice and distrust.
+ *
+ * Returns 0 for an absent, unparseable, or future start date.
+ *
+ * [asOfIso] is REQUIRED here where the TS source defaults it to `new Date()`.
+ * Nothing in domain reads a clock -- that is what makes this vector-testable,
+ * and it is the same reason [effectivePaidEmis] takes one.
+ */
+fun chargesToDate(startIso: String?, period: String, asOfIso: String): Int {
+    val start = parseYmd(startIso) ?: return 0
+    val asOf = parseYmd(asOfIso.take(10)) ?: return 0
+
+    val startKey = isoOf(start.y, start.m, start.d)
+    val asOfKey = isoOf(asOf.y, asOf.m, asOf.d)
+    if (asOfKey < startKey) return 0 // starts in the future -- nothing billed yet
+
+    return when (period) {
+        "daily", "weekly" -> {
+            val days = (
+                LocalDate.of(asOf.y, asOf.m + 1, 1).toEpochDay() + (asOf.d - 1)
+                ) - (
+                LocalDate.of(start.y, start.m + 1, 1).toEpochDay() + (start.d - 1)
+                )
+            // First-of-month + (day - 1) rather than LocalDate.of(y, m, d):
+            // parseYmd accepts day 31 in a 30-day month (the TS regex does
+            // too), and java.time REJECTS that with a DateTimeException where
+            // JS's Date.UTC rolls it forward. Adding the offset to the 1st
+            // reproduces the roll-forward the TS source relies on.
+            (days / (if (period == "weekly") 7 else 1)).toInt() + 1
+        }
+        "monthly" -> {
+            var months = (asOf.y - start.y) * 12 + (asOf.m - start.m)
+            // Not yet reached this month's billing day -> the last one hasn't
+            // happened. Clamped, so a 31st subscription bills on the 28th in February.
+            if (asOf.d < min(start.d, daysInMonth(asOf.y, asOf.m))) months--
+            max(0, months) + 1
+        }
+        "yearly" -> {
+            var years = asOf.y - start.y
+            val anniversary = isoOf(asOf.y, start.m, start.d)
+            if (asOfKey < anniversary) years--
+            max(0, years) + 1
+        }
+        else -> {
+            // Unreachable on real data -- `frequency` is a closed set of those
+            // four (web's `Freq` in recurring/engine.ts). The TS source has no
+            // default branch and falls out of the switch returning `undefined`,
+            // which makes estimatedSpentToDate produce NaN and renders as the
+            // literal "NaN". Zero is the honest fallback: the estimate simply
+            // doesn't show. This is deliberately NOT PERIODS_PER_YEAR's throw --
+            // a dashboard tile should not take the app down over one bad row.
+            0
+        }
+    }
+}
+
+/**
+ * Estimated total billed for a recurring charge since it started.
+ *
+ * **This is a projection, not observed spend.** Nothing links a transaction
+ * to a subscription, so this multiplies the current price by the number of
+ * billing dates that have passed. It assumes the price never changed and that
+ * no charge was missed, paused, or refunded. Anywhere it surfaces must say so
+ * -- presenting a derived figure as fact is the kind of thing that makes
+ * someone stop trusting every other number in the app.
+ */
+fun estimatedSpentToDate(amount: Long, startIso: String?, period: String, asOfIso: String): Long =
+    amount * chargesToDate(startIso, period, asOfIso).toLong()

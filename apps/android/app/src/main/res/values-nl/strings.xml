@@ -345,6 +345,15 @@
     <string name="dashboard_premium_note">Premium-tegels ontgrendel je met een Lite- of Pro-abonnement.</string>
     <string name="dashboard_single_currency">Al je geld staat in %1$s. Voeg een rekening in een andere valuta toe om de verdeling te zien.</string>
     <string name="dashboard_spent">%1$s uitgegeven</string>
+    <plurals name="dashboard_subs_count">
+        <item quantity="one">%1$d actief abonnement</item>
+        <item quantity="other">%1$d actieve abonnementen</item>
+    </plurals>
+    <plurals name="dashboard_subs_count_spent">
+        <item quantity="one">%1$d actief abonnement · ~%2$s tot nu toe</item>
+        <item quantity="other">%1$d actieve abonnementen · ~%2$s tot nu toe</item>
+    </plurals>
+    <string name="dashboard_subs_spent_note">De uitgaven tot nu toe zijn geschat op basis van de prijs van elk abonnement en hoe lang het al loopt. De werkelijke kosten kunnen afwijken.</string>
     <string name="dashboard_this_month">Deze maand</string>
     <string name="dashboard_tile_budgets">Budgetten</string>
     <string name="dashboard_tile_by_category">Uitgaven per categorie</string>

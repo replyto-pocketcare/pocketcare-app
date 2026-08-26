@@ -16,6 +16,7 @@ import com.sanvya.app.domain.dashboard.TrendBucket
 import com.sanvya.app.domain.dashboard.TrendPeriod
 import com.sanvya.app.domain.dashboard.buildTrend
 import com.sanvya.app.domain.dashboard.monthlyCashflow
+import com.sanvya.app.domain.finance.estimatedSpentToDate
 import com.sanvya.app.domain.finance.monthlyEquivalent
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -447,17 +448,29 @@ class CashflowTileViewModel : ViewModel(), KoinComponent {
 
 /* ------------------------ Subscriptions ------------------------ */
 
-data class SubscriptionRow(
+/**
+ * The tile's own row shape. NOT `data.repository.SubscriptionRow` -- that one
+ * is the `subscriptions` TABLE, which is a different feature (Insights' genSubs
+ * card reads it); this tile reads `recurring_items` filed under the
+ * Subscriptions category, exactly as web's `SubscriptionsTile` does. Two types
+ * of the same name in one app is a trap, and iOS hit it for real: there the
+ * App-module copy shadowed the Data one and broke an unrelated screen.
+ */
+data class SubscriptionTileRow(
     val id: String,
     val name: String,
     val dueIso: String,
-    val amountMinor: Long?,
-    val currency: String?,
+    val amountMinor: Long,
+    val currency: String,
 )
 
 data class SubscriptionsState(
     val monthlyMinor: Long = 0,
-    val rows: List<SubscriptionRow> = emptyList(),
+    /** Estimated, NOT observed -- see [SubscriptionsTileViewModel]. */
+    val lifetimeMinor: Long = 0,
+    /** Every active subscription, not just the ones with a renewal date. */
+    val activeCount: Int = 0,
+    val rows: List<SubscriptionTileRow> = emptyList(),
     val hiddenCount: Int = 0,
 )
 
@@ -466,15 +479,27 @@ class SubscriptionsTileViewModel : ViewModel(), KoinComponent {
 
     val state: StateFlow<SubscriptionsState> = recurringRepository.watchSubscriptions()
         .map { items ->
-            // Everything normalised to a MONTHLY equivalent so a yearly plan and
-            // a monthly one are comparable -- the same vector-tested
-            // monthlyEquivalent the Recurring screen uses.
-            val monthly = items.sumOf { monthlyEquivalent(it.amount ?: 0L, it.frequency) }
-            val renewing = items.filter { it.nextDue.isNotBlank() }
+            // UTC, matching the TS default's `new Date().toISOString()`. A
+            // subscription's billing count must not depend on which side of
+            // midnight the device's timezone puts it.
+            val today = LocalDate.now(ZoneOffset.UTC).toString()
+            val renewing = items.filter { !it.nextDue.isNullOrBlank() }
             val top = renewing.take(8)
             SubscriptionsState(
-                monthlyMinor = monthly,
-                rows = top.map { SubscriptionRow(it.id, it.name, it.nextDue, it.amount, it.currency) },
+                // Everything normalised to a MONTHLY equivalent so a yearly plan
+                // and a monthly one are comparable -- the same vector-tested
+                // monthlyEquivalent the Recurring screen uses.
+                monthlyMinor = items.sumOf { monthlyEquivalent(it.amount, it.frequency) },
+                // A PROJECTION, not observed spend: nothing links a transaction
+                // to a subscription, so this is price x billing dates elapsed.
+                // The view says so -- see S.Dashboard.subsSpentNote.
+                lifetimeMinor = items.sumOf {
+                    estimatedSpentToDate(it.amount, it.createdAt, it.frequency, today)
+                },
+                activeCount = items.size,
+                rows = top.map {
+                    SubscriptionTileRow(it.id, it.name, it.nextDue.orEmpty(), it.amount, it.currency)
+                },
                 hiddenCount = (renewing.size - top.size).coerceAtLeast(0),
             )
         }

@@ -446,5 +446,244 @@
       3,
       4
     ]
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-06-01",
+      "period": "monthly",
+      "asOfIso": "2026-06-01"
+    },
+    "expected": 1
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-06-01",
+      "period": "yearly",
+      "asOfIso": "2026-06-01"
+    },
+    "expected": 1
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-01-15",
+      "period": "monthly",
+      "asOfIso": "2026-04-14"
+    },
+    "expected": 3
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-01-15",
+      "period": "monthly",
+      "asOfIso": "2026-04-15"
+    },
+    "expected": 4
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-01-31",
+      "period": "monthly",
+      "asOfIso": "2026-02-28"
+    },
+    "expected": 2
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-01-31",
+      "period": "monthly",
+      "asOfIso": "2026-02-27"
+    },
+    "expected": 1
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2024-01-31",
+      "period": "monthly",
+      "asOfIso": "2024-02-29"
+    },
+    "expected": 2
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2020-03-10",
+      "period": "yearly",
+      "asOfIso": "2026-03-09"
+    },
+    "expected": 6
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2020-03-10",
+      "period": "yearly",
+      "asOfIso": "2026-03-10"
+    },
+    "expected": 7
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2020-02-29",
+      "period": "yearly",
+      "asOfIso": "2023-02-28"
+    },
+    "expected": 4
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-08-01",
+      "period": "weekly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": 4
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-08-01",
+      "period": "weekly",
+      "asOfIso": "2026-08-07"
+    },
+    "expected": 1
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-08-01",
+      "period": "daily",
+      "asOfIso": "2026-08-10"
+    },
+    "expected": 10
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2025-12-30",
+      "period": "daily",
+      "asOfIso": "2026-01-02"
+    },
+    "expected": 4
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2023-12-31",
+      "period": "weekly",
+      "asOfIso": "2024-03-01"
+    },
+    "expected": 9
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2027-01-01",
+      "period": "monthly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": 0
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": null,
+      "period": "monthly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": 0
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "nonsense",
+      "period": "monthly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": 0
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-13-01",
+      "period": "monthly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": 0
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2026-01-15T09:30:00.000Z",
+      "period": "monthly",
+      "asOfIso": "2026-04-15"
+    },
+    "expected": 4
+  },
+  {
+    "fn": "chargesToDate",
+    "input": {
+      "startIso": "2024-11-20",
+      "period": "monthly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": 22
+  },
+  {
+    "fn": "estimatedSpentToDate",
+    "input": {
+      "amount": 49900,
+      "startIso": "2026-01-15",
+      "period": "monthly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": "399200"
+  },
+  {
+    "fn": "estimatedSpentToDate",
+    "input": {
+      "amount": 129900,
+      "startIso": "2020-03-10",
+      "period": "yearly",
+      "asOfIso": "2026-03-10"
+    },
+    "expected": "909300"
+  },
+  {
+    "fn": "estimatedSpentToDate",
+    "input": {
+      "amount": 0,
+      "startIso": "2026-01-15",
+      "period": "monthly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "estimatedSpentToDate",
+    "input": {
+      "amount": 49900,
+      "startIso": "2027-01-01",
+      "period": "monthly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "estimatedSpentToDate",
+    "input": {
+      "amount": 49900,
+      "startIso": null,
+      "period": "monthly",
+      "asOfIso": "2026-08-22"
+    },
+    "expected": "0"
   }
 ]

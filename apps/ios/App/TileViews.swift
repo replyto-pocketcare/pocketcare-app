@@ -483,17 +483,27 @@ private struct MonthCompareTile: View {
 /// the label is built here, with the device's locale, because web's version
 /// hardcodes English month names.
 private func bucketLabel(_ startIso: String, _ period: TrendPeriod) -> String {
-    let parts = startIso.split(separator: "-").compactMap { Int($0) }
-    guard parts.count == 3 else { return startIso }
+    isoLabel(startIso, period == .oneYear ? "MMM" : "d MMM")
+}
+
+/// "12 Aug" in the device's locale — web's
+/// `toLocaleDateString(undefined, { month: "short", day: "numeric" })`.
+private func dayMonthLabel(_ iso: String) -> String { isoLabel(iso, "d MMM") }
+
+/// Formats the date part of an ISO string, or returns it unchanged if it is not
+/// one. `prefix(10)` because a `next_due` may carry a time component.
+private func isoLabel(_ iso: String, _ template: String) -> String {
+    let parts = iso.prefix(10).split(separator: "-").compactMap { Int($0) }
+    guard parts.count == 3 else { return iso }
     var components = DateComponents()
     components.year = parts[0]; components.month = parts[1]; components.day = parts[2]
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-    guard let date = calendar.date(from: components) else { return startIso }
+    guard let date = calendar.date(from: components) else { return iso }
     let formatter = DateFormatter()
     formatter.calendar = calendar
     formatter.timeZone = calendar.timeZone
-    formatter.setLocalizedDateFormatFromTemplate(period == .oneYear ? "MMM" : "d MMM")
+    formatter.setLocalizedDateFormatFromTemplate(template)
     return formatter.string(from: date)
 }
 
@@ -606,20 +616,38 @@ private struct NetTrendTile: View {
 
 /* ------------------------ Subscriptions ------------------------ */
 
+/// "₹499 · 12 Aug" — the amount in the subscription's OWN currency when it has
+/// one (the query COALESCEs a missing one to empty, which web treats as falsy
+/// and falls back to base for), then the renewal date when there is one.
+///
+/// A function rather than an inline expression: this codebase has already
+/// crashed the Swift type-checker once inside a ViewBuilder, and a ternary
+/// feeding a `+` feeding a `Text` is exactly that shape.
+private func subscriptionMeta(_ row: SubscriptionTileRow, _ base: String) -> String {
+    let amount = formatMoney(row.amountMinor, row.currency.isEmpty ? base : row.currency)
+    guard !row.dueIso.isEmpty else { return amount }
+    return amount + " · " + dayMonthLabel(row.dueIso)
+}
+
 private struct SubscriptionsTile: View {
     let onOpen: (() -> Void)?
     @State private var viewModel = SubscriptionsTileViewModel()
 
     var body: some View {
+        let base = baseCurrencyNow()
         HeroTile(title: S.Dashboard.tileSubscriptions, tint: .subs, onOpen: onOpen) {
-            if viewModel.rows.isEmpty {
+            // activeCount, not rows: a subscription with no renewal date still
+            // counts and still contributes to the monthly figure — it just has
+            // no row to show. Testing `rows` here would hide the whole tile for
+            // someone whose subscriptions have not been scheduled yet.
+            if viewModel.activeCount == 0 {
                 Text(S.Dashboard.emptySubscriptions)
                     .sanvyaStyle(SanvyaType.body)
                     .foregroundStyle(heroInkMuted)
             } else {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .bottom, spacing: 4) {
-                        Text(formatMoney(viewModel.monthlyMinor, baseCurrencyNow()))
+                        Text(formatMoney(viewModel.monthlyMinor, base))
                             .sanvyaStyle(SanvyaType.statValue)
                             .foregroundStyle(heroInk)
                         Text(S.Dashboard.perMonth)
@@ -627,6 +655,26 @@ private struct SubscriptionsTile: View {
                             .foregroundStyle(heroInkMuted)
                             .padding(.bottom, 4)
                     }
+                    // The lifetime estimate rides on the EXISTING count line
+                    // rather than adding a third: a header line is a line the
+                    // reader pays for on a tile whose whole job is to show
+                    // renewals. Web makes the same trade.
+                    //
+                    // Web puts the "this is an estimate" wording in a `title`
+                    // tooltip, which has no equivalent on a phone; it becomes
+                    // the accessibility label instead, so VoiceOver still
+                    // reads the caveat.
+                    let estimated = viewModel.lifetimeMinor > 0
+                    let countLine: String = estimated
+                        ? S.Dashboard.subsCountSpent(
+                            count: viewModel.activeCount,
+                            amount: formatMoney(viewModel.lifetimeMinor, base)
+                          )
+                        : S.Dashboard.subsCount(count: viewModel.activeCount)
+                    Text(countLine)
+                        .sanvyaStyle(SanvyaType.statLabel)
+                        .foregroundStyle(heroInkMuted)
+                        .accessibilityHint(Text(estimated ? S.Dashboard.subsSpentNote : ""))
                     ForEach(viewModel.rows) { row in
                         HStack(spacing: 8) {
                             Text(row.name)
@@ -634,7 +682,10 @@ private struct SubscriptionsTile: View {
                                 .foregroundStyle(heroInk)
                                 .lineLimit(1)
                             Spacer(minLength: 0)
-                            Text(row.dueIso)
+                            // The subscription's OWN currency when it has one —
+                            // the query COALESCEs a missing one to empty, which
+                            // web treats as falsy and falls back to base for.
+                            Text(subscriptionMeta(row, base))
                                 .sanvyaStyle(SanvyaType.statLabel)
                                 .foregroundStyle(heroInkMuted)
                         }

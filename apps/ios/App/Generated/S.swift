@@ -451,6 +451,13 @@ public enum S {
         public static func spent(amount: CVarArg) -> String {
             String(format: String(localized: "dashboard:spent", table: "Localizable"), amount)
         }
+        public static func subsCount(count: Int) -> String {
+            String(format: String(localized: "dashboard:subsCount", defaultValue: "", table: "Localizable"), count)
+        }
+        public static func subsCountSpent(count: Int, amount: CVarArg) -> String {
+            String(format: String(localized: "dashboard:subsCountSpent", defaultValue: "", table: "Localizable"), count, amount)
+        }
+        public static var subsSpentNote: String { String(localized: "dashboard:subsSpentNote", table: "Localizable") }
         public static var thisMonth: String { String(localized: "dashboard:thisMonth", table: "Localizable") }
         public static var tileBudgets: String { String(localized: "dashboard:tile.budgets", table: "Localizable") }
         public static var tileByCategory: String { String(localized: "dashboard:tile.byCategory", table: "Localizable") }

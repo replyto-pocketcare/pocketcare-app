@@ -345,6 +345,15 @@
     <string name="dashboard_premium_note">प्रीमियम टाइलें Lite या Pro प्लान के साथ खुलती हैं।</string>
     <string name="dashboard_single_currency">आपका सारा पैसा %1$s में है। बँटवारा देखने के लिए किसी दूसरी मुद्रा का खाता जोड़ें।</string>
     <string name="dashboard_spent">%1$s खर्च</string>
+    <plurals name="dashboard_subs_count">
+        <item quantity="one">%1$d सक्रिय सदस्यता</item>
+        <item quantity="other">%1$d सक्रिय सदस्यताएँ</item>
+    </plurals>
+    <plurals name="dashboard_subs_count_spent">
+        <item quantity="one">%1$d सक्रिय सदस्यता · अब तक ~%2$s</item>
+        <item quantity="other">%1$d सक्रिय सदस्यताएँ · अब तक ~%2$s</item>
+    </plurals>
+    <string name="dashboard_subs_spent_note">अब तक का खर्च हर सदस्यता की कीमत और वह कब से चल रही है, इससे अनुमानित है। वास्तविक शुल्क अलग हो सकते हैं।</string>
     <string name="dashboard_this_month">इस महीने</string>
     <string name="dashboard_tile_budgets">बजट</string>
     <string name="dashboard_tile_by_category">श्रेणी अनुसार खर्च</string>

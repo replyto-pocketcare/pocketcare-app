@@ -345,6 +345,15 @@
     <string name="dashboard_premium_note">Premium tiles unlock with a Lite or Pro plan.</string>
     <string name="dashboard_single_currency">All your money is in %1$s. Add an account in another currency to see the split.</string>
     <string name="dashboard_spent">Spent %1$s</string>
+    <plurals name="dashboard_subs_count">
+        <item quantity="one">%1$d active subscription</item>
+        <item quantity="other">%1$d active subscriptions</item>
+    </plurals>
+    <plurals name="dashboard_subs_count_spent">
+        <item quantity="one">%1$d active subscription · ~%2$s so far</item>
+        <item quantity="other">%1$d active subscriptions · ~%2$s so far</item>
+    </plurals>
+    <string name="dashboard_subs_spent_note">Spend so far is estimated from each subscription\'s price and how long it\'s been running. Actual charges may differ.</string>
     <string name="dashboard_this_month">This month</string>
     <string name="dashboard_tile_budgets">Budgets</string>
     <string name="dashboard_tile_by_category">Spending by category</string>

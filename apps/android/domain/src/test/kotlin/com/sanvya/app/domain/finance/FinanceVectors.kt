@@ -201,4 +201,27 @@ fun registerFinanceVectors() {
         )
         JsonArray(result.sorted().map { JsonPrimitive(it) })
     }
+
+    FunctionRegistry.register(DOMAIN, "chargesToDate") { input ->
+        val o = input.jsonObject
+        JsonPrimitive(
+            chargesToDate(
+                nullableString(o.getValue("startIso")),
+                o.getValue("period").jsonPrimitive.content,
+                o.getValue("asOfIso").jsonPrimitive.content,
+            )
+        )
+    }
+
+    FunctionRegistry.register(DOMAIN, "estimatedSpentToDate") { input ->
+        val o = input.jsonObject
+        JsonPrimitive(
+            estimatedSpentToDate(
+                o.getValue("amount").jsonPrimitive.long,
+                nullableString(o.getValue("startIso")),
+                o.getValue("period").jsonPrimitive.content,
+                o.getValue("asOfIso").jsonPrimitive.content,
+            ).toString()
+        )
+    }
 }

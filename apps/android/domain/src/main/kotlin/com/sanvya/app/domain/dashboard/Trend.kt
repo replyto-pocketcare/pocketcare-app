@@ -46,7 +46,12 @@ fun buildTrend(
     period: TrendPeriod,
     todayIso: String,
 ): List<TrendBucket> {
-    val today = LocalDate.parse(todayIso)
+    // An unparseable `today` is a caller bug, not something to crash a tile
+    // over: Swift's `buildTrend` guards its date parse and returns empty, and a
+    // golden vector pins the pair. `LocalDate.parse` throws where Swift returns
+    // nil, so the difference has to be spelled out here or the two platforms
+    // disagree on the same input -- which is exactly what the vector caught.
+    val today = runCatching { LocalDate.parse(todayIso) }.getOrNull() ?: return emptyList()
     return when (period) {
         TrendPeriod.THREE_DAYS, TrendPeriod.ONE_WEEK -> {
             val n = if (period == TrendPeriod.THREE_DAYS) 3 else 7

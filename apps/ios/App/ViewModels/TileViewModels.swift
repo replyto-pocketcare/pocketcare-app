@@ -680,12 +680,18 @@ final class CashflowTileViewModel {
 
 /* ------------------------ Subscriptions ------------------------ */
 
-struct SubscriptionRow: Identifiable, Sendable {
+/// The tile's own row shape. NOT `Data.SubscriptionRow` -- that one is the
+/// `subscriptions` table, which is a different feature; this tile reads
+/// `recurring_items` filed under the Subscriptions category, exactly as web's
+/// `SubscriptionsTile` does. Naming both `SubscriptionRow` let the App-module
+/// type shadow the Data one inside this target and broke `InsightsViewModel`,
+/// which is the real reader of the table.
+struct SubscriptionTileRow: Identifiable, Sendable {
     let id: String
     let name: String
     let dueIso: String
-    let amountMinor: Int64?
-    let currency: String?
+    let amountMinor: Int64
+    let currency: String
 }
 
 @Observable
@@ -695,7 +701,11 @@ final class SubscriptionsTileViewModel {
     @Injected(\.recurringRepository) private var recurringRepository
 
     public private(set) var monthlyMinor: Int64 = 0
-    public private(set) var rows: [SubscriptionRow] = []
+    /// Estimated, NOT observed — see the comment on the assignment below.
+    public private(set) var lifetimeMinor: Int64 = 0
+    /// Every active subscription, not just the ones with a renewal date.
+    public private(set) var activeCount = 0
+    public private(set) var rows: [SubscriptionTileRow] = []
     public private(set) var hiddenCount = 0
 
     private var task: Task<Void, Never>?
@@ -706,17 +716,34 @@ final class SubscriptionsTileViewModel {
             guard let self else { return }
             do {
                 for try await items in try self.recurringRepository.watchSubscriptions() {
+                    // UTC, matching the TS default's `new Date().toISOString()`.
+                    // A subscription's billing count must not depend on which
+                    // side of midnight the device's timezone puts it.
+                    let today = isoToday()
                     // Everything normalised to a MONTHLY equivalent so a yearly
                     // plan and a monthly one are comparable — the same
                     // vector-tested monthlyEquivalent the Recurring screen uses.
                     self.monthlyMinor = items.reduce(Int64(0)) {
-                        $0 + monthlyEquivalent($1.amount ?? 0, $1.frequency)
+                        $0 + monthlyEquivalent($1.amount, $1.frequency)
                     }
-                    let renewing = items.filter { !$0.nextDue.isEmpty }
+                    // A PROJECTION, not observed spend: nothing links a
+                    // transaction to a subscription, so this is price × billing
+                    // dates elapsed. The view says so — see S.Dashboard.subsSpentNote.
+                    self.lifetimeMinor = items.reduce(Int64(0)) {
+                        $0 + estimatedSpentToDate($1.amount, $1.createdAt, $1.frequency, today)
+                    }
+                    self.activeCount = items.count
+                    let renewing = items.filter { !($0.nextDue ?? "").isEmpty }
                     let top = renewing.prefix(8)
                     self.hiddenCount = max(0, renewing.count - top.count)
                     self.rows = top.map {
-                        SubscriptionRow(id: $0.id, name: $0.name, dueIso: $0.nextDue, amountMinor: $0.amount, currency: $0.currency)
+                        SubscriptionTileRow(
+                            id: $0.id,
+                            name: $0.name,
+                            dueIso: $0.nextDue ?? "",
+                            amountMinor: $0.amount,
+                            currency: $0.currency
+                        )
                     }
                 }
             } catch {}

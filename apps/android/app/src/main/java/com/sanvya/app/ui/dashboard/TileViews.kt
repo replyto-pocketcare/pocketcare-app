@@ -18,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -513,9 +515,17 @@ private fun MonthCompareTile(onOpen: (() -> Unit)?) {
 /** Formats a bucket's start date for the axis. The DATE is what domain returns;
  *  the label is built here, with the device's locale, because web's version
  *  hardcodes English month names. */
-private fun bucketLabel(startIso: String, period: TrendPeriod): String {
-    val date = runCatching { LocalDate.parse(startIso) }.getOrNull() ?: return startIso
-    val pattern = if (period == TrendPeriod.ONE_YEAR) "MMM" else "d MMM"
+private fun bucketLabel(startIso: String, period: TrendPeriod): String =
+    isoLabel(startIso, if (period == TrendPeriod.ONE_YEAR) "MMM" else "d MMM")
+
+/** "12 Aug" in the device's locale -- web's
+ *  `toLocaleDateString(undefined, { month: "short", day: "numeric" })`. */
+private fun dayMonthLabel(iso: String): String = isoLabel(iso, "d MMM")
+
+/** Formats the date part of an ISO string, or returns it unchanged if it is
+ *  not one. `take(10)` because a `next_due` may carry a time component. */
+private fun isoLabel(iso: String, pattern: String): String {
+    val date = runCatching { LocalDate.parse(iso.take(10)) }.getOrNull() ?: return iso
     return date.format(DateTimeFormatter.ofPattern(pattern))
 }
 
@@ -646,7 +656,11 @@ private fun SubscriptionsTile(onOpen: (() -> Unit)?) {
     val currency = baseCurrencyNow()
 
     HeroTile(S.Dashboard.tileSubscriptions(sRes()), HeroTint.SUBS, onOpen) {
-        if (state.rows.isEmpty()) {
+        // activeCount, not rows: a subscription with no renewal date still
+        // counts and still contributes to the monthly figure -- it just has no
+        // row to show. Testing `rows` here would hide the whole tile for
+        // someone whose subscriptions have not been scheduled yet.
+        if (state.activeCount == 0) {
             SanvyaText(S.Dashboard.emptySubscriptions(sRes()), style = SanvyaType.body, color = heroInkMuted)
             return@HeroTile
         }
@@ -659,6 +673,33 @@ private fun SubscriptionsTile(onOpen: (() -> Unit)?) {
                 modifier = Modifier.padding(bottom = 4.dp),
             )
         }
+        // The lifetime estimate rides on the EXISTING count line rather than
+        // adding a third: a header line is a line the reader pays for on a tile
+        // whose whole job is to show renewals. Web makes the same trade.
+        //
+        // Web puts the "this is an estimate" wording in a `title` tooltip,
+        // which has no equivalent on a phone; it becomes the accessibility
+        // description instead, so a screen reader still hears the caveat.
+        val estimated = state.lifetimeMinor > 0
+        val countLine = if (estimated) {
+            S.Dashboard.subsCountSpent(sRes(), state.activeCount, formatMoney(state.lifetimeMinor, currency))
+        } else {
+            S.Dashboard.subsCount(sRes(), state.activeCount)
+        }
+        val note = S.Dashboard.subsSpentNote(sRes())
+        SanvyaText(
+            countLine,
+            style = SanvyaType.statLabel,
+            color = heroInkMuted,
+            // The line itself, THEN the caveat -- contentDescription replaces
+            // what TalkBack reads, so setting it to the note alone would lose
+            // the numbers the line exists to say.
+            modifier = if (estimated) {
+                Modifier.semantics { contentDescription = "$countLine. $note" }
+            } else {
+                Modifier
+            },
+        )
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             state.rows.forEach { row ->
                 Row(modifier = Modifier.fillMaxWidth()) {
@@ -670,7 +711,15 @@ private fun SubscriptionsTile(onOpen: (() -> Unit)?) {
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
-                    SanvyaText(row.dueIso, style = SanvyaType.statLabel, color = heroInkMuted)
+                    SanvyaText(
+                        // The subscription's OWN currency when it has one --
+                        // the query COALESCEs a missing one to empty, which web
+                        // treats as falsy and falls back to base for.
+                        formatMoney(row.amountMinor, row.currency.ifBlank { currency }) +
+                            (if (row.dueIso.isNotBlank()) " · " + dayMonthLabel(row.dueIso) else ""),
+                        style = SanvyaType.statLabel,
+                        color = heroInkMuted,
+                    )
                 }
             }
             if (state.hiddenCount > 0) {

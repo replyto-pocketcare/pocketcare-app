@@ -7433,6 +7433,147 @@
         }
       }
     },
+    "dashboard:subsCount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld active subscription"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld active subscriptions"
+                }
+              }
+            }
+          }
+        },
+        "hi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld सक्रिय सदस्यता"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld सक्रिय सदस्यताएँ"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld actief abonnement"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld actieve abonnementen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "dashboard:subsCountSpent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld active subscription · ~%2$@ so far"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld active subscriptions · ~%2$@ so far"
+                }
+              }
+            }
+          }
+        },
+        "hi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld सक्रिय सदस्यता · अब तक ~%2$@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld सक्रिय सदस्यताएँ · अब तक ~%2$@"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld actief abonnement · ~%2$@ tot nu toe"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld actieve abonnementen · ~%2$@ tot nu toe"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "dashboard:subsSpentNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spend so far is estimated from each subscription's price and how long it's been running. Actual charges may differ."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अब तक का खर्च हर सदस्यता की कीमत और वह कब से चल रही है, इससे अनुमानित है। वास्तविक शुल्क अलग हो सकते हैं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De uitgaven tot nu toe zijn geschat op basis van de prijs van elk abonnement en hoe lang het al loopt. De werkelijke kosten kunnen afwijken."
+          }
+        }
+      }
+    },
     "dashboard:thisMonth": {
       "extractionState": "manual",
       "localizations": {
