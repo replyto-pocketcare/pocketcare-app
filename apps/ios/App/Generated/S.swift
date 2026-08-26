@@ -422,11 +422,13 @@ public enum S {
         public static var emptyBody: String { String(localized: "dashboard:emptyBody", table: "Localizable") }
         public static var emptyBudgets: String { String(localized: "dashboard:emptyBudgets", table: "Localizable") }
         public static var emptyGoals: String { String(localized: "dashboard:emptyGoals", table: "Localizable") }
+        public static var emptyLabels: String { String(localized: "dashboard:emptyLabels", table: "Localizable") }
         public static var emptyRecent: String { String(localized: "dashboard:emptyRecent", table: "Localizable") }
         public static var emptySpending: String { String(localized: "dashboard:emptySpending", table: "Localizable") }
         public static var emptySplits: String { String(localized: "dashboard:emptySplits", table: "Localizable") }
         public static var emptyTitle: String { String(localized: "dashboard:emptyTitle", table: "Localizable") }
         public static var emptyUpcoming: String { String(localized: "dashboard:emptyUpcoming", table: "Localizable") }
+        public static var lastMonth: String { String(localized: "dashboard:lastMonth", table: "Localizable") }
         public static func moreCategories(count: CVarArg) -> String {
             String(format: String(localized: "dashboard:moreCategories", table: "Localizable"), count)
         }
@@ -437,6 +439,7 @@ public enum S {
         public static var moveUp: String { String(localized: "dashboard:moveUp", table: "Localizable") }
         public static var premium: String { String(localized: "dashboard:premium", table: "Localizable") }
         public static var premiumNote: String { String(localized: "dashboard:premiumNote", table: "Localizable") }
+        public static var thisMonth: String { String(localized: "dashboard:thisMonth", table: "Localizable") }
         public static var tileBudgets: String { String(localized: "dashboard:tile.budgets", table: "Localizable") }
         public static var tileByCategory: String { String(localized: "dashboard:tile.byCategory", table: "Localizable") }
         public static var tileByLabel: String { String(localized: "dashboard:tile.byLabel", table: "Localizable") }

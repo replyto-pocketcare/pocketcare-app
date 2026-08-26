@@ -324,3 +324,67 @@ class SplitsTileViewModel : ViewModel(), KoinComponent {
         }
     }
 }
+
+/* -------------------- By category / by label ------------------- */
+
+/**
+ * One horizontal bar. `name` is null for the uncategorised bucket — the view
+ * names it, because i18n belongs where the string is rendered.
+ */
+data class NamedTotalRow(val name: String?, val totalMinor: Long)
+
+class ByCategoryTileViewModel : ViewModel(), KoinComponent {
+    private val ledgerRepository: LedgerRepository by inject()
+
+    val rows: StateFlow<List<NamedTotalRow>> = ledgerRepository.watchExpenseByCategory()
+        .map { rows -> rows.map { NamedTotalRow(it.name, it.total) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+}
+
+class ByLabelTileViewModel : ViewModel(), KoinComponent {
+    private val ledgerRepository: LedgerRepository by inject()
+
+    val rows: StateFlow<List<NamedTotalRow>> = ledgerRepository.watchExpenseByLabel()
+        .map { rows -> rows.map { NamedTotalRow(it.name, it.total) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+}
+
+/* ---------------------- This month vs last --------------------- */
+
+data class MonthCompareState(
+    val lastIncomeMinor: Long = 0,
+    val lastExpenseMinor: Long = 0,
+    val thisIncomeMinor: Long = 0,
+    val thisExpenseMinor: Long = 0,
+) {
+    val isEmpty: Boolean
+        get() = lastIncomeMinor == 0L && lastExpenseMinor == 0L &&
+            thisIncomeMinor == 0L && thisExpenseMinor == 0L
+}
+
+class MonthCompareTileViewModel : ViewModel(), KoinComponent {
+    private val ledgerRepository: LedgerRepository by inject()
+
+    val state: StateFlow<MonthCompareState> = ledgerRepository.watchMonthlyIncomeExpense()
+        .map { rows ->
+            // Local months, matching web's `new Date().getMonth()`. The query
+            // groups on strftime('%Y-%m', occurred_at), which SQLite evaluates
+            // in UTC -- so a transaction in the first hours of a month can land
+            // in the previous bucket for a user east of UTC. That is web's
+            // behaviour too, bug included, and fixing it here alone would make
+            // the two disagree.
+            val now = LocalDate.now()
+            val thisYm = "%04d-%02d".format(now.year, now.monthValue)
+            val last = now.minusMonths(1)
+            val lastYm = "%04d-%02d".format(last.year, last.monthValue)
+            fun total(ym: String, type: String) =
+                rows.firstOrNull { it.yearMonth == ym && it.type == type }?.total ?: 0L
+            MonthCompareState(
+                lastIncomeMinor = total(lastYm, "income"),
+                lastExpenseMinor = total(lastYm, "expense"),
+                thisIncomeMinor = total(thisYm, "income"),
+                thisExpenseMinor = total(thisYm, "expense"),
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MonthCompareState())
+}

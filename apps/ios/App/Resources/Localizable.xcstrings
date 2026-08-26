@@ -6950,6 +6950,29 @@
         }
       }
     },
+    "dashboard:emptyLabels": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add labels to transactions to see this."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह देखने के लिए लेन-देन पर लेबल जोड़ें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voeg labels toe aan transacties om dit te zien."
+          }
+        }
+      }
+    },
     "dashboard:emptyRecent": {
       "extractionState": "manual",
       "localizations": {
@@ -7061,6 +7084,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Niets openstaand."
+          }
+        }
+      }
+    },
+    "dashboard:lastMonth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last month"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछला महीना"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorige maand"
           }
         }
       }
@@ -7199,6 +7245,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Premium-tegels ontgrendel je met een Lite- of Pro-abonnement."
+          }
+        }
+      }
+    },
+    "dashboard:thisMonth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This month"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस महीने"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze maand"
           }
         }
       }

@@ -382,11 +382,13 @@ object S {
         fun emptyBody(res: Resources): String = res.getString(R.string.dashboard_empty_body)
         fun emptyBudgets(res: Resources): String = res.getString(R.string.dashboard_empty_budgets)
         fun emptyGoals(res: Resources): String = res.getString(R.string.dashboard_empty_goals)
+        fun emptyLabels(res: Resources): String = res.getString(R.string.dashboard_empty_labels)
         fun emptyRecent(res: Resources): String = res.getString(R.string.dashboard_empty_recent)
         fun emptySpending(res: Resources): String = res.getString(R.string.dashboard_empty_spending)
         fun emptySplits(res: Resources): String = res.getString(R.string.dashboard_empty_splits)
         fun emptyTitle(res: Resources): String = res.getString(R.string.dashboard_empty_title)
         fun emptyUpcoming(res: Resources): String = res.getString(R.string.dashboard_empty_upcoming)
+        fun lastMonth(res: Resources): String = res.getString(R.string.dashboard_last_month)
         fun moreCategories(res: Resources, count: Any): String =
             res.getString(R.string.dashboard_more_categories, count)
         fun moreItems(res: Resources, count: Any): String =
@@ -395,6 +397,7 @@ object S {
         fun moveUp(res: Resources): String = res.getString(R.string.dashboard_move_up)
         fun premium(res: Resources): String = res.getString(R.string.dashboard_premium)
         fun premiumNote(res: Resources): String = res.getString(R.string.dashboard_premium_note)
+        fun thisMonth(res: Resources): String = res.getString(R.string.dashboard_this_month)
         fun tileBudgets(res: Resources): String = res.getString(R.string.dashboard_tile_budgets)
         fun tileByCategory(res: Resources): String = res.getString(R.string.dashboard_tile_by_category)
         fun tileByLabel(res: Resources): String = res.getString(R.string.dashboard_tile_by_label)

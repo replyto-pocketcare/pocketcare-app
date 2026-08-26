@@ -143,6 +143,17 @@ public struct NetWorth: Sendable {
 /// LedgerRepository.kt MonthlyIncomeExpense exactly (added same session,
 /// 2026-08-05, for the dashboard hero sparkline/delta -- see
 /// docs/mobile/screen-specs/dashboard.md).
+/// One grouped total with the name it was grouped by. Nil name = uncategorised.
+public struct NamedTotal: Sendable {
+    public let name: String?
+    public let total: Int64
+
+    public init(name: String?, total: Int64) {
+        self.name = name
+        self.total = total
+    }
+}
+
 public struct MonthlyIncomeExpense: Sendable {
     public let yearMonth: String
     public let type: String
@@ -165,7 +176,25 @@ public struct OverdraftError: Error, Sendable {
     }
 }
 
-private func accountMapper(_ cursor: SqlCursor) throws -> Account {
+private func namedTotalMapper(_ cursor: SqlCursor) throws -> NamedTotal {
+    NamedTotal(
+        // NULL means uncategorised. The view names that bucket, not the
+        // repository -- a repository has no localised strings and i18n belongs
+        // where the string is rendered.
+        name: try cursor.getStringOptional(name: "name"),
+        total: try cursor.getInt64(name: "total")
+    )
+}
+
+func monthlyIncomeExpenseMapper(_ cursor: SqlCursor) throws -> MonthlyIncomeExpense {
+    MonthlyIncomeExpense(
+        yearMonth: try cursor.getString(name: "ym"),
+        type: try cursor.getString(name: "type"),
+        total: try cursor.getInt64(name: "total")
+    )
+}
+
+func accountMapper(_ cursor: SqlCursor) throws -> Account {
     Account(
         id: try cursor.getString(name: "id"),
         userId: try cursor.getStringOptional(name: "user_id"),
@@ -505,21 +534,69 @@ public final class LedgerRepository: @unchecked Sendable {
     /// same GROUP BY/ORDER BY). One-shot (matches this file's existing
     /// snapshot pattern -- DashboardViewModel re-runs its snapshot refresh on
     /// every account/transaction stream tick already).
+    static let monthlyIncomeExpenseSql = """
+        SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total
+        FROM transactions WHERE deleted_at IS NULL AND type IN ('income','expense')
+        GROUP BY ym, type ORDER BY ym
+        """
+
     public func monthlyIncomeExpense() async throws -> [MonthlyIncomeExpense] {
-        try await db.getAll(
+        try await db.getAll(sql: Self.monthlyIncomeExpenseSql, parameters: [], mapper: monthlyIncomeExpenseMapper)
+    }
+
+    /**
+     Monthly income/expense totals, REACTIVE.
+
+     Android has had `watchMonthlyIncomeExpense` all along; this side was a
+     one-shot because the screen that needed it re-ran its own refresh. The
+     dashboard's month-comparison tile needs a stream, and it is one query, so
+     no `combineLatest` is involved — just the watch that should always have
+     been here beside the snapshot.
+     */
+    public func watchMonthlyIncomeExpense() throws -> AsyncThrowingStream<[MonthlyIncomeExpense], Error> {
+        try db.watch(sql: Self.monthlyIncomeExpenseSql, parameters: [], mapper: monthlyIncomeExpenseMapper)
+    }
+
+    /**
+     Expense totals grouped by CATEGORY, biggest first — web's ByCategoryTile.
+
+     The `lend` exclusion is web's, and it matters: money you fronted for someone
+     is not your spending, and without it an evening you paid for shows up as
+     your biggest category. Every spending query on the dashboard carries it.
+     */
+    public func watchExpenseByCategory(limit: Int = 8) throws -> AsyncThrowingStream<[NamedTotal], Error> {
+        try db.watch(
             sql: """
-                SELECT strftime('%Y-%m', occurred_at) as ym, type, SUM(amount) as total
-                FROM transactions WHERE deleted_at IS NULL AND type IN ('income','expense')
-                GROUP BY ym, type ORDER BY ym
+                SELECT c.name AS name, SUM(t.amount) AS total
+                  FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
+                 WHERE t.deleted_at IS NULL AND t.type = 'expense'
+                   AND t.id NOT IN (
+                         SELECT transaction_id FROM expense_postings
+                          WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+                 GROUP BY t.category_id ORDER BY total DESC LIMIT ?
                 """,
-            parameters: []
-        ) { cursor in
-            MonthlyIncomeExpense(
-                yearMonth: try cursor.getString(name: "ym"),
-                type: try cursor.getString(name: "type"),
-                total: try cursor.getInt64(name: "total")
-            )
-        }
+            parameters: [limit],
+            mapper: namedTotalMapper
+        )
+    }
+
+    /// Expense totals grouped by LABEL, biggest first — web's ByLabelTile.
+    public func watchExpenseByLabel(limit: Int = 8) throws -> AsyncThrowingStream<[NamedTotal], Error> {
+        try db.watch(
+            sql: """
+                SELECT l.name AS name, SUM(t.amount) AS total
+                  FROM transaction_labels tl
+                  JOIN labels l ON l.id = tl.label_id
+                  JOIN transactions t ON t.id = tl.transaction_id
+                 WHERE t.deleted_at IS NULL AND t.type = 'expense'
+                   AND t.id NOT IN (
+                         SELECT transaction_id FROM expense_postings
+                          WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+                 GROUP BY l.id ORDER BY total DESC LIMIT ?
+                """,
+            parameters: [limit],
+            mapper: namedTotalMapper
+        )
     }
 
     /// Latest FX rate per currency pair, as of now, as a RateLookup for aggregateNetWorth.

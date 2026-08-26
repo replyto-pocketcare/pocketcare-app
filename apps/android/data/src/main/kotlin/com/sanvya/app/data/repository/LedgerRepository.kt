@@ -141,6 +141,9 @@ data class NetWorth(val total: Money, val available: Money, val base: String)
 /** One (month, type) bucket from the income/expense grouping query -- [type] is
  * always "income" or "expense" (query filters to those two), [total] is minor
  * units. */
+/** One grouped total with the name it was grouped by. Null name = uncategorised. */
+data class NamedTotal(val name: String?, val total: Long)
+
 data class MonthlyIncomeExpense(val yearMonth: String, val type: String, val total: Long)
 
 /** Thrown when a write would take a no-overdraft account below zero.
@@ -306,6 +309,51 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
                 type = cursor.getString("type"),
                 total = cursor.getLong("total"),
             )
+        },
+    )
+
+    /**
+     * Expense totals grouped by CATEGORY, biggest first — web's ByCategoryTile.
+     *
+     * The `lend` exclusion is web's, and it matters: money you fronted for
+     * someone is not your spending, and without this an evening you paid for
+     * shows up as your biggest category. Every spending query on the dashboard
+     * carries it.
+     */
+    fun watchExpenseByCategory(limit: Int = 8): Flow<List<NamedTotal>> = db.watch(
+        """SELECT c.name AS name, SUM(t.amount) AS total
+             FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
+            WHERE t.deleted_at IS NULL AND t.type = 'expense'
+              AND t.id NOT IN (
+                    SELECT transaction_id FROM expense_postings
+                     WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+            GROUP BY t.category_id ORDER BY total DESC LIMIT ?""",
+        parameters = listOf(limit),
+        mapper = { cursor ->
+            NamedTotal(
+                // NULL means uncategorised. The view names that bucket, not the
+                // repository -- a repository has no Resources and i18n belongs
+                // where the string is rendered.
+                name = cursor.getStringOptional("name"),
+                total = cursor.getLong("total"),
+            )
+        },
+    )
+
+    /** Expense totals grouped by LABEL, biggest first — web's ByLabelTile. */
+    fun watchExpenseByLabel(limit: Int = 8): Flow<List<NamedTotal>> = db.watch(
+        """SELECT l.name AS name, SUM(t.amount) AS total
+             FROM transaction_labels tl
+             JOIN labels l ON l.id = tl.label_id
+             JOIN transactions t ON t.id = tl.transaction_id
+            WHERE t.deleted_at IS NULL AND t.type = 'expense'
+              AND t.id NOT IN (
+                    SELECT transaction_id FROM expense_postings
+                     WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)
+            GROUP BY l.id ORDER BY total DESC LIMIT ?""",
+        parameters = listOf(limit),
+        mapper = { cursor ->
+            NamedTotal(name = cursor.getStringOptional("name"), total = cursor.getLong("total"))
         },
     )
 

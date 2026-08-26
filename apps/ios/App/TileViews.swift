@@ -16,9 +16,9 @@ import Domain
 extension TileId {
     var isBuilt: Bool {
         switch self {
-        case .recent, .spending, .upcoming, .budgets, .goals, .splits: return true
-        case .trends, .subscriptions, .cashflow,
-             .netTrend, .byCategory, .byLabel, .monthCompare, .currencies: return false
+        case .recent, .spending, .upcoming, .budgets, .goals, .splits,
+             .byCategory, .byLabel, .monthCompare: return true
+        case .trends, .subscriptions, .cashflow, .netTrend, .currencies: return false
         }
     }
 }
@@ -45,6 +45,9 @@ struct TileView: View {
         case .budgets: BudgetsTile(onOpen: open)
         case .goals: GoalsTile(onOpen: open)
         case .splits: SplitsTile(onOpen: open)
+        case .byCategory: ByCategoryTile(onOpen: open)
+        case .byLabel: ByLabelTile(onOpen: open)
+        case .monthCompare: MonthCompareTile(onOpen: open)
         default: EmptyView()
         }
     }
@@ -363,5 +366,106 @@ private struct SplitsTile: View {
             }
         })
         .onAppear { viewModel.start() }
+    }
+}
+
+/* -------------------- By category / by label ------------------- */
+
+/// Web's `HBarTile` — a ranked horizontal bar per row.
+///
+/// The bars are the shared `SanvyaBarsChart`, which was `private` inside the
+/// Insights screen until 2026-08-26. Two tiles differing only in what they group
+/// by is exactly the case for one shell, which is what web does too.
+private struct HBarTile: View {
+    let title: String
+    let rows: [NamedTotalRow]
+    let emptyText: String
+    let onOpen: (() -> Void)?
+
+    var body: some View {
+        TileShell(title: title, onOpen: onOpen, content: {
+            if rows.isEmpty {
+                TileEmpty(text: emptyText)
+            } else {
+                SanvyaBarsChart(
+                    series: rows.map { row in
+                        SeriesPoint(
+                            (row.name?.isEmpty == false ? row.name! : S.Transactions.uncategorised),
+                            // MAJOR units: the chart labels its own values, and
+                            // a bar labelled in minor units would read as 100x
+                            // the money.
+                            toMajor(Money(amount: row.totalMinor, currency: baseCurrencyNow()))
+                        )
+                    },
+                    unit: nil,
+                    horizontal: true,
+                    accent: Color.accent
+                )
+            }
+        })
+    }
+}
+
+private struct ByCategoryTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = ByCategoryTileViewModel()
+
+    var body: some View {
+        HBarTile(
+            title: S.Dashboard.tileByCategory,
+            rows: viewModel.rows,
+            emptyText: S.Dashboard.emptySpending,
+            onOpen: onOpen
+        )
+        .onAppear { viewModel.start() }
+    }
+}
+
+private struct ByLabelTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = ByLabelTileViewModel()
+
+    var body: some View {
+        HBarTile(
+            title: S.Dashboard.tileByLabel,
+            rows: viewModel.rows,
+            emptyText: S.Dashboard.emptyLabels,
+            onOpen: onOpen
+        )
+        .onAppear { viewModel.start() }
+    }
+}
+
+/* ---------------------- This month vs last --------------------- */
+
+private struct MonthCompareTile: View {
+    let onOpen: (() -> Void)?
+    @State private var viewModel = MonthCompareTileViewModel()
+
+    var body: some View {
+        TileShell(title: S.Dashboard.tileMonthCompare, onOpen: onOpen, content: {
+            if viewModel.isEmpty {
+                TileEmpty(text: S.Dashboard.emptySpending)
+            } else {
+                // Four bars, not a grouped pair per month: the shared bars chart
+                // draws one series, and web's grouping is a recharts affordance
+                // rather than information. The colour carries income-vs-expense.
+                SanvyaBarsChart(
+                    series: [
+                        SeriesPoint("\(S.Dashboard.lastMonth) · \(S.Cashflow.dirLabelIncome)", major(viewModel.lastIncomeMinor), "positive"),
+                        SeriesPoint("\(S.Dashboard.lastMonth) · \(S.Cashflow.dirLabelPayment)", major(viewModel.lastExpenseMinor), "accent"),
+                        SeriesPoint("\(S.Dashboard.thisMonth) · \(S.Cashflow.dirLabelIncome)", major(viewModel.thisIncomeMinor), "positive"),
+                        SeriesPoint("\(S.Dashboard.thisMonth) · \(S.Cashflow.dirLabelPayment)", major(viewModel.thisExpenseMinor), "accent"),
+                    ],
+                    unit: nil,
+                    horizontal: true,
+                    accent: Color.accent
+                )
+            }
+        })
+    }
+
+    private func major(_ minor: Int64) -> Double {
+        toMajor(Money(amount: minor, currency: baseCurrencyNow()))
     }
 }

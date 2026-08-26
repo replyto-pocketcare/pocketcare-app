@@ -31,6 +31,10 @@ import com.sanvya.app.ui.components.Eyebrow
 import com.sanvya.app.ui.components.SanvyaCard
 import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.domain.insights.SeriesPoint
+import com.sanvya.app.domain.money.Money
+import com.sanvya.app.domain.money.toMajor
+import com.sanvya.app.ui.components.SanvyaBarsChart
 import com.sanvya.app.ui.transactions.TransactionRowCard
 
 /**
@@ -50,14 +54,14 @@ val TileId.isBuilt: Boolean
         TileId.UPCOMING,
         TileId.BUDGETS,
         TileId.GOALS,
-        TileId.SPLITS -> true
+        TileId.SPLITS,
+        TileId.BY_CATEGORY,
+        TileId.BY_LABEL,
+        TileId.MONTH_COMPARE -> true
         TileId.TRENDS,
         TileId.SUBSCRIPTIONS,
         TileId.CASHFLOW,
         TileId.NET_TREND,
-        TileId.BY_CATEGORY,
-        TileId.BY_LABEL,
-        TileId.MONTH_COMPARE,
         TileId.CURRENCIES -> false
     }
 
@@ -81,6 +85,9 @@ fun TileView(id: TileId, editing: Boolean, onOpen: () -> Unit) {
         TileId.BUDGETS -> BudgetsTile(open)
         TileId.GOALS -> GoalsTile(open)
         TileId.SPLITS -> SplitsTile(open)
+        TileId.BY_CATEGORY -> ByCategoryTile(open)
+        TileId.BY_LABEL -> ByLabelTile(open)
+        TileId.MONTH_COMPARE -> MonthCompareTile(open)
         else -> Unit
     }
 }
@@ -398,5 +405,92 @@ private fun SplitsTile(onOpen: (() -> Unit)?) {
                 )
             }
         }
+    }
+}
+
+/* -------------------- By category / by label ------------------- */
+
+/**
+ * Web's `HBarTile` — a ranked horizontal bar per row.
+ *
+ * The bars are the shared `SanvyaBarsChart`, which was `private` inside the
+ * Insights screen until 2026-08-26. Two tiles differing only in what they group
+ * by is exactly the case for one shell, which is what web does too.
+ */
+@Composable
+private fun HBarTile(
+    title: String,
+    rows: List<NamedTotalRow>,
+    emptyText: String,
+    onOpen: (() -> Unit)?,
+) {
+    val colors = LocalSanvyaColors.current
+    val currency = baseCurrencyNow()
+    val uncategorised = S.Transactions.uncategorised(sRes())
+
+    TileShell(title, onOpen) {
+        if (rows.isEmpty()) {
+            TileEmpty(emptyText)
+            return@TileShell
+        }
+        SanvyaBarsChart(
+            series = rows.map { row ->
+                SeriesPoint(
+                    label = row.name?.takeIf { it.isNotBlank() } ?: uncategorised,
+                    // MAJOR units: the chart labels its own values, and a bar
+                    // labelled in minor units would read as 100x the money.
+                    value = toMajor(Money(row.totalMinor, currency)),
+                )
+            },
+            horizontal = true,
+            accent = colors.accent,
+            colors = colors,
+        )
+    }
+}
+
+@Composable
+private fun ByCategoryTile(onOpen: (() -> Unit)?) {
+    val viewModel: ByCategoryTileViewModel = viewModel()
+    val rows by viewModel.rows.collectAsState()
+    HBarTile(S.Dashboard.tileByCategory(sRes()), rows, S.Dashboard.emptySpending(sRes()), onOpen)
+}
+
+@Composable
+private fun ByLabelTile(onOpen: (() -> Unit)?) {
+    val viewModel: ByLabelTileViewModel = viewModel()
+    val rows by viewModel.rows.collectAsState()
+    HBarTile(S.Dashboard.tileByLabel(sRes()), rows, S.Dashboard.emptyLabels(sRes()), onOpen)
+}
+
+/* ---------------------- This month vs last --------------------- */
+
+@Composable
+private fun MonthCompareTile(onOpen: (() -> Unit)?) {
+    val colors = LocalSanvyaColors.current
+    val viewModel: MonthCompareTileViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+    val currency = baseCurrencyNow()
+
+    TileShell(S.Dashboard.tileMonthCompare(sRes()), onOpen) {
+        if (state.isEmpty) {
+            TileEmpty(S.Dashboard.emptySpending(sRes()))
+            return@TileShell
+        }
+        // Four bars, not a grouped pair per month: the shared bars chart draws
+        // one series, and web's grouping is a recharts affordance rather than
+        // information. The colour carries income-vs-expense, and the legend
+        // below names it -- which is what web's own ChartLegend does.
+        SanvyaBarsChart(
+            series = listOf(
+                SeriesPoint(S.Dashboard.lastMonth(sRes()) + " · " + S.Cashflow.dirLabelIncome(sRes()), toMajor(Money(state.lastIncomeMinor, currency)), "positive"),
+                SeriesPoint(S.Dashboard.lastMonth(sRes()) + " · " + S.Cashflow.dirLabelPayment(sRes()), toMajor(Money(state.lastExpenseMinor, currency)), "accent"),
+                SeriesPoint(S.Dashboard.thisMonth(sRes()) + " · " + S.Cashflow.dirLabelIncome(sRes()), toMajor(Money(state.thisIncomeMinor, currency)), "positive"),
+                SeriesPoint(S.Dashboard.thisMonth(sRes()) + " · " + S.Cashflow.dirLabelPayment(sRes()), toMajor(Money(state.thisExpenseMinor, currency)), "accent"),
+            ),
+            horizontal = true,
+            accent = colors.accent,
+            colors = colors,
+        )
     }
 }

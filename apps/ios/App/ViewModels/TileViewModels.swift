@@ -490,3 +490,117 @@ final class SplitsTileViewModel {
     }
 
 }
+
+/* -------------------- By category / by label ------------------- */
+
+/// One horizontal bar. `name` is nil for the uncategorised bucket — the view
+/// names it, because i18n belongs where the string is rendered.
+struct NamedTotalRow: Identifiable, Sendable {
+    let id: String
+    let name: String?
+    let totalMinor: Int64
+}
+
+@Observable
+@MainActor
+final class ByCategoryTileViewModel {
+    @ObservationIgnored
+    @Injected(\.ledgerRepository) private var ledgerRepository
+
+    public private(set) var rows: [NamedTotalRow] = []
+    private var task: Task<Void, Never>?
+
+    func start() {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await rows in try self.ledgerRepository.watchExpenseByCategory() {
+                    self.rows = rows.enumerated().map {
+                        NamedTotalRow(id: $0.element.name ?? "uncategorised-\($0.offset)", name: $0.element.name, totalMinor: $0.element.total)
+                    }
+                }
+            } catch {}
+        }
+    }
+}
+
+@Observable
+@MainActor
+final class ByLabelTileViewModel {
+    @ObservationIgnored
+    @Injected(\.ledgerRepository) private var ledgerRepository
+
+    public private(set) var rows: [NamedTotalRow] = []
+    private var task: Task<Void, Never>?
+
+    func start() {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await rows in try self.ledgerRepository.watchExpenseByLabel() {
+                    self.rows = rows.enumerated().map {
+                        NamedTotalRow(id: $0.element.name ?? "label-\($0.offset)", name: $0.element.name, totalMinor: $0.element.total)
+                    }
+                }
+            } catch {}
+        }
+    }
+}
+
+/* ---------------------- This month vs last --------------------- */
+
+@Observable
+@MainActor
+final class MonthCompareTileViewModel {
+    @ObservationIgnored
+    @Injected(\.ledgerRepository) private var ledgerRepository
+
+    public private(set) var lastIncomeMinor: Int64 = 0
+    public private(set) var lastExpenseMinor: Int64 = 0
+    public private(set) var thisIncomeMinor: Int64 = 0
+    public private(set) var thisExpenseMinor: Int64 = 0
+
+    var isEmpty: Bool {
+        lastIncomeMinor == 0 && lastExpenseMinor == 0 && thisIncomeMinor == 0 && thisExpenseMinor == 0
+    }
+
+    private var task: Task<Void, Never>?
+
+    func start() {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await rows in try self.ledgerRepository.watchMonthlyIncomeExpense() {
+                    self.apply(rows)
+                }
+            } catch {}
+        }
+    }
+
+    private func apply(_ rows: [MonthlyIncomeExpense]) {
+        // Local months, matching web's `new Date().getMonth()`. The query groups
+        // on strftime('%Y-%m', occurred_at), which SQLite evaluates in UTC — so
+        // a transaction in the first hours of a month can land in the previous
+        // bucket for a user east of UTC. That is web's behaviour too, bug
+        // included, and fixing it here alone would make the two disagree.
+        let calendar = Calendar.current
+        let now = Date()
+        let thisYm = Self.ym(now, calendar)
+        let lastYm = Self.ym(calendar.date(byAdding: .month, value: -1, to: now) ?? now, calendar)
+        func total(_ ym: String, _ type: String) -> Int64 {
+            rows.first { $0.yearMonth == ym && $0.type == type }?.total ?? 0
+        }
+        lastIncomeMinor = total(lastYm, "income")
+        lastExpenseMinor = total(lastYm, "expense")
+        thisIncomeMinor = total(thisYm, "income")
+        thisExpenseMinor = total(thisYm, "expense")
+    }
+
+    private static func ym(_ date: Date, _ calendar: Calendar) -> String {
+        let parts = calendar.dateComponents([.year, .month], from: date)
+        return String(format: "%04d-%02d", parts.year ?? 0, parts.month ?? 0)
+    }
+}
