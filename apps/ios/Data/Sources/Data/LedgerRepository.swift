@@ -159,12 +159,17 @@ private struct RateRow: Sendable {
 /// The fold `rates()` and `watchRates()` share, so a snapshot and a stream can
 /// never disagree about which rate is "latest".
 private func rateLookup(_ rows: [RateRow]) -> RateLookup {
-    var rateMap: [String: Double] = [:]
+    var built: [String: Double] = [:]
     for row in rows {
         let key = "\(row.base)->\(row.quote)"
         // First wins: the query is ORDER BY as_of DESC.
-        if rateMap[key] == nil { rateMap[key] = row.rate }
+        if built[key] == nil { built[key] = row.rate }
     }
+    // Rebound to a `let` before the closure captures it. `RateLookup` is
+    // `@Sendable` (see Ledger.swift for why), and a @Sendable closure cannot
+    // capture a `var` even one nothing writes to again -- Swift 6 rejects the
+    // capture, not the mutation. CI run 32986742366 is where that landed.
+    let rateMap = built
     return { from, to in
         if from == to { return 1.0 }
         if let direct = rateMap["\(from)->\(to)"] { return direct }
