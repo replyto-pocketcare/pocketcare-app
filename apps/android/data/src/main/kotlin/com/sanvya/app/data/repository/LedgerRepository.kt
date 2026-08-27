@@ -67,7 +67,12 @@ import com.sanvya.app.domain.ledger.LedgerEntry
 import com.sanvya.app.domain.ledger.RateLookup
 import com.sanvya.app.domain.ledger.aggregateNetWorth
 import com.sanvya.app.domain.ledger.deriveBalance
+import com.sanvya.app.domain.categorize.CategoryData
 import com.sanvya.app.domain.categorize.CategoryRule
+import com.sanvya.app.domain.categorize.buildSeedList
+import com.sanvya.app.domain.categorize.buildSeedMap
+import com.sanvya.app.domain.categorize.normalizeText
+import com.sanvya.app.domain.categorize.scoreTokens
 import com.sanvya.app.domain.statements.RecordedTxn
 import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.itemsReconcile
@@ -275,6 +280,104 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
             )
         },
     )
+
+    /**
+     * A single-shot category suggestion for one description, as the live
+     * add-transaction form wants it.
+     *
+     * Web's `suggestCategory`: an exact learned PHRASE wins outright, then the
+     * learned token rules for the tokens this text produced, then the seeds.
+     * Two narrow queries, not the whole table — this runs on a debounce while
+     * someone is typing, where `BulkClassifier`'s read-everything approach would
+     * be exactly wrong.
+     */
+    suspend fun suggestCategory(
+        text: String,
+        userId: String,
+        categories: List<CategoryData>,
+    ): String? {
+        val norm = normalizeText(text)
+        if (norm.phrase.isEmpty()) return null
+
+        val phraseHit = db.getOptional(
+            sql = """SELECT category_id FROM category_rules
+                     WHERE user_id = ? AND kind = 'phrase' AND key = ? AND deleted_at IS NULL
+                     ORDER BY weight DESC LIMIT 1""",
+            parameters = listOf(userId, norm.phrase),
+            mapper = { cursor -> cursor.getString("category_id") },
+        )
+        if (phraseHit != null) return phraseHit
+
+        if (norm.tokens.isEmpty() && norm.merchant.isEmpty()) return null
+
+        val tokenRules = LinkedHashMap<String, MutableList<CategoryRule>>()
+        if (norm.tokens.isNotEmpty()) {
+            val placeholders = norm.tokens.joinToString(",") { "?" }
+            val rows = db.getAll(
+                sql = """SELECT category_id, key, weight, corrections FROM category_rules
+                         WHERE user_id = ? AND kind = 'token' AND key IN ($placeholders) AND deleted_at IS NULL""",
+                parameters = listOf(userId) + norm.tokens,
+                mapper = { cursor ->
+                    CategoryRule(
+                        kind = "token",
+                        key = cursor.getString("key"),
+                        categoryId = cursor.getString("category_id"),
+                        weight = cursor.getLong("weight"),
+                        corrections = cursor.getLong("corrections"),
+                    )
+                },
+            )
+            for (r in rows) tokenRules.getOrPut(r.key) { mutableListOf() }.add(r)
+        }
+
+        return scoreTokens(norm, tokenRules, buildSeedMap(categories), buildSeedList(categories))
+    }
+
+    /**
+     * Learn from a saved transaction: an exact phrase rule plus one token rule
+     * per surviving token.
+     *
+     * Ported from web's `learnFromSave`. Two things are worth knowing:
+     *
+     * * A CORRECTION — the user picked something other than what was suggested
+     *   — increments `corrections`, and `scoreTokens` weights that at five
+     *   ordinary sightings. Being told "no, this is Groceries" once should
+     *   outweigh having quietly agreed five times.
+     * * The phrase rule is inserted at weight 1000 so it always wins a future
+     *   phrase lookup outright, which is what makes "this exact narration is
+     *   always this category" stick after a single correction.
+     *
+     * One `writeTransaction`, so a half-learned description can never exist — a
+     * phrase rule with no token rules would keep resolving the exact string
+     * while every near-miss stayed uncategorised.
+     */
+    suspend fun learnFromSave(
+        userId: String,
+        text: String,
+        chosenCategoryId: String?,
+        suggestedCategoryId: String?,
+    ) {
+        if (chosenCategoryId == null || text.isEmpty()) return
+        val norm = normalizeText(text)
+        if (norm.phrase.isEmpty()) return
+
+        val isCorrection = suggestedCategoryId != null && chosenCategoryId != suggestedCategoryId
+        val correction = if (isCorrection) 1L else 0L
+        val now = nowIso()
+
+        db.writeTransaction { tx ->
+            tx.execute(
+                sql = learnUpsertSql("phrase", 1000),
+                parameters = listOf(newId(), userId, norm.phrase, chosenCategoryId, correction, now, now, correction, now),
+            )
+            for (token in norm.tokens) {
+                tx.execute(
+                    sql = learnUpsertSql("token", 1),
+                    parameters = listOf(newId(), userId, token, chosenCategoryId, correction, now, now, correction, now),
+                )
+            }
+        }
+    }
 
     /**
      * Recorded income/expense rows for one account over a date window, as the
@@ -1547,3 +1650,21 @@ private fun changesToJson(changes: Map<String, Pair<Any?, Any?>>): String {
     }
     return "{$entries}"
 }
+
+/**
+ * The upsert both learned-rule kinds share.
+ *
+ * `ON CONFLICT(user_id, kind, key, category_id) WHERE deleted_at IS NULL`
+ * matches migration 0017's partial unique index exactly — a conflict target
+ * that does not match an index is rejected outright by Postgres, and the same
+ * mismatch is what silently broke push registration for the whole life of that
+ * feature.
+ */
+private fun learnUpsertSql(kind: String, weight: Int): String = """
+    INSERT INTO category_rules (id, user_id, kind, key, category_id, weight, corrections, created_at, updated_at)
+    VALUES (?, ?, '$kind', ?, ?, $weight, ?, ?, ?)
+    ON CONFLICT(user_id, kind, key, category_id) WHERE deleted_at IS NULL
+    DO UPDATE SET weight = category_rules.weight + 1,
+                  corrections = category_rules.corrections + ?,
+                  updated_at = ?
+""".trimIndent()

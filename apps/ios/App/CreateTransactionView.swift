@@ -39,6 +39,20 @@ struct CreateTransactionView: View {
     @State private var saving = false
     @State private var error: String?
 
+    // ---- auto-categorisation ----
+    /// What the categoriser proposed for the current description, and whether it
+    /// was applied without the user asking. Both are needed at save time:
+    /// learning treats "you suggested Food and they chose Groceries" as a
+    /// CORRECTION worth five ordinary sightings, and that is only true if the
+    /// suggestion was actually on screen.
+    @State private var suggestedCategoryId: String?
+    @State private var autoApplied = false
+    /// True once the user has touched the category picker themselves. A manual
+    /// pick stops the suggester overwriting it, for good — web keeps the same
+    /// latch and never clears it.
+    @State private var manualCategory = false
+    @State private var suggestTask: Task<Void, Never>?
+
     private var account: Account? { accounts.first { $0.id == accountId } ?? accounts.first }
     private var toAccount: Account? { accounts.first { $0.id == toAccountId } ?? accounts.first { $0.id != account?.id } }
     private var isInvestment: Bool { account?.type == "stocks" || account?.type == "mutual_funds" }
@@ -112,7 +126,17 @@ struct CreateTransactionView: View {
 
                             if type != "transfer" {
                                 Text(S.Transactions.category).font(.system(size: 13)).foregroundColor(Color.text2)
-                                CategoryPickerView(categories: relevantCategories, selectedId: $categoryId)
+                                CategoryPickerView(
+                                    categories: relevantCategories,
+                                    selectedId: Binding(
+                                        get: { categoryId },
+                                        set: { picked in
+                                            categoryId = picked
+                                            manualCategory = true
+                                            autoApplied = false
+                                        }
+                                    )
+                                )
 
                                 if !relevantPaymentMethods.isEmpty {
                                     Text(S.Transactions.paymentMethod).font(.system(size: 13)).foregroundColor(Color.text2)
@@ -156,6 +180,12 @@ struct CreateTransactionView: View {
             }
         }
         .task { await loadLookups() }
+        // Re-suggest whenever the text that feeds the categoriser changes.
+        // Keyed on the joined string, not on `items`, so moving the cursor or
+        // re-selecting text does not re-suggest and stomp a manual choice.
+        .onChange(of: autoCategorizeText) { _, _ in scheduleSuggestion() }
+        .onChange(of: type) { _, _ in scheduleSuggestion() }
+        .onDisappear { suggestTask?.cancel() }
     }
 
     private var itemsEditor: some View {
@@ -206,6 +236,74 @@ struct CreateTransactionView: View {
         } catch { print("Failed to watch payment methods: \(error)") }
     }
 
+    /// What the categoriser reads: every item description plus the note,
+    /// exactly as web joins them. A transfer contributes nothing — it has no
+    /// category to suggest.
+    private var autoCategorizeText: String {
+        if type == "transfer" { return "" }
+        let descriptions = items
+            .map { $0.description.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .joined(separator: ", ")
+        return [descriptions, note.trimmingCharacters(in: .whitespaces)]
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+    }
+
+    /// Debounced at web's own 220ms.
+    ///
+    /// The query is two narrow reads, but running them on every keystroke of a
+    /// long POS narration would still be dozens of round-trips for one answer.
+    /// Cancelling the previous task is what makes it a debounce rather than a
+    /// queue.
+    private func scheduleSuggestion() {
+        suggestTask?.cancel()
+        let text = autoCategorizeText
+        guard !text.isEmpty, type != "transfer" else {
+            suggestedCategoryId = nil
+            return
+        }
+        let options = relevantCategories.map { CategoryData(id: $0.id, name: $0.name) }
+        guard !options.isEmpty else { return }
+        suggestTask = Task {
+            try? await Task.sleep(for: .milliseconds(220))
+            if Task.isCancelled { return }
+            var uid = authRepository.currentUserId
+            if uid == nil { uid = try? await authRepository.ensureUser() }
+            guard let userId = uid else { return }
+            let suggestion = try? await ledgerRepository.suggestCategory(
+                text: text, userId: userId, categories: options
+            )
+            if Task.isCancelled { return }
+            suggestedCategoryId = suggestion
+            if let suggestion, !manualCategory, categoryId != suggestion {
+                categoryId = suggestion
+                autoApplied = true
+            }
+        }
+    }
+
+    /// Teach the categoriser from what was actually saved.
+    ///
+    /// The suggestion is passed ONLY when it was auto-applied. That is web's
+    /// rule and it is the load-bearing part: a correction is "you proposed X and
+    /// I chose Y", which is only meaningful if X was on screen. Passing a
+    /// suggestion the user never saw would record a correction they never made,
+    /// and corrections count for five ordinary sightings.
+    ///
+    /// Best-effort: a learning failure must never turn a saved transaction into
+    /// an error the user has to read.
+    private func learnFromThisSave(userId: String) async {
+        let text = autoCategorizeText
+        guard !text.isEmpty, let chosen = categoryId else { return }
+        try? await ledgerRepository.learnFromSave(
+            userId: userId,
+            text: text,
+            chosenCategoryId: chosen,
+            suggestedCategoryId: autoApplied ? suggestedCategoryId : nil
+        )
+    }
+
     /// Matches transactions/new/page.tsx's save() for the regular
     /// (non-split) path exactly.
     private func save() {
@@ -246,6 +344,7 @@ struct CreateTransactionView: View {
                         paymentMethod: paymentMethod.isEmpty ? nil : paymentMethod,
                         items: itemPayload
                     )
+                    await learnFromThisSave(userId: userId)
                 }
                 saving = false
                 dismiss()

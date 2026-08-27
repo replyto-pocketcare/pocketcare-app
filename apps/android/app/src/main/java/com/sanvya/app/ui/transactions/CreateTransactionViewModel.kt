@@ -9,13 +9,17 @@ import com.sanvya.app.data.repository.LabelRow
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.PaymentMethodRow
 import com.sanvya.app.data.repository.TransactionItemInput
+import com.sanvya.app.domain.categorize.CategoryData
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.money.money
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -48,12 +52,28 @@ data class CreateTransactionUiState(
     val saving: Boolean = false,
     val saved: Boolean = false,
     val error: String? = null,
+    /**
+     * The category the auto-categoriser proposed for the current description,
+     * and whether it was applied without the user asking.
+     *
+     * Both are needed at save time: learning treats "you suggested Food and
+     * they chose Groceries" as a CORRECTION worth five ordinary sightings, and
+     * that is only true if the suggestion was actually on screen.
+     */
+    val suggestedCategoryId: String? = null,
+    val autoApplied: Boolean = false,
+    /** True once the user has touched the category picker themselves. */
+    val manualCategory: Boolean = false,
 )
 
 /** New transaction — ported from transactions/new/page.tsx's regular
  * expense/income/transfer path per docs/mobile/screen-specs/transactions.md.
- * Split-expense, templates, and AI auto-categorize are explicitly deferred
- * (see spec's Scope section) -- not built, not faked. */
+ * Split-expense and templates are explicitly deferred (see spec's Scope
+ * section) -- not built, not faked.
+ *
+ * Auto-categorisation is no longer in that list: it landed 2026-08-27 and
+ * behaves as web's does -- debounced suggestion while typing, auto-applied
+ * unless the user has picked a category themselves, and learned from on save. */
 class CreateTransactionViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
     private val authRepository: AuthRepository by inject()
@@ -109,12 +129,62 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
                 }
             }
         }
+        // Auto-categorisation. Debounced at web's own 220ms: the query is two
+        // narrow reads, but running them on every keystroke of a long POS
+        // narration would still be dozens of round-trips for one answer.
+        //
+        // `distinctUntilChanged` matters as much as the debounce -- moving the
+        // cursor or re-selecting text re-emits the same string, and without it
+        // every one of those would re-suggest and stomp a manual choice.
+        viewModelScope.launch {
+            ui.map { autoCategorizeTextOf(it) }
+                .distinctUntilChanged()
+                .debounce(AUTO_CATEGORIZE_DEBOUNCE_MS)
+                .collectLatest { text -> suggest(text) }
+        }
+    }
+
+    /**
+     * What the categoriser reads: every item description plus the note, exactly
+     * as web joins them. A transfer contributes nothing -- it has no category
+     * to suggest.
+     */
+    private fun autoCategorizeTextOf(state: CreateTransactionUiState): String {
+        if (state.type == "transfer") return state.note.trim()
+        val descriptions = state.items.map { it.description.trim() }.filter { it.isNotEmpty() }.joinToString(", ")
+        return listOf(descriptions, state.note.trim()).filter { it.isNotEmpty() }.joinToString(" ")
+    }
+
+    private suspend fun suggest(text: String) {
+        if (text.isBlank() || ui.value.type == "transfer") {
+            ui.value = ui.value.copy(suggestedCategoryId = null)
+            return
+        }
+        val userId = authRepository.currentUserId.value ?: return
+        val cats = relevantCategories.value.map { CategoryData(it.id, it.name) }
+        if (cats.isEmpty()) return
+        val suggestion = runCatching {
+            ledgerRepository.suggestCategory(text, userId, cats)
+        }.getOrNull() ?: run {
+            ui.value = ui.value.copy(suggestedCategoryId = null)
+            return
+        }
+        val state = ui.value
+        ui.value = if (!state.manualCategory && state.categoryId != suggestion) {
+            state.copy(suggestedCategoryId = suggestion, categoryId = suggestion, autoApplied = true)
+        } else {
+            state.copy(suggestedCategoryId = suggestion)
+        }
     }
 
     fun setType(v: TxType) { ui.value = ui.value.copy(type = v) }
     fun setAccountId(v: String) { ui.value = ui.value.copy(accountId = v) }
     fun setToAccountId(v: String) { ui.value = ui.value.copy(toAccountId = v) }
-    fun setCategoryId(v: String?) { ui.value = ui.value.copy(categoryId = v) }
+    fun setCategoryId(v: String?) {
+        // A manual pick stops the suggester overwriting it, for good. Web keeps
+        // the same latch and never clears it.
+        ui.value = ui.value.copy(categoryId = v, manualCategory = true, autoApplied = false)
+    }
     fun setPaymentMethod(v: String) { ui.value = ui.value.copy(paymentMethod = v) }
     fun setNote(v: String) { ui.value = ui.value.copy(note = v) }
     fun setToValue(v: String) { ui.value = ui.value.copy(toValue = v) }
@@ -203,10 +273,43 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
                         paymentMethod = state.paymentMethod.ifEmpty { null }, items = itemPayload,
                     )
                 }
+                learnFromThisSave(state)
                 ui.value = ui.value.copy(saving = false, saved = true)
             } catch (e: Exception) {
                 ui.value = ui.value.copy(saving = false, error = e.message ?: "Couldn't save this transaction")
             }
         }
+    }
+
+    /**
+     * Teach the categoriser from what was actually saved.
+     *
+     * `suggestedCategoryId` is passed ONLY when the suggestion was auto-applied.
+     * That is web's rule and it is the load-bearing part: a correction is
+     * "you proposed X and I chose Y", which is only meaningful if X was on
+     * screen. Passing a suggestion the user never saw would record a correction
+     * they never made, and corrections count for five ordinary sightings.
+     *
+     * Best-effort: a learning failure must never turn a saved transaction into
+     * an error the user has to read.
+     */
+    private suspend fun learnFromThisSave(state: CreateTransactionUiState) {
+        if (state.type == "transfer") return
+        val text = autoCategorizeTextOf(state)
+        if (text.isBlank() || state.categoryId == null) return
+        val userId = authRepository.currentUserId.value ?: return
+        runCatching {
+            ledgerRepository.learnFromSave(
+                userId = userId,
+                text = text,
+                chosenCategoryId = state.categoryId,
+                suggestedCategoryId = if (state.autoApplied) state.suggestedCategoryId else null,
+            )
+        }
+    }
+
+    private companion object {
+        /** Web's own 220ms. */
+        const val AUTO_CATEGORIZE_DEBOUNCE_MS = 220L
     }
 }

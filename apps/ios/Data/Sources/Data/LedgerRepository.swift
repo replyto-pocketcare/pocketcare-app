@@ -376,6 +376,125 @@ public final class LedgerRepository: @unchecked Sendable {
         )
     }
 
+    /// A single-shot category suggestion for one description, as the live
+    /// add-transaction form wants it.
+    ///
+    /// Web's `suggestCategory`: an exact learned PHRASE wins outright, then the
+    /// learned token rules for the tokens this text produced, then the seeds.
+    /// Two narrow queries, not the whole table — this runs on a debounce while
+    /// someone is typing, where `BulkClassifier`'s read-everything approach
+    /// would be exactly wrong.
+    public func suggestCategory(
+        text: String, userId: String, categories: [Domain.CategoryData]
+    ) async throws -> String? {
+        let norm = normalizeText(text)
+        if norm.phrase.isEmpty { return nil }
+
+        if let hit = try await db.getOptional(
+            sql: """
+                SELECT category_id FROM category_rules
+                WHERE user_id = ? AND kind = 'phrase' AND key = ? AND deleted_at IS NULL
+                ORDER BY weight DESC LIMIT 1
+                """,
+            parameters: [userId, norm.phrase],
+            mapper: { cursor in try cursor.getString(name: "category_id") }
+        ) {
+            return hit
+        }
+
+        if norm.tokens.isEmpty && norm.merchant.isEmpty { return nil }
+
+        var tokenRules: [String: [Domain.CategoryRule]] = [:]
+        if !norm.tokens.isEmpty {
+            let placeholders = norm.tokens.map { _ in "?" }.joined(separator: ",")
+            let rows = try await db.getAll(
+                sql: """
+                    SELECT category_id, key, weight, corrections FROM category_rules
+                    WHERE user_id = ? AND kind = 'token' AND key IN (\(placeholders)) AND deleted_at IS NULL
+                    """,
+                parameters: [userId] + norm.tokens,
+                mapper: { cursor in
+                    Domain.CategoryRule(
+                        kind: "token",
+                        key: try cursor.getString(name: "key"),
+                        categoryId: try cursor.getString(name: "category_id"),
+                        weight: try cursor.getInt64(name: "weight"),
+                        corrections: try cursor.getInt64(name: "corrections")
+                    )
+                }
+            )
+            for r in rows { tokenRules[r.key, default: []].append(r) }
+        }
+
+        return scoreTokens(
+            norm,
+            tokenRules: tokenRules,
+            seedMap: buildSeedMap(categories),
+            seedList: buildSeedList(categories)
+        )
+    }
+
+    /// Learn from a saved transaction: an exact phrase rule plus one token rule
+    /// per surviving token.
+    ///
+    /// Ported from web's `learnFromSave`. Two things are worth knowing:
+    ///
+    /// * A CORRECTION — the user picked something other than what was suggested
+    ///   — increments `corrections`, and `scoreTokens` weights that at five
+    ///   ordinary sightings. Being told "no, this is Groceries" once should
+    ///   outweigh having quietly agreed five times.
+    /// * The phrase rule is inserted at weight 1000 so it always wins a future
+    ///   phrase lookup outright, which is what makes "this exact narration is
+    ///   always this category" stick after a single correction.
+    ///
+    /// One `writeTransaction`, so a half-learned description can never exist —
+    /// a phrase rule with no token rules would keep resolving the exact string
+    /// while every near-miss stayed uncategorised.
+    public func learnFromSave(
+        userId: String, text: String, chosenCategoryId: String?, suggestedCategoryId: String?
+    ) async throws {
+        guard let chosenCategoryId, !text.isEmpty else { return }
+        let norm = normalizeText(text)
+        if norm.phrase.isEmpty { return }
+
+        let isCorrection = suggestedCategoryId != nil && chosenCategoryId != suggestedCategoryId
+        let correction: Int64 = isCorrection ? 1 : 0
+        let now = nowIso()
+        let phrase = norm.phrase
+        let tokens = norm.tokens
+
+        try await db.writeTransaction { tx in
+            _ = try tx.execute(
+                sql: Self.learnUpsertSql(kind: "phrase", weight: 1000),
+                parameters: [newId(), userId, phrase, chosenCategoryId, correction, now, now, correction, now]
+            )
+            for token in tokens {
+                _ = try tx.execute(
+                    sql: Self.learnUpsertSql(kind: "token", weight: 1),
+                    parameters: [newId(), userId, token, chosenCategoryId, correction, now, now, correction, now]
+                )
+            }
+        }
+    }
+
+    /// The upsert both rule kinds share.
+    ///
+    /// `ON CONFLICT(user_id, kind, key, category_id) WHERE deleted_at IS NULL`
+    /// matches migration 0017's partial unique index exactly — a conflict target
+    /// that does not match an index is rejected outright by Postgres, and the
+    /// same mismatch is what silently broke push registration for the whole life
+    /// of that feature.
+    private static func learnUpsertSql(kind: String, weight: Int) -> String {
+        """
+        INSERT INTO category_rules (id, user_id, kind, key, category_id, weight, corrections, created_at, updated_at)
+        VALUES (?, ?, '\(kind)', ?, ?, \(weight), ?, ?, ?)
+        ON CONFLICT(user_id, kind, key, category_id) WHERE deleted_at IS NULL
+        DO UPDATE SET weight = category_rules.weight + 1,
+                      corrections = category_rules.corrections + ?,
+                      updated_at = ?
+        """
+    }
+
     /// Recorded income/expense rows for one account over a date window, as the
     /// statement reconciler wants them: SIGNED minor units, plain ISO dates.
     ///
