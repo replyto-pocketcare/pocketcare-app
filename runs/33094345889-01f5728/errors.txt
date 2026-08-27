@@ -1,0 +1,457 @@
+112:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Domain/Tests/DomainTests/VectorRunnerTests.swift:70: error: -[DomainTests.VectorRunnerTests testAssistant] : failed - assistant: 41 vector(s) failed:
+1086:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+1090:    |                                `- error: cannot find 'summaryMajor' in scope
+1094:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+1098:    |                                 `- error: cannot find 'summaryMajor' in scope
+1102:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+1106:    |                                                       `- error: cannot find 'summaryMajor' in scope
+1110:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+1114:    |                                         `- error: cannot find 'summaryMajor' in scope
+1118:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+1119:494 |                 let raw = try cursor.getStringOptional(name: "name")
+1121:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+1122:    |                                                            `- error: cannot find 'summaryMajor' in scope
+1126:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+1128:542 |                 name: name,
+1130:    |                         `- error: cannot find 'summaryMajor' in scope
+1134:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+1135:542 |                 name: name,
+1138:    |                        `- error: cannot find 'summaryMajor' in scope
+1142:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+1143:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+1144:559 |                     date: try cursor.getString(name: "next_renewal"),
+1145:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+1146:    |                             `- error: cannot find 'summaryMajor' in scope
+1147:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+1150:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+1154:    |                            `- error: cannot find 'parseRenewalDate' in scope
+1158:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+1162:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+1166:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+1170:    |                                      `- error: cannot find 'summaryMajor' in scope
+1174:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+1177:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1178:    |                                         `- error: cannot find 'summaryMajor' in scope
+1182:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+1185:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1186:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+1196: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1201:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1209: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1214:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+1218:    |                                `- error: cannot find 'summaryMajor' in scope
+1222:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+1226:    |                                 `- error: cannot find 'summaryMajor' in scope
+1230:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+1234:    |                                                       `- error: cannot find 'summaryMajor' in scope
+1238:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+1242:    |                                         `- error: cannot find 'summaryMajor' in scope
+1246:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+1247:494 |                 let raw = try cursor.getStringOptional(name: "name")
+1249:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+1250:    |                                                            `- error: cannot find 'summaryMajor' in scope
+1254:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+1256:542 |                 name: name,
+1258:    |                         `- error: cannot find 'summaryMajor' in scope
+1262:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+1263:542 |                 name: name,
+1266:    |                        `- error: cannot find 'summaryMajor' in scope
+1270:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+1271:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+1272:559 |                     date: try cursor.getString(name: "next_renewal"),
+1273:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+1274:    |                             `- error: cannot find 'summaryMajor' in scope
+1275:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+1278:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+1282:    |                            `- error: cannot find 'parseRenewalDate' in scope
+1286:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+1290:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+1294:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+1298:    |                                      `- error: cannot find 'summaryMajor' in scope
+1302:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+1305:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1306:    |                                         `- error: cannot find 'summaryMajor' in scope
+1310:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+1313:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1314:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+1324: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1329:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1337: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1342:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+1346:    |                                `- error: cannot find 'summaryMajor' in scope
+1350:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+1354:    |                                 `- error: cannot find 'summaryMajor' in scope
+1358:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+1362:    |                                                       `- error: cannot find 'summaryMajor' in scope
+1366:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+1370:    |                                         `- error: cannot find 'summaryMajor' in scope
+1374:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+1375:494 |                 let raw = try cursor.getStringOptional(name: "name")
+1377:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+1378:    |                                                            `- error: cannot find 'summaryMajor' in scope
+1382:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+1384:542 |                 name: name,
+1386:    |                         `- error: cannot find 'summaryMajor' in scope
+1390:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+1391:542 |                 name: name,
+1394:    |                        `- error: cannot find 'summaryMajor' in scope
+1398:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+1399:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+1400:559 |                     date: try cursor.getString(name: "next_renewal"),
+1401:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+1402:    |                             `- error: cannot find 'summaryMajor' in scope
+1403:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+1406:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+1410:    |                            `- error: cannot find 'parseRenewalDate' in scope
+1414:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+1418:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+1422:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+1426:    |                                      `- error: cannot find 'summaryMajor' in scope
+1430:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+1433:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1434:    |                                         `- error: cannot find 'summaryMajor' in scope
+1438:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+1441:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1442:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+1452: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1457:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1465: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1470:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+1474:    |                                `- error: cannot find 'summaryMajor' in scope
+1478:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+1482:    |                                 `- error: cannot find 'summaryMajor' in scope
+1486:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+1490:    |                                                       `- error: cannot find 'summaryMajor' in scope
+1494:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+1498:    |                                         `- error: cannot find 'summaryMajor' in scope
+1502:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+1503:494 |                 let raw = try cursor.getStringOptional(name: "name")
+1505:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+1506:    |                                                            `- error: cannot find 'summaryMajor' in scope
+1510:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+1512:542 |                 name: name,
+1514:    |                         `- error: cannot find 'summaryMajor' in scope
+1518:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+1519:542 |                 name: name,
+1522:    |                        `- error: cannot find 'summaryMajor' in scope
+1526:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+1527:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+1528:559 |                     date: try cursor.getString(name: "next_renewal"),
+1529:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+1530:    |                             `- error: cannot find 'summaryMajor' in scope
+1531:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+1534:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+1538:    |                            `- error: cannot find 'parseRenewalDate' in scope
+1542:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+1546:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+1550:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+1554:    |                                      `- error: cannot find 'summaryMajor' in scope
+1558:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+1561:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1562:    |                                         `- error: cannot find 'summaryMajor' in scope
+1566:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+1569:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1570:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+1580: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1585:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1593: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1598:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+1602:    |                                `- error: cannot find 'summaryMajor' in scope
+1606:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+1610:    |                                 `- error: cannot find 'summaryMajor' in scope
+1614:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+1618:    |                                                       `- error: cannot find 'summaryMajor' in scope
+1622:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+1626:    |                                         `- error: cannot find 'summaryMajor' in scope
+1630:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+1631:494 |                 let raw = try cursor.getStringOptional(name: "name")
+1633:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+1634:    |                                                            `- error: cannot find 'summaryMajor' in scope
+1638:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+1640:542 |                 name: name,
+1642:    |                         `- error: cannot find 'summaryMajor' in scope
+1646:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+1647:542 |                 name: name,
+1650:    |                        `- error: cannot find 'summaryMajor' in scope
+1654:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+1655:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+1656:559 |                     date: try cursor.getString(name: "next_renewal"),
+1657:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+1658:    |                             `- error: cannot find 'summaryMajor' in scope
+1659:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+1662:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+1666:    |                            `- error: cannot find 'parseRenewalDate' in scope
+1670:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+1674:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+1678:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+1682:    |                                      `- error: cannot find 'summaryMajor' in scope
+1686:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+1689:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1690:    |                                         `- error: cannot find 'summaryMajor' in scope
+1694:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+1697:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1698:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+1708: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1713:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1721: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1726:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+1730:    |                                `- error: cannot find 'summaryMajor' in scope
+1734:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+1738:    |                                 `- error: cannot find 'summaryMajor' in scope
+1742:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+1746:    |                                                       `- error: cannot find 'summaryMajor' in scope
+1750:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+1754:    |                                         `- error: cannot find 'summaryMajor' in scope
+1758:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+1759:494 |                 let raw = try cursor.getStringOptional(name: "name")
+1761:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+1762:    |                                                            `- error: cannot find 'summaryMajor' in scope
+1766:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+1768:542 |                 name: name,
+1770:    |                         `- error: cannot find 'summaryMajor' in scope
+1774:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+1775:542 |                 name: name,
+1778:    |                        `- error: cannot find 'summaryMajor' in scope
+1782:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+1783:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+1784:559 |                     date: try cursor.getString(name: "next_renewal"),
+1785:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+1786:    |                             `- error: cannot find 'summaryMajor' in scope
+1787:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+1790:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+1794:    |                            `- error: cannot find 'parseRenewalDate' in scope
+1798:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+1802:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+1806:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+1810:    |                                      `- error: cannot find 'summaryMajor' in scope
+1814:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+1817:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1818:    |                                         `- error: cannot find 'summaryMajor' in scope
+1822:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+1825:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1826:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+1836: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1841:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1849: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1854:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+1858:    |                                `- error: cannot find 'summaryMajor' in scope
+1862:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+1866:    |                                 `- error: cannot find 'summaryMajor' in scope
+1870:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+1874:    |                                                       `- error: cannot find 'summaryMajor' in scope
+1878:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+1882:    |                                         `- error: cannot find 'summaryMajor' in scope
+1886:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+1887:494 |                 let raw = try cursor.getStringOptional(name: "name")
+1889:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+1890:    |                                                            `- error: cannot find 'summaryMajor' in scope
+1894:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+1896:542 |                 name: name,
+1898:    |                         `- error: cannot find 'summaryMajor' in scope
+1902:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+1903:542 |                 name: name,
+1906:    |                        `- error: cannot find 'summaryMajor' in scope
+1910:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+1911:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+1912:559 |                     date: try cursor.getString(name: "next_renewal"),
+1913:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+1914:    |                             `- error: cannot find 'summaryMajor' in scope
+1915:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+1918:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+1922:    |                            `- error: cannot find 'parseRenewalDate' in scope
+1926:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+1930:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+1934:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+1938:    |                                      `- error: cannot find 'summaryMajor' in scope
+1942:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+1945:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1946:    |                                         `- error: cannot find 'summaryMajor' in scope
+1950:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+1953:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+1954:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+1964: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1969:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1977: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1982:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+1986:    |                                `- error: cannot find 'summaryMajor' in scope
+1990:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+1994:    |                                 `- error: cannot find 'summaryMajor' in scope
+1998:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+2002:    |                                                       `- error: cannot find 'summaryMajor' in scope
+2006:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+2010:    |                                         `- error: cannot find 'summaryMajor' in scope
+2014:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+2015:494 |                 let raw = try cursor.getStringOptional(name: "name")
+2017:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+2018:    |                                                            `- error: cannot find 'summaryMajor' in scope
+2022:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+2024:542 |                 name: name,
+2026:    |                         `- error: cannot find 'summaryMajor' in scope
+2030:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+2031:542 |                 name: name,
+2034:    |                        `- error: cannot find 'summaryMajor' in scope
+2038:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+2039:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+2040:559 |                     date: try cursor.getString(name: "next_renewal"),
+2041:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+2042:    |                             `- error: cannot find 'summaryMajor' in scope
+2043:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+2046:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+2050:    |                            `- error: cannot find 'parseRenewalDate' in scope
+2054:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+2058:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+2062:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+2066:    |                                      `- error: cannot find 'summaryMajor' in scope
+2070:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+2073:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+2074:    |                                         `- error: cannot find 'summaryMajor' in scope
+2078:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+2081:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+2082:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+2092: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+2097:260 |             ) { cursor in try cursor.getString(name: "id") } {
+2105: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+2110:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+2114:    |                                `- error: cannot find 'summaryMajor' in scope
+2118:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+2122:    |                                 `- error: cannot find 'summaryMajor' in scope
+2126:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+2130:    |                                                       `- error: cannot find 'summaryMajor' in scope
+2134:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+2138:    |                                         `- error: cannot find 'summaryMajor' in scope
+2142:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+2143:494 |                 let raw = try cursor.getStringOptional(name: "name")
+2145:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+2146:    |                                                            `- error: cannot find 'summaryMajor' in scope
+2150:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+2152:542 |                 name: name,
+2154:    |                         `- error: cannot find 'summaryMajor' in scope
+2158:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+2159:542 |                 name: name,
+2162:    |                        `- error: cannot find 'summaryMajor' in scope
+2166:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+2167:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+2168:559 |                     date: try cursor.getString(name: "next_renewal"),
+2169:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+2170:    |                             `- error: cannot find 'summaryMajor' in scope
+2171:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+2174:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+2178:    |                            `- error: cannot find 'parseRenewalDate' in scope
+2182:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+2186:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+2190:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+2194:    |                                      `- error: cannot find 'summaryMajor' in scope
+2198:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+2201:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+2202:    |                                         `- error: cannot find 'summaryMajor' in scope
+2206:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+2209:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+2210:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+2220: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+2225:260 |             ) { cursor in try cursor.getString(name: "id") } {
+2233: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+2238:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+2242:    |                                `- error: cannot find 'summaryMajor' in scope
+2246:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+2250:    |                                 `- error: cannot find 'summaryMajor' in scope
+2254:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+2258:    |                                                       `- error: cannot find 'summaryMajor' in scope
+2262:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+2266:    |                                         `- error: cannot find 'summaryMajor' in scope
+2270:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+2271:494 |                 let raw = try cursor.getStringOptional(name: "name")
+2273:496 |                 return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+2274:    |                                                            `- error: cannot find 'summaryMajor' in scope
+2278:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+2280:542 |                 name: name,
+2282:    |                         `- error: cannot find 'summaryMajor' in scope
+2286:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+2287:542 |                 name: name,
+2290:    |                        `- error: cannot find 'summaryMajor' in scope
+2294:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+2295:558 |                     name: try cursor.getStringOptional(name: "name") ?? "",
+2296:559 |                     date: try cursor.getString(name: "next_renewal"),
+2297:560 |                     amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+2298:    |                             `- error: cannot find 'summaryMajor' in scope
+2299:561 |                     currency: try cursor.getStringOptional(name: "currency") ?? baseCurrency
+2302:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+2306:    |                            `- error: cannot find 'parseRenewalDate' in scope
+2310:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+2314:    |                             `- error: cannot find 'jsToFixed2Number' in scope
+2318:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+2322:    |                                      `- error: cannot find 'summaryMajor' in scope
+2326:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+2329:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+2330:    |                                         `- error: cannot find 'summaryMajor' in scope
+2334:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+2337:652 |             splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+2338:    |                                                                          `- error: cannot find 'summaryMajor' in scope
+2348: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+2353:260 |             ) { cursor in try cursor.getString(name: "id") } {
+2361: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+2369:320 |                         .in("id", value: chunk)
+2371:    |                          `- note: use 'in(_:values:)' instead
+2378:206 |                         try await rel.delete().in("id", value: ids).execute()
+2380:    |                                                `- note: use 'in(_:values:)' instead
+2397:320 |                         .in("id", value: chunk)
+2399:    |                          `- note: use 'in(_:values:)' instead
+2406:206 |                         try await rel.delete().in("id", value: ids).execute()
+2408:    |                                                `- note: use 'in(_:values:)' instead
+2425:320 |                         .in("id", value: chunk)
+2427:    |                          `- note: use 'in(_:values:)' instead
+2434:206 |                         try await rel.delete().in("id", value: ids).execute()
+2436:    |                                                `- note: use 'in(_:values:)' instead
+2453:320 |                         .in("id", value: chunk)
+2455:    |                          `- note: use 'in(_:values:)' instead
+2462:206 |                         try await rel.delete().in("id", value: ids).execute()
+2464:    |                                                `- note: use 'in(_:values:)' instead
+2481:320 |                         .in("id", value: chunk)
+2483:    |                          `- note: use 'in(_:values:)' instead
+2490:206 |                         try await rel.delete().in("id", value: ids).execute()
+2492:    |                                                `- note: use 'in(_:values:)' instead
+2509:320 |                         .in("id", value: chunk)
+2511:    |                          `- note: use 'in(_:values:)' instead
+2518:206 |                         try await rel.delete().in("id", value: ids).execute()
+2520:    |                                                `- note: use 'in(_:values:)' instead
+2537:320 |                         .in("id", value: chunk)
+2539:    |                          `- note: use 'in(_:values:)' instead
+2546:206 |                         try await rel.delete().in("id", value: ids).execute()
+2548:    |                                                `- note: use 'in(_:values:)' instead
+2565:320 |                         .in("id", value: chunk)
+2567:    |                          `- note: use 'in(_:values:)' instead
+2574:206 |                         try await rel.delete().in("id", value: ids).execute()
+2576:    |                                                `- note: use 'in(_:values:)' instead
+2593:320 |                         .in("id", value: chunk)
+2595:    |                          `- note: use 'in(_:values:)' instead
+2602:206 |                         try await rel.delete().in("id", value: ids).execute()
+2604:    |                                                `- note: use 'in(_:values:)' instead
+2712:  CSQLite: https://github.com/powersync-ja/CSQLite.git @ 3.51.2
+2715:  Supabase: https://github.com/supabase/supabase-swift.git @ 2.54.1
+2722:  PowerSyncSQLiteCore: https://github.com/powersync-ja/powersync-sqlite-core-swift.git @ 0.4.13
+2743:note: Building targets in dependency order
+2744:note: Target dependency graph (47 targets)
+2949:Build description signature: 2c15be3d5aa5106d2272772292d2d07e
+4176:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+4183:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+4197:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+4405:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+8941:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:449:32: error: cannot find 'summaryMajor' in scope
+8944:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:450:33: error: cannot find 'summaryMajor' in scope
+8947:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:474:55: error: cannot find 'summaryMajor' in scope
+8950:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:475:41: error: cannot find 'summaryMajor' in scope
+8953:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:496:60: error: cannot find 'summaryMajor' in scope
+8954:                return SummaryCategory(name: name, amount: summaryMajor(Double(try cursor.getInt64(name: "total"))))
+8956:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:543:25: error: cannot find 'summaryMajor' in scope
+8959:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:544:24: error: cannot find 'summaryMajor' in scope
+8962:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:560:29: error: cannot find 'summaryMajor' in scope
+8963:                    amount: summaryMajor(Double(try cursor.getInt64(name: "amount"))),
+8965:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:566:28: error: cannot find 'parseRenewalDate' in scope
+8968:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:648:29: error: cannot find 'jsToFixed2Number' in scope
+8971:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:649:38: error: cannot find 'summaryMajor' in scope
+8974:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:41: error: cannot find 'summaryMajor' in scope
+8975:            splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+8977:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/AssistantRepository.swift:652:74: error: cannot find 'summaryMajor' in scope
+8978:            splits: SummarySplits(owed: summaryMajor(Double(owed)), owe: summaryMajor(Double(owe)), groups: Int(groupCount)),
+8997:            ) { cursor in try cursor.getString(name: "id") } {
+9013:            return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+9054:** TEST FAILED **
