@@ -48,5 +48,10 @@
   "errNotConfigured": "De assistent is nog niet ingesteld op deze deployment (de AI-sleutel ontbreekt).",
   "errModel": "Het geconfigureerde AI-model is niet beschikbaar op je account. Stel het ASSISTANT_MODEL-secret in op een geldig Anthropic-model-id (bijv. claude-3-5-haiku-20241022).",
   "errNetwork": "Ik kon de assistent niet bereiken — controleer je verbinding en probeer opnieuw.",
-  "errGeneric": "Sorry — er ging iets mis. ({{err}})"
+  "errGeneric": "Sorry — er ging iets mis. ({{err}})",
+  "micSpeak": "Spreken",
+  "micStop": "Stoppen",
+  "micTranscribing": "Transcriberen…",
+  "micHint": "Spreek tegen Sanvya",
+  "micDenied": "Microfoontoegang staat uit. Zet die aan in Instellingen om te dicteren."
 }

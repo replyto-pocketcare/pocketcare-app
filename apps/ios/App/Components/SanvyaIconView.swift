@@ -101,3 +101,66 @@ public struct SanvyaArrowUpIconView: View {
         .accessibilityHidden(true)
     }
 }
+
+/**
+ Web's `MicIcon` — the composer's mic, drawn like the arrow above it.
+
+ Same reason: `icons.tsx` draws it as a stroked SVG, so there is no codepoint in
+ the bundled Material subset to paint. Its three commands — a pill from (9,2) to
+ (15,14), the cradle arc `M5 10v1 a7 7 0 0 0 14 0 v-1`, and the stand
+ `M12 18 V22` — are transcribed against the same 24-unit box.
+
+ The arc is the one part worth reading twice. Angles are measured from three
+ o'clock and the canvas is y-DOWN, so 90° is the BOTTOM of the circle, not the
+ top; and `clockwise: false` means "increasing angle", which on a y-down canvas
+ looks clockwise. So the cradle — which bulges downward — is 0° to 180° with
+ `clockwise: false`, drawn right-to-left, and the two stems are ordered to
+ match. Either flag flipped turns it into a hat over the capsule. Android's port
+ has the mirror-image note.
+ */
+public struct SanvyaMicIconView: View {
+    private let size: CGFloat
+    private let tint: Color
+    private let strokeWidth: CGFloat
+
+    public init(size: CGFloat = 19, tint: Color = .text, strokeWidth: CGFloat = 1.8) {
+        self.size = size
+        self.tint = tint
+        self.strokeWidth = strokeWidth
+    }
+
+    public var body: some View {
+        Canvas { context, canvasSize in
+            let unit = min(canvasSize.width, canvasSize.height) / 24
+            func u(_ v: CGFloat) -> CGFloat { v * unit }
+
+            var path = Path()
+            // The capsule: x 9..15, y 2..14, radius 3 — with a width of 6 and a
+            // radius of 3 the corners meet, so it is a pill, not a rounded box.
+            path.addRoundedRect(
+                in: CGRect(x: u(9), y: u(2), width: u(6), height: u(12)),
+                cornerSize: CGSize(width: u(3), height: u(3))
+            )
+            path.move(to: CGPoint(x: u(19), y: u(10)))
+            path.addLine(to: CGPoint(x: u(19), y: u(11)))
+            path.addArc(
+                center: CGPoint(x: u(12), y: u(11)),
+                radius: u(7),
+                startAngle: .degrees(0),
+                endAngle: .degrees(180),
+                clockwise: false
+            )
+            path.addLine(to: CGPoint(x: u(5), y: u(10)))
+            path.move(to: CGPoint(x: u(12), y: u(18)))
+            path.addLine(to: CGPoint(x: u(12), y: u(22)))
+
+            context.stroke(
+                path,
+                with: .color(tint),
+                style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round, lineJoin: .round)
+            )
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+}

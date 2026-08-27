@@ -432,7 +432,7 @@ struct StatementAnalyzeView: View {
                             Text(S.StatementsAnalyze.recurringMeta(
                                 amount: formatMoney(r.amount, cur),
                                 cadence: cadenceLabel(r.cadence),
-                                count: r.count
+                                count: String(r.count)
                             ))
                             .font(.system(size: 11.5))
                             .foregroundStyle(Color.text2)
@@ -482,7 +482,7 @@ struct StatementAnalyzeView: View {
                     if !rec.missingOnPlatform.isEmpty && !viewModel.imported {
                         SanvyaButton { viewModel.importMissing() } label: {
                             Text(S.StatementsAnalyze.importMissing(
-                                count: rec.missingOnPlatform.count,
+                                count: String(rec.missingOnPlatform.count),
                                 account: viewModel.accountName
                             ))
                             .multilineTextAlignment(.leading)

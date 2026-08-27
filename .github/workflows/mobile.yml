@@ -141,6 +141,11 @@ jobs:
       # said "trailing lambda" -- see the script's header.
       - name: Compose trailing lambdas
         run: node tools/parity/check-trailing-lambda.mjs 2>&1 | tee -a parity.log
+      # Kotlin and Swift NEST block comments. A `/*` in prose inside a doc
+      # comment swallows the rest of the file, and the compiler points at the
+      # last line -- see the script's header.
+      - name: Nested block comments
+        run: node tools/parity/check-nested-comments.mjs 2>&1 | tee -a parity.log
       - name: Fail if generated output drifted
         run: |
           if ! git diff --exit-code | tee -a parity.log; then

@@ -8,6 +8,23 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
+    <!-- Dictation into the assistant's composer. Requested when the mic is
+         tapped, never at launch. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+    <!--
+      Package visibility, API 30+. Without this SpeechRecognizer cannot SEE the
+      recognition service, isRecognitionAvailable() answers false, and the mic
+      button silently never appears - which looks exactly like a device with no
+      recogniser, and is the failure mode this is easiest to ship by accident.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
     <application
         android:name=".SanvyaApplication"
         android:allowBackup="false"

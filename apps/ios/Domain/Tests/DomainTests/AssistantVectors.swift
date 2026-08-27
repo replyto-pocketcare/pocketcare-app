@@ -223,6 +223,11 @@ private func apiMessageToJson(_ m: ApiMessage) -> [String: Any] {
     return out
 }
 
+private func voiceStatus(_ input: Any) -> VoiceStatus {
+    let d = input as! [String: Any]
+    return VoiceStatus(rawValue: d["status"] as! String)!
+}
+
 func registerAssistantVectors() {
     let domain = "assistant"
 
@@ -243,6 +248,26 @@ func registerAssistantVectors() {
             "rejected": plan.rejected.map(\.id),
             "confirmQueue": plan.confirmQueue.map(\.id),
         ] as [String: Any]
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "mergeDictation") { input in
+        let d = input as! [String: Any]
+        return mergeDictation(base: d["base"] as! String, spoken: d["spoken"] as! String)
+    }
+
+    // The three status-shaped ones travel by NAME, not by ordinal: an enum's
+    // ordinal is a property of the declaration order, and the whole point of a
+    // shared fixture is that it survives someone reordering one platform's.
+    FunctionRegistry.register(domain: domain, fn: "voiceLabelKey") { input in
+        voiceLabelKey(voiceStatus(input))
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "voiceActive") { input in
+        voiceActive(voiceStatus(input))
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "voiceTappable") { input in
+        voiceTappable(voiceStatus(input))
     }
 
     FunctionRegistry.register(domain: domain, fn: "assistantErrorKey") { input in

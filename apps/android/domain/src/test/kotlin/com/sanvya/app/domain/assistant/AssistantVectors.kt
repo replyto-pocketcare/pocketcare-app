@@ -259,6 +259,9 @@ private fun ApiMessage.toJson(): JsonElement = JsonObject(
     },
 )
 
+private fun voiceStatus(input: JsonElement): VoiceStatus =
+    VoiceStatus.valueOf(input.jsonObject.getValue("status").jsonPrimitive.content)
+
 fun registerAssistantVectors() {
     FunctionRegistry.register(DOMAIN, "trimAssistantHistory") { input ->
         val msgs = input.jsonObject.getValue("messages").jsonArray.map { it.toApiMessage() }
@@ -278,6 +281,31 @@ fun registerAssistantVectors() {
                 "confirmQueue" to JsonArray(plan.confirmQueue.map { JsonPrimitive(it.id) }),
             ),
         )
+    }
+
+    FunctionRegistry.register(DOMAIN, "mergeDictation") { input ->
+        val o = input.jsonObject
+        JsonPrimitive(
+            mergeDictation(
+                o.getValue("base").jsonPrimitive.content,
+                o.getValue("spoken").jsonPrimitive.content,
+            ),
+        )
+    }
+
+    // The three status-shaped ones travel by NAME, not by ordinal: an enum's
+    // ordinal is a property of the declaration order, and the whole point of a
+    // shared fixture is that it survives someone reordering one platform's.
+    FunctionRegistry.register(DOMAIN, "voiceLabelKey") { input ->
+        JsonPrimitive(voiceLabelKey(voiceStatus(input)))
+    }
+
+    FunctionRegistry.register(DOMAIN, "voiceActive") { input ->
+        JsonPrimitive(voiceActive(voiceStatus(input)))
+    }
+
+    FunctionRegistry.register(DOMAIN, "voiceTappable") { input ->
+        JsonPrimitive(voiceTappable(voiceStatus(input)))
     }
 
     FunctionRegistry.register(DOMAIN, "assistantErrorKey") { input ->

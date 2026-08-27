@@ -128,6 +128,11 @@ public enum S {
         public static var greeting: String { String(localized: "assistant:greeting", table: "Localizable") }
         public static var help: String { String(localized: "assistant:help", table: "Localizable") }
         public static var landingIntro: String { String(localized: "assistant:landingIntro", table: "Localizable") }
+        public static var micDenied: String { String(localized: "assistant:micDenied", table: "Localizable") }
+        public static var micHint: String { String(localized: "assistant:micHint", table: "Localizable") }
+        public static var micSpeak: String { String(localized: "assistant:micSpeak", table: "Localizable") }
+        public static var micStop: String { String(localized: "assistant:micStop", table: "Localizable") }
+        public static var micTranscribing: String { String(localized: "assistant:micTranscribing", table: "Localizable") }
         public static var newChat: String { String(localized: "assistant:newChat", table: "Localizable") }
         public static var noChats: String { String(localized: "assistant:noChats", table: "Localizable") }
         public static var opening: String { String(localized: "assistant:opening", table: "Localizable") }

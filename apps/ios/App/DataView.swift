@@ -146,9 +146,9 @@ struct DataView: View {
             if let result = viewModel.result {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(S.Data.resultLine(
-                        created: result.created,
-                        skipped: result.skipped,
-                        failed: result.failed
+                        created: String(result.created),
+                        skipped: String(result.skipped),
+                        failed: String(result.failed)
                     ))
                     .sanvyaStyle(SanvyaType.statLabel)
                     .foregroundStyle(Color.text)

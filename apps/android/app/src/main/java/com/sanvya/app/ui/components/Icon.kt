@@ -5,9 +5,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -103,5 +109,61 @@ fun SanvyaArrowUpIcon(
         drawLine(tint, p(12f, 19f), p(12f, 5f), stroke, StrokeCap.Round)
         drawLine(tint, p(5f, 12f), p(12f, 5f), stroke, StrokeCap.Round)
         drawLine(tint, p(12f, 5f), p(19f, 12f), stroke, StrokeCap.Round)
+    }
+}
+
+/**
+ * Web's `MicIcon` — the composer's mic, drawn like the arrow above it.
+ *
+ * Same reason: `icons.tsx` draws it as a stroked SVG, so there is no codepoint
+ * in the bundled Material subset to paint. Its three commands — a pill from
+ * (9,2) to (15,14), the cradle arc `M5 10v1 a7 7 0 0 0 14 0 v-1`, and the stand
+ * `M12 18 V22` — are transcribed against the same 24-unit box.
+ *
+ * The arc is the one part worth reading twice: Compose measures angles
+ * clockwise from three o'clock with y pointing DOWN, so the cradle (which
+ * bulges downward) is 180° sweeping NEGATIVE, not positive. A positive sweep
+ * draws the same arc upside down, over the capsule, and looks like a hat.
+ */
+@Composable
+fun SanvyaMicIcon(
+    modifier: Modifier = Modifier,
+    size: Dp = 19.dp,
+    tint: Color = LocalSanvyaColors.current.text,
+    strokeWidth: Dp = 1.8.dp,
+    description: String? = null,
+) {
+    val semantics = if (description == null) {
+        Modifier.clearAndSetSemantics { }
+    } else {
+        Modifier.semantics { contentDescription = description }
+    }
+    Canvas(modifier = modifier.size(size).then(semantics)) {
+        val unit = this.size.minDimension / 24f
+        val stroke = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        fun u(v: Float) = v * unit
+
+        val path = Path().apply {
+            // The capsule: x 9..15, y 2..14, radius 3 — with a width of 6 and a
+            // radius of 3 the corners meet, so it is a pill, not a rounded box.
+            addRoundRect(
+                RoundRect(
+                    Rect(u(9f), u(2f), u(15f), u(14f)),
+                    CornerRadius(u(3f), u(3f)),
+                ),
+            )
+            moveTo(u(5f), u(10f))
+            lineTo(u(5f), u(11f))
+            arcTo(
+                rect = Rect(u(5f), u(4f), u(19f), u(18f)),
+                startAngleDegrees = 180f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false,
+            )
+            lineTo(u(19f), u(10f))
+            moveTo(u(12f), u(18f))
+            lineTo(u(12f), u(22f))
+        }
+        drawPath(path, tint, style = stroke)
     }
 }

@@ -40,6 +40,10 @@ struct AssistantView: View {
     @State private var payloadOpen = false
     @State private var confirmDeleteId: String?
     @State private var disclaimerOpen = false
+    /// The ONE thing the mic says out loud. A refused microphone permission is
+    /// not a failure the user can retry their way out of — the fix is in
+    /// Settings, and nothing else on this screen would ever say so.
+    @State private var notice: String?
 
     var body: some View {
         Group {
@@ -380,6 +384,16 @@ struct AssistantView: View {
      how you write a second sentence.
      */
     private var composer: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let notice {
+                SanvyaMuted(notice, style: SanvyaType.body.resized(12))
+                    .padding(.horizontal, 16)
+            }
+            composerBar
+        }
+    }
+
+    private var composerBar: some View {
         HStack(alignment: .bottom, spacing: 0) {
             HStack(alignment: .bottom, spacing: 2) {
                 TextField(S.Assistant.composerPlaceholder, text: $input, axis: .vertical)
@@ -390,6 +404,8 @@ struct AssistantView: View {
                     .textFieldStyle(.plain)
                     .disabled(viewModel.busy)
                     .padding(.vertical, 9)
+
+                MicButtonView(value: $input, enabled: !viewModel.busy) { notice = $0 }
 
                 Button { sendComposed() } label: {
                     SanvyaArrowUpIconView(

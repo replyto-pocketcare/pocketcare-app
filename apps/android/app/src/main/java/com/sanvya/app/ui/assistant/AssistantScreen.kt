@@ -295,6 +295,10 @@ private fun AssistantChat(
 
     var input by remember { mutableStateOf("") }
     var payloadOpen by remember { mutableStateOf(false) }
+    // The ONE thing the mic says out loud. A refused microphone permission is
+    // not a failure the user can retry their way out of -- the fix is in
+    // Settings, and nothing else on this screen would ever say so.
+    var notice by remember { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
 
     val outOfQuota = quota?.let { it.left <= 0 } ?: false
@@ -458,6 +462,14 @@ private fun AssistantChat(
             }
         }
 
+        notice?.let {
+            Muted(
+                it,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = SanvyaType.body.copy(fontSize = 12.sp),
+            )
+        }
+
         Composer(
             res = res,
             value = input,
@@ -465,6 +477,7 @@ private fun AssistantChat(
             enabled = !busy,
             canSend = canSend && input.isNotBlank(),
             onSend = { send(input); input = "" },
+            onDenied = { notice = it },
         )
     }
 }
@@ -534,6 +547,7 @@ private fun Composer(
     enabled: Boolean,
     canSend: Boolean,
     onSend: () -> Unit,
+    onDenied: (String) -> Unit,
 ) {
     val colors = LocalSanvyaColors.current
     Row(
@@ -563,6 +577,12 @@ private fun Composer(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+            MicButton(
+                value = value,
+                onValueChange = onValueChange,
+                enabled = enabled,
+                onDenied = onDenied,
+            )
             Box(
                 modifier = Modifier
                     .size(40.dp)

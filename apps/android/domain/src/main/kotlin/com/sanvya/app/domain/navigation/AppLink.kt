@@ -130,8 +130,8 @@ private val STATIC_PATHS: Map<String, AppScreen> = mapOf(
  *    user out of the app;
  *  * a path with no leading `/`, which on web would resolve relative to
  *    whatever page happened to be open and has no native meaning at all;
- *  * `/admin/*`, `/auth/*`, `/onboarding`, `/join/*` -- real web routes with no
- *    native destination, deliberately not guessed at;
+ *  * anything under `/admin`, `/auth` or `/join`, and `/onboarding` -- real web
+ *    routes with no native destination, deliberately not guessed at;
  *  * anything else unrecognised, including `/cashflow` and `/templates`, which
  *    the assistant persona advertises and web does not implement (recorded as a
  *    web defect in PARITY_AUDIT; NOT fixed here, because the persona is

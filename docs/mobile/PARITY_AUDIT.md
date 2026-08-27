@@ -402,6 +402,21 @@ user base they are invisible today, which is exactly why they have survived.
     colour natively would make the phone and the browser disagree about something the user can
     see. One line in `globals.css` fixes all three sites at once.
 
+12. **`MicButton.tsx` is hardcoded English in an otherwise translated app.** Four
+    user-visible strings — "Stop recording", "Stop", "Transcribing…", "Speak" — and
+    the tooltip "Speak to Sanvya", all string literals in the component. A Hindi or
+    Dutch user sees them in English. Found 2026-08-27 while porting voice.
+
+    Both native ports read from the catalogue instead: five keys (`micSpeak`,
+    `micStop`, `micTranscribing`, `micHint`, `micDenied`) were added to
+    `packages/core/i18n/src/locales/assistant/` in all three locales, and
+    `voiceLabelKey()` in Domain returns the KEY so the choice stays vector-pinned
+    while the wording stays per-locale. The keys are there for web to adopt in one
+    small edit; the edit is web's to make.
+
+    `micDenied` has no web counterpart at all — web cannot detect a permanently
+    refused microphone the way a native permission API can, so it says nothing.
+
 ### iOS was formatting numbers as pointers — twelve call sites, 2026-08-27
 
 Found while building the assistant's quota chip, which needed

@@ -3571,5 +3571,161 @@
       "error": "something else entirely"
     },
     "expected": "errGeneric"
+  },
+  {
+    "fn": "mergeDictation",
+    "input": {
+      "base": "",
+      "spoken": "buy an iPhone"
+    },
+    "expected": "buy an iPhone"
+  },
+  {
+    "fn": "mergeDictation",
+    "input": {
+      "base": "Plan for",
+      "spoken": "Diwali"
+    },
+    "expected": "Plan for Diwali"
+  },
+  {
+    "fn": "mergeDictation",
+    "input": {
+      "base": "",
+      "spoken": "   padded   "
+    },
+    "expected": "padded"
+  },
+  {
+    "fn": "mergeDictation",
+    "input": {
+      "base": "Plan for",
+      "spoken": "   Diwali   "
+    },
+    "expected": "Plan for Diwali"
+  },
+  {
+    "fn": "mergeDictation",
+    "input": {
+      "base": "Plan for ",
+      "spoken": "Diwali"
+    },
+    "expected": "Plan for  Diwali"
+  },
+  {
+    "fn": "mergeDictation",
+    "input": {
+      "base": "Plan for",
+      "spoken": ""
+    },
+    "expected": "Plan for "
+  },
+  {
+    "fn": "mergeDictation",
+    "input": {
+      "base": "",
+      "spoken": ""
+    },
+    "expected": ""
+  },
+  {
+    "fn": "mergeDictation",
+    "input": {
+      "base": "multi\nline",
+      "spoken": "and speech"
+    },
+    "expected": "multi\nline and speech"
+  },
+  {
+    "fn": "mergeDictation",
+    "input": {
+      "base": "",
+      "spoken": "line\nbreak"
+    },
+    "expected": "line\nbreak"
+  },
+  {
+    "fn": "voiceLabelKey",
+    "input": {
+      "status": "UNSUPPORTED"
+    },
+    "expected": "micSpeak"
+  },
+  {
+    "fn": "voiceActive",
+    "input": {
+      "status": "UNSUPPORTED"
+    },
+    "expected": false
+  },
+  {
+    "fn": "voiceTappable",
+    "input": {
+      "status": "UNSUPPORTED"
+    },
+    "expected": false
+  },
+  {
+    "fn": "voiceLabelKey",
+    "input": {
+      "status": "IDLE"
+    },
+    "expected": "micSpeak"
+  },
+  {
+    "fn": "voiceActive",
+    "input": {
+      "status": "IDLE"
+    },
+    "expected": false
+  },
+  {
+    "fn": "voiceTappable",
+    "input": {
+      "status": "IDLE"
+    },
+    "expected": true
+  },
+  {
+    "fn": "voiceLabelKey",
+    "input": {
+      "status": "LISTENING"
+    },
+    "expected": "micStop"
+  },
+  {
+    "fn": "voiceActive",
+    "input": {
+      "status": "LISTENING"
+    },
+    "expected": true
+  },
+  {
+    "fn": "voiceTappable",
+    "input": {
+      "status": "LISTENING"
+    },
+    "expected": true
+  },
+  {
+    "fn": "voiceLabelKey",
+    "input": {
+      "status": "TRANSCRIBING"
+    },
+    "expected": "micTranscribing"
+  },
+  {
+    "fn": "voiceActive",
+    "input": {
+      "status": "TRANSCRIBING"
+    },
+    "expected": false
+  },
+  {
+    "fn": "voiceTappable",
+    "input": {
+      "status": "TRANSCRIBING"
+    },
+    "expected": false
   }
 ]

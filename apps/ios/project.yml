@@ -85,6 +85,20 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
+        # Dictation into the assistant's composer. BOTH are required and the
+        # app is killed on launch of the feature without them -- SFSpeechRecognizer
+        # needs the speech string, and the audio engine that feeds it needs the
+        # microphone one. The camera has no entry here because this app has no
+        # camera capture on iOS yet; when it does, its own string goes beside
+        # these.
+        NSMicrophoneUsageDescription: >-
+          Sanvya uses the microphone only while you hold a conversation with the
+          assistant, so you can speak instead of typing. Nothing is recorded or
+          stored.
+        NSSpeechRecognitionUsageDescription: >-
+          Speech recognition turns what you say into text in the assistant's
+          message box. Sanvya asks iOS to do this on your device wherever your
+          language supports it.
         # Bundled faces. Inter is the app typeface (variable, so the design's
         # 550/650 weights resolve exactly — see App/Theme/Font.swift); the
         # icon face is the same Material Symbols subset web serves, so a glyph

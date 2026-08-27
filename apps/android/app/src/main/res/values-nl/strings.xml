@@ -89,6 +89,11 @@
     <string name="assistant_greeting">Hoi! Ik ben je Sanvya-maatje. Ik kan je helpen een aankoop te plannen, doelen en budgetten in te stellen, je uitgaven te begrijpen, of uitgaven met vrienden te splitsen — allemaal op basis van je eigen gegevens.\n\nHier zijn een paar dingen die je kunt proberen:</string>
     <string name="assistant_help">Help</string>
     <string name="assistant_landing_intro">Plan een aankoop of spaardoel in gewone taal. Alleen een geaggregeerd overzicht van je financiën wordt gedeeld — nooit individuele transacties. De assistent kan fouten maken: hij is er om je te helpen nadenken, dus controleer belangrijke getallen dubbel en gebruik je eigen oordeel.</string>
+    <string name="assistant_mic_denied">Microfoontoegang staat uit. Zet die aan in Instellingen om te dicteren.</string>
+    <string name="assistant_mic_hint">Spreek tegen Sanvya</string>
+    <string name="assistant_mic_speak">Spreken</string>
+    <string name="assistant_mic_stop">Stoppen</string>
+    <string name="assistant_mic_transcribing">Transcriberen…</string>
     <string name="assistant_new_chat">Nieuwe chat</string>
     <string name="assistant_no_chats">Nog geen opgeslagen chats — start hierboven je eerste.</string>
     <string name="assistant_opening">Openen…</string>

@@ -89,6 +89,11 @@
     <string name="assistant_greeting">Hi! I\'m your Sanvya companion. I can help you plan a purchase, set up goals and budgets, make sense of your spending, or split expenses with friends — all from your own data.\n\nHere are a few things you could try:</string>
     <string name="assistant_help">Help</string>
     <string name="assistant_landing_intro">Plan a purchase or savings goal in plain language. Only an aggregated summary of your finances is shared — never individual transactions. The assistant can make mistakes: it\'s here to help you think, so double-check important numbers and use your own judgment.</string>
+    <string name="assistant_mic_denied">Microphone access is off. Turn it on in Settings to dictate.</string>
+    <string name="assistant_mic_hint">Speak to Sanvya</string>
+    <string name="assistant_mic_speak">Speak</string>
+    <string name="assistant_mic_stop">Stop</string>
+    <string name="assistant_mic_transcribing">Transcribing…</string>
     <string name="assistant_new_chat">New chat</string>
     <string name="assistant_no_chats">No saved chats yet — start your first one above.</string>
     <string name="assistant_opening">Opening…</string>

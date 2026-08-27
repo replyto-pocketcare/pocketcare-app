@@ -89,6 +89,11 @@
     <string name="assistant_greeting">नमस्ते! मैं आपका Sanvya साथी हूँ। मैं आपको खरीदारी की योजना बनाने, लक्ष्य और बजट सेट करने, अपने खर्च को समझने, या दोस्तों के साथ खर्च बाँटने में मदद कर सकता हूँ — सब आपके अपने डेटा से।\n\nयहाँ कुछ चीज़ें हैं जो आप आज़मा सकते हैं:</string>
     <string name="assistant_help">सहायता</string>
     <string name="assistant_landing_intro">सरल भाषा में खरीदारी या बचत लक्ष्य की योजना बनाएं। केवल आपके वित्त का एक समग्र सारांश साझा किया जाता है — कभी व्यक्तिगत लेनदेन नहीं। असिस्टेंट गलतियाँ कर सकता है: यह आपको सोचने में मदद के लिए है, इसलिए महत्वपूर्ण संख्याओं की दोबारा जाँच करें और अपने विवेक का उपयोग करें।</string>
+    <string name="assistant_mic_denied">माइक्रोफ़ोन की अनुमति बंद है। बोलकर लिखने के लिए इसे सेटिंग्स में चालू करें।</string>
+    <string name="assistant_mic_hint">संव्या से बोलें</string>
+    <string name="assistant_mic_speak">बोलें</string>
+    <string name="assistant_mic_stop">रोकें</string>
+    <string name="assistant_mic_transcribing">लिखा जा रहा है…</string>
     <string name="assistant_new_chat">नई चैट</string>
     <string name="assistant_no_chats">अभी कोई सहेजी गई चैट नहीं — ऊपर अपनी पहली शुरू करें।</string>
     <string name="assistant_opening">खुल रहा है…</string>
