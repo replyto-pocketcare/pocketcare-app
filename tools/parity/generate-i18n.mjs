@@ -510,7 +510,9 @@ function iosAccessorsSwift() {
       const name = swiftIdent(e.key);
       const id = `${e.ns}:${e.key}`;
       if (e.plural) {
-        const params = e.args.map((a) => (a === "count" ? "count: Int" : `${swiftIdent(a)}: CVarArg`)).join(", "); // plural only
+        // `count` is a genuine Int (it selects the plural form and is emitted
+        // as `%lld`); every other argument is a `%@` and takes a String.
+        const params = e.args.map((a) => (a === "count" ? "count: Int" : `${swiftIdent(a)}: String`)).join(", "); // plural only
         const fmtArgs = e.args.map((a) => (a === "count" ? "count" : swiftIdent(a))).join(", ");
         return `        public static func ${name}(${params}) -> String {\n            String(format: String(localized: "${id}", defaultValue: "", table: "Localizable"), ${fmtArgs})\n        }`;
       }
@@ -523,7 +525,14 @@ function iosAccessorsSwift() {
       if (e.args.length === 0) {
         return `        public static var ${name}: String { String(localized: "${id}", table: "Localizable") }`;
       }
-      const params = e.args.map((a) => `${swiftIdent(a)}: CVarArg`).join(", ");
+      // `String`, not `CVarArg`. A non-plural argument is emitted as `%@`,
+      // which `String(format:)` reads as an OBJECT POINTER — passing an Int
+      // there is undefined behaviour that prints a garbage address rather
+      // than failing. Typing the parameter as String makes the call site
+      // stringify explicitly, and makes the mistake a compile error.
+      // (Android keeps `Any`: Java's `%s` accepts anything and calls
+      // toString, so there is nothing to protect against there.)
+      const params = e.args.map((a) => `${swiftIdent(a)}: String`).join(", ");
       const fmtArgs = e.args.map((a) => swiftIdent(a)).join(", ");
       return `        public static func ${name}(${params}) -> String {\n            String(format: String(localized: "${id}", table: "Localizable"), ${fmtArgs})\n        }`;
     });
@@ -538,10 +547,16 @@ function iosAccessorsSwift() {
 
 /**
  Typed access to every translated string, grouped by the same namespace web
- uses. \`S.Transactions.item(n: 2)\` is the native equivalent of web's
+ uses. \`S.Transactions.item(n: "2")\` is the native equivalent of web's
  \`useTranslation("transactions")\` + \`t("item", { n: 2 })\`, and unlike a bare
  \`String(localized:)\` it stops compiling the moment a key is renamed or an
  interpolation argument is added.
+
+ Non-plural arguments are typed \`String\`, not \`CVarArg\`, and the call site
+ stringifies. They are emitted as \`%@\`, which \`String(format:)\` reads as an
+ OBJECT POINTER: an \`Int\` passed there prints a garbage address instead of a
+ number, silently, at runtime. Twelve call sites were doing exactly that before
+ the parameter type was tightened — "3 minutes ago" among them.
  */
 public enum S {
 ${blocks.join("\n\n")}

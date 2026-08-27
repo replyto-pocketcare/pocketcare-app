@@ -1,3 +1,4 @@
+import Domain
 import SwiftUI
 
 /**
@@ -14,8 +15,13 @@ struct ContentView: View {
     /// auth gate. Cleared here once the join screen is done with it.
     @Binding var inviteToken: String?
 
-    /// The group a just-accepted invite put us in. Consumed by `SplitsView`.
+    /// The group a just-accepted invite — or an assistant deep link — put us in.
+    /// Consumed by `SplitsView`.
     @State private var joinedGroupId: String?
+
+    /// Filters a deep link asked Search to start with. Consumed by `SearchView`,
+    /// which clears it so returning to the tab does not re-apply them.
+    @State private var searchPrefill: SearchPrefill?
 
     init(inviteToken: Binding<String?> = .constant(nil)) {
         self._inviteToken = inviteToken
@@ -61,17 +67,35 @@ struct ContentView: View {
         )
     }
 
+    /**
+     A web path, followed.
+
+     `parseAppLink` has already refused anything that is not an in-app
+     destination, and `appDestination(for:)` maps what survives onto this app's
+     own tabs — so a link either moves the app or was never actionable.
+     */
+    private func openHref(_ href: String, tab: Binding<NavTab>) {
+        guard let destination = appDestination(forHref: href) else { return }
+        if let groupId = destination.groupId { joinedGroupId = groupId }
+        if let prefill = destination.searchPrefill { searchPrefill = prefill }
+        tab.wrappedValue = destination.tab
+    }
+
     @ViewBuilder
     private func screen(for tab: Binding<NavTab>) -> some View {
         switch tab.wrappedValue {
         case .dashboard:     DashboardView(currentTab: tab)
-        case .assistant:     AssistantView()
+        case .assistant:     AssistantView(
+                                currentTab: tab,
+                                openGroupId: $joinedGroupId,
+                                searchPrefill: $searchPrefill
+                             )
 
         case .accounts:      AccountsView()
         case .transactions:  TransactionsView()
         case .cards:         CreditCardsView(currentTab: tab)
         case .splits:        SplitsView(openGroupId: $joinedGroupId)
-        case .search:        SearchView()
+        case .search:        SearchView(prefill: $searchPrefill)
 
         case .budgets:       BudgetsView()
         case .goals:         GoalsView()
@@ -85,7 +109,13 @@ struct ContentView: View {
 
         case .settings:      SettingsView()
         case .help:          HelpView()
-        case .notifications: NotificationsView(onOpenSettings: { tab.wrappedValue = .settings })
+        case .notifications: NotificationsView(
+                                onOpenSettings: { tab.wrappedValue = .settings },
+                                // Web's row is a `<Link href={n.href}>`. The
+                                // path -> tab translation that was missing when
+                                // this screen was ported now exists.
+                                onOpenHref: { href in openHref(href, tab: tab) }
+                             )
         }
     }
 }

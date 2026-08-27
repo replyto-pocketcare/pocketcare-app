@@ -260,7 +260,7 @@ struct StatementAnalyzeView: View {
     private func subtitle(_ parsed: ParsedStatement) -> String {
         var parts: [String] = []
         if let from = parsed.period.from, let to = parsed.period.to { parts.append("\(from) → \(to)") }
-        parts.append(S.StatementsAnalyze.transactions(count: parsed.txns.count))
+        parts.append(S.StatementsAnalyze.transactions(count: String(parsed.txns.count)))
         if !viewModel.accountName.isEmpty { parts.append(viewModel.accountName) }
         return parts.joined(separator: " · ")
     }
@@ -512,7 +512,7 @@ struct StatementAnalyzeView: View {
     private func transactionList(_ parsed: ParsedStatement, _ cur: String) -> some View {
         let shown = viewModel.showAllTransactions ? parsed.txns : Array(parsed.txns.prefix(12))
         return VStack(alignment: .leading, spacing: 8) {
-            Text(S.StatementsAnalyze.transactionsTitle(count: parsed.txns.count).uppercased())
+            Text(S.StatementsAnalyze.transactionsTitle(count: String(parsed.txns.count)).uppercased())
                 .font(.system(size: 11, weight: .semibold))
                 .kerning(0.6)
                 .foregroundStyle(Color.text2)
@@ -545,7 +545,7 @@ struct StatementAnalyzeView: View {
                 SanvyaChip(
                     viewModel.showAllTransactions
                         ? S.StatementsAnalyze.showLess
-                        : S.StatementsAnalyze.showAll(count: parsed.txns.count),
+                        : S.StatementsAnalyze.showAll(count: String(parsed.txns.count)),
                     isActive: false
                 ) { viewModel.showAllTransactions.toggle() }
             }

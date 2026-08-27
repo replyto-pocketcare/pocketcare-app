@@ -64,7 +64,7 @@ struct WalkthroughView: View {
                 .frame(width: 42, height: 42)
                 .background(Color.accentGhost, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             Spacer(minLength: 0)
-            Text(S.Onboarding.wtProgress(step: progress.step, of: progress.of))
+            Text(S.Onboarding.wtProgress(step: String(progress.step), of: String(progress.of)))
                 .font(.system(size: 12.5, weight: .semibold))
                 .foregroundStyle(Color.text2)
         }
@@ -294,11 +294,11 @@ struct WalkthroughView: View {
                             HStack(alignment: .firstTextBaseline) {
                                 Text(plan.label).font(.system(size: 16, weight: .bold))
                                 Spacer(minLength: 10)
-                                Text(S.Onboarding.wtPlanPerMonth(amount: plan.monthly))
+                                Text(S.Onboarding.wtPlanPerMonth(amount: String(plan.monthly)))
                                     .font(.system(size: 15, weight: .bold))
                             }
                             .foregroundStyle(Color.text)
-                            Text(S.Onboarding.wtPlanQuota(count: plan.quota))
+                            Text(S.Onboarding.wtPlanQuota(count: String(plan.quota)))
                                 .font(.system(size: 13.5))
                                 .foregroundStyle(Color.text2)
                         }

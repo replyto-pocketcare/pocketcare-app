@@ -239,7 +239,7 @@ struct BottomNavCustomizer: View {
         VStack(alignment: .leading, spacing: 0) {
             SanvyaH2(S.Translation.navCustomize)
                 .padding(.bottom, 4)
-            Text(S.Translation.navCustomizeHint(n: NavPrefs.slots))
+            Text(S.Translation.navCustomizeHint(n: String(NavPrefs.slots)))
                 .sanvyaStyle(SanvyaType.statLabel)
                 .foregroundStyle(Color.text2)
                 .padding(.bottom, 14)

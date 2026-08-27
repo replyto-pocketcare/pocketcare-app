@@ -402,6 +402,42 @@ user base they are invisible today, which is exactly why they have survived.
     colour natively would make the phone and the browser disagree about something the user can
     see. One line in `globals.css` fixes all three sites at once.
 
+### iOS was formatting numbers as pointers — twelve call sites, 2026-08-27
+
+Found while building the assistant's quota chip, which needed
+`S.Assistant.creditsSuffix(n:)`.
+
+`generate-i18n.mjs` emitted every non-plural interpolation as `%@` on iOS and
+typed the accessor's parameter `CVarArg`. `%@` is an **object pointer**
+specifier. Passing an `Int` to it is undefined behaviour: `String(format:)`
+reads the integer as an address and prints whatever it finds, silently, with no
+warning at compile time and no crash at run time. Twelve call sites were doing
+exactly that:
+
+| Where | Reads |
+|---|---|
+| `NotificationsView` × 3 | "3 minutes ago" / hours / days on **every** notification row |
+| `ReflectView` | "N left" |
+| `MoreSheet` | the bottom-bar customise hint |
+| `SplitReceiptView` | the percentage-mismatch error |
+| `StatementAnalyzeView` × 3 | the parsed-transaction counts |
+| `TileViews` × 3 | "+N more" on two dashboard tiles |
+| `WalkthroughView` × 4 | "Step 1 of 7", the plan price and its quota |
+
+Android was never affected: Java's `%s` accepts any object and calls
+`toString`, so `Any` is the right parameter type there.
+
+**Fixed by typing the parameter, not by fixing the calls.** Non-plural
+arguments are now generated as `String`, so an `Int` at a call site is a
+compile error rather than a garbage address — the thirteen sites above were
+then found by the compiler-shaped change and stringified explicitly. `count` on
+a genuine plural stays `Int`: it selects the grammatical form and is emitted as
+`%lld`.
+
+This is the same class as the `jsonNumber` and `FinanceVectors` findings — a
+wrong VALUE with no compile error — and it is the third time the answer has
+been to make the type system carry the rule instead of adding a grep.
+
 ## 6a. De-hardcoding programme (Akhilesh, 2026-08-23)
 
 > *"remove any hardcoding from any platform to structured and easy swappable design

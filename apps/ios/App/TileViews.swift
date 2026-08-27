@@ -173,7 +173,7 @@ private struct SpendingTile: View {
                             }
                         }
                         if viewModel.hiddenCount > 0 {
-                            Text(S.Dashboard.moreCategories(count: viewModel.hiddenCount))
+                            Text(S.Dashboard.moreCategories(count: String(viewModel.hiddenCount)))
                                 .sanvyaStyle(SanvyaType.statLabel)
                                 .foregroundStyle(Color.text2)
                         }
@@ -364,7 +364,7 @@ private struct SplitsTile: View {
                             }
                         }
                         if viewModel.hiddenCount > 0 {
-                            Text(S.Dashboard.moreItems(count: viewModel.hiddenCount))
+                            Text(S.Dashboard.moreItems(count: String(viewModel.hiddenCount)))
                                 .sanvyaStyle(SanvyaType.statLabel)
                                 .foregroundStyle(Color.text2)
                         }
@@ -671,7 +671,7 @@ private struct SubscriptionsTile: View {
                         }
                     }
                     if viewModel.hiddenCount > 0 {
-                        Text(S.Dashboard.moreItems(count: viewModel.hiddenCount))
+                        Text(S.Dashboard.moreItems(count: String(viewModel.hiddenCount)))
                             .sanvyaStyle(SanvyaType.statLabel)
                             .foregroundStyle(heroInkMuted)
                     }

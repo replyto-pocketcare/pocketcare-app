@@ -8,12 +8,20 @@ import Domain
 /// the dashboard's Recent tile use, because web renders the same
 /// `<TransactionTile>` on all three. The filter is Domain's, vector-tested.
 ///
-/// **Not ported: the deep-link prefill.** Web reads `?q=&type=&account=…` so
-/// the assistant can hand a user a pre-filtered search. There is no assistant
-/// on either native platform yet and no URL to read, so building the reader
-/// first would be a parameter nothing can set. Tracked in PARITY_AUDIT.
+/// The deep-link prefill (`?q=&type=&account=…`) arrives as `prefill`, already
+/// decoded by Domain's `searchPrefillFromQuery`. It is applied ONCE, in the view
+/// model, exactly as web's effect guards itself with a `prefilled` flag — a
+/// redraw must not undo what the user has since typed.
 struct SearchView: View {
+    /// Set by a deep link (an assistant action, a notification). Cleared by the
+    /// shell once consumed, so returning to the tab does not re-apply it.
+    @Binding var prefill: SearchPrefill?
+
     @State private var viewModel = SearchViewModel()
+
+    init(prefill: Binding<SearchPrefill?> = .constant(nil)) {
+        self._prefill = prefill
+    }
 
     var body: some View {
         @Bindable var vm = viewModel
@@ -54,8 +62,20 @@ struct SearchView: View {
             .padding(16)
         }
         .background(Color.bg.ignoresSafeArea())
-        .onAppear { viewModel.start() }
+        .onAppear {
+            viewModel.start()
+            consumePrefill()
+        }
+        .onChange(of: prefill == nil) { _, _ in consumePrefill() }
         .onDisappear { viewModel.cancel() }
+    }
+
+    /// Apply a deep link's filters, then clear the binding so returning to this
+    /// tab later does not re-apply filters the user has since changed.
+    private func consumePrefill() {
+        guard let prefill else { return }
+        viewModel.applyPrefill(prefill)
+        self.prefill = nil
     }
 
     /// "Filters" on its own, "Filters · 3" once something is set — web puts the

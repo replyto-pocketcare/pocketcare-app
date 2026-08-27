@@ -8,6 +8,40 @@ import SwiftUI
  moves, it moves in the CSS and regenerates into `SanvyaType`.
  */
 
+public extension SanvyaTextStyle {
+    /**
+     The same style at a different size.
+
+     `SanvyaType` is generated from `globals.css` and must not be hand-edited,
+     but web itself writes `fontSize: 13` inline in a dozen places on top of a
+     class — a body paragraph shrunk one step, a caption inside a card. This is
+     that override, kept to one named operation so those places stay greppable
+     rather than each reaching for `.font(.system(size:))` and losing the
+     family, the weight and the tracking along with the scale.
+     */
+    func resized(_ size: CGFloat) -> SanvyaTextStyle {
+        SanvyaTextStyle(
+            size: size,
+            cssWeight: cssWeight,
+            trackingEm: trackingEm,
+            uppercase: uppercase,
+            relativeTo: relativeTo
+        )
+    }
+
+    /// The same style at a different weight — web's `<strong>` inside a line
+    /// that is otherwise body copy.
+    func weighted(_ cssWeight: Int) -> SanvyaTextStyle {
+        SanvyaTextStyle(
+            size: size,
+            cssWeight: cssWeight,
+            trackingEm: trackingEm,
+            uppercase: uppercase,
+            relativeTo: relativeTo
+        )
+    }
+}
+
 public struct SanvyaH1: View {
     private let text: String
     private let compact: Bool

@@ -7,14 +7,14 @@ import Domain
 /// The repository and the bell badge already existed on both platforms; this is
 /// the screen the badge was pointing at, which was a placeholder.
 ///
-/// **Not ported: the deep link.** Web's row navigates to `n.href`, a web path
-/// like `/budgets`. Turning that into a native destination needs a path → tab
-/// mapping that does not exist yet — and guessing one would send a user to the
-/// wrong screen, which is worse than a row that only marks itself read.
-/// Tracked in PARITY_AUDIT.
+/// The row's deep link is web's `n.href` — a web path like `/budgets` — handed
+/// to `onOpenHref`, which resolves it through Domain's `parseAppLink`. A row
+/// whose href resolves to nothing is still tappable and still marks itself read;
+/// it simply does not move, which is what a dead link on web does too.
 struct NotificationsView: View {
     @State private var viewModel = NotificationsViewModel()
     var onOpenSettings: (() -> Void)?
+    var onOpenHref: ((String) -> Void)?
 
     var body: some View {
         ScrollView {
@@ -106,7 +106,10 @@ struct NotificationsView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
-            .onTapGesture { if !isRead { viewModel.markRead(item.id) } }
+            .onTapGesture {
+                if !isRead { viewModel.markRead(item.id) }
+                if let href = item.href, !href.isEmpty { onOpenHref?(href) }
+            }
             Button { viewModel.dismiss(item.id) } label: {
                 Text(verbatim: "×")
                     .sanvyaStyle(SanvyaType.body)
@@ -138,9 +141,9 @@ struct NotificationsView: View {
         guard let iso, !iso.isEmpty else { return "" }
         switch timeAgo(iso, now: nowIso()) {
         case .justNow: return S.Notifications.justNow
-        case .minutes(let n): return S.Notifications.minutesAgo(count: n)
-        case .hours(let n): return S.Notifications.hoursAgo(count: n)
-        case .days(let n): return S.Notifications.daysAgo(count: n)
+        case .minutes(let n): return S.Notifications.minutesAgo(count: String(n))
+        case .hours(let n): return S.Notifications.hoursAgo(count: String(n))
+        case .days(let n): return S.Notifications.daysAgo(count: String(n))
         case .on(let value): return isoLabel(value, "d MMM y")
         }
     }

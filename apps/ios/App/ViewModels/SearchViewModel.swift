@@ -48,6 +48,24 @@ final class SearchViewModel {
         criteria = SearchCriteria(query: criteria.query)
     }
 
+    /**
+     Apply a deep link's filters — once.
+
+     Web guards its prefill effect with a `prefilled` flag for a reason: the
+     effect re-runs whenever `params` changes identity, and re-applying would
+     wipe whatever the user had typed since arriving. The flag lives here rather
+     than in the view because a view model outlives the redraws a `@State` in a
+     recreated view does not.
+     */
+    func applyPrefill(_ prefill: SearchPrefill) {
+        guard !prefilled else { return }
+        prefilled = true
+        criteria = prefill.criteria
+        if prefill.showFilters { showFilters = true }
+    }
+
+    private var prefilled = false
+
     func start() {
         cancel()
         tasks.append(Task {

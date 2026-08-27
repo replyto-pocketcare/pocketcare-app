@@ -53,7 +53,7 @@ struct ReflectView: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundStyle(Color.text)
             Spacer(minLength: 0)
-            Text(S.Reflect.left(count: viewModel.visible.count))
+            Text(S.Reflect.left(count: String(viewModel.visible.count)))
                 .sanvyaStyle(SanvyaType.statLabel)
                 .foregroundStyle(Color.text2)
         }

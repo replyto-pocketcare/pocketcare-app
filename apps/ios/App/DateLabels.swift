@@ -14,6 +14,26 @@ import Foundation
 /// "12 Aug" — web's `toLocaleDateString(undefined, { month: "short", day: "numeric" })`.
 func dayMonthLabel(_ iso: String) -> String { isoLabel(iso, "d MMM") }
 
+/// "23/08/2026" — web's bare `toLocaleDateString()`, the numeric short form.
+///
+/// `dateStyle = .short` rather than a template: the ORDER of day, month and year
+/// is what varies by locale, and a template string picks one order for everybody.
+func shortDateLabel(_ iso: String) -> String {
+    let parts = iso.prefix(10).split(separator: "-").compactMap { Int($0) }
+    guard parts.count == 3 else { return iso }
+    var components = DateComponents()
+    components.year = parts[0]; components.month = parts[1]; components.day = parts[2]
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    guard let date = calendar.date(from: components) else { return iso }
+    let formatter = DateFormatter()
+    formatter.calendar = calendar
+    formatter.timeZone = calendar.timeZone
+    formatter.dateStyle = .short
+    formatter.timeStyle = .none
+    return formatter.string(from: date)
+}
+
 /// Formats the date part of an ISO string, or returns it unchanged if it is not
 /// one. `prefix(10)` because a stored timestamp may carry a time component.
 ///

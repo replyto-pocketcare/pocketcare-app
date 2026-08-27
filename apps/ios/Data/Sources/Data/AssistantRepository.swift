@@ -822,6 +822,29 @@ public final class AssistantRepository: @unchecked Sendable {
 
 // MARK: - wire format
 
+/**
+ The `<ui>` payload of an assistant message, parsed.
+
+ `splitAssistantUi` deliberately stops at the raw string: Domain has no JSON
+ parser, and giving it one for this alone would drag a dependency into a module
+ whose whole point is that it has none. This is the other half, and it lives
+ here because this is where the app's JSON parser already is — the screen calls
+ it and never sees a `JSONSerialization`.
+
+ Returns nil on anything the model got wrong: a payload that is not JSON at all,
+ or JSON that `assistantUiFrom` refuses. Web's own `try { JSON.parse }` does the
+ same, and the message's prose is still shown either way.
+
+ Mirrors Android's `parseAssistantUiPayload`.
+ */
+public func parseAssistantUiPayload(_ payload: String?) -> AssistantUi? {
+    guard let payload, !payload.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+          let data = payload.data(using: .utf8),
+          let any = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+    else { return nil }
+    return assistantUiFrom(domainJson(any))
+}
+
 /// Domain's own JSON tree into supabase-swift's `AnyJSON`, for a tool call's `input`.
 private func wire(_ j: AssistantJson) -> AnyJSON {
     switch j {

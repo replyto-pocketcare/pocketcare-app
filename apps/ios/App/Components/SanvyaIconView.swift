@@ -55,3 +55,49 @@ private struct IconAccessibility: ViewModifier {
         }
     }
 }
+
+/**
+ Web's `ArrowUpIcon` — the send arrow, drawn rather than looked up.
+
+ It is not a Material Symbol: `apps/web/src/ui/icons.tsx` draws it as a stroked
+ SVG, so there is no codepoint in the bundled subset to paint and substituting a
+ similar Material glyph would be a different shape at a different weight. The
+ two SVG commands (`M12 19 V5` and `M5 12l7-7 7 7`) are transcribed here against
+ a 24-unit box and scaled, which is the only way to get web's icon rather than
+ one like it.
+
+ The first of that stroked set to be ported. The rest follow when a screen needs
+ them; a whole second icon family built ahead of its callers is a component
+ inventory nobody reads. Mirrors Android's `SanvyaArrowUpIcon`.
+ */
+public struct SanvyaArrowUpIconView: View {
+    private let size: CGFloat
+    private let tint: Color
+    private let strokeWidth: CGFloat
+
+    public init(size: CGFloat = 19, tint: Color = .text, strokeWidth: CGFloat = 2) {
+        self.size = size
+        self.tint = tint
+        self.strokeWidth = strokeWidth
+    }
+
+    public var body: some View {
+        Canvas { context, canvasSize in
+            let unit = min(canvasSize.width, canvasSize.height) / 24
+            func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: x * unit, y: y * unit) }
+            var path = Path()
+            path.move(to: point(12, 19))
+            path.addLine(to: point(12, 5))
+            path.move(to: point(5, 12))
+            path.addLine(to: point(12, 5))
+            path.addLine(to: point(19, 12))
+            context.stroke(
+                path,
+                with: .color(tint),
+                style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round, lineJoin: .round)
+            )
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+}

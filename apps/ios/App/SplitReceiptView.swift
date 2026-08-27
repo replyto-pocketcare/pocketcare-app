@@ -352,7 +352,7 @@ struct SplitReceiptView: View {
         case .exactMismatch(let diffMinor):
             return S.Receipts.splitExactMismatch(diff: majorTextFromMinor(diffMinor, viewModel.digits))
         case .percentMismatch(let pct):
-            return S.Receipts.splitPercentMismatch(pct: pct)
+            return S.Receipts.splitPercentMismatch(pct: String(pct))
         case .quantityMismatch(let gotMilli, let wantMilli):
             return S.Receipts.splitQtyMismatch(got: trimmedQty(gotMilli), want: trimmedQty(wantMilli))
         }
