@@ -161,7 +161,7 @@ let summaryMaxUpcoming = 8
 func jsonHundredths(_ v: Double) -> String {
     // `Math.round` semantics — half UP — though the input should already be
     // integral and this is only absorbing float noise.
-    let cents = Int64((v * 100 + 0.5).rounded(.down))
+    let cents = Int64(jsRound(v * 100))
     if cents == 0 { return "0" }
     let negative = cents < 0
     let magnitude = abs(cents)

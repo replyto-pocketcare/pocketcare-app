@@ -1,6 +1,7 @@
 package com.sanvya.app.domain.csv
 
 import kotlin.math.abs
+import com.sanvya.app.domain.js.jsParseFloat
 
 /**
  * CSV import adapters, ported from apps/web/src/data/adapters.ts.

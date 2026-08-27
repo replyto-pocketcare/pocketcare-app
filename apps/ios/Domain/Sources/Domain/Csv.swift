@@ -127,18 +127,6 @@ private func escapeCell(_ v: String?) -> String {
     return needsQuotes ? "\"" + s.replacingOccurrences(of: "\"", with: "\"\"") + "\"" : s
 }
 
-/// JavaScript's `Number.parseFloat`, which reads a LEADING numeric prefix and
-/// ignores the rest. Swift's `Double(_:)` requires the whole string, so
-/// `"1.2.3"` is 1.2 in the browser and nil here — and a real bank export does
-/// contain cells like that.
-func jsParseFloat(_ s: String) -> Double? {
-    let pattern = "^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?"
-    guard let regex = try? NSRegularExpression(pattern: pattern),
-          let match = regex.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
-          let range = Range(match.range, in: s) else { return nil }
-    return Double(s[range])
-}
-
 /// A minor-unit amount as the plain major-unit number a CSV cell holds:
 /// `49900` INR → `"499.00"`, `500` JPY → `"500"`.
 ///

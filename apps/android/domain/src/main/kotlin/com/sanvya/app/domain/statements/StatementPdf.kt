@@ -1,5 +1,7 @@
 package com.sanvya.app.domain.statements
 
+import com.sanvya.app.domain.js.jsParseFloat
+import com.sanvya.app.domain.js.jsRound
 import com.sanvya.app.domain.money.fromMajor
 import kotlin.math.abs
 
@@ -61,9 +63,6 @@ const val PDF_CELL_GAP_RATIO = 0.35
 
 /** Floor for that gap test, so a zero-width glyph can't split on every step. */
 const val PDF_CELL_GAP_MIN_PT = 0.5
-
-/** `Math.round` — half UP, not half-to-even and not half-away-from-zero. */
-private fun jsRound(v: Double): Double = kotlin.math.floor(v + 0.5)
 
 /**
  * Group positioned glyphs into rows of cells — the shared half of extraction.

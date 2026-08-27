@@ -91,17 +91,6 @@ private fun escapeCell(v: String?): String {
 }
 
 /**
- * JavaScript's `Number.parseFloat`, which reads a LEADING numeric prefix and
- * ignores the rest. Kotlin's `toDoubleOrNull` requires the whole string, so
- * `"1.2.3"` is 1.2 in the browser and null here -- and a real bank export does
- * contain cells like that.
- */
-internal fun jsParseFloat(s: String): Double? {
-    val match = Regex("^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?").find(s) ?: return null
-    return match.value.toDoubleOrNull()
-}
-
-/**
  * A minor-unit amount as the plain major-unit number a CSV cell holds:
  * `49900` INR -> `"499.00"`, `500` JPY -> `"500"`.
  *

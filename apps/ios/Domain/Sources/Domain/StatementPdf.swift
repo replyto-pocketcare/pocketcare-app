@@ -79,8 +79,6 @@ public let pdfCellGapRatio = 0.35
 /// Floor for that gap test, so a zero-width glyph can't split on every step.
 public let pdfCellGapMinPt = 0.5
 
-/// `Math.round` — half UP, not half-to-even and not half-away-from-zero.
-private func jsRound(_ v: Double) -> Double { (v + 0.5).rounded(.down) }
 
 /**
  Group positioned glyphs into rows of cells — the shared half of extraction.

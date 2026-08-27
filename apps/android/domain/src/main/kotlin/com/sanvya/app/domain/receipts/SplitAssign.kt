@@ -1,6 +1,6 @@
 package com.sanvya.app.domain.receipts
 
-import com.sanvya.app.domain.csv.jsParseFloat
+import com.sanvya.app.domain.js.jsParseFloat
 import com.sanvya.app.domain.money.minorUnits
 import kotlin.math.abs
 

@@ -2382,3 +2382,30 @@ cards), `executeTool` (repository writes for all seven tools),
 **sixth** hardcoded `/100` lives in its `major()`), and `speech.ts` +
 `MicButton.tsx` (voice).
 
+### `JsNumbers` — one home for JavaScript's number semantics — 2026-08-27
+
+Writing the assistant's `compactNum` produced a **second** copy of `jsRound`, and
+looking for the first turned up a third copy of `jsParseFloat`. Three helpers,
+five definitions across two languages:
+
+| Helper | Was | Now |
+| --- | --- | --- |
+| `jsRound` | `private` in `StatementPdf.kt`/`.swift`, about to be a second copy in `AssistantMarkdown` | `domain/js/JsNumbers.kt` · `JsNumbers.swift` |
+| `jsToFixed1` | `internal` in `AssistantMarkdown` | same |
+| `jsParseFloat` | `internal` in `csv/Csv.kt` AND `statements/StatementCsv.kt` (two definitions in two packages, both live) | same |
+
+Kotlin is the one that let this happen quietly: two top-level `fun
+jsParseFloat(String)` in different packages are both legal, and each caller
+picked up whichever its imports named. Swift's single module would have refused
+the redeclaration.
+
+**No guard added for it**, deliberately — this codebase's bar for a parity guard
+is "shipped to CI at least twice", and this was caught locally on the first
+occurrence. It is written down here instead.
+
+Each function's doc comment now carries the specific divergence it exists for,
+in one place rather than three: `Math.round` is half-up and not
+half-away-from-zero; `toFixed(1)` is nearest-on-exact-binary with ties toward
+the larger digit AFTER the sign is stripped; `parseFloat` takes a leading prefix
+where both platforms' parsers demand the whole string.
+

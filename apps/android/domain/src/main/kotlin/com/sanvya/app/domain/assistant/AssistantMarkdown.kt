@@ -1,7 +1,7 @@
 package com.sanvya.app.domain.assistant
 
-import java.math.BigDecimal
-import java.math.RoundingMode
+import com.sanvya.app.domain.js.jsRound
+import com.sanvya.app.domain.js.jsToFixed1
 
 /**
  * The assistant's message parser — prose and the structured block it may append.
@@ -16,29 +16,6 @@ import java.math.RoundingMode
  */
 
 /**
- * `Number.prototype.toFixed(1)`, which is not `"%.1f".format(...)`.
- *
- * Three languages, three answers, and the differences are visible: `1.15`
- * formats as `1.2` through Java's `%.1f` (HALF_UP on the DECIMAL text) and as
- * `1.1` in JS (nearest on the EXACT BINARY value, which is 1.14999...). C's
- * printf, which Swift's String(format:) uses, rounds ties to even and disagrees
- * with both.
- *
- * ECMA-262 strips the sign FIRST and then breaks ties toward the larger digit,
- * so a tie on a negative number rounds AWAY from zero: `(-1.25).toFixed(1)` is
- * `"-1.3"`, not `"-1.2"`. BigDecimal(double) is exact-binary and HALF_UP on a
- * positive is exactly that rule.
- */
-internal fun jsToFixed1(x: Double): String {
-    val negative = x < 0
-    val rounded = BigDecimal(if (negative) -x else x).setScale(1, RoundingMode.HALF_UP)
-    return (if (negative) "-" else "") + rounded.toPlainString()
-}
-
-/** `Math.round` — half UP (toward +infinity), not half-away-from-zero. */
-private fun jsRoundToLong(v: Double): Double = kotlin.math.floor(v + 0.5)
-
-/**
  * Indian-scale compact number: 1.2k, 3.4L, 1.2Cr.
  *
  * Lakh and crore rather than M and B, deliberately — this is web's own scale,
@@ -51,7 +28,7 @@ fun assistantCompactNum(n: Double): String {
     if (abs >= 1e3) return "${jsToFixed1(n / 1e3)}k"
     // `${Math.round(n)}` on a Double: JS prints -0 as "0", and so does this
     // once the value goes through Long.
-    return jsRoundToLong(n).toLong().toString()
+    return jsRound(n).toLong().toString()
 }
 
 // ---- inline formatting -----------------------------------------------------

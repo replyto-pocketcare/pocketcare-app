@@ -13,38 +13,11 @@ import Foundation
  */
 
 /**
- `Number.prototype.toFixed(1)`, which is not `String(format: "%.1f", …)`.
-
- Three languages, three answers, and the differences are visible: `1.15` formats
- as `1.1` in JS (nearest on the EXACT BINARY value, which is 1.14999…), as `1.2`
- through Java's `%.1f` (HALF_UP on the DECIMAL text), and C's printf — which
- `String(format:)` uses — rounds ties to EVEN and disagrees with both.
-
- ECMA-262 strips the sign FIRST and then breaks ties toward the larger digit, so
- a tie on a negative rounds AWAY from zero: `(-1.25).toFixed(1)` is `"-1.3"`,
- not `"-1.2"`. `Decimal(x)` is exact-binary and `.plain` on a positive is
- exactly that rule.
- */
-func jsToFixed1(_ x: Double) -> String {
-    let negative = x < 0
-    var input = Decimal(negative ? -x : x)
-    var rounded = Decimal()
-    NSDecimalRound(&rounded, &input, 1, .plain)
-    let text = NSDecimalNumber(decimal: rounded).stringValue
-    // stringValue drops a trailing zero ("1.0" comes back as "1"), and toFixed
-    // never does.
-    let padded = text.contains(".") ? text : text + ".0"
-    return (negative ? "-" : "") + padded
-}
-
-/// `Math.round` — half UP (toward +infinity), not half-away-from-zero.
-private func jsRound(_ v: Double) -> Double { (v + 0.5).rounded(.down) }
-
-/**
  Indian-scale compact number: 1.2k, 3.4L, 1.2Cr.
 
  Lakh and crore rather than M and B, deliberately — this is web's own scale, and
- it is the one every other number on these screens uses.
+ it is the one every other number on these screens uses. The rounding goes
+ through `JsNumbers`, because `%.1f` and `toFixed(1)` are not the same function.
  */
 public func assistantCompactNum(_ n: Double) -> String {
     let magnitude = abs(n)

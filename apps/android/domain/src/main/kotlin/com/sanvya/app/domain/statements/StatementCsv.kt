@@ -1,5 +1,6 @@
 package com.sanvya.app.domain.statements
 
+import com.sanvya.app.domain.js.jsParseFloat
 import com.sanvya.app.domain.money.fromMajor
 
 /**
@@ -97,16 +98,6 @@ internal fun statementNum(v: String?): Double {
     }
     val n = jsParseFloat(norm)
     return if (n != null && n.isFinite()) n else 0.0
-}
-
-/**
- * `Number.parseFloat` semantics: a leading numeric prefix wins and the rest is
- * ignored. Kotlin's `toDoubleOrNull` requires the whole string, and a bank cell
- * really does contain things like "1,234.56 Cr".
- */
-internal fun jsParseFloat(s: String): Double? {
-    val m = Regex("^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?").find(s) ?: return null
-    return m.value.toDoubleOrNull()
 }
 
 private val MONTHS = mapOf(

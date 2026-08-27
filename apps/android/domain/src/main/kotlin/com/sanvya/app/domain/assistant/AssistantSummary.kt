@@ -1,5 +1,7 @@
 package com.sanvya.app.domain.assistant
 
+import com.sanvya.app.domain.js.jsRound
+
 /**
  * The financial snapshot the assistant is given — and the only financial data
  * that ever leaves the device.
@@ -78,7 +80,7 @@ internal const val SUMMARY_MAX_UPCOMING = 8
 internal fun jsonHundredths(v: Double): String {
     // `Math.round` semantics -- half UP -- though the input should already be
     // integral and this is only absorbing float noise.
-    val cents = kotlin.math.floor(v * 100 + 0.5).toLong()
+    val cents = jsRound(v * 100).toLong()
     if (cents == 0L) return "0"
     val negative = cents < 0
     val abs = kotlin.math.abs(cents)
