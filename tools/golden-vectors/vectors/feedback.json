@@ -1,0 +1,128 @@
+[
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Dashboard"
+    },
+    "expected": "areaDashboard"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Transactions"
+    },
+    "expected": "areaTransactions"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Accounts & Cards"
+    },
+    "expected": "areaAccountsCards"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Budgets"
+    },
+    "expected": "areaBudgets"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Goals"
+    },
+    "expected": "areaGoals"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Investments"
+    },
+    "expected": "areaInvestments"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Friends & Splits"
+    },
+    "expected": "areaFriendsSplits"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Subscriptions"
+    },
+    "expected": "areaSubscriptions"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Loans"
+    },
+    "expected": "areaLoans"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Ask Sanvya"
+    },
+    "expected": "areaAskSanvya"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Insights"
+    },
+    "expected": "areaInsights"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Settings & Billing"
+    },
+    "expected": "areaSettingsBilling"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Sync / Offline"
+    },
+    "expected": "areaSyncOffline"
+  },
+  {
+    "fn": "feedbackAreaKey",
+    "input": {
+      "area": "Other"
+    },
+    "expected": "areaOther"
+  },
+  {
+    "fn": "feedbackSeverityKey",
+    "input": {
+      "severity": "fatal"
+    },
+    "expected": "sevFatal"
+  },
+  {
+    "fn": "feedbackSeverityKey",
+    "input": {
+      "severity": "high"
+    },
+    "expected": "sevHigh"
+  },
+  {
+    "fn": "feedbackSeverityKey",
+    "input": {
+      "severity": "medium"
+    },
+    "expected": "sevMedium"
+  },
+  {
+    "fn": "feedbackSeverityKey",
+    "input": {
+      "severity": "low"
+    },
+    "expected": "sevLow"
+  }
+]

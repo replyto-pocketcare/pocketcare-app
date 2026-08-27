@@ -119,6 +119,12 @@ final class VectorRunnerTests: XCTestCase {
         registerAssistantVectors()
         try runDomain("assistant")
     }
+    func testFeedback() throws {
+        // Feedback.swift — the generated area/severity vocabulary and the key
+        // derivation that turns a STORED value into an i18n key.
+        registerFeedbackVectors()
+        try runDomain("feedback")
+    }
     func testAppLink() throws {
         // AppLink.swift — web paths to native destinations. A SPEC, not a
         // capture: web has no such function, only a router. See AppLinkVectors.

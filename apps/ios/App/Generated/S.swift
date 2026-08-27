@@ -548,6 +548,53 @@ public enum S {
         public static var trialNote: String { String(localized: "data:trialNote", table: "Localizable") }
     }
 
+    public enum Feedback {
+        public static var areaAccountsCards: String { String(localized: "feedback:areaAccountsCards", table: "Localizable") }
+        public static var areaAskSanvya: String { String(localized: "feedback:areaAskSanvya", table: "Localizable") }
+        public static var areaBudgets: String { String(localized: "feedback:areaBudgets", table: "Localizable") }
+        public static var areaDashboard: String { String(localized: "feedback:areaDashboard", table: "Localizable") }
+        public static var areaFriendsSplits: String { String(localized: "feedback:areaFriendsSplits", table: "Localizable") }
+        public static var areaGoals: String { String(localized: "feedback:areaGoals", table: "Localizable") }
+        public static var areaInsights: String { String(localized: "feedback:areaInsights", table: "Localizable") }
+        public static var areaInvestments: String { String(localized: "feedback:areaInvestments", table: "Localizable") }
+        public static var areaLabel: String { String(localized: "feedback:areaLabel", table: "Localizable") }
+        public static var areaLoans: String { String(localized: "feedback:areaLoans", table: "Localizable") }
+        public static var areaOther: String { String(localized: "feedback:areaOther", table: "Localizable") }
+        public static var areaPlaceholder: String { String(localized: "feedback:areaPlaceholder", table: "Localizable") }
+        public static var areaSettingsBilling: String { String(localized: "feedback:areaSettingsBilling", table: "Localizable") }
+        public static var areaSubscriptions: String { String(localized: "feedback:areaSubscriptions", table: "Localizable") }
+        public static var areaSyncOffline: String { String(localized: "feedback:areaSyncOffline", table: "Localizable") }
+        public static var areaTransactions: String { String(localized: "feedback:areaTransactions", table: "Localizable") }
+        public static var autoIncluded: String { String(localized: "feedback:autoIncluded", table: "Localizable") }
+        public static var bugPlaceholder: String { String(localized: "feedback:bugPlaceholder", table: "Localizable") }
+        public static var cancel: String { String(localized: "feedback:cancel", table: "Localizable") }
+        public static var done: String { String(localized: "feedback:done", table: "Localizable") }
+        public static var errNeedBug: String { String(localized: "feedback:errNeedBug", table: "Localizable") }
+        public static var errNeedSuggestion: String { String(localized: "feedback:errNeedSuggestion", table: "Localizable") }
+        public static var errSubmit: String { String(localized: "feedback:errSubmit", table: "Localizable") }
+        public static var includeLog: String { String(localized: "feedback:includeLog", table: "Localizable") }
+        public static var includeLogHint: String { String(localized: "feedback:includeLogHint", table: "Localizable") }
+        public static var intro: String { String(localized: "feedback:intro", table: "Localizable") }
+        public static var kindBug: String { String(localized: "feedback:kindBug", table: "Localizable") }
+        public static var kindSuggestion: String { String(localized: "feedback:kindSuggestion", table: "Localizable") }
+        public static var sendAnother: String { String(localized: "feedback:sendAnother", table: "Localizable") }
+        public static var sendBug: String { String(localized: "feedback:sendBug", table: "Localizable") }
+        public static var sending: String { String(localized: "feedback:sending", table: "Localizable") }
+        public static var sendSuggestion: String { String(localized: "feedback:sendSuggestion", table: "Localizable") }
+        public static var severityLabel: String { String(localized: "feedback:severityLabel", table: "Localizable") }
+        public static var sevFatal: String { String(localized: "feedback:sevFatal", table: "Localizable") }
+        public static var sevHigh: String { String(localized: "feedback:sevHigh", table: "Localizable") }
+        public static var sevLow: String { String(localized: "feedback:sevLow", table: "Localizable") }
+        public static var sevMedium: String { String(localized: "feedback:sevMedium", table: "Localizable") }
+        public static var suggestionPlaceholder: String { String(localized: "feedback:suggestionPlaceholder", table: "Localizable") }
+        public static var thanksBug: String { String(localized: "feedback:thanksBug", table: "Localizable") }
+        public static var thanksBugBody: String { String(localized: "feedback:thanksBugBody", table: "Localizable") }
+        public static var thanksSuggestion: String { String(localized: "feedback:thanksSuggestion", table: "Localizable") }
+        public static var thanksSuggestionBody: String { String(localized: "feedback:thanksSuggestionBody", table: "Localizable") }
+        public static var title: String { String(localized: "feedback:title", table: "Localizable") }
+        public static var titlePlaceholder: String { String(localized: "feedback:titlePlaceholder", table: "Localizable") }
+    }
+
     public enum Goals {
         public static var add: String { String(localized: "goals:add", table: "Localizable") }
         public static var addFunds: String { String(localized: "goals:addFunds", table: "Localizable") }

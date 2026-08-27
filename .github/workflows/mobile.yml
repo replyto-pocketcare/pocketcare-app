@@ -115,6 +115,11 @@ jobs:
             # is a different assistant, and nobody would attribute that to a
             # transcription.
             node tools/parity/generate-assistant-persona.mjs
+            # The feedback form's AREAS and SEVERITIES. These are the values
+            # written to `bug_reports` and read by whoever works the triage
+            # queue, so a phone that spells an area differently from the browser
+            # silently splits one bucket into two and nobody notices.
+            node tools/parity/generate-feedback.mjs
             # The PowerSync client schema, mirrored into both native platforms.
             # These were NOT in this list, and that is exactly why the mirrors
             # fell four migrations behind packages/db/src/index.ts without a

@@ -429,6 +429,52 @@
     <string name="data_title">Importeren &amp; exporteren</string>
     <string name="data_trial_note">Gegevens importeren is niet beschikbaar tijdens de gratis proefperiode. Upgrade naar Premium om je historische gegevens te importeren.</string>
 
+    <!-- feedback -->
+    <string name="feedback_area_accounts_cards">Rekeningen &amp; kaarten</string>
+    <string name="feedback_area_ask_sanvya">Vraag Sanvya</string>
+    <string name="feedback_area_budgets">Budgetten</string>
+    <string name="feedback_area_dashboard">Dashboard</string>
+    <string name="feedback_area_friends_splits">Vrienden &amp; splitsen</string>
+    <string name="feedback_area_goals">Doelen</string>
+    <string name="feedback_area_insights">Inzichten</string>
+    <string name="feedback_area_investments">Beleggingen</string>
+    <string name="feedback_area_label">Welk onderdeel?</string>
+    <string name="feedback_area_loans">Leningen</string>
+    <string name="feedback_area_other">Overig</string>
+    <string name="feedback_area_placeholder">Kies een pagina / functie…</string>
+    <string name="feedback_area_settings_billing">Instellingen &amp; facturering</string>
+    <string name="feedback_area_subscriptions">Abonnementen</string>
+    <string name="feedback_area_sync_offline">Synchronisatie / offline</string>
+    <string name="feedback_area_transactions">Transacties</string>
+    <string name="feedback_auto_included">Automatisch meegestuurd: appversie, huidige pagina, apparaat en verbindingsstatus.</string>
+    <string name="feedback_bug_placeholder">Wat ging er mis? Wat had je verwacht?</string>
+    <string name="feedback_cancel">Annuleren</string>
+    <string name="feedback_done">Klaar</string>
+    <string name="feedback_err_need_bug">Beschrijf het probleem.</string>
+    <string name="feedback_err_need_suggestion">Beschrijf je suggestie.</string>
+    <string name="feedback_err_submit">Versturen is niet gelukt. Probeer het opnieuw.</string>
+    <string name="feedback_include_log">Recent foutenlogboek meesturen</string>
+    <string name="feedback_include_log_hint">Bedragen, namen en contactgegevens worden verwijderd. Zonder dit kunnen we vaak niet zien wat er op een telefoon misging.</string>
+    <string name="feedback_intro">Kies een paar opties en vertel het ons — de rest leggen we automatisch vast.</string>
+    <string name="feedback_kind_bug">🐞 Fout</string>
+    <string name="feedback_kind_suggestion">💡 Suggestie</string>
+    <string name="feedback_send_another">Nog een sturen</string>
+    <string name="feedback_send_bug">Melding sturen</string>
+    <string name="feedback_sending">Versturen…</string>
+    <string name="feedback_send_suggestion">Suggestie sturen</string>
+    <string name="feedback_severity_label">Ernst</string>
+    <string name="feedback_sev_fatal">Fataal</string>
+    <string name="feedback_sev_high">Hoog</string>
+    <string name="feedback_sev_low">Laag</string>
+    <string name="feedback_sev_medium">Gemiddeld</string>
+    <string name="feedback_suggestion_placeholder">Wat zou Sanvya beter maken?</string>
+    <string name="feedback_thanks_bug">Bedankt voor de melding!</string>
+    <string name="feedback_thanks_bug_body">Betatesters die 5 fouten melden krijgen een gratis maand Lite, en 25 ontgrendelt Pro — je coupon verschijnt in Instellingen → Facturering.</string>
+    <string name="feedback_thanks_suggestion">Bedankt voor de suggestie!</string>
+    <string name="feedback_thanks_suggestion_body">We lezen elke suggestie — bedankt dat je Sanvya mee vormgeeft.</string>
+    <string name="feedback_title">Feedback sturen</string>
+    <string name="feedback_title_placeholder">Korte titel (optioneel)</string>
+
     <!-- goals -->
     <string name="goals_add">Toevoegen</string>
     <string name="goals_add_funds">Geld toevoegen</string>

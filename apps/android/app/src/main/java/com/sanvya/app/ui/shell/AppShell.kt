@@ -47,6 +47,7 @@ import com.sanvya.app.theme.SanvyaMetrics
 import com.sanvya.app.theme.SanvyaShape
 import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.SanvyaCard
+import com.sanvya.app.ui.feedback.FeedbackSheet
 import com.sanvya.app.ui.components.SanvyaIcon
 import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.theme.LocalSanvyaShadows
@@ -150,6 +151,10 @@ fun AppShell(
     }
 
     val action = pageAction ?: defaultAddAction(sRes(), canScan)
+    // The Feedback entry in the More sheet and the side nav used to be wired to
+    // a closure that closed the sheet and did nothing else -- a visible control
+    // that lied, and the app's only error-report channel.
+    var feedbackOpen by remember { mutableStateOf(false) }
     val runAdd: () -> Unit = {
         when (action) {
             is AddAction.Link -> onNavigate(action.route)
@@ -179,6 +184,7 @@ fun AppShell(
             isGuest = isGuest,
             guestDaysLeft = guestDaysLeft,
             onNavigate = onNavigate,
+            onFeedback = { feedbackOpen = true },
             page = page,
         )
     } else {
@@ -257,9 +263,19 @@ fun AppShell(
         guestDaysLeft = guestDaysLeft,
         onNavigate = { route -> moreOpen = false; onNavigate(route) },
         onCustomize = { moreOpen = false; customizeOpen = true },
-        onFeedback = { moreOpen = false },
+        onFeedback = { moreOpen = false; feedbackOpen = true },
         onClose = { moreOpen = false },
         appVersion = APP_VERSION,
+    )
+
+    // Not gated on the window class, unlike the two overlays above: those two
+    // are opened from the bottom bar and are unreachable without it, while
+    // Feedback is reachable from the sidebar as well.
+    FeedbackSheet(
+        open = feedbackOpen,
+        route = currentRoute ?: "dashboard",
+        online = !offline,
+        onClose = { feedbackOpen = false },
     )
 
     BottomNavCustomizer(
@@ -427,6 +443,7 @@ private fun ExpandedShell(
     isGuest: Boolean,
     guestDaysLeft: Int?,
     onNavigate: (String) -> Unit,
+    onFeedback: () -> Unit,
     page: @Composable () -> Unit,
 ) {
     val colors = LocalSanvyaColors.current
@@ -462,7 +479,7 @@ private fun ExpandedShell(
                 guestDaysLeft = guestDaysLeft,
                 appVersion = APP_VERSION,
                 onNavigate = onNavigate,
-                onFeedback = { },
+                onFeedback = onFeedback,
                 modifier = Modifier.fillMaxHeight(),
             )
 

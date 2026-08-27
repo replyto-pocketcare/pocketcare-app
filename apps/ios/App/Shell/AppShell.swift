@@ -48,6 +48,11 @@ struct AppShell<Content: View>: View {
     @State private var showingReceiptCapture = false
     @State private var reviewingScanId: String?
 
+    /// The Feedback entry in the More sheet and the side nav used to be wired
+    /// to a closure that closed the sheet and did nothing else — a visible
+    /// control that lied, and the app's only error-report channel.
+    @State private var feedbackOpen = false
+
     @Environment(\.sanvyaWindowClass) private var windowClass
     @Environment(\.colorScheme) private var colorScheme
 
@@ -102,7 +107,7 @@ struct AppShell<Content: View>: View {
                 onSelect: { tab in moreOpen = false; select(tab) },
                 onSignIn: { moreOpen = false; signInOpen = true },
                 onCustomize: { moreOpen = false; customizeOpen = true },
-                onFeedback: { moreOpen = false },
+                onFeedback: { moreOpen = false; feedbackOpen = true },
                 onClose: { moreOpen = false }
             )
         }
@@ -111,6 +116,16 @@ struct AppShell<Content: View>: View {
                 current: navPrefs.ids,
                 onSave: { ids in navPrefs.setIds(ids); customizeOpen = false },
                 onClose: { customizeOpen = false }
+            )
+        }
+        // Not gated on the window class, unlike More and Customize: those two
+        // are opened from the bottom bar and are unreachable without it, while
+        // Feedback is reachable from the sidebar as well.
+        .sanvyaModal(isPresented: $feedbackOpen, label: S.Feedback.title) {
+            FeedbackSheet(
+                route: currentTab.rawValue,
+                online: !connectivity.isOffline,
+                onClose: { feedbackOpen = false }
             )
         }
         .sanvyaFormPresentation(isPresented: $showingNewTransaction) {
@@ -183,7 +198,7 @@ struct AppShell<Content: View>: View {
                     guestDaysLeft: viewModel.guestDaysLeft,
                     appVersion: appVersion,
                     onSelect: select,
-                    onFeedback: {},
+                    onFeedback: { feedbackOpen = true },
                     onSignIn: { signInOpen = true }
                 )
 

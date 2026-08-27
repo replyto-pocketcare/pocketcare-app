@@ -429,6 +429,52 @@
     <string name="data_title">Import &amp; export</string>
     <string name="data_trial_note">Importing data is not available during the free trial. Please upgrade to Premium to import your historical data.</string>
 
+    <!-- feedback -->
+    <string name="feedback_area_accounts_cards">Accounts &amp; Cards</string>
+    <string name="feedback_area_ask_sanvya">Ask Sanvya</string>
+    <string name="feedback_area_budgets">Budgets</string>
+    <string name="feedback_area_dashboard">Dashboard</string>
+    <string name="feedback_area_friends_splits">Friends &amp; Splits</string>
+    <string name="feedback_area_goals">Goals</string>
+    <string name="feedback_area_insights">Insights</string>
+    <string name="feedback_area_investments">Investments</string>
+    <string name="feedback_area_label">Which area?</string>
+    <string name="feedback_area_loans">Loans</string>
+    <string name="feedback_area_other">Other</string>
+    <string name="feedback_area_placeholder">Select a page / feature…</string>
+    <string name="feedback_area_settings_billing">Settings &amp; Billing</string>
+    <string name="feedback_area_subscriptions">Subscriptions</string>
+    <string name="feedback_area_sync_offline">Sync / Offline</string>
+    <string name="feedback_area_transactions">Transactions</string>
+    <string name="feedback_auto_included">Automatically included: app version, current page, device, and connection status.</string>
+    <string name="feedback_bug_placeholder">What went wrong? What did you expect to happen?</string>
+    <string name="feedback_cancel">Cancel</string>
+    <string name="feedback_done">Done</string>
+    <string name="feedback_err_need_bug">Please describe the issue.</string>
+    <string name="feedback_err_need_suggestion">Please describe your suggestion.</string>
+    <string name="feedback_err_submit">Couldn\'t submit. Try again.</string>
+    <string name="feedback_include_log">Include a recent error log</string>
+    <string name="feedback_include_log_hint">Amounts, names and contact details are removed. Without this we often can\'t tell what went wrong on a phone.</string>
+    <string name="feedback_intro">Pick a couple of options and tell us — we capture the rest automatically.</string>
+    <string name="feedback_kind_bug">🐞 Bug</string>
+    <string name="feedback_kind_suggestion">💡 Suggestion</string>
+    <string name="feedback_send_another">Send another</string>
+    <string name="feedback_send_bug">Send report</string>
+    <string name="feedback_sending">Sending…</string>
+    <string name="feedback_send_suggestion">Send suggestion</string>
+    <string name="feedback_severity_label">Severity</string>
+    <string name="feedback_sev_fatal">Fatal</string>
+    <string name="feedback_sev_high">High</string>
+    <string name="feedback_sev_low">Low</string>
+    <string name="feedback_sev_medium">Medium</string>
+    <string name="feedback_suggestion_placeholder">What would make Sanvya better?</string>
+    <string name="feedback_thanks_bug">Thanks for the report!</string>
+    <string name="feedback_thanks_bug_body">Beta testers who report 5 bugs get a free month of Lite, and 25 unlock Pro — your reward coupon shows up in Settings → Billing.</string>
+    <string name="feedback_thanks_suggestion">Thanks for the suggestion!</string>
+    <string name="feedback_thanks_suggestion_body">We read every suggestion — thanks for helping shape Sanvya.</string>
+    <string name="feedback_title">Send feedback</string>
+    <string name="feedback_title_placeholder">Short title (optional)</string>
+
     <!-- goals -->
     <string name="goals_add">Add</string>
     <string name="goals_add_funds">Add funds</string>

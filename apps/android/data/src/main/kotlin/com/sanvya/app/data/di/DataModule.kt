@@ -83,6 +83,7 @@ val dataModule = module {
     single { LoanAutoPostRepository(db = get(), ledger = get()) }
     single { com.sanvya.app.data.repository.UpiRepository(get()) }
     single { com.sanvya.app.data.repository.InvitesRepository(get()) }
+    single { com.sanvya.app.data.repository.FeedbackRepository(get()) }
     single {
         com.sanvya.app.data.repository.AssistantRepository(
             db = get(),

@@ -429,6 +429,52 @@
     <string name="data_title">आयात और निर्यात</string>
     <string name="data_trial_note">मुफ़्त परीक्षण के दौरान डेटा आयात उपलब्ध नहीं है। अपना ऐतिहासिक डेटा आयात करने के लिए प्रीमियम में अपग्रेड करें।</string>
 
+    <!-- feedback -->
+    <string name="feedback_area_accounts_cards">खाते और कार्ड</string>
+    <string name="feedback_area_ask_sanvya">संव्या से पूछें</string>
+    <string name="feedback_area_budgets">बजट</string>
+    <string name="feedback_area_dashboard">डैशबोर्ड</string>
+    <string name="feedback_area_friends_splits">दोस्त और बँटवारा</string>
+    <string name="feedback_area_goals">लक्ष्य</string>
+    <string name="feedback_area_insights">जानकारियाँ</string>
+    <string name="feedback_area_investments">निवेश</string>
+    <string name="feedback_area_label">कौन-सा हिस्सा?</string>
+    <string name="feedback_area_loans">ऋण</string>
+    <string name="feedback_area_other">अन्य</string>
+    <string name="feedback_area_placeholder">कोई पेज / सुविधा चुनें…</string>
+    <string name="feedback_area_settings_billing">सेटिंग्स और बिलिंग</string>
+    <string name="feedback_area_subscriptions">सब्सक्रिप्शन</string>
+    <string name="feedback_area_sync_offline">सिंक / ऑफ़लाइन</string>
+    <string name="feedback_area_transactions">लेन-देन</string>
+    <string name="feedback_auto_included">अपने आप शामिल: ऐप संस्करण, मौजूदा पेज, डिवाइस और कनेक्शन स्थिति।</string>
+    <string name="feedback_bug_placeholder">क्या गड़बड़ हुई? आपको क्या होने की उम्मीद थी?</string>
+    <string name="feedback_cancel">रद्द करें</string>
+    <string name="feedback_done">हो गया</string>
+    <string name="feedback_err_need_bug">कृपया समस्या बताएँ।</string>
+    <string name="feedback_err_need_suggestion">कृपया अपना सुझाव बताएँ।</string>
+    <string name="feedback_err_submit">भेजा नहीं जा सका। फिर कोशिश करें।</string>
+    <string name="feedback_include_log">हाल का त्रुटि लॉग शामिल करें</string>
+    <string name="feedback_include_log_hint">राशि, नाम और संपर्क विवरण हटा दिए जाते हैं। इसके बिना हम अक्सर बता ही नहीं पाते कि फ़ोन पर क्या गड़बड़ हुई।</string>
+    <string name="feedback_intro">कुछ विकल्प चुनें और हमें बताएँ — बाकी हम अपने आप दर्ज कर लेते हैं।</string>
+    <string name="feedback_kind_bug">🐞 गड़बड़ी</string>
+    <string name="feedback_kind_suggestion">💡 सुझाव</string>
+    <string name="feedback_send_another">एक और भेजें</string>
+    <string name="feedback_send_bug">रिपोर्ट भेजें</string>
+    <string name="feedback_sending">भेजा जा रहा है…</string>
+    <string name="feedback_send_suggestion">सुझाव भेजें</string>
+    <string name="feedback_severity_label">गंभीरता</string>
+    <string name="feedback_sev_fatal">गंभीरतम</string>
+    <string name="feedback_sev_high">अधिक</string>
+    <string name="feedback_sev_low">कम</string>
+    <string name="feedback_sev_medium">मध्यम</string>
+    <string name="feedback_suggestion_placeholder">संव्या को बेहतर बनाने के लिए क्या करें?</string>
+    <string name="feedback_thanks_bug">रिपोर्ट के लिए धन्यवाद!</string>
+    <string name="feedback_thanks_bug_body">5 गड़बड़ियाँ बताने वाले बीटा परीक्षकों को Lite का एक महीना मुफ़्त, और 25 पर Pro — आपका कूपन सेटिंग्स → बिलिंग में दिखेगा।</string>
+    <string name="feedback_thanks_suggestion">सुझाव के लिए धन्यवाद!</string>
+    <string name="feedback_thanks_suggestion_body">हम हर सुझाव पढ़ते हैं — संव्या को आकार देने में मदद के लिए धन्यवाद।</string>
+    <string name="feedback_title">प्रतिक्रिया भेजें</string>
+    <string name="feedback_title_placeholder">छोटा शीर्षक (वैकल्पिक)</string>
+
     <!-- goals -->
     <string name="goals_add">जोड़ें</string>
     <string name="goals_add_funds">धन जोड़ें</string>

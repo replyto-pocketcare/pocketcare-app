@@ -145,6 +145,13 @@ class VectorRunnerTest {
         runDomain("assistant")
     }
     @Test
+    fun feedback() {
+        // Feedback.kt -- the generated area/severity vocabulary and the key
+        // derivation that turns a STORED value into an i18n key.
+        com.sanvya.app.domain.feedback.registerFeedbackVectors()
+        runDomain("feedback")
+    }
+    @Test
     fun applink() {
         // AppLink.kt -- web paths to native destinations. A SPEC, not a
         // capture: web has no such function, only a router. See AppLinkVectors.kt.

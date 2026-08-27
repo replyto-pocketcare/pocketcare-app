@@ -242,7 +242,7 @@ absence, and they are almost all `S`.
 
 | Gap | Platforms | Size | State |
 |---|---|---|---|
-| **Feedback** button in the More sheet and the side nav is wired to a closure that only closes the sheet | both | M | **open** — `BugReportModal` (164 lines) is a real port: a form plus one insert into `bug_reports`, which is already in the native schema, and `Diagnostics` is already in Domain on both |
+| ~~**Feedback** button in the More sheet and the side nav is wired to a closure that only closes the sheet~~ | both | M | ✅ 2026-08-27 — `FeedbackSheet` on both, the vocabulary generated from web's own `AREAS`/`SEVERITIES`, every string translated (web's own modal is not — defect #13) |
 | ~~`include_in_net_worth` checkbox on New account is never read by `save()`~~ | both | S | ✅ 2026-08-27 — the create path now UPDATEs the flag off, as web does |
 | ~~Android's group Add-expense action~~ | Android | S | ✅ 2026-08-27 — the sheet was built and unreachable; the page action opens it |
 | ~~iOS dashboard renders a second FAB speed dial beside the bottom bar's "+"~~ | iOS | S | ✅ 2026-08-27 — removed; both of its actions moved into `AppShell`, where the "+" already was |
@@ -489,6 +489,18 @@ user base they are invisible today, which is exactly why they have survived.
 
     `micDenied` has no web counterpart at all — web cannot detect a permanently
     refused microphone the way a native permission API can, so it says nothing.
+
+13. **`BugReportModal` is hardcoded English — the whole modal.** Roughly thirty
+    user-visible strings, from "Send feedback" to the beta-tester reward copy, all
+    string literals in `apps/web/src/ui/BugReport.tsx`. It is the app's only
+    error-report channel, so a Hindi or Dutch user who hits a bug meets an English
+    form. Found 2026-08-27 while porting it.
+
+    Both native ports read from a new `feedback` namespace — 44 keys in all three
+    locales — and the two lists that must NOT be translated (`AREAS` and
+    `SEVERITIES`, which are written into `bug_reports` and read by whoever works
+    the queue) are generated from web's source by `generate-feedback.mjs`. The
+    keys are there for web to adopt.
 
 ### iOS was formatting numbers as pointers — twelve call sites, 2026-08-27
 
