@@ -185,7 +185,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/settings/categories` | (157) | `taxonomy/CategoriesScreen.kt` (280) | `TaxonomyViews.swift` (CategoriesView) | 🔶 **Built 2026-08-26.** Tree with search, expand/collapse, inline rename, add with kind + parent, soft delete. Absent: the Auto-categorize card — it drives `src/categorize/` (905 lines), which is its own port |
 | `/settings/labels` | (89) | `taxonomy/LabelsScreen.kt` (185) | `TaxonomyViews.swift` (LabelsView) | 🔶 **Built 2026-08-26.** Search, add, inline rename + recolour, soft delete. Colour is the app's 18-swatch palette, not web's free `<input type="color">` — see the divergence note |
 | `/data` (import/export) | (154) + `src/data` (509) | `data/DataScreen.kt` (250) | `DataView.swift` (240) | 🔶 **Built 2026-08-26.** CSV export and import (PocketCare + Wallet formats), format picker, skip-duplicates, six-row preview, result line, premium gate. File IO is SAF on Android and `.fileExporter`/`.fileImporter` on iOS — no shared shape to port |
-| `/statements/analyze` | (329) + (419 in `src/statements`) | ✅ `ui/statements/StatementAnalyzeScreen.kt` + view model | ✅ `StatementAnalyzeView.swift` + `ViewModels/StatementAnalyzeViewModel.swift` | ✅ **done 2026-08-27, CSV only.** Parse, on-device categorise, summary, donut + daily bars, outliers, recurring detection with add-as-recurring, reconcile, import-missing. Domain under 61 vectors. **PDF is not ported and is a real gap** — see ABSENT-BY-DECISION |
+| `/statements/analyze` | (329) + (419 in `src/statements`) | ✅ `ui/statements/StatementAnalyzeScreen.kt` + view model | ✅ `StatementAnalyzeView.swift` + `ViewModels/StatementAnalyzeViewModel.swift` | ✅ **done 2026-08-27, CSV *and* PDF.** Parse, on-device categorise, summary, donut + daily bars, outliers, recurring detection with add-as-recurring, reconcile, import-missing. Domain under **89 vectors** (61 CSV/analysis/reconcile + 28 PDF) |
 | `/assistant` | (9) + `src/assistant` (1669) | ❌ `ComingSoonScreen` | ❌ `AssistantView` (27) placeholder | ❌ biggest single unbuilt feature |
 | `/search` | (148) | `search/SearchScreen.kt` (232) | `SearchView.swift` (145) | 🔶 **Built 2026-08-26.** Query, type/account/date/amount filters, result count, collapsed split rows. Absent: the `?q=&type=&account=…` deep-link prefill — it exists so the assistant can hand over a pre-filtered search, and there is no native assistant to hand one over |
 | `/reflect` | (97) + `src/reflect` (160) | `reflect/ReflectScreen.kt` (300) | `ReflectView.swift` (200) | ✅ **Built 2026-08-26.** Swipeable card stack, need/greed buttons, undo, skip, counter, empty state. Two deliberate divergences away from web — see the session note |
@@ -1806,13 +1806,67 @@ of web's own defects rather than what a careful reader would have written.
 - `reconcileStatement`, not `reconcile`: `domain.reconcile` already owns that
   word for the receipt-vs-total check.
 
-**PDF is not ported and is not a small gap.** Web's `parsePdf.ts` (238 lines)
-runs pdf.js in the browser. iOS has PDFKit and could do this in a few lines;
-Android has no built-in PDF text extraction at all, so it needs a third-party
-library and a licence decision. Porting it on one platform only would put the
-two apps out of step on the headline feature of the screen. Recorded in
-ABSENT-BY-DECISION; the screen will ship CSV-only on both until that call is
-made.
+**PDF is now ported on both** — see "Statement PDFs" below.
+
+### Statement PDFs — 2026-08-27
+
+The last real gap on `/statements/analyze`, and the user's call: *"For the PDF on
+android pick the most reliable between the two and keep that optional."*
+
+**The library choice was made by the licence, not the benchmark.** iText 7 is
+AGPL-3.0 unless you buy a commercial licence, and AGPL on a closed-source app
+means publishing the app's source — so "most reliable" resolves to
+**PDFBox-Android (Apache-2.0)**, the only one of the two that can ship at all.
+It is also the only one that exposes per-glyph x/y positions, which the
+column-aware parser needs. iOS uses **PDFKit**, which ships with the OS.
+
+**Where the line between shared and platform code sits.** Web's `parsePdf.ts`
+does two jobs: it drives pdf.js to get positioned text, then it parses. Only the
+second job could be ported directly — extraction has no shared shape. So:
+
+| Layer | Android | iOS | Shared? |
+| --- | --- | --- | --- |
+| Bytes → positioned glyphs | `PdfBoxTextExtractor` | `PDFKitTextExtractor` | no — `PdfTextExtractor` / `PdfTextExtracting` |
+| Glyphs → rows of cells | `groupPdfGlyphs` | `groupPdfGlyphs` | **yes**, Domain |
+| Rows → `ParsedStatement` | `parsePdfStatementFromGlyphs` | same | **yes**, Domain |
+
+`groupPdfGlyphs` is the piece web does not have and the reason this split is
+drawn where it is. pdf.js hands back text RUNS; PDFBox and PDFKit hand back
+GLYPHS. Letting each app rebuild runs its own way would have meant the two
+phones disagreeing about where a cell ends — and therefore, on a bank that lays
+its Withdrawal and Deposit columns close together, occasionally about a whole
+transaction. Both extractors now contribute nothing but ordered positioned
+glyphs and Domain decides the rest, under vector test.
+
+**28 new vectors.** 18 come from RUNNING web's real `parsePdf.ts` against
+hand-built row layouts (HDFC-style debit/credit columns, an SBI-style Dr/Cr
+indicator column, a bare Amount column, a Dr/Cr suffix inside the money cell,
+headerless, no-numeric-column, and the line-heuristic fallback). The other 10
+cover `groupPdfGlyphs` and the end-to-end glyph path; those are the one set with
+**no web counterpart**, so their reference implementation was written alongside
+the ports. They cannot prove fidelity to web — there is nothing to be faithful
+to — but they do prove Android and iOS split cells at exactly the same points,
+which is the only thing that could differ.
+
+**Web bug #8's fifth site.** `parsePdf.ts` hardcodes `Math.round(x * 100)` in
+both parsers. The ports use `fromMajor()`, so the `jpy` vectors are hand-edited
+away from web's output, exactly as the CSV fixtures' `jpy` case is.
+
+**"Optional" means the app survives the library, not that the library is
+absent.** PDFBox-Android is a normal `implementation` dependency — `compileOnly`
+plus reflection would mean it is never in the APK, which is not optionality, it
+is removal. What is real is that every entry point goes through
+`PdfTextExtractor`, every failure including `NoClassDefFoundError` and
+`ExceptionInInitializerError` is caught (`Throwable`, not `Exception` — a
+stripped library throws Errors, not Exceptions), and the analyzer then reports
+PDFs as unavailable, offers CSV only, and keeps working. Dropping the library
+entirely is one Gradle line, one file and one Koin binding.
+
+**The honest caveat, recorded rather than buried:** ~10-16MB of PDFBox font
+assets now sit in the APK. If size becomes binding the answer is Play Feature
+Delivery (an on-demand dynamic feature module), not a different library — and
+that is a build-system change that buys nothing for reliability, so it is not
+being done pre-emptively.
 
 ### The auto-categoriser — 2026-08-27
 
@@ -1904,7 +1958,7 @@ when a bank export is not UTF-8. Android's picker offers `text/plain` and
 `application/octet-stream` alongside `text/csv`, because plenty of banks hand
 out a `.csv` the system types as neither.
 
-**Still CSV-only on both.** The PDF half is the open decision below.
+**CSV and PDF on both**, as of 2026-08-27 — see the section below.
 
 ### Done-when for this section
 

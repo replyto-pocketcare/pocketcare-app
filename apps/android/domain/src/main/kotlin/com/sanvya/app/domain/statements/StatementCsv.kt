@@ -95,7 +95,7 @@ internal fun statementNum(v: String?): Double {
     } else {
         cleaned.replace(",", "")
     }
-    val n = jsParseFloatLocal(norm)
+    val n = jsParseFloat(norm)
     return if (n != null && n.isFinite()) n else 0.0
 }
 
@@ -104,7 +104,7 @@ internal fun statementNum(v: String?): Double {
  * ignored. Kotlin's `toDoubleOrNull` requires the whole string, and a bank cell
  * really does contain things like "1,234.56 Cr".
  */
-private fun jsParseFloatLocal(s: String): Double? {
+internal fun jsParseFloat(s: String): Double? {
     val m = Regex("^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?").find(s) ?: return null
     return m.value.toDoubleOrNull()
 }

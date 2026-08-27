@@ -2,6 +2,7 @@ package com.sanvya.app
 
 import android.app.Application
 import com.sanvya.app.data.di.dataModule
+import com.sanvya.app.di.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -20,7 +21,7 @@ class SanvyaApplication : Application() {
         startKoin {
             androidLogger()
             androidContext(this@SanvyaApplication)
-            modules(dataModule)
+            modules(dataModule, appModule)
         }
     }
 }

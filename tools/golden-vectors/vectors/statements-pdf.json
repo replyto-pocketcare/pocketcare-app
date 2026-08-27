@@ -1,0 +1,4095 @@
+[
+  {
+    "fn": "parseStatementPdfRows",
+    "input": {
+      "name": "hdfc",
+      "rows": [
+        [
+          {
+            "x": 40,
+            "str": "HDFC BANK LTD"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "Statement of account"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "Date"
+          },
+          {
+            "x": 110,
+            "str": "Narration"
+          },
+          {
+            "x": 300,
+            "str": "Withdrawal Amt."
+          },
+          {
+            "x": 390,
+            "str": "Deposit Amt."
+          },
+          {
+            "x": 480,
+            "str": "Closing Balance"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "01/04/2026"
+          },
+          {
+            "x": 110,
+            "str": "UPI-SWIGGY-1234"
+          },
+          {
+            "x": 300,
+            "str": "450.00"
+          },
+          {
+            "x": 480,
+            "str": "10,550.00"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "03/04/2026"
+          },
+          {
+            "x": 110,
+            "str": "SALARY CREDIT"
+          },
+          {
+            "x": 390,
+            "str": "50,000.00"
+          },
+          {
+            "x": 480,
+            "str": "60,550.00"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "05/04/2026"
+          },
+          {
+            "x": 110,
+            "str": "ATW-CASH 9876"
+          },
+          {
+            "x": 300,
+            "str": "2,000.00"
+          },
+          {
+            "x": 480,
+            "str": "58,550.00"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "Balance as on 05.04.2026"
+          },
+          {
+            "x": 480,
+            "str": "58,550.00"
+          }
+        ]
+      ],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-05"
+      },
+      "openingBalance": 1055000,
+      "closingBalance": 5855000,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "UPI-SWIGGY-1234",
+          "amount": -45000,
+          "balance": 1055000
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY CREDIT",
+          "amount": 5000000,
+          "balance": 6055000
+        },
+        {
+          "date": "2026-04-05",
+          "description": "ATW-CASH 9876",
+          "amount": -200000,
+          "balance": 5855000
+        }
+      ],
+      "warnings": [
+        "PDF parsed with column detection — review a few rows to be sure the debits/credits look right."
+      ]
+    }
+  },
+  {
+    "fn": "parseStatementPdfRows",
+    "input": {
+      "name": "drcr-column",
+      "rows": [
+        [
+          {
+            "x": 30,
+            "str": "Txn Date"
+          },
+          {
+            "x": 100,
+            "str": "Description"
+          },
+          {
+            "x": 280,
+            "str": "Amount"
+          },
+          {
+            "x": 350,
+            "str": "Dr/Cr"
+          },
+          {
+            "x": 430,
+            "str": "Balance"
+          }
+        ],
+        [
+          {
+            "x": 30,
+            "str": "02-Apr-2026"
+          },
+          {
+            "x": 100,
+            "str": "NEFT ACME PVT LTD"
+          },
+          {
+            "x": 280,
+            "str": "12,500.00"
+          },
+          {
+            "x": 350,
+            "str": "Cr"
+          },
+          {
+            "x": 430,
+            "str": "72,500.00"
+          }
+        ],
+        [
+          {
+            "x": 30,
+            "str": "04-Apr-2026"
+          },
+          {
+            "x": 100,
+            "str": "POS BIGBAZAAR"
+          },
+          {
+            "x": 280,
+            "str": "1,899.50"
+          },
+          {
+            "x": 350,
+            "str": "Dr"
+          },
+          {
+            "x": 430,
+            "str": "70,600.50"
+          }
+        ]
+      ],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-02",
+        "to": "2026-04-04"
+      },
+      "openingBalance": 7250000,
+      "closingBalance": 7060050,
+      "txns": [
+        {
+          "date": "2026-04-02",
+          "description": "NEFT ACME PVT LTD",
+          "amount": 1250000,
+          "balance": 7250000
+        },
+        {
+          "date": "2026-04-04",
+          "description": "POS BIGBAZAAR",
+          "amount": -189950,
+          "balance": 7060050
+        }
+      ],
+      "warnings": [
+        "PDF parsed with column detection — review a few rows to be sure the debits/credits look right."
+      ]
+    }
+  },
+  {
+    "fn": "parseStatementPdfRows",
+    "input": {
+      "name": "bare-amount",
+      "rows": [
+        [
+          {
+            "x": 30,
+            "str": "Date"
+          },
+          {
+            "x": 100,
+            "str": "Particulars"
+          },
+          {
+            "x": 300,
+            "str": "Amount"
+          }
+        ],
+        [
+          {
+            "x": 30,
+            "str": "2026-04-07"
+          },
+          {
+            "x": 100,
+            "str": "AMAZON PAY RECHARGE"
+          },
+          {
+            "x": 300,
+            "str": "299.00"
+          }
+        ],
+        [
+          {
+            "x": 30,
+            "str": "2026-04-09"
+          },
+          {
+            "x": 100,
+            "str": "RENT"
+          },
+          {
+            "x": 300,
+            "str": "18,000.00"
+          }
+        ]
+      ],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-07",
+        "to": "2026-04-09"
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [
+        {
+          "date": "2026-04-07",
+          "description": "AMAZON PAY RECHARGE",
+          "amount": -29900,
+          "balance": null
+        },
+        {
+          "date": "2026-04-09",
+          "description": "RENT",
+          "amount": -1800000,
+          "balance": null
+        }
+      ],
+      "warnings": [
+        "PDF parsed with column detection — review a few rows to be sure the debits/credits look right."
+      ]
+    }
+  },
+  {
+    "fn": "parseStatementPdfRows",
+    "input": {
+      "name": "suffixed-drcr",
+      "rows": [
+        [
+          {
+            "x": 30,
+            "str": "Date"
+          },
+          {
+            "x": 100,
+            "str": "Remarks"
+          },
+          {
+            "x": 300,
+            "str": "Amount"
+          },
+          {
+            "x": 420,
+            "str": "Balance"
+          }
+        ],
+        [
+          {
+            "x": 30,
+            "str": "11/04/2026"
+          },
+          {
+            "x": 100,
+            "str": "IMPS INWARD"
+          },
+          {
+            "x": 300,
+            "str": "5,000.00 Cr"
+          },
+          {
+            "x": 420,
+            "str": "75,600.50"
+          }
+        ],
+        [
+          {
+            "x": 30,
+            "str": "12/04/2026"
+          },
+          {
+            "x": 100,
+            "str": "CARD SWIPE"
+          },
+          {
+            "x": 300,
+            "str": "760.25 Dr"
+          },
+          {
+            "x": 420,
+            "str": "74,840.25"
+          }
+        ]
+      ],
+      "currency": "INR",
+      "kind": "card"
+    },
+    "expected": {
+      "kind": "card",
+      "label": "Card statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-11",
+        "to": "2026-04-12"
+      },
+      "openingBalance": 7560050,
+      "closingBalance": 7484025,
+      "txns": [
+        {
+          "date": "2026-04-11",
+          "description": "IMPS INWARD",
+          "amount": 500000,
+          "balance": 7560050
+        },
+        {
+          "date": "2026-04-12",
+          "description": "CARD SWIPE",
+          "amount": -76025,
+          "balance": 7484025
+        }
+      ],
+      "warnings": [
+        "PDF parsed with column detection — review a few rows to be sure the debits/credits look right."
+      ]
+    }
+  },
+  {
+    "fn": "parseStatementPdfRows",
+    "input": {
+      "name": "headerless",
+      "rows": [
+        [
+          {
+            "x": 30,
+            "str": "01/04/2026"
+          },
+          {
+            "x": 100,
+            "str": "SOMETHING"
+          },
+          {
+            "x": 300,
+            "str": "100.00"
+          }
+        ]
+      ],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseStatementPdfRows",
+    "input": {
+      "name": "no-numeric-column",
+      "rows": [
+        [
+          {
+            "x": 30,
+            "str": "Date"
+          },
+          {
+            "x": 100,
+            "str": "Narration"
+          }
+        ],
+        [
+          {
+            "x": 30,
+            "str": "01/04/2026"
+          },
+          {
+            "x": 100,
+            "str": "SOMETHING"
+          }
+        ]
+      ],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseStatementPdfRows",
+    "input": {
+      "name": "empty",
+      "rows": [],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseStatementPdfText",
+    "input": {
+      "name": "icici-lines",
+      "text": "ICICI BANK — Account statement\n01/04/2026 UPI/SWIGGY/ORDER 450.00 10,550.00\n03-Apr-2026 SALARY CREDIT ACME 50,000.00 60,550.00\n05.04.2026 ATM WDL 2,000.00 58,550.00\n07/04/2026 NEFT REFUND 1,250.00 Cr 59,800.00\n09/04/2026 STANDING INSTRUCTION 999.00\nClosing balance 59,800.00",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-09"
+      },
+      "openingBalance": 1055000,
+      "closingBalance": 5980000,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "UPI/SWIGGY/ORDER",
+          "amount": -45000,
+          "balance": 1055000
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY CREDIT ACME",
+          "amount": 5000000,
+          "balance": 6055000
+        },
+        {
+          "date": "2026-04-05",
+          "description": "ATM WDL",
+          "amount": -200000,
+          "balance": 5855000
+        },
+        {
+          "date": "2026-04-07",
+          "description": "NEFT REFUND",
+          "amount": 125000,
+          "balance": 5980000
+        },
+        {
+          "date": "2026-04-09",
+          "description": "STANDING INSTRUCTION",
+          "amount": -99900,
+          "balance": null
+        }
+      ],
+      "warnings": [
+        "Couldn't detect statement columns — parsed line-by-line (less reliable). Review amounts, or try the CSV/Excel export."
+      ]
+    }
+  },
+  {
+    "fn": "parseStatementPdfText",
+    "input": {
+      "name": "scanned-image",
+      "text": "ICICI BANK\nScanned image, no text layer here.\nPage 1 of 3",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [],
+      "warnings": [
+        "Couldn't detect statement columns — parsed line-by-line (less reliable). Review amounts, or try the CSV/Excel export.",
+        "Couldn't read any transactions — this may be a scanned image (needs OCR) or an unusual layout. Try the CSV/Excel export instead."
+      ]
+    }
+  },
+  {
+    "fn": "parseStatementPdfText",
+    "input": {
+      "name": "card-kind",
+      "text": "15/04/2026 ANNUAL FEE 500.00",
+      "currency": "INR",
+      "kind": "card"
+    },
+    "expected": {
+      "kind": "card",
+      "label": "Card statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-15",
+        "to": "2026-04-15"
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [
+        {
+          "date": "2026-04-15",
+          "description": "ANNUAL FEE",
+          "amount": -50000,
+          "balance": null
+        }
+      ],
+      "warnings": [
+        "Couldn't detect statement columns — parsed line-by-line (less reliable). Review amounts, or try the CSV/Excel export."
+      ]
+    }
+  },
+  {
+    "fn": "pdfRowsToText",
+    "input": {
+      "name": "hdfc",
+      "rows": [
+        [
+          {
+            "x": 40,
+            "str": "HDFC BANK LTD"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "Statement of account"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "Date"
+          },
+          {
+            "x": 110,
+            "str": "Narration"
+          },
+          {
+            "x": 300,
+            "str": "Withdrawal Amt."
+          },
+          {
+            "x": 390,
+            "str": "Deposit Amt."
+          },
+          {
+            "x": 480,
+            "str": "Closing Balance"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "01/04/2026"
+          },
+          {
+            "x": 110,
+            "str": "UPI-SWIGGY-1234"
+          },
+          {
+            "x": 300,
+            "str": "450.00"
+          },
+          {
+            "x": 480,
+            "str": "10,550.00"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "03/04/2026"
+          },
+          {
+            "x": 110,
+            "str": "SALARY CREDIT"
+          },
+          {
+            "x": 390,
+            "str": "50,000.00"
+          },
+          {
+            "x": 480,
+            "str": "60,550.00"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "05/04/2026"
+          },
+          {
+            "x": 110,
+            "str": "ATW-CASH 9876"
+          },
+          {
+            "x": 300,
+            "str": "2,000.00"
+          },
+          {
+            "x": 480,
+            "str": "58,550.00"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "Balance as on 05.04.2026"
+          },
+          {
+            "x": 480,
+            "str": "58,550.00"
+          }
+        ]
+      ]
+    },
+    "expected": "HDFC BANK LTD\nStatement of account\nDate Narration Withdrawal Amt. Deposit Amt. Closing Balance\n01/04/2026 UPI-SWIGGY-1234 450.00 10,550.00\n03/04/2026 SALARY CREDIT 50,000.00 60,550.00\n05/04/2026 ATW-CASH 9876 2,000.00 58,550.00\nBalance as on 05.04.2026 58,550.00"
+  },
+  {
+    "fn": "pdfRowsToText",
+    "input": {
+      "name": "headerless",
+      "rows": [
+        [
+          {
+            "x": 30,
+            "str": "01/04/2026"
+          },
+          {
+            "x": 100,
+            "str": "SOMETHING"
+          },
+          {
+            "x": 300,
+            "str": "100.00"
+          }
+        ]
+      ]
+    },
+    "expected": "01/04/2026 SOMETHING 100.00"
+  },
+  {
+    "fn": "pdfRowsToText",
+    "input": {
+      "name": "empty",
+      "rows": []
+    },
+    "expected": ""
+  },
+  {
+    "fn": "parsePdfStatement",
+    "input": {
+      "name": "hdfc",
+      "rows": [
+        [
+          {
+            "x": 40,
+            "str": "HDFC BANK LTD"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "Statement of account"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "Date"
+          },
+          {
+            "x": 110,
+            "str": "Narration"
+          },
+          {
+            "x": 300,
+            "str": "Withdrawal Amt."
+          },
+          {
+            "x": 390,
+            "str": "Deposit Amt."
+          },
+          {
+            "x": 480,
+            "str": "Closing Balance"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "01/04/2026"
+          },
+          {
+            "x": 110,
+            "str": "UPI-SWIGGY-1234"
+          },
+          {
+            "x": 300,
+            "str": "450.00"
+          },
+          {
+            "x": 480,
+            "str": "10,550.00"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "03/04/2026"
+          },
+          {
+            "x": 110,
+            "str": "SALARY CREDIT"
+          },
+          {
+            "x": 390,
+            "str": "50,000.00"
+          },
+          {
+            "x": 480,
+            "str": "60,550.00"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "05/04/2026"
+          },
+          {
+            "x": 110,
+            "str": "ATW-CASH 9876"
+          },
+          {
+            "x": 300,
+            "str": "2,000.00"
+          },
+          {
+            "x": 480,
+            "str": "58,550.00"
+          }
+        ],
+        [
+          {
+            "x": 40,
+            "str": "Balance as on 05.04.2026"
+          },
+          {
+            "x": 480,
+            "str": "58,550.00"
+          }
+        ]
+      ],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-05"
+      },
+      "openingBalance": 1055000,
+      "closingBalance": 5855000,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "UPI-SWIGGY-1234",
+          "amount": -45000,
+          "balance": 1055000
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY CREDIT",
+          "amount": 5000000,
+          "balance": 6055000
+        },
+        {
+          "date": "2026-04-05",
+          "description": "ATW-CASH 9876",
+          "amount": -200000,
+          "balance": 5855000
+        }
+      ],
+      "warnings": [
+        "PDF parsed with column detection — review a few rows to be sure the debits/credits look right."
+      ]
+    }
+  },
+  {
+    "fn": "parsePdfStatement",
+    "input": {
+      "name": "headerless",
+      "rows": [
+        [
+          {
+            "x": 30,
+            "str": "01/04/2026"
+          },
+          {
+            "x": 100,
+            "str": "SOMETHING"
+          },
+          {
+            "x": 300,
+            "str": "100.00"
+          }
+        ]
+      ],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-01"
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "SOMETHING",
+          "amount": -10000,
+          "balance": null
+        }
+      ],
+      "warnings": [
+        "Couldn't detect statement columns — parsed line-by-line (less reliable). Review amounts, or try the CSV/Excel export."
+      ]
+    }
+  },
+  {
+    "fn": "parsePdfStatement",
+    "input": {
+      "name": "no-numeric-column",
+      "rows": [
+        [
+          {
+            "x": 30,
+            "str": "Date"
+          },
+          {
+            "x": 100,
+            "str": "Narration"
+          }
+        ],
+        [
+          {
+            "x": 30,
+            "str": "01/04/2026"
+          },
+          {
+            "x": 100,
+            "str": "SOMETHING"
+          }
+        ]
+      ],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [],
+      "warnings": [
+        "Couldn't detect statement columns — parsed line-by-line (less reliable). Review amounts, or try the CSV/Excel export.",
+        "Couldn't read any transactions — this may be a scanned image (needs OCR) or an unusual layout. Try the CSV/Excel export instead."
+      ]
+    }
+  },
+  {
+    "fn": "parseStatementPdfRows",
+    "input": {
+      "name": "jpy",
+      "rows": [
+        [
+          {
+            "x": 30,
+            "str": "Date"
+          },
+          {
+            "x": 100,
+            "str": "Particulars"
+          },
+          {
+            "x": 300,
+            "str": "Amount"
+          },
+          {
+            "x": 420,
+            "str": "Balance"
+          }
+        ],
+        [
+          {
+            "x": 30,
+            "str": "06/04/2026"
+          },
+          {
+            "x": 100,
+            "str": "KONBINI"
+          },
+          {
+            "x": 300,
+            "str": "1,200.00"
+          },
+          {
+            "x": 420,
+            "str": "88,000.00"
+          }
+        ]
+      ],
+      "currency": "JPY",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "JPY",
+      "period": {
+        "from": "2026-04-06",
+        "to": "2026-04-06"
+      },
+      "openingBalance": 88000,
+      "closingBalance": 88000,
+      "txns": [
+        {
+          "date": "2026-04-06",
+          "description": "KONBINI",
+          "amount": -1200,
+          "balance": 88000
+        }
+      ],
+      "warnings": [
+        "PDF parsed with column detection — review a few rows to be sure the debits/credits look right."
+      ]
+    }
+  },
+  {
+    "fn": "parseStatementPdfText",
+    "input": {
+      "name": "jpy",
+      "text": "06/04/2026 KONBINI 1,200.00 88,000.00",
+      "currency": "JPY",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "JPY",
+      "period": {
+        "from": "2026-04-06",
+        "to": "2026-04-06"
+      },
+      "openingBalance": 88000,
+      "closingBalance": 88000,
+      "txns": [
+        {
+          "date": "2026-04-06",
+          "description": "KONBINI",
+          "amount": -1200,
+          "balance": 88000
+        }
+      ],
+      "warnings": [
+        "Couldn't detect statement columns — parsed line-by-line (less reliable). Review amounts, or try the CSV/Excel export."
+      ]
+    }
+  },
+  {
+    "fn": "groupPdfGlyphs",
+    "input": {
+      "name": "header-row",
+      "glyphs": [
+        {
+          "x": 40,
+          "y": 100,
+          "width": 6,
+          "text": "D"
+        },
+        {
+          "x": 46,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 52,
+          "y": 100,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 58,
+          "y": 100,
+          "width": 6,
+          "text": "e"
+        },
+        {
+          "x": 110,
+          "y": 100.7,
+          "width": 6,
+          "text": "N"
+        },
+        {
+          "x": 116,
+          "y": 100.7,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 122,
+          "y": 100.7,
+          "width": 6,
+          "text": "r"
+        },
+        {
+          "x": 128,
+          "y": 100.7,
+          "width": 6,
+          "text": "r"
+        },
+        {
+          "x": 134,
+          "y": 100.7,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 140,
+          "y": 100.7,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 146,
+          "y": 100.7,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 152,
+          "y": 100.7,
+          "width": 6,
+          "text": "o"
+        },
+        {
+          "x": 158,
+          "y": 100.7,
+          "width": 6,
+          "text": "n"
+        },
+        {
+          "x": 300,
+          "y": 100,
+          "width": 6,
+          "text": "W"
+        },
+        {
+          "x": 306,
+          "y": 100,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 312,
+          "y": 100,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 318,
+          "y": 100,
+          "width": 6,
+          "text": "h"
+        },
+        {
+          "x": 324,
+          "y": 100,
+          "width": 6,
+          "text": "d"
+        },
+        {
+          "x": 330,
+          "y": 100,
+          "width": 6,
+          "text": "r"
+        },
+        {
+          "x": 336,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 342,
+          "y": 100,
+          "width": 6,
+          "text": "w"
+        },
+        {
+          "x": 348,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 354,
+          "y": 100,
+          "width": 6,
+          "text": "l"
+        },
+        {
+          "x": 360,
+          "y": 100,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 366,
+          "y": 100,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 372,
+          "y": 100,
+          "width": 6,
+          "text": "m"
+        },
+        {
+          "x": 378,
+          "y": 100,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 384,
+          "y": 100,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 400,
+          "y": 99.4,
+          "width": 6,
+          "text": "D"
+        },
+        {
+          "x": 406,
+          "y": 99.4,
+          "width": 6,
+          "text": "e"
+        },
+        {
+          "x": 412,
+          "y": 99.4,
+          "width": 6,
+          "text": "p"
+        },
+        {
+          "x": 418,
+          "y": 99.4,
+          "width": 6,
+          "text": "o"
+        },
+        {
+          "x": 424,
+          "y": 99.4,
+          "width": 6,
+          "text": "s"
+        },
+        {
+          "x": 430,
+          "y": 99.4,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 436,
+          "y": 99.4,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 442,
+          "y": 99.4,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 448,
+          "y": 99.4,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 454,
+          "y": 99.4,
+          "width": 6,
+          "text": "m"
+        },
+        {
+          "x": 460,
+          "y": 99.4,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 466,
+          "y": 99.4,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 500,
+          "y": 100,
+          "width": 6,
+          "text": "C"
+        },
+        {
+          "x": 506,
+          "y": 100,
+          "width": 6,
+          "text": "l"
+        },
+        {
+          "x": 512,
+          "y": 100,
+          "width": 6,
+          "text": "o"
+        },
+        {
+          "x": 518,
+          "y": 100,
+          "width": 6,
+          "text": "s"
+        },
+        {
+          "x": 524,
+          "y": 100,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 530,
+          "y": 100,
+          "width": 6,
+          "text": "n"
+        },
+        {
+          "x": 536,
+          "y": 100,
+          "width": 6,
+          "text": "g"
+        },
+        {
+          "x": 542,
+          "y": 100,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 548,
+          "y": 100,
+          "width": 6,
+          "text": "B"
+        },
+        {
+          "x": 554,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 560,
+          "y": 100,
+          "width": 6,
+          "text": "l"
+        },
+        {
+          "x": 566,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 572,
+          "y": 100,
+          "width": 6,
+          "text": "n"
+        },
+        {
+          "x": 578,
+          "y": 100,
+          "width": 6,
+          "text": "c"
+        },
+        {
+          "x": 584,
+          "y": 100,
+          "width": 6,
+          "text": "e"
+        }
+      ]
+    },
+    "expected": [
+      [
+        {
+          "x": 40,
+          "str": "Date"
+        },
+        {
+          "x": 110,
+          "str": "Narration"
+        },
+        {
+          "x": 300,
+          "str": "Withdrawal Amt."
+        },
+        {
+          "x": 400,
+          "str": "Deposit Amt."
+        },
+        {
+          "x": 500,
+          "str": "Closing Balance"
+        }
+      ]
+    ]
+  },
+  {
+    "fn": "groupPdfGlyphs",
+    "input": {
+      "name": "one-line",
+      "glyphs": [
+        {
+          "x": 40,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 46,
+          "y": 120,
+          "width": 6,
+          "text": "1"
+        },
+        {
+          "x": 52,
+          "y": 120,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 58,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 64,
+          "y": 120,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 70,
+          "y": 120,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 76,
+          "y": 120,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 82,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 88,
+          "y": 120,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 94,
+          "y": 120,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 110,
+          "y": 120,
+          "width": 6,
+          "text": "U"
+        },
+        {
+          "x": 116,
+          "y": 120,
+          "width": 6,
+          "text": "P"
+        },
+        {
+          "x": 122,
+          "y": 120,
+          "width": 6,
+          "text": "I"
+        },
+        {
+          "x": 128,
+          "y": 120,
+          "width": 6,
+          "text": "-"
+        },
+        {
+          "x": 134,
+          "y": 120,
+          "width": 6,
+          "text": "S"
+        },
+        {
+          "x": 140,
+          "y": 120,
+          "width": 6,
+          "text": "W"
+        },
+        {
+          "x": 146,
+          "y": 120,
+          "width": 6,
+          "text": "I"
+        },
+        {
+          "x": 152,
+          "y": 120,
+          "width": 6,
+          "text": "G"
+        },
+        {
+          "x": 158,
+          "y": 120,
+          "width": 6,
+          "text": "G"
+        },
+        {
+          "x": 164,
+          "y": 120,
+          "width": 6,
+          "text": "Y"
+        },
+        {
+          "x": 170,
+          "y": 120,
+          "width": 6,
+          "text": "-"
+        },
+        {
+          "x": 176,
+          "y": 120,
+          "width": 6,
+          "text": "1"
+        },
+        {
+          "x": 182,
+          "y": 120,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 188,
+          "y": 120,
+          "width": 6,
+          "text": "3"
+        },
+        {
+          "x": 194,
+          "y": 120,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 300,
+          "y": 120,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 306,
+          "y": 120,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 312,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 318,
+          "y": 120,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 324,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 330,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 500,
+          "y": 120,
+          "width": 6,
+          "text": "1"
+        },
+        {
+          "x": 506,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 512,
+          "y": 120,
+          "width": 6,
+          "text": ","
+        },
+        {
+          "x": 518,
+          "y": 120,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 524,
+          "y": 120,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 530,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 536,
+          "y": 120,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 542,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 548,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        }
+      ]
+    },
+    "expected": [
+      [
+        {
+          "x": 40,
+          "str": "01/04/2026"
+        },
+        {
+          "x": 110,
+          "str": "UPI-SWIGGY-1234"
+        },
+        {
+          "x": 300,
+          "str": "450.00"
+        },
+        {
+          "x": 500,
+          "str": "10,550.00"
+        }
+      ]
+    ]
+  },
+  {
+    "fn": "groupPdfGlyphs",
+    "input": {
+      "name": "word-gap",
+      "glyphs": [
+        {
+          "x": 40,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 46,
+          "y": 140,
+          "width": 6,
+          "text": "3"
+        },
+        {
+          "x": 52,
+          "y": 140,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 58,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 64,
+          "y": 140,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 70,
+          "y": 140,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 76,
+          "y": 140,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 82,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 88,
+          "y": 140,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 94,
+          "y": 140,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 110,
+          "y": 140,
+          "width": 6,
+          "text": "S"
+        },
+        {
+          "x": 116,
+          "y": 140,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 122,
+          "y": 140,
+          "width": 6,
+          "text": "L"
+        },
+        {
+          "x": 128,
+          "y": 140,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 134,
+          "y": 140,
+          "width": 6,
+          "text": "R"
+        },
+        {
+          "x": 140,
+          "y": 140,
+          "width": 6,
+          "text": "Y"
+        },
+        {
+          "x": 160,
+          "y": 140,
+          "width": 6,
+          "text": "C"
+        },
+        {
+          "x": 166,
+          "y": 140,
+          "width": 6,
+          "text": "R"
+        },
+        {
+          "x": 172,
+          "y": 140,
+          "width": 6,
+          "text": "E"
+        },
+        {
+          "x": 178,
+          "y": 140,
+          "width": 6,
+          "text": "D"
+        },
+        {
+          "x": 184,
+          "y": 140,
+          "width": 6,
+          "text": "I"
+        },
+        {
+          "x": 190,
+          "y": 140,
+          "width": 6,
+          "text": "T"
+        },
+        {
+          "x": 400,
+          "y": 140,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 406,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 412,
+          "y": 140,
+          "width": 6,
+          "text": ","
+        },
+        {
+          "x": 418,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 424,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 430,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 436,
+          "y": 140,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 442,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 448,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        }
+      ]
+    },
+    "expected": [
+      [
+        {
+          "x": 40,
+          "str": "03/04/2026"
+        },
+        {
+          "x": 110,
+          "str": "SALARY"
+        },
+        {
+          "x": 160,
+          "str": "CREDIT"
+        },
+        {
+          "x": 400,
+          "str": "50,000.00"
+        }
+      ]
+    ]
+  },
+  {
+    "fn": "groupPdfGlyphs",
+    "input": {
+      "name": "explicit-spaces",
+      "glyphs": [
+        {
+          "x": 40,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 46,
+          "y": 160,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 52,
+          "y": 160,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 58,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 64,
+          "y": 160,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 70,
+          "y": 160,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 76,
+          "y": 160,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 82,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 88,
+          "y": 160,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 94,
+          "y": 160,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 110,
+          "y": 160,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 116,
+          "y": 160,
+          "width": 6,
+          "text": "T"
+        },
+        {
+          "x": 122,
+          "y": 160,
+          "width": 6,
+          "text": "W"
+        },
+        {
+          "x": 128,
+          "y": 160,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 134,
+          "y": 160,
+          "width": 6,
+          "text": "C"
+        },
+        {
+          "x": 140,
+          "y": 160,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 146,
+          "y": 160,
+          "width": 6,
+          "text": "S"
+        },
+        {
+          "x": 152,
+          "y": 160,
+          "width": 6,
+          "text": "H"
+        },
+        {
+          "x": 158,
+          "y": 160,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 164,
+          "y": 160,
+          "width": 6,
+          "text": "9"
+        },
+        {
+          "x": 170,
+          "y": 160,
+          "width": 6,
+          "text": "8"
+        },
+        {
+          "x": 176,
+          "y": 160,
+          "width": 6,
+          "text": "7"
+        },
+        {
+          "x": 182,
+          "y": 160,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 300,
+          "y": 160,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 306,
+          "y": 160,
+          "width": 6,
+          "text": ","
+        },
+        {
+          "x": 312,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 318,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 324,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 330,
+          "y": 160,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 336,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 342,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        }
+      ]
+    },
+    "expected": [
+      [
+        {
+          "x": 40,
+          "str": "05/04/2026"
+        },
+        {
+          "x": 110,
+          "str": "ATW CASH 9876"
+        },
+        {
+          "x": 300,
+          "str": "2,000.00"
+        }
+      ]
+    ]
+  },
+  {
+    "fn": "groupPdfGlyphs",
+    "input": {
+      "name": "zero-width-glyph",
+      "glyphs": [
+        {
+          "x": 40,
+          "y": 200,
+          "width": 0,
+          "text": "A"
+        },
+        {
+          "x": 40,
+          "y": 200,
+          "width": 6,
+          "text": "B"
+        },
+        {
+          "x": 46,
+          "y": 200,
+          "width": 6,
+          "text": "C"
+        }
+      ]
+    },
+    "expected": [
+      [
+        {
+          "x": 40,
+          "str": "ABC"
+        }
+      ]
+    ]
+  },
+  {
+    "fn": "groupPdfGlyphs",
+    "input": {
+      "name": "blank-glyphs",
+      "glyphs": [
+        {
+          "x": 10,
+          "y": 300,
+          "width": 4,
+          "text": ""
+        },
+        {
+          "x": 20,
+          "y": 300,
+          "width": 4,
+          "text": " "
+        },
+        {
+          "x": 60,
+          "y": 300,
+          "width": 4,
+          "text": "X"
+        }
+      ]
+    },
+    "expected": [
+      [
+        {
+          "x": 60,
+          "str": "X"
+        }
+      ]
+    ]
+  },
+  {
+    "fn": "groupPdfGlyphs",
+    "input": {
+      "name": "out-of-order-rows",
+      "glyphs": [
+        {
+          "x": 40,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 46,
+          "y": 160,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 52,
+          "y": 160,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 58,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 64,
+          "y": 160,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 70,
+          "y": 160,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 76,
+          "y": 160,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 82,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 88,
+          "y": 160,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 94,
+          "y": 160,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 110,
+          "y": 160,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 116,
+          "y": 160,
+          "width": 6,
+          "text": "T"
+        },
+        {
+          "x": 122,
+          "y": 160,
+          "width": 6,
+          "text": "W"
+        },
+        {
+          "x": 128,
+          "y": 160,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 134,
+          "y": 160,
+          "width": 6,
+          "text": "C"
+        },
+        {
+          "x": 140,
+          "y": 160,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 146,
+          "y": 160,
+          "width": 6,
+          "text": "S"
+        },
+        {
+          "x": 152,
+          "y": 160,
+          "width": 6,
+          "text": "H"
+        },
+        {
+          "x": 158,
+          "y": 160,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 164,
+          "y": 160,
+          "width": 6,
+          "text": "9"
+        },
+        {
+          "x": 170,
+          "y": 160,
+          "width": 6,
+          "text": "8"
+        },
+        {
+          "x": 176,
+          "y": 160,
+          "width": 6,
+          "text": "7"
+        },
+        {
+          "x": 182,
+          "y": 160,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 300,
+          "y": 160,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 306,
+          "y": 160,
+          "width": 6,
+          "text": ","
+        },
+        {
+          "x": 312,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 318,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 324,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 330,
+          "y": 160,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 336,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 342,
+          "y": 160,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 40,
+          "y": 100,
+          "width": 6,
+          "text": "D"
+        },
+        {
+          "x": 46,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 52,
+          "y": 100,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 58,
+          "y": 100,
+          "width": 6,
+          "text": "e"
+        },
+        {
+          "x": 110,
+          "y": 100.7,
+          "width": 6,
+          "text": "N"
+        },
+        {
+          "x": 116,
+          "y": 100.7,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 122,
+          "y": 100.7,
+          "width": 6,
+          "text": "r"
+        },
+        {
+          "x": 128,
+          "y": 100.7,
+          "width": 6,
+          "text": "r"
+        },
+        {
+          "x": 134,
+          "y": 100.7,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 140,
+          "y": 100.7,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 146,
+          "y": 100.7,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 152,
+          "y": 100.7,
+          "width": 6,
+          "text": "o"
+        },
+        {
+          "x": 158,
+          "y": 100.7,
+          "width": 6,
+          "text": "n"
+        },
+        {
+          "x": 300,
+          "y": 100,
+          "width": 6,
+          "text": "W"
+        },
+        {
+          "x": 306,
+          "y": 100,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 312,
+          "y": 100,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 318,
+          "y": 100,
+          "width": 6,
+          "text": "h"
+        },
+        {
+          "x": 324,
+          "y": 100,
+          "width": 6,
+          "text": "d"
+        },
+        {
+          "x": 330,
+          "y": 100,
+          "width": 6,
+          "text": "r"
+        },
+        {
+          "x": 336,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 342,
+          "y": 100,
+          "width": 6,
+          "text": "w"
+        },
+        {
+          "x": 348,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 354,
+          "y": 100,
+          "width": 6,
+          "text": "l"
+        },
+        {
+          "x": 360,
+          "y": 100,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 366,
+          "y": 100,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 372,
+          "y": 100,
+          "width": 6,
+          "text": "m"
+        },
+        {
+          "x": 378,
+          "y": 100,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 384,
+          "y": 100,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 400,
+          "y": 99.4,
+          "width": 6,
+          "text": "D"
+        },
+        {
+          "x": 406,
+          "y": 99.4,
+          "width": 6,
+          "text": "e"
+        },
+        {
+          "x": 412,
+          "y": 99.4,
+          "width": 6,
+          "text": "p"
+        },
+        {
+          "x": 418,
+          "y": 99.4,
+          "width": 6,
+          "text": "o"
+        },
+        {
+          "x": 424,
+          "y": 99.4,
+          "width": 6,
+          "text": "s"
+        },
+        {
+          "x": 430,
+          "y": 99.4,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 436,
+          "y": 99.4,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 442,
+          "y": 99.4,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 448,
+          "y": 99.4,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 454,
+          "y": 99.4,
+          "width": 6,
+          "text": "m"
+        },
+        {
+          "x": 460,
+          "y": 99.4,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 466,
+          "y": 99.4,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 500,
+          "y": 100,
+          "width": 6,
+          "text": "C"
+        },
+        {
+          "x": 506,
+          "y": 100,
+          "width": 6,
+          "text": "l"
+        },
+        {
+          "x": 512,
+          "y": 100,
+          "width": 6,
+          "text": "o"
+        },
+        {
+          "x": 518,
+          "y": 100,
+          "width": 6,
+          "text": "s"
+        },
+        {
+          "x": 524,
+          "y": 100,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 530,
+          "y": 100,
+          "width": 6,
+          "text": "n"
+        },
+        {
+          "x": 536,
+          "y": 100,
+          "width": 6,
+          "text": "g"
+        },
+        {
+          "x": 542,
+          "y": 100,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 548,
+          "y": 100,
+          "width": 6,
+          "text": "B"
+        },
+        {
+          "x": 554,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 560,
+          "y": 100,
+          "width": 6,
+          "text": "l"
+        },
+        {
+          "x": 566,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 572,
+          "y": 100,
+          "width": 6,
+          "text": "n"
+        },
+        {
+          "x": 578,
+          "y": 100,
+          "width": 6,
+          "text": "c"
+        },
+        {
+          "x": 584,
+          "y": 100,
+          "width": 6,
+          "text": "e"
+        },
+        {
+          "x": 40,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 46,
+          "y": 120,
+          "width": 6,
+          "text": "1"
+        },
+        {
+          "x": 52,
+          "y": 120,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 58,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 64,
+          "y": 120,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 70,
+          "y": 120,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 76,
+          "y": 120,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 82,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 88,
+          "y": 120,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 94,
+          "y": 120,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 110,
+          "y": 120,
+          "width": 6,
+          "text": "U"
+        },
+        {
+          "x": 116,
+          "y": 120,
+          "width": 6,
+          "text": "P"
+        },
+        {
+          "x": 122,
+          "y": 120,
+          "width": 6,
+          "text": "I"
+        },
+        {
+          "x": 128,
+          "y": 120,
+          "width": 6,
+          "text": "-"
+        },
+        {
+          "x": 134,
+          "y": 120,
+          "width": 6,
+          "text": "S"
+        },
+        {
+          "x": 140,
+          "y": 120,
+          "width": 6,
+          "text": "W"
+        },
+        {
+          "x": 146,
+          "y": 120,
+          "width": 6,
+          "text": "I"
+        },
+        {
+          "x": 152,
+          "y": 120,
+          "width": 6,
+          "text": "G"
+        },
+        {
+          "x": 158,
+          "y": 120,
+          "width": 6,
+          "text": "G"
+        },
+        {
+          "x": 164,
+          "y": 120,
+          "width": 6,
+          "text": "Y"
+        },
+        {
+          "x": 170,
+          "y": 120,
+          "width": 6,
+          "text": "-"
+        },
+        {
+          "x": 176,
+          "y": 120,
+          "width": 6,
+          "text": "1"
+        },
+        {
+          "x": 182,
+          "y": 120,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 188,
+          "y": 120,
+          "width": 6,
+          "text": "3"
+        },
+        {
+          "x": 194,
+          "y": 120,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 300,
+          "y": 120,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 306,
+          "y": 120,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 312,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 318,
+          "y": 120,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 324,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 330,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 500,
+          "y": 120,
+          "width": 6,
+          "text": "1"
+        },
+        {
+          "x": 506,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 512,
+          "y": 120,
+          "width": 6,
+          "text": ","
+        },
+        {
+          "x": 518,
+          "y": 120,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 524,
+          "y": 120,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 530,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 536,
+          "y": 120,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 542,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 548,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 40,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 46,
+          "y": 140,
+          "width": 6,
+          "text": "3"
+        },
+        {
+          "x": 52,
+          "y": 140,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 58,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 64,
+          "y": 140,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 70,
+          "y": 140,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 76,
+          "y": 140,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 82,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 88,
+          "y": 140,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 94,
+          "y": 140,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 110,
+          "y": 140,
+          "width": 6,
+          "text": "S"
+        },
+        {
+          "x": 116,
+          "y": 140,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 122,
+          "y": 140,
+          "width": 6,
+          "text": "L"
+        },
+        {
+          "x": 128,
+          "y": 140,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 134,
+          "y": 140,
+          "width": 6,
+          "text": "R"
+        },
+        {
+          "x": 140,
+          "y": 140,
+          "width": 6,
+          "text": "Y"
+        },
+        {
+          "x": 160,
+          "y": 140,
+          "width": 6,
+          "text": "C"
+        },
+        {
+          "x": 166,
+          "y": 140,
+          "width": 6,
+          "text": "R"
+        },
+        {
+          "x": 172,
+          "y": 140,
+          "width": 6,
+          "text": "E"
+        },
+        {
+          "x": 178,
+          "y": 140,
+          "width": 6,
+          "text": "D"
+        },
+        {
+          "x": 184,
+          "y": 140,
+          "width": 6,
+          "text": "I"
+        },
+        {
+          "x": 190,
+          "y": 140,
+          "width": 6,
+          "text": "T"
+        },
+        {
+          "x": 400,
+          "y": 140,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 406,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 412,
+          "y": 140,
+          "width": 6,
+          "text": ","
+        },
+        {
+          "x": 418,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 424,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 430,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 436,
+          "y": 140,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 442,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 448,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        }
+      ]
+    },
+    "expected": [
+      [
+        {
+          "x": 40,
+          "str": "Date"
+        },
+        {
+          "x": 110,
+          "str": "Narration"
+        },
+        {
+          "x": 300,
+          "str": "Withdrawal Amt."
+        },
+        {
+          "x": 400,
+          "str": "Deposit Amt."
+        },
+        {
+          "x": 500,
+          "str": "Closing Balance"
+        }
+      ],
+      [
+        {
+          "x": 40,
+          "str": "01/04/2026"
+        },
+        {
+          "x": 110,
+          "str": "UPI-SWIGGY-1234"
+        },
+        {
+          "x": 300,
+          "str": "450.00"
+        },
+        {
+          "x": 500,
+          "str": "10,550.00"
+        }
+      ],
+      [
+        {
+          "x": 40,
+          "str": "03/04/2026"
+        },
+        {
+          "x": 110,
+          "str": "SALARY"
+        },
+        {
+          "x": 160,
+          "str": "CREDIT"
+        },
+        {
+          "x": 400,
+          "str": "50,000.00"
+        }
+      ],
+      [
+        {
+          "x": 40,
+          "str": "05/04/2026"
+        },
+        {
+          "x": 110,
+          "str": "ATW CASH 9876"
+        },
+        {
+          "x": 300,
+          "str": "2,000.00"
+        }
+      ]
+    ]
+  },
+  {
+    "fn": "groupPdfGlyphs",
+    "input": {
+      "name": "empty",
+      "glyphs": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "parsePdfStatementFromGlyphs",
+    "input": {
+      "name": "hdfc-glyphs",
+      "glyphs": [
+        {
+          "x": 40,
+          "y": 100,
+          "width": 6,
+          "text": "D"
+        },
+        {
+          "x": 46,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 52,
+          "y": 100,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 58,
+          "y": 100,
+          "width": 6,
+          "text": "e"
+        },
+        {
+          "x": 110,
+          "y": 100.7,
+          "width": 6,
+          "text": "N"
+        },
+        {
+          "x": 116,
+          "y": 100.7,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 122,
+          "y": 100.7,
+          "width": 6,
+          "text": "r"
+        },
+        {
+          "x": 128,
+          "y": 100.7,
+          "width": 6,
+          "text": "r"
+        },
+        {
+          "x": 134,
+          "y": 100.7,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 140,
+          "y": 100.7,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 146,
+          "y": 100.7,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 152,
+          "y": 100.7,
+          "width": 6,
+          "text": "o"
+        },
+        {
+          "x": 158,
+          "y": 100.7,
+          "width": 6,
+          "text": "n"
+        },
+        {
+          "x": 300,
+          "y": 100,
+          "width": 6,
+          "text": "W"
+        },
+        {
+          "x": 306,
+          "y": 100,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 312,
+          "y": 100,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 318,
+          "y": 100,
+          "width": 6,
+          "text": "h"
+        },
+        {
+          "x": 324,
+          "y": 100,
+          "width": 6,
+          "text": "d"
+        },
+        {
+          "x": 330,
+          "y": 100,
+          "width": 6,
+          "text": "r"
+        },
+        {
+          "x": 336,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 342,
+          "y": 100,
+          "width": 6,
+          "text": "w"
+        },
+        {
+          "x": 348,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 354,
+          "y": 100,
+          "width": 6,
+          "text": "l"
+        },
+        {
+          "x": 360,
+          "y": 100,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 366,
+          "y": 100,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 372,
+          "y": 100,
+          "width": 6,
+          "text": "m"
+        },
+        {
+          "x": 378,
+          "y": 100,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 384,
+          "y": 100,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 430,
+          "y": 99.4,
+          "width": 6,
+          "text": "D"
+        },
+        {
+          "x": 436,
+          "y": 99.4,
+          "width": 6,
+          "text": "e"
+        },
+        {
+          "x": 442,
+          "y": 99.4,
+          "width": 6,
+          "text": "p"
+        },
+        {
+          "x": 448,
+          "y": 99.4,
+          "width": 6,
+          "text": "o"
+        },
+        {
+          "x": 454,
+          "y": 99.4,
+          "width": 6,
+          "text": "s"
+        },
+        {
+          "x": 460,
+          "y": 99.4,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 466,
+          "y": 99.4,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 472,
+          "y": 99.4,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 478,
+          "y": 99.4,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 484,
+          "y": 99.4,
+          "width": 6,
+          "text": "m"
+        },
+        {
+          "x": 490,
+          "y": 99.4,
+          "width": 6,
+          "text": "t"
+        },
+        {
+          "x": 496,
+          "y": 99.4,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 560,
+          "y": 100,
+          "width": 6,
+          "text": "C"
+        },
+        {
+          "x": 566,
+          "y": 100,
+          "width": 6,
+          "text": "l"
+        },
+        {
+          "x": 572,
+          "y": 100,
+          "width": 6,
+          "text": "o"
+        },
+        {
+          "x": 578,
+          "y": 100,
+          "width": 6,
+          "text": "s"
+        },
+        {
+          "x": 584,
+          "y": 100,
+          "width": 6,
+          "text": "i"
+        },
+        {
+          "x": 590,
+          "y": 100,
+          "width": 6,
+          "text": "n"
+        },
+        {
+          "x": 596,
+          "y": 100,
+          "width": 6,
+          "text": "g"
+        },
+        {
+          "x": 602,
+          "y": 100,
+          "width": 6,
+          "text": " "
+        },
+        {
+          "x": 608,
+          "y": 100,
+          "width": 6,
+          "text": "B"
+        },
+        {
+          "x": 614,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 620,
+          "y": 100,
+          "width": 6,
+          "text": "l"
+        },
+        {
+          "x": 626,
+          "y": 100,
+          "width": 6,
+          "text": "a"
+        },
+        {
+          "x": 632,
+          "y": 100,
+          "width": 6,
+          "text": "n"
+        },
+        {
+          "x": 638,
+          "y": 100,
+          "width": 6,
+          "text": "c"
+        },
+        {
+          "x": 644,
+          "y": 100,
+          "width": 6,
+          "text": "e"
+        },
+        {
+          "x": 40,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 46,
+          "y": 120,
+          "width": 6,
+          "text": "1"
+        },
+        {
+          "x": 52,
+          "y": 120,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 58,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 64,
+          "y": 120,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 70,
+          "y": 120,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 76,
+          "y": 120,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 82,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 88,
+          "y": 120,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 94,
+          "y": 120,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 110,
+          "y": 120,
+          "width": 6,
+          "text": "U"
+        },
+        {
+          "x": 116,
+          "y": 120,
+          "width": 6,
+          "text": "P"
+        },
+        {
+          "x": 122,
+          "y": 120,
+          "width": 6,
+          "text": "I"
+        },
+        {
+          "x": 128,
+          "y": 120,
+          "width": 6,
+          "text": "-"
+        },
+        {
+          "x": 134,
+          "y": 120,
+          "width": 6,
+          "text": "S"
+        },
+        {
+          "x": 140,
+          "y": 120,
+          "width": 6,
+          "text": "W"
+        },
+        {
+          "x": 146,
+          "y": 120,
+          "width": 6,
+          "text": "I"
+        },
+        {
+          "x": 152,
+          "y": 120,
+          "width": 6,
+          "text": "G"
+        },
+        {
+          "x": 158,
+          "y": 120,
+          "width": 6,
+          "text": "G"
+        },
+        {
+          "x": 164,
+          "y": 120,
+          "width": 6,
+          "text": "Y"
+        },
+        {
+          "x": 170,
+          "y": 120,
+          "width": 6,
+          "text": "-"
+        },
+        {
+          "x": 176,
+          "y": 120,
+          "width": 6,
+          "text": "1"
+        },
+        {
+          "x": 182,
+          "y": 120,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 188,
+          "y": 120,
+          "width": 6,
+          "text": "3"
+        },
+        {
+          "x": 194,
+          "y": 120,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 300,
+          "y": 120,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 306,
+          "y": 120,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 312,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 318,
+          "y": 120,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 324,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 330,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 560,
+          "y": 120,
+          "width": 6,
+          "text": "1"
+        },
+        {
+          "x": 566,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 572,
+          "y": 120,
+          "width": 6,
+          "text": ","
+        },
+        {
+          "x": 578,
+          "y": 120,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 584,
+          "y": 120,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 590,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 596,
+          "y": 120,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 602,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 608,
+          "y": 120,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 40,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 46,
+          "y": 140,
+          "width": 6,
+          "text": "3"
+        },
+        {
+          "x": 52,
+          "y": 140,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 58,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 64,
+          "y": 140,
+          "width": 6,
+          "text": "4"
+        },
+        {
+          "x": 70,
+          "y": 140,
+          "width": 6,
+          "text": "/"
+        },
+        {
+          "x": 76,
+          "y": 140,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 82,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 88,
+          "y": 140,
+          "width": 6,
+          "text": "2"
+        },
+        {
+          "x": 94,
+          "y": 140,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 110,
+          "y": 140,
+          "width": 6,
+          "text": "S"
+        },
+        {
+          "x": 116,
+          "y": 140,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 122,
+          "y": 140,
+          "width": 6,
+          "text": "L"
+        },
+        {
+          "x": 128,
+          "y": 140,
+          "width": 6,
+          "text": "A"
+        },
+        {
+          "x": 134,
+          "y": 140,
+          "width": 6,
+          "text": "R"
+        },
+        {
+          "x": 140,
+          "y": 140,
+          "width": 6,
+          "text": "Y"
+        },
+        {
+          "x": 160,
+          "y": 140,
+          "width": 6,
+          "text": "C"
+        },
+        {
+          "x": 166,
+          "y": 140,
+          "width": 6,
+          "text": "R"
+        },
+        {
+          "x": 172,
+          "y": 140,
+          "width": 6,
+          "text": "E"
+        },
+        {
+          "x": 178,
+          "y": 140,
+          "width": 6,
+          "text": "D"
+        },
+        {
+          "x": 184,
+          "y": 140,
+          "width": 6,
+          "text": "I"
+        },
+        {
+          "x": 190,
+          "y": 140,
+          "width": 6,
+          "text": "T"
+        },
+        {
+          "x": 430,
+          "y": 140,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 436,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 442,
+          "y": 140,
+          "width": 6,
+          "text": ","
+        },
+        {
+          "x": 448,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 454,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 460,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 466,
+          "y": 140,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 472,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 478,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 560,
+          "y": 140,
+          "width": 6,
+          "text": "6"
+        },
+        {
+          "x": 566,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 572,
+          "y": 140,
+          "width": 6,
+          "text": ","
+        },
+        {
+          "x": 578,
+          "y": 140,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 584,
+          "y": 140,
+          "width": 6,
+          "text": "5"
+        },
+        {
+          "x": 590,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 596,
+          "y": 140,
+          "width": 6,
+          "text": "."
+        },
+        {
+          "x": 602,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        },
+        {
+          "x": 608,
+          "y": 140,
+          "width": 6,
+          "text": "0"
+        }
+      ],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-03"
+      },
+      "openingBalance": 1055000,
+      "closingBalance": 6055000,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "UPI-SWIGGY-1234",
+          "amount": -45000,
+          "balance": 1055000
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY CREDIT",
+          "amount": 5000000,
+          "balance": 6055000
+        }
+      ],
+      "warnings": [
+        "PDF parsed with column detection — review a few rows to be sure the debits/credits look right."
+      ]
+    }
+  },
+  {
+    "fn": "parsePdfStatementFromGlyphs",
+    "input": {
+      "name": "empty",
+      "glyphs": [],
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [],
+      "warnings": [
+        "Couldn't detect statement columns — parsed line-by-line (less reliable). Review amounts, or try the CSV/Excel export.",
+        "Couldn't read any transactions — this may be a scanned image (needs OCR) or an unusual layout. Try the CSV/Excel export instead."
+      ]
+    }
+  }
+]

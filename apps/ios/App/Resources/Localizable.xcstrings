@@ -27572,6 +27572,29 @@
         }
       }
     },
+    "statementsAnalyze:chooseFileCsvOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose file (CSV)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फ़ाइल चुनें (CSV)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestand kiezen (CSV)"
+          }
+        }
+      }
+    },
     "statementsAnalyze:chooseLater": {
       "extractionState": "manual",
       "localizations": {
@@ -28101,6 +28124,29 @@
         }
       }
     },
+    "statementsAnalyze:pdfCancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रद्द करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuleren"
+          }
+        }
+      }
+    },
     "statementsAnalyze:pdfPassword": {
       "extractionState": "manual",
       "localizations": {
@@ -28120,6 +28166,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Deze PDF is met een wachtwoord beveiligd. Voer het wachtwoord in:"
+          }
+        }
+      }
+    },
+    "statementsAnalyze:pdfUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF reading isn't available in this build. Use your bank's CSV/Excel export instead."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस बिल्ड में PDF पढ़ना उपलब्ध नहीं है। इसके बजाय अपने बैंक का CSV/Excel एक्सपोर्ट उपयोग करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF's lezen is niet beschikbaar in deze build. Gebruik in plaats daarvan de CSV/Excel-export van je bank."
+          }
+        }
+      }
+    },
+    "statementsAnalyze:pdfUnlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अनलॉक करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendelen"
           }
         }
       }

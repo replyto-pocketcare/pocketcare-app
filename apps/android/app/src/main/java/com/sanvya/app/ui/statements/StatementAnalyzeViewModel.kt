@@ -18,8 +18,11 @@ import com.sanvya.app.domain.statements.Reconciliation
 import com.sanvya.app.domain.statements.RecurringCandidate
 import com.sanvya.app.domain.statements.StatementTxn
 import com.sanvya.app.domain.statements.addDaysIso
+import com.sanvya.app.domain.statements.parsePdfStatementFromGlyphs
 import com.sanvya.app.domain.statements.parseStatementCsv
 import com.sanvya.app.domain.statements.reconcileStatement
+import com.sanvya.app.pdf.PdfPasswordRequired
+import com.sanvya.app.pdf.PdfTextExtractor
 import com.sanvya.app.ui.baseCurrencyNow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +39,7 @@ import kotlin.math.abs
  * it, reconcile it against what is already recorded, and import what is missing.
  *
  * Ported from `apps/web/app/statements/analyze/page.tsx`. Every number on the
- * screen comes from Domain's `StatementCsv`/`StatementAnalysis`/
+ * screen comes from Domain's `StatementCsv`/`StatementPdf`/`StatementAnalysis`/
  * `StatementReconcile`, all vector-pinned; this holds the screen's state and
  * the four repository calls.
  *
@@ -50,6 +53,7 @@ class StatementAnalyzeViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
     private val recurringRepository: RecurringRepository by inject()
     private val authRepository: AuthRepository by inject()
+    private val pdfExtractor: PdfTextExtractor by inject()
 
     // ---- picker state ----
 
@@ -114,6 +118,7 @@ class StatementAnalyzeViewModel : ViewModel(), KoinComponent {
         _addedRecurring.value = emptySet()
         _showAllTransactions.value = false
         _error.value = null
+        _pdfNeedsPassword.value = false
     }
 
     // ---- parse ----
@@ -130,6 +135,7 @@ class StatementAnalyzeViewModel : ViewModel(), KoinComponent {
         _parsed.value = null
         _reconciliation.value = null
         _imported.value = false
+        _pdfNeedsPassword.value = false
         _busy.value = parsingLabel
 
         viewModelScope.launch {
@@ -143,6 +149,78 @@ class StatementAnalyzeViewModel : ViewModel(), KoinComponent {
                 if (statement.txns.isEmpty() && statement.warnings.isEmpty()) {
                     _error.value = readFailMessage
                 }
+            } catch (e: Exception) {
+                _error.value = e.message ?: readFailMessage
+            } finally {
+                _busy.value = null
+            }
+        }
+    }
+
+    /**
+     * Whether the file picker should offer PDFs at all.
+     *
+     * Web never asks this — pdf.js is always there. Here the extractor is a
+     * removable library, so the screen has to be able to say "CSV only" instead
+     * of offering a file type it will then refuse.
+     */
+    val pdfSupported: Boolean get() = pdfExtractor.isAvailable
+
+    /**
+     * True after a PDF came back encrypted, so the screen can prompt for a
+     * password and call [parsePdf] again — web's `window.prompt` step, minus the
+     * blocking dialog no mobile platform has.
+     */
+    private val _pdfNeedsPassword = MutableStateFlow(false)
+    val pdfNeedsPassword: StateFlow<Boolean> = _pdfNeedsPassword.asStateFlow()
+
+    fun dismissPasswordPrompt() { _pdfNeedsPassword.value = false }
+
+    /**
+     * Parse a picked PDF: extract positioned glyphs here, hand everything after
+     * that to Domain.
+     *
+     * The split is the whole design. [PdfTextExtractor] contributes glyphs and
+     * nothing else; `parsePdfStatementFromGlyphs` does the grouping, the column
+     * detection and the parse, shares every line of it with iOS, and is pinned
+     * by golden vectors. A library swap cannot change what a statement parses to.
+     */
+    fun parsePdf(
+        bytes: ByteArray,
+        password: String?,
+        readingLabel: String,
+        categorisingLabel: String,
+        readFailMessage: String,
+        unavailableMessage: String,
+    ) {
+        _error.value = null
+        _parsed.value = null
+        _reconciliation.value = null
+        _imported.value = false
+        _pdfNeedsPassword.value = false
+
+        if (!pdfExtractor.isAvailable) {
+            _error.value = unavailableMessage
+            return
+        }
+        _busy.value = readingLabel
+
+        viewModelScope.launch {
+            try {
+                val glyphs = pdfExtractor.extract(bytes, password)
+                val base = baseCurrencyNow()
+                var statement = parsePdfStatementFromGlyphs(glyphs, currency = base, kind = _kind.value)
+                _busy.value = categorisingLabel
+                statement = categorise(statement)
+                _parsed.value = statement
+                reconcileNow(statement)
+                if (statement.txns.isEmpty() && statement.warnings.isEmpty()) {
+                    _error.value = readFailMessage
+                }
+            } catch (e: PdfPasswordRequired) {
+                // Not an error on screen: the file is fine, it just needs a
+                // password, and web asks for one at exactly this point too.
+                _pdfNeedsPassword.value = true
             } catch (e: Exception) {
                 _error.value = e.message ?: readFailMessage
             } finally {

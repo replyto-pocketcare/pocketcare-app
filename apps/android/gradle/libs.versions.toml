@@ -68,6 +68,17 @@ googleServices = "4.4.2"
 # androidx.browser is the Custom Tabs client library; without it the flow falls
 # back to a full browser app switch, which loses the app's task on some OEMs.
 androidxBrowser = "1.8.0"
+# Statement PDF text extraction. PDFBox-Android (Apache-2.0) is a port of
+# Apache PDFBox 2.x; it is chosen over iText because iText 7 is AGPL-3.0 without
+# a commercial licence, and AGPL on a closed-source app means publishing the
+# app's source. It is also the only one of the two that exposes per-glyph
+# x/y positions, which the column-aware statement parser needs. 2.0.27.0
+# verified as the latest release (Maven Central, com.tom-roush) 2026-08-23.
+#
+# Isolated behind PdfTextExtractor on purpose: every call is guarded and every
+# failure -- including a LinkageError from a stripped or broken build --
+# degrades to "PDFs unavailable, use the CSV export" rather than a crash.
+pdfboxAndroid = "2.0.27.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -106,6 +117,7 @@ camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.
 camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraX" }
 camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+pdfbox-android = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfboxAndroid" }
 # Icon fonts for Compose -- were bare, version-less string coordinates in
 # app/build.gradle.kts, resolved by the Compose BOM. Same resolution, declared
 # where every other dependency is declared.

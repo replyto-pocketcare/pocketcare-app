@@ -48,6 +48,12 @@ android {
 
     buildTypes {
         release {
+            // When this is turned on, PDFBox-Android needs keep rules: it
+            // resolves font and filter classes reflectively, and R8 strips them
+            // silently. PdfBoxTextExtractor already degrades to "PDFs
+            // unavailable" rather than crashing if that happens, so the failure
+            // is survivable -- but it is a feature quietly disappearing from a
+            // release build, which is exactly the kind of thing nobody notices.
             isMinifyEnabled = false
         }
     }
@@ -97,6 +103,12 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
     implementation(libs.mlkit.text.recognition)
+
+    // Statement PDF text extraction. Reached only through PdfTextExtractor, so
+    // removing this line plus PdfBoxTextExtractor.kt and its Koin binding is the
+    // whole cost of dropping the library -- the analyzer then reports PDFs as
+    // unavailable and keeps working on CSV.
+    implementation(libs.pdfbox.android)
 
     // Firebase
     implementation(platform(libs.firebase.bom))

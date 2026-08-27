@@ -1287,6 +1287,7 @@
     <string name="statements_analyze_card">Credit card</string>
     <string name="statements_analyze_categorising">Categorising…</string>
     <string name="statements_analyze_choose_file">Choose file (CSV or PDF)</string>
+    <string name="statements_analyze_choose_file_csv_only">Choose file (CSV)</string>
     <string name="statements_analyze_choose_later">Choose later</string>
     <string name="statements_analyze_closing_balance">Closing balance</string>
     <string name="statements_analyze_daily_spend">Daily spend</string>
@@ -1310,7 +1311,10 @@
     <string name="statements_analyze_outliers_title">Outliers · unusually large</string>
     <string name="statements_analyze_parsing">Parsing…</string>
     <string name="statements_analyze_pay_by">Pay by</string>
+    <string name="statements_analyze_pdf_cancel">Cancel</string>
     <string name="statements_analyze_pdf_password">This PDF is password-protected. Enter its password:</string>
+    <string name="statements_analyze_pdf_unavailable">PDF reading isn\'t available in this build. Use your bank\'s CSV/Excel export instead.</string>
+    <string name="statements_analyze_pdf_unlock">Unlock</string>
     <string name="statements_analyze_pick_account_reconcile">Pick an account when uploading to match these against your recorded transactions.</string>
     <string name="statements_analyze_read_fail">Couldn\'t read that file.</string>
     <string name="statements_analyze_reading_pdf">Reading PDF…</string>

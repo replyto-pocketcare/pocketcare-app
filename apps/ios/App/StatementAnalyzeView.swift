@@ -11,13 +11,18 @@ import UniformTypeIdentifiers
 /// **Nothing leaves the device** — the claim web's header makes, and the reason
 /// every step here is Domain plus a repository rather than an endpoint.
 ///
-/// **CSV only.** Web also parses PDFs with pdf.js; iOS could do it with PDFKit
-/// in a few lines but Android has no built-in PDF text extraction at all, so
-/// shipping it here alone would split the two apps on this screen's headline
-/// feature. Recorded in docs/mobile/ABSENT-BY-DECISION.md.
+/// **CSV and PDF.** Web reads PDFs with pdf.js, iOS with PDFKit, Android with
+/// PDFBox — but all three feed the same Domain parser, and on the two phones
+/// even the glyph-to-cell grouping is shared, so the same statement parses to
+/// the same numbers on both.
 struct StatementAnalyzeView: View {
     @State private var viewModel = StatementAnalyzeViewModel()
     @State private var showImporter = false
+    /// The picked PDF's bytes, kept so the password prompt can retry the same
+    /// file without sending the user back through the importer — web re-reads
+    /// the File object it already has for exactly this.
+    @State private var pendingPdf: Foundation.Data?
+    @State private var password = ""
 
     var body: some View {
         ScrollView {
@@ -36,9 +41,23 @@ struct StatementAnalyzeView: View {
             // of banks hand out a .csv the system types as plain text, and a
             // picker that greys out the file the user came to import is a dead
             // end. Same reasoning as the Data screen's importer.
-            allowedContentTypes: [.commaSeparatedText, .plainText, .text],
+            allowedContentTypes: viewModel.pdfSupported
+                ? [.commaSeparatedText, .plainText, .text, .pdf]
+                : [.commaSeparatedText, .plainText, .text],
             allowsMultipleSelection: false
         ) { outcome in handlePicked(outcome) }
+        .alert(S.StatementsAnalyze.pdfPassword, isPresented: passwordPrompt) {
+            // A statement password is a date of birth or a PAN on most Indian
+            // banks, so the alphanumeric secure field, not a number pad.
+            SecureField("", text: $password)
+            // No `.disabled` here: modifiers on an alert's action buttons are
+            // honoured inconsistently, so the empty case is guarded in the
+            // handler instead of being made unreachable in the UI.
+            Button(S.StatementsAnalyze.pdfUnlock) { retryWithPassword() }
+            Button(S.StatementsAnalyze.pdfCancel, role: .cancel) {
+                viewModel.dismissPasswordPrompt()
+            }
+        }
         .onAppear { viewModel.start() }
         .onDisappear { viewModel.stop() }
     }
@@ -81,7 +100,12 @@ struct StatementAnalyzeView: View {
                     }
 
                     SanvyaButton { showImporter = true } label: {
-                        Text(viewModel.busy ?? S.StatementsAnalyze.chooseFile)
+                        // The catalogue string says "Choose file (CSV or
+                        // PDF)". Without an extractor that is a promise the
+                        // importer cannot keep, so it degrades to CSV.
+                        Text(viewModel.busy ?? (viewModel.pdfSupported
+                            ? S.StatementsAnalyze.chooseFile
+                            : S.StatementsAnalyze.chooseFileCsvOnly))
                     }
                     .disabled(viewModel.busy != nil)
 
@@ -111,6 +135,30 @@ struct StatementAnalyzeView: View {
         }
     }
 
+    /// The alert's presentation binding. `pdfNeedsPassword` is `private(set)` on
+    /// the view model — a dismissal has to go through `dismissPasswordPrompt()`
+    /// so the state has exactly one owner.
+    private var passwordPrompt: Binding<Bool> {
+        Binding(
+            get: { viewModel.pdfNeedsPassword },
+            set: { if !$0 { viewModel.dismissPasswordPrompt() } }
+        )
+    }
+
+    private func retryWithPassword() {
+        let entered = password
+        viewModel.dismissPasswordPrompt()
+        guard let data = pendingPdf, !entered.isEmpty else { return }
+        viewModel.parsePdf(
+            data: data,
+            password: entered,
+            readingLabel: S.StatementsAnalyze.readingPdf,
+            categorisingLabel: S.StatementsAnalyze.categorising,
+            readFailMessage: S.StatementsAnalyze.readFail,
+            unavailableMessage: S.StatementsAnalyze.pdfUnavailable
+        )
+    }
+
     private func handlePicked(_ outcome: Result<[URL], Error>) {
         switch outcome {
         case .failure(let error):
@@ -127,6 +175,26 @@ struct StatementAnalyzeView: View {
                 viewModel.setError(S.StatementsAnalyze.readFail)
                 return
             }
+
+            // Type, not file extension: the importer resolved a UTType already,
+            // and web's own `/\.pdf$/i` test on the name is the weaker of the
+            // two — a PDF saved without an extension still reads as one here.
+            let isPdf = (try? url.resourceValues(forKeys: [.contentTypeKey]))?.contentType?
+                .conforms(to: .pdf) ?? (url.pathExtension.lowercased() == "pdf")
+            if isPdf {
+                pendingPdf = data
+                password = ""
+                viewModel.parsePdf(
+                    data: data,
+                    password: nil,
+                    readingLabel: S.StatementsAnalyze.readingPdf,
+                    categorisingLabel: S.StatementsAnalyze.categorising,
+                    readFailMessage: S.StatementsAnalyze.readFail,
+                    unavailableMessage: S.StatementsAnalyze.pdfUnavailable
+                )
+                return
+            }
+            pendingPdf = nil
             // A bank export is not reliably UTF-8; several Indian banks emit
             // Windows-1252. Falling back keeps a mojibake merchant name rather
             // than refusing the file outright.

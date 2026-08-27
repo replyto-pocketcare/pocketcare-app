@@ -46,7 +46,7 @@ Keep this current. Adding a row is part of the change that creates the gap, not 
 | ~~Auto-categorisation~~ | ~~**`learnFromSave`** — the write half~~ | **Built on both, 2026-08-27**, wired into the add-transaction save path with the debounced suggestion and the auto-apply latch. The **edit** screen's correction path is still open — web learns there too, and a correction is the highest-signal event the engine gets | 🔶 New-transaction done; edit pending |
 | Auto-categorisation | `autoJob.ts`, `anchors.ts`, `semantic.ts` | The background re-categorise job and the embedding-based fallback. Neither is reachable from any screen being ported now, and `semantic.ts` needs a model on device |
 | ~~Statements~~ | ~~"Analyze" link~~ | **Built on both, 2026-08-27.** The screen is reachable from Statements exactly as on web | ✅ Done |
-| `/statements/analyze` | **PDF statements** | Web's `parsePdf.ts` runs pdf.js in the browser. iOS has PDFKit and could do it in a few lines; **Android has no built-in PDF text extraction at all**, so it needs a third-party library and a licence decision (PdfBox-Android is Apache-2.0 and ~15MB; iText is AGPL). Shipping it on iOS alone would put the two apps out of step on the headline feature of that screen. Both parse CSV; both say so. Closes when the library call is made |
+| `/statements/analyze` | ~~**PDF statements**~~ | **Closed 2026-08-27.** PDFBox-Android (Apache-2.0) on Android, PDFKit on iOS, both behind `PdfTextExtractor`, both feeding the same Domain parser. iText was rejected: AGPL-3.0 without a commercial licence, which on a closed-source app means publishing the app's source. The library stays optional — every failure degrades to "PDFs unavailable, use the CSV export" — see the note below |
 | Statements | "Go Premium" button | Web links to `/settings`; there is **no native upgrade flow yet**, so the button would go nowhere |
 | ~~First run, **both platforms**~~ | ~~The **walkthrough**~~ | **Built on both, 2026-08-23.** All 7 steps, both writes, and the `done`/`skipped` split, gated by `shouldShowWalkthrough()` in Domain under 103 vectors. iOS's orphaned 121-line half-draft is gone | ✅ Done |
 | Pre-auth deck | The **"Install the app" chip** and `InstallGuide` modal | Web's deck ends with PWA install instructions — Add to Home Screen on iOS Safari, the install prompt on Chrome. On a phone running this app, the app IS installed. There is nothing for the chip to say and no honest destination for it |
@@ -100,3 +100,15 @@ Not gaps — the opposite. Each of these was written after the same error reache
 
 *A ✅ here means the row is resolved, not that the feature was verified on a device — see the
 section above for what that distinction costs.*
+
+## PDF statement parsing — what is still absent, 2026-08-27
+
+The parser is ported and shared. These are the deliberate limits inside it.
+
+| Gap | Why |
+| --- | --- |
+| **Scanned PDFs** | No OCR. A scan has pages and no text layer, so the extractor returns no glyphs and Domain's own "this may be a scanned image (needs OCR)" warning fires. Web says exactly the same thing and also does no OCR. Closes if receipt-scan's ML Kit / Vision text recognisers are pointed at rendered PDF pages |
+| **Cell boundaries differ from web's** | pdf.js hands back text RUNS; PDFBox and PDFKit hand back glyphs. `groupPdfGlyphs` rebuilds runs from glyphs identically on both phones, but its boundaries are not guaranteed to land where pdf.js's did — a narration can carry a space web does not have. Amounts, dates and signs are unaffected: those come from column x-positions, which all three agree on. **Android↔iOS parity is exact and vector-pinned**; browser↔phone parity on narration text alone is not |
+| **PDFBox-Android's size** | ~10-16MB of font assets in the APK. It buys the screen's headline feature and it is the only Apache-licensed option, so it ships — but if APK size becomes the binding constraint, the fix is Play Feature Delivery (an on-demand dynamic feature module), not a different library. Not done now because on-demand delivery is a Play-Store-only mechanism and a build-system change, and it does nothing for reliability |
+| **Password prompt is one-shot** | A wrong password shows the generic read-failure message rather than re-prompting. Web's `window.prompt` is also one-shot for the same reason: it cannot tell a wrong password from a corrupt file without a second attempt |
+| **iOS surrogate pairs** | `characterBounds(at:)` is indexed in UTF-16, so an emoji or a rare CJK glyph in a narration would be split into two half-glyphs. Bank statements are Latin plus Devanagari, both of which are in the BMP. Left as-is rather than papered over with a grapheme walk that would then disagree with PDFBox |

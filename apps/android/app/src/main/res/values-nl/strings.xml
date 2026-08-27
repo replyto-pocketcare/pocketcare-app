@@ -1287,6 +1287,7 @@
     <string name="statements_analyze_card">Creditcard</string>
     <string name="statements_analyze_categorising">Categoriseren…</string>
     <string name="statements_analyze_choose_file">Bestand kiezen (CSV of PDF)</string>
+    <string name="statements_analyze_choose_file_csv_only">Bestand kiezen (CSV)</string>
     <string name="statements_analyze_choose_later">Later kiezen</string>
     <string name="statements_analyze_closing_balance">Eindsaldo</string>
     <string name="statements_analyze_daily_spend">Dagelijkse uitgaven</string>
@@ -1310,7 +1311,10 @@
     <string name="statements_analyze_outliers_title">Uitschieters · ongewoon groot</string>
     <string name="statements_analyze_parsing">Verwerken…</string>
     <string name="statements_analyze_pay_by">Betalen vóór</string>
+    <string name="statements_analyze_pdf_cancel">Annuleren</string>
     <string name="statements_analyze_pdf_password">Deze PDF is met een wachtwoord beveiligd. Voer het wachtwoord in:</string>
+    <string name="statements_analyze_pdf_unavailable">PDF\'s lezen is niet beschikbaar in deze build. Gebruik in plaats daarvan de CSV/Excel-export van je bank.</string>
+    <string name="statements_analyze_pdf_unlock">Ontgrendelen</string>
     <string name="statements_analyze_pick_account_reconcile">Kies bij het uploaden een rekening om deze met je vastgelegde transacties te vergelijken.</string>
     <string name="statements_analyze_read_fail">Kon dat bestand niet lezen.</string>
     <string name="statements_analyze_reading_pdf">PDF lezen…</string>

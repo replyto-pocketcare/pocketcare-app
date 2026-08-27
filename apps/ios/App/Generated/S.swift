@@ -1597,6 +1597,7 @@ public enum S {
         public static var card: String { String(localized: "statementsAnalyze:card", table: "Localizable") }
         public static var categorising: String { String(localized: "statementsAnalyze:categorising", table: "Localizable") }
         public static var chooseFile: String { String(localized: "statementsAnalyze:chooseFile", table: "Localizable") }
+        public static var chooseFileCsvOnly: String { String(localized: "statementsAnalyze:chooseFileCsvOnly", table: "Localizable") }
         public static var chooseLater: String { String(localized: "statementsAnalyze:chooseLater", table: "Localizable") }
         public static var closingBalance: String { String(localized: "statementsAnalyze:closingBalance", table: "Localizable") }
         public static var dailySpend: String { String(localized: "statementsAnalyze:dailySpend", table: "Localizable") }
@@ -1622,7 +1623,10 @@ public enum S {
         public static var outliersTitle: String { String(localized: "statementsAnalyze:outliersTitle", table: "Localizable") }
         public static var parsing: String { String(localized: "statementsAnalyze:parsing", table: "Localizable") }
         public static var payBy: String { String(localized: "statementsAnalyze:payBy", table: "Localizable") }
+        public static var pdfCancel: String { String(localized: "statementsAnalyze:pdfCancel", table: "Localizable") }
         public static var pdfPassword: String { String(localized: "statementsAnalyze:pdfPassword", table: "Localizable") }
+        public static var pdfUnavailable: String { String(localized: "statementsAnalyze:pdfUnavailable", table: "Localizable") }
+        public static var pdfUnlock: String { String(localized: "statementsAnalyze:pdfUnlock", table: "Localizable") }
         public static var pickAccountReconcile: String { String(localized: "statementsAnalyze:pickAccountReconcile", table: "Localizable") }
         public static var readFail: String { String(localized: "statementsAnalyze:readFail", table: "Localizable") }
         public static var readingPdf: String { String(localized: "statementsAnalyze:readingPdf", table: "Localizable") }

@@ -16,17 +16,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +61,7 @@ import com.sanvya.app.ui.components.SanvyaButton
 import com.sanvya.app.ui.components.SanvyaCard
 import com.sanvya.app.ui.components.SanvyaChip
 import com.sanvya.app.ui.components.SanvyaDonutChart
+import com.sanvya.app.ui.components.SanvyaInput
 import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.ui.formatMoney
 import kotlin.math.abs
@@ -67,9 +75,10 @@ import kotlin.math.abs
  * **Nothing leaves the device** — the claim web's header makes, and the reason
  * every step here is Domain plus a repository rather than an endpoint.
  *
- * **CSV only.** Web also parses PDFs with pdf.js; Android has no built-in PDF
- * text extraction at all, so it needs a third-party library and a licence
- * decision. Recorded in docs/mobile/ABSENT-BY-DECISION.md.
+ * **CSV and PDF.** Web reads PDFs with pdf.js; Android has no built-in PDF text
+ * extraction, so it goes through `PdfTextExtractor` (PDFBox-Android). That
+ * library is optional by design: when it is absent the picker offers CSV only
+ * and says so, rather than accepting a file it will then refuse.
  *
  * Mirrors iOS's StatementAnalyzeView.swift.
  */
@@ -95,14 +104,72 @@ fun StatementAnalyzeScreen(viewModel: StatementAnalyzeViewModel = viewModel()) {
     val categorisingLabel = S.StatementsAnalyze.categorising(res)
     val readFail = S.StatementsAnalyze.readFail(res)
 
+    val readingPdf = S.StatementsAnalyze.readingPdf(res)
+    val pdfUnavailable = S.StatementsAnalyze.pdfUnavailable(res)
+    val pdfNeedsPassword by viewModel.pdfNeedsPassword.collectAsState()
+    val pdfSupported = viewModel.pdfSupported
+
+    // The picked PDF's bytes, kept so the password prompt can retry the same
+    // file without sending the user back through the picker -- web re-reads the
+    // File object it already has for exactly this.
+    var pendingPdf by remember { mutableStateOf<ByteArray?>(null) }
+    var password by remember { mutableStateOf("") }
+
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri == null) return@rememberLauncherForActivityResult
+        // Type, not file extension: SAF gives a MIME type it has already
+        // resolved, and web's own `/\.pdf$/i` test on the name is the weaker
+        // check of the two -- a PDF saved as "statement" has no extension.
+        val isPdf = context.contentResolver.getType(uri) == "application/pdf" ||
+            uri.lastPathSegment.orEmpty().endsWith(".pdf", ignoreCase = true)
         runCatching {
-            context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-        }.onSuccess { text ->
-            if (text == null) viewModel.setError(readFail)
-            else viewModel.parse(text, parsingLabel, categorisingLabel, readFail)
+            if (isPdf) {
+                val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                pendingPdf = bytes
+                password = ""
+                if (bytes == null) viewModel.setError(readFail)
+                else viewModel.parsePdf(bytes, null, readingPdf, categorisingLabel, readFail, pdfUnavailable)
+            } else {
+                val text = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                pendingPdf = null
+                if (text == null) viewModel.setError(readFail)
+                else viewModel.parse(text, parsingLabel, categorisingLabel, readFail)
+            }
         }.onFailure { viewModel.setError(it.message ?: readFail) }
+    }
+
+    if (pdfNeedsPassword) {
+        val bytes = pendingPdf
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissPasswordPrompt() },
+            title = { SanvyaText(S.StatementsAnalyze.pdfPassword(res), SanvyaType.body) },
+            text = {
+                SanvyaInput(
+                    value = password,
+                    onValueChange = { password = it },
+                    // A statement password is a date of birth or a PAN on most
+                    // Indian banks, so the alphanumeric keyboard, not numeric.
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    visualTransformation = PasswordVisualTransformation(),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.dismissPasswordPrompt()
+                        if (bytes != null && password.isNotEmpty()) {
+                            viewModel.parsePdf(bytes, password, readingPdf, categorisingLabel, readFail, pdfUnavailable)
+                        }
+                    },
+                    enabled = bytes != null && password.isNotEmpty(),
+                ) { SanvyaText(S.StatementsAnalyze.pdfUnlock(res), SanvyaType.button, color = colors.accent) }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissPasswordPrompt() }) {
+                    SanvyaText(S.StatementsAnalyze.pdfCancel(res), SanvyaType.button, color = colors.text2)
+                }
+            },
+        )
     }
 
     Scaffold(containerColor = colors.bg) { padding ->
@@ -144,12 +211,19 @@ fun StatementAnalyzeScreen(viewModel: StatementAnalyzeViewModel = viewModel()) {
                                 // a .csv the system types as octet-stream or
                                 // plain text, and a picker that greys out the
                                 // file the user came to import is a dead end.
-                                picker.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain", "application/octet-stream"))
+                                val types = arrayOf("text/csv", "text/comma-separated-values", "text/plain", "application/octet-stream")
+                                picker.launch(if (pdfSupported) types + "application/pdf" else types)
                             },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = busy == null,
                         ) {
-                            SanvyaText(busy ?: S.StatementsAnalyze.chooseFile(res), SanvyaType.button, modifier = Modifier.weight(1f))
+                            // The catalogue string says "Choose file (CSV or
+                            // PDF)". Without an extractor that is a promise the
+                            // picker cannot keep, so it degrades to CSV.
+                            val chooseLabel =
+                                if (pdfSupported) S.StatementsAnalyze.chooseFile(res)
+                                else S.StatementsAnalyze.chooseFileCsvOnly(res)
+                            SanvyaText(busy ?: chooseLabel, SanvyaType.button, modifier = Modifier.weight(1f))
                         }
                         error?.let { SanvyaText(it, SanvyaType.body.copy(fontSize = 13.sp), color = colors.negative) }
                         SanvyaText(

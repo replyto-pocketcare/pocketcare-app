@@ -22,6 +22,7 @@ public final class StatementAnalyzeViewModel {
     @ObservationIgnored @Injected(\.ledgerRepository) private var ledgerRepository
     @ObservationIgnored @Injected(\.recurringRepository) private var recurringRepository
     @ObservationIgnored @Injected(\.authRepository) private var authRepository
+    @ObservationIgnored @Injected(\.pdfTextExtractor) private var pdfExtractor
 
     // ---- picker state ----
     /// "bank" | "card".
@@ -79,6 +80,7 @@ public final class StatementAnalyzeViewModel {
         addedRecurring = []
         showAllTransactions = false
         error = nil
+        pdfNeedsPassword = false
     }
 
     // MARK: - Parse
@@ -94,6 +96,7 @@ public final class StatementAnalyzeViewModel {
         parsed = nil
         reconciliation = nil
         imported = false
+        pdfNeedsPassword = false
         busy = parsingLabel
 
         Task { [weak self] in
@@ -101,6 +104,81 @@ public final class StatementAnalyzeViewModel {
             defer { self.busy = nil }
             let base = baseCurrencyNow()
             var statement = parseStatementCsv(text, currency: base, kind: self.kind)
+
+            self.busy = categorisingLabel
+            statement = await self.categorise(statement)
+            self.parsed = statement
+
+            await self.reconcileNow(statement)
+            if statement.txns.isEmpty && statement.warnings.isEmpty {
+                self.error = readFailMessage
+            }
+        }
+    }
+
+    /// Whether the file picker should offer PDFs at all.
+    ///
+    /// Web never asks this — pdf.js is always there. Android's extractor is a
+    /// removable library, so both platforms ask; iOS's answer is always yes.
+    public var pdfSupported: Bool { pdfExtractor.isAvailable }
+
+    /// True after a PDF came back encrypted, so the view can prompt for a
+    /// password and call `parsePdf` again — web's `window.prompt` step, minus
+    /// the blocking dialog no mobile platform has.
+    public private(set) var pdfNeedsPassword = false
+
+    public func dismissPasswordPrompt() { pdfNeedsPassword = false }
+
+    /// Parse a picked PDF: extract positioned glyphs here, hand everything after
+    /// that to Domain.
+    ///
+    /// The split is the whole design. `PdfTextExtracting` contributes glyphs and
+    /// nothing else; `parsePdfStatementFromGlyphs` does the grouping, the column
+    /// detection and the parse, shares every line of it with Android, and is
+    /// pinned by golden vectors. A library swap cannot change what a statement
+    /// parses to.
+    public func parsePdf(
+        data: Foundation.Data,
+        password: String?,
+        readingLabel: String,
+        categorisingLabel: String,
+        readFailMessage: String,
+        unavailableMessage: String
+    ) {
+        error = nil
+        parsed = nil
+        reconciliation = nil
+        imported = false
+        pdfNeedsPassword = false
+
+        guard pdfExtractor.isAvailable else {
+            error = unavailableMessage
+            return
+        }
+        busy = readingLabel
+
+        Task { [weak self] in
+            guard let self else { return }
+            defer { self.busy = nil }
+            let glyphs: [PdfGlyph]
+            do {
+                // Off the main actor: a 40-page statement is tens of thousands
+                // of characterBounds calls and it should not hitch the picker's
+                // dismissal animation.
+                let extractor = self.pdfExtractor
+                glyphs = try await Task.detached { try extractor.extract(data: data, password: password) }.value
+            } catch PdfExtractionError.passwordRequired {
+                // Not an error on screen: the file is fine, it just needs a
+                // password, and web asks for one at exactly this point too.
+                self.pdfNeedsPassword = true
+                return
+            } catch {
+                self.error = readFailMessage
+                return
+            }
+
+            let base = baseCurrencyNow()
+            var statement = parsePdfStatementFromGlyphs(glyphs, currency: base, kind: self.kind)
 
             self.busy = categorisingLabel
             statement = await self.categorise(statement)

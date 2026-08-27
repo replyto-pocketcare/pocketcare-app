@@ -1287,6 +1287,7 @@
     <string name="statements_analyze_card">क्रेडिट कार्ड</string>
     <string name="statements_analyze_categorising">वर्गीकृत हो रहा है…</string>
     <string name="statements_analyze_choose_file">फ़ाइल चुनें (CSV या PDF)</string>
+    <string name="statements_analyze_choose_file_csv_only">फ़ाइल चुनें (CSV)</string>
     <string name="statements_analyze_choose_later">बाद में चुनें</string>
     <string name="statements_analyze_closing_balance">समापन बैलेंस</string>
     <string name="statements_analyze_daily_spend">दैनिक खर्च</string>
@@ -1310,7 +1311,10 @@
     <string name="statements_analyze_outliers_title">असामान्य · असाधारण रूप से बड़े</string>
     <string name="statements_analyze_parsing">पार्स हो रहा है…</string>
     <string name="statements_analyze_pay_by">इस तिथि तक भुगतान करें</string>
+    <string name="statements_analyze_pdf_cancel">रद्द करें</string>
     <string name="statements_analyze_pdf_password">यह PDF पासवर्ड-सुरक्षित है। इसका पासवर्ड दर्ज करें:</string>
+    <string name="statements_analyze_pdf_unavailable">इस बिल्ड में PDF पढ़ना उपलब्ध नहीं है। इसके बजाय अपने बैंक का CSV/Excel एक्सपोर्ट उपयोग करें।</string>
+    <string name="statements_analyze_pdf_unlock">अनलॉक करें</string>
     <string name="statements_analyze_pick_account_reconcile">इन्हें अपने दर्ज लेनदेन से मिलाने के लिए अपलोड करते समय एक खाता चुनें।</string>
     <string name="statements_analyze_read_fail">वह फ़ाइल पढ़ी नहीं जा सकी।</string>
     <string name="statements_analyze_reading_pdf">PDF पढ़ रहे हैं…</string>
