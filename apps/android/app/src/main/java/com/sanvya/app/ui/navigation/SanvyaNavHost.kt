@@ -193,8 +193,10 @@ fun SanvyaNavHost() {
                 onNavigateBack = { navController.popBackStack() },
                 onManageCategories = { navController.navigate("settings/categories") },
                 onManageLabels = { navController.navigate("settings/labels") },
+                onImportExport = { navController.navigate("settings/data") },
             )
         }
+        composable("settings/data") { com.sanvya.app.ui.data.DataScreen() }
         composable("settings/categories") { com.sanvya.app.ui.taxonomy.CategoriesScreen() }
         composable("settings/labels") { com.sanvya.app.ui.taxonomy.LabelsScreen() }
         composable(

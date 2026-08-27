@@ -182,6 +182,14 @@ struct SettingsView: View {
                     NavigationLink(S.Settings.manageLabels) { LabelsView() }
                 }
 
+                // MARK: Import & export
+                //
+                // Web's `#data` section. Neither native Settings screen had it,
+                // so the screen was unreachable even once it existed.
+                Section(header: Text(S.Data.title), footer: Text(S.Data.introPre)) {
+                    NavigationLink(S.Data.exportBtn) { DataView() }
+                }
+
                 // MARK: Plan & billing
                 Section(header: Text("Plan & Billing")) {
                     Text("You're on the \(viewModel.entitlement.tier.capitalized) plan.")

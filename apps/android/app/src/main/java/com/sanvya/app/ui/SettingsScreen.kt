@@ -43,6 +43,7 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit = {},
     onManageCategories: () -> Unit = {},
     onManageLabels: () -> Unit = {},
+    onImportExport: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel()
 ) {
     val scrollState = rememberScrollState()
@@ -263,6 +264,16 @@ fun SettingsScreen(
                     OutlinedButton(onClick = onManageLabels) {
                         Text(S.Settings.manageLabels(sRes()))
                     }
+                }
+            }
+
+            // ---- Import & export ----
+            //
+            // Web's `#data` section. Neither native Settings screen had it, so
+            // the screen was unreachable even once it existed.
+            SettingsCard(title = S.Data.title(sRes()), subtitle = S.Data.introPre(sRes())) {
+                OutlinedButton(onClick = onImportExport) {
+                    Text(S.Data.exportBtn(sRes()))
                 }
             }
 

@@ -180,11 +180,11 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/login` | (334) | `auth/LoginScreen.kt` (430) | `LoginView.swift` (427) | 🔶 all four methods on both; **no live Google sign-in has ever completed**, guest upgrade unverified |
 | `/receipts/new` | (339) + `src/receipts` (860) | `receipts/ReceiptCaptureScreen.kt` (274) | `ReceiptCaptureView.swift` (207) | 🔶 camera only; no PDF/gallery, no AI escalation |
 | `/receipts/review` | (501) | `receipts/ReceiptReviewScreen.kt` (283) | `ReceiptReviewView.swift` (259) | 🔶 text-only OCR path (no word boxes) |
-| `/settings` | (272) | `SettingsScreen.kt` (527) | `SettingsView.swift` (400) | 🔶 Categories/Labels section added 2026-08-26. Absent: Security/crypto, Language, Import-Export links |
+| `/settings` | (272) | `SettingsScreen.kt` (527) | `SettingsView.swift` (400) | 🔶 Categories/Labels and Import-Export sections added 2026-08-26. Absent: Security/crypto, Language |
 | `/receipts/split` | (522) | ❌ | ❌ | ❌ "Split this bill" shown disabled on both. Android's `FLOW_ROOTS` still names the route |
 | `/settings/categories` | (157) | `taxonomy/CategoriesScreen.kt` (280) | `TaxonomyViews.swift` (CategoriesView) | 🔶 **Built 2026-08-26.** Tree with search, expand/collapse, inline rename, add with kind + parent, soft delete. Absent: the Auto-categorize card — it drives `src/categorize/` (905 lines), which is its own port |
 | `/settings/labels` | (89) | `taxonomy/LabelsScreen.kt` (185) | `TaxonomyViews.swift` (LabelsView) | 🔶 **Built 2026-08-26.** Search, add, inline rename + recolour, soft delete. Colour is the app's 18-swatch palette, not web's free `<input type="color">` — see the divergence note |
-| `/data` (import/export) | (154) + `src/data` (509) | ❌ | ❌ | ❌ no way to get data out of either app |
+| `/data` (import/export) | (154) + `src/data` (509) | `data/DataScreen.kt` (250) | `DataView.swift` (240) | 🔶 **Built 2026-08-26.** CSV export and import (PocketCare + Wallet formats), format picker, skip-duplicates, six-row preview, result line, premium gate. File IO is SAF on Android and `.fileExporter`/`.fileImporter` on iOS — no shared shape to port |
 | `/statements/analyze` | (329) | ❌ | ❌ | ❌ iOS's fabricated version was deleted 2026-08-24 |
 | `/assistant` | (9) + `src/assistant` (1669) | ❌ `ComingSoonScreen` | ❌ `AssistantView` (27) placeholder | ❌ biggest single unbuilt feature |
 | `/search` | (148) | `search/SearchScreen.kt` (232) | `SearchView.swift` (145) | 🔶 **Built 2026-08-26.** Query, type/account/date/amount filters, result count, collapsed split rows. Absent: the `?q=&type=&account=…` deep-link prefill — it exists so the assistant can hand over a pre-filtered search, and there is no native assistant to hand one over |
@@ -1496,6 +1496,39 @@ ISO-8601 and the day-first numeric forms real exports contain, and fall back to
 
 Still to come: the screen, and the platform file IO (Android SAF, iOS document
 picker + share sheet), which is the part with no shared shape at all.
+
+### Import/export, part three: the screens — 2026-08-26
+
+`/data` is built on both platforms, and Settings has the `#data` section that
+reaches it — neither native Settings screen had one, so the screen would have
+been unreachable even once it existed. That is the third time this sweep that a
+built screen needed a Settings entry web already had.
+
+**The file halves have no shared shape and are not pretending to.** Android uses
+the Storage Access Framework (`CreateDocument` for export, `OpenDocument` for
+import); iOS uses `.fileExporter` and `.fileImporter`. Everything either side of
+the picker — parsing, previewing, the write transaction — is Domain's and the
+repository's, and identical.
+
+SAF specifically, and not a `WRITE_EXTERNAL_STORAGE` path: the user picks the
+destination, the app needs no storage permission at all, and the file can land
+in Drive or on a USB stick as easily as in Downloads.
+
+Two details worth keeping:
+
+- **Both file pickers accept more than `text/csv`.** Plenty of banks hand out a
+  `.csv` that the system types as `application/octet-stream` or `text/plain`,
+  and a picker that greys out the file the user came to import is a dead end.
+- **The premium gate is three-state, not two.** `null`/not-loaded shows neither
+  the form nor the upsell — the same "keep the gate closed, but say nothing
+  yet" rule the Statements screen already uses. Showing an upgrade prompt to a
+  paying customer whose entitlement has not synced yet is worse than showing
+  nothing for a second.
+
+**Not ported:** web's `importTransactionsBulk` has a second entry point used by
+the statement importer. The bulk *strategy* is what both ports use for the file
+importer; the statement path that also calls it is a separate screen and is
+still on the list.
 
 ### Done-when for this section
 
