@@ -240,17 +240,20 @@ Each of these is a control the user can see and touch that does nothing, or does
 Per this project's own rule (`ABSENT-BY-DECISION.md`, first paragraph) these are worse than an
 absence, and they are almost all `S`.
 
-| Gap | Platforms | Size |
-|---|---|---|
-| **Feedback** button in the More sheet and the side nav is wired to a closure that only closes the sheet | both | M |
-| `include_in_net_worth` checkbox on New account is never read by `save()` | both | S |
-| Android's group Add-expense action (`#3` above) | Android | S |
-| iOS dashboard renders a second FAB speed dial beside the bottom bar's "+" | iOS | S |
-| Investment accounts are offered in the New-transaction account picker (web filters them out) | both | S |
-| Settle-up: no "None — mark settled" option; UPI is offered regardless of currency or sign | both | S |
-| Android's `SyncStatusStrip` is defined and never called | Android | S |
-| `BlockingLoader` / `GlobalLoader` exists on both with zero call sites | both | S |
-| Settings' "Replay intro" string exists in `S.kt` and is wired to nothing | Android | S |
+| Gap | Platforms | Size | State |
+|---|---|---|---|
+| **Feedback** button in the More sheet and the side nav is wired to a closure that only closes the sheet | both | M | **open** — `BugReportModal` (164 lines) is a real port: a form plus one insert into `bug_reports`, which is already in the native schema, and `Diagnostics` is already in Domain on both |
+| ~~`include_in_net_worth` checkbox on New account is never read by `save()`~~ | both | S | ✅ 2026-08-27 — the create path now UPDATEs the flag off, as web does |
+| ~~Android's group Add-expense action~~ | Android | S | ✅ 2026-08-27 — the sheet was built and unreachable; the page action opens it |
+| ~~iOS dashboard renders a second FAB speed dial beside the bottom bar's "+"~~ | iOS | S | ✅ 2026-08-27 — removed; both of its actions moved into `AppShell`, where the "+" already was |
+| ~~iOS shell "+" → "Scan bill / receipt" selected a nil tab and did nothing; "Add transaction" opened the transactions LIST~~ | iOS | S | ✅ 2026-08-27 — `AddAction.Item` gained a `flow` case for the two destinations that are forms rather than tabs |
+| ~~Investment accounts are offered in the New-transaction account picker~~ | both | S | ✅ 2026-08-27 — web's `NOT_INVESTMENT_ACCOUNT_SQL` applied on the create form only, as web applies it |
+| ~~Android's shell "+" labels ("Add", "Add transaction", "Scan bill / receipt") are hardcoded English~~ | Android | S | ✅ 2026-08-27 — the three catalogue keys existed the whole time |
+| ~~The "investment accounts only support transfers" line is hardcoded English~~ | both | S | ✅ 2026-08-27 — `transactions:investmentTransferOnly` existed the whole time |
+| Settle-up: no "None — mark settled" option; UPI is offered regardless of currency or sign | both | S | open |
+| Android's `SyncStatusStrip` is defined and never called | Android | S | open — dead CODE, not a dead control: nothing renders, so nothing lies. Wiring it is a real port (`syncMessage` is not in Domain and the shell has no sync-status stream), not a two-line fix |
+| `BlockingLoader` / `GlobalLoader` exists on both with zero call sites | both | S | open — same reasoning as above |
+| Settings' "Replay intro" string exists in `S.kt` and is wired to nothing | Android | S | open |
 
 #### Blocked on Akhilesh, not on code
 

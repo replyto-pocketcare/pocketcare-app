@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import com.sanvya.app.ui.FormOptions
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -83,7 +84,21 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
 
     private val ui = MutableStateFlow(CreateTransactionUiState())
 
+    /**
+     * Accounts that can move real money.
+     *
+     * Web's picker query carries `NOT_INVESTMENT_ACCOUNT_SQL` -- demat, stocks
+     * and mutual funds are excluded from the NEW-transaction form entirely
+     * (the EDIT form does not filter, because it has to show whatever the
+     * transaction already points at). Without it a user could book a grocery
+     * expense against their demat account.
+     *
+     * `isInvestment` below is web's own defensive branch and stays: with this
+     * filter in place it can never be true on either platform, exactly as it
+     * can never be true on web. Reproducing dead code is the point of a port.
+     */
     val accounts: StateFlow<List<Account>> = ledgerRepository.watchAccounts(includeArchived = false)
+        .map { list -> list.filterNot { FormOptions.isInvestmentAccount(it.type) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val categories: StateFlow<List<CategoryRow>> = ledgerRepository.watchCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

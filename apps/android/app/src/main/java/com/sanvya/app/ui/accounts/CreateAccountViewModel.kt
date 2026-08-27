@@ -79,6 +79,14 @@ class CreateAccountViewModel : ViewModel(), KoinComponent {
                     color = s.color,
                     allowNegative = s.allowNegativeEffective,
                 )
+                // Web creates the row, then UPDATEs the flag off if the box was
+                // cleared (`accounts/new/page.tsx`) -- the INSERT deliberately
+                // omits the column so it keeps its read-side default. The
+                // checkbox was drawn and its value never read: an account
+                // excluded from net worth at creation was included anyway.
+                if (!s.includeInNetWorth) {
+                    ledgerRepository.updateAccount(accountId, mapOf("include_in_net_worth" to 0L))
+                }
                 val opening = s.openingBalance.toDoubleOrNull()
                 if (opening != null && opening != 0.0) {
                     ledgerRepository.setOpeningBalance(

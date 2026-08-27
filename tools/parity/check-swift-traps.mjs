@@ -312,7 +312,54 @@ for (const file of swiftFiles) {
   }
 }
 
-console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} line rules + bindable + escaping-content + shadowed-symbol + missing-import scans, ${failures.length} hit(s)`);
+/* ------------------------------------------------------------------
+ * A `static let` holding a non-Sendable Foundation class.
+ *
+ * `static let plainDay = ISO8601DateFormatter()` reads like the obvious way to
+ * avoid rebuilding a formatter. Under Swift 6 strict concurrency it is a build
+ * ERROR — "static property is not concurrency-safe because non-'Sendable' type
+ * ... may have shared mutable state" — because every one of these is a mutable
+ * class with settable properties, and a static is reachable from any isolation
+ * domain at once.
+ *
+ * The error is clear when you read it. It is also invisible to anyone writing
+ * the line, costs a full macOS build to discover, and this codebase has now hit
+ * it twice. The house answer is a fresh instance per call, which is what
+ * `Domain/Entitlements.swift` and `App/DateLabels.swift` both already do and
+ * both already explain.
+ * ------------------------------------------------------------------ */
+const NON_SENDABLE_FOUNDATION = [
+  "ISO8601DateFormatter",
+  "DateFormatter",
+  "NumberFormatter",
+  "DateComponentsFormatter",
+  "DateIntervalFormatter",
+  "ByteCountFormatter",
+  "MeasurementFormatter",
+  "PersonNameComponentsFormatter",
+  "RelativeDateTimeFormatter",
+  "JSONDecoder",
+  "JSONEncoder",
+  "NSMutableArray",
+  "NSMutableDictionary",
+  "NSMutableString",
+];
+const staticNonSendable = new RegExp(
+  String.raw`^\s*(?:public\s+|internal\s+|private\s+|fileprivate\s+)?static\s+(?:let|var)\s+(\w+)\s*[:=][^\n]*\b(${NON_SENDABLE_FOUNDATION.join("|")})\b`,
+  "gm",
+);
+for (const file of swiftFiles) {
+  const src = readFileSync(file, "utf8");
+  for (const m of src.matchAll(staticNonSendable)) {
+    const lineNo = src.slice(0, m.index).split("\n").length;
+    failures.push(
+      `${path.relative(repoRoot, file)}:${lineNo}  static '${m[1]}' holds a non-Sendable ${m[2]}\n` +
+      `    → Swift 6 rejects this outright. Build a fresh one per call, as Domain/Entitlements.swift does.`,
+    );
+  }
+}
+
+console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} line rules + bindable + escaping-content + shadowed-symbol + missing-import + static-non-Sendable scans, ${failures.length} hit(s)`);
 if (failures.length) {
   console.error("\n" + failures.join("\n\n"));
   console.error(`\n::error::${failures.length} known Swift trap(s). Each of these has broken CI before.`);

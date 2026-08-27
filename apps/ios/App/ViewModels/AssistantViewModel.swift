@@ -206,7 +206,7 @@ final class AssistantViewModel {
 
     private func buildContext(userId: String, baseCurrency: String) async -> String? {
         do {
-            let today = ISO8601DateFormatter.plainDay.string(from: Date())
+            let today = plainDayUtc(Date())
             let summary = try await assistantRepository.buildFinancialSummary(
                 userId: userId,
                 baseCurrency: baseCurrency,
@@ -359,12 +359,18 @@ final class AssistantViewModel {
     }
 }
 
-extension ISO8601DateFormatter {
-    /// `YYYY-MM-DD` in UTC — the shape every date column in this product uses.
-    static let plainDay: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withFullDate]
-        f.timeZone = TimeZone(identifier: "UTC")
-        return f
-    }()
+/**
+ Today as `YYYY-MM-DD` in UTC — the shape every date column in this product uses.
+
+ A fresh formatter per call, not a cached `static let`. `ISO8601DateFormatter`
+ is a mutable class and is not `Sendable`, so a static instance is a data race
+ under Swift 6 strict concurrency and fails the build outright. The same
+ reasoning is already written down in `Domain/Entitlements.swift`; this is the
+ second place to learn it.
+ */
+private func plainDayUtc(_ date: Date) -> String {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withFullDate]
+    formatter.timeZone = TimeZone(identifier: "UTC")
+    return formatter.string(from: date)
 }

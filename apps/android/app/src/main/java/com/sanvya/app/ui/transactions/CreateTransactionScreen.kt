@@ -88,7 +88,7 @@ fun CreateTransactionScreen(
                 }
             }
             if (isInvestment) {
-                Text("Investment accounts can only move money via transfers", fontSize = 12.sp, color = colors.text2)
+                Text(S.Transactions.investmentTransferOnly(sRes()), fontSize = 12.sp, color = colors.text2)
             }
 
             if (uiState.type == "transfer") {

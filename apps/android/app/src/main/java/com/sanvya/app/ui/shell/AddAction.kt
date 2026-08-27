@@ -3,6 +3,8 @@ package com.sanvya.app.ui.shell
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.staticCompositionLocalOf
+import android.content.res.Resources
+import com.sanvya.app.i18n.S
 import com.sanvya.app.theme.SanvyaIcons
 
 /**
@@ -55,23 +57,28 @@ fun RegisterAddAction(action: AddAction) {
 /**
  * What the "+" does on a screen that has registered nothing.
  *
+ * Takes a `Resources` rather than reading the catalogue itself: the three
+ * labels here were hardcoded English in an app that is otherwise fully
+ * translated, and `S.Translation.fabAdd`/`fabAddTransaction`/`fabScanReceipt`
+ * existed the whole time. iOS's equivalent has always used them.
+ *
  * A transaction — or a scanned receipt, which becomes one — is the thing that
  * is always relevant in a money app. Receipt scanning shows a **lock**, not a
  * tier name: the plans are Lite and Pro, so naming one would be either wrong or
  * only half the answer.
  */
-fun defaultAddAction(canScan: Boolean): AddAction = AddAction.Menu(
-    label = "Add",
+fun defaultAddAction(res: Resources, canScan: Boolean): AddAction = AddAction.Menu(
+    label = S.Translation.fabAdd(res),
     items = listOf(
         AddAction.Menu.Item(
             key = "transaction",
-            label = "Add transaction",
+            label = S.Translation.fabAddTransaction(res),
             glyph = SanvyaIcons.add,
             route = "transactions/new",
         ),
         AddAction.Menu.Item(
             key = "receipt",
-            label = "Scan bill / receipt",
+            label = S.Translation.fabScanReceipt(res),
             glyph = SanvyaIcons.receipt,
             route = "receipts/new",
             locked = !canScan,

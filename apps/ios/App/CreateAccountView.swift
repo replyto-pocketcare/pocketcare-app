@@ -105,6 +105,15 @@ struct CreateAccountView: View {
                     color: color,
                     allowNegative: allowNegativeEffective
                 )
+                // Web creates the row, then UPDATEs the flag off if the toggle
+                // was cleared (`accounts/new/page.tsx`) — the INSERT
+                // deliberately omits the column so it keeps its read-side
+                // default. The toggle was drawn and its value never read: an
+                // account excluded from net worth at creation was included
+                // anyway.
+                if !includeInNetWorth {
+                    try await ledgerRepository.updateAccount(id: accountId, values: ["include_in_net_worth": 0])
+                }
                 if let opening = Double(openingBalance), opening != 0 {
                     try await ledgerRepository.setOpeningBalance(
                         userId: userId,

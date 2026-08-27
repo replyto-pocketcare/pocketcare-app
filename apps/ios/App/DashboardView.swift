@@ -2,13 +2,6 @@ import SwiftUI
 import Factory
 import Domain
 
-/// Wraps a `String` for `.fullScreenCover(item:)`, which needs `Identifiable`
-/// -- used to present ReceiptReviewView keyed by scan id (task #62).
-private struct IdentifiableString: Identifiable {
-    let value: String
-    var id: String { value }
-}
-
 struct DashboardView: View {
     /// A tile's "more details" tap writes here, the same channel Insights and
     /// Cards already use. The shell owns navigation; nothing here pushes its
@@ -34,15 +27,11 @@ struct DashboardView: View {
     // exists for "create account", so every other screen that offers this
     // action does it the same way).
     @State private var showingCreateAccountSheet = false
-    // Speed dial -- real port of AddSpeedDial (apps/web/app/AppShell.tsx),
-    // Dashboard-only on web (`pathname === "/"`), and the first quick-add
-    // control on either mobile platform (task #62 -- verified by grep, no
-    // FAB/SpeedDial symbol existed before this). See
-    // docs/mobile/screen-specs/receipt-scan.md.
-    @State private var speedDialOpen = false
-    @State private var showingAddTransactionSheet = false
-    @State private var showingReceiptCapture = false
-    @State private var reviewingScanId: String?
+    // The speed dial that used to live here is gone. It was a second "+" drawn
+    // over the bottom bar's own, which web does not have -- web renders
+    // `AddSpeedDial` INSIDE the shell, once. Both of its actions moved to
+    // `AppShell`, which is where the "+" already was.
+
     /// The first-run walkthrough. Mounted here, not in the shell, because that
     /// is where web mounts it (`apps/web/app/page.tsx` renders `<Walkthrough />`
     /// in both of the dashboard's branches) — and it is the right place: the
@@ -187,31 +176,8 @@ struct DashboardView: View {
                 }
             }
         }
-        .overlay(alignment: .bottomTrailing) { speedDial }
         .sanvyaFormPresentation(isPresented: $showingCreateAccountSheet) {
             CreateAccountView()
-        }
-        .sanvyaFormPresentation(isPresented: $showingAddTransactionSheet) {
-            CreateTransactionView()
-        }
-        .fullScreenCover(isPresented: $showingReceiptCapture) {
-            ReceiptCaptureView(
-                onScanned: { scanId in
-                    showingReceiptCapture = false
-                    reviewingScanId = scanId
-                },
-                onCancel: { showingReceiptCapture = false }
-            )
-        }
-        .fullScreenCover(item: Binding(
-            get: { reviewingScanId.map { IdentifiableString(value: $0) } },
-            set: { reviewingScanId = $0?.value }
-        )) { wrapped in
-            ReceiptReviewView(
-                scanId: wrapped.value,
-                onSaved: { _ in reviewingScanId = nil },
-                onCancel: { reviewingScanId = nil }
-            )
         }
         .sanvyaModal(isPresented: $addOpen, label: S.Dashboard.addWidget) {
             AddWidgetSheet(isPaid: shellViewModel.canScan, onClose: { addOpen = false })
@@ -241,45 +207,6 @@ struct DashboardView: View {
         }
         .onDisappear {
             viewModel.cancel()
-        }
-    }
-
-    @ViewBuilder
-    private var speedDial: some View {
-        VStack(alignment: .trailing, spacing: 10) {
-            if speedDialOpen {
-                speedDialAction(icon: "doc.text.viewfinder", label: S.Translation.fabScanReceipt) {
-                    speedDialOpen = false
-                    showingReceiptCapture = true
-                }
-                speedDialAction(icon: "plus", label: S.Translation.fabAddTransaction) {
-                    speedDialOpen = false
-                    showingAddTransactionSheet = true
-                }
-            }
-            Button(action: { withAnimation(.spring()) { speedDialOpen.toggle() } }) {
-                Image(systemName: speedDialOpen ? "xmark" : "plus")
-                    .font(.title3.weight(.semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 56, height: 56)
-                    .background(Color.accent)
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-            }
-        }
-        .padding(20)
-    }
-
-    private func speedDialAction(icon: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                Text(label).font(.caption).fontWeight(.semibold).foregroundColor(.text)
-                Image(systemName: icon).foregroundColor(.text)
-            }
-            .padding(.horizontal, 14).padding(.vertical, 10)
-            .background(Color.surface)
-            .clipShape(Capsule())
-            .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
         }
     }
 

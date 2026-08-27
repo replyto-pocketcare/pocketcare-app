@@ -149,7 +149,7 @@ fun AppShell(
         return
     }
 
-    val action = pageAction ?: defaultAddAction(canScan)
+    val action = pageAction ?: defaultAddAction(sRes(), canScan)
     val runAdd: () -> Unit = {
         when (action) {
             is AddAction.Link -> onNavigate(action.route)

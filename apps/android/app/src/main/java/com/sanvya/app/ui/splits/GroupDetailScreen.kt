@@ -21,6 +21,7 @@ import com.sanvya.app.theme.SanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaChip
 import com.sanvya.app.ui.components.SanvyaPage
 
 /**
@@ -48,8 +49,16 @@ fun GroupDetailScreen(
 
     SanvyaPage(
         title = group?.name ?: S.Groups.kindGroup(sRes()),
+        // The sheet below was fully implemented and UNREACHABLE: nothing ever
+        // set `showAddExpense`, and this action was an empty lambda, so a group
+        // was read-only on Android while iOS could add to one. Web puts the
+        // same button in the same place (`groups/[id]/page.tsx`).
         action = {
-
+            SanvyaChip(
+                S.Splits.addExpense(sRes()),
+                active = false,
+                onClick = { showAddExpense = true },
+            )
         },
     ) {
         if (!loaded) {

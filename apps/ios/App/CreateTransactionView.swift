@@ -105,7 +105,7 @@ struct CreateTransactionView: View {
                             .disabled(isInvestment)
                             .onChange(of: isInvestment) { _, inv in if inv { type = "transfer" } }
                             if isInvestment {
-                                Text("Investment accounts can only move money via transfers")
+                                Text(S.Transactions.investmentTransferOnly)
                                     .font(.system(size: 12)).foregroundColor(Color.text2)
                             }
 
@@ -234,7 +234,19 @@ struct CreateTransactionView: View {
     }
     private func watchAccountsLoop() async {
         do {
-            for try await list in try ledgerRepository.watchAccounts(includeArchived: false) { accounts = list }
+            // Web's picker query carries `NOT_INVESTMENT_ACCOUNT_SQL` — demat,
+            // stocks and mutual funds are excluded from the NEW-transaction
+            // form entirely (the EDIT form does not filter, because it has to
+            // show whatever the transaction already points at). Without it a
+            // user could book a grocery expense against their demat account.
+            //
+            // `isInvestment` above is web's own defensive branch and stays:
+            // with this filter in place it can never be true here, exactly as
+            // it can never be true on web. Reproducing dead code is the point
+            // of a port.
+            for try await list in try ledgerRepository.watchAccounts(includeArchived: false) {
+                accounts = list.filter { !FormOptions.isInvestmentAccount($0.type) }
+            }
         } catch { print("Failed to watch accounts: \(error)") }
     }
     private func watchCategoriesLoop() async {

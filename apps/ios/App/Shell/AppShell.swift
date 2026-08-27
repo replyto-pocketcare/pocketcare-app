@@ -35,6 +35,19 @@ struct AppShell<Content: View>: View {
     @State private var signInOpen = false
     @State private var pageBack: (() -> Void)?
 
+    /**
+     The two flows the "+" opens.
+
+     They live HERE, not on the dashboard, because the "+" is the shell's. They
+     used to be dashboard state reachable only from a second FAB that the
+     dashboard drew on top of the bottom bar — so iOS had two "+" affordances,
+     web has one, and the shell's own menu item for a receipt selected a nil tab
+     and did nothing at all.
+     */
+    @State private var showingNewTransaction = false
+    @State private var showingReceiptCapture = false
+    @State private var reviewingScanId: String?
+
     @Environment(\.sanvyaWindowClass) private var windowClass
     @Environment(\.colorScheme) private var colorScheme
 
@@ -98,6 +111,28 @@ struct AppShell<Content: View>: View {
                 current: navPrefs.ids,
                 onSave: { ids in navPrefs.setIds(ids); customizeOpen = false },
                 onClose: { customizeOpen = false }
+            )
+        }
+        .sanvyaFormPresentation(isPresented: $showingNewTransaction) {
+            CreateTransactionView()
+        }
+        .fullScreenCover(isPresented: $showingReceiptCapture) {
+            ReceiptCaptureView(
+                onScanned: { scanId in
+                    showingReceiptCapture = false
+                    reviewingScanId = scanId
+                },
+                onCancel: { showingReceiptCapture = false }
+            )
+        }
+        .fullScreenCover(item: Binding(
+            get: { reviewingScanId.map { ScanId(value: $0) } },
+            set: { reviewingScanId = $0?.value }
+        )) { wrapped in
+            ReceiptReviewView(
+                scanId: wrapped.value,
+                onSaved: { _ in reviewingScanId = nil },
+                onCancel: { reviewingScanId = nil }
             )
         }
         .task {
@@ -244,6 +279,7 @@ struct AppShell<Content: View>: View {
                 AddPopover(items: items, onDismiss: { addOpen = false }, onSelect: { item in
                     addOpen = false
                     if let tab = item.tab { select(tab) }
+                    if let flow = item.flow { run(flow) }
                 })
             }
         }
@@ -265,6 +301,13 @@ struct AppShell<Content: View>: View {
         case let .link(_, tab): select(tab)
         case .button: break
         case .menu: addOpen.toggle()
+        }
+    }
+
+    private func run(_ flow: AddAction.Flow) {
+        switch flow {
+        case .newTransaction: showingNewTransaction = true
+        case .scanReceipt: showingReceiptCapture = true
         }
     }
 }
@@ -322,4 +365,11 @@ private struct AddPopover: View {
             .padding(.bottom, SanvyaMetrics.AddPopover.bottomOffset)
         }
     }
+}
+
+/// Wraps a scan id for `.fullScreenCover(item:)`, which needs `Identifiable`.
+/// Moved here from `DashboardView` with the receipt flow itself.
+private struct ScanId: Identifiable {
+    let value: String
+    var id: String { value }
 }

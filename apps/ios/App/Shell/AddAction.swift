@@ -17,9 +17,28 @@ enum AddAction: Equatable {
         let id: String
         let label: String
         let glyph: String
+        /// Where this item goes, as a NavTab. Mutually exclusive with `flow`.
         var tab: NavTab?
+        /**
+         A form this item opens, for the destinations that are not tabs.
+
+         Web's two default items are `href: "/transactions/new"` and
+         `href: "/receipts/new"` — real routes. This shell has no route for
+         either: both are presented forms owned by whatever screen is showing.
+         Carrying only a `tab` meant "Scan bill / receipt" selected `nil` and
+         **did nothing at all**, while "Add transaction" opened the transactions
+         LIST rather than the form. One dead control and one wrong one, from the
+         same missing case.
+         */
+        var flow: Flow?
         /// Shows a lock rather than a tier name — see `defaultAddAction`.
         var locked: Bool = false
+    }
+
+    /// A destination the shell presents rather than navigates to.
+    enum Flow: String, Equatable {
+        case newTransaction
+        case scanReceipt
     }
 
     var label: String {
@@ -43,8 +62,8 @@ func defaultAddAction(canScan: Bool) -> AddAction {
     .menu(
         label: S.Translation.commonAdd,
         items: [
-            AddAction.Item(id: "transaction", label: S.Translation.fabAddTransaction, glyph: SanvyaIcons.add, tab: .transactions),
-            AddAction.Item(id: "receipt", label: S.Translation.fabScanReceipt, glyph: SanvyaIcons.receipt, tab: nil, locked: !canScan),
+            AddAction.Item(id: "transaction", label: S.Translation.fabAddTransaction, glyph: SanvyaIcons.add, flow: .newTransaction),
+            AddAction.Item(id: "receipt", label: S.Translation.fabScanReceipt, glyph: SanvyaIcons.receipt, flow: .scanReceipt, locked: !canScan),
         ]
     )
 }
