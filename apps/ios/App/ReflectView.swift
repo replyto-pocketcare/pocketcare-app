@@ -165,10 +165,17 @@ private struct IntentCard: View {
     let row: LedgerRepository.IntentQueueRow
     let offset: CGSize
 
+    /// Web's `tx.description || tx.note || "Unknown"`, spelled out. A nested
+    /// ternary over two optionals is the shape that crashed this codebase's
+    /// Swift type-checker once already — see InsightsViewModel's history.
+    private var raw: String {
+        if let description = row.description, !description.isEmpty { return description }
+        if let note = row.note, !note.isEmpty { return note }
+        return S.Reflect.unknown
+    }
+
     var body: some View {
-        let title = merchantTitle((row.description ?? row.note ?? "").isEmpty
-            ? S.Reflect.unknown
-            : (row.description ?? row.note ?? S.Reflect.unknown))
+        let title = merchantTitle(raw)
         let tint = avatarColor(title)
         VStack(spacing: 0) {
             Spacer(minLength: 0)
@@ -215,7 +222,10 @@ private struct IntentCard: View {
         .overlay {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(offset.width < 0 ? Color.positive : Color.negative)
-                .opacity(Swift.min(0.2, abs(offset.width) / 500))
+                // Explicit Double: `opacity` takes one, and leaning on the
+                // CGFloat bridge inside a `min` is more type-checker work than
+                // this line is worth.
+                .opacity(Swift.min(0.2, Double(abs(offset.width)) / 500))
         }
         .offset(offset)
     }
