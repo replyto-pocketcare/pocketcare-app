@@ -17,7 +17,15 @@ import Foundation
 /// to actually produce Infinity results). Internal (not private), not
 /// file-scoped -- BudgetVectors.swift's budgetProgress.pct reuses it
 /// rather than duplicating the same Infinity-handling logic twice.
-func jsonNumber(_ n: Double) -> Any {
+///
+/// **It was called `jsonNumber` and had to be renamed.** Domain later gained a
+/// PUBLIC `jsonNumber(Double) -> String`, and inside this test target the
+/// target's own declaration wins over the imported module's. Every
+/// `jsonNumber(...)` in AssistantVectors silently called THIS instead — no
+/// ambiguity error, no warning, just 41 vectors comparing a number against a
+/// string. A same-named helper in a test target shadowing a public API is a
+/// silent-wrong-value trap, so the local one moved.
+func jsonOrNull(_ n: Double) -> Any {
     n.isFinite ? NSNumber(value: n) : NSNull()
 }
 
@@ -85,12 +93,12 @@ func registerFinanceVectors() {
 
     FunctionRegistry.register(domain: "finance", fn: "periodicRateFromAnnual") { input in
         let d = input as! [String: Any]
-        return jsonNumber(periodicRateFromAnnual((d["annualPct"] as! NSNumber).doubleValue, d["period"] as! String))
+        return jsonOrNull(periodicRateFromAnnual((d["annualPct"] as! NSNumber).doubleValue, d["period"] as! String))
     }
 
     FunctionRegistry.register(domain: "finance", fn: "periodsToGoal") { input in
         let d = input as! [String: Any]
-        return jsonNumber(
+        return jsonOrNull(
             periodsToGoal(
                 (d["current"] as! NSNumber).int64Value,
                 (d["target"] as! NSNumber).int64Value,
@@ -113,7 +121,7 @@ func registerFinanceVectors() {
 
     FunctionRegistry.register(domain: "finance", fn: "percentOfIncome") { input in
         let d = input as! [String: Any]
-        return jsonNumber(percentOfIncome((d["monthlyAmount"] as! NSNumber).int64Value, (d["monthlyIncome"] as! NSNumber).int64Value))
+        return jsonOrNull(percentOfIncome((d["monthlyAmount"] as! NSNumber).int64Value, (d["monthlyIncome"] as! NSNumber).int64Value))
     }
 
     FunctionRegistry.register(domain: "finance", fn: "subscriptionImpact") { input in

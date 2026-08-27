@@ -279,11 +279,11 @@ private func asOcrToken(_ any: Any) -> OcrToken {
 }
 
 private func ocrTokenToJson(_ t: OcrToken) -> [String: Any] {
-    ["text": t.text, "x0": jsonNumber(t.x0), "x1": jsonNumber(t.x1), "y0": jsonNumber(t.y0), "y1": jsonNumber(t.y1), "confidence": t.confidence]
+    ["text": t.text, "x0": jsonOrNull(t.x0), "x1": jsonOrNull(t.x1), "y0": jsonOrNull(t.y0), "y1": jsonOrNull(t.y1), "confidence": t.confidence]
 }
 
 private func textLineToJson(_ l: TextLine) -> [String: Any] {
-    ["text": l.text, "tokens": l.tokens.map(ocrTokenToJson), "y": jsonNumber(l.y), "confidence": l.confidence]
+    ["text": l.text, "tokens": l.tokens.map(ocrTokenToJson), "y": jsonOrNull(l.y), "confidence": l.confidence]
 }
 
 func registerReceiptsParseVectors() {

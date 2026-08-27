@@ -273,7 +273,46 @@ if (escapingContentComponents.size) {
   }
 }
 
-console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} line rules + bindable + escaping-content + missing-import scans, ${failures.length} hit(s)`);
+/* ------------------------------------------------------------------ *
+ * A test-target helper whose name shadows a PUBLIC Domain function.
+ *
+ * The test target declares its own symbols and `@testable import Domain`
+ * brings in Domain's. On a name clash the TARGET'S OWN declaration wins,
+ * with no ambiguity error and no warning.
+ *
+ * `FinanceVectors.swift` had a `jsonNumber(Double) -> Any` helper long before
+ * Domain gained a public `jsonNumber(Double) -> String`. Every call in
+ * AssistantVectors silently got the test one: 41 vectors compared a number
+ * against a string, and the log said the ported function was wrong when the
+ * ported function was never called.
+ *
+ * This is the ONE guard here that has not shipped to CI twice, and the reason
+ * is the failure mode: every other trap in this file is a COMPILE error, loud
+ * and attributable. This one produces a wrong value and blames the wrong code.
+ * ------------------------------------------------------------------ */
+const domainPublicFns = new Set();
+for (const file of swiftFiles) {
+  if (!file.includes("/Domain/Sources/Domain/")) continue;
+  for (const m of readFileSync(file, "utf8").matchAll(/^public func (\w+)\s*[(<]/gm)) {
+    domainPublicFns.add(m[1]);
+  }
+}
+for (const file of swiftFiles) {
+  if (!file.includes("/Domain/Tests/")) continue;
+  const src = readFileSync(file, "utf8");
+  for (const m of src.matchAll(/^(?:private |internal )?func (\w+)\s*[(<]/gm)) {
+    if (!domainPublicFns.has(m[1])) continue;
+    // `private` is file-scoped and cannot shadow across the target.
+    if (/^private /.test(m[0])) continue;
+    const lineNo = src.slice(0, m.index).split("\n").length;
+    failures.push(
+      `${path.relative(repoRoot, file)}:${lineNo}  test helper '${m[1]}' shadows a public Domain function\n` +
+      `    → the test target's own declaration wins silently. Rename the helper, or call \`Domain.${m[1]}(…)\`.`,
+    );
+  }
+}
+
+console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} line rules + bindable + escaping-content + shadowed-symbol + missing-import scans, ${failures.length} hit(s)`);
 if (failures.length) {
   console.error("\n" + failures.join("\n\n"));
   console.error(`\n::error::${failures.length} known Swift trap(s). Each of these has broken CI before.`);

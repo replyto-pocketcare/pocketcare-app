@@ -86,6 +86,7 @@ val dataModule = module {
     single {
         com.sanvya.app.data.repository.AssistantRepository(
             db = get(),
+            client = get(),
             ledgerRepository = get(),
             goalsRepository = get(),
             budgetRepository = get(),

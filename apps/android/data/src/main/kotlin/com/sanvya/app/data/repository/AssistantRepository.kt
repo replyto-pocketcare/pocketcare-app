@@ -1,6 +1,32 @@
 package com.sanvya.app.data.repository
 
 import com.powersync.PowerSyncDatabase
+import com.sanvya.app.domain.assistant.ASSISTANT_MAX_TOKENS
+import com.sanvya.app.domain.assistant.ASSISTANT_TOOLS
+import com.sanvya.app.domain.assistant.ApiMessage
+import com.sanvya.app.domain.assistant.AssistantContent
+import com.sanvya.app.domain.assistant.ToolUse
+import com.sanvya.app.domain.assistant.trimAssistantHistory
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.exceptions.RestException
+import io.github.jan.supabase.functions.functions
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import com.powersync.db.SqlCursor
 import com.powersync.db.getLong
 import com.powersync.db.getString
@@ -51,6 +77,17 @@ import kotlinx.coroutines.flow.Flow
 
 data class AssistantThread(val id: String, val title: String?, val updatedAt: String)
 
+/**
+ * What the Edge Function answered.
+ *
+ * Exactly one side is set. A null [content] with a null [error] is the
+ * "no content and no reason" case web renders as its default apology.
+ */
+data class AssistantTurnResponse(
+    val content: List<AssistantContent>? = null,
+    val error: String? = null,
+)
+
 data class AssistantMessage(
     val id: String,
     val threadId: String,
@@ -88,6 +125,7 @@ private const val MEMORY_FACT_MAX_CHARS = 200
 
 class AssistantRepository(
     private val db: PowerSyncDatabase,
+    private val client: SupabaseClient,
     private val ledgerRepository: LedgerRepository,
     private val goalsRepository: GoalsRepository,
     private val budgetRepository: BudgetRepository,
@@ -161,6 +199,81 @@ class AssistantRepository(
     }
 
     suspend fun deleteThread(threadId: String) = softDelete(db, "assistant_threads", threadId)
+
+    // ---- the model call ----
+
+    /**
+     * Ask the model. Ported from `callModel` in AssistantChat.tsx.
+     *
+     * The Edge Function ALWAYS answers HTTP 200 and carries failure in the
+     * body's `error`, which is why this returns a result rather than throwing:
+     * quota exhaustion, a missing API key and a prompt-injection screen are all
+     * ordinary answers the chat has to render, not exceptions.
+     *
+     * `system` is sent as an ARRAY of blocks, each marked cacheable. That is not
+     * decoration — PERSONA is ~8.6KB and identical on every request, so without
+     * the cache marker it is re-billed on every turn of a multi-step tool
+     * exchange. Web marks the last TOOL cacheable for the same reason.
+     */
+    suspend fun callModel(
+        systemBlocks: List<String>,
+        messages: List<ApiMessage>,
+        maxTokens: Int = ASSISTANT_MAX_TOKENS,
+    ): AssistantTurnResponse {
+        val body = buildJsonObject {
+            put(
+                "system",
+                JsonArray(
+                    systemBlocks.map { text ->
+                        buildJsonObject {
+                            put("type", "text")
+                            put("text", text)
+                            put("cache_control", buildJsonObject { put("type", "ephemeral") })
+                        }
+                    },
+                ),
+            )
+            put("messages", JsonArray(trimAssistantHistory(messages).map { it.toRequestJson() }))
+            put(
+                "tools",
+                JsonArray(
+                    ASSISTANT_TOOLS.mapIndexed { index, tool ->
+                        buildJsonObject {
+                            put("name", tool.name)
+                            put("description", tool.description)
+                            // The schema was generated as a STRING precisely so
+                            // it could go back over the wire unchanged.
+                            put("input_schema", Json.parseToJsonElement(tool.inputSchema))
+                            if (index == ASSISTANT_TOOLS.lastIndex) {
+                                put("cache_control", buildJsonObject { put("type", "ephemeral") })
+                            }
+                        }
+                    },
+                ),
+            )
+            put("max_tokens", maxTokens)
+        }
+
+        val json: JsonObject = try {
+            val response = client.functions.invoke(
+                function = "assistant",
+                body = body,
+                headers = Headers.build { append(HttpHeaders.ContentType, "application/json") },
+            )
+            Json.parseToJsonElement(response.bodyAsText()).jsonObject
+        } catch (e: RestException) {
+            val parsed = runCatching { Json.parseToJsonElement(e.message.orEmpty()).jsonObject }.getOrNull()
+            return AssistantTurnResponse(
+                error = parsed?.get("error")?.jsonPrimitive?.contentOrNull ?: e.message,
+            )
+        } catch (e: Exception) {
+            return AssistantTurnResponse(error = e.message)
+        }
+
+        json["error"]?.jsonPrimitive?.contentOrNull?.let { return AssistantTurnResponse(error = it) }
+        val content = (json["content"] as? JsonArray)?.mapNotNull { it.toAssistantContent() }
+        return AssistantTurnResponse(content = content)
+    }
 
     // ---- tool execution ----
 
@@ -638,3 +751,79 @@ private const val UNCATEGORIZED_LABEL = "Uncategorized"
 
 /** Web's `threshold_pct: 80` on an assistant-created budget. */
 private const val BUDGET_DEFAULT_THRESHOLD_PCT = 80
+
+// ---- wire format ----------------------------------------------------------
+
+/** Domain's own JSON tree back out to kotlinx, for a tool call's `input`. */
+private fun AssistantJson.toWire(): JsonElement = when (this) {
+    is AssistantJson.Str -> JsonPrimitive(value)
+    is AssistantJson.Num -> JsonPrimitive(value)
+    is AssistantJson.Bool -> JsonPrimitive(value)
+    is AssistantJson.Arr -> JsonArray(values.map { it.toWire() })
+    is AssistantJson.Obj -> JsonObject(values.mapValues { (_, v) -> v.toWire() })
+    AssistantJson.Null -> JsonNull
+}
+
+private fun JsonElement.toDomainJson(): AssistantJson = when (this) {
+    is JsonNull -> AssistantJson.Null
+    is JsonObject -> AssistantJson.Obj(mapValues { (_, v) -> v.toDomainJson() })
+    is JsonArray -> AssistantJson.Arr(map { it.toDomainJson() })
+    is JsonPrimitive -> when {
+        isString -> AssistantJson.Str(content)
+        booleanOrNull != null -> AssistantJson.Bool(booleanOrNull!!)
+        doubleOrNull != null -> AssistantJson.Num(doubleOrNull!!)
+        else -> AssistantJson.Null
+    }
+}
+
+private fun AssistantContent.toWire(): JsonElement = when (this) {
+    is AssistantContent.Text -> buildJsonObject {
+        put("type", "text")
+        put("text", text)
+    }
+    is AssistantContent.Use -> buildJsonObject {
+        put("type", "tool_use")
+        put("id", use.id)
+        put("name", use.name)
+        put("input", JsonObject(use.input.mapValues { (_, v) -> v.toWire() }))
+    }
+    is AssistantContent.Result -> buildJsonObject {
+        put("type", "tool_result")
+        put("tool_use_id", toolUseId)
+        put("content", content)
+    }
+}
+
+/**
+ * One message as the API wants it.
+ *
+ * `content` is EITHER a bare string or an array of blocks, never both. Sending
+ * an array where a string belongs is accepted; sending both is not, and mixing
+ * them across a conversation is what makes a window fail to open on a user turn.
+ */
+private fun ApiMessage.toRequestJson(): JsonElement = buildJsonObject {
+    put("role", role)
+    val text = textContent
+    if (text != null) put("content", text) else put("content", JsonArray(blocks.map { it.toWire() }))
+}
+
+/** A block the model sent back. Unknown types are dropped rather than guessed at. */
+private fun JsonElement.toAssistantContent(): AssistantContent? {
+    val o = this as? JsonObject ?: return null
+    return when (o["type"]?.jsonPrimitive?.contentOrNull) {
+        "text" -> AssistantContent.Text(o["text"]?.jsonPrimitive?.contentOrNull.orEmpty())
+        "tool_use" -> AssistantContent.Use(
+            ToolUse(
+                id = o["id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                name = o["name"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                input = (o["input"]?.toDomainJson() as? AssistantJson.Obj)?.values ?: emptyMap(),
+            ),
+        )
+        "tool_result" -> AssistantContent.Result(
+            toolUseId = o["tool_use_id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+            content = o["content"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+        )
+        else -> null
+    }
+}
+

@@ -51,7 +51,7 @@ private func asFriendStats(_ any: Any) -> FriendStats {
 }
 
 private func averageSettleResultToJson(_ r: AverageSettleResult) -> [String: Any] {
-    ["avgDays": r.avgDays.map { jsonNumber($0) } ?? NSNull(), "clearedCount": r.clearedCount]
+    ["avgDays": r.avgDays.map { jsonOrNull($0) } ?? NSNull(), "clearedCount": r.clearedCount]
 }
 
 private func friendStatsToJson(_ s: FriendStats) -> [String: Any] {
@@ -66,13 +66,13 @@ private func friendStatsToJson(_ s: FriendStats) -> [String: Any] {
         "groupsOwing": s.groupsOwing,
         "groupsOwed": s.groupsOwed,
         "expenses": s.expenses,
-        "avgSettleDays": s.avgSettleDays.map { jsonNumber($0) } ?? NSNull(),
+        "avgSettleDays": s.avgSettleDays.map { jsonOrNull($0) } ?? NSNull(),
         "settledDebts": s.settledDebts,
     ]
 }
 
 private func friendInsightToJson(_ i: FriendInsight) -> [String: Any] {
-    ["key": i.key, "friendId": i.friendId, "value": jsonNumber(i.value), "evidence": i.evidence]
+    ["key": i.key, "friendId": i.friendId, "value": jsonOrNull(i.value), "evidence": i.evidence]
 }
 
 // The same fixture edges/settlements export.ts's pickFriendInsights vector

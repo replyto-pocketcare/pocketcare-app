@@ -120,6 +120,7 @@ public extension Container {
         self {
             AssistantRepository(
                 db: self.powerSyncDatabase(),
+                client: self.supabaseClient(),
                 ledgerRepository: self.ledgerRepository(),
                 goalsRepository: self.goalsRepository(),
                 budgetRepository: self.budgetRepository(),

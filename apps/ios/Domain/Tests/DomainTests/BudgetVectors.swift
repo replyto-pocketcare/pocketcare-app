@@ -43,7 +43,7 @@ func registerBudgetVectors() {
         let d = input as! [String: Any]
         let p = try budgetProgress(asMoney(d["limit"]!), asMoney(d["spent"]!), (d["thresholdPct"] as! NSNumber).doubleValue)
         return [
-            "pct": jsonNumber(p.pct),
+            "pct": jsonOrNull(p.pct),
             "remaining": moneyToJson(p.remaining),
             "atOrOverThreshold": p.atOrOverThreshold,
             "overLimit": p.overLimit,

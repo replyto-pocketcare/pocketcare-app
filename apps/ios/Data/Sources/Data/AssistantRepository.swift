@@ -1,6 +1,7 @@
 import Foundation
 import Domain
 import PowerSync
+import Supabase
 
 /**
  The assistant's side of the database: durable memory, chat threads, and
@@ -20,6 +21,21 @@ import PowerSync
 
  Mirrors Android's AssistantRepository.kt.
  */
+
+/**
+ What the Edge Function answered.
+
+ Exactly one side is set. A nil `content` with a nil `error` is the "no content
+ and no reason" case web renders as its default apology.
+ */
+public struct AssistantTurnResponse: Sendable {
+    public let content: [AssistantContent]?
+    public let error: String?
+    public init(content: [AssistantContent]? = nil, error: String? = nil) {
+        self.content = content
+        self.error = error
+    }
+}
 
 public struct AssistantThread: Equatable, Sendable {
     public let id: String
@@ -65,8 +81,53 @@ private let uncategorizedLabel = "Uncategorized"
 /// Web's `threshold_pct: 80` on an assistant-created budget.
 private let budgetDefaultThresholdPct = 80
 
+/**
+ Web's `major()`: `Math.round(minor) / 100`.
+
+ This is web bug #8's SIXTH site and it is reproduced, not fixed. Unlike the
+ parser sites, this number is not stored anywhere — it goes into a prompt and is
+ read by a model. Fixing it here with `toMajor()` would make a JPY user's phone
+ send a different snapshot than their browser for the same ledger, and the
+ assistant would answer differently on each. Recorded against #8.
+ */
+private func summaryMajor(_ minor: Double) -> Double { jsRound(minor) / 100 }
+
+/// `+(x).toFixed(2)` — rounded to two decimals and back to a number.
+private func jsToFixed2Number(_ x: Double) -> Double {
+    let negative = x < 0
+    let v = negative ? -x : x
+    let exact = String(format: "%.20f", v)
+    guard let dot = exact.firstIndex(of: "."), let whole = Int64(exact[exact.startIndex..<dot]) else { return x }
+    let frac = Array(exact[exact.index(after: dot)...])
+    var hundredths = (frac.first?.wholeNumberValue ?? 0) * 10 + (frac.count > 1 ? (frac[1].wholeNumberValue ?? 0) : 0)
+    if frac.count > 2, frac[2] >= "5" { hundredths += 1 }
+    var units = whole
+    if hundredths == 100 { hundredths = 0; units += 1 }
+    let result = Double(units) + Double(hundredths) / 100
+    return negative ? -result : result
+}
+
+/**
+ A subscription's `next_renewal`, which is a date on some rows and a timestamp on
+ others depending on which client wrote it.
+ */
+private func parseRenewalDate(_ raw: String, calendar: Calendar) -> Date? {
+    let iso = ISO8601DateFormatter()
+    iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    if let d = iso.date(from: raw) { return d }
+    let plain = ISO8601DateFormatter()
+    if let d = plain.date(from: raw) { return d }
+    let dayOnly = DateFormatter()
+    dayOnly.calendar = calendar
+    dayOnly.timeZone = calendar.timeZone
+    dayOnly.locale = Locale(identifier: "en_US_POSIX")
+    dayOnly.dateFormat = "yyyy-MM-dd"
+    return dayOnly.date(from: raw)
+}
+
 public final class AssistantRepository: @unchecked Sendable {
     private let db: PowerSyncDatabaseProtocol
+    private let client: SupabaseClient
     private let ledgerRepository: LedgerRepository
     private let goalsRepository: GoalsRepository
     private let budgetRepository: BudgetRepository
@@ -75,6 +136,7 @@ public final class AssistantRepository: @unchecked Sendable {
 
     public init(
         db: PowerSyncDatabaseProtocol,
+        client: SupabaseClient,
         ledgerRepository: LedgerRepository,
         goalsRepository: GoalsRepository,
         budgetRepository: BudgetRepository,
@@ -82,6 +144,7 @@ public final class AssistantRepository: @unchecked Sendable {
         splitsRepository: SplitsRepository
     ) {
         self.db = db
+        self.client = client
         self.ledgerRepository = ledgerRepository
         self.goalsRepository = goalsRepository
         self.budgetRepository = budgetRepository
@@ -177,6 +240,80 @@ public final class AssistantRepository: @unchecked Sendable {
 
     public func deleteThread(threadId: String) async throws {
         try await softDelete(db: db, table: "assistant_threads", id: threadId)
+    }
+
+    // MARK: - the model call
+
+    /**
+     Ask the model. Ported from `callModel` in AssistantChat.tsx.
+
+     The Edge Function ALWAYS answers HTTP 200 and carries failure in the body's
+     `error`, which is why this returns a result rather than throwing: quota
+     exhaustion, a missing API key and a prompt-injection screen are all ordinary
+     answers the chat has to render, not exceptions.
+
+     `system` is sent as an ARRAY of blocks, each marked cacheable. That is not
+     decoration — PERSONA is ~8.6KB and identical on every request, so without
+     the cache marker it is re-billed on every turn of a multi-step tool
+     exchange. Web marks the last TOOL cacheable for the same reason.
+     */
+    public func callModel(
+        systemBlocks: [String],
+        messages: [ApiMessage],
+        maxTokens: Int = assistantMaxTokens
+    ) async -> AssistantTurnResponse {
+        // `AnyJSON`, not `[String: Any]`: FunctionInvokeOptions takes
+        // `some Encodable`, and a bare `Any` dictionary is not one. Passing the
+        // serialised bytes instead would work but would be sent as
+        // `application/octet-stream`, which is a different request.
+        let body: AnyJSON = .object([
+            "system": .array(systemBlocks.map { text in
+                .object([
+                    "type": .string("text"),
+                    "text": .string(text),
+                    "cache_control": .object(["type": .string("ephemeral")]),
+                ])
+            }),
+            "messages": .array(trimAssistantHistory(messages).map(requestJson)),
+            "tools": .array(assistantTools.enumerated().map { index, tool in
+                var out: JSONObject = [
+                    "name": .string(tool.name),
+                    "description": .string(tool.description),
+                    // The schema was generated as a STRING precisely so it could
+                    // go back over the wire unchanged.
+                    "input_schema": (try? JSONDecoder().decode(
+                        AnyJSON.self, from: Foundation.Data(tool.inputSchema.utf8)
+                    )) ?? .object([:]),
+                ]
+                if index == assistantTools.count - 1 {
+                    out["cache_control"] = .object(["type": .string("ephemeral")])
+                }
+                return .object(out)
+            }),
+            "max_tokens": .integer(maxTokens),
+        ])
+
+        do {
+            let raw: Foundation.Data = try await client.functions.invoke(
+                "assistant",
+                options: FunctionInvokeOptions(body: body)
+            ) { data, _ in data }
+            guard let root = try JSONSerialization.jsonObject(with: raw) as? [String: Any] else {
+                return AssistantTurnResponse()
+            }
+            if let error = root["error"] as? String { return AssistantTurnResponse(error: error) }
+            let content = (root["content"] as? [Any])?.compactMap(assistantContent(from:))
+            return AssistantTurnResponse(content: content)
+        } catch let error as FunctionsError {
+            if case let .httpError(_, data) = error,
+               let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let message = root["error"] as? String {
+                return AssistantTurnResponse(error: message)
+            }
+            return AssistantTurnResponse(error: error.localizedDescription)
+        } catch {
+            return AssistantTurnResponse(error: error.localizedDescription)
+        }
     }
 
     // MARK: - tool execution
@@ -655,3 +792,84 @@ public final class AssistantRepository: @unchecked Sendable {
         )
     }
 }
+
+// MARK: - wire format
+
+/// Domain's own JSON tree into supabase-swift's `AnyJSON`, for a tool call's `input`.
+private func wire(_ j: AssistantJson) -> AnyJSON {
+    switch j {
+    case let .str(v): return .string(v)
+    case let .num(v): return .double(v)
+    case let .bool(v): return .bool(v)
+    case let .arr(v): return .array(v.map(wire))
+    case let .obj(v): return .object(v.mapValues(wire))
+    case .null: return .null
+    }
+}
+
+private func domainJson(_ any: Any) -> AssistantJson {
+    switch any {
+    case is NSNull: return .null
+    case let s as String: return .str(s)
+    case let n as NSNumber:
+        // NSNumber does not distinguish a Bool from 0/1 by type, only by its
+        // ObjC encoding, and getting it wrong would turn `true` into 1.
+        if CFGetTypeID(n) == CFBooleanGetTypeID() { return .bool(n.boolValue) }
+        return .num(n.doubleValue)
+    case let a as [Any]: return .arr(a.map(domainJson))
+    case let o as [String: Any]: return .obj(o.mapValues(domainJson))
+    default: return .null
+    }
+}
+
+private func wire(_ block: AssistantContent) -> AnyJSON {
+    switch block {
+    case let .text(t):
+        return .object(["type": .string("text"), "text": .string(t)])
+    case let .use(u):
+        return .object([
+            "type": .string("tool_use"),
+            "id": .string(u.id),
+            "name": .string(u.name),
+            "input": .object(u.input.mapValues(wire)),
+        ])
+    case let .result(id, content):
+        return .object([
+            "type": .string("tool_result"),
+            "tool_use_id": .string(id),
+            "content": .string(content),
+        ])
+    }
+}
+
+/**
+ One message as the API wants it.
+
+ `content` is EITHER a bare string or an array of blocks, never both. Sending an
+ array where a string belongs is accepted; sending both is not, and mixing them
+ across a conversation is what makes a window fail to open on a user turn.
+ */
+private func requestJson(_ m: ApiMessage) -> AnyJSON {
+    if let text = m.textContent {
+        return .object(["role": .string(m.role), "content": .string(text)])
+    }
+    return .object(["role": .string(m.role), "content": .array(m.blocks.map(wire))])
+}
+
+/// A block the model sent back. Unknown types are dropped rather than guessed at.
+private func assistantContent(from any: Any) -> AssistantContent? {
+    guard let o = any as? [String: Any] else { return nil }
+    switch o["type"] as? String {
+    case "text":
+        return .text(o["text"] as? String ?? "")
+    case "tool_use":
+        let input: ToolInput
+        if case let .obj(args) = domainJson(o["input"] ?? [String: Any]()) { input = args } else { input = [:] }
+        return .use(ToolUse(id: o["id"] as? String ?? "", name: o["name"] as? String ?? "", input: input))
+    case "tool_result":
+        return .result(toolUseId: o["tool_use_id"] as? String ?? "", content: o["content"] as? String ?? "")
+    default:
+        return nil
+    }
+}
+

@@ -2584,3 +2584,62 @@ becomes dynamic.
 bubbles, confirm cards, quota chip, the disclaimer gate — plus the Edge Function
 call and voice.
 
+### CI run 33094345889 (01f5728) — the ported function was never called
+
+parity ✅ · android **cancelled** (superseded by the next push — but it printed
+`domain=assistant total=152 passed=152 skipped=0 failed=0` first, so Kotlin's
+`jsonNumber` is right) · ios ❌ with **41 failures and a compile error**.
+
+**The 41 vectors: a name collision, not a wrong algorithm.**
+
+```
+assistant[0] jsonNumber: expected NSTaggedPointerString(0) | actual: __NSCFNumber(double=0.0)
+```
+
+`FinanceVectors.swift` has had an internal `func jsonNumber(Double) -> Any`
+since the finance port — an Infinity→NSNull helper, deliberately not
+file-private so `BudgetVectors` could reuse it. Domain then gained a **public**
+`jsonNumber(Double) -> String`. Inside the test target, the target's OWN
+declaration wins over the imported module's: **no ambiguity error, no warning.**
+Every `jsonNumber(…)` in `AssistantVectors` called the test helper, so 41
+vectors compared a number against a string — and the log blamed the ported
+function, which was never called.
+
+The test helper moved to `jsonOrNull`; the public API kept its name. A guard was
+added, and it is the **one guard in `check-swift-traps.mjs` that has not shipped
+to CI twice**. The stated bar exists so guards do not sprawl for loud failures —
+every other trap in that file is a compile error, attributable on sight. This
+one produces a wrong value and points at innocent code, which is worth the
+exception.
+
+**The compile error was mine and unrelated.** Removing `describeNumber` from
+`AssistantRepository.swift` in `01f5728` sliced from its doc comment to the
+class declaration — and `summaryMajor`, `jsToFixed2Number` and
+`parseRenewalDate` were sitting in that range. Restored verbatim. A three-line
+lesson about deleting by text range rather than by symbol.
+
+### The assistant, part five — the model call — 2026-08-27
+
+`callModel` on both repositories, ported from `AssistantChat.tsx`.
+
+**Failure is a RESULT here too.** The Edge Function always answers HTTP 200 and
+carries the reason in the body's `error` — quota exhaustion, a missing API key,
+a prompt-injection screen. All three are answers the chat renders, not
+exceptions.
+
+**The cache markers are not decoration.** `system` goes as an ARRAY of blocks,
+each marked `cache_control: ephemeral`, and the LAST tool carries one too.
+PERSONA alone is ~8.6KB and identical on every request; without the marker it is
+re-billed on every turn of a multi-step tool exchange, and a tool exchange is
+three or four turns.
+
+**`input_schema` round-trips as a string.** The generator emits it as a JSON
+string literal precisely so the repository can hand it back over the wire
+unchanged rather than rebuilding a typed tree on each platform and re-serialising
+it — two more chances to differ, for nothing.
+
+**iOS needed `AnyJSON`, not `[String: Any]`.** `FunctionInvokeOptions` takes
+`some Encodable`, which a bare `Any` dictionary is not; passing pre-serialised
+bytes compiles but is sent as `application/octet-stream`, a different request.
+supabase-swift's own `AnyJSON` was already in use in `RepairRepository`.
+
