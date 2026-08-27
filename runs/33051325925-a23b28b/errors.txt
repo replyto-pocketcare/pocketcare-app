@@ -1,0 +1,96 @@
+880: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+885:260 |             ) { cursor in try cursor.getString(name: "id") } {
+893: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+904: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+909:260 |             ) { cursor in try cursor.getString(name: "id") } {
+917: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+928: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+933:260 |             ) { cursor in try cursor.getString(name: "id") } {
+941: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+952: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+957:260 |             ) { cursor in try cursor.getString(name: "id") } {
+965: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+976: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+981:260 |             ) { cursor in try cursor.getString(name: "id") } {
+989: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1000: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1005:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1013: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1024: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1029:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1037: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1048: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1053:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1061: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1072: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1077:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1085: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1175:320 |                         .in("id", value: chunk)
+1177:    |                          `- note: use 'in(_:values:)' instead
+1184:206 |                         try await rel.delete().in("id", value: ids).execute()
+1186:    |                                                `- note: use 'in(_:values:)' instead
+1211:320 |                         .in("id", value: chunk)
+1213:    |                          `- note: use 'in(_:values:)' instead
+1220:206 |                         try await rel.delete().in("id", value: ids).execute()
+1222:    |                                                `- note: use 'in(_:values:)' instead
+1247:320 |                         .in("id", value: chunk)
+1249:    |                          `- note: use 'in(_:values:)' instead
+1256:206 |                         try await rel.delete().in("id", value: ids).execute()
+1258:    |                                                `- note: use 'in(_:values:)' instead
+1283:320 |                         .in("id", value: chunk)
+1285:    |                          `- note: use 'in(_:values:)' instead
+1292:206 |                         try await rel.delete().in("id", value: ids).execute()
+1294:    |                                                `- note: use 'in(_:values:)' instead
+1319:320 |                         .in("id", value: chunk)
+1321:    |                          `- note: use 'in(_:values:)' instead
+1328:206 |                         try await rel.delete().in("id", value: ids).execute()
+1330:    |                                                `- note: use 'in(_:values:)' instead
+1355:320 |                         .in("id", value: chunk)
+1357:    |                          `- note: use 'in(_:values:)' instead
+1364:206 |                         try await rel.delete().in("id", value: ids).execute()
+1366:    |                                                `- note: use 'in(_:values:)' instead
+1391:320 |                         .in("id", value: chunk)
+1393:    |                          `- note: use 'in(_:values:)' instead
+1400:206 |                         try await rel.delete().in("id", value: ids).execute()
+1402:    |                                                `- note: use 'in(_:values:)' instead
+1427:320 |                         .in("id", value: chunk)
+1429:    |                          `- note: use 'in(_:values:)' instead
+1436:206 |                         try await rel.delete().in("id", value: ids).execute()
+1438:    |                                                `- note: use 'in(_:values:)' instead
+1463:320 |                         .in("id", value: chunk)
+1465:    |                          `- note: use 'in(_:values:)' instead
+1472:206 |                         try await rel.delete().in("id", value: ids).execute()
+1474:    |                                                `- note: use 'in(_:values:)' instead
+1591:  Supabase: https://github.com/supabase/supabase-swift.git @ 2.54.1
+1602:  CSQLite: https://github.com/powersync-ja/CSQLite.git @ 3.51.2
+1606:  PowerSyncSQLiteCore: https://github.com/powersync-ja/powersync-sqlite-core-swift.git @ 0.4.13
+1622:note: Building targets in dependency order
+1623:note: Target dependency graph (47 targets)
+1828:Build description signature: 6b3945ff62b85b9418c844f540f47cb5
+3063:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3103:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3226:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3627:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+7678:            ) { cursor in try cursor.getString(name: "id") } {
+7694:            return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+7769:                        .in("id", value: chunk)
+7771:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/RepairRepository.swift:320:26: note: use 'in(_:values:)' instead
+7772:                        .in("id", value: chunk)
+7792:                        try await rel.delete().in("id", value: ids).execute()
+7794:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SupabaseConnector.swift:206:48: note: use 'in(_:values:)' instead
+7795:                        try await rel.delete().in("id", value: ids).execute()
+7978:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/nl.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7983:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/nl.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7988:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/hi.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7993:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/hi.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+7998:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/en.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+8003:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/en.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+8154:note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Products/Debug-iphonesimulator/Sanvya.app/AppIcon60x60@2x.png (in target 'Sanvya' from project 'Sanvya')
+8155:note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Products/Debug-iphonesimulator/Sanvya.app/Assets.car (in target 'Sanvya' from project 'Sanvya')
+8156:note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Products/Debug-iphonesimulator/Sanvya.app/AppIcon76x76@2x~ipad.png (in target 'Sanvya' from project 'Sanvya')
+8372:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+8597:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/UIKit.framework/Headers/UIDevice.h:61:52: note: property declared here
+8603:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/UIKit.framework/Headers/UIDevice.h:37:49: note: class property declared here
+8915:note: Using stub executor library with Swift entry point. (in target 'Sanvya' from project 'Sanvya')
+8997:2026-08-27 07:56:49.673962+0000 Sanvya[12003:42299] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+8998:2026-08-27 07:56:49.735989+0000 Sanvya[12003:42296] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
