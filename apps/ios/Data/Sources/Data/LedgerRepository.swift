@@ -992,10 +992,43 @@ public final class LedgerRepository: @unchecked Sendable {
     }
 
     public struct ImportResult: Sendable {
-        public var created = 0
-        public var skipped = 0
-        public var failed = 0
-        public var errors: [String] = []
+        public var created: Int
+        public var skipped: Int
+        public var failed: Int
+        public var errors: [String]
+
+        // Spelled out: a public struct's memberwise and no-argument inits are
+        // INTERNAL, so the App target could not build an empty result to show
+        // before an import has run.
+        public init(created: Int = 0, skipped: Int = 0, failed: Int = 0, errors: [String] = []) {
+            self.created = created
+            self.skipped = skipped
+            self.failed = failed
+            self.errors = errors
+        }
+    }
+
+    /**
+     Everything the import loop mutates, in one reference-typed box.
+
+     `db.writeTransaction`'s body is a `@Sendable` closure, which cannot capture
+     a mutable `var` at all -- not the caches, not the counters. Swift 6 reports
+     that as twelve separate "mutation of captured var" errors and none of them
+     names the real cause. A class captured as a `let` is the fix.
+
+     `@unchecked Sendable` is honest here rather than lazy: the box is created
+     inside `importTransactions`, is touched only by the body of ONE write
+     transaction, which PowerSync runs serially, and is read back only after
+     that transaction has returned. There is no second thread to race with.
+     */
+    private final class ImportState: @unchecked Sendable {
+        var accounts: [String: String] = [:]
+        var categories: [String: String] = [:]
+        var seen = Set<String>()
+        var created = 0
+        var skipped = 0
+        var failed = 0
+        var errors: [String] = []
     }
 
     /**
@@ -1020,19 +1053,18 @@ public final class LedgerRepository: @unchecked Sendable {
         nowIso stampIso: String,
         skipDuplicates: Bool = true
     ) async throws -> ImportResult {
-        var result = ImportResult()
-        if rows.isEmpty { return result }
+        if rows.isEmpty { return ImportResult() }
 
-        var accountCache: [String: String] = [:]
+        let state = ImportState()
+
         for row in try await db.getAll(
             sql: "SELECT id, name FROM accounts WHERE deleted_at IS NULL",
             parameters: [],
             mapper: { c in (try c.getString(name: "id"), try c.getString(name: "name")) }
         ) {
-            accountCache[row.1.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()] = row.0
+            state.accounts[row.1.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()] = row.0
         }
 
-        var categoryCache: [String: String] = [:]
         for row in try await db.getAll(
             sql: "SELECT id, name, kind FROM categories WHERE deleted_at IS NULL",
             parameters: [],
@@ -1040,10 +1072,10 @@ public final class LedgerRepository: @unchecked Sendable {
                 (try c.getString(name: "id"), try c.getString(name: "name"), try c.getString(name: "kind"))
             }
         ) {
-            categoryCache["\(row.2):\(row.1.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"] = row.0
+            let key = "\(row.2):\(row.1.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"
+            state.categories[key] = row.0
         }
 
-        var seen = Set<String>()
         if skipDuplicates {
             for key in try await db.getAll(
                 sql: "SELECT account_id, amount, type, occurred_at FROM transactions WHERE deleted_at IS NULL",
@@ -1051,14 +1083,10 @@ public final class LedgerRepository: @unchecked Sendable {
                 mapper: { c in
                     "\(try c.getString(name: "account_id"))|\(try c.getInt64(name: "amount"))|\(try c.getString(name: "type"))|\(try c.getString(name: "occurred_at"))"
                 }
-            ) { seen.insert(key) }
+            ) { state.seen.insert(key) }
         }
 
         let ts = nowIso()
-        // Captured out of the transaction body and copied back after: the
-        // closure cannot mutate `result` in place under Swift 6.
-        var created = 0, skipped = 0, failed = 0
-        var errors: [String] = []
 
         try await db.writeTransaction { tx in
             for row in rows {
@@ -1069,7 +1097,7 @@ public final class LedgerRepository: @unchecked Sendable {
 
                     let accountKey = row.account.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                     let accountId: String
-                    if let hit = accountCache[accountKey] {
+                    if let hit = state.accounts[accountKey] {
                         accountId = hit
                     } else {
                         accountId = newId()
@@ -1079,25 +1107,26 @@ public final class LedgerRepository: @unchecked Sendable {
                                 VALUES (?,?,?,?,?,?,?,?,?,?,?)
                                 """,
                             parameters: [
-                                accountId, userId, row.account.trimmingCharacters(in: .whitespacesAndNewlines),
+                                accountId, userId,
+                                row.account.trimmingCharacters(in: .whitespacesAndNewlines),
                                 guessAccountType(row.account), currency, nil, nil, 0, 1, ts, ts,
                             ]
                         )
-                        accountCache[accountKey] = accountId
+                        state.accounts[accountKey] = accountId
                     }
 
                     let dupKey = "\(accountId)|\(amountMinor)|\(row.type)|\(occurredAt)"
-                    if skipDuplicates && seen.contains(dupKey) {
-                        skipped += 1
+                    if skipDuplicates && state.seen.contains(dupKey) {
+                        state.skipped += 1
                         continue
                     }
-                    seen.insert(dupKey)
+                    state.seen.insert(dupKey)
 
                     var categoryId: String?
                     if let name = row.category, row.type == "income" || row.type == "expense" {
                         let kind = row.type == "income" ? "income" : "expense"
                         let key = "\(kind):\(name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"
-                        if let hit = categoryCache[key] {
+                        if let hit = state.categories[key] {
                             categoryId = hit
                         } else {
                             let id = newId()
@@ -1107,11 +1136,12 @@ public final class LedgerRepository: @unchecked Sendable {
                                     VALUES (?,?,?,?,?,?,?,?,?,?)
                                     """,
                                 parameters: [
-                                    id, userId, name.trimmingCharacters(in: .whitespacesAndNewlines), kind,
+                                    id, userId,
+                                    name.trimmingCharacters(in: .whitespacesAndNewlines), kind,
                                     0, nil, nil, nil, ts, ts,
                                 ]
                             )
-                            categoryCache[key] = id
+                            state.categories[key] = id
                             categoryId = id
                         }
                     }
@@ -1128,19 +1158,20 @@ public final class LedgerRepository: @unchecked Sendable {
                             row.note, row.description, nil, occurredAt, nil, nil, nil, nil, ts, ts,
                         ]
                     )
-                    created += 1
+                    state.created += 1
                 } catch {
-                    failed += 1
-                    if errors.count < 8 { errors.append(String(describing: error)) }
+                    state.failed += 1
+                    if state.errors.count < 8 { state.errors.append(String(describing: error)) }
                 }
             }
         }
 
-        result.created = created
-        result.skipped = skipped
-        result.failed = failed
-        result.errors = errors
-        return result
+        return ImportResult(
+            created: state.created,
+            skipped: state.skipped,
+            failed: state.failed,
+            errors: state.errors
+        )
     }
 
     /// The Reflect queue — web's `useIntentQueue`.
