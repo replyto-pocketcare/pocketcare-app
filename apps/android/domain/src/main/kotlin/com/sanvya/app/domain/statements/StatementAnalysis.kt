@@ -226,6 +226,39 @@ internal fun isoDaysOrNull(iso: String): Long? {
     return (era.toLong() * 146097 + doe - 719468)
 }
 
+/**
+ * [iso] (YYYY-MM-DD) plus [n] days, or null when it will not parse.
+ *
+ * Pure calendar arithmetic, no time zone involved. Web's own `addDays` builds a
+ * local `Date`, mutates it, and then calls `.toISOString()` — a local→UTC round
+ * trip that can land a day off for anyone not on UTC. The only caller pads a
+ * reconciliation window by four days, so the bug never surfaces there, and it is
+ * not worth reproducing a defect whose observable effect is zero.
+ */
+fun addDaysIso(iso: String, n: Int): String? {
+    val days = isoDaysOrNull(iso) ?: return null
+    return isoFromEpochDays(days + n)
+}
+
+/** The inverse of [isoDaysOrNull] -- Hinnant's civil_from_days. */
+internal fun isoFromEpochDays(days: Long): String {
+    val z = days + 719_468L
+    val era = (if (z >= 0) z else z - 146_096L) / 146_097L
+    val doe = z - era * 146_097L
+    val yoe = (doe - doe / 1460L + doe / 36_524L - doe / 146_096L) / 365L
+    val y = yoe + era * 400L
+    val doy = doe - (365L * yoe + yoe / 4L - yoe / 100L)
+    val mp = (5L * doy + 2L) / 153L
+    val d = doy - (153L * mp + 2L) / 5L + 1L
+    val m = if (mp < 10) mp + 3L else mp - 9L
+    return "%04d-%02d-%02d".format(
+        java.util.Locale.ROOT,
+        (if (m <= 2) y + 1 else y).toInt(),
+        m.toInt(),
+        d.toInt(),
+    )
+}
+
 internal const val UNCATEGORISED = "Uncategorised"
 internal const val REASON_SMALL_SAMPLE = "Much larger than your typical spend (~3× the median)"
 internal const val REASON_IQR = "Unusually large — above the normal range for this statement"

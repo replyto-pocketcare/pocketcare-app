@@ -327,7 +327,16 @@ fun SanvyaNavHost() {
 
         // Also had no screen and fell through to coming_soon.
         composable("statements") {
-            com.sanvya.app.ui.statements.StatementsScreen()
+            com.sanvya.app.ui.statements.StatementsScreen(
+                onAnalyze = { navController.navigate("statements/analyze") },
+            )
+        }
+
+        // The statement analyzer. A route of its own rather than a sheet: it
+        // holds a parsed file, a reconciliation and an import, and a dismissible
+        // sheet would throw all of that away on a stray swipe.
+        composable("statements/analyze") {
+            com.sanvya.app.ui.statements.StatementAnalyzeScreen()
         }
 
         composable("accounts") {

@@ -358,6 +358,67 @@ public final class LedgerRepository: @unchecked Sendable {
         }
     }
 
+    /// Every category, once. A snapshot, not a watch: the caller needs a
+    /// name-for-id table at the moment it classifies a statement, and a
+    /// subscription that re-fires mid-parse would be worse than useless.
+    public func listCategories() async throws -> [CategoryRow] {
+        try await db.getAll(
+            sql: "SELECT id, name, kind, parent_id FROM categories WHERE deleted_at IS NULL ORDER BY name",
+            parameters: [],
+            mapper: { cursor in
+                CategoryRow(
+                    id: try cursor.getString(name: "id"),
+                    name: try cursor.getString(name: "name"),
+                    kind: try cursor.getString(name: "kind"),
+                    parentId: try cursor.getStringOptional(name: "parent_id")
+                )
+            }
+        )
+    }
+
+    /// Recorded income/expense rows for one account over a date window, as the
+    /// statement reconciler wants them: SIGNED minor units, plain ISO dates.
+    ///
+    /// `account_id OR to_account_id`, because a transfer INTO this account is
+    /// money that appears on its statement even though the row belongs to the
+    /// other side. Web's query says the same.
+    ///
+    /// The date window is applied in SQL; web pulls the whole table and filters
+    /// in JS. Same rows, but a phone reading a five-year ledger to reconcile one
+    /// month of statement is a different proposition from a browser doing it.
+    /// The `to` end is deliberately padded by the reconciler's own day window —
+    /// a statement row on the last day can legitimately match a recorded one
+    /// four days later.
+    public func listRecordedForReconcile(
+        accountId: String, fromIso: String, toIso: String
+    ) async throws -> [RecordedTxn] {
+        try await db.getAll(
+            sql: """
+                SELECT id, amount, type, occurred_at, description
+                FROM transactions
+                WHERE deleted_at IS NULL
+                  AND type IN ('income','expense')
+                  AND (account_id = ? OR to_account_id = ?)
+                  AND substr(occurred_at, 1, 10) >= ?
+                  AND substr(occurred_at, 1, 10) <= ?
+                """,
+            parameters: [accountId, accountId, fromIso, toIso],
+            mapper: { cursor in
+                let type = try cursor.getString(name: "type")
+                let amount = try cursor.getInt64(name: "amount")
+                return RecordedTxn(
+                    id: try cursor.getString(name: "id"),
+                    // The ledger stores magnitudes and a type; the reconciler
+                    // wants a sign, because an expense and a refund of the same
+                    // size are not the same row.
+                    amount: type == "income" ? amount : -amount,
+                    date: String(try cursor.getString(name: "occurred_at").prefix(10)),
+                    description: try cursor.getStringOptional(name: "description") ?? ""
+                )
+            }
+        )
+    }
+
     /// Every learned categorisation rule for this user, highest weight first.
     ///
     /// A single read that backs a `BulkClassifier`, which is the whole point:

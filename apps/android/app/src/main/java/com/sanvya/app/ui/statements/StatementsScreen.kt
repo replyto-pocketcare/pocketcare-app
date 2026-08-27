@@ -25,6 +25,7 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaShape
 import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.Eyebrow
+import com.sanvya.app.ui.components.SanvyaButton
 import com.sanvya.app.ui.components.SanvyaCard
 import com.sanvya.app.ui.components.SanvyaInput
 import com.sanvya.app.ui.components.SanvyaPage
@@ -40,13 +41,14 @@ import com.sanvya.app.ui.components.SanvyaText
  * Deliberately absent, because web's versions do not translate:
  * - **Print.** `window.print()` has no phone equivalent; a share/PDF export is
  *   a real feature to design, not a button to add.
- * - **Analyze.** `/statements/analyze` is a separate screen (statement import
- *   and reconciliation) that does not exist natively yet — and iOS's
- *   `StatementImportView` is another fabrication, tracked separately.
+ *
+ * **Analyze** is no longer in that list: `/statements/analyze` landed
+ * 2026-08-27 and the link below reaches it, as web's does.
  */
 @Composable
 fun StatementsScreen(
     viewModel: StatementsViewModel = viewModel(),
+    onAnalyze: () -> Unit = {},
 ) {
     val colors = LocalSanvyaColors.current
     val state by viewModel.uiState.collectAsState()
@@ -96,6 +98,13 @@ fun StatementsScreen(
                 onValueChange = viewModel::setEnd,
                 modifier = Modifier.weight(1f),
             )
+        }
+
+        Spacer(Modifier.height(12.dp))
+        // Web puts this link at the top of the same screen. It is a different
+        // job -- read someone ELSE's statement -- so it is a link, not a tab.
+        SanvyaButton(onClick = onAnalyze, modifier = Modifier.fillMaxWidth(), ghost = true) {
+            SanvyaText(S.Statements.analyze(sRes()), style = SanvyaType.button, modifier = Modifier.weight(1f))
         }
 
         SanvyaCard(padding = PaddingValues(20.dp)) {

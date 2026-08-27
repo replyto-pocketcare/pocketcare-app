@@ -68,6 +68,7 @@ import com.sanvya.app.domain.ledger.RateLookup
 import com.sanvya.app.domain.ledger.aggregateNetWorth
 import com.sanvya.app.domain.ledger.deriveBalance
 import com.sanvya.app.domain.categorize.CategoryRule
+import com.sanvya.app.domain.statements.RecordedTxn
 import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.itemsReconcile
 import com.sanvya.app.domain.csv.CanonRow
@@ -256,6 +257,67 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
         "SELECT COUNT(*) AS c FROM accounts WHERE deleted_at IS NULL AND IFNULL(kind,'real') = 'real'",
         mapper = { cursor -> cursor.getLong("c").toInt() },
     ).map { it.firstOrNull() ?: 0 }
+
+    /**
+     * Every category, once. A snapshot, not a watch: the caller needs a
+     * name-for-id table at the moment it classifies a statement, and a
+     * subscription that re-fires mid-parse would be worse than useless.
+     */
+    suspend fun listCategories(): List<CategoryRow> = db.getAll(
+        sql = "SELECT id, name, kind, parent_id FROM categories WHERE deleted_at IS NULL ORDER BY name",
+        parameters = emptyList(),
+        mapper = { cursor ->
+            CategoryRow(
+                id = cursor.getString("id"),
+                name = cursor.getString("name"),
+                kind = cursor.getString("kind"),
+                parentId = cursor.getStringOptional("parent_id"),
+            )
+        },
+    )
+
+    /**
+     * Recorded income/expense rows for one account over a date window, as the
+     * statement reconciler wants them: SIGNED minor units, plain ISO dates.
+     *
+     * `account_id OR to_account_id`, because a transfer INTO this account is
+     * money that appears on its statement even though the row belongs to the
+     * other side. Web's query says the same.
+     *
+     * The date window is applied in SQL; web pulls the whole table and filters
+     * in JS. Same rows, but a phone reading a five-year ledger to reconcile one
+     * month of statement is a different proposition from a browser doing it.
+     * The `to` end is deliberately padded by the reconciler's own day window — a
+     * statement row on the last day can legitimately match a recorded one four
+     * days later.
+     */
+    suspend fun listRecordedForReconcile(
+        accountId: String,
+        fromIso: String,
+        toIso: String,
+    ): List<RecordedTxn> = db.getAll(
+        sql = """SELECT id, amount, type, occurred_at, description
+                 FROM transactions
+                 WHERE deleted_at IS NULL
+                   AND type IN ('income','expense')
+                   AND (account_id = ? OR to_account_id = ?)
+                   AND substr(occurred_at, 1, 10) >= ?
+                   AND substr(occurred_at, 1, 10) <= ?""",
+        parameters = listOf(accountId, accountId, fromIso, toIso),
+        mapper = { cursor ->
+            val type = cursor.getString("type")
+            val amount = cursor.getLong("amount")
+            RecordedTxn(
+                id = cursor.getString("id"),
+                // The ledger stores magnitudes and a type; the reconciler wants
+                // a sign, because an expense and a refund of the same size are
+                // not the same row.
+                amount = if (type == "income") amount else -amount,
+                date = cursor.getString("occurred_at").take(10),
+                description = cursor.getStringOptional("description") ?: "",
+            )
+        },
+    )
 
     /**
      * Every learned categorisation rule for this user, highest weight first.

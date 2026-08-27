@@ -16,11 +16,12 @@ import Domain
 /// Deliberately absent, because web's versions do not translate:
 /// - **Print.** `window.print()` has no phone equivalent; a share/PDF export is
 ///   a real feature to design, not a button to add.
-/// - **Analyze.** `/statements/analyze` is a separate screen (statement import
-///   and reconciliation) that does not exist natively — and `StatementImportView`
-///   is another fabrication, tracked separately.
+///
+/// **Analyze** is no longer in that list: `/statements/analyze` landed
+/// 2026-08-27 and the link below reaches it, as web's does.
 struct StatementsView: View {
     @State private var viewModel = StatementsViewModel()
+    @State private var showAnalyze = false
 
     var body: some View {
         ScrollView {
@@ -35,6 +36,9 @@ struct StatementsView: View {
             .padding(16)
         }
         .background(Color.bg.ignoresSafeArea())
+        .sanvyaFormPresentation(isPresented: $showAnalyze) {
+            NavigationStack { StatementAnalyzeView() }
+        }
         .onAppear { viewModel.start() }
     }
 
@@ -61,6 +65,12 @@ struct StatementsView: View {
         HStack(alignment: .top, spacing: 12) {
             dateField(S.Statements.fromDate, text: $viewModel.startDate)
             dateField(S.Statements.toDate, text: $viewModel.endDate)
+        }
+
+        // Web puts this link at the top of the same screen. It is a different
+        // job -- read someone ELSE's statement -- so it is a link, not a tab.
+        SanvyaButton(ghost: true) { showAnalyze = true } label: {
+            Text(S.Statements.analyze).frame(maxWidth: .infinity)
         }
 
         SanvyaCard(padding: 20) {

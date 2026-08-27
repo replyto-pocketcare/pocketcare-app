@@ -249,6 +249,38 @@ func isoDaysOrNil(_ iso: String) -> Int? {
     return epochDay(y, m - 1, d)
 }
 
+/**
+ `iso` (YYYY-MM-DD) plus `n` days, or nil when it will not parse.
+
+ Pure calendar arithmetic, no time zone involved. Web's own `addDays` builds a
+ local `Date`, mutates it, and then calls `.toISOString()` — a local→UTC round
+ trip that can land a day off for anyone not on UTC. The only caller pads a
+ reconciliation window by four days, so the bug never surfaces there, and it is
+ not worth reproducing a defect whose observable effect is zero.
+ */
+public func addDaysIso(_ iso: String, _ n: Int) -> String? {
+    guard let days = isoDaysOrNil(iso) else { return nil }
+    return isoFromEpochDays(days + n)
+}
+
+/// The inverse of `epochDay` — Hinnant's civil_from_days.
+func isoFromEpochDays(_ days: Int) -> String {
+    let z = days + 719_468
+    let era = (z >= 0 ? z : z - 146_096) / 146_097
+    let doe = z - era * 146_097                                       // [0, 146096]
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146_096) / 365   // [0, 399]
+    let y = yoe + era * 400
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100)                  // [0, 365]
+    let mp = (5 * doy + 2) / 153                                      // [0, 11]
+    let d = doy - (153 * mp + 2) / 5 + 1                              // [1, 31]
+    let m = mp < 10 ? mp + 3 : mp - 9                                 // [1, 12]
+    return String(
+        format: "%04d-%02d-%02d",
+        locale: Locale(identifier: "en_US_POSIX"),
+        m <= 2 ? y + 1 : y, m, d
+    )
+}
+
 /// `sorted(by:)` is NOT guaranteed stable in Swift; `Array.prototype.sort` is
 /// stable in every engine web targets, and Kotlin's sorts are stable too. Where
 /// a tie can occur — two categories with the same total, two outliers with the
