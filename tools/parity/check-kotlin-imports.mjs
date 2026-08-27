@@ -93,6 +93,20 @@ const EXTERNAL = {
   min: "kotlin.math",
   max: "kotlin.math",
   roundToInt: { pkg: "kotlin.math", extension: true },
+  // Added 2026-08-27. kotlinx.serialization's JSON accessors are extension
+  // PROPERTIES on JsonElement -- `element.jsonArray`, `.jsonObject`,
+  // `.jsonPrimitive` -- and every one of them lives in
+  // `kotlinx.serialization.json`, one level below the `JsonElement` /
+  // `JsonObject` types that files DO remember to import. A file that imports
+  // the types and forgets the accessors compiles right up until it reads one.
+  jsonArray: { pkg: "kotlinx.serialization.json", property: true },
+  jsonObject: { pkg: "kotlinx.serialization.json", property: true },
+  jsonPrimitive: { pkg: "kotlinx.serialization.json", property: true },
+  contentOrNull: { pkg: "kotlinx.serialization.json", property: true },
+  booleanOrNull: { pkg: "kotlinx.serialization.json", property: true },
+  doubleOrNull: { pkg: "kotlinx.serialization.json", property: true },
+  intOrNull: { pkg: "kotlinx.serialization.json", property: true },
+  longOrNull: { pkg: "kotlinx.serialization.json", property: true },
 };
 
 function walk(dir, out = []) {
@@ -105,7 +119,16 @@ function walk(dir, out = []) {
   return out;
 }
 
-const files = walk(ROOT).filter((f) => !f.includes("/src/test/"));
+/**
+ * Test sources are INCLUDED, since 2026-08-27.
+ *
+ * They used to be filtered out, on the theory that a vector adapter is not a
+ * screen. That was wrong for the reason CI then demonstrated: `:domain:test` is
+ * compiled by the same build, a missing import there fails it just as hard, and
+ * the *Vectors.kt adapters are precisely where kotlinx.serialization's JSON
+ * accessors get used -- the one package everything below is about.
+ */
+const files = walk(ROOT);
 
 /** symbol -> the package(s) it is declared in, read from the source. */
 const declaredIn = new Map();
@@ -144,7 +167,7 @@ for (const file of files) {
     .join("\n")
     .replace(/"(?:[^"\\]|\\.)*"/g, '""');
 
-  const check = (name, candidatePkgs, isExtension = false, matchTypePosition = false) => {
+  const check = (name, candidatePkgs, isExtension = false, matchTypePosition = false, isProperty = false) => {
     // A qualified use (`com.sanvya.app.ui.formatMoney(...)` or `Foo.name`)
     // needs no import, so only bare uses count -- EXCEPT for extension
     // functions, which are always written dotted and still need one.
@@ -154,10 +177,17 @@ for (const file of files) {
     // narrow form requires a following `(`, `.` or `{`, which a type
     // annotation never has -- that is exactly how Surfaces.kt shipped without
     // its `Color` import while this check said 0 hits.
+    //
+    // `isProperty` is the same idea for an extension PROPERTY: `.jsonArray` is
+    // written dotted like an extension function but has no argument list, so
+    // neither of the two rules above sees it. AssistantVectors.kt shipped
+    // without that import while this check said 0 hits, for the third time in
+    // three different disguises.
     const used = new RegExp(`(?<![.\\w])${name}\\s*[\\(\\.\\{]`).test(body)
       || new RegExp(`(?<![.\\w])${name}::`).test(body)
       || (matchTypePosition && new RegExp(`(?<![.\\w])${name}\\b`).test(body))
-      || (isExtension && new RegExp(`\\.${name}\\s*\\(`).test(body));
+      || (isExtension && new RegExp(`\\.${name}\\s*\\(`).test(body))
+      || (isProperty && new RegExp(`\\.${name}\\b`).test(body));
     if (!used) return;
     if (candidatePkgs.includes(pkg)) return;
     for (const p of candidatePkgs) {
@@ -175,7 +205,8 @@ for (const file of files) {
     const pkg2 = typeof spec === "string" ? spec : spec.pkg;
     const isExtension = typeof spec === "object" && spec.extension === true;
     const isType = typeof spec === "object" && spec.type === true;
-    check(name, [pkg2], isExtension, isType);
+    const isProperty = typeof spec === "object" && spec.property === true;
+    check(name, [pkg2], isExtension, isType, isProperty);
   }
 }
 

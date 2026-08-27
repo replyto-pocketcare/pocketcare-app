@@ -2,18 +2,19 @@ package com.sanvya.app.domain.assistant
 
 import com.sanvya.app.domain.js.jsonNumber
 import com.sanvya.app.domain.vectors.FunctionRegistry
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.double
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.int
-import kotlinx.serialization.json.double
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.Json
 
 // Wires the assistant's parser into FunctionRegistry.
 //

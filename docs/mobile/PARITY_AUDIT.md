@@ -2643,3 +2643,32 @@ it — two more chances to differ, for nothing.
 bytes compiles but is sent as `application/octet-stream`, a different request.
 supabase-swift's own `AnyJSON` was already in use in `RepairRepository`.
 
+### CI run 33094942154 (b59e0ac) — the import guard had a blind spot in two directions
+
+parity ✅ · android ❌ · ios ❌ (the ios failure was `01f5728`'s deleted
+helpers, already fixed).
+
+Android's was four lines of `Unresolved reference 'jsonArray'` in
+`AssistantVectors.kt` — and `check-kotlin-imports.mjs` had reported **0 hits**
+on that file, for two independent reasons:
+
+1. **It skipped test sources entirely.** `walk(ROOT).filter(f => !f.includes("/src/test/"))`,
+   on the theory that a vector adapter is not a screen. Wrong: `:domain:test` is
+   compiled by the same build, a missing import there fails it just as hard, and
+   the `*Vectors.kt` adapters are *precisely* where kotlinx.serialization's JSON
+   accessors get used. Test sources are now in — 225 files became **261**, all
+   clean.
+2. **It had no way to see an extension PROPERTY.** `.jsonArray` is written
+   dotted like an extension function but has no argument list, so neither the
+   bare-word rule nor the `extension: true` rule matched it. A new
+   `property: true` mode covers it, and eight kotlinx accessors are now watched
+   (`jsonArray`, `jsonObject`, `jsonPrimitive`, `contentOrNull`,
+   `booleanOrNull`, `doubleOrNull`, `intOrNull`, `longOrNull`).
+
+**This is the third time this one guard has said "0 hits" on the exact file that
+was failing**, each time in a different disguise — first a bare `(`-less call
+(`rememberSaveable`), then a type annotation (`Color`), now a dotted property.
+The pattern is worth naming: the check matches USES, and every time it misses,
+it is because Kotlin has another syntax for using something. Verified the new
+rule by running it against the broken file before fixing it.
+
