@@ -1,0 +1,689 @@
+[
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "a,b,c\n1,2,3"
+    },
+    "expected": [
+      [
+        "a",
+        "b",
+        "c"
+      ],
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "a,b,c\r\n1,2,3\r\n"
+    },
+    "expected": [
+      [
+        "a",
+        "b",
+        "c"
+      ],
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "name,note\n\"Smith, John\",hello"
+    },
+    "expected": [
+      [
+        "name",
+        "note"
+      ],
+      [
+        "Smith, John",
+        "hello"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "name,note\n\"He said \"\"hi\"\"\",x"
+    },
+    "expected": [
+      [
+        "name",
+        "note"
+      ],
+      [
+        "He said \"hi\"",
+        "x"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "a;b;c\n1;2;3"
+    },
+    "expected": [
+      [
+        "a",
+        "b",
+        "c"
+      ],
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "a;b\n1;2\n\n3;4"
+    },
+    "expected": [
+      [
+        "a",
+        "b"
+      ],
+      [
+        "1",
+        "2"
+      ],
+      [
+        "3",
+        "4"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "﻿a,b\n1,2"
+    },
+    "expected": [
+      [
+        "a",
+        "b"
+      ],
+      [
+        "1",
+        "2"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "a,b\n1,2\n   ,   \n3,4"
+    },
+    "expected": [
+      [
+        "a",
+        "b"
+      ],
+      [
+        "1",
+        "2"
+      ],
+      [
+        "3",
+        "4"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "a,b\n\"multi\nline\",2"
+    },
+    "expected": [
+      [
+        "a",
+        "b"
+      ],
+      [
+        "multi\nline",
+        "2"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "single"
+    },
+    "expected": [
+      [
+        "single"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": ""
+    },
+    "expected": []
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "a,b,c\n1,2"
+    },
+    "expected": [
+      [
+        "a",
+        "b",
+        "c"
+      ],
+      [
+        "1",
+        "2"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "a,b\n1,2,3,4"
+    },
+    "expected": [
+      [
+        "a",
+        "b"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ]
+  },
+  {
+    "fn": "parseCsv",
+    "input": {
+      "text": "a,b\r1,2"
+    },
+    "expected": [
+      [
+        "a",
+        "b1",
+        "2"
+      ]
+    ]
+  },
+  {
+    "fn": "parseRecords",
+    "input": {
+      "text": "  Name , AMOUNT \nAlice, 12 ",
+      "delimiter": null
+    },
+    "expected": [
+      {
+        "name": "Alice",
+        "amount": "12"
+      }
+    ]
+  },
+  {
+    "fn": "parseRecords",
+    "input": {
+      "text": "a;b\n1;2",
+      "delimiter": ";"
+    },
+    "expected": [
+      {
+        "a": "1",
+        "b": "2"
+      }
+    ]
+  },
+  {
+    "fn": "parseRecords",
+    "input": {
+      "text": "a,b\n1,2",
+      "delimiter": null
+    },
+    "expected": [
+      {
+        "a": "1",
+        "b": "2"
+      }
+    ]
+  },
+  {
+    "fn": "parseRecords",
+    "input": {
+      "text": "",
+      "delimiter": null
+    },
+    "expected": []
+  },
+  {
+    "fn": "toCsv",
+    "input": {
+      "rows": [
+        [
+          "a",
+          "b"
+        ],
+        [
+          "1",
+          "2"
+        ]
+      ]
+    },
+    "expected": "a,b\r\n1,2"
+  },
+  {
+    "fn": "toCsv",
+    "input": {
+      "rows": [
+        [
+          "with,comma",
+          "with\"quote"
+        ],
+        [
+          "plain",
+          null
+        ]
+      ]
+    },
+    "expected": "\"with,comma\",\"with\"\"quote\"\r\nplain,"
+  },
+  {
+    "fn": "toCsv",
+    "input": {
+      "rows": [
+        [
+          "line\nbreak"
+        ],
+        [
+          "ok"
+        ]
+      ]
+    },
+    "expected": "\"line\nbreak\"\r\nok"
+  },
+  {
+    "fn": "toCsv",
+    "input": {
+      "rows": [
+        []
+      ]
+    },
+    "expected": ""
+  },
+  {
+    "fn": "parseWithAdapter",
+    "input": {
+      "adapterId": "pocketcare",
+      "text": "Date,Type,Amount,Currency,Account,To Account,To Amount,Category,Labels,Payment Method,Note,Description\n2026-08-01,expense,\"1,234.56\",INR,HDFC,,,Food,\"Travel|Work\",UPI,lunch,UPI/SWIGGY\n2026-08-02,income,50000,INR,HDFC,,,Salary,,,,\n2026-08-03,transfer,-2500,INR,HDFC,ICICI,2500,,,,,\n2026-08-04,adjustment,-99,INR,Cash,,,,,,,\n2026-08-05,opening_balance,1000,INR,Cash,,,,,,,\n2026-08-06,Debit,300,inr,HDFC,,,,,,,\n2026-08-07,weird,-42,INR,HDFC,,,,,,,\n2026-08-08,expense,0,INR,HDFC,,,,,,,\n2026-08-09,expense,100,INR,,,,,,,,\n,expense,7,INR,Cash,,,,,,,\n2026-08-10,expense,\"1.234,56\",EUR,Wise,,,,,,,",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": [
+      {
+        "date": "2026-08-01",
+        "type": "expense",
+        "amount": 1234.56,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": null,
+        "toAmount": null,
+        "category": "Food",
+        "labels": [
+          "Travel",
+          "Work"
+        ],
+        "paymentMethod": "UPI",
+        "note": "lunch",
+        "description": "UPI/SWIGGY"
+      },
+      {
+        "date": "2026-08-02",
+        "type": "income",
+        "amount": 50000,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": null,
+        "toAmount": null,
+        "category": "Salary",
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-03",
+        "type": "transfer",
+        "amount": 2500,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": "ICICI",
+        "toAmount": 2500,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-04",
+        "type": "adjustment",
+        "amount": -99,
+        "currency": "INR",
+        "account": "Cash",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-05",
+        "type": "opening_balance",
+        "amount": 1000,
+        "currency": "INR",
+        "account": "Cash",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-06",
+        "type": "expense",
+        "amount": 300,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-07",
+        "type": "expense",
+        "amount": 42,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-26T12:00:00.000Z",
+        "type": "expense",
+        "amount": 7,
+        "currency": "INR",
+        "account": "Cash",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-10",
+        "type": "expense",
+        "amount": 1.23456,
+        "currency": "EUR",
+        "account": "Wise",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      }
+    ]
+  },
+  {
+    "fn": "parseWithAdapter",
+    "input": {
+      "adapterId": "wallet",
+      "text": "account;category;currency;amount;ref_currency_amount;type;payment_type;payment_type_local;note;date;transfer;payee;labels\nHDFC;Food;INR;-450.50;;Expenses;;mobile payment;Swiggy;2026-08-01;false;;food|treat\nHDFC;;INR;-5000;;Expenses;;bank transfer;;2026-08-02;true;;\nICICI;;INR;5000;;Income;;bank transfer;;2026-08-02;true;;\nHDFC;Salary;INR;60000;;Income;;bank transfer;;2026-08-03;false;Acme;\nCash;Misc;INR;-20;;Expenses;;cash;;2026-08-04;false;Chai;\n;Misc;INR;-20;;Expenses;;cash;;2026-08-05;false;;",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": [
+      {
+        "date": "2026-08-01",
+        "type": "expense",
+        "amount": 450.5,
+        "currency": "INR",
+        "account": "HDFC",
+        "category": "Food",
+        "labels": [
+          "food",
+          "treat"
+        ],
+        "paymentMethod": "UPI",
+        "note": "Swiggy",
+        "toAccount": null,
+        "toAmount": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-02",
+        "type": "adjustment",
+        "amount": -5000,
+        "currency": "INR",
+        "account": "HDFC",
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": "Transfer",
+        "toAccount": null,
+        "toAmount": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-02",
+        "type": "adjustment",
+        "amount": 5000,
+        "currency": "INR",
+        "account": "ICICI",
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": "Transfer",
+        "toAccount": null,
+        "toAmount": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-03",
+        "type": "income",
+        "amount": 60000,
+        "currency": "INR",
+        "account": "HDFC",
+        "category": "Salary",
+        "labels": [],
+        "paymentMethod": "Net Banking",
+        "note": "Acme",
+        "toAccount": null,
+        "toAmount": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-04",
+        "type": "expense",
+        "amount": 20,
+        "currency": "INR",
+        "account": "Cash",
+        "category": "Misc",
+        "labels": [],
+        "paymentMethod": "Cash",
+        "note": "Chai",
+        "toAccount": null,
+        "toAmount": null,
+        "description": null
+      }
+    ]
+  },
+  {
+    "fn": "parseWithAdapter",
+    "input": {
+      "adapterId": "unknown-id",
+      "text": "Date,Type,Amount,Currency,Account,To Account,To Amount,Category,Labels,Payment Method,Note,Description\n2026-08-01,expense,\"1,234.56\",INR,HDFC,,,Food,\"Travel|Work\",UPI,lunch,UPI/SWIGGY\n2026-08-02,income,50000,INR,HDFC,,,Salary,,,,\n2026-08-03,transfer,-2500,INR,HDFC,ICICI,2500,,,,,\n2026-08-04,adjustment,-99,INR,Cash,,,,,,,\n2026-08-05,opening_balance,1000,INR,Cash,,,,,,,\n2026-08-06,Debit,300,inr,HDFC,,,,,,,\n2026-08-07,weird,-42,INR,HDFC,,,,,,,\n2026-08-08,expense,0,INR,HDFC,,,,,,,\n2026-08-09,expense,100,INR,,,,,,,,\n,expense,7,INR,Cash,,,,,,,\n2026-08-10,expense,\"1.234,56\",EUR,Wise,,,,,,,",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": [
+      {
+        "date": "2026-08-01",
+        "type": "expense",
+        "amount": 1234.56,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": null,
+        "toAmount": null,
+        "category": "Food",
+        "labels": [
+          "Travel",
+          "Work"
+        ],
+        "paymentMethod": "UPI",
+        "note": "lunch",
+        "description": "UPI/SWIGGY"
+      },
+      {
+        "date": "2026-08-02",
+        "type": "income",
+        "amount": 50000,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": null,
+        "toAmount": null,
+        "category": "Salary",
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-03",
+        "type": "transfer",
+        "amount": 2500,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": "ICICI",
+        "toAmount": 2500,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-04",
+        "type": "adjustment",
+        "amount": -99,
+        "currency": "INR",
+        "account": "Cash",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-05",
+        "type": "opening_balance",
+        "amount": 1000,
+        "currency": "INR",
+        "account": "Cash",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-06",
+        "type": "expense",
+        "amount": 300,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-07",
+        "type": "expense",
+        "amount": 42,
+        "currency": "INR",
+        "account": "HDFC",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-26T12:00:00.000Z",
+        "type": "expense",
+        "amount": 7,
+        "currency": "INR",
+        "account": "Cash",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      },
+      {
+        "date": "2026-08-10",
+        "type": "expense",
+        "amount": 1.23456,
+        "currency": "EUR",
+        "account": "Wise",
+        "toAccount": null,
+        "toAmount": null,
+        "category": null,
+        "labels": [],
+        "paymentMethod": null,
+        "note": null,
+        "description": null
+      }
+    ]
+  }
+]
