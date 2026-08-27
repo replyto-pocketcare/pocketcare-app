@@ -85,10 +85,18 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     /// Without this iOS suppresses it, and the "send test notification" button
     /// — whose entire job is to prove delivery works — would appear to do
     /// nothing on the one screen you are looking at when you tap it.
-    func userNotificationCenter(
+    ///
+    /// `nonisolated`, and the completion-handler form rather than the `async`
+    /// one, both deliberately. `UIApplicationDelegate` is `@MainActor`, so this
+    /// class is too — and an `async` implementation of a NON-isolated protocol
+    /// requirement means `UNUserNotificationCenter` and `UNNotification`,
+    /// neither of them Sendable, would have to cross into the main actor. Swift
+    /// 6 rejects that. Answering synchronously never crosses an actor at all.
+    nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification
-    ) async -> UNNotificationPresentationOptions {
-        [.banner, .sound, .list]
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .list])
     }
 }

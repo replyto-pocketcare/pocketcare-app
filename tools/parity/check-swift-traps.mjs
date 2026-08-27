@@ -35,6 +35,17 @@ const RULES = [
     fix: "Spell it out: `if let x = sync { return x }; return try? await asyncCall()`.",
   },
   {
+    name: "a UNUserNotificationCenterDelegate method that is not `nonisolated`",
+    // UIApplicationDelegate is @MainActor, so an AppDelegate that also adopts
+    // UNUserNotificationCenterDelegate inherits that isolation -- and
+    // UNUserNotificationCenter / UNNotification are not Sendable, so an
+    // implementation the compiler has to hop onto the main actor cannot receive
+    // them. Swift 6's message names the two types and the protocol requirement
+    // and reads like a library problem; the fix is one keyword.
+    test: (line) => /\bfunc\s+userNotificationCenter\s*\(/.test(line) && !/\bnonisolated\b/.test(line),
+    fix: "Mark it `nonisolated` and take the completion-handler form, not `async`.",
+  },
+  {
     name: "UUID().uuidString on a persisted id",
     // Swift's uuidString is UPPERCASE; web and Android write lowercase, and
     // SQLite compares TEXT case-sensitively. See Data/Ids.swift.
