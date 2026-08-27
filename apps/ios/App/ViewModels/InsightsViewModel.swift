@@ -155,7 +155,11 @@ public final class InsightsViewModel {
         let ent = latestEntitlement
         isPaidUser = Domain.isPaid(tier: ent?.tier, premiumTrialStartDate: ent?.premiumTrialStartDate, compTier: ent?.compTier, compUntil: ent?.compUntil, now: Date())
 
-        let rates = (try? await ledgerRepository.rates()) ?? { _, _ in 1.0 }
+        // The fallback is annotated: `RateLookup` is `@Sendable`, and a bare
+        // closure literal on the right of `??` is inferred non-Sendable, which
+        // Swift 6 rejects as a possible data race rather than as a type error.
+        let noRates: RateLookup = { @Sendable _, _ in 1.0 }
+        let rates = (try? await ledgerRepository.rates()) ?? noRates
         let ctx = buildGenContext(rates: rates)
         cards = composeStack(ctx)
         if activeIndex >= cards.count { activeIndex = max(0, cards.count - 1) }

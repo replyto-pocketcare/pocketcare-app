@@ -1029,7 +1029,7 @@ public final class LedgerRepository: @unchecked Sendable {
             parameters: [],
             mapper: { c in (try c.getString(name: "id"), try c.getString(name: "name")) }
         ) {
-            accountCache[row.1.trimmingCharacters(in: .whitespaces).lowercased()] = row.0
+            accountCache[row.1.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()] = row.0
         }
 
         var categoryCache: [String: String] = [:]
@@ -1040,7 +1040,7 @@ public final class LedgerRepository: @unchecked Sendable {
                 (try c.getString(name: "id"), try c.getString(name: "name"), try c.getString(name: "kind"))
             }
         ) {
-            categoryCache["\(row.2):\(row.1.trimmingCharacters(in: .whitespaces).lowercased())"] = row.0
+            categoryCache["\(row.2):\(row.1.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"] = row.0
         }
 
         var seen = Set<String>()
@@ -1067,7 +1067,7 @@ public final class LedgerRepository: @unchecked Sendable {
                     let occurredAt = importDate(row.date, nowIso: stampIso)
                     let amountMinor = fromMajor(row.amount, currency).amount
 
-                    let accountKey = row.account.trimmingCharacters(in: .whitespaces).lowercased()
+                    let accountKey = row.account.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                     let accountId: String
                     if let hit = accountCache[accountKey] {
                         accountId = hit
@@ -1079,7 +1079,7 @@ public final class LedgerRepository: @unchecked Sendable {
                                 VALUES (?,?,?,?,?,?,?,?,?,?,?)
                                 """,
                             parameters: [
-                                accountId, userId, row.account.trimmingCharacters(in: .whitespaces),
+                                accountId, userId, row.account.trimmingCharacters(in: .whitespacesAndNewlines),
                                 guessAccountType(row.account), currency, nil, nil, 0, 1, ts, ts,
                             ]
                         )
@@ -1096,7 +1096,7 @@ public final class LedgerRepository: @unchecked Sendable {
                     var categoryId: String?
                     if let name = row.category, row.type == "income" || row.type == "expense" {
                         let kind = row.type == "income" ? "income" : "expense"
-                        let key = "\(kind):\(name.trimmingCharacters(in: .whitespaces).lowercased())"
+                        let key = "\(kind):\(name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"
                         if let hit = categoryCache[key] {
                             categoryId = hit
                         } else {
@@ -1107,7 +1107,7 @@ public final class LedgerRepository: @unchecked Sendable {
                                     VALUES (?,?,?,?,?,?,?,?,?,?)
                                     """,
                                 parameters: [
-                                    id, userId, name.trimmingCharacters(in: .whitespaces), kind,
+                                    id, userId, name.trimmingCharacters(in: .whitespacesAndNewlines), kind,
                                     0, nil, nil, nil, ts, ts,
                                 ]
                             )

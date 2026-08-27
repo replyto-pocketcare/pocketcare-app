@@ -18,13 +18,21 @@ import Foundation
 /// Parse CSV text into rows of string cells. Auto-detects `,` vs `;`.
 public func parseCsv(_ text: String, delimiter: String? = nil) -> [[String]] {
     let src = text.hasPrefix("\u{FEFF}") ? String(text.dropFirst()) : text // strip BOM
-    let delim = Character(delimiter ?? detectDelimiter(src))
+    // `.unicodeScalars.first!` is already a `Unicode.Scalar` — wrapping it in
+    // `Unicode.Scalar(...)` would pick the failable numeric initialiser and not
+    // compile. Both callers pass "," or ";", so the force-unwrap cannot fire.
+    let delim = (delimiter ?? detectDelimiter(src)).unicodeScalars.first!
     var rows: [[String]] = []
     var row: [String] = []
     var cell = ""
     var inQuotes = false
 
-    let chars = Array(src)
+    // UNICODE SCALARS, not Characters. Swift's `Character` is a grapheme
+    // cluster, and CRLF is ONE grapheme — so iterating `Array(src)` never sees
+    // a `\n` in a Windows file at all, and every row runs into the next.
+    // CI run 33037489343 is where that landed, against a vector generated from
+    // web's own parser.
+    let chars = Array(src.unicodeScalars)
     var i = 0
     while i < chars.count {
         let ch = chars[i]
@@ -37,7 +45,7 @@ public func parseCsv(_ text: String, delimiter: String? = nil) -> [[String]] {
                     inQuotes = false
                 }
             } else {
-                cell.append(ch)
+                cell.unicodeScalars.append(ch)
             }
         } else if ch == "\"" {
             inQuotes = true
@@ -56,7 +64,7 @@ public func parseCsv(_ text: String, delimiter: String? = nil) -> [[String]] {
             // three platforms. Preserved, because a file that old would import
             // identically wrong everywhere rather than differently.
         } else {
-            cell.append(ch)
+            cell.unicodeScalars.append(ch)
         }
         i += 1
     }
@@ -64,7 +72,7 @@ public func parseCsv(_ text: String, delimiter: String? = nil) -> [[String]] {
         row.append(cell)
         rows.append(row)
     }
-    return rows.filter { r in r.contains { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
+    return rows.filter { r in r.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty } }
 }
 
 private func detectDelimiter(_ text: String) -> String {
@@ -75,6 +83,11 @@ private func detectDelimiter(_ text: String) -> String {
 }
 
 /// Parse into header-keyed records (headers lowercased + trimmed).
+///
+/// `.whitespacesAndNewlines`, not `.whitespaces`: Kotlin's `String.trim()`
+/// strips `\n` and `\r` too, and a quoted CSV cell can legally contain a
+/// newline — so the narrower set would make the two platforms disagree about a
+/// real file rather than a contrived one.
 ///
 /// The key ORDER is the file's column order — a plain dictionary would lose it,
 /// and a vector compares serialised JSON.
@@ -93,11 +106,11 @@ public struct CsvRecord: Sendable {
 public func parseRecords(_ text: String, delimiter: String? = nil) -> [CsvRecord] {
     let rows = parseCsv(text, delimiter: delimiter)
     guard let headerRow = rows.first else { return [] }
-    let headers = headerRow.map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
+    let headers = headerRow.map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
     return rows.dropFirst().map { r in
         var values: [String: String] = [:]
         for (index, h) in headers.enumerated() {
-            values[h] = (index < r.count ? r[index] : "").trimmingCharacters(in: .whitespaces)
+            values[h] = (index < r.count ? r[index] : "").trimmingCharacters(in: .whitespacesAndNewlines)
         }
         return CsvRecord(keys: headers, values: values)
     }

@@ -79,7 +79,7 @@ func parseAmount(_ v: String?) -> Double {
 func splitLabels(_ v: String?) -> [String] {
     (v ?? "")
         .components(separatedBy: CharacterSet(charactersIn: "|,"))
-        .map { $0.trimmingCharacters(in: .whitespaces) }
+        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         .filter { !$0.isEmpty }
 }
 
