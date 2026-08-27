@@ -104,7 +104,7 @@ fun CategoriesScreen(viewModel: CategoriesViewModel = viewModel()) {
                                         color = colors.text2,
                                     )
                                 }
-                                CategoryRow(
+                                CategoryTreeRow(
                                     category = node.category,
                                     childCount = node.childCount,
                                     indent = false,
@@ -127,7 +127,7 @@ fun CategoriesScreen(viewModel: CategoriesViewModel = viewModel()) {
                             }
                             if (node.isOpen) {
                                 node.children.forEach { child ->
-                                    CategoryRow(
+                                    CategoryTreeRow(
                                         category = child,
                                         childCount = null,
                                         indent = true,
@@ -208,8 +208,17 @@ fun CategoriesScreen(viewModel: CategoriesViewModel = viewModel()) {
     }
 }
 
+/**
+ * One row of the tree.
+ *
+ * NOT `CategoryRow` -- that name belongs to `data.repository.CategoryRow`, the
+ * table's row. Kotlin's packages would have tolerated the clash here because
+ * this one is private and that one is not imported, but two things of one name
+ * in one app is a trap whether or not the compiler notices; iOS hit exactly
+ * that with `SubscriptionRow` two days ago.
+ */
 @Composable
-private fun CategoryRow(
+private fun CategoryTreeRow(
     category: TaxonomyCategory,
     childCount: Int?,
     indent: Boolean,
