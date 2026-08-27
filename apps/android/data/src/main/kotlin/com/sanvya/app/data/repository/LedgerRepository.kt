@@ -67,6 +67,7 @@ import com.sanvya.app.domain.ledger.LedgerEntry
 import com.sanvya.app.domain.ledger.RateLookup
 import com.sanvya.app.domain.ledger.aggregateNetWorth
 import com.sanvya.app.domain.ledger.deriveBalance
+import com.sanvya.app.domain.categorize.CategoryRule
 import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.itemsReconcile
 import com.sanvya.app.domain.csv.CanonRow
@@ -255,6 +256,37 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
         "SELECT COUNT(*) AS c FROM accounts WHERE deleted_at IS NULL AND IFNULL(kind,'real') = 'real'",
         mapper = { cursor -> cursor.getLong("c").toInt() },
     ).map { it.firstOrNull() ?: 0 }
+
+    /**
+     * Every learned categorisation rule for this user, highest weight first.
+     *
+     * A single read that backs a `BulkClassifier`, which is the whole point:
+     * web's `buildClassifier` loads the table ONCE and then classifies a
+     * thousand statement rows in memory. A per-row query would turn a 400-line
+     * statement into 400 round-trips against a database the UI is also reading.
+     *
+     * The ordering is load-bearing. `BulkClassifier` keeps the FIRST phrase
+     * rule it sees for a key, matching web's `if (!phraseRules.has(key))` — and
+     * web's single-shot path picks its phrase with an explicit
+     * `ORDER BY weight DESC LIMIT 1`. Ordering here is what makes the two paths
+     * agree.
+     */
+    suspend fun listCategoryRules(userId: String): List<CategoryRule> = db.getAll(
+        sql = """SELECT kind, key, category_id, weight, corrections
+                 FROM category_rules
+                 WHERE user_id = ? AND deleted_at IS NULL
+                 ORDER BY weight DESC""",
+        parameters = listOf(userId),
+        mapper = { cursor ->
+            CategoryRule(
+                kind = cursor.getString("kind"),
+                key = cursor.getString("key"),
+                categoryId = cursor.getString("category_id"),
+                weight = cursor.getLong("weight"),
+                corrections = cursor.getLong("corrections"),
+            )
+        },
+    )
 
     /**
      * The oldest real account's id, or null when there is none.

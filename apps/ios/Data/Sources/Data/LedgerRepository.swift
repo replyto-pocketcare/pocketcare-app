@@ -358,6 +358,39 @@ public final class LedgerRepository: @unchecked Sendable {
         }
     }
 
+    /// Every learned categorisation rule for this user, highest weight first.
+    ///
+    /// A single read that backs a `BulkClassifier`, which is the whole point:
+    /// web's `buildClassifier` loads the table ONCE and then classifies a
+    /// thousand statement rows in memory. A per-row query would turn a 400-line
+    /// statement into 400 round-trips against a database the UI is also reading.
+    ///
+    /// The ordering is load-bearing. `BulkClassifier` keeps the FIRST phrase
+    /// rule it sees for a key, matching web's `if (!phraseRules.has(key))` —
+    /// and web's single-shot path picks its phrase with an explicit
+    /// `ORDER BY weight DESC LIMIT 1`. Ordering here is what makes the two
+    /// paths agree.
+    public func listCategoryRules(userId: String) async throws -> [Domain.CategoryRule] {
+        try await db.getAll(
+            sql: """
+                SELECT kind, key, category_id, weight, corrections
+                FROM category_rules
+                WHERE user_id = ? AND deleted_at IS NULL
+                ORDER BY weight DESC
+                """,
+            parameters: [userId],
+            mapper: { cursor in
+                Domain.CategoryRule(
+                    kind: try cursor.getString(name: "kind"),
+                    key: try cursor.getString(name: "key"),
+                    categoryId: try cursor.getString(name: "category_id"),
+                    weight: try cursor.getInt64(name: "weight"),
+                    corrections: try cursor.getInt64(name: "corrections")
+                )
+            }
+        )
+    }
+
     /// The oldest real account's id, or nil when there is none.
     ///
     /// A one-shot, not a watch: the walkthrough's optional first-spend step

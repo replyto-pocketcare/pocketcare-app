@@ -1,0 +1,3451 @@
+[
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "UPI/SWIGGY/9876543210/Payment from ph"
+    },
+    "expected": {
+      "phrase": "upi swiggy 9876543210 payment from ph",
+      "tokens": [
+        "swiggy",
+        "from",
+        "swiggy from"
+      ],
+      "merchant": "swiggyfrom"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "POS 1234XXXXXX5678 AMAZON PAY INDIA"
+    },
+    "expected": {
+      "phrase": "pos 1234xxxxxx5678 amazon pay india",
+      "tokens": [
+        "amazon",
+        "pay",
+        "amazon pay"
+      ],
+      "merchant": "amazonpay"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "NEFT-HDFC0001234-RENT PAYMENT-MR LANDLORD"
+    },
+    "expected": {
+      "phrase": "neft hdfc0001234 rent payment mr landlord",
+      "tokens": [
+        "rent",
+        "landlord",
+        "rent landlord"
+      ],
+      "merchant": "rentlandlord"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "swiggylimited"
+    },
+    "expected": {
+      "phrase": "swiggylimited",
+      "tokens": [
+        "swiggylimited"
+      ],
+      "merchant": "swiggylimited"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "UBER   EATS"
+    },
+    "expected": {
+      "phrase": "uber eats",
+      "tokens": [
+        "uber",
+        "eats",
+        "uber eats"
+      ],
+      "merchant": "ubereats"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "IMPS/P2A/123456789012/JOHN DOE"
+    },
+    "expected": {
+      "phrase": "imps p2a 123456789012 john doe",
+      "tokens": [
+        "john",
+        "doe",
+        "john doe"
+      ],
+      "merchant": "johndoe"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "NETFLIX.COM"
+    },
+    "expected": {
+      "phrase": "netflix com",
+      "tokens": [
+        "netflix"
+      ],
+      "merchant": "netflix"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "5paisa capital"
+    },
+    "expected": {
+      "phrase": "5paisa capital",
+      "tokens": [
+        "5paisa",
+        "capital",
+        "5paisa capital"
+      ],
+      "merchant": "paisacapital"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "ATM WDL 1234"
+    },
+    "expected": {
+      "phrase": "atm wdl 1234",
+      "tokens": [
+        "wdl"
+      ],
+      "merchant": "wdl"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": ""
+    },
+    "expected": {
+      "phrase": "",
+      "tokens": [],
+      "merchant": ""
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "   "
+    },
+    "expected": {
+      "phrase": "",
+      "tokens": [],
+      "merchant": ""
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "ZOMATO ONLINE ORDER"
+    },
+    "expected": {
+      "phrase": "zomato online order",
+      "tokens": [
+        "zomato"
+      ],
+      "merchant": "zomato"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "BLINKIT*GROCERY"
+    },
+    "expected": {
+      "phrase": "blinkit grocery",
+      "tokens": [
+        "blinkit",
+        "grocery",
+        "blinkit grocery"
+      ],
+      "merchant": "blinkitgrocery"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "Salary Credit - ACME CORP"
+    },
+    "expected": {
+      "phrase": "salary credit acme corp",
+      "tokens": [
+        "salary",
+        "acme",
+        "corp",
+        "salary acme",
+        "acme corp"
+      ],
+      "merchant": "salaryacmecorp"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "dr cr debit credit"
+    },
+    "expected": {
+      "phrase": "dr cr debit credit",
+      "tokens": [],
+      "merchant": ""
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "AMZN Mktp IN"
+    },
+    "expected": {
+      "phrase": "amzn mktp in",
+      "tokens": [
+        "amzn",
+        "mktp",
+        "amzn mktp"
+      ],
+      "merchant": "amznmktp"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "PHONEPE-MERCHANT-BIGBASKET"
+    },
+    "expected": {
+      "phrase": "phonepe merchant bigbasket",
+      "tokens": [
+        "merchant",
+        "bigbasket",
+        "merchant bigbasket"
+      ],
+      "merchant": "merchantbigbasket"
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "1234567890123456"
+    },
+    "expected": {
+      "phrase": "1234567890123456",
+      "tokens": [],
+      "merchant": ""
+    }
+  },
+  {
+    "fn": "normalizeText",
+    "input": {
+      "text": "Café Coffee Day"
+    },
+    "expected": {
+      "phrase": "café coffee day",
+      "tokens": [
+        "café",
+        "coffee",
+        "day",
+        "café coffee",
+        "coffee day"
+      ],
+      "merchant": "cafécoffeeday"
+    }
+  },
+  {
+    "fn": "buildSeedMap",
+    "input": {
+      "name": "full",
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "keyword": "uber",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "ola",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "lyft",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "metro",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "train",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "bus",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "flight",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "indigo",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "airasia",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "fuel",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "petrol",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "shell",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "swiggy",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "zomato",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "ubereats",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "doordash",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "starbucks",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "mcdonalds",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "kfc",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "dominos",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "restaurant",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "cafe",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "coffee",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "tea",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "lunch",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "dinner",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "breakfast",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "pizza",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "burger",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "meal",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "snacks",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "chocolate",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "icecream",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "blinkit",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "zepto",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "instamart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "bigbasket",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "dmart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "whole foods",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "walmart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "target",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "grocery",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "groceries",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "milk",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "bread",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "eggs",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "vegetables",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "veggies",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "fruits",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "rice",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "oil",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "sugar",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "amazon",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "flipkart",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "myntra",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "ajio",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "zara",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "h&m",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "shoes",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "shirt",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "tshirt",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "clothes",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "dress",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "jeans",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "jacket",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "bag",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "watch",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "steam",
+        "categoryId": "c-ent"
+      },
+      {
+        "keyword": "movie",
+        "categoryId": "c-ent"
+      },
+      {
+        "keyword": "swiggyinstamart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "eatfit",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "faasos",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "behrouz",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "chaayos",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "haldiram",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "barbeque",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "biryani",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "rapido",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "irctc",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "redbus",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "makemytrip",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "goibibo",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "ixigo",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "fastag",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "hpcl",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "bpcl",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "ioc",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "indianoil",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "uberride",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "parking",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "toll",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "bbnow",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "jiomart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "reliancefresh",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "moreretail",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "naturebasket",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "licious",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "meesho",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "nykaa",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "tatacliq",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "snapdeal",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "croma",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "reliancedigital",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "decathlon",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "ikea",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "lenskart",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "firstcry",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "bookmyshow",
+        "categoryId": "c-ent"
+      },
+      {
+        "keyword": "pvr",
+        "categoryId": "c-ent"
+      },
+      {
+        "keyword": "inox",
+        "categoryId": "c-ent"
+      }
+    ]
+  },
+  {
+    "fn": "buildSeedList",
+    "input": {
+      "name": "full",
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "keyword": "swiggyinstamart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "reliancedigital",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "reliancefresh",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "naturebasket",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "whole foods",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "restaurant",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "vegetables",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "makemytrip",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "moreretail",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "bookmyshow",
+        "categoryId": "c-ent"
+      },
+      {
+        "keyword": "starbucks",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "mcdonalds",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "breakfast",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "chocolate",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "instamart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "bigbasket",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "groceries",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "indianoil",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "decathlon",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "ubereats",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "doordash",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "icecream",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "flipkart",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "haldiram",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "barbeque",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "uberride",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "tatacliq",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "snapdeal",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "lenskart",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "firstcry",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "airasia",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "dominos",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "blinkit",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "walmart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "grocery",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "veggies",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "clothes",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "behrouz",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "chaayos",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "biryani",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "goibibo",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "parking",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "jiomart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "licious",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "flight",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "indigo",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "petrol",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "swiggy",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "zomato",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "coffee",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "dinner",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "burger",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "snacks",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "target",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "fruits",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "amazon",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "myntra",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "tshirt",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "jacket",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "eatfit",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "faasos",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "rapido",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "redbus",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "fastag",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "meesho",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "metro",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "train",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "shell",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "lunch",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "pizza",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "zepto",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "dmart",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "bread",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "sugar",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "shoes",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "shirt",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "dress",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "jeans",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "watch",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "steam",
+        "categoryId": "c-ent"
+      },
+      {
+        "keyword": "movie",
+        "categoryId": "c-ent"
+      },
+      {
+        "keyword": "irctc",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "ixigo",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "bbnow",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "nykaa",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "croma",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "uber",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "lyft",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "fuel",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "cafe",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "meal",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "milk",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "eggs",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "rice",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "ajio",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "zara",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "hpcl",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "bpcl",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "toll",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "ikea",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "inox",
+        "categoryId": "c-ent"
+      },
+      {
+        "keyword": "ola",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "bus",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "kfc",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "tea",
+        "categoryId": "c-food"
+      },
+      {
+        "keyword": "oil",
+        "categoryId": "c-groceries"
+      },
+      {
+        "keyword": "h&m",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "bag",
+        "categoryId": "c-shopping"
+      },
+      {
+        "keyword": "ioc",
+        "categoryId": "c-transport"
+      },
+      {
+        "keyword": "pvr",
+        "categoryId": "c-ent"
+      }
+    ]
+  },
+  {
+    "fn": "buildSeedMap",
+    "input": {
+      "name": "loose",
+      "categories": [
+        {
+          "id": "c1",
+          "name": "Food"
+        },
+        {
+          "id": "c2",
+          "name": "Travel"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "keyword": "swiggy",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "zomato",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "ubereats",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "doordash",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "starbucks",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "mcdonalds",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "kfc",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "dominos",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "restaurant",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "cafe",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "coffee",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "tea",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "lunch",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "dinner",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "breakfast",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "pizza",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "burger",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "meal",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "snacks",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "chocolate",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "icecream",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "eatfit",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "faasos",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "behrouz",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "chaayos",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "haldiram",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "barbeque",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "biryani",
+        "categoryId": "c1"
+      }
+    ]
+  },
+  {
+    "fn": "buildSeedList",
+    "input": {
+      "name": "loose",
+      "categories": [
+        {
+          "id": "c1",
+          "name": "Food"
+        },
+        {
+          "id": "c2",
+          "name": "Travel"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "keyword": "restaurant",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "starbucks",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "mcdonalds",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "breakfast",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "chocolate",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "ubereats",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "doordash",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "icecream",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "haldiram",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "barbeque",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "dominos",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "behrouz",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "chaayos",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "biryani",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "swiggy",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "zomato",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "coffee",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "dinner",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "burger",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "snacks",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "eatfit",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "faasos",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "lunch",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "pizza",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "cafe",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "meal",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "kfc",
+        "categoryId": "c1"
+      },
+      {
+        "keyword": "tea",
+        "categoryId": "c1"
+      }
+    ]
+  },
+  {
+    "fn": "buildSeedMap",
+    "input": {
+      "name": "none",
+      "categories": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "buildSeedList",
+    "input": {
+      "name": "none",
+      "categories": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "UPI/SWIGGY/9876543210/Payment from ph",
+      "name": "learned"
+    },
+    "expected": "c-food"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "POS 1234XXXXXX5678 AMAZON PAY INDIA",
+      "name": "learned"
+    },
+    "expected": "c-shopping"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "NEFT-HDFC0001234-RENT PAYMENT-MR LANDLORD",
+      "name": "learned"
+    },
+    "expected": "c-rent"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "swiggylimited",
+      "name": "learned"
+    },
+    "expected": "c-food"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "UBER   EATS",
+      "name": "learned"
+    },
+    "expected": "c-transport"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "IMPS/P2A/123456789012/JOHN DOE",
+      "name": "learned"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "NETFLIX.COM",
+      "name": "learned"
+    },
+    "expected": "c-ent"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "5paisa capital",
+      "name": "learned"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "ATM WDL 1234",
+      "name": "learned"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "",
+      "name": "learned"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "   ",
+      "name": "learned"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "ZOMATO ONLINE ORDER",
+      "name": "learned"
+    },
+    "expected": "c-food"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "BLINKIT*GROCERY",
+      "name": "learned"
+    },
+    "expected": "c-groceries"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "Salary Credit - ACME CORP",
+      "name": "learned"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "dr cr debit credit",
+      "name": "learned"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "AMZN Mktp IN",
+      "name": "learned"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "PHONEPE-MERCHANT-BIGBASKET",
+      "name": "learned"
+    },
+    "expected": "c-groceries"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "1234567890123456",
+      "name": "learned"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "Café Coffee Day",
+      "name": "learned"
+    },
+    "expected": "c-food"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "UPI/SWIGGY/9876543210/Payment from ph",
+      "name": "cold"
+    },
+    "expected": "c-food"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "POS 1234XXXXXX5678 AMAZON PAY INDIA",
+      "name": "cold"
+    },
+    "expected": "c-shopping"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "NEFT-HDFC0001234-RENT PAYMENT-MR LANDLORD",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "swiggylimited",
+      "name": "cold"
+    },
+    "expected": "c-food"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "UBER   EATS",
+      "name": "cold"
+    },
+    "expected": "c-transport"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "IMPS/P2A/123456789012/JOHN DOE",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "NETFLIX.COM",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "5paisa capital",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "ATM WDL 1234",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "   ",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "ZOMATO ONLINE ORDER",
+      "name": "cold"
+    },
+    "expected": "c-food"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "BLINKIT*GROCERY",
+      "name": "cold"
+    },
+    "expected": "c-groceries"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "Salary Credit - ACME CORP",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "dr cr debit credit",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "AMZN Mktp IN",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "PHONEPE-MERCHANT-BIGBASKET",
+      "name": "cold"
+    },
+    "expected": "c-groceries"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "1234567890123456",
+      "name": "cold"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [],
+      "categories": [
+        {
+          "id": "c-food",
+          "name": "Food & Dining"
+        },
+        {
+          "id": "c-transport",
+          "name": "Transport"
+        },
+        {
+          "id": "c-groceries",
+          "name": "Groceries"
+        },
+        {
+          "id": "c-shopping",
+          "name": "Shopping"
+        },
+        {
+          "id": "c-ent",
+          "name": "Entertainment"
+        },
+        {
+          "id": "c-rent",
+          "name": "Rent"
+        }
+      ],
+      "text": "Café Coffee Day",
+      "name": "cold"
+    },
+    "expected": "c-food"
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [],
+      "text": "UPI/SWIGGY/123",
+      "name": "noCats"
+    },
+    "expected": null
+  },
+  {
+    "fn": "classify",
+    "input": {
+      "rules": [
+        {
+          "kind": "phrase",
+          "key": "netflix com",
+          "categoryId": "c-ent",
+          "weight": 1000,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "acme",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-rent",
+          "weight": 3,
+          "corrections": 1
+        },
+        {
+          "kind": "token",
+          "key": "landlord",
+          "categoryId": "c-shopping",
+          "weight": 1,
+          "corrections": 0
+        }
+      ],
+      "categories": [],
+      "text": "NETFLIX.COM",
+      "name": "noCats"
+    },
+    "expected": "c-ent"
+  }
+]
+

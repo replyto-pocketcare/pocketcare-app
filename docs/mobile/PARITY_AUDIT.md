@@ -1814,6 +1814,51 @@ two apps out of step on the headline feature of the screen. Recorded in
 ABSENT-BY-DECISION; the screen will ship CSV-only on both until that call is
 made.
 
+### The auto-categoriser — 2026-08-27
+
+Ported because the statement analyzer needs it, but it is a feature in its own
+right and neither phone had any of it: `apps/web/src/categorize` is 905 lines,
+and the pure core — `normalize.ts` (103) and `engine.ts` (186) — is now on both
+platforms under **65 vectors**.
+
+Without it the analyzer's "Where it went" donut is one slice labelled
+Uncategorised, which is a worse screen than no screen.
+
+**The tables are GENERATED, not copied.** `tools/parity/generate-category-seeds.mjs`
+emits `SEED_RULES` (186 keyword → category pairs), `STOP_WORDS` (13) and
+`NOISE_TOKENS` (121) into both Domains, and is in the parity job. All three are
+data, and the noise set is the one that would hurt: it decides which tokens
+survive normalisation at all, so one platform missing a bank code silently
+changes what *every* statement row categorises as — with nothing failing. The
+generator also refuses a keyword mapped to two categories, which a JS object
+literal would resolve by silently keeping the last one.
+
+**Three ordering details are load-bearing, and each would have been a
+platform-specific coin flip:**
+
+1. `normalizeText`'s token list is built through a Set and then flattened.
+   Insertion order reaches scoring, and `scoreTokens` breaks a tie by keeping
+   the FIRST-scored category — so a hash-ordered set would make two equal-score
+   categories differ between phones *and between runs on the same phone*. Both
+   ports use an insertion-ordered structure and the vectors pin the order.
+2. `scoreTokens`'s score map has the same problem for the same reason. Swift
+   keeps an explicit `order` array beside the dictionary.
+3. `buildSeedMap` returns an ordered array on Swift rather than a `Dictionary`,
+   because Swift dictionaries have no defined iteration order at all.
+
+**What is deliberately not ported yet:** `learnFromSave` (the write half — it
+teaches the engine from a saved transaction), `autoJob.ts`, `anchors.ts` and
+`semantic.ts`. The classifier reads rules; nothing on either phone writes one
+yet, so both apps run purely on cold-start seeds until that lands. Recorded in
+ABSENT-BY-DECISION rather than left looking finished.
+
+`listCategoryRules(userId)` is new on both repositories — a single
+`ORDER BY weight DESC` read that backs the whole classifier. The ordering is
+part of the contract: `BulkClassifier` keeps the first phrase rule per key,
+matching web's `if (!phraseRules.has(key))`, and web's single-shot path picks
+its phrase with an explicit `ORDER BY weight DESC LIMIT 1`. Ordering in the
+query is what makes the two paths agree.
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*

@@ -97,6 +97,12 @@ jobs:
             # last one"), and nobody would notice slide 4 being the wrong shade
             # of amber on one platform for a year.
             node tools/parity/generate-onboarding-slides.mjs
+            # The auto-categoriser's cold-start tables: ~186 keyword->category
+            # pairs plus the stop-word and noise-token sets. All three are DATA,
+            # and the noise set in particular decides which tokens survive
+            # normalisation at all -- one platform missing a bank code silently
+            # changes what every statement row categorises as.
+            node tools/parity/generate-category-seeds.mjs
             # The PowerSync client schema, mirrored into both native platforms.
             # These were NOT in this list, and that is exactly why the mirrors
             # fell four migrations behind packages/db/src/index.ts without a
