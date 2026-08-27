@@ -1,0 +1,154 @@
+import Foundation
+@testable import Domain
+
+// Wires the assistant's parser into FunctionRegistry.
+//
+// Where the fixtures come from, which differs per function and matters:
+//
+//   * `assistantCompactNum`, `parseAssistantBlocks` and `parseAssistantMessage`
+//     were produced by RUNNING web's real code. The JSX-free functions were
+//     lifted out of richMessage.tsx verbatim — every extracted block was diffed
+//     back against the source to prove nothing changed — and executed.
+//   * `assistantInlineSpans` could NOT be, because web's `inline()` returns
+//     React elements and there is no value to capture. Its regex and branch
+//     order were copied character-for-character and verified against the source;
+//     the reference that produced these expectations emits spans instead of
+//     elements. It proves Android and iOS agree, not that either matches a
+//     browser.
+//
+// The serialisers below drop nils rather than emitting NSNull, because
+// JSON.stringify drops `undefined` and web's card literals set `sub`/`value`/
+// `pct` to exactly that when absent.
+
+/// Foundation's `Any` tree -> Domain's own. This is the adapter the app needs too.
+private func toAssistantJson(_ any: Any) -> AssistantJson {
+    switch any {
+    case is NSNull:
+        return .null
+    case let s as String:
+        return .str(s)
+    case let n as NSNumber:
+        // NSNumber does not distinguish a Bool from a 0/1 Int by type, only by
+        // its ObjC type encoding. Getting this wrong would turn `true` into 1
+        // and quietly change what `clampPct` sees.
+        if CFGetTypeID(n) == CFBooleanGetTypeID() { return .bool(n.boolValue) }
+        return .num(n.doubleValue)
+    case let a as [Any]:
+        return .arr(a.map(toAssistantJson))
+    case let o as [String: Any]:
+        return .obj(o.mapValues(toAssistantJson))
+    default:
+        return .null
+    }
+}
+
+private func drop(_ pairs: [(String, Any?)]) -> [String: Any] {
+    var out: [String: Any] = [:]
+    for (k, v) in pairs where v != nil { out[k] = v! }
+    return out
+}
+
+private func blockToJson(_ b: AssistantBlock) -> [String: Any] {
+    switch b {
+    case let .heading(level, text):
+        return ["t": "h", "level": level, "text": text]
+    case let .paragraph(lines):
+        return ["t": "p", "lines": lines]
+    case let .bullets(items):
+        return [
+            "t": "ul",
+            "items": items.map { it in
+                drop([
+                    ("text", it.text),
+                    // Absent, not false: a plain bullet has no `task` key at all.
+                    ("task", it.task ? true : nil),
+                    ("checked", it.task ? it.checked : nil),
+                ])
+            },
+        ]
+    case let .ordered(items):
+        return ["t": "ol", "items": items]
+    case let .quote(lines):
+        return ["t": "quote", "lines": lines]
+    case let .table(header, rows):
+        return ["t": "table", "header": header, "rows": rows]
+    case .rule:
+        return ["t": "hr"]
+    case let .code(text):
+        return ["t": "code", "text": text]
+    }
+}
+
+private func cardToJson(_ c: AssistantCard) -> [String: Any] {
+    switch c {
+    case let .stat(s):
+        return drop([("kind", "stat"), ("label", s.label), ("value", s.value), ("sub", s.sub), ("tone", s.tone)])
+    case let .progress(p):
+        return drop([("kind", "progress"), ("label", p.label), ("value", p.value), ("pct", p.pct)])
+    case let .breakdown(b):
+        return [
+            "kind": "breakdown",
+            "label": b.label,
+            "items": b.items.map { drop([("label", $0.label), ("value", $0.value), ("pct", $0.pct)]) },
+        ]
+    case let .chart(ch):
+        return drop([
+            ("kind", "chart"),
+            ("label", ch.label),
+            ("chart", ch.chart),
+            ("points", ch.points.map { ["x": $0.x, "y": $0.y] as [String: Any] }),
+            ("value", ch.value),
+        ])
+    }
+}
+
+private func actionToJson(_ a: AssistantAction) -> [String: Any] {
+    drop([("label", a.label), ("send", a.send), ("href", a.href)])
+}
+
+private func spanToJson(_ s: InlineSpan) -> [String: Any] {
+    drop([("t", s.kind.rawValue), ("s", s.text), ("href", s.href)])
+}
+
+func registerAssistantVectors() {
+    let domain = "assistant"
+
+    FunctionRegistry.register(domain: domain, fn: "assistantCompactNum") { input in
+        let d = input as! [String: Any]
+        return assistantCompactNum((d["n"] as! NSNumber).doubleValue)
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "parseAssistantBlocks") { input in
+        let d = input as! [String: Any]
+        return parseAssistantBlocks(d["src"] as! String).map(blockToJson)
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "assistantInlineSpans") { input in
+        let d = input as! [String: Any]
+        return assistantInlineSpans(d["s"] as! String).map(spanToJson)
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "parseAssistantMessage") { input in
+        // The composition a real screen performs: split, hand the payload to the
+        // platform's JSON parser, validate. Registering it composed is the point
+        // — it is the whole pipeline that has to match web, not the halves.
+        let d = input as! [String: Any]
+        let split = splitAssistantUi(d["raw"] as! String)
+        var ui: AssistantUi?
+        if let payload = split.json,
+           let data = payload.data(using: .utf8),
+           let any = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) {
+            ui = assistantUiFrom(toAssistantJson(any))
+        }
+        var out: [String: Any] = ["text": split.text]
+        if let ui {
+            out["ui"] = [
+                "cards": ui.cards.map(cardToJson),
+                "actions": ui.actions.map(actionToJson),
+            ] as [String: Any]
+        } else {
+            out["ui"] = NSNull()
+        }
+        return out
+    }
+}

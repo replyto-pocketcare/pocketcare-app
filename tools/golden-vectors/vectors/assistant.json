@@ -1,0 +1,1139 @@
+[
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 0
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 1
+    },
+    "expected": "1"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 999
+    },
+    "expected": "999"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 1000
+    },
+    "expected": "1.0k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 1500
+    },
+    "expected": "1.5k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 99999
+    },
+    "expected": "100.0k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 100000
+    },
+    "expected": "1.0L"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 250000
+    },
+    "expected": "2.5L"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 9999999
+    },
+    "expected": "100.0L"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 12345678
+    },
+    "expected": "1.2Cr"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": -1500
+    },
+    "expected": "-1.5k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": -250000
+    },
+    "expected": "-2.5L"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 4.6
+    },
+    "expected": "5"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": -0.4
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 0.5
+    },
+    "expected": "1"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": -0.5
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 1.5
+    },
+    "expected": "2"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 2.5
+    },
+    "expected": "3"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 1050
+    },
+    "expected": "1.1k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 1150
+    },
+    "expected": "1.1k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 1250
+    },
+    "expected": "1.3k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 1350
+    },
+    "expected": "1.4k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": -1050
+    },
+    "expected": "-1.1k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": -1250
+    },
+    "expected": "-1.3k"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 105000
+    },
+    "expected": "1.1L"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 125000
+    },
+    "expected": "1.3L"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 10500000
+    },
+    "expected": "1.1Cr"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 12500000
+    },
+    "expected": "1.3Cr"
+  },
+  {
+    "fn": "assistantCompactNum",
+    "input": {
+      "n": 99950
+    },
+    "expected": "100.0k"
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "headings",
+      "src": "# Big\n## Medium\n### Small"
+    },
+    "expected": [
+      {
+        "t": "h",
+        "level": 1,
+        "text": "Big"
+      },
+      {
+        "t": "h",
+        "level": 2,
+        "text": "Medium"
+      },
+      {
+        "t": "h",
+        "level": 3,
+        "text": "Small"
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "paragraph",
+      "src": "One line\nand its continuation.\n\nA second paragraph."
+    },
+    "expected": [
+      {
+        "t": "p",
+        "lines": [
+          "One line",
+          "and its continuation."
+        ]
+      },
+      {
+        "t": "p",
+        "lines": [
+          "A second paragraph."
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "bullets",
+      "src": "- one\n- two\n* three\n+ four"
+    },
+    "expected": [
+      {
+        "t": "ul",
+        "items": [
+          {
+            "text": "one"
+          },
+          {
+            "text": "two"
+          },
+          {
+            "text": "three"
+          },
+          {
+            "text": "four"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "tasks",
+      "src": "- [ ] not done\n- [x] done\n- [X] also done\n- plain"
+    },
+    "expected": [
+      {
+        "t": "ul",
+        "items": [
+          {
+            "text": "not done",
+            "task": true,
+            "checked": false
+          },
+          {
+            "text": "done",
+            "task": true,
+            "checked": true
+          },
+          {
+            "text": "also done",
+            "task": true,
+            "checked": true
+          },
+          {
+            "text": "plain"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "ordered",
+      "src": "1. first\n2) second\n10. tenth"
+    },
+    "expected": [
+      {
+        "t": "ol",
+        "items": [
+          "first",
+          "second",
+          "tenth"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "quote",
+      "src": "> quoted\n> again\nnot quoted"
+    },
+    "expected": [
+      {
+        "t": "quote",
+        "lines": [
+          "quoted",
+          "again"
+        ]
+      },
+      {
+        "t": "p",
+        "lines": [
+          "not quoted"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "rule",
+      "src": "text\n\n---\n\nmore\n\n***\n\nend"
+    },
+    "expected": [
+      {
+        "t": "p",
+        "lines": [
+          "text"
+        ]
+      },
+      {
+        "t": "hr"
+      },
+      {
+        "t": "p",
+        "lines": [
+          "more"
+        ]
+      },
+      {
+        "t": "hr"
+      },
+      {
+        "t": "p",
+        "lines": [
+          "end"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "fence",
+      "src": "before\n```\ncode line\n  indented\n```\nafter"
+    },
+    "expected": [
+      {
+        "t": "p",
+        "lines": [
+          "before"
+        ]
+      },
+      {
+        "t": "code",
+        "text": "code line\n  indented"
+      },
+      {
+        "t": "p",
+        "lines": [
+          "after"
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "table",
+      "src": "| Cat | Amount |\n| --- | ---: |\n| Food | 1,200 |\n| Rent | 18,000 |"
+    },
+    "expected": [
+      {
+        "t": "table",
+        "header": [
+          "Cat",
+          "Amount"
+        ],
+        "rows": [
+          [
+            "Food",
+            "1,200"
+          ],
+          [
+            "Rent",
+            "18,000"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "table-ragged",
+      "src": "Cat | Amount | Note\n---|---|---\nFood | 1,200"
+    },
+    "expected": [
+      {
+        "t": "table",
+        "header": [
+          "Cat",
+          "Amount",
+          "Note"
+        ],
+        "rows": [
+          [
+            "Food",
+            "1,200"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "mixed",
+      "src": "## Summary\nYou spent **a lot**.\n\n- [x] reviewed\n- pending\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n> careful\n\n---\n"
+    },
+    "expected": [
+      {
+        "t": "h",
+        "level": 2,
+        "text": "Summary"
+      },
+      {
+        "t": "p",
+        "lines": [
+          "You spent **a lot**."
+        ]
+      },
+      {
+        "t": "ul",
+        "items": [
+          {
+            "text": "reviewed",
+            "task": true,
+            "checked": true
+          },
+          {
+            "text": "pending"
+          }
+        ]
+      },
+      {
+        "t": "table",
+        "header": [
+          "A",
+          "B"
+        ],
+        "rows": [
+          [
+            "1",
+            "2"
+          ]
+        ]
+      },
+      {
+        "t": "quote",
+        "lines": [
+          "careful"
+        ]
+      },
+      {
+        "t": "hr"
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "crlf",
+      "src": "# Title\r\n\r\n- one\r\n- two\r\n"
+    },
+    "expected": [
+      {
+        "t": "h",
+        "level": 1,
+        "text": "Title"
+      },
+      {
+        "t": "ul",
+        "items": [
+          {
+            "text": "one"
+          },
+          {
+            "text": "two"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "empty",
+      "src": ""
+    },
+    "expected": []
+  },
+  {
+    "fn": "parseAssistantBlocks",
+    "input": {
+      "name": "blank-lines",
+      "src": "\n\n\n"
+    },
+    "expected": []
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "no-ui",
+      "raw": "You spent 6,400 on Food."
+    },
+    "expected": {
+      "text": "You spent 6,400 on Food.",
+      "ui": null
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "stat",
+      "raw": "Here it is.\n<ui>{\"cards\":[{\"kind\":\"stat\",\"label\":\"Food\",\"value\":\"6,400\",\"sub\":\"July\",\"tone\":\"negative\"}]}</ui>"
+    },
+    "expected": {
+      "text": "Here it is.",
+      "ui": {
+        "cards": [
+          {
+            "kind": "stat",
+            "label": "Food",
+            "value": "6,400",
+            "sub": "July",
+            "tone": "negative"
+          }
+        ],
+        "actions": []
+      }
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "stat-bad-tone",
+      "raw": "<ui>{\"cards\":[{\"kind\":\"stat\",\"label\":\"Food\",\"value\":\"1\",\"tone\":\"purple\"}]}</ui>"
+    },
+    "expected": {
+      "text": "",
+      "ui": {
+        "cards": [
+          {
+            "kind": "stat",
+            "label": "Food",
+            "value": "1",
+            "tone": "accent"
+          }
+        ],
+        "actions": []
+      }
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "progress-clamped",
+      "raw": "<ui>{\"cards\":[{\"kind\":\"progress\",\"label\":\"Budget\",\"pct\":180},{\"kind\":\"progress\",\"label\":\"Other\",\"pct\":-5},{\"kind\":\"progress\",\"label\":\"NaN\",\"pct\":\"x\"}]}</ui>"
+    },
+    "expected": {
+      "text": "",
+      "ui": {
+        "cards": [
+          {
+            "kind": "progress",
+            "label": "Budget",
+            "pct": 100
+          },
+          {
+            "kind": "progress",
+            "label": "Other",
+            "pct": 0
+          },
+          {
+            "kind": "progress",
+            "label": "NaN",
+            "pct": 0
+          }
+        ],
+        "actions": []
+      }
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "breakdown",
+      "raw": "<ui>{\"cards\":[{\"kind\":\"breakdown\",\"label\":\"Where\",\"items\":[{\"label\":\"a\",\"value\":\"1\",\"pct\":50},{\"label\":\"b\"},{\"nope\":1},{\"label\":\"c\"},{\"label\":\"d\"},{\"label\":\"e\"},{\"label\":\"f\"},{\"label\":\"g\"}]}]}</ui>"
+    },
+    "expected": {
+      "text": "",
+      "ui": {
+        "cards": [
+          {
+            "kind": "breakdown",
+            "label": "Where",
+            "items": [
+              {
+                "label": "a",
+                "value": "1",
+                "pct": 50
+              },
+              {
+                "label": "b"
+              },
+              {
+                "label": "c"
+              },
+              {
+                "label": "d"
+              },
+              {
+                "label": "e"
+              },
+              {
+                "label": "f"
+              }
+            ]
+          }
+        ],
+        "actions": []
+      }
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "breakdown-empty",
+      "raw": "<ui>{\"cards\":[{\"kind\":\"breakdown\",\"label\":\"Where\",\"items\":[{\"nope\":1}]}]}</ui>"
+    },
+    "expected": {
+      "text": "",
+      "ui": null
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "chart",
+      "raw": "<ui>{\"cards\":[{\"kind\":\"chart\",\"label\":\"Cashflow\",\"chart\":\"line\",\"points\":[{\"x\":\"Jan\",\"y\":1},{\"x\":\"Feb\",\"y\":2},{\"x\":\"Mar\",\"y\":\"bad\"}]}]}</ui>"
+    },
+    "expected": {
+      "text": "",
+      "ui": {
+        "cards": [
+          {
+            "kind": "chart",
+            "label": "Cashflow",
+            "chart": "line",
+            "points": [
+              {
+                "x": "Jan",
+                "y": 1
+              },
+              {
+                "x": "Feb",
+                "y": 2
+              }
+            ]
+          }
+        ],
+        "actions": []
+      }
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "chart-one-point",
+      "raw": "<ui>{\"cards\":[{\"kind\":\"chart\",\"label\":\"C\",\"chart\":\"bar\",\"points\":[{\"x\":\"Jan\",\"y\":1}]}]}</ui>"
+    },
+    "expected": {
+      "text": "",
+      "ui": null
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "actions",
+      "raw": "<ui>{\"actions\":[{\"label\":\"Show budgets\",\"href\":\"/budgets\"},{\"label\":\"Ask\",\"send\":\"how much?\"},{\"label\":\"Evil\",\"href\":\"https://x.test\"},{\"label\":\"No target\"}]}</ui>"
+    },
+    "expected": {
+      "text": "",
+      "ui": {
+        "cards": [],
+        "actions": [
+          {
+            "label": "Show budgets",
+            "href": "/budgets"
+          },
+          {
+            "label": "Ask",
+            "send": "how much?"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "caps",
+      "raw": "<ui>{\"cards\":[{\"kind\":\"stat\",\"label\":\"1\",\"value\":\"1\"},{\"kind\":\"stat\",\"label\":\"2\",\"value\":\"2\"},{\"kind\":\"stat\",\"label\":\"3\",\"value\":\"3\"},{\"kind\":\"stat\",\"label\":\"4\",\"value\":\"4\"},{\"kind\":\"stat\",\"label\":\"5\",\"value\":\"5\"}],\"actions\":[{\"label\":\"a\",\"send\":\"a\"},{\"label\":\"b\",\"send\":\"b\"},{\"label\":\"c\",\"send\":\"c\"},{\"label\":\"d\",\"send\":\"d\"},{\"label\":\"e\",\"send\":\"e\"}]}</ui>"
+    },
+    "expected": {
+      "text": "",
+      "ui": {
+        "cards": [
+          {
+            "kind": "stat",
+            "label": "1",
+            "value": "1",
+            "tone": "accent"
+          },
+          {
+            "kind": "stat",
+            "label": "2",
+            "value": "2",
+            "tone": "accent"
+          },
+          {
+            "kind": "stat",
+            "label": "3",
+            "value": "3",
+            "tone": "accent"
+          },
+          {
+            "kind": "stat",
+            "label": "4",
+            "value": "4",
+            "tone": "accent"
+          }
+        ],
+        "actions": [
+          {
+            "label": "a",
+            "send": "a"
+          },
+          {
+            "label": "b",
+            "send": "b"
+          },
+          {
+            "label": "c",
+            "send": "c"
+          },
+          {
+            "label": "d",
+            "send": "d"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "bad-json",
+      "raw": "Text here.\n<ui>{not json}</ui>"
+    },
+    "expected": {
+      "text": "Text here.",
+      "ui": null
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "empty-ui",
+      "raw": "Text here.\n<ui>{\"cards\":[],\"actions\":[]}</ui>"
+    },
+    "expected": {
+      "text": "Text here.",
+      "ui": null
+    }
+  },
+  {
+    "fn": "parseAssistantMessage",
+    "input": {
+      "name": "ui-first",
+      "raw": "<ui>{\"cards\":[{\"kind\":\"stat\",\"label\":\"L\",\"value\":\"V\"}]}</ui>\nProse after."
+    },
+    "expected": {
+      "text": "Prose after.",
+      "ui": {
+        "cards": [
+          {
+            "kind": "stat",
+            "label": "L",
+            "value": "V",
+            "tone": "accent"
+          }
+        ],
+        "actions": []
+      }
+    }
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "plain",
+      "s": "just words"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "just words"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "bold",
+      "s": "a **bold** b"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "a "
+      },
+      {
+        "t": "bold",
+        "s": "bold"
+      },
+      {
+        "t": "text",
+        "s": " b"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "bold-underscore",
+      "s": "a __bold__ b"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "a "
+      },
+      {
+        "t": "bold",
+        "s": "bold"
+      },
+      {
+        "t": "text",
+        "s": " b"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "italic",
+      "s": "a *it* b"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "a "
+      },
+      {
+        "t": "italic",
+        "s": "it"
+      },
+      {
+        "t": "text",
+        "s": " b"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "code",
+      "s": "a `x = 1` b"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "a "
+      },
+      {
+        "t": "code",
+        "s": "x = 1"
+      },
+      {
+        "t": "text",
+        "s": " b"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "internal-link",
+      "s": "see [budgets](/budgets) now"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "see "
+      },
+      {
+        "t": "link",
+        "s": "budgets",
+        "href": "/budgets"
+      },
+      {
+        "t": "text",
+        "s": " now"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "external-link",
+      "s": "see [site](https://example.test) now"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "see "
+      },
+      {
+        "t": "link",
+        "s": "site",
+        "href": "https://example.test"
+      },
+      {
+        "t": "text",
+        "s": " now"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "unsafe-link",
+      "s": "see [x](javascript:alert(1)) now"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "see "
+      },
+      {
+        "t": "text",
+        "s": "x"
+      },
+      {
+        "t": "text",
+        "s": ") now"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "relative-unsafe",
+      "s": "see [x](evil.test) now"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "see "
+      },
+      {
+        "t": "text",
+        "s": "x"
+      },
+      {
+        "t": "text",
+        "s": " now"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "mixed",
+      "s": "**A** and *b* and `c` and [d](/d) tail"
+    },
+    "expected": [
+      {
+        "t": "bold",
+        "s": "A"
+      },
+      {
+        "t": "text",
+        "s": " and "
+      },
+      {
+        "t": "italic",
+        "s": "b"
+      },
+      {
+        "t": "text",
+        "s": " and "
+      },
+      {
+        "t": "code",
+        "s": "c"
+      },
+      {
+        "t": "text",
+        "s": " and "
+      },
+      {
+        "t": "link",
+        "s": "d",
+        "href": "/d"
+      },
+      {
+        "t": "text",
+        "s": " tail"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "adjacent",
+      "s": "**A****B**"
+    },
+    "expected": [
+      {
+        "t": "bold",
+        "s": "A"
+      },
+      {
+        "t": "bold",
+        "s": "B"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "empty",
+      "s": ""
+    },
+    "expected": []
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "only-markup",
+      "s": "**A**"
+    },
+    "expected": [
+      {
+        "t": "bold",
+        "s": "A"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "unclosed",
+      "s": "**A and more"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "**A and more"
+      }
+    ]
+  },
+  {
+    "fn": "assistantInlineSpans",
+    "input": {
+      "name": "italic-newline",
+      "s": "*a\nb*"
+    },
+    "expected": [
+      {
+        "t": "text",
+        "s": "*a\nb*"
+      }
+    ]
+  }
+]

@@ -29,6 +29,15 @@ sourceSets {
     }
 }
 
+// VectorRunnerTest prints a per-domain "total/passed/skipped/failed" line, and
+// Gradle swallows test stdout by default -- so the counts that iOS's log shows
+// were invisible on this side. A green build already proves the vectors passed;
+// what was missing was proof they RAN rather than being silently skipped for
+// want of a registration.
+tasks.withType<Test>().configureEach {
+    testLogging { showStandardStreams = true }
+}
+
 dependencies {
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlin.test.junit)

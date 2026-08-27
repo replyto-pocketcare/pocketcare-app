@@ -2264,3 +2264,66 @@ and the literal string `TEAMID` where the Apple Team ID goes. They live under
 `apps/web`, which this effort does not touch. Recorded in ABSENT-BY-DECISION with
 exactly what each needs.
 
+### CI run 33074275835 (2c0edeb) — parity ✅ android ✅ ios ✅
+
+The PDF work, the categoriser gate, the edit-screen learning and both new guards
+all compile. `statements-pdf` reports **28 passed, 0 skipped, 0 failed**, so the
+vectors ran rather than being silently skipped for want of a registration.
+
+One observability gap closed in passing: Gradle swallows test stdout, so
+`VectorRunnerTest`'s per-domain "total/passed/skipped/failed" line — which iOS's
+log shows — was invisible on Android. `showStandardStreams = true` on
+`:domain`'s test task. A green build already proved the vectors PASSED; what was
+missing was proof they RAN.
+
+### The assistant, part one — the parser — 2026-08-27
+
+`/assistant` is 1,678 lines across six files and the last unbuilt route. This is
+the layer everything else sits on: what the model says, turned into structure.
+
+**What is ported.** `richMessage.tsx`'s JSX-free half — `compactNum`,
+`parseBlocks`, `toCard`, `toAction`, `parseAssistantMessage` — is now
+`AssistantMarkdown.kt`/`.swift` under **71 vectors**. Prose becomes blocks
+(headings, tables, task lists, fenced code, quotes, rules), and the one `<ui>`
+JSON block the model may append becomes validated cards and actions.
+
+**Where the fixtures came from, because it is not uniform.** The JSX-free
+functions were lifted out of `richMessage.tsx` **verbatim** and executed — every
+extracted chunk was diffed back against the source to prove nothing changed but
+the file it lives in. `assistantInlineSpans` is the exception and is labelled as
+such: web's `inline()` returns React elements, so there is no value to capture.
+Its regex and branch order were copied character-for-character and checked
+against the source; the reference that produced its expectations emits spans
+instead of elements. Those 15 vectors prove Android and iOS agree — not that
+either matches a browser.
+
+**`toFixed(1)` is three different functions.** `1.15` formats as `1.1` in JS
+(nearest on the exact BINARY value, 1.14999…), `1.2` through Java's `%.1f`
+(HALF_UP on the DECIMAL text), and C's printf — which Swift's `String(format:)`
+uses — rounds ties to EVEN and disagrees with both. ECMA-262 also strips the
+sign FIRST, so a tie on a negative rounds away from zero: `(-1.25).toFixed(1)`
+is `"-1.3"`. Both ports implement the spec rule explicitly, and the vectors
+include the tie cases (1050, 1150, 1250, −1250, 99950) that separate the three.
+
+**Domain declares its own JSON tree.** The `<ui>` block is JSON, so something
+has to parse it, and `:domain` has no JSON dependency in its main source set —
+nor does Swift's Domain. Adding kotlinx.serialization to ship would have bought
+a dependency and an asymmetry to save twenty lines. Instead `AssistantJson` is a
+six-case sealed type; each platform adapts its own parser into it
+(`JsonElement` / `JSONSerialization`'s `Any`) and everything downstream is
+shared and pinned. `splitAssistantUi` needs no parser at all, which is what
+makes that split possible.
+
+**Two security controls, ported as controls and commented as such.** Only `/…`
+routes and explicit `http(s)` URLs become links — `javascript:`, `data:` and a
+bare `evil.test` degrade to plain text. And an action's `href` must start with
+`/` or the action is dropped entirely. This string came from a language model,
+which can be talked into emitting whatever a transaction description tells it
+to.
+
+**Still to come:** `AssistantChat.tsx` (644 — the streaming chat), `tools.ts`
+(276 — the tool surface over the ledger), `summary.ts` (184 — the on-device
+aggregate that is the only financial data sent), `speech.ts` + `MicButton.tsx`
+(181 — voice, and the earlier audit claim that "web has no voice input" was
+wrong). `summary.ts` also carries a **sixth** hardcoded `/100`.
+
