@@ -92,6 +92,11 @@ jobs:
             # web and would otherwise exist in three, drifting quietly -- nobody
             # re-reads a FAQ to check it still matches.
             node tools/parity/generate-help.mjs
+            # The pre-auth deck's seven glyph/gradient pairs. Small, but the
+            # count is load-bearing on both platforms (page dots, "is this the
+            # last one"), and nobody would notice slide 4 being the wrong shade
+            # of amber on one platform for a year.
+            node tools/parity/generate-onboarding-slides.mjs
             # The PowerSync client schema, mirrored into both native platforms.
             # These were NOT in this list, and that is exactly why the mirrors
             # fell four migrations behind packages/db/src/index.ts without a

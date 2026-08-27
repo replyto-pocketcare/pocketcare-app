@@ -533,7 +533,7 @@ been exercised:
 
 `screen-specs/app-shell.md` §8 lists shell-level behaviour. Still missing on **both** platforms:
 
-- **Auth gate** — web replaces to `/onboarding` when there is no session. Neither app does.
+- ~~**Auth gate** — web replaces to `/onboarding` when there is no session. Neither app does.~~ ✅ Both gate through the seven-slide deck now (2026-08-23); it writes `onboardingSeen` under web's own key and falls through to the login screen.
 - **Pending invite** — `localStorage.pendingInvite` → `/join?token=`. No native equivalent.
 - **Launch-time materialisation** — 2.5s after auth, once per launch: `runRecurring()` then
   `runLoanAutoPost()`. Neither app runs either, so recurring items and loan EMIs never
@@ -1597,9 +1597,42 @@ rule that a stale `premium_trial_start_date` on a paid tier is **not** a trial.
 `.card` has always had. Step 5 and step 7 nest a card inside the modal's own
 card, and `surface` on `surface` is two identical fills separated by a hairline.
 
-**Not ported:** `/onboarding`'s pre-auth **slide deck** (`app/onboarding/page.tsx`,
-119 lines) is a different screen with different copy, reached by the auth gate
-rather than the dashboard. It is still on the list.
+### The pre-auth deck, and the auth gate — 2026-08-23
+
+Ported straight after the walkthrough, because they are the two halves of the
+same first run and shipping one without the other leaves the gate pointing at
+the wrong screen.
+
+Web's gate replaces to `/onboarding` when there is no session; both native gates
+went straight to the login form, so the seven slides that say what Sanvya *is*
+were reachable on the web client only. Both now gate deck → login, with
+`onboardingSeen` written under web's own localStorage key and its own stored
+value (`"1"`, not a native boolean), so the three clients agree on what the key
+means.
+
+**The visual identity is generated, not copied.** `SLIDES` in web's page holds
+seven glyphs and seven gradient pairs and nothing else — the copy is already
+i18n. `tools/parity/generate-onboarding-slides.mjs` emits both native files and
+is in the parity job. The count is load-bearing on both platforms (page dots,
+"is this the last one"), and the generator also emits the title/body lists by
+name — `S.Onboarding.slides0Title` and friends are flat accessors with no way to
+index them, so a hand-written switch would have been the one place an eighth
+slide got forgotten. It fails if a slide has no i18n keys, if a gradient stop is
+not `#rrggbb`, or if `SLIDES` cannot be found.
+
+The gradient stops are stored as the hex strings web writes and go through each
+platform's existing hex parser — the one every account and chart colour already
+uses. A second colour constructor would be a second place for a bad digit to
+behave differently.
+
+**Two things deliberately not ported** (both in ABSENT-BY-DECISION): the
+"Install the app" chip and its PWA `InstallGuide`, which have nothing to say on
+a phone where the app is installed; and web's `?mode=signin` split between
+"Create an account" and "Sign in", which neither native login screen can accept
+— Android's has its own toggle and no entry parameter, and iOS's is a single
+OTP-first form with no register mode at all. Both buttons land on the same
+screen, said out loud rather than hidden.
+
 
 ### Done-when for this section
 

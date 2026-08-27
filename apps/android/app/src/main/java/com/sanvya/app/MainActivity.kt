@@ -16,10 +16,15 @@ import com.sanvya.app.domain.repository.PushRepository
 import com.sanvya.app.theme.SanvyaTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.data.auth.AuthState
 import com.sanvya.app.ui.auth.AuthViewModel
+import com.sanvya.app.ui.Prefs
 import com.sanvya.app.ui.auth.LoginScreen
+import com.sanvya.app.ui.onboarding.OnboardingDeckScreen
 import com.sanvya.app.ui.navigation.SanvyaNavHost
 import com.sanvya.app.ui.shell.ProvideWindowClass
 import kotlinx.coroutines.launch
@@ -68,8 +73,24 @@ class MainActivity : ComponentActivity() {
                     // yourself and no way to know you had not.
                     val authViewModel: AuthViewModel = viewModel()
                     val authState by authViewModel.authState.collectAsState()
+                    // Web's gate replaces to `/onboarding` before `/login`, and
+                    // this app skipped that step entirely -- the seven-slide
+                    // deck existed on the web client only. Read once, not
+                    // observed: it changes exactly once in a lifetime.
+                    var onboardingSeen by rememberSaveable { mutableStateOf(Prefs.onboardingSeen()) }
                     if (authState == AuthState.SIGNED_OUT) {
-                        LoginScreen()
+                        if (onboardingSeen) {
+                            LoginScreen()
+                        } else {
+                            // The deck's "try as guest" exit creates the session
+                            // itself, so `authState` moves the app on and this
+                            // branch is never reached again. The other two
+                            // exits fall through to LoginScreen.
+                            OnboardingDeckScreen(onDone = {
+                                Prefs.setOnboardingSeen()
+                                onboardingSeen = true
+                            })
+                        }
                     } else {
                         SanvyaNavHost()
                     }

@@ -84,7 +84,9 @@ struct WalkthroughView: View {
 
     /// Body copy is 15pt, not the app's 12.5–13pt muted default. Web's plan says
     /// why: this is the one screen written for someone who finds the rest small.
-    private func body(_ text: String, strong: Bool = false) -> some View {
+    /// Named `copy`, not `body`: a `func body(_:)` alongside `var body: some
+    /// View` is legal Swift but reads as a mistake in a `View`.
+    private func copy(_ text: String, strong: Bool = false) -> some View {
         Text(text)
             .font(.system(size: 15, weight: strong ? .bold : .regular))
             .foregroundStyle(Color.text)
@@ -149,10 +151,10 @@ struct WalkthroughView: View {
     private var intro: some View {
         VStack(alignment: .leading, spacing: 14) {
             title(S.Onboarding.wtIntroTitle)
-            body(S.Onboarding.wtIntroP1)
-            body(S.Onboarding.wtIntroP2, strong: true)
-            body(S.Onboarding.wtIntroP3)
-            body(S.Onboarding.wtIntroP4)
+            copy(S.Onboarding.wtIntroP1)
+            copy(S.Onboarding.wtIntroP2, strong: true)
+            copy(S.Onboarding.wtIntroP3)
+            copy(S.Onboarding.wtIntroP4)
             actions(
                 primary: S.Onboarding.wtIntroCta, onPrimary: { viewModel.step = 2 },
                 secondary: S.Onboarding.wtSkip, onSecondary: onSkip
@@ -164,8 +166,8 @@ struct WalkthroughView: View {
     private func account(vm: Bindable<WalkthroughViewModel>) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             title(S.Onboarding.wtAccTitle)
-            body(S.Onboarding.wtAccP1)
-            body(S.Onboarding.wtAccP2)
+            copy(S.Onboarding.wtAccP1)
+            copy(S.Onboarding.wtAccP2)
             field(S.Onboarding.wtAccNameLabel) {
                 SanvyaInput(
                     text: vm.accountName,
@@ -195,9 +197,9 @@ struct WalkthroughView: View {
     private func spend(vm: Bindable<WalkthroughViewModel>) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             title(S.Onboarding.wtSpendTitle)
-            body(S.Onboarding.wtSpendP1)
-            body(S.Onboarding.wtSpendP2)
-            body(S.Onboarding.wtSpendP3, strong: true)
+            copy(S.Onboarding.wtSpendP1)
+            copy(S.Onboarding.wtSpendP2)
+            copy(S.Onboarding.wtSpendP3, strong: true)
             field(S.Onboarding.wtSpendWhatLabel) {
                 SanvyaInput(text: vm.spendWhat, placeholder: S.Onboarding.wtSpendWhatEg)
             }
@@ -235,14 +237,14 @@ struct WalkthroughView: View {
     private var insights: some View {
         VStack(alignment: .leading, spacing: 14) {
             title(S.Onboarding.wtInsightsTitle)
-            body(S.Onboarding.wtInsightsP1)
+            copy(S.Onboarding.wtInsightsP1)
             SanvyaCard(padding: 12) {
                 Text(S.Onboarding.wtInsightsEg)
                     .font(.system(size: 14).italic())
                     .foregroundStyle(Color.text)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            body(S.Onboarding.wtInsightsP2)
+            copy(S.Onboarding.wtInsightsP2)
             actions(
                 primary: S.Onboarding.wtNext, onPrimary: { viewModel.step = 6 },
                 secondary: S.Onboarding.wtDoneCta, onSecondary: onFinish
@@ -253,8 +255,8 @@ struct WalkthroughView: View {
     private var ask: some View {
         VStack(alignment: .leading, spacing: 14) {
             title(S.Onboarding.wtAskTitle)
-            body(S.Onboarding.wtAskP1)
-            body(S.Onboarding.wtAskP2)
+            copy(S.Onboarding.wtAskP1)
+            copy(S.Onboarding.wtAskP2)
             Text(S.Onboarding.wtAskPrivacy)
                 .font(.system(size: 13.5))
                 .foregroundStyle(Color.text2)
@@ -271,7 +273,7 @@ struct WalkthroughView: View {
         if viewModel.isGuest {
             VStack(alignment: .leading, spacing: 14) {
                 title(S.Onboarding.wtGuestTitle)
-                body(S.Onboarding.wtGuestP1)
+                copy(S.Onboarding.wtGuestP1)
                 actions(
                     primary: S.Onboarding.wtGuestCta,
                     onPrimary: { onFinish(); onNavigateToLogin() },
@@ -281,8 +283,8 @@ struct WalkthroughView: View {
         } else {
             VStack(alignment: .leading, spacing: 14) {
                 title(viewModel.onTrial ? S.Onboarding.wtPlanTitleTrial : S.Onboarding.wtPlanTitle)
-                if viewModel.onTrial { body(S.Onboarding.wtPlanTrial) }
-                body(S.Onboarding.wtPlanFree)
+                if viewModel.onTrial { copy(S.Onboarding.wtPlanTrial) }
+                copy(S.Onboarding.wtPlanFree)
                 ForEach(FormOptions.plans) { plan in
                     // surface-2, not surface: this card sits INSIDE the modal's
                     // own card, and two identical fills separated by a hairline

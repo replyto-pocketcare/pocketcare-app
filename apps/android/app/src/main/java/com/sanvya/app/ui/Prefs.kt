@@ -22,6 +22,7 @@ import org.koin.core.component.inject
 object Prefs : KoinComponent {
     private const val PREFS_NAME = "sanvya_prefs"
     private const val WALKTHROUGH_DONE_KEY = "sanvya:walkthroughDone"
+    private const val ONBOARDING_SEEN_KEY = "onboardingSeen"
     private const val HIDE_KEY = "amountsHidden"
     private const val THEME_KEY = "theme"
     private const val CURRENCY_KEY = "baseCurrency"
@@ -100,5 +101,19 @@ object Prefs : KoinComponent {
     fun setWalkthroughDone() {
         sharedPrefs.edit().putBoolean(WALKTHROUGH_DONE_KEY, true).apply()
         _walkthroughDone.value = true
+    }
+
+    /**
+     * The pre-auth slide deck has been through once.
+     *
+     * Same key as web's localStorage entry, and the same stored value ("1"
+     * rather than a native boolean) so the three clients agree on what it
+     * means. Read once by the auth gate at launch and written once on the way
+     * out of the deck.
+     */
+    fun onboardingSeen(): Boolean = sharedPrefs.getString(ONBOARDING_SEEN_KEY, null) == "1"
+
+    fun setOnboardingSeen() {
+        sharedPrefs.edit().putString(ONBOARDING_SEEN_KEY, "1").apply()
     }
 }
