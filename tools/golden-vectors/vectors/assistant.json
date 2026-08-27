@@ -1,5 +1,292 @@
 [
   {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 0
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 0
+    },
+    "expected": "0"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1
+    },
+    "expected": "1"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": -1
+    },
+    "expected": "-1"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1234
+    },
+    "expected": "1234"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": -1234
+    },
+    "expected": "-1234"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1234.5
+    },
+    "expected": "1234.5"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1234.56
+    },
+    "expected": "1234.56"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 0.1
+    },
+    "expected": "0.1"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 0.2
+    },
+    "expected": "0.2"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 0.3
+    },
+    "expected": "0.3"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 100000
+    },
+    "expected": "100000"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 6172.799999999999
+    },
+    "expected": "6172.799999999999"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 299.96999999999997
+    },
+    "expected": "299.96999999999997"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 11111.039999999999
+    },
+    "expected": "11111.039999999999"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 12345.599999999999
+    },
+    "expected": "12345.599999999999"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 599.9399999999999
+    },
+    "expected": "599.9399999999999"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 0.30000000000000004
+    },
+    "expected": "0.30000000000000004"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 6.4
+    },
+    "expected": "6.4"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 0.3333333333333333
+    },
+    "expected": "0.3333333333333333"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 0.6666666666666666
+    },
+    "expected": "0.6666666666666666"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 100000000000000000000
+    },
+    "expected": "100000000000000000000"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1e+21
+    },
+    "expected": "1e+21"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1e+22
+    },
+    "expected": "1e+22"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 999999999999999900000
+    },
+    "expected": "999999999999999900000"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1e-06
+    },
+    "expected": "0.000001"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1e-07
+    },
+    "expected": "1e-7"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1e-08
+    },
+    "expected": "1e-8"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1.5e-10
+    },
+    "expected": "1.5e-10"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 2.5
+    },
+    "expected": "2.5"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1.25
+    },
+    "expected": "1.25"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1.15
+    },
+    "expected": "1.15"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1.05
+    },
+    "expected": "1.05"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": -1.25
+    },
+    "expected": "-1.25"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 5e-324
+    },
+    "expected": "5e-324"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 1.7976931348623157e+308
+    },
+    "expected": "1.7976931348623157e+308"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": -1.7976931348623157e+308
+    },
+    "expected": "-1.7976931348623157e+308"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "v": 123456789012345680000
+    },
+    "expected": "123456789012345680000"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "special": "NaN"
+    },
+    "expected": "null"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "special": "Infinity"
+    },
+    "expected": "null"
+  },
+  {
+    "fn": "jsonNumber",
+    "input": {
+      "special": "-Infinity"
+    },
+    "expected": "null"
+  },
+  {
     "fn": "assistantCompactNum",
     "input": {
       "n": 0

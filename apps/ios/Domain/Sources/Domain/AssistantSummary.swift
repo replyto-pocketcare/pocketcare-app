@@ -145,40 +145,6 @@ let summaryMaxGoals = 12
 let summaryMaxUpcoming = 8
 
 /**
- `JSON.stringify` on a number that is an exact multiple of one hundredth.
-
- The general JS algorithm is shortest-round-trip and is a genuinely hard thing to
- reimplement twice identically. It is also unnecessary here: EVERY number in this
- prompt comes from web's `major()`, which is `Math.round(minor) / 100`, or from
- `monthlySurplus`, which is `+(x).toFixed(2)`. Both are an integer number of
- hundredths, and for those the formatting is three cases.
-
- The narrow contract is the point. `1234.0` is what both `Double.description` and
- Kotlin's `toString` produce and `1234` is what JS produces — a general
- "close enough" formatter would put a different prompt in front of the model on
- each platform and nothing would ever fail loudly.
- */
-func jsonHundredths(_ v: Double) -> String {
-    // `Math.round` semantics — half UP — though the input should already be
-    // integral and this is only absorbing float noise.
-    let cents = Int64(jsRound(v * 100))
-    if cents == 0 { return "0" }
-    let negative = cents < 0
-    let magnitude = abs(cents)
-    let whole = magnitude / 100
-    let frac = magnitude % 100
-    let body: String
-    if frac == 0 {
-        body = "\(whole)"
-    } else if frac % 10 == 0 {
-        body = "\(whole).\(frac / 10)"
-    } else {
-        body = "\(whole)." + String(format: "%02d", frac)
-    }
-    return negative ? "-" + body : body
-}
-
-/**
  `JSON.stringify` on a string.
 
  Non-ASCII is left ALONE, which is what JSON.stringify does — escaping it would
@@ -229,18 +195,18 @@ private func arr<T>(_ items: [T], _ render: (T) -> String) -> String {
 public func summaryForPrompt(_ s: FinancialSummary) -> String {
     var out: [String] = [
         field("baseCurrency", jsonQuote(s.baseCurrency)),
-        field("liquidSavings", jsonHundredths(s.liquidSavings)),
-        field("avgMonthlyIncome", jsonHundredths(s.avgMonthlyIncome)),
-        field("avgMonthlyExpense", jsonHundredths(s.avgMonthlyExpense)),
-        field("monthlySurplus", jsonHundredths(s.monthlySurplus)),
-        field("fixedMonthlyObligations", jsonHundredths(s.fixedMonthlyObligations)),
+        field("liquidSavings", jsonNumber(s.liquidSavings)),
+        field("avgMonthlyIncome", jsonNumber(s.avgMonthlyIncome)),
+        field("avgMonthlyExpense", jsonNumber(s.avgMonthlyExpense)),
+        field("monthlySurplus", jsonNumber(s.monthlySurplus)),
+        field("fixedMonthlyObligations", jsonNumber(s.fixedMonthlyObligations)),
         field("accounts", arr(Array(s.accounts.prefix(summaryMaxAccounts))) { a in
             obj([
                 field("id", jsonQuote(a.id)),
                 field("n", jsonQuote(a.name)),
                 field("t", jsonQuote(a.type)),
                 field("c", jsonQuote(a.currency)),
-                field("bal", jsonHundredths(a.balance)),
+                field("bal", jsonNumber(a.balance)),
             ])
         }),
     ]
@@ -248,8 +214,8 @@ public func summaryForPrompt(_ s: FinancialSummary) -> String {
         out.append(field("goals", arr(Array(s.goals.prefix(summaryMaxGoals))) { g in
             obj([
                 field("n", jsonQuote(g.name)),
-                field("target", jsonHundredths(g.target)),
-                field("saved", jsonHundredths(g.saved)),
+                field("target", jsonNumber(g.target)),
+                field("saved", jsonNumber(g.saved)),
                 field("c", jsonQuote(g.currency)),
             ])
         }))
@@ -259,7 +225,7 @@ public func summaryForPrompt(_ s: FinancialSummary) -> String {
             obj([
                 field("n", jsonQuote(u.name)),
                 field("date", jsonQuote(u.date)),
-                field("amt", jsonHundredths(u.amount)),
+                field("amt", jsonNumber(u.amount)),
             ])
         }))
     }
@@ -267,8 +233,8 @@ public func summaryForPrompt(_ s: FinancialSummary) -> String {
     // are owed nothing across 3 groups" is a real answer.
     if s.splits.owed != 0 || s.splits.owe != 0 || s.splits.groups != 0 {
         out.append(field("splits", obj([
-            field("friendsOweYou", jsonHundredths(s.splits.owed)),
-            field("youOwe", jsonHundredths(s.splits.owe)),
+            field("friendsOweYou", jsonNumber(s.splits.owed)),
+            field("youOwe", jsonNumber(s.splits.owe)),
             field("groups", "\(s.splits.groups)"),
         ])))
     }
@@ -278,14 +244,14 @@ public func summaryForPrompt(_ s: FinancialSummary) -> String {
         out.append(field("monthly", arr(s.monthlyCashflow) { m in
             obj([
                 field("ym", jsonQuote(m.ym)),
-                field("in", jsonHundredths(m.income)),
-                field("exp", jsonHundredths(m.expense)),
+                field("in", jsonNumber(m.income)),
+                field("exp", jsonNumber(m.expense)),
             ])
         }))
     }
     if !s.topCategories.isEmpty {
         out.append(field("topSpendCategories", arr(s.topCategories) { c in
-            obj([field("n", jsonQuote(c.name)), field("amt", jsonHundredths(c.amount))])
+            obj([field("n", jsonQuote(c.name)), field("amt", jsonNumber(c.amount))])
         }))
     }
     return obj(out)

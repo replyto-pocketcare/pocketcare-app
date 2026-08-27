@@ -1,5 +1,6 @@
 package com.sanvya.app.domain.assistant
 
+import com.sanvya.app.domain.js.jsonNumber
 import com.sanvya.app.domain.vectors.FunctionRegistry
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -190,6 +191,19 @@ private fun JsonElement.toSummary(): FinancialSummary {
 }
 
 fun registerAssistantVectors() {
+    FunctionRegistry.register(DOMAIN, "jsonNumber") { input ->
+        val o = input.jsonObject
+        // NaN and the infinities cannot survive a JSON fixture, so they travel
+        // as a name and are rebuilt here.
+        val v = when (o["special"]?.jsonPrimitive?.content) {
+            "NaN" -> Double.NaN
+            "Infinity" -> Double.POSITIVE_INFINITY
+            "-Infinity" -> Double.NEGATIVE_INFINITY
+            else -> o.getValue("v").jsonPrimitive.double
+        }
+        JsonPrimitive(jsonNumber(v))
+    }
+
     FunctionRegistry.register(DOMAIN, "assistantCompactNum") { input ->
         JsonPrimitive(assistantCompactNum(input.jsonObject.getValue("n").jsonPrimitive.double))
     }

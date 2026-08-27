@@ -50,7 +50,7 @@ private extension Dictionary where Key == String, Value == AssistantJson {
         case .none, .some(.null): return "undefined"
         case let .some(.str(s)): return s
         case let .some(.bool(b)): return b ? "true" : "false"
-        case let .some(.num(n)): return jsonHundredths(n)
+        case let .some(.num(n)): return jsonNumber(n)
         case .some(.arr), .some(.obj): return "[object]"
         }
     }

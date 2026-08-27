@@ -65,61 +65,6 @@ private let uncategorizedLabel = "Uncategorized"
 /// Web's `threshold_pct: 80` on an assistant-created budget.
 private let budgetDefaultThresholdPct = 80
 
-/**
- The amount as the model spelled it, for the result line it reads back.
-
- Web interpolates the raw JSON number, so `200` reads as "200" and not "200.0".
- Same rule, and the same reason, as `describeToolCall`'s.
- */
-/**
- Web's `major()`: `Math.round(minor) / 100`.
-
- This is web bug #8's SIXTH site and it is reproduced, not fixed. Unlike the
- parser sites, this number is not stored anywhere — it goes into a prompt and is
- read by a model. Fixing it here with `toMajor()` would make a JPY user's phone
- send a different snapshot than their browser for the same ledger, and the
- assistant would answer differently on each. Recorded against #8.
- */
-private func summaryMajor(_ minor: Double) -> Double { jsRound(minor) / 100 }
-
-/// `+(x).toFixed(2)` — rounded to two decimals and back to a number.
-private func jsToFixed2Number(_ x: Double) -> Double {
-    let negative = x < 0
-    let v = negative ? -x : x
-    let exact = String(format: "%.20f", v)
-    guard let dot = exact.firstIndex(of: "."), let whole = Int64(exact[exact.startIndex..<dot]) else { return x }
-    let frac = Array(exact[exact.index(after: dot)...])
-    var hundredths = (frac.first?.wholeNumberValue ?? 0) * 10 + (frac.count > 1 ? (frac[1].wholeNumberValue ?? 0) : 0)
-    if frac.count > 2, frac[2] >= "5" { hundredths += 1 }
-    var units = whole
-    if hundredths == 100 { hundredths = 0; units += 1 }
-    let result = Double(units) + Double(hundredths) / 100
-    return negative ? -result : result
-}
-
-/**
- A subscription's `next_renewal`, which is a date on some rows and a timestamp on
- others depending on which client wrote it.
- */
-private func parseRenewalDate(_ raw: String, calendar: Calendar) -> Date? {
-    let iso = ISO8601DateFormatter()
-    iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    if let d = iso.date(from: raw) { return d }
-    let plain = ISO8601DateFormatter()
-    if let d = plain.date(from: raw) { return d }
-    let dayOnly = DateFormatter()
-    dayOnly.calendar = calendar
-    dayOnly.timeZone = calendar.timeZone
-    dayOnly.locale = Locale(identifier: "en_US_POSIX")
-    dayOnly.dateFormat = "yyyy-MM-dd"
-    return dayOnly.date(from: raw)
-}
-
-private func describeNumber(_ v: Double) -> String {
-    if v == v.rounded(.towardZero) && abs(v) < 1e15 { return String(Int64(v)) }
-    return "\(v)"
-}
-
 public final class AssistantRepository: @unchecked Sendable {
     private let db: PowerSyncDatabaseProtocol
     private let ledgerRepository: LedgerRepository
@@ -324,7 +269,7 @@ public final class AssistantRepository: @unchecked Sendable {
                 sourceAccountId: source,
                 amountBlocked: fromMajor(num("amount"), goal.1).amount
             )
-            return "Reserved \(goal.1) \(describeNumber(num("amount"))) toward \"\(wanted)\"."
+            return "Reserved \(goal.1) \(jsonNumber(num("amount"))) toward \"\(wanted)\"."
 
         case "record_transaction":
             let type = str("type") == "income" ? "income" : "expense"
@@ -370,7 +315,7 @@ public final class AssistantRepository: @unchecked Sendable {
                 categoryId: categoryId,
                 description: (description?.isEmpty ?? true) ? nil : description
             )
-            return "Recorded \(type) of \(account.1) \(describeNumber(num("amount")))."
+            return "Recorded \(type) of \(account.1) \(jsonNumber(num("amount")))."
 
         case "create_subscription":
             let id = try await subscriptionsRepository.create(

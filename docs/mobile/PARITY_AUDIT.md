@@ -2479,3 +2479,45 @@ same question.
 **Still to come:** `AssistantChat.tsx` (644) — the streaming chat, the confirm
 cards and the thread list — plus `speech.ts` + `MicButton.tsx` (voice).
 
+### CI run 33082408269 (1dc5d93) — BOTH platforms, same vector, and my contract was the bug
+
+parity ✅ · android ❌ (assistant 110/111) · ios ❌ (1 of 111). Same failure on
+both, which is the tell: not a platform difference, a wrong shared assumption.
+
+```
+summaryForPrompt[caps]: expected …"saved":6172.799999999999… but got …"saved":6172.8…
+```
+
+`jsonHundredths` was written on a stated contract — *every number in this prompt
+is an exact multiple of one hundredth* — which is **true of the callers and false
+of the function**. `summaryForPrompt` is public, takes a struct of plain
+`Double`s, and enforced nothing. The first fixture that violated it (`5 *
+1234.56`, ordinary float multiplication) produced a different prompt on both
+phones than in the browser, silently.
+
+I documented that contract as a virtue at the time. It was an unenforced
+precondition on a public function, which is a defect even when every current
+caller happens to satisfy it — and the vector that caught it was the one I
+included precisely because I could not predict its output.
+
+**Fixed properly, not narrowly.** `jsonNumber` in `JsNumbers` is now ECMA-262's
+`Number::toString` in full:
+
+1. the SHORTEST decimal that round-trips — found by rounding the EXACT binary
+   value to 1…17 significant digits and taking the first that survives, on both
+   platforms, rather than trusting either one's printer (Kotlin's
+   `Double.toString` is not shortest-round-trip before JDK 19; Swift's
+   `description` is but formats exponents differently from JS);
+2. the spec's plain-vs-exponent rules — plain for `1e-7 < |x| < 1e21`. `1e21` is
+   `"1e+21"` and `1e-7` is `"1e-7"`: the positive exponent carries a sign and the
+   negative one does not.
+
+Verified against V8 across **431 values** (the CI failures, both notation
+boundaries from both sides, ties, subnormals, `MAX_VALUE`, and 400 random
+draws), then pinned with **41 new vectors** — so the next person to "simplify"
+this has something to fail.
+
+`jsonHundredths` is gone, and both repositories' `describeNumber`/`describe()`
+helpers — which were the same narrow thing under two more names — are gone with
+it. Assistant vectors now total **152**.
+

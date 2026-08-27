@@ -83,3 +83,128 @@ public func jsParseFloat(_ s: String) -> Double? {
     }
     return Double(s[r])
 }
+
+/**
+ `JSON.stringify` on a number — ECMA-262's `Number::toString`, in full.
+
+ **This replaced a narrower function that was wrong.** The first version assumed
+ every number it would ever see was an exact multiple of one hundredth, because
+ every number the assistant's prompt CARRIES is. That was true of the callers and
+ false of the function: `summaryForPrompt` is public, takes a struct of plain
+ Doubles, and enforced nothing. The first fixture that violated the assumption
+ produced `6172.8` where the browser produces `6172.799999999999` — silently, on
+ both platforms, in a prompt. An unenforced precondition on a public function is
+ a defect even when every current caller happens to satisfy it.
+
+ Two halves, both from the spec:
+
+ 1. The SHORTEST decimal that round-trips back to the same double. Swift's
+    `description` is that, but its exponent formatting is not JS's, so the digits
+    are found here the same way Kotlin finds them — round the EXACT value to
+    1…17 significant digits, take the first that survives a round trip — rather
+    than by each platform's own printer.
+ 2. The spec's own formatting rules, which decide plain vs exponent notation by
+    where the decimal point falls — plain for `1e-7 < |x| < 1e21`, exponent
+    outside it. `1e21` is `"1e+21"` and `1e-7` is `"1e-7"`: the positive exponent
+    carries a sign and the negative one does not, and that asymmetry is real.
+
+ Verified against V8's own output across 25 values, including the ones that broke
+ CI.
+ */
+public func jsonNumber(_ v: Double) -> String {
+    // JSON.stringify(NaN) and (Infinity) are both `null`, not an error.
+    if v.isNaN || v.isInfinite { return "null" }
+    if v == 0 { return "0" } // covers -0.0, which JSON.stringify also prints as 0
+
+    let negative = v < 0
+    let magnitude = abs(v)
+    guard let (digits, pointAt) = shortestRoundTripDigits(magnitude) else { return "\(v)" }
+
+    let k = digits.count
+    let n = pointAt
+    let chars = Array(digits)
+    let body: String
+    if n >= k && n <= plainNotationMaxExp {
+        body = digits + String(repeating: "0", count: n - k)
+    } else if n > 0 && n <= plainNotationMaxExp {
+        body = String(chars[0..<n]) + "." + String(chars[n...])
+    } else if n > plainNotationMinExp && n <= 0 {
+        body = "0." + String(repeating: "0", count: -n) + digits
+    } else {
+        let exponent = n - 1
+        let mantissa = k == 1 ? digits : String(chars[0]) + "." + String(chars[1...])
+        body = mantissa + "e" + (exponent >= 0 ? "+" : "-") + String(abs(exponent))
+    }
+    return negative ? "-" + body : body
+}
+
+/**
+ The shortest decimal digit string that round-trips, and where its decimal point
+ falls.
+
+ `%.30e` is the exact expansion to 31 significant digits, and the rounding to
+ `precision` digits is then done by hand, HALF_UP — because C's printf rounds
+ ties to EVEN and Kotlin's `BigDecimal` rounds them UP, and a tie decided
+ differently would give the two platforms different digit strings for the same
+ double.
+
+ 31 digits is enough to decide any tie that can actually occur: a tie needs the
+ exact value to be `d…d5` followed by nothing but zeros, and a binary double
+ whose expansion is that short has far fewer than 31 significant digits. When the
+ expansion IS longer, some digit past the 31st is non-zero, the value is strictly
+ more than half, and rounding up is what HALF_UP does anyway.
+ */
+private func shortestRoundTripDigits(_ magnitude: Double) -> (String, Int)? {
+    let exact = String(format: "%.30e", magnitude)
+    let parts = exact.split(separator: "e")
+    guard parts.count == 2, let exponent = Int(parts[1]) else { return nil }
+    let mantissaDigits = parts[0].filter { $0.isNumber }
+    guard !mantissaDigits.isEmpty else { return nil }
+
+    for precision in 1...maxDoubleSigDigits {
+        guard let (digits, carried) = roundDigitsHalfUp(Array(mantissaDigits), to: precision) else { continue }
+        // A carry can push 999… to 1000…, which moves the point one place right.
+        let pointAt = exponent + 1 + (carried ? 1 : 0)
+        let trimmed = trimTrailingZeros(digits)
+        let candidate = rebuild(trimmed, pointAt)
+        if Double(candidate) == magnitude { return (trimmed, pointAt) }
+    }
+    return nil
+}
+
+/// Round a digit string to `precision` digits, HALF_UP. Returns the digits and whether a carry overflowed.
+private func roundDigitsHalfUp(_ digits: [Character], to precision: Int) -> (String, Bool)? {
+    guard precision <= digits.count else { return (String(digits), false) }
+    var kept = Array(digits[0..<precision])
+    let roundUp = digits[precision] >= "5"
+    if roundUp {
+        var i = precision - 1
+        while i >= 0 {
+            if kept[i] == "9" { kept[i] = "0"; i -= 1 } else {
+                kept[i] = Character(String(kept[i].wholeNumberValue! + 1))
+                break
+            }
+        }
+        if i < 0 { return ("1" + String(kept), true) }
+    }
+    return (String(kept), false)
+}
+
+private func trimTrailingZeros(_ s: String) -> String {
+    var out = s
+    while out.count > 1 && out.hasSuffix("0") { out.removeLast() }
+    return out
+}
+
+/// `0.<digits> x 10^pointAt` as a string a Double initialiser will accept.
+private func rebuild(_ digits: String, _ pointAt: Int) -> String {
+    "0." + digits + "e" + String(pointAt)
+}
+
+/// A double needs at most 17 significant decimal digits to round-trip.
+private let maxDoubleSigDigits = 17
+
+/// The spec's own bounds for plain notation: `1e-7 < |x| < 1e21`.
+private let plainNotationMaxExp = 21
+private let plainNotationMinExp = -6
+

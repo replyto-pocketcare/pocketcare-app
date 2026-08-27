@@ -1,6 +1,6 @@
 package com.sanvya.app.domain.assistant
 
-import com.sanvya.app.domain.js.jsRound
+import com.sanvya.app.domain.js.jsonNumber
 
 /**
  * The financial snapshot the assistant is given — and the only financial data
@@ -64,37 +64,6 @@ internal const val SUMMARY_MAX_GOALS = 12
 internal const val SUMMARY_MAX_UPCOMING = 8
 
 /**
- * `JSON.stringify` on a number that is an exact multiple of one hundredth.
- *
- * The general JS algorithm is shortest-round-trip and is a genuinely hard thing
- * to reimplement twice identically. It is also unnecessary here: EVERY number in
- * this prompt comes from web's `major()`, which is `Math.round(minor) / 100`, or
- * from `monthlySurplus`, which is `+(x).toFixed(2)`. Both are an integer number
- * of hundredths, and for those the formatting is three cases.
- *
- * The narrow contract is the point. `Double.toString()` gives `1234.0` on
- * Kotlin, Swift's gives `1234.0` too, and JS gives `1234` — a general
- * "close enough" formatter would put a different prompt in front of the model
- * on each platform and nothing would ever fail loudly.
- */
-internal fun jsonHundredths(v: Double): String {
-    // `Math.round` semantics -- half UP -- though the input should already be
-    // integral and this is only absorbing float noise.
-    val cents = jsRound(v * 100).toLong()
-    if (cents == 0L) return "0"
-    val negative = cents < 0
-    val abs = kotlin.math.abs(cents)
-    val whole = abs / 100
-    val frac = abs % 100
-    val body = when {
-        frac == 0L -> "$whole"
-        frac % 10 == 0L -> "$whole.${frac / 10}"
-        else -> "$whole." + frac.toString().padStart(2, '0')
-    }
-    return if (negative) "-$body" else body
-}
-
-/**
  * `JSON.stringify` on a string.
  *
  * Non-ASCII is left ALONE, which is what JSON.stringify does — escaping it
@@ -141,11 +110,11 @@ private fun <T> arr(items: List<T>, render: (T) -> String) = items.joinToString(
 fun summaryForPrompt(s: FinancialSummary): String {
     val out = mutableListOf(
         field("baseCurrency", jsonQuote(s.baseCurrency)),
-        field("liquidSavings", jsonHundredths(s.liquidSavings)),
-        field("avgMonthlyIncome", jsonHundredths(s.avgMonthlyIncome)),
-        field("avgMonthlyExpense", jsonHundredths(s.avgMonthlyExpense)),
-        field("monthlySurplus", jsonHundredths(s.monthlySurplus)),
-        field("fixedMonthlyObligations", jsonHundredths(s.fixedMonthlyObligations)),
+        field("liquidSavings", jsonNumber(s.liquidSavings)),
+        field("avgMonthlyIncome", jsonNumber(s.avgMonthlyIncome)),
+        field("avgMonthlyExpense", jsonNumber(s.avgMonthlyExpense)),
+        field("monthlySurplus", jsonNumber(s.monthlySurplus)),
+        field("fixedMonthlyObligations", jsonNumber(s.fixedMonthlyObligations)),
         field(
             "accounts",
             arr(s.accounts.take(SUMMARY_MAX_ACCOUNTS)) { a ->
@@ -154,7 +123,7 @@ fun summaryForPrompt(s: FinancialSummary): String {
                     field("n", jsonQuote(a.name)),
                     field("t", jsonQuote(a.type)),
                     field("c", jsonQuote(a.currency)),
-                    field("bal", jsonHundredths(a.balance)),
+                    field("bal", jsonNumber(a.balance)),
                 )
             },
         ),
@@ -166,8 +135,8 @@ fun summaryForPrompt(s: FinancialSummary): String {
                 arr(s.goals.take(SUMMARY_MAX_GOALS)) { g ->
                     obj(
                         field("n", jsonQuote(g.name)),
-                        field("target", jsonHundredths(g.target)),
-                        field("saved", jsonHundredths(g.saved)),
+                        field("target", jsonNumber(g.target)),
+                        field("saved", jsonNumber(g.saved)),
                         field("c", jsonQuote(g.currency)),
                     )
                 },
@@ -182,7 +151,7 @@ fun summaryForPrompt(s: FinancialSummary): String {
                     obj(
                         field("n", jsonQuote(u.name)),
                         field("date", jsonQuote(u.date)),
-                        field("amt", jsonHundredths(u.amount)),
+                        field("amt", jsonNumber(u.amount)),
                     )
                 },
             ),
@@ -195,8 +164,8 @@ fun summaryForPrompt(s: FinancialSummary): String {
             field(
                 "splits",
                 obj(
-                    field("friendsOweYou", jsonHundredths(s.splits.owed)),
-                    field("youOwe", jsonHundredths(s.splits.owe)),
+                    field("friendsOweYou", jsonNumber(s.splits.owed)),
+                    field("youOwe", jsonNumber(s.splits.owe)),
                     field("groups", s.splits.groups.toString()),
                 ),
             ),
@@ -211,8 +180,8 @@ fun summaryForPrompt(s: FinancialSummary): String {
                 arr(s.monthlyCashflow) { m ->
                     obj(
                         field("ym", jsonQuote(m.ym)),
-                        field("in", jsonHundredths(m.income)),
-                        field("exp", jsonHundredths(m.expense)),
+                        field("in", jsonNumber(m.income)),
+                        field("exp", jsonNumber(m.expense)),
                     )
                 },
             ),
@@ -223,7 +192,7 @@ fun summaryForPrompt(s: FinancialSummary): String {
             field(
                 "topSpendCategories",
                 arr(s.topCategories) { c ->
-                    obj(field("n", jsonQuote(c.name)), field("amt", jsonHundredths(c.amount)))
+                    obj(field("n", jsonQuote(c.name)), field("amt", jsonNumber(c.amount)))
                 },
             ),
         )

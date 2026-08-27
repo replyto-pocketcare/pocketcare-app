@@ -1,5 +1,7 @@
 package com.sanvya.app.domain.assistant
 
+import com.sanvya.app.domain.js.jsonNumber
+
 /**
  * Validating and describing a tool call before it runs.
  *
@@ -68,7 +70,7 @@ private fun ToolInput.text(key: String): String = when (val v = this[key]) {
     null, is AssistantJson.Null -> "undefined"
     is AssistantJson.Str -> v.value
     is AssistantJson.Bool -> v.value.toString()
-    is AssistantJson.Num -> jsonHundredths(v.value)
+    is AssistantJson.Num -> jsonNumber(v.value)
     is AssistantJson.Arr, is AssistantJson.Obj -> "[object]"
 }
 

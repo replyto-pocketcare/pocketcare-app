@@ -16,6 +16,7 @@ import com.sanvya.app.domain.assistant.SummaryUpcoming
 import com.sanvya.app.domain.assistant.ToolInput
 import com.sanvya.app.domain.finance.monthlyEquivalent
 import com.sanvya.app.domain.js.jsRound
+import com.sanvya.app.domain.js.jsonNumber
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.money.toMajor
 import com.sanvya.app.domain.splitsmath.Party
@@ -246,7 +247,7 @@ class AssistantRepository(
                         sourceAccountId = source,
                         amountBlocked = fromMajor(input.num("amount"), goal.second).amount,
                     )
-                    "Reserved ${goal.second} ${input.num("amount").describe()} toward \"$wanted\"."
+                    "Reserved ${goal.second} ${jsonNumber(input.num("amount"))} toward \"$wanted\"."
                 }
             }
         }
@@ -294,7 +295,7 @@ class AssistantRepository(
                     categoryId = categoryId,
                     description = input.str("description")?.trim()?.takeIf { it.isNotEmpty() },
                 )
-                "Recorded $type of ${account.second} ${input.num("amount").describe()}."
+                "Recorded $type of ${account.second} ${jsonNumber(input.num("amount"))}."
             }
         }
 
@@ -634,15 +635,6 @@ private const val TOP_CATEGORY_LIMIT = 8L
 
 /** Web's spelling, which is NOT the analyzer's "Uncategorised". Both reproduced as-is. */
 private const val UNCATEGORIZED_LABEL = "Uncategorized"
-
-/**
- * The amount as the model spelled it, for the result line it reads back.
- *
- * Web interpolates the raw JSON number, so `200` reads as "200" and not
- * "200.0". Same rule, and the same reason, as `describeToolCall`'s.
- */
-private fun Double.describe(): String =
-    if (this == kotlin.math.floor(this) && kotlin.math.abs(this) < 1e15) toLong().toString() else toString()
 
 /** Web's `threshold_pct: 80` on an assistant-created budget. */
 private const val BUDGET_DEFAULT_THRESHOLD_PCT = 80

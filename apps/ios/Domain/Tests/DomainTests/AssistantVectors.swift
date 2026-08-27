@@ -171,6 +171,20 @@ private func toSummary(_ any: Any) -> FinancialSummary {
 func registerAssistantVectors() {
     let domain = "assistant"
 
+    FunctionRegistry.register(domain: domain, fn: "jsonNumber") { input in
+        let d = input as! [String: Any]
+        // NaN and the infinities cannot survive a JSON fixture, so they travel
+        // as a name and are rebuilt here.
+        let v: Double
+        switch d["special"] as? String {
+        case "NaN": v = Double.nan
+        case "Infinity": v = Double.infinity
+        case "-Infinity": v = -Double.infinity
+        default: v = (d["v"] as! NSNumber).doubleValue
+        }
+        return jsonNumber(v)
+    }
+
     FunctionRegistry.register(domain: domain, fn: "assistantCompactNum") { input in
         let d = input as! [String: Any]
         return assistantCompactNum((d["n"] as! NSNumber).doubleValue)
