@@ -198,17 +198,87 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/auth/callback` | (87) | 🚫 | 🚫 | 🚫 a native app cannot host an HTTP route; both use a custom scheme |
 | `/admin/*` | 7 pages (1291) | 🚫 | 🚫 | 🚫 web-only, English-only, out of scope |
 
+### Remaining work — measured 2026-08-27, by reading web against both ports
+
+The table above answers *does a screen exist and is it reachable*. This answers *what is still
+missing inside it*, and it was produced by four parallel passes that read each web page, enumerated
+its user-visible controls and branches, and checked each one against both native files. A feature
+counts as present only where the code that implements it can be pointed at.
+
+**91 distinct gaps.** Sizes are for ONE platform: **S** < 50 lines, **M** 50-200, **L** 200+.
+
+| Slice | Gaps | L | M | S |
+|---|---|---|---|---|
+| Transactions · accounts · receipts | 25 | 3 | 7 | 15 |
+| Splits · groups · friends | 25 | 1 | 7 | 17 |
+| Budgets · goals · loans · investments · recurring | 17 | 2 | 8 | 7 |
+| Shell · settings · insights · dashboard · components | 24 | 2 | 7 | 15 |
+| **Total** | **91** | **8** | **29** | **54** |
+
+Doubling for two platforms and costing the buckets at 300 / 120 / 30 lines gives roughly
+**15,000-20,000 lines** of native code, before the Domain ports and golden vectors that anything
+with real rules needs. At the rate this work has actually landed — about 1,500-2,000 lines a cycle
+including docs and vectors — that is **ten to fifteen more cycles**, not one or two.
+
+#### The seven that make a feature unusable end to end
+
+Ranked by whether a native-only user can complete the job at all, not by size.
+
+| # | Gap | Platforms | Size | Why it is first |
+|---|---|---|---|---|
+| 1 | **Group invites** — connection search, typed-email chips, share link | both | L | Neither platform can add anyone to a group who is not already a connection. A native user creates a group and then cannot fill it |
+| 2 | **Split expense on New transaction** — group picker, equal/exact/percent, per-share inputs, multi-payer | both | L | The largest single block of web behaviour absent from both ports. It cascades: no "paid for someone else", no auto-split trips, no `?split=` entry, and Edit's SplitBanner has nothing to explain |
+| 3 | **Android: Add-expense in a group is unreachable** | Android | S | The sheet is fully implemented; nothing sets `showAddExpense`, and the page action is an empty lambda. A group is read-only on Android |
+| 4 | **Credit-card branch on New account** — limit, statement day, due day, cycle-aware `pending_due` | both | L | A card created natively silently drops every field the Cards screen and its reminders are built on |
+| 5 | **Receipt capture is camera-only** — no file upload, no PDF, no AI escalation, no entitlement gate | both | L | The emailed PDF bill is the feature's main input. Free-tier users meet a server rejection instead of the paywall card |
+| 6 | **Pending settlements** — confirm / dispute | both | M | Both repositories already have `confirmSettlement`/`disputeSettlement`. With no UI, a UPI settlement raised natively is stuck pending until the payee opens the browser |
+| 7 | **Live market quotes** | both | L | Without LTP and day-change every portfolio figure on native is whatever was last typed in. Investments is a manual ledger where web is a live portfolio |
+
+#### Dead or lying controls — the cheapest and the most damaging
+
+Each of these is a control the user can see and touch that does nothing, or does the wrong thing.
+Per this project's own rule (`ABSENT-BY-DECISION.md`, first paragraph) these are worse than an
+absence, and they are almost all `S`.
+
+| Gap | Platforms | Size |
+|---|---|---|
+| **Feedback** button in the More sheet and the side nav is wired to a closure that only closes the sheet | both | M |
+| `include_in_net_worth` checkbox on New account is never read by `save()` | both | S |
+| Android's group Add-expense action (`#3` above) | Android | S |
+| iOS dashboard renders a second FAB speed dial beside the bottom bar's "+" | iOS | S |
+| Investment accounts are offered in the New-transaction account picker (web filters them out) | both | S |
+| Settle-up: no "None — mark settled" option; UPI is offered regardless of currency or sign | both | S |
+| Android's `SyncStatusStrip` is defined and never called | Android | S |
+| `BlockingLoader` / `GlobalLoader` exists on both with zero call sites | both | S |
+| Settings' "Replay intro" string exists in `S.kt` and is wired to nothing | Android | S |
+
+#### Blocked on Akhilesh, not on code
+
+Nothing below can be closed by writing native code, and three of them gate a release.
+
+| Blocked | Gates |
+|---|---|
+| Release keystore SHA-256 for `assetlinks.json`; Apple Team ID for `apple-app-site-association` | `https://sanvya.app/join` links opening the app instead of a browser |
+| APNs auth key + Push capability; `notify-dispatch` reading `platform`/`token` | Any push notification reaching an iOS device |
+| Two Google OAuth client IDs; `com.sanvya.app://auth-callback` in the Supabase allowlist | A live Google sign-in has **never completed** on either platform |
+| A test Supabase + PowerSync project | Any integration test at all — now also the assistant's SQL |
+| Go-ahead on the ×100 sweep (29 Android / 20 iOS sites) and on `anchor_day` | Correct behaviour for JPY/KWD/BHD; recurring drift |
+| A decision on the eight web defects | Whether native keeps reproducing them |
+
 ### Score, honestly
 
 | | Android | iOS |
 |---|---|---|
 | Web routes in scope for native (44 total, less 7 `/admin`, 2 redirects, `/auth/callback`) | 35 | 35 |
-| Ported and reachable | **23** | **23** |
-| Not built (honest placeholder) | 12 | 12 |
-| Ported with **zero** recorded gaps | 0 | 0 |
+| Ported and reachable | **35** | **35** |
+| Not built (honest placeholder) | 0 | 0 |
+| Ported with **zero** recorded gaps | 5 | 5 |
 
-Not one screen is gap-free. That is not pessimism — it is what "🔶" has meant in this table since
-it was written, and rounding it up to ✅ is how a port convinces itself it is finished.
+**Every in-scope route now has a real, reachable screen on both platforms** — `/assistant` was the
+last placeholder and closed 2026-08-27. That is a milestone and it is also the least interesting
+number here: coverage moved from 23 to 35 while the *inside* of those screens still carries the 91
+gaps measured above. A route map that reads 35/35 is exactly how a port convinces itself it is
+finished. Read the remaining-work tables, not this one.
 
 The two platforms are now at the **same** coverage, screen for screen. They were not on
 2026-08-24: iOS had Statements and a Walkthrough file that Android did not, and Android had a
