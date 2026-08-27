@@ -1,0 +1,2244 @@
+[
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "2026-04-03"
+    },
+    "expected": "2026-04-03"
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "03/04/2026"
+    },
+    "expected": "2026-04-03"
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "3/4/26"
+    },
+    "expected": "2026-04-03"
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "03-04-2026"
+    },
+    "expected": "2026-04-03"
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "03.04.2026"
+    },
+    "expected": "2026-04-03"
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "3-Apr-2026"
+    },
+    "expected": "2026-04-03"
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "3 Apr 26"
+    },
+    "expected": "2026-04-03"
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "03-April-2026"
+    },
+    "expected": "2026-04-03"
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "13/13/2026"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "32/01/2026"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": ""
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "garbage"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "2026-4-3"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": "1-jan-99"
+    },
+    "expected": "2099-01-01"
+  },
+  {
+    "fn": "parseStatementDate",
+    "input": {
+      "s": null
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "hdfc",
+      "text": "Date,Narration,Withdrawal Amt.,Deposit Amt.,Closing Balance\n01/04/2026,UPI-SWIGGY-1234,450.00,,10550.00\n03/04/2026,SALARY CREDIT,,50000.00,60550.00\n05/04/2026,ATW-CASH 9876,2000.00,,58550.00",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-05"
+      },
+      "openingBalance": 1055000,
+      "closingBalance": 5855000,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "UPI-SWIGGY-1234",
+          "amount": -45000,
+          "balance": 1055000
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY CREDIT",
+          "amount": 5000000,
+          "balance": 6055000
+        },
+        {
+          "date": "2026-04-05",
+          "description": "ATW-CASH 9876",
+          "amount": -200000,
+          "balance": 5855000
+        }
+      ],
+      "warnings": [],
+      "mapping": {
+        "date": "0",
+        "description": "1",
+        "debit": "2",
+        "credit": "3",
+        "amount": null,
+        "balance": "4"
+      }
+    }
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "semi",
+      "text": "Date;Description;Amount;Balance\n01/04/2026;REWE MARKT;-45,20;954,80\n02/04/2026;GEHALT;1.234,56;2189,36",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-02"
+      },
+      "openingBalance": 95480,
+      "closingBalance": 218936,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "REWE MARKT",
+          "amount": -4520,
+          "balance": 95480
+        },
+        {
+          "date": "2026-04-02",
+          "description": "GEHALT",
+          "amount": 123,
+          "balance": 218936
+        }
+      ],
+      "warnings": [],
+      "mapping": {
+        "date": "0",
+        "description": "1",
+        "debit": null,
+        "credit": null,
+        "amount": "2",
+        "balance": "3"
+      }
+    }
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "tab",
+      "text": "Date\tDescription\tAmount\tDr/Cr\n01/04/2026\tNETFLIX\t499.00\tDr\n02/04/2026\tREFUND\t100.00\tCr",
+      "currency": "INR",
+      "kind": "card"
+    },
+    "expected": {
+      "kind": "card",
+      "label": "Card statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-02"
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "REFUND",
+          "amount": 10000,
+          "balance": null
+        }
+      ],
+      "warnings": [],
+      "mapping": {
+        "date": "0",
+        "description": "1",
+        "debit": null,
+        "credit": null,
+        "amount": "2",
+        "balance": null
+      }
+    }
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "preamble",
+      "text": "HDFC BANK LTD\nAccount Statement\n\nAccount No: 1234567890\n\nDate,Description,Debit,Credit,Balance\n10/04/2026,AMAZON PAY,1200.50,,4500.00",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-10",
+        "to": "2026-04-10"
+      },
+      "openingBalance": 450000,
+      "closingBalance": 450000,
+      "txns": [
+        {
+          "date": "2026-04-10",
+          "description": "AMAZON PAY",
+          "amount": -120050,
+          "balance": 450000
+        }
+      ],
+      "warnings": [],
+      "mapping": {
+        "date": "0",
+        "description": "1",
+        "debit": "2",
+        "credit": "3",
+        "amount": null,
+        "balance": "4"
+      }
+    }
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "noheader",
+      "text": "just,some,text\nno,dates,here",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Statement",
+      "currency": "INR",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "txns": [],
+      "warnings": [
+        "Couldn't find a transaction table — check the file has a header row with Date, Description and amount columns."
+      ],
+      "mapping": {
+        "date": null,
+        "description": null,
+        "debit": null,
+        "credit": null,
+        "amount": null,
+        "balance": null
+      }
+    }
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "amountOnly",
+      "text": "Txn Date,Particulars,Amount\n01/04/2026,GROCERY,-250.75\n02/04/2026,BONUS,3000.00",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-02"
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "GROCERY",
+          "amount": -25075,
+          "balance": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "BONUS",
+          "amount": 300000,
+          "balance": null
+        }
+      ],
+      "warnings": [],
+      "mapping": {
+        "date": "0",
+        "description": "1",
+        "debit": null,
+        "credit": null,
+        "amount": "2",
+        "balance": null
+      }
+    }
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "crlf",
+      "text": "Date,Description,Amount\r\n01/04/2026,CRLF ROW,-100.00\r\n",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-01"
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "CRLF ROW",
+          "amount": -10000,
+          "balance": null
+        }
+      ],
+      "warnings": [],
+      "mapping": {
+        "date": "0",
+        "description": "1",
+        "debit": null,
+        "credit": null,
+        "amount": "2",
+        "balance": null
+      }
+    }
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "quoted",
+      "text": "Date,Description,Amount\n01/04/2026,\"SHOP, WITH COMMA\",-99.99",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "INR",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-01"
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "SHOP, WITH COMMA",
+          "amount": -9999,
+          "balance": null
+        }
+      ],
+      "warnings": [],
+      "mapping": {
+        "date": "0",
+        "description": "1",
+        "debit": null,
+        "credit": null,
+        "amount": "2",
+        "balance": null
+      }
+    }
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "empty",
+      "text": "",
+      "currency": "INR",
+      "kind": "bank"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Statement",
+      "currency": "INR",
+      "period": {
+        "from": null,
+        "to": null
+      },
+      "txns": [],
+      "warnings": [
+        "Couldn't find a transaction table — check the file has a header row with Date, Description and amount columns."
+      ],
+      "mapping": {
+        "date": null,
+        "description": null,
+        "debit": null,
+        "credit": null,
+        "amount": null,
+        "balance": null
+      }
+    }
+  },
+  {
+    "fn": "parseStatementCsv",
+    "input": {
+      "name": "jpy",
+      "text": "Txn Date,Particulars,Amount\n01/04/2026,GROCERY,-250.75\n02/04/2026,BONUS,3000.00",
+      "currency": "JPY",
+      "kind": "bank",
+      "note": "web returns -25075/300000 here (hardcoded *100, web bug #8); the ports use fromMajor and JPY has 0 minor units"
+    },
+    "expected": {
+      "kind": "bank",
+      "label": "Bank statement",
+      "currency": "JPY",
+      "period": {
+        "from": "2026-04-01",
+        "to": "2026-04-02"
+      },
+      "openingBalance": null,
+      "closingBalance": null,
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "GROCERY",
+          "amount": -251,
+          "balance": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "BONUS",
+          "amount": 3000,
+          "balance": null
+        }
+      ],
+      "warnings": [],
+      "mapping": {
+        "date": "0",
+        "description": "1",
+        "debit": null,
+        "credit": null,
+        "amount": "2",
+        "balance": null
+      }
+    }
+  },
+  {
+    "fn": "summarize",
+    "input": {
+      "name": "a",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": {
+      "count": 9,
+      "credits": 5000000,
+      "debits": 5277700,
+      "net": -277700,
+      "from": "2026-04-01",
+      "to": "2026-07-02"
+    }
+  },
+  {
+    "fn": "byCategory",
+    "input": {
+      "name": "a",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": [
+      {
+        "name": "Uncategorised",
+        "total": 5000000,
+        "count": 2
+      },
+      {
+        "name": "Entertainment",
+        "total": 149700,
+        "count": 3
+      },
+      {
+        "name": "Food",
+        "total": 96000,
+        "count": 2
+      },
+      {
+        "name": "Travel",
+        "total": 32000,
+        "count": 1
+      }
+    ]
+  },
+  {
+    "fn": "byMonth",
+    "input": {
+      "name": "a",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": [
+      {
+        "ym": "2026-04",
+        "debit": 128000,
+        "credit": 5000000
+      },
+      {
+        "ym": "2026-05",
+        "debit": 2549900,
+        "credit": 0
+      },
+      {
+        "ym": "2026-06",
+        "debit": 2549900,
+        "credit": 0
+      },
+      {
+        "ym": "2026-07",
+        "debit": 49900,
+        "credit": 0
+      }
+    ]
+  },
+  {
+    "fn": "byDay",
+    "input": {
+      "name": "a",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": [
+      {
+        "date": "2026-04-01",
+        "debit": 45000
+      },
+      {
+        "date": "2026-04-05",
+        "debit": 83000
+      },
+      {
+        "date": "2026-05-02",
+        "debit": 2500000
+      },
+      {
+        "date": "2026-05-03",
+        "debit": 49900
+      },
+      {
+        "date": "2026-06-01",
+        "debit": 2500000
+      },
+      {
+        "date": "2026-06-02",
+        "debit": 49900
+      },
+      {
+        "date": "2026-07-02",
+        "debit": 49900
+      }
+    ]
+  },
+  {
+    "fn": "outliers",
+    "input": {
+      "name": "a",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": [
+      {
+        "txn": {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        "amount": 2500000,
+        "reason": "Unusually large — above the normal range for this statement"
+      },
+      {
+        "txn": {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        "amount": 2500000,
+        "reason": "Unusually large — above the normal range for this statement"
+      }
+    ]
+  },
+  {
+    "fn": "recurringCandidates",
+    "input": {
+      "name": "a",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": [
+      {
+        "label": "NETFLIX",
+        "key": "netflix",
+        "amount": 49900,
+        "count": 3,
+        "cadence": "monthly",
+        "sample": [
+          {
+            "date": "2026-05-03",
+            "description": "NETFLIX",
+            "amount": -49900,
+            "balance": null,
+            "category": "Entertainment",
+            "ref": null
+          },
+          {
+            "date": "2026-06-02",
+            "description": "NETFLIX",
+            "amount": -49900,
+            "balance": null,
+            "category": "Entertainment",
+            "ref": null
+          },
+          {
+            "date": "2026-07-02",
+            "description": "NETFLIX",
+            "amount": -49900,
+            "balance": null,
+            "category": "Entertainment",
+            "ref": null
+          }
+        ]
+      },
+      {
+        "label": "RENT PAYMENT",
+        "key": "rent",
+        "amount": 2500000,
+        "count": 2,
+        "cadence": "monthly",
+        "sample": [
+          {
+            "date": "2026-05-02",
+            "description": "RENT PAYMENT",
+            "amount": -2500000,
+            "balance": null,
+            "category": null,
+            "ref": null
+          },
+          {
+            "date": "2026-06-01",
+            "description": "RENT PAYMENT",
+            "amount": -2500000,
+            "balance": null,
+            "category": null,
+            "ref": null
+          }
+        ]
+      },
+      {
+        "label": "SWIGGY ORDER 5678",
+        "key": "swiggy order",
+        "amount": 51000,
+        "count": 2,
+        "cadence": "irregular",
+        "sample": [
+          {
+            "date": "2026-04-01",
+            "description": "SWIGGY ORDER 1234",
+            "amount": -45000,
+            "balance": null,
+            "category": "Food",
+            "ref": null
+          },
+          {
+            "date": "2026-04-05",
+            "description": "SWIGGY ORDER 5678",
+            "amount": -51000,
+            "balance": null,
+            "category": "Food",
+            "ref": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "summarize",
+    "input": {
+      "name": "small",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "A",
+          "amount": -1000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "B",
+          "amount": -100000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": {
+      "count": 2,
+      "credits": 0,
+      "debits": 101000,
+      "net": -101000,
+      "from": "2026-04-01",
+      "to": "2026-04-02"
+    }
+  },
+  {
+    "fn": "byCategory",
+    "input": {
+      "name": "small",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "A",
+          "amount": -1000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "B",
+          "amount": -100000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": [
+      {
+        "name": "Uncategorised",
+        "total": 101000,
+        "count": 2
+      }
+    ]
+  },
+  {
+    "fn": "byMonth",
+    "input": {
+      "name": "small",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "A",
+          "amount": -1000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "B",
+          "amount": -100000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": [
+      {
+        "ym": "2026-04",
+        "debit": 101000,
+        "credit": 0
+      }
+    ]
+  },
+  {
+    "fn": "byDay",
+    "input": {
+      "name": "small",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "A",
+          "amount": -1000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "B",
+          "amount": -100000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": [
+      {
+        "date": "2026-04-01",
+        "debit": 1000
+      },
+      {
+        "date": "2026-04-02",
+        "debit": 100000
+      }
+    ]
+  },
+  {
+    "fn": "outliers",
+    "input": {
+      "name": "small",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "A",
+          "amount": -1000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "B",
+          "amount": -100000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "recurringCandidates",
+    "input": {
+      "name": "small",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "A",
+          "amount": -1000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "B",
+          "amount": -100000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "summarize",
+    "input": {
+      "name": "empty",
+      "txns": []
+    },
+    "expected": {
+      "count": 0,
+      "credits": 0,
+      "debits": 0,
+      "net": 0,
+      "from": null,
+      "to": null
+    }
+  },
+  {
+    "fn": "byCategory",
+    "input": {
+      "name": "empty",
+      "txns": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "byMonth",
+    "input": {
+      "name": "empty",
+      "txns": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "byDay",
+    "input": {
+      "name": "empty",
+      "txns": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "outliers",
+    "input": {
+      "name": "empty",
+      "txns": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "recurringCandidates",
+    "input": {
+      "name": "empty",
+      "txns": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "summarize",
+    "input": {
+      "name": "credits",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "IN",
+          "amount": 5000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "IN2",
+          "amount": 700,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": {
+      "count": 2,
+      "credits": 5700,
+      "debits": 0,
+      "net": 5700,
+      "from": "2026-04-01",
+      "to": "2026-04-02"
+    }
+  },
+  {
+    "fn": "byCategory",
+    "input": {
+      "name": "credits",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "IN",
+          "amount": 5000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "IN2",
+          "amount": 700,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "byMonth",
+    "input": {
+      "name": "credits",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "IN",
+          "amount": 5000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "IN2",
+          "amount": 700,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": [
+      {
+        "ym": "2026-04",
+        "debit": 0,
+        "credit": 5700
+      }
+    ]
+  },
+  {
+    "fn": "byDay",
+    "input": {
+      "name": "credits",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "IN",
+          "amount": 5000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "IN2",
+          "amount": 700,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "outliers",
+    "input": {
+      "name": "credits",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "IN",
+          "amount": 5000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "IN2",
+          "amount": 700,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "recurringCandidates",
+    "input": {
+      "name": "credits",
+      "txns": [
+        {
+          "date": "2026-04-01",
+          "description": "IN",
+          "amount": 5000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-02",
+          "description": "IN2",
+          "amount": 700,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "normalizeMerchant",
+    "input": {
+      "s": "SWIGGY ORDER 1234"
+    },
+    "expected": "swiggy order"
+  },
+  {
+    "fn": "normalizeMerchant",
+    "input": {
+      "s": "UPI/9876543210/NETFLIX"
+    },
+    "expected": "netflix"
+  },
+  {
+    "fn": "normalizeMerchant",
+    "input": {
+      "s": "ATW-CASH 9876 POS"
+    },
+    "expected": "cash"
+  },
+  {
+    "fn": "normalizeMerchant",
+    "input": {
+      "s": "Paytm  *  Recharge"
+    },
+    "expected": "recharge"
+  },
+  {
+    "fn": "normalizeMerchant",
+    "input": {
+      "s": "1234567890"
+    },
+    "expected": ""
+  },
+  {
+    "fn": "normalizeMerchant",
+    "input": {
+      "s": ""
+    },
+    "expected": ""
+  },
+  {
+    "fn": "normalizeMerchant",
+    "input": {
+      "s": "AMAZON PAY INDIA PRIVATE LIMITED"
+    },
+    "expected": "amazon pay india"
+  },
+  {
+    "fn": "normalizeMerchant",
+    "input": {
+      "s": "NEFT-HDFC-RENT"
+    },
+    "expected": "hdfc rent"
+  },
+  {
+    "fn": "reconcileStatement",
+    "input": {
+      "name": "basic",
+      "parsed": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ],
+      "recorded": [
+        {
+          "id": "r1",
+          "amount": -45000,
+          "date": "2026-04-01",
+          "description": "Swiggy"
+        },
+        {
+          "id": "r2",
+          "amount": 5000000,
+          "date": "2026-04-04",
+          "description": "Salary credit"
+        },
+        {
+          "id": "r3",
+          "amount": -99999,
+          "date": "2026-04-01",
+          "description": "Nothing like it"
+        }
+      ],
+      "dayWindow": 4
+    },
+    "expected": {
+      "matched": [
+        {
+          "parsed": {
+            "date": "2026-04-01",
+            "description": "SWIGGY ORDER 1234",
+            "amount": -45000,
+            "balance": null,
+            "category": "Food",
+            "ref": null
+          },
+          "recorded": {
+            "id": "r1",
+            "amount": -45000,
+            "date": "2026-04-01",
+            "description": "Swiggy"
+          },
+          "score": 0.8
+        },
+        {
+          "parsed": {
+            "date": "2026-04-03",
+            "description": "SALARY",
+            "amount": 5000000,
+            "balance": null,
+            "category": null,
+            "ref": null
+          },
+          "recorded": {
+            "id": "r2",
+            "amount": 5000000,
+            "date": "2026-04-04",
+            "description": "Salary credit"
+          },
+          "score": 0.6799999999999999
+        }
+      ],
+      "missingOnPlatform": [
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ],
+      "onlyOnPlatform": [
+        {
+          "id": "r3",
+          "amount": -99999,
+          "date": "2026-04-01",
+          "description": "Nothing like it"
+        }
+      ]
+    }
+  },
+  {
+    "fn": "reconcileStatement",
+    "input": {
+      "name": "narrow",
+      "parsed": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ],
+      "recorded": [
+        {
+          "id": "r1",
+          "amount": -45000,
+          "date": "2026-04-01",
+          "description": "Swiggy"
+        },
+        {
+          "id": "r2",
+          "amount": 5000000,
+          "date": "2026-04-04",
+          "description": "Salary credit"
+        },
+        {
+          "id": "r3",
+          "amount": -99999,
+          "date": "2026-04-01",
+          "description": "Nothing like it"
+        }
+      ],
+      "dayWindow": 0
+    },
+    "expected": {
+      "matched": [
+        {
+          "parsed": {
+            "date": "2026-04-01",
+            "description": "SWIGGY ORDER 1234",
+            "amount": -45000,
+            "balance": null,
+            "category": "Food",
+            "ref": null
+          },
+          "recorded": {
+            "id": "r1",
+            "amount": -45000,
+            "date": "2026-04-01",
+            "description": "Swiggy"
+          },
+          "score": 0.8
+        }
+      ],
+      "missingOnPlatform": [
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ],
+      "onlyOnPlatform": [
+        {
+          "id": "r2",
+          "amount": 5000000,
+          "date": "2026-04-04",
+          "description": "Salary credit"
+        },
+        {
+          "id": "r3",
+          "amount": -99999,
+          "date": "2026-04-01",
+          "description": "Nothing like it"
+        }
+      ]
+    }
+  },
+  {
+    "fn": "reconcileStatement",
+    "input": {
+      "name": "noRecorded",
+      "parsed": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ],
+      "recorded": [],
+      "dayWindow": 4
+    },
+    "expected": {
+      "matched": [],
+      "missingOnPlatform": [
+        {
+          "date": "2026-04-01",
+          "description": "SWIGGY ORDER 1234",
+          "amount": -45000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-04-03",
+          "description": "SALARY",
+          "amount": 5000000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "UBER TRIP 8899",
+          "amount": -32000,
+          "balance": null,
+          "category": "Travel",
+          "ref": null
+        },
+        {
+          "date": "2026-04-05",
+          "description": "SWIGGY ORDER 5678",
+          "amount": -51000,
+          "balance": null,
+          "category": "Food",
+          "ref": null
+        },
+        {
+          "date": "2026-05-02",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        },
+        {
+          "date": "2026-05-03",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-07-02",
+          "description": "NETFLIX",
+          "amount": -49900,
+          "balance": null,
+          "category": "Entertainment",
+          "ref": null
+        },
+        {
+          "date": "2026-06-01",
+          "description": "RENT PAYMENT",
+          "amount": -2500000,
+          "balance": null,
+          "category": null,
+          "ref": null
+        }
+      ],
+      "onlyOnPlatform": []
+    }
+  },
+  {
+    "fn": "reconcileStatement",
+    "input": {
+      "name": "noParsed",
+      "parsed": [],
+      "recorded": [
+        {
+          "id": "r1",
+          "amount": -45000,
+          "date": "2026-04-01",
+          "description": "Swiggy"
+        },
+        {
+          "id": "r2",
+          "amount": 5000000,
+          "date": "2026-04-04",
+          "description": "Salary credit"
+        },
+        {
+          "id": "r3",
+          "amount": -99999,
+          "date": "2026-04-01",
+          "description": "Nothing like it"
+        }
+      ],
+      "dayWindow": 4
+    },
+    "expected": {
+      "matched": [],
+      "missingOnPlatform": [],
+      "onlyOnPlatform": [
+        {
+          "id": "r1",
+          "amount": -45000,
+          "date": "2026-04-01",
+          "description": "Swiggy"
+        },
+        {
+          "id": "r2",
+          "amount": 5000000,
+          "date": "2026-04-04",
+          "description": "Salary credit"
+        },
+        {
+          "id": "r3",
+          "amount": -99999,
+          "date": "2026-04-01",
+          "description": "Nothing like it"
+        }
+      ]
+    }
+  }
+]
