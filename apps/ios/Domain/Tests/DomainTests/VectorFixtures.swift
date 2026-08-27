@@ -47,14 +47,27 @@ struct Vector {
 /// is fixed here, at the boundary where the artifact is introduced, rather than
 /// by loosening the comparison — a golden vector must keep comparing exactly.
 ///
-/// Only values that are actually fractional or exponential are converted.
-/// Foundation also promotes integers too large for Int64, and those must keep
-/// their decimal representation rather than be flattened into a Double.
+/// Converted: anything fractional, anything exponential, and any integer too
+/// large for `Int64` — which is the case this originally excluded, and wrongly.
+///
+/// A JSON number in these fixtures came from **JavaScript**, where every number
+/// is a double; `999999999999999900000` in a vector is not an integer that
+/// happens to be large, it is the double `9.999999999999999e20` written out.
+/// Leaving it as a decimal and reading `.doubleValue` off it later lands one
+/// ULP away — which is exactly how `jsonNumber` came to print `1e+21` for it and
+/// `…67` for `123456789012345680000`, two CI failures that looked like a bug in
+/// the port and were a bug in this loader. The seven `jsonNumber` vectors are
+/// the only place in the whole corpus with an out-of-Int64 literal (money
+/// travels as a string), so nothing else changes shape.
 private func normalizeDecimals(_ value: Any) -> Any {
     switch value {
     case let decimal as NSDecimalNumber:
         let text = decimal.description
-        guard text.contains(".") || text.lowercased().contains("e"), let d = Double(text) else {
+        let fractional = text.contains(".") || text.lowercased().contains("e")
+        // `Int64(text) == nil` on a plain integer means it does not fit — the
+        // only other reason Foundation promotes to a decimal.
+        let tooLargeForInt64 = !fractional && Int64(text) == nil
+        guard fractional || tooLargeForInt64, let d = Double(text) else {
             return value
         }
         return NSNumber(value: d)
