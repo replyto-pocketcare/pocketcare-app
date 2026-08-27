@@ -24,6 +24,8 @@ import java.util.Locale
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaChip
+import com.sanvya.app.ui.components.SanvyaInput
 import com.sanvya.app.ui.components.SanvyaPage
 
 private val LINE_KINDS = listOf("item", "tax", "service_charge", "tip", "discount")
@@ -38,6 +40,11 @@ fun ReceiptReviewScreen(
     scanId: String,
     onBack: () -> Unit,
     onSaved: (transactionId: String) -> Unit,
+    /**
+     * "Split this bill" — the group id is resolved (or created) by the view
+     * model first, so this only has to navigate.
+     */
+    onSplit: (groupId: String, accountId: String, categoryId: String) -> Unit = { _, _, _ -> },
     viewModel: ReceiptReviewViewModel = viewModel(),
 ) {
     LaunchedEffect(scanId) { viewModel.load(scanId) }
@@ -52,9 +59,24 @@ fun ReceiptReviewScreen(
     val saving by viewModel.saving.collectAsState()
     val error by viewModel.error.collectAsState()
     val savedTransactionId by viewModel.savedTransactionId.collectAsState()
+    val wantsSplit by viewModel.wantsSplit.collectAsState()
+    val groups by viewModel.groups.collectAsState()
+    val groupId by viewModel.groupId.collectAsState()
+    val newGroupName by viewModel.newGroupName.collectAsState()
+    val splitGroupId by viewModel.splitGroupId.collectAsState()
+    // Hoisted: continueToSplit() runs in a coroutine and cannot call sRes(),
+    // which is @Composable. Same rule the rest of this codebase follows.
+    val pickGroupMessage = S.Receipts.reviewPickGroup(sRes())
 
     LaunchedEffect(savedTransactionId) {
         savedTransactionId?.let { onSaved(it) }
+    }
+
+    LaunchedEffect(splitGroupId) {
+        splitGroupId?.let {
+            viewModel.clearSplitTarget()
+            onSplit(it, accountId.orEmpty(), categoryId.orEmpty())
+        }
     }
 
     SanvyaPage(
@@ -179,16 +201,46 @@ fun ReceiptReviewScreen(
             item {
                 Card(colors = CardDefaults.cardColors(containerColor = colors.surface), shape = RoundedCornerShape(SanvyaRadius.radiusLg)) {
                     Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        // "Split this bill" is intentionally disabled here --
-                        // the itemized split-assignment screen pairs with
-                        // automatic split detection (task #63/64), not this
-                        // pass. See receipt-scan.md scope note #5.
+                        // Record or split. This was a dead, disabled
+                        // "Split this bill — coming soon" chip, hardcoded in
+                        // English, until the itemized write path landed
+                        // (2026-08-27). It is the real toggle now.
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            AssistChip(onClick = {}, enabled = false, label = { Text("Split this bill — coming soon") })
+                            SanvyaChip(
+                                label = S.Receipts.reviewJustRecord(sRes()),
+                                active = !wantsSplit,
+                                onClick = { viewModel.setWantsSplit(false) },
+                            )
+                            SanvyaChip(
+                                label = S.Receipts.reviewSplitIt(sRes()),
+                                active = wantsSplit,
+                                onClick = { viewModel.setWantsSplit(true) },
+                            )
+                        }
+                        if (wantsSplit) {
+                            SplitGroupPicker(
+                                groups = groups,
+                                groupId = groupId,
+                                newGroupName = newGroupName,
+                                onPickGroup = viewModel::setGroupId,
+                                onNewGroupName = viewModel::setNewGroupName,
+                            )
                         }
                         error?.let { Text(it, color = colors.negative, fontSize = 12.sp) }
-                        Button(onClick = { viewModel.saveAsTransaction() }, enabled = canSave, modifier = Modifier.fillMaxWidth()) {
-                            Text(if (saving) S.Translation.commonSaving(sRes()) else S.Receipts.reviewSave(sRes()))
+                        Button(
+                            onClick = {
+                                if (wantsSplit) viewModel.continueToSplit(pickGroupMessage) else viewModel.saveAsTransaction()
+                            },
+                            enabled = canSave,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                when {
+                                    saving -> S.Translation.commonSaving(sRes())
+                                    wantsSplit -> S.Receipts.reviewContinueToSplit(sRes())
+                                    else -> S.Receipts.reviewSave(sRes())
+                                },
+                            )
                         }
                         if (!balanced) {
                             Text(S.Receipts.reviewMustBalance(sRes()), fontSize = 11.sp, color = colors.text2)
@@ -279,5 +331,51 @@ private fun formatMoney(minor: Long, currency: String): String {
         fmt.format(minor / 100.0)
     } catch (e: Exception) {
         "${minor / 100.0} $currency"
+    }
+}
+
+/**
+ * Pick an existing group, or name a new one.
+ *
+ * Web uses a `<select>` whose empty option means "create a new group"; the same
+ * shape reads better on a phone as a chip row, so the "new group" field appears
+ * when nothing is selected rather than behind a placeholder option.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SplitGroupPicker(
+    groups: List<com.sanvya.app.data.repository.SplitGroup>,
+    groupId: String,
+    newGroupName: String,
+    onPickGroup: (String) -> Unit,
+    onNewGroupName: (String) -> Unit,
+) {
+    val res = sRes()
+    val colors = LocalSanvyaColors.current
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(S.Receipts.reviewGroup(res), fontSize = 12.sp, color = colors.text2)
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            SanvyaChip(
+                label = S.Receipts.reviewNewGroup(res),
+                active = groupId.isEmpty(),
+                onClick = { onPickGroup("") },
+            )
+            groups.forEach { g ->
+                SanvyaChip(label = g.name, active = groupId == g.id, onClick = { onPickGroup(g.id) })
+            }
+        }
+        if (groupId.isEmpty()) {
+            Text(S.Receipts.reviewNewGroupName(res), fontSize = 12.sp, color = colors.text2)
+            SanvyaInput(
+                value = newGroupName,
+                onValueChange = onNewGroupName,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = S.Receipts.reviewNewGroupPlaceholder(res),
+            )
+        }
+        Text(S.Receipts.reviewSplitNote(res), fontSize = 11.sp, color = colors.text2)
     }
 }

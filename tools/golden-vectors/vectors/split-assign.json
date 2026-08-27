@@ -1,0 +1,1055 @@
+[
+  {
+    "fn": "receiptDigits",
+    "input": {
+      "currency": "INR"
+    },
+    "expected": 2
+  },
+  {
+    "fn": "receiptDigits",
+    "input": {
+      "currency": "USD"
+    },
+    "expected": 2
+  },
+  {
+    "fn": "receiptDigits",
+    "input": {
+      "currency": "JPY"
+    },
+    "expected": 0
+  },
+  {
+    "fn": "receiptDigits",
+    "input": {
+      "currency": "KWD"
+    },
+    "expected": 3
+  },
+  {
+    "fn": "receiptDigits",
+    "input": {
+      "currency": "BHD"
+    },
+    "expected": 3
+  },
+  {
+    "fn": "receiptDigits",
+    "input": {
+      "currency": "EUR"
+    },
+    "expected": 2
+  },
+  {
+    "fn": "receiptDigits",
+    "input": {
+      "currency": "ZZZ"
+    },
+    "expected": 2
+  },
+  {
+    "fn": "receiptDigits",
+    "input": {
+      "currency": ""
+    },
+    "expected": 2
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "12.34",
+      "digits": 2
+    },
+    "expected": 1234
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "12,34",
+      "digits": 2
+    },
+    "expected": 1234
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "",
+      "digits": 2
+    },
+    "expected": 0
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "   ",
+      "digits": 2
+    },
+    "expected": 0
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "abc",
+      "digits": 2
+    },
+    "expected": 0
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "0",
+      "digits": 2
+    },
+    "expected": 0
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "-5.5",
+      "digits": 2
+    },
+    "expected": -550
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "500",
+      "digits": 0
+    },
+    "expected": 500
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "1.005",
+      "digits": 2
+    },
+    "expected": 100
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "1.2.3",
+      "digits": 2
+    },
+    "expected": 120
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "12.3456",
+      "digits": 3
+    },
+    "expected": 12346
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "1e3",
+      "digits": 2
+    },
+    "expected": 100000
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "+7.25",
+      "digits": 2
+    },
+    "expected": 725
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "0.005",
+      "digits": 2
+    },
+    "expected": 1
+  },
+  {
+    "fn": "minorFromText",
+    "input": {
+      "value": "-0.005",
+      "digits": 2
+    },
+    "expected": 0
+  },
+  {
+    "fn": "majorTextFromMinor",
+    "input": {
+      "minor": 1234,
+      "digits": 2
+    },
+    "expected": "12.34"
+  },
+  {
+    "fn": "majorTextFromMinor",
+    "input": {
+      "minor": 0,
+      "digits": 2
+    },
+    "expected": "0.00"
+  },
+  {
+    "fn": "majorTextFromMinor",
+    "input": {
+      "minor": -1234,
+      "digits": 2
+    },
+    "expected": "-12.34"
+  },
+  {
+    "fn": "majorTextFromMinor",
+    "input": {
+      "minor": 500,
+      "digits": 0
+    },
+    "expected": "500"
+  },
+  {
+    "fn": "majorTextFromMinor",
+    "input": {
+      "minor": 1234,
+      "digits": 3
+    },
+    "expected": "1.234"
+  },
+  {
+    "fn": "majorTextFromMinor",
+    "input": {
+      "minor": 7,
+      "digits": 2
+    },
+    "expected": "0.07"
+  },
+  {
+    "fn": "majorTextFromMinor",
+    "input": {
+      "minor": -7,
+      "digits": 2
+    },
+    "expected": "-0.07"
+  },
+  {
+    "fn": "qtyToMajor",
+    "input": {
+      "milli": 0
+    },
+    "expected": 0.0
+  },
+  {
+    "fn": "qtyToMajor",
+    "input": {
+      "milli": 1000
+    },
+    "expected": 1.0
+  },
+  {
+    "fn": "qtyToMajor",
+    "input": {
+      "milli": 1500
+    },
+    "expected": 1.5
+  },
+  {
+    "fn": "qtyToMajor",
+    "input": {
+      "milli": 2
+    },
+    "expected": 0.002
+  },
+  {
+    "fn": "qtyToMajor",
+    "input": {
+      "milli": 250
+    },
+    "expected": 0.25
+  },
+  {
+    "fn": "qtyToMajor",
+    "input": {
+      "milli": -1000
+    },
+    "expected": -1.0
+  },
+  {
+    "fn": "qtyToMajor",
+    "input": {
+      "milli": 123456
+    },
+    "expected": 123.456
+  },
+  {
+    "fn": "splitModesFor",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      }
+    },
+    "expected": [
+      "equal",
+      "exact",
+      "percent"
+    ]
+  },
+  {
+    "fn": "splitModesFor",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": 2000,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      }
+    },
+    "expected": [
+      "equal",
+      "quantity",
+      "exact",
+      "percent"
+    ]
+  },
+  {
+    "fn": "splitModesFor",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": 0,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      }
+    },
+    "expected": [
+      "equal",
+      "exact",
+      "percent"
+    ]
+  },
+  {
+    "fn": "splitModesFor",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "tax",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      }
+    },
+    "expected": [
+      "proportional",
+      "equal",
+      "exact",
+      "percent"
+    ]
+  },
+  {
+    "fn": "splitModesFor",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "service_charge",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      }
+    },
+    "expected": [
+      "proportional",
+      "equal",
+      "exact",
+      "percent"
+    ]
+  },
+  {
+    "fn": "splitModesFor",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "tip",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      }
+    },
+    "expected": [
+      "proportional",
+      "equal",
+      "exact",
+      "percent"
+    ]
+  },
+  {
+    "fn": "splitModesFor",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "discount",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": -500,
+        "confidence": 90
+      }
+    },
+    "expected": [
+      "proportional",
+      "equal",
+      "exact",
+      "percent"
+    ]
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "equal",
+      "raw": "5",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "proportional",
+      "raw": "5",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "exact",
+      "raw": "12.34",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 1234.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "exact",
+      "raw": "12.34",
+      "lineAmount": -1000,
+      "digits": 2
+    },
+    "expected": -1234.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "exact",
+      "raw": "",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 0.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "exact",
+      "raw": null,
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 0.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "exact",
+      "raw": "-4.00",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": -400.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "exact",
+      "raw": "5",
+      "lineAmount": -500,
+      "digits": 0
+    },
+    "expected": -5.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "percent",
+      "raw": "33.33",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 3333.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "percent",
+      "raw": "50",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 5000.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "percent",
+      "raw": "-5",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 0.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "percent",
+      "raw": "abc",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 0.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "percent",
+      "raw": "0",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 0.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "quantity",
+      "raw": "1.5",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 1500.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "quantity",
+      "raw": "2",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 2000.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "quantity",
+      "raw": "0.001",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 1.0
+  },
+  {
+    "fn": "lineWeight",
+    "input": {
+      "mode": "quantity",
+      "raw": "  ",
+      "lineAmount": 1000,
+      "digits": 2
+    },
+    "expected": 0.0
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "equal",
+      "members": [],
+      "weights": {},
+      "digits": 2
+    },
+    "expected": {
+      "kind": "needsSomeone"
+    }
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "equal",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {},
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "proportional",
+      "members": [
+        "a"
+      ],
+      "weights": {},
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "exact",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "5.00",
+        "b": "5.00"
+      },
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "exact",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "5.00",
+        "b": "4.99"
+      },
+      "digits": 2
+    },
+    "expected": {
+      "kind": "exactMismatch",
+      "diffMinor": 1
+    }
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "exact",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "10.00"
+      },
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "discount",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": -500,
+        "confidence": 90
+      },
+      "mode": "exact",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "2.50",
+        "b": "2.50"
+      },
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "discount",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": -500,
+        "confidence": 90
+      },
+      "mode": "exact",
+      "members": [
+        "a"
+      ],
+      "weights": {
+        "a": "5.00"
+      },
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 500,
+        "confidence": 90
+      },
+      "mode": "exact",
+      "members": [
+        "a"
+      ],
+      "weights": {
+        "a": "500"
+      },
+      "digits": 0
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "percent",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "50",
+        "b": "50"
+      },
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "percent",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "33.33",
+        "b": "66.67"
+      },
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "percent",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "50",
+        "b": "40"
+      },
+      "digits": 2
+    },
+    "expected": {
+      "kind": "percentMismatch",
+      "pct": 90
+    }
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "percent",
+      "members": [
+        "a"
+      ],
+      "weights": {},
+      "digits": 2
+    },
+    "expected": {
+      "kind": "percentMismatch",
+      "pct": 0
+    }
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": 2000,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "quantity",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "1",
+        "b": "1"
+      },
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": 2000,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "quantity",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "1.5",
+        "b": "0.5"
+      },
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": 2000,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "quantity",
+      "members": [
+        "a",
+        "b"
+      ],
+      "weights": {
+        "a": "1",
+        "b": "0.5"
+      },
+      "digits": 2
+    },
+    "expected": {
+      "kind": "quantityMismatch",
+      "gotMilli": 1500,
+      "wantMilli": 2000
+    }
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "quantity",
+      "members": [
+        "a"
+      ],
+      "weights": {
+        "a": "99"
+      },
+      "digits": 2
+    },
+    "expected": null
+  },
+  {
+    "fn": "validateSplitLine",
+    "input": {
+      "line": {
+        "id": "l1",
+        "kind": "item",
+        "description": "Thing",
+        "quantity": null,
+        "unit": null,
+        "unitPrice": null,
+        "amount": 1000,
+        "confidence": 90
+      },
+      "mode": "equal",
+      "members": [
+        "a"
+      ],
+      "weights": {
+        "a": "nonsense"
+      },
+      "digits": 2
+    },
+    "expected": null
+  }
+]

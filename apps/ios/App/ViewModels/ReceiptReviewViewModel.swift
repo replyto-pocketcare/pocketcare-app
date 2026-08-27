@@ -22,6 +22,7 @@ public final class ReceiptReviewViewModel {
     @ObservationIgnored @Injected(\.receiptsRepository) private var receiptsRepository
     @ObservationIgnored @Injected(\.ledgerRepository) private var ledgerRepository
     @ObservationIgnored @Injected(\.authRepository) private var authRepository
+    @ObservationIgnored @Injected(\.splitsRepository) private var splitsRepository
     private var tasks: [Task<Void, Never>] = []
     private var scanId: String = ""
 
@@ -34,6 +35,16 @@ public final class ReceiptReviewViewModel {
     public var saving = false
     public var error: String?
     public var savedTransactionId: String?
+
+    // ---- split ----
+    /// "Just record it" vs "Split this bill". Web's `wantsSplit`.
+    public var wantsSplit = false
+    public var groups: [SplitGroup] = []
+    public var groupId: String = ""
+    public var newGroupName: String = ""
+    /// Set once the group exists and the draft is saved — the view pushes the
+    /// split screen on it. Web navigates to `/receipts/split?...` at this point.
+    public var splitGroupId: String?
 
     public init() {}
 
@@ -72,6 +83,62 @@ public final class ReceiptReviewViewModel {
                 }
             } catch { print("Error watching categories: \(error)") }
         })
+        // Real groups only. A direct (1:1) group is created BY a settle-up and
+        // has no name of its own, so offering one here would put a blank row in
+        // the picker -- `watchGroups()` excludes them by default, same as web's
+        // `useGroups()`.
+        tasks.append(Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await list in try self.splitsRepository.watchGroups() { self.groups = list }
+            } catch { /* offline -- the "new group" path still works */ }
+        })
+    }
+
+    /// Save the edited draft, make the group if it does not exist yet, and hand
+    /// the view a group id to push the split screen with.
+    ///
+    /// The draft is written FIRST, deliberately: the split screen re-reads it
+    /// from `receipt_scans`, so any line the user fixed here has to be on disk
+    /// before we leave. Web does the same in `goToSplit`.
+    public func continueToSplit() {
+        guard let draft, !saving else { return }
+        saving = true
+        error = nil
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let s = subtotals(draft.lines)
+                try await self.receiptsRepository.updateScanDraft(scanId: self.scanId, input: UpdateScanDraftInput(
+                    engine: draft.engine, merchant: draft.merchant, occurredAt: draft.occurredAt, currency: draft.currency,
+                    subtotal: s.items, tax: s.tax, serviceCharge: s.serviceCharge, tip: s.tip, discount: s.discount,
+                    total: draft.total, confidence: Int64(draft.confidence), parsedJson: ReceiptDraftJson.encode(draft)
+                ))
+                var gid = self.groupId
+                let wanted = self.newGroupName.trimmingCharacters(in: .whitespacesAndNewlines)
+                if gid.isEmpty, !wanted.isEmpty {
+                    var uid = self.authRepository.currentUserId
+                    if uid == nil { uid = try? await self.authRepository.ensureUser() }
+                    guard let userId = uid else {
+                        self.saving = false
+                        return
+                    }
+                    gid = try await self.splitsRepository.createGroup(
+                        userId: userId, name: wanted, kind: "group", currency: draft.currency
+                    )
+                }
+                guard !gid.isEmpty else {
+                    self.error = S.Receipts.reviewPickGroup
+                    self.saving = false
+                    return
+                }
+                self.splitGroupId = gid
+                self.saving = false
+            } catch {
+                self.error = error.localizedDescription
+                self.saving = false
+            }
+        }
     }
 
     public func reconcileResult() -> ReconcileResult? {

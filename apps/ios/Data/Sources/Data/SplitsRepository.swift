@@ -823,6 +823,251 @@ public final class SplitsRepository: @unchecked Sendable {
         return expenseId
     }
 
+    // MARK: - Itemized splits
+
+    /// Per-line participants and mode, plus who paid. Mirrors web's
+    /// `ItemizedSplitInput` in `src/splits/writeItemized.ts`.
+    public struct ItemizedSplitInput: Sendable {
+        public let groupId: String
+        public let draft: ReceiptDraft
+        /// Keyed by `ReceiptLine.id`.
+        public let assignments: [LineAssignment]
+        /// Who actually paid, and from which account. Usually just you.
+        public let payers: [PayerInput]
+        public let categoryId: String?
+        public let note: String?
+        public let occurredAt: String
+
+        public init(
+            groupId: String, draft: ReceiptDraft, assignments: [LineAssignment], payers: [PayerInput],
+            categoryId: String? = nil, note: String? = nil, occurredAt: String
+        ) {
+            self.groupId = groupId
+            self.draft = draft
+            self.assignments = assignments
+            self.payers = payers
+            self.categoryId = categoryId
+            self.note = note
+            self.occurredAt = occurredAt
+        }
+    }
+
+    public struct ItemizedSplitError: Error, LocalizedError, Sendable {
+        public let message: String
+        public var errorDescription: String? { message }
+    }
+
+    /// Create a shared, itemized expense and project your own share into your
+    /// private ledger.
+    ///
+    /// **The critical design point, carried over from web verbatim: this does
+    /// NOT introduce a second balance model.** Per-item shares are allocated,
+    /// rolled up per person, and written into `expense_participants` -- the same
+    /// table `createSplitExpense` writes and the same table every balance,
+    /// settle-up and friend-graph query already reads. `expense_items` /
+    /// `expense_item_shares` are the BREAKDOWN, kept so the split can be
+    /// explained and re-opened later. Nothing in the balance math needs to know
+    /// itemized splits exist.
+    ///
+    /// Mirrors `createSplitExpense`'s contract exactly, so callers see no
+    /// difference beyond `expenses.has_items = 1`.
+    @discardableResult
+    public func createSplitExpenseItemized(userId: String, input: ItemizedSplitInput) async throws -> String {
+        let draft = input.draft
+        let currency = draft.currency
+
+        // Refuse to write a bill that doesn't add up. The UI blocks this too,
+        // but a corrupted expense is unrecoverable from, so it is worth
+        // checking twice.
+        let rec = reconcile(draft)
+        guard rec.ok else {
+            throw ItemizedSplitError(
+                message: "Receipt doesn't reconcile: lines total \(rec.computed), receipt says \(rec.stated.map(String.init) ?? "nothing")"
+            )
+        }
+
+        // Allocation throws if any line is unassigned or an exact split is off,
+        // so a partial write can never begin.
+        let allocation = try allocateReceipt(draft.lines, input.assignments)
+
+        var paidByUser: [String: Int64] = [:]
+        var paidOrder: [String] = []
+        for p in input.payers {
+            if paidByUser[p.userId] == nil { paidOrder.append(p.userId) }
+            paidByUser[p.userId, default: 0] += p.paid
+        }
+        let totalPaid = paidByUser.values.reduce(0, +)
+        guard totalPaid == allocation.total else {
+            throw ItemizedSplitError(message: "Payments total \(totalPaid) but the bill is \(allocation.total)")
+        }
+
+        let expenseId = newId()
+        let ts = nowIso()
+        try await db.execute(
+            sql: """
+                INSERT INTO expenses (id,group_id,created_by,description,amount,currency,occurred_at,split_mode,has_items,version,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                """,
+            parameters: [
+                expenseId, input.groupId, userId, draft.merchant, allocation.total, currency,
+                input.occurredAt, "itemized", 1, 1, ts, ts,
+            ]
+        )
+
+        let byLineId = Dictionary(input.assignments.map { ($0.lineId, $0) }, uniquingKeysWith: { _, last in last })
+
+        // Write ALL items first, then all shares -- never interleaved.
+        //
+        // The sync connector coalesces only *consecutive* same-table ops into
+        // one request. Interleaving item/share inserts defeats that entirely and
+        // turns a 40-row bill into ~40 round-trips. Grouping them keeps it to
+        // two. Web's comment says the same; it is not a style preference.
+        var itemIdByLine: [String: String] = [:]
+        for (sort, line) in draft.lines.enumerated() {
+            let assignment = byLineId[line.id]
+            let mode = assignment?.mode ?? "equal"
+            // Only charges may be proportional (DB check constraint).
+            let splitMode = (mode == "proportional" && !isCharge(line.kind)) ? "equal" : mode
+            let itemId = newId()
+            try await db.execute(
+                sql: """
+                    INSERT INTO expense_items (id,expense_id,group_id,kind,description,quantity,unit,unit_price,amount,split_mode,sort,created_at,updated_at)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    """,
+                parameters: [
+                    itemId, expenseId, input.groupId, line.kind, line.description, line.quantity,
+                    line.unit, line.unitPrice, line.amount, splitMode, sort, ts, ts,
+                ]
+            )
+            itemIdByLine[line.id] = itemId
+        }
+
+        for line in draft.lines {
+            guard let itemId = itemIdByLine[line.id] else { continue }
+            let assignment = byLineId[line.id]
+            let weightByUser = Dictionary(
+                (assignment?.shares ?? []).map { ($0.userId, Int64(($0.weight ?? 0).rounded())) },
+                uniquingKeysWith: { _, last in last }
+            )
+            for share in allocation.perLine[line.id] ?? [] {
+                try await db.execute(
+                    sql: """
+                        INSERT INTO expense_item_shares (id,item_id,expense_id,group_id,user_id,weight,share_amount,created_at,updated_at)
+                        VALUES (?,?,?,?,?,?,?,?,?)
+                        """,
+                    parameters: [
+                        newId(), itemId, expenseId, input.groupId, share.userId,
+                        weightByUser[share.userId] ?? 0, share.amount, ts, ts,
+                    ]
+                )
+            }
+        }
+
+        // ---- the roll-up that keeps every existing balance query working ----
+        var seen: Set<String> = []
+        var users: [String] = []
+        // Allocation order first, then payers, so the participant rows land in a
+        // stable order rather than a dictionary's.
+        for line in draft.lines {
+            for share in allocation.perLine[line.id] ?? [] where !seen.contains(share.userId) {
+                seen.insert(share.userId)
+                users.append(share.userId)
+            }
+        }
+        for uid in paidOrder where !seen.contains(uid) {
+            seen.insert(uid)
+            users.append(uid)
+        }
+        for uid in users {
+            try await db.execute(
+                sql: """
+                    INSERT INTO expense_participants (id,expense_id,group_id,user_id,paid_amount,share_amount,created_at,updated_at)
+                    VALUES (?,?,?,?,?,?,?,?)
+                    """,
+                parameters: [
+                    newId(), expenseId, input.groupId, uid,
+                    paidByUser[uid] ?? 0, allocation.byUser[uid] ?? 0, ts, ts,
+                ]
+            )
+        }
+
+        // ---- your private projection ----
+        // Your own-share transaction carries the lines YOU are on, so the
+        // personal breakdown matches what you actually ate.
+        let myLines: [TransactionItemInput] = draft.lines.compactMap { line in
+            let amount = (allocation.perLine[line.id] ?? []).first { $0.userId == userId }?.amount ?? 0
+            guard amount != 0 else { return nil }
+            let label = line.description.isEmpty
+                ? line.kind.replacingOccurrences(of: "_", with: " ")
+                : line.description
+            return TransactionItemInput(description: label, amount: money(amount, currency))
+        }
+
+        try await projectPersonalItemized(
+            userId: userId,
+            currency: currency,
+            myShare: allocation.byUser[userId] ?? 0,
+            myPaid: paidByUser[userId] ?? 0,
+            myAccountId: input.payers.first { $0.userId == userId }?.accountId,
+            expenseId: expenseId,
+            categoryId: input.categoryId,
+            description: draft.merchant,
+            note: input.note,
+            occurredAt: input.occurredAt,
+            myLines: myLines
+        )
+
+        return expenseId
+    }
+
+    /// Private ledger projection. Deliberately identical in shape and roles
+    /// (`own_share` / `borrow` / `lend`) to ``projectPersonal(userId:currency:myShare:myPaid:myAccountId:expenseId:categoryId:description:note:occurredAt:)``
+    /// -- the only difference is the item breakdown riding along with the
+    /// own-share leg.
+    private func projectPersonalItemized(
+        userId: String, currency: String, myShare: Int64, myPaid: Int64, myAccountId: String?,
+        expenseId: String, categoryId: String?, description: String?, note: String?, occurredAt: String,
+        myLines: [TransactionItemInput]
+    ) async throws {
+        let paidToOwn = min(myPaid, myShare)
+        let underpay = max(0, myShare - myPaid)
+        let overpay = max(0, myPaid - myShare)
+
+        func post(_ txId: String, _ role: String) async throws {
+            try await db.execute(
+                sql: "INSERT INTO expense_postings (id,user_id,expense_id,transaction_id,role,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
+                parameters: [newId(), userId, expenseId, txId, role, nowIso(), nowIso()]
+            )
+        }
+
+        if paidToOwn > 0, let myAccountId {
+            // Breakdown items must sum EXACTLY to the transaction amount, so
+            // they can only ride along when this leg is your whole share.
+            let itemsMatch = myLines.reduce(Int64(0)) { $0 + $1.amount.amount } == paidToOwn
+            let tx = try await ledger.createTransaction(
+                userId: userId, accountId: myAccountId, type: "expense", amount: money(paidToOwn, currency),
+                occurredAt: occurredAt, categoryId: categoryId, note: note, description: description,
+                items: itemsMatch ? myLines : nil
+            )
+            try await post(tx.id, "own_share")
+        }
+        if underpay > 0 {
+            let payable = try await ensureVirtualAccount(userId: userId, kind: "payable", currency: currency)
+            let tx = try await ledger.createTransaction(
+                userId: userId, accountId: payable, type: "expense", amount: money(underpay, currency),
+                occurredAt: occurredAt, categoryId: categoryId, note: note, description: description
+            )
+            try await post(tx.id, "borrow")
+        }
+        if overpay > 0, let myAccountId {
+            let tx = try await ledger.createTransaction(
+                userId: userId, accountId: myAccountId, type: "expense", amount: money(overpay, currency),
+                occurredAt: occurredAt, categoryId: categoryId, note: note, description: description
+            )
+            try await post(tx.id, "lend")
+        }
+    }
+
     /// The ledger transfer for whichever side is acting. Shared by settleUp
     /// and confirmSettlement. Matches postSettlementLeg() exactly.
     private func postSettlementLeg(userId: String, settlementId: String, amount: Int64, direction: String, accountId: String?, currency: String) async throws {

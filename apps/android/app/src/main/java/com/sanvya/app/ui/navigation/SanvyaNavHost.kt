@@ -187,6 +187,34 @@ fun SanvyaNavHost() {
                 scanId = scanId,
                 onBack = { navController.popBackStack() },
                 onSaved = { transactionId -> navController.navigate("transactions/$transactionId/edit") { popUpTo("dashboard") } },
+                onSplit = { groupId, accountId, categoryId ->
+                    navController.navigate("receipts/split/$scanId/$groupId?account=$accountId&category=$categoryId")
+                },
+            )
+        }
+        // Per-item split assignment. Account and category ride as OPTIONAL
+        // query args because both can legitimately be empty -- an empty path
+        // segment is not a route Navigation can match, and the screen needs to
+        // be reachable either way. Web passes all four as query params.
+        composable(
+            "receipts/split/{scanId}/{groupId}?account={account}&category={category}",
+            arguments = listOf(
+                navArgument("scanId") { type = NavType.StringType },
+                navArgument("groupId") { type = NavType.StringType },
+                navArgument("account") { type = NavType.StringType; defaultValue = "" },
+                navArgument("category") { type = NavType.StringType; defaultValue = "" },
+            ),
+        ) { entry ->
+            val args = entry.arguments
+            com.sanvya.app.ui.receipts.SplitReceiptScreen(
+                scanId = args?.getString("scanId") ?: "",
+                groupId = args?.getString("groupId") ?: "",
+                accountId = args?.getString("account") ?: "",
+                categoryId = args?.getString("category") ?: "",
+                // Straight to the group, popping the whole receipt flow: the
+                // scan is done with and backing into a half-assigned bill would
+                // offer to write it a second time.
+                onSaved = { savedGroupId -> navController.navigate("splits/$savedGroupId") { popUpTo("dashboard") } },
             )
         }
         composable("settings") {

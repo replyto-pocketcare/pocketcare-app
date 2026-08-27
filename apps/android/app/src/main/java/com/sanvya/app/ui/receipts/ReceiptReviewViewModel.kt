@@ -6,6 +6,8 @@ import com.sanvya.app.data.repository.Account
 import com.sanvya.app.data.repository.CategoryRow
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.ReceiptsRepository
+import com.sanvya.app.data.repository.SplitGroup
+import com.sanvya.app.data.repository.SplitsRepository
 import com.sanvya.app.data.repository.TransactionItemInput
 import com.sanvya.app.data.repository.UpdateScanDraftInput
 import com.sanvya.app.data.auth.AuthRepository
@@ -39,6 +41,7 @@ class ReceiptReviewViewModel : ViewModel(), KoinComponent {
     private val receiptsRepository: ReceiptsRepository by inject()
     private val ledgerRepository: LedgerRepository by inject()
     private val authRepository: AuthRepository by inject()
+    private val splitsRepository: SplitsRepository by inject()
 
     private var scanId: String = ""
 
@@ -69,6 +72,81 @@ class ReceiptReviewViewModel : ViewModel(), KoinComponent {
     private val _savedTransactionId = MutableStateFlow<String?>(null)
     val savedTransactionId: StateFlow<String?> = _savedTransactionId
 
+    // ---- split ----
+
+    /** "Just record it" vs "Split this bill". Web's `wantsSplit`. */
+    private val _wantsSplit = MutableStateFlow(false)
+    val wantsSplit: StateFlow<Boolean> = _wantsSplit
+
+    private val _groups = MutableStateFlow<List<SplitGroup>>(emptyList())
+    val groups: StateFlow<List<SplitGroup>> = _groups
+
+    private val _groupId = MutableStateFlow("")
+    val groupId: StateFlow<String> = _groupId
+
+    private val _newGroupName = MutableStateFlow("")
+    val newGroupName: StateFlow<String> = _newGroupName
+
+    /**
+     * Set once the group exists and the draft is saved — the screen navigates
+     * to the split route on it. Web pushes `/receipts/split?...` at this point.
+     */
+    private val _splitGroupId = MutableStateFlow<String?>(null)
+    val splitGroupId: StateFlow<String?> = _splitGroupId
+
+    fun setWantsSplit(value: Boolean) { _wantsSplit.value = value }
+    fun setGroupId(value: String) {
+        _groupId.value = value
+        if (value.isNotEmpty()) _newGroupName.value = ""
+    }
+    fun setNewGroupName(value: String) { _newGroupName.value = value }
+    fun clearSplitTarget() { _splitGroupId.value = null }
+
+    /**
+     * Save the edited draft, make the group if it does not exist yet, and hand
+     * the screen a group id to navigate with.
+     *
+     * The draft is written FIRST, deliberately: the split screen re-reads it
+     * from `receipt_scans`, so any line the user fixed here has to be on disk
+     * before we leave. Web does the same in `goToSplit`.
+     */
+    fun continueToSplit(pickGroupMessage: String) {
+        val draft = _draft.value ?: return
+        if (_saving.value) return
+        _saving.value = true
+        _error.value = null
+        viewModelScope.launch {
+            try {
+                val s = subtotals(draft.lines)
+                receiptsRepository.updateScanDraft(
+                    scanId,
+                    UpdateScanDraftInput(
+                        engine = draft.engine, merchant = draft.merchant, occurredAt = draft.occurredAt,
+                        currency = draft.currency, subtotal = s.items, tax = s.tax, serviceCharge = s.serviceCharge,
+                        tip = s.tip, discount = s.discount, total = draft.total, confidence = draft.confidence.toLong(),
+                        parsedJson = draft.toJsonString(),
+                    ),
+                )
+                var gid = _groupId.value
+                val wanted = _newGroupName.value.trim()
+                if (gid.isEmpty() && wanted.isNotEmpty()) {
+                    val userId = authRepository.currentUserId.value ?: authRepository.ensureGuest()
+                    gid = splitsRepository.createGroup(
+                        userId = userId, name = wanted, kind = "group", currency = draft.currency,
+                    )
+                }
+                if (gid.isEmpty()) {
+                    _error.value = pickGroupMessage
+                } else {
+                    _splitGroupId.value = gid
+                }
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+            _saving.value = false
+        }
+    }
+
     fun load(scanId: String) {
         if (this.scanId == scanId && _loaded.value) return
         this.scanId = scanId
@@ -91,6 +169,12 @@ class ReceiptReviewViewModel : ViewModel(), KoinComponent {
             ledgerRepository.watchCategories().onEach { list ->
                 _categories.value = list.filter { it.kind != "income" }
             }.launchIn(viewModelScope)
+
+            // Real groups only. A direct (1:1) group is created BY a settle-up
+            // and has no name of its own, so offering one here would put a
+            // blank row in the picker -- watchGroups() excludes them by
+            // default, same as web's useGroups().
+            splitsRepository.watchGroups().onEach { _groups.value = it }.launchIn(viewModelScope)
         }
     }
 

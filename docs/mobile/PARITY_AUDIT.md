@@ -181,7 +181,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/receipts/new` | (339) + `src/receipts` (860) | `receipts/ReceiptCaptureScreen.kt` (274) | `ReceiptCaptureView.swift` (207) | 🔶 camera only; no PDF/gallery, no AI escalation |
 | `/receipts/review` | (501) | `receipts/ReceiptReviewScreen.kt` (283) | `ReceiptReviewView.swift` (259) | 🔶 text-only OCR path (no word boxes) |
 | `/settings` | (272) | `SettingsScreen.kt` (527) | `SettingsView.swift` (400) | 🔶 Categories/Labels and Import-Export sections added 2026-08-26. Absent: Security/crypto, Language |
-| `/receipts/split` | (522) | ❌ | ❌ | ❌ "Split this bill" shown disabled on both. Android's `FLOW_ROOTS` still names the route |
+| `/receipts/split` | (522) | ✅ `ui/receipts/SplitReceiptScreen.kt` + `SplitReceiptViewModel.kt`, routed from review | ✅ `SplitReceiptView.swift` + `ViewModels/SplitReceiptViewModel.swift`, covered from review | ✅ **done 2026-08-27.** Itemized write path (`createSplitExpenseItemized`) on both repositories; the screen's own arithmetic is `SplitAssign` in Domain under 79 vectors. Both review screens' dead "Split this bill — coming soon" chips are the real toggle now |
 | `/settings/categories` | (157) | `taxonomy/CategoriesScreen.kt` (280) | `TaxonomyViews.swift` (CategoriesView) | 🔶 **Built 2026-08-26.** Tree with search, expand/collapse, inline rename, add with kind + parent, soft delete. Absent: the Auto-categorize card — it drives `src/categorize/` (905 lines), which is its own port |
 | `/settings/labels` | (89) | `taxonomy/LabelsScreen.kt` (185) | `TaxonomyViews.swift` (LabelsView) | 🔶 **Built 2026-08-26.** Search, add, inline rename + recolour, soft delete. Colour is the app's 18-swatch palette, not web's free `<input type="color">` — see the divergence note |
 | `/data` (import/export) | (154) + `src/data` (509) | `data/DataScreen.kt` (250) | `DataView.swift` (240) | 🔶 **Built 2026-08-26.** CSV export and import (PocketCare + Wallet formats), format picker, skip-duplicates, six-row preview, result line, premium gate. File IO is SAF on Android and `.fileExporter`/`.fileImporter` on iOS — no shared shape to port |
@@ -1633,6 +1633,49 @@ a phone where the app is installed; and web's `?mode=signin` split between
 OTP-first form with no register mode at all. Both buttons land on the same
 screen, said out loud rather than hidden.
 
+
+### Itemized bill splitting — 2026-08-27
+
+`/receipts/split` is on both platforms, and with it the last piece of the
+receipt-scan flow: scan → review → *who had what* → a shared expense.
+
+**The critical design point is web's and is carried over verbatim: this does
+not introduce a second balance model.** Per-item shares are allocated, rolled
+up per person, and written into `expense_participants` — the same table
+`createSplitExpense` writes and the same table every balance, settle-up and
+friend-graph query already reads. `expense_items` / `expense_item_shares` are
+the BREAKDOWN, kept so a bill can be explained and re-opened later. Nothing in
+the balance math on either platform knows itemized splits exist, which is why
+this landed as an addition rather than a migration. Android's
+`SplitsRepository` header had recorded the omission and the reason; that note
+is now the history of it.
+
+Two details worth keeping, both lifted from web's own comments because both are
+real bugs waiting to happen:
+
+- **All items are written, then all shares — never interleaved.** The sync
+  connector coalesces only *consecutive* same-table ops into one request, so
+  interleaving turns a 40-row bill into ~40 round-trips. It is not a style
+  preference.
+- **`split_mode = proportional` is only legal on a charge** (a DB check
+  constraint). A proportional mode set on an item line is written as `equal`.
+
+**What is shared.** `SplitAssign` in Domain — `lineWeight`, `validateSplitLine`,
+`splitModesFor`, and the two text helpers — under **79 vectors**. This is the
+part that decides whether a bill may be written at all, and "shares are off by
+₹0.01" has to mean the same thing on three clients. The vectors cover the
+sign rule for exactly splitting a NEGATIVE line (a discount), which is the one
+place the arithmetic is easy to get subtly wrong, and the JS `Math.round`
+tie-toward-+Infinity rule that both native languages disagree with by default.
+
+`validateSplitLine` returns a **shape**, not a sentence: `LineProblem` carries
+the numbers and each UI formats them through its own i18n. Same rule as
+`timeAgo` — Domain never holds `Resources`.
+
+**Divergence, recorded not hidden:** web's group picker is a `<select>` whose
+empty option means "create a new group". Both native screens use a chip row and
+show the new-group field when nothing is selected, because a placeholder option
+inside a native picker reads as a value rather than an action.
 
 ### Done-when for this section
 

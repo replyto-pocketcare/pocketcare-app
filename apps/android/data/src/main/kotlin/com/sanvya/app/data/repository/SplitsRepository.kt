@@ -16,13 +16,12 @@ package com.sanvya.app.data.repository
  * com.sanvya.app.domain.splitsinsights (also P1.4a), exactly mirroring
  * hooks.ts's own computeBalances()/useFriendInsights().
  *
+ * The itemized-bill write path (apps/web/src/splits/writeItemized.ts) landed
+ * 2026-08-27 -- see createSplitExpenseItemized below. It writes
+ * expense_items/expense_item_shares as a BREAKDOWN and still rolls up into
+ * expense_participants, so none of the balance math above knows it exists.
+ *
  * Deliberately OUT of scope for this pass (documented, not an oversight):
- * - The itemized-bill write path (apps/web/src/splits/writeItemized.ts --
- *   expense_items/expense_item_shares, receipt-scan-driven). Balances are
- *   fully correct without it (expense_participants is the single source of
- *   truth per hooks.ts's own comment); itemized breakdown is purely
- *   explanatory UI. A future pass can add it once a ReceiptsRepository
- *   exists to pair with it.
  * - createInvite/acceptInvite (apps/web/src/splits/write.ts) -- these call
  *   Supabase Edge Functions over HTTP, not the local PowerSync DB. That's
  *   networking/auth-adjacent infrastructure, not a SQLite repository
@@ -39,6 +38,11 @@ import com.powersync.db.getString
 import com.powersync.db.getStringOptional
 import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.money
+import com.sanvya.app.domain.receipts.LineAssignment
+import com.sanvya.app.domain.receipts.ReceiptDraft
+import com.sanvya.app.domain.receipts.allocateReceipt
+import com.sanvya.app.domain.receipts.isCharge
+import com.sanvya.app.domain.receipts.reconcile
 import com.sanvya.app.domain.receipts.splitByWeights
 import com.sanvya.app.domain.receipts.splitEqual
 import com.sanvya.app.domain.splitsinsights.Contribution
@@ -99,6 +103,24 @@ data class PayerInput(val userId: String, val paid: Long, val accountId: String?
 /** [mode] is one of "equal" | "exact" | "percent" -- kept as a raw String
  * (not an enum) matching this port's established convention for DB `type`-
  * shaped columns elsewhere (transactions.type, accounts.type, ...). */
+/**
+ * Per-line participants and mode, plus who paid. Mirrors web's
+ * `ItemizedSplitInput` in `src/splits/writeItemized.ts`.
+ */
+data class ItemizedSplitInput(
+    val groupId: String,
+    val draft: ReceiptDraft,
+    /** Keyed by `ReceiptLine.id`. */
+    val assignments: List<LineAssignment>,
+    /** Who actually paid, and from which account. Usually just you. */
+    val payers: List<PayerInput>,
+    val categoryId: String? = null,
+    val note: String? = null,
+    val occurredAt: String,
+)
+
+class ItemizedSplitException(message: String) : Exception(message)
+
 data class SplitExpenseInput(
     val groupId: String,
     val mode: String,
@@ -642,6 +664,208 @@ class SplitsRepository(
         projectPersonal(userId, currency, myShare, myPaid, myAccountId, expenseId, input.categoryId, input.description, input.note, input.occurredAt)
 
         return expenseId
+    }
+
+    // ---- itemized splits ----
+
+    /**
+     * Create a shared, itemized expense and project [userId]'s own share into
+     * their private ledger.
+     *
+     * **The critical design point, carried over from web verbatim: this does
+     * NOT introduce a second balance model.** Per-item shares are allocated,
+     * rolled up per person, and written into `expense_participants` — the same
+     * table [createSplitExpense] writes and the same table every balance,
+     * settle-up and friend-graph query already reads. `expense_items` /
+     * `expense_item_shares` are the BREAKDOWN, kept so the split can be
+     * explained and re-opened later. Nothing in the balance math needs to know
+     * itemized splits exist.
+     *
+     * Mirrors [createSplitExpense]'s contract exactly, so callers see no
+     * difference beyond `expenses.has_items = 1`.
+     */
+    suspend fun createSplitExpenseItemized(userId: String, input: ItemizedSplitInput): String {
+        val draft = input.draft
+        val currency = draft.currency
+
+        // Refuse to write a bill that doesn't add up. The UI blocks this too,
+        // but a corrupted expense is unrecoverable from, so it is worth
+        // checking twice.
+        val rec = reconcile(draft)
+        if (!rec.ok) {
+            throw ItemizedSplitException(
+                "Receipt doesn't reconcile: lines total ${rec.computed}, receipt says ${rec.stated ?: "nothing"}",
+            )
+        }
+
+        // Allocation throws if any line is unassigned or an exact split is off,
+        // so a partial write can never begin.
+        val allocation = allocateReceipt(draft.lines, input.assignments)
+
+        val paidByUser = LinkedHashMap<String, Long>()
+        for (p in input.payers) paidByUser[p.userId] = (paidByUser[p.userId] ?: 0L) + p.paid
+        val totalPaid = paidByUser.values.sum()
+        if (totalPaid != allocation.total) {
+            throw ItemizedSplitException("Payments total $totalPaid but the bill is ${allocation.total}")
+        }
+
+        val expenseId = newId()
+        val ts = nowIso()
+        db.execute(
+            sql = """INSERT INTO expenses (id,group_id,created_by,description,amount,currency,occurred_at,split_mode,has_items,version,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+            parameters = listOf(
+                expenseId, input.groupId, userId, draft.merchant, allocation.total, currency,
+                input.occurredAt, "itemized", 1L, 1L, ts, ts,
+            ),
+        )
+
+        val byLineId = input.assignments.associateBy { it.lineId }
+
+        // Write ALL items first, then all shares -- never interleaved.
+        //
+        // The sync connector coalesces only *consecutive* same-table ops into
+        // one request. Interleaving item/share inserts defeats that entirely and
+        // turns a 40-row bill into ~40 round-trips. Grouping them keeps it to
+        // two. Web's comment says the same; it is not a style preference.
+        val itemIdByLine = LinkedHashMap<String, String>()
+        draft.lines.forEachIndexed { sort, line ->
+            val mode = byLineId[line.id]?.mode ?: "equal"
+            // Only charges may be proportional (DB check constraint).
+            val splitMode = if (mode == "proportional" && !isCharge(line.kind)) "equal" else mode
+            val itemId = newId()
+            db.execute(
+                sql = """INSERT INTO expense_items (id,expense_id,group_id,kind,description,quantity,unit,unit_price,amount,split_mode,sort,created_at,updated_at)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                parameters = listOf(
+                    itemId, expenseId, input.groupId, line.kind, line.description, line.quantity,
+                    line.unit, line.unitPrice, line.amount, splitMode, sort.toLong(), ts, ts,
+                ),
+            )
+            itemIdByLine[line.id] = itemId
+        }
+
+        for (line in draft.lines) {
+            val itemId = itemIdByLine[line.id] ?: continue
+            val weightByUser = (byLineId[line.id]?.shares ?: emptyList())
+                .associate { it.userId to Math.round(it.weight ?: 0.0) }
+            for (share in allocation.perLine[line.id] ?: emptyList()) {
+                db.execute(
+                    sql = """INSERT INTO expense_item_shares (id,item_id,expense_id,group_id,user_id,weight,share_amount,created_at,updated_at)
+                        VALUES (?,?,?,?,?,?,?,?,?)""",
+                    parameters = listOf(
+                        newId(), itemId, expenseId, input.groupId, share.userId,
+                        weightByUser[share.userId] ?: 0L, share.amount, ts, ts,
+                    ),
+                )
+            }
+        }
+
+        // ---- the roll-up that keeps every existing balance query working ----
+        // Allocation order first, then payers, so the participant rows land in a
+        // stable order rather than a hash map's.
+        val users = LinkedHashSet<String>()
+        for (line in draft.lines) {
+            allocation.perLine[line.id]?.forEach { users.add(it.userId) }
+        }
+        users.addAll(paidByUser.keys)
+        for (uid in users) {
+            db.execute(
+                sql = """INSERT INTO expense_participants (id,expense_id,group_id,user_id,paid_amount,share_amount,created_at,updated_at)
+                    VALUES (?,?,?,?,?,?,?,?)""",
+                parameters = listOf(
+                    newId(), expenseId, input.groupId, uid,
+                    paidByUser[uid] ?: 0L, allocation.byUser[uid] ?: 0L, ts, ts,
+                ),
+            )
+        }
+
+        // ---- your private projection ----
+        // Your own-share transaction carries the lines YOU are on, so the
+        // personal breakdown matches what you actually ate.
+        val myLines = draft.lines.mapNotNull { line ->
+            val amount = (allocation.perLine[line.id] ?: emptyList())
+                .find { it.userId == userId }?.amount ?: 0L
+            if (amount == 0L) {
+                null
+            } else {
+                val label = line.description.ifEmpty { line.kind.replace("_", " ") }
+                TransactionItemInput(label, money(amount, currency))
+            }
+        }
+
+        projectPersonalItemized(
+            userId = userId,
+            currency = currency,
+            myShare = allocation.byUser[userId] ?: 0L,
+            myPaid = paidByUser[userId] ?: 0L,
+            myAccountId = input.payers.find { it.userId == userId }?.accountId,
+            expenseId = expenseId,
+            categoryId = input.categoryId,
+            description = draft.merchant,
+            note = input.note,
+            occurredAt = input.occurredAt,
+            myLines = myLines,
+        )
+
+        return expenseId
+    }
+
+    /**
+     * Private ledger projection. Deliberately identical in shape and roles
+     * (`own_share` / `borrow` / `lend`) to [projectPersonal] — the only
+     * difference is the item breakdown riding along with the own-share leg.
+     */
+    private suspend fun projectPersonalItemized(
+        userId: String,
+        currency: String,
+        myShare: Long,
+        myPaid: Long,
+        myAccountId: String?,
+        expenseId: String,
+        categoryId: String?,
+        description: String?,
+        note: String?,
+        occurredAt: String,
+        myLines: List<TransactionItemInput>,
+    ) {
+        val paidToOwn = minOf(myPaid, myShare)
+        val underpay = maxOf(0L, myShare - myPaid)
+        val overpay = maxOf(0L, myPaid - myShare)
+
+        suspend fun post(txId: String, role: String) {
+            db.execute(
+                sql = "INSERT INTO expense_postings (id,user_id,expense_id,transaction_id,role,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
+                parameters = listOf(newId(), userId, expenseId, txId, role, nowIso(), nowIso()),
+            )
+        }
+
+        if (paidToOwn > 0 && myAccountId != null) {
+            // Breakdown items must sum EXACTLY to the transaction amount, so
+            // they can only ride along when this leg is your whole share.
+            val itemsMatch = myLines.sumOf { it.amount.amount } == paidToOwn
+            val tx = ledger.createTransaction(
+                userId = userId, accountId = myAccountId, type = "expense", amount = money(paidToOwn, currency),
+                occurredAt = occurredAt, categoryId = categoryId, note = note, description = description,
+                items = if (itemsMatch) myLines else null,
+            )
+            post(tx.id, "own_share")
+        }
+        if (underpay > 0) {
+            val payable = ensureVirtualAccount(userId, "payable", currency)
+            val tx = ledger.createTransaction(
+                userId = userId, accountId = payable, type = "expense", amount = money(underpay, currency),
+                occurredAt = occurredAt, categoryId = categoryId, note = note, description = description,
+            )
+            post(tx.id, "borrow")
+        }
+        if (overpay > 0 && myAccountId != null) {
+            val tx = ledger.createTransaction(
+                userId = userId, accountId = myAccountId, type = "expense", amount = money(overpay, currency),
+                occurredAt = occurredAt, categoryId = categoryId, note = note, description = description,
+            )
+            post(tx.id, "lend")
+        }
     }
 
     /** The ledger transfer for whichever side is acting. Shared by settleUp

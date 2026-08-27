@@ -3,6 +3,13 @@ import Domain
 
 private let lineKinds = ["item", "tax", "service_charge", "tip", "discount"]
 
+/// `.fullScreenCover(item:)` needs `Identifiable`, and a bare group id string
+/// is not one.
+private struct SplitTarget: Identifiable {
+    let groupId: String
+    var id: String { groupId }
+}
+
 /// Real port of apps/web/app/receipts/review/page.tsx (task #62). See
 /// docs/mobile/screen-specs/receipt-scan.md.
 struct ReceiptReviewView: View {
@@ -35,6 +42,64 @@ struct ReceiptReviewView: View {
         .task(id: scanId) { await viewModel.load(scanId) }
         .onChange(of: viewModel.savedTransactionId) { _, newValue in
             if let id = newValue { onSaved(id) }
+        }
+        // A cover, not a push: the split screen is a second full task with its
+        // own save, and leaving it must not drop you back mid-review with a
+        // half-written expense behind you.
+        .fullScreenCover(item: Binding(
+            get: { viewModel.splitGroupId.map(SplitTarget.init(groupId:)) },
+            set: { if $0 == nil { viewModel.splitGroupId = nil } }
+        )) { target in
+            SplitReceiptView(
+                scanId: scanId,
+                groupId: target.groupId,
+                accountId: viewModel.accountId ?? "",
+                categoryId: viewModel.categoryId ?? "",
+                onSaved: { _ in onCancel() },
+                onCancel: { viewModel.splitGroupId = nil }
+            )
+        }
+    }
+
+    private var primaryLabel: String {
+        if viewModel.saving { return "\u{2026}" }
+        return viewModel.wantsSplit ? S.Receipts.reviewContinueToSplit : S.Receipts.reviewSave
+    }
+
+    /// Pick an existing group, or name a new one. Web uses a `<select>` whose
+    /// empty option means "create a new group"; the same shape reads better on
+    /// a phone as a chip row, so the "new group" field appears when nothing is
+    /// selected rather than behind a placeholder option.
+    @ViewBuilder
+    private var splitPicker: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(S.Receipts.reviewGroup)
+                .font(.caption)
+                .foregroundColor(.text2)
+            FlowLayout(spacing: 6) {
+                SanvyaChip(S.Receipts.reviewNewGroup, isActive: viewModel.groupId.isEmpty) {
+                    viewModel.groupId = ""
+                }
+                ForEach(viewModel.groups, id: \.id) { g in
+                    SanvyaChip(g.name, isActive: viewModel.groupId == g.id) {
+                        viewModel.groupId = g.id
+                        viewModel.newGroupName = ""
+                    }
+                }
+            }
+            if viewModel.groupId.isEmpty {
+                Text(S.Receipts.reviewNewGroupName)
+                    .font(.caption)
+                    .foregroundColor(.text2)
+                SanvyaInput(
+                    text: Binding(get: { viewModel.newGroupName }, set: { viewModel.newGroupName = $0 }),
+                    placeholder: S.Receipts.reviewNewGroupPlaceholder
+                )
+            }
+            Text(S.Receipts.reviewSplitNote)
+                .font(.caption2)
+                .foregroundColor(.text2)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -126,22 +191,31 @@ struct ReceiptReviewView: View {
                     }
                 }
 
+                // Record or split. This was a dead "Split this bill — coming
+                // soon" pill, hardcoded in English, until the itemized write
+                // path landed (2026-08-27). It is the real toggle now.
                 PocketCard {
                     VStack(alignment: .leading, spacing: 10) {
-                        // "Split this bill" is intentionally disabled here --
-                        // pairs with automatic split detection (task #63/64).
-                        // See receipt-scan.md scope note #5.
-                        Text("Split this bill — coming soon")
-                            .font(.caption)
-                            .foregroundColor(.text2)
-                            .padding(.horizontal, 10).padding(.vertical, 6)
-                            .background(Color.surface2)
-                            .clipShape(Capsule())
+                        HStack(spacing: 8) {
+                            SanvyaChip(S.Receipts.reviewJustRecord, isActive: !viewModel.wantsSplit) {
+                                viewModel.wantsSplit = false
+                            }
+                            SanvyaChip(S.Receipts.reviewSplitIt, isActive: viewModel.wantsSplit) {
+                                viewModel.wantsSplit = true
+                            }
+                        }
+
+                        if viewModel.wantsSplit { splitPicker }
+
                         if let error = viewModel.error {
                             Text(error).foregroundColor(.negative).font(.caption)
                         }
-                        PrimaryButton(viewModel.saving ? "Saving\u{2026}" : S.Receipts.reviewSave) {
-                            viewModel.saveAsTransaction()
+                        PrimaryButton(primaryLabel) {
+                            if viewModel.wantsSplit {
+                                viewModel.continueToSplit()
+                            } else {
+                                viewModel.saveAsTransaction()
+                            }
                         }
                         .disabled(!canSave)
                         if !balanced {
