@@ -24,6 +24,7 @@ object Prefs : KoinComponent {
     private const val WALKTHROUGH_DONE_KEY = "sanvya:walkthroughDone"
     private const val ONBOARDING_SEEN_KEY = "onboardingSeen"
     private const val HIDE_KEY = "amountsHidden"
+    private const val PENDING_INVITE_KEY = "pendingInvite"
     private const val THEME_KEY = "theme"
     private const val CURRENCY_KEY = "baseCurrency"
     private const val DEFAULT_THEME = "light"
@@ -41,6 +42,27 @@ object Prefs : KoinComponent {
         MutableStateFlow(sharedPrefs.getBoolean(HIDE_KEY, false))
     }
     val amountsHidden: StateFlow<Boolean> get() = _amountsHidden
+
+    /**
+     * An invite token held while the user signs in, then consumed.
+     *
+     * Web keeps this in `localStorage` under the same key, for the same reason:
+     * accepting an invite needs a session, so the token has to survive the trip
+     * out to the provider and back. On Android that trip is a Custom Tab and a
+     * process that may well have been killed behind it, so an in-memory field
+     * would not do -- which is exactly why this is here and not a `var` on a
+     * view model.
+     *
+     * Device-local and never synced. It is a few seconds of state about one tap,
+     * not ledger data.
+     */
+    fun pendingInvite(): String? = sharedPrefs.getString(PENDING_INVITE_KEY, null)
+
+    fun setPendingInvite(token: String?) {
+        sharedPrefs.edit().apply {
+            if (token == null) remove(PENDING_INVITE_KEY) else putString(PENDING_INVITE_KEY, token)
+        }.apply()
+    }
 
     fun setAmountsHidden(hidden: Boolean) {
         sharedPrefs.edit().putBoolean(HIDE_KEY, hidden).apply()

@@ -112,3 +112,42 @@ The parser is ported and shared. These are the deliberate limits inside it.
 | **PDFBox-Android's size** | ~10-16MB of font assets in the APK. It buys the screen's headline feature and it is the only Apache-licensed option, so it ships — but if APK size becomes the binding constraint, the fix is Play Feature Delivery (an on-demand dynamic feature module), not a different library. Not done now because on-demand delivery is a Play-Store-only mechanism and a build-system change, and it does nothing for reliability |
 | **Password prompt is one-shot** | A wrong password shows the generic read-failure message rather than re-prompting. Web's `window.prompt` is also one-shot for the same reason: it cannot tell a wrong password from a corrupt file without a second attempt |
 | **iOS surrogate pairs** | `characterBounds(at:)` is indexed in UTF-16, so an emoji or a rare CJK glyph in a narration would be split into two half-glyphs. Bank statements are Latin plus Devanagari, both of which are in the BMP. Left as-is rather than papered over with a grapheme walk that would then disagree with PDFBox |
+
+## Invite links open the browser, not the app — 2026-08-27
+
+`/join` is ported on both platforms and works. What does not work is the part
+neither app can fix on its own: an `https://sanvya.app/join?token=…` link tapped
+in WhatsApp opens Safari or Chrome, not the app.
+
+Both apps' halves are done. Both **server** halves are placeholders that were
+committed before anything consumed them:
+
+| File | What it says now | What it needs |
+| --- | --- | --- |
+| `apps/web/public/.well-known/assetlinks.json` | `sha256_cert_fingerprints: ["00:00:…:00"]` — thirty-two zero bytes | The **release keystore's real SHA-256 fingerprint** (`keytool -list -v -keystore <release.jks>`, or Play Console → Setup → App signing if Play App Signing is on — in which case it is Google's key, not yours) |
+| `apps/web/public/.well-known/apple-app-site-association` | `appID: "TEAMID.com.sanvya.app"` — the literal string TEAMID | The **Apple Developer Team ID** (10 characters, Developer portal → Membership) |
+
+Both live under `apps/web`, which this porting effort does not touch, so they
+are listed here rather than edited.
+
+Until they are real:
+
+* Android's `autoVerify="true"` filter simply does not bind — the OS checks the
+  fingerprint at install time, fails, and leaves the link to the browser.
+* iOS's `applinks:sanvya.app` entitlement is present but the CDN-fetched AASA
+  names an app ID that does not exist, so the association never forms.
+
+**What works today, with no server-side anything:** `com.sanvya.app://join?token=…`.
+Android has its own intent filter for it; iOS already registers the scheme for
+the OAuth callback. That is what makes the screen testable now:
+
+    adb shell am start -a android.intent.action.VIEW -d "com.sanvya.app://join?token=TOKEN"
+    xcrun simctl openurl booted "com.sanvya.app://join?token=TOKEN"
+
+It is a fallback, not the feature. Nobody is going to paste a custom-scheme URL
+into a chat.
+
+**Also absent, and smaller:** web's `/join` is reachable by typing the URL;
+neither app has a "paste an invite link" entry point. Worth adding if
+verification stays blocked, and pointless once it isn't.
+

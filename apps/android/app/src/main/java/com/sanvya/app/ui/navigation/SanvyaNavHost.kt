@@ -130,7 +130,7 @@ private fun NavGraphBuilder.comingSoon(route: String, label: (android.content.re
 }
 
 @Composable
-fun SanvyaNavHost() {
+fun SanvyaNavHost(inviteToken: String? = null) {
     val navController = rememberNavController()
     // Captured once per graph build; see formDestination's "known edge".
     val windowClass = LocalWindowClass.current
@@ -155,7 +155,36 @@ fun SanvyaNavHost() {
         pageAction = pageAction,
         onSetPageAction = { pageAction = it },
     ) {
+    // An invite link opened the app. Navigating rather than starting there
+    // keeps `dashboard` as the start destination, so backing out of a joined
+    // group lands somewhere real instead of on a spent invite.
+    //
+    // Keyed on the token: a SECOND invite arriving while the app is open (a
+    // warm onNewIntent) has to move the app again, and keying on Unit would
+    // silently ignore it.
+    LaunchedEffect(inviteToken) {
+        if (!inviteToken.isNullOrEmpty()) {
+            navController.navigate("join/$inviteToken") { launchSingleTop = true }
+        }
+    }
+
     NavHost(navController = navController, startDestination = "dashboard") {
+        composable(
+            "join/{token}",
+            arguments = listOf(navArgument("token") { type = NavType.StringType }),
+        ) { entry ->
+            com.sanvya.app.ui.join.JoinScreen(
+                token = entry.arguments?.getString("token"),
+                onJoined = { groupId ->
+                    // replace, not push: the invite is spent, and backing into
+                    // it would try to accept it again.
+                    navController.navigate("splits/$groupId") {
+                        popUpTo("join/{token}") { inclusive = true }
+                    }
+                },
+                onSignIn = { navController.navigate("login") },
+            )
+        }
         composable("dashboard") {
             DashboardScreen(
                 onOpenSettings = { navController.navigate("settings") },

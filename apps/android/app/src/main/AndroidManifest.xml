@@ -64,12 +64,38 @@
                     android:host="${authRedirectHost}" />
             </intent-filter>
 
-            <!-- App Links (Deep Links) for Invites -->
+            <!-- Split invites, the real link. This filter existed before
+                 anything consumed it; MainActivity reads the token now.
+
+                 autoVerify only WORKS once
+                 https://sanvya.app/.well-known/assetlinks.json carries the
+                 release keystore's real SHA-256 fingerprint. It currently
+                 carries thirty-two zero bytes, so verification fails, the
+                 filter does not bind, and an invite link opens the browser.
+                 See docs/mobile/ABSENT-BY-DECISION.md. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="sanvya.app" android:pathPrefix="/join" />
+            </intent-filter>
+
+            <!-- The same invite, over the app's own scheme. Needs no
+                 server-side anything and works today, which is what makes the
+                 join screen testable before the fingerprint above is real:
+
+                     adb shell am start -a android.intent.action.VIEW \
+                       -d "com.sanvya.app://join?token=TOKEN"
+
+                 A separate filter rather than another <data> in the OAuth one
+                 above: autoVerify and a custom scheme do not belong together,
+                 and combining <data> elements would let the OAuth host pair
+                 with the https scheme and vice versa. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${authRedirectScheme}" android:host="join" />
             </intent-filter>
         </activity>
 

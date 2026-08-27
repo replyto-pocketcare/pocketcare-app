@@ -1,6 +1,7 @@
 package com.sanvya.app
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.Manifest
 import android.content.pm.PackageManager
@@ -19,6 +20,7 @@ import com.sanvya.app.theme.SanvyaTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -37,6 +39,35 @@ class MainActivity : ComponentActivity() {
     private val authRepository: AuthRepository by inject()
     private val prefsRepository: PrefsRepository by inject()
     private val pushController by lazy { PushController(applicationContext) }
+
+    /**
+     * The invite token this launch arrived with, if any.
+     *
+     * Compose state rather than a plain field because BOTH entry points write
+     * it -- a cold start through onCreate's intent and a warm one through
+     * onNewIntent -- and only the second happens after the tree is composed.
+     * The same "wire both or it works exactly once" trap the auth callback
+     * above documents.
+     */
+    private val inviteToken: MutableState<String?> = mutableStateOf(null)
+
+    /**
+     * The token from an invite URL, or null.
+     *
+     * Two shapes are accepted. `https://sanvya.app/join?token=...` is the real
+     * link -- the one in a WhatsApp message -- and needs App Links
+     * VERIFICATION to reach the app at all (see docs/mobile/ABSENT-BY-DECISION).
+     * `<authRedirectScheme>://join?token=...` needs no server-side anything and
+     * works today, which is what makes the screen testable before that
+     * verification exists.
+     */
+    private fun inviteTokenFrom(intent: Intent?): String? {
+        val uri: Uri = intent?.data ?: return null
+        val isJoin = (uri.scheme == "https" && uri.path?.startsWith("/join") == true) ||
+            (uri.scheme != "https" && uri.host == "join")
+        if (!isJoin) return null
+        return uri.getQueryParameter("token")?.takeIf { it.isNotEmpty() }
+    }
 
     /**
      * The runtime prompt, fired from Settings rather than from launch.
@@ -91,6 +122,7 @@ class MainActivity : ComponentActivity() {
         // exactly once, on the first launch after install, and then silently
         // stops working, which is a miserable thing to debug.
         authRepository.handleAuthCallback(intent)
+        inviteToken.value = inviteTokenFrom(intent)
 
         // NOT a permission request. This used to be `askNotificationPermission()`,
         // which put the system prompt in the first frame of the first launch --
@@ -125,6 +157,15 @@ class MainActivity : ComponentActivity() {
                     // deck existed on the web client only. Read once, not
                     // observed: it changes exactly once in a lifetime.
                     var onboardingSeen by rememberSaveable { mutableStateOf(Prefs.onboardingSeen()) }
+                    // No session and an invite in hand: stash the token so
+                    // it survives the trip out to the auth provider and back.
+                    // Web does the same, in localStorage, at the same moment --
+                    // and this is the ONLY place that can, because the /join
+                    // route lives behind the auth gate below.
+                    val pendingInvite = inviteToken.value
+                    if (authState == AuthState.SIGNED_OUT && pendingInvite != null) {
+                        Prefs.setPendingInvite(pendingInvite)
+                    }
                     if (authState == AuthState.SIGNED_OUT) {
                         if (onboardingSeen) {
                             LoginScreen()
@@ -139,7 +180,11 @@ class MainActivity : ComponentActivity() {
                             })
                         }
                     } else {
-                        SanvyaNavHost()
+                        // A token from THIS launch wins; otherwise the one
+                        // stashed before signing in, which is the whole point of
+                        // the stash. Consumed either way -- JoinViewModel clears
+                        // it before accepting.
+                        SanvyaNavHost(inviteToken = inviteToken.value ?: Prefs.pendingInvite())
                     }
                 }
                 }
@@ -150,6 +195,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         authRepository.handleAuthCallback(intent)
+        inviteTokenFrom(intent)?.let { inviteToken.value = it }
     }
 
     /**

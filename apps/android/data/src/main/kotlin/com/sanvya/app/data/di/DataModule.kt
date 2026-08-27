@@ -82,6 +82,7 @@ val dataModule = module {
     single { RecurringRepository(db = get(), ledger = get(), splits = get()) }
     single { LoanAutoPostRepository(db = get(), ledger = get()) }
     single { com.sanvya.app.data.repository.UpiRepository(get()) }
+    single { com.sanvya.app.data.repository.InvitesRepository(get()) }
     single { SubscriptionsRepository(get()) }
     single { com.sanvya.app.data.repository.PrefsRepository(get()) }
     // Settings' own data access — keeps SupabaseClient/PowerSyncDatabase out of :app.

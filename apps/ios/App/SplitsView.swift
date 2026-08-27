@@ -7,10 +7,19 @@ import Domain
 /// settle-up used to show ₹1200 no matter the real balance) --
 /// settle-up now lives on GroupDetailView, fed by real balances.
 struct SplitsView: View {
+    /// A group to open on arrival — set by an accepted invite, cleared here once
+    /// consumed. Defaults to a constant so the ordinary tab switch passes
+    /// nothing and this stays a one-way channel for deep links.
+    @Binding var openGroupId: String?
+
     @State private var selectedTab = 0 // 0: Groups & Trips, 1: Friends
     @State private var viewModel = SplitsViewModel()
     @State private var showingCreateSheet = false
     @State private var selectedGroupId: String?
+
+    init(openGroupId: Binding<String?> = .constant(nil)) {
+        self._openGroupId = openGroupId
+    }
 
     var body: some View {
         SanvyaPage(selectedGroupId != nil ? "" : S.Splits.eyebrow) {
@@ -26,6 +35,11 @@ struct SplitsView: View {
                 }
             }
             .registerBack(selectedGroupId != nil) { selectedGroupId = nil }
+            // Both hooks: `task` catches a group set before this view existed
+            // (the invite is accepted on a cover, above the shell), `onChange`
+            // catches one that arrives while the Splits tab is already open.
+            .task { consumeOpenGroup() }
+            .onChange(of: openGroupId) { _, _ in consumeOpenGroup() }
             .sanvyaFormPresentation(isPresented: $showingCreateSheet) {
                 CreateGroupView(viewModel: viewModel, onCreated: { id in
                     showingCreateSheet = false
@@ -33,6 +47,12 @@ struct SplitsView: View {
                 })
             }
         }
+    }
+
+    private func consumeOpenGroup() {
+        guard let id = openGroupId, !id.isEmpty else { return }
+        selectedGroupId = id
+        openGroupId = nil
     }
 
     @ViewBuilder

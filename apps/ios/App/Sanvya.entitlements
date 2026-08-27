@@ -13,6 +13,19 @@
 	-->
 	<key>aps-environment</key>
 	<string>development</string>
+	<!--
+	  Universal Links for split invites. `apps/web/public/.well-known/
+	  apple-app-site-association` already claims /join for TEAMID.com.sanvya.app,
+	  with the literal string TEAMID, so nothing verifies yet and an invite link
+	  still opens Safari. This entry is the app's half of the pair; the
+	  other half needs the real Team ID substituted and the file served from
+	  https://sanvya.app. Until then the custom-scheme fallback is what routes
+	  an invite into the app. See docs/mobile/ABSENT-BY-DECISION.md.
+	-->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:sanvya.app</string>
+	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.care.pocket</string>

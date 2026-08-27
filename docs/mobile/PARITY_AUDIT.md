@@ -194,7 +194,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/onboarding` + `src/onboarding/Walkthrough.tsx` | (119) + (446) | ✅ `ui/onboarding/WalkthroughScreen.kt` + `WalkthroughViewModel.kt` (gate + steps), mounted by `DashboardScreen` | ✅ `WalkthroughView.swift` (rewritten) + `ViewModels/WalkthroughViewModel.swift` (`WalkthroughGate` + `WalkthroughViewModel`), mounted by `DashboardView` | ✅ **done 2026-08-23.** All 7 steps, both writes, the `done`/`skipped` split, and `shouldShowWalkthrough()` in Domain under 103 vectors. The `/onboarding` **slide deck** (119) is a separate pre-auth screen and is still unported — see the auth-gate row |
 | `/groups` | (19) redirect → `/friends` | 🚫 | 🚫 | 🚫 |
 | `/subscriptions` | (8) redirect → `/recurring` | 🚫 | 🚫 | 🚫 |
-| `/join?token=` | (53) | ❌ | ❌ | ❌ needs App Links / Universal Links + a real domain |
+| `/join?token=` | (53) | ✅ `ui/join/JoinScreen.kt` + view model | ✅ `Join/JoinView.swift` | 🔶 **screen done 2026-08-27, link routing blocked.** Accept, stash-through-sign-in, join, land in the group. An `https://sanvya.app/join` link still opens the browser: both `.well-known` files are placeholders. `com.sanvya.app://join?token=` works today — see ABSENT-BY-DECISION |
 | `/auth/callback` | (87) | 🚫 | 🚫 | 🚫 a native app cannot host an HTTP route; both use a custom scheme |
 | `/admin/*` | 7 pages (1291) | 🚫 | 🚫 | 🚫 web-only, English-only, out of scope |
 
@@ -554,7 +554,7 @@ been exercised:
 `screen-specs/app-shell.md` §8 lists shell-level behaviour. Still missing on **both** platforms:
 
 - ~~**Auth gate** — web replaces to `/onboarding` when there is no session. Neither app does.~~ ✅ Both gate through the seven-slide deck now (2026-08-23); it writes `onboardingSeen` under web's own key and falls through to the login screen.
-- **Pending invite** — `localStorage.pendingInvite` → `/join?token=`. No native equivalent.
+- **Pending invite** — `localStorage.pendingInvite` → `/join?token=`. Ported 2026-08-27: `Prefs.pendingInvite` (SharedPreferences) and `PendingInvite` (UserDefaults), same key name. Device-local and never synced, like web's.
 - **Launch-time materialisation** — 2.5s after auth, once per launch: `runRecurring()` then
   `runLoanAutoPost()`. Neither app runs either, so recurring items and loan EMIs never
   auto-post on mobile.
@@ -2219,4 +2219,48 @@ guard name it and exit 1, restore, watch it go clean.
 **The parity job passed**, including the two new generators and the 28 PDF
 vectors' regeneration check — so the PDF work itself has no drift. It has still
 never been through a compiler.
+
+### `/join` — 2026-08-27
+
+53 lines on web, and the smallest remaining route. Almost all of the work was
+deciding where it lives on a phone, because the two platforms disagree about
+what a route even is.
+
+**It is not a tab and not a start destination.** Web gives `/join` no chrome
+because it is a landing for a link from *outside* the app, and every visit ends
+by leaving — into the group, or into sign-in. So Android registers `join/{token}`
+and *navigates* to it (keeping `dashboard` as the start destination, so backing
+out of a joined group lands somewhere real), and iOS presents it as a
+`fullScreenCover` above the shell. Giving iOS a `NavTab` for it would have left
+a spent invite in the navigation for the rest of the session.
+
+**The ordering that matters.** Clear the stashed token BEFORE accepting, not
+after. Web does this and says why: the token is being consumed, so leaving it
+stashed sends the user back to this screen on the next launch to accept an
+invite that is already spent. Both ports do the same, in the same place.
+
+**Both entry points, or it works exactly once.** Android reads the token in
+`onCreate` AND `onNewIntent` — the same trap the auth callback above it
+documents, and for the same reason: a cold start arrives through one and a warm
+start through the other. `LaunchedEffect` is keyed on the token, not on `Unit`,
+so a second invite arriving while the app is open still moves the app.
+
+**`InvitesRepository`, not a method on `SplitsRepository`.** SplitsRepository's
+own header already said invites were out of its scope and it was right:
+everything there reads and writes local PowerSync, while this is one HTTPS call
+to an Edge Function. Sharing a class would have meant a repository needing both
+a database and a Supabase client for one method.
+
+**No vectors.** There is no pure function here — the whole screen is one call
+and three branches. The nearest thing to logic is `edgeFnMessage`'s status-code
+fallbacks, ported because the day one of them fires, "Edge Function returned a
+non-2xx status code" is a dead end for the user and for whoever reads the bug
+report.
+
+**What is still blocked, and it is the visible half:** an invite link tapped in
+WhatsApp opens the browser. Both `.well-known` files exist and both are
+placeholders — thirty-two zero bytes where the release keystore fingerprint goes,
+and the literal string `TEAMID` where the Apple Team ID goes. They live under
+`apps/web`, which this effort does not touch. Recorded in ABSENT-BY-DECISION with
+exactly what each needs.
 

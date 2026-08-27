@@ -112,6 +112,10 @@ public extension Container {
         self { UpiRepository(client: self.supabaseClient()) }.singleton
     }
 
+    var invitesRepository: Factory<InvitesRepository> {
+        self { InvitesRepository(client: self.supabaseClient()) }.singleton
+    }
+
     var goalsRepository: Factory<GoalsRepository> {
         self { GoalsRepository(db: self.powerSyncDatabase()) }.singleton
     }
