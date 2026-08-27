@@ -72,6 +72,49 @@ for (const file of swiftFiles) {
 }
 
 /* ------------------------------------------------------------------ *
+ * `@Bindable var vm = viewModel` passed to a `Bindable<T>` parameter.
+ *
+ * `@Bindable var vm` makes `vm` a plain `T` and `$vm` the `Bindable<T>` —
+ * the wrapper is the PROJECTED value, not the variable. A helper written as
+ * `func card(vm: Bindable<DataViewModel>)` therefore has to be called with
+ * `card(vm: $vm)`, and `card(vm: vm)` fails with "cannot convert value of
+ * type 'DataViewModel' to expected argument type 'Bindable<DataViewModel>'".
+ *
+ * That error names both types and still reads like the view model is wrong,
+ * which is why `DataView.swift` shipped it and `WalkthroughView.swift` was
+ * written the same way an hour later. It is cross-line — the declaration and
+ * the call site are far apart — so it cannot be a per-line rule.
+ * ------------------------------------------------------------------ */
+for (const file of swiftFiles) {
+  const src = readFileSync(file, "utf8");
+  const declared = new Set(
+    [...src.matchAll(/@Bindable\s+var\s+(\w+)\s*=/g)].map((m) => m[1]),
+  );
+  if (declared.size === 0) continue;
+  const bindableParams = new Set(
+    [...src.matchAll(/(\w+)\s*:\s*Bindable</g)].map((m) => m[1]),
+  );
+  if (bindableParams.size === 0) continue;
+
+  src.split("\n").forEach((line, i) => {
+    if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
+    // The declaration itself is `x: Bindable<T>` — not a call site.
+    if (/:\s*Bindable</.test(line)) return;
+    for (const label of bindableParams) {
+      for (const name of declared) {
+        if (new RegExp(`\\b${label}\\s*:\\s*${name}\\b`).test(line)) {
+          failures.push(
+            `${path.relative(repoRoot, file)}:${i + 1}  @Bindable variable passed where Bindable<T> is expected\n` +
+            `    ${line.trim()}\n` +
+            `    → pass the projected value: \`${label}: $${name}\``,
+          );
+        }
+      }
+    }
+  });
+}
+
+/* ------------------------------------------------------------------ *
  * A file that NAMES a type from Data or Domain but never imports it.
  *
  * Swift's error for this is "cannot find type 'LabelRow' in scope", which
@@ -161,7 +204,7 @@ for (const file of swiftFiles) {
   }
 }
 
-console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} rules + missing-import scan, ${failures.length} hit(s)`);
+console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} line rules + bindable + missing-import scans, ${failures.length} hit(s)`);
 if (failures.length) {
   console.error("\n" + failures.join("\n\n"));
   console.error(`\n::error::${failures.length} known Swift trap(s). Each of these has broken CI before.`);

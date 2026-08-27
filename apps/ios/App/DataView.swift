@@ -24,7 +24,7 @@ struct DataView: View {
                     .foregroundStyle(Color.text2)
 
                 exportCard
-                importCard(vm: vm)
+                importCard(vm: $vm)
             }
             .padding(16)
         }

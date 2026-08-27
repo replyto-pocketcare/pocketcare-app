@@ -80,6 +80,16 @@ const EXTERNAL = {
   // not a top-level extension, so it arrives with Row/Column and needs no
   // import — adding it produced 17 false positives across the app, which is
   // how a guard teaches people to ignore it.
+  // Added 2026-08-27, after `SanvyaCard` gained a `background: Color?` param
+  // and Surfaces.kt -- the file that DECLARES the component every screen
+  // uses -- shipped without the import. CI's only message was "Unresolved
+  // reference 'Color'", twice, with no hint that a one-line signature change
+  // three commits earlier was the cause.
+  //
+  // `androidx.compose.ui.graphics.*` is a wildcard some files legitimately
+  // have; the resolver below already treats a matching wildcard as satisfying
+  // the import, so this rule only fires on a file that names neither.
+  Color: { pkg: "androidx.compose.ui.graphics", type: true },
   min: "kotlin.math",
   max: "kotlin.math",
   roundToInt: { pkg: "kotlin.math", extension: true },
@@ -134,12 +144,19 @@ for (const file of files) {
     .join("\n")
     .replace(/"(?:[^"\\]|\\.)*"/g, '""');
 
-  const check = (name, candidatePkgs, isExtension = false) => {
+  const check = (name, candidatePkgs, isExtension = false, matchTypePosition = false) => {
     // A qualified use (`com.sanvya.app.ui.formatMoney(...)` or `Foo.name`)
     // needs no import, so only bare uses count -- EXCEPT for extension
     // functions, which are always written dotted and still need one.
+    //
+    // `matchTypePosition` widens the match to a bare word, for symbols that
+    // appear as TYPES rather than calls (`background: Color? = null`). The
+    // narrow form requires a following `(`, `.` or `{`, which a type
+    // annotation never has -- that is exactly how Surfaces.kt shipped without
+    // its `Color` import while this check said 0 hits.
     const used = new RegExp(`(?<![.\\w])${name}\\s*[\\(\\.\\{]`).test(body)
       || new RegExp(`(?<![.\\w])${name}::`).test(body)
+      || (matchTypePosition && new RegExp(`(?<![.\\w])${name}\\b`).test(body))
       || (isExtension && new RegExp(`\\.${name}\\s*\\(`).test(body));
     if (!used) return;
     if (candidatePkgs.includes(pkg)) return;
@@ -157,7 +174,8 @@ for (const file of files) {
   for (const [name, spec] of Object.entries(EXTERNAL)) {
     const pkg2 = typeof spec === "string" ? spec : spec.pkg;
     const isExtension = typeof spec === "object" && spec.extension === true;
-    check(name, [pkg2], isExtension);
+    const isType = typeof spec === "object" && spec.type === true;
+    check(name, [pkg2], isExtension, isType);
   }
 }
 

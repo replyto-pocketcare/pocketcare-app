@@ -42,8 +42,8 @@ struct WalkthroughView: View {
             header
             switch viewModel.step {
             case 1: intro
-            case 2: account(vm: vm)
-            case 3: spend(vm: vm)
+            case 2: account(vm: $vm)
+            case 3: spend(vm: $vm)
             case 4: done
             case 5: insights
             case 6: ask
