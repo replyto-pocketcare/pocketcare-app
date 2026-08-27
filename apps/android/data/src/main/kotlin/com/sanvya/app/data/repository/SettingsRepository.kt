@@ -83,6 +83,21 @@ class SettingsRepository(
         return SyncSnapshot(connected = status.connected, lastSyncedAt = status.lastSyncedAt?.toString())
     }
 
+    /**
+     * True once the first full sync has completed.
+     *
+     * Web reads the same `hasSynced` flag off `db.currentStatus` (see
+     * `apps/web/src/sync.ts`) and its `useInitialSyncPending()` is exactly
+     * `online && !hasSynced`. The first-run walkthrough's gate needs it:
+     * a RETURNING user's accounts have not arrived yet during the first sync,
+     * so judging "you have no accounts" then would tell them to set the app up
+     * from scratch.
+     *
+     * Nullable in the SDK — an unknown answer is treated as "not yet", which
+     * errs towards NOT showing the dialog.
+     */
+    fun hasSynced(): Boolean = db.currentStatus.hasSynced == true
+
     /** Rows still waiting in PowerSync's upload queue. */
     suspend fun crudQueueDepth(): Int? = db.getOptional(
         sql = "SELECT COUNT(*) AS n FROM ps_crud",

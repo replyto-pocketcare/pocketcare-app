@@ -191,7 +191,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/reflect` | (97) + `src/reflect` (160) | `reflect/ReflectScreen.kt` (300) | `ReflectView.swift` (200) | ✅ **Built 2026-08-26.** Swipeable card stack, need/greed buttons, undo, skip, counter, empty state. Two deliberate divergences away from web — see the session note |
 | `/help` | (152) | `help/HelpScreen.kt` (190) | `HelpView.swift` (110) | ✅ **Built 2026-08-26.** All 11 sections and 33 Q&A pairs, GENERATED from web's own `SECTIONS` by `tools/parity/generate-help.mjs`, plus search and expand/collapse. The one gap is web's too: the FAQ copy is English on all three |
 | `/notifications` | (75) + `src/notifications` (350) | `notifications/NotificationsScreen.kt` (215) | `NotificationsView.swift` (145) | 🔶 **Built 2026-08-26.** Inbox, unread tint, severity dot, mark-read, mark-all-read, dismiss, empty state. Absent: the row's `href` deep link — there is no web-path → native-route map yet |
-| `/onboarding` + `src/onboarding/Walkthrough.tsx` | (119) + (446) | ❌ nothing | ❌ **`WalkthroughView.swift` (121) is orphaned** — referenced only by its own `#Preview`, never rendered | ❌ first-run walkthrough shows on **neither** app. Akhilesh's call: wire the partial or delete it and port `Walkthrough.tsx` properly |
+| `/onboarding` + `src/onboarding/Walkthrough.tsx` | (119) + (446) | ✅ `ui/onboarding/WalkthroughScreen.kt` + `WalkthroughViewModel.kt` (gate + steps), mounted by `DashboardScreen` | ✅ `WalkthroughView.swift` (rewritten) + `ViewModels/WalkthroughViewModel.swift` (`WalkthroughGate` + `WalkthroughViewModel`), mounted by `DashboardView` | ✅ **done 2026-08-23.** All 7 steps, both writes, the `done`/`skipped` split, and `shouldShowWalkthrough()` in Domain under 103 vectors. The `/onboarding` **slide deck** (119) is a separate pre-auth screen and is still unported — see the auth-gate row |
 | `/groups` | (19) redirect → `/friends` | 🚫 | 🚫 | 🚫 |
 | `/subscriptions` | (8) redirect → `/recurring` | 🚫 | 🚫 | 🚫 |
 | `/join?token=` | (53) | ❌ | ❌ | ❌ needs App Links / Universal Links + a real domain |
@@ -340,6 +340,15 @@ user base they are invisible today, which is exactly why they have survived.
    and a `DD/MM/YYYY` row dated the 1st lands on the previous day for anyone east of UTC.
    Both ports read it as UTC, which is the only answer that gives every device the same
    ledger from the same file.
+
+7. **`apps/web/src/onboarding/Walkthrough.tsx`, `saveSpend()` — the same hardcoded ×100,
+   on the very first amount a new user ever enters.** `Math.round((Number(spendAmount) ||
+   0) * 100)`, three lines below a `saveAccount()` that correctly calls
+   `fromMajor(major, base)` for the opening balance. So a walkthrough that asks for an
+   opening balance and a first spend records the first correctly and the second wrong for
+   any currency that is not two-decimal — a ¥500 lunch lands as ¥5, in the one flow whose
+   entire purpose is to convince a nervous first-timer the app can be trusted with numbers.
+   Both ports use `fromMajor` on both.
 
 ## 6a. De-hardcoding programme (Akhilesh, 2026-08-23)
 
@@ -1529,6 +1538,68 @@ Two details worth keeping:
 the statement importer. The bulk *strategy* is what both ports use for the file
 importer; the statement path that also calls it is a separate screen and is
 still on the list.
+
+### The first-run walkthrough — 2026-08-23
+
+`/onboarding`'s `Walkthrough.tsx` is now on both platforms, and it is the first
+screen this sweep has ported where the *reason* for every decision is written
+down in the source: it exists for a real 60+ user who signed up, landed on the
+dashboard, read "add an account" as "link my bank", and stopped. Three rules
+follow from that and both ports keep them — say what the app IS before saying
+what to tap; treat manual entry as the product rather than an apology; and do
+not hand a first-timer the real new-account form, which offers Savings /
+Current / Credit card / Demat and reads as bank onboarding. Step 2 asks for a
+name and a number and defaults everything else.
+
+Steps 1–4 are setup and end in a real Finish. Steps 5–7 are opt-in, because
+making onboarding *longer* would be the wrong answer to "I found this
+overwhelming".
+
+**What is shared, and what is not.** The decision to show it is
+`shouldShowWalkthrough(done, skipped, syncPending, accountCountLoaded,
+realAccountCount, signedIn)` in Domain, pinned by the **entire 96-row truth
+table** plus 7 progress cases. That is not thoroughness for its own sake: four
+of the six inputs exist only to stop the dialog appearing at the wrong moment,
+and "did not appear" is the failure nobody notices until a returning user is
+told to set their accounts up from scratch. `syncPending` is the one that
+matters most — during the first sync a returning user's accounts have not
+arrived yet, so judging "you have no accounts" then is actively alarming.
+
+**The `done`/`skipped` split is deliberate and is web's.** `done` is permanent
+(`localStorage` → `Prefs`/`UserDefaults`, same `sanvya:walkthroughDone` key
+string on all three clients); `skipped` is this-launch-only (`sessionStorage` →
+the gate object's own memory, which is the same lifetime). Skipping is "not
+now": someone who taps it while still having no account should meet the
+walkthrough again next visit. A scrim tap resolves to `skip()`, never `finish()`.
+
+**Entitlement gained a real state object.** Step 7 needs `isTrial`
+specifically — "your trial is running" and "you are on a paid plan" are
+different sentences and only one of them has a countdown — and both platforms
+only had the `isPaid` half of `apps/web/src/entitlement.ts`. `entitlementState()`
+is now the whole of it (effective tier, isPaid, isTrial, trialDaysLeft, and the
+AI-quota arithmetic), `isPaid()` delegates to it so there is exactly one place
+that decides what a tier means, and 31 new vectors cover the trial boundary
+(day 14 in, day 15 out), the comp-tier override in both directions, and the
+rule that a stale `premium_trial_start_date` on a paid tier is **not** a trial.
+
+**Two defects found while wiring it, both fixed:**
+
+- iOS `ShellViewModel.isGuest` and `guestDaysLeft` were **declared and never
+  assigned.** `AppShell` drives its sign-in cover off `isGuest` — its own
+  comment calls `.onChange(of: viewModel.isGuest)` "the only exit" — so with the
+  value frozen at `false` the cover could never close itself and the guest chips
+  it gates were dead. Android had it right. iOS now reads both off the auth
+  session, which needed `currentUserCreatedAt` on `AuthRepository`.
+- Web bug #7 (below): `saveSpend()` computes minor units as `× 100`, three lines
+  below a `saveAccount()` that correctly uses `fromMajor`.
+
+**`SanvyaCard` gained a `background` override** on both platforms, which web's
+`.card` has always had. Step 5 and step 7 nest a card inside the modal's own
+card, and `surface` on `surface` is two identical fills separated by a hairline.
+
+**Not ported:** `/onboarding`'s pre-auth **slide deck** (`app/onboarding/page.tsx`,
+119 lines) is a different screen with different copy, reached by the auth gate
+rather than the dashboard. It is still on the list.
 
 ### Done-when for this section
 

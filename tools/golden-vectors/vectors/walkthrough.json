@@ -1,0 +1,1224 @@
+[
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": true,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": true,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": true,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": true
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": true,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 0,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 1,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldShowWalkthrough",
+    "input": {
+      "done": false,
+      "skipped": false,
+      "syncPending": false,
+      "accountCountLoaded": false,
+      "realAccountCount": 3,
+      "signedIn": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "walkthroughProgress",
+    "input": {
+      "step": 1
+    },
+    "expected": {
+      "step": 1,
+      "of": 4
+    }
+  },
+  {
+    "fn": "walkthroughProgress",
+    "input": {
+      "step": 2
+    },
+    "expected": {
+      "step": 2,
+      "of": 4
+    }
+  },
+  {
+    "fn": "walkthroughProgress",
+    "input": {
+      "step": 3
+    },
+    "expected": {
+      "step": 3,
+      "of": 4
+    }
+  },
+  {
+    "fn": "walkthroughProgress",
+    "input": {
+      "step": 4
+    },
+    "expected": {
+      "step": 4,
+      "of": 4
+    }
+  },
+  {
+    "fn": "walkthroughProgress",
+    "input": {
+      "step": 5
+    },
+    "expected": {
+      "step": 1,
+      "of": 3
+    }
+  },
+  {
+    "fn": "walkthroughProgress",
+    "input": {
+      "step": 6
+    },
+    "expected": {
+      "step": 2,
+      "of": 3
+    }
+  },
+  {
+    "fn": "walkthroughProgress",
+    "input": {
+      "step": 7
+    },
+    "expected": {
+      "step": 3,
+      "of": 3
+    }
+  }
+]

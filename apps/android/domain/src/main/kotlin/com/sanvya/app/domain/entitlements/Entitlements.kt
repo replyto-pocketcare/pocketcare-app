@@ -64,15 +64,90 @@ fun isPremiumFeature(feature: String): Boolean = !FREE_FEATURES.contains(feature
  * a 14-day-old-or-less premium_trial_start_date grants paid access even on
  * the free tier.
  */
-fun isPaid(tier: String?, premiumTrialStartDate: String?, compTier: String?, compUntil: String?, nowMillis: Long): Boolean {
-    fun normalize(t: String?): Int = when (t) { "pro", "premium" -> 2; "lite" -> 1; else -> 0 } // rank: free=0, lite=1, pro=2
-    val baseRank = normalize(tier)
-    val compActive = compUntil != null && runCatching { java.time.Instant.parse(compUntil).toEpochMilli() }.getOrDefault(0L) > nowMillis
-    val compRank = if (compActive) normalize(compTier) else 0
+fun isPaid(tier: String?, premiumTrialStartDate: String?, compTier: String?, compUntil: String?, nowMillis: Long): Boolean =
+    entitlementState(
+        tier = tier,
+        premiumTrialStartDate = premiumTrialStartDate,
+        compTier = compTier,
+        compUntil = compUntil,
+        nowMillis = nowMillis,
+    ).isPaid
+
+/**
+ * The whole of apps/web/src/entitlement.ts's `Entitlement` -- effective tier,
+ * paid/trial state, trial days left, and the AI quota arithmetic.
+ *
+ * [isPaid] above used to reimplement the paid half inline; it now delegates
+ * here, so there is exactly one place that decides what a tier means. Added
+ * 2026-08-23 for the first-run walkthrough, whose step 7 needs `isTrial`
+ * specifically -- "your trial is running" and "you are on a paid plan" are
+ * different sentences, and only the trial one has a countdown.
+ *
+ * Note the trial rule ported verbatim from web: a trial only counts while the
+ * EFFECTIVE tier is free. A paid subscriber with a stale
+ * `premium_trial_start_date` is not on trial, they are a customer.
+ */
+data class EntitlementState(
+    /** "free" | "lite" | "pro" -- comp tier folded in, highest rank wins. */
+    val tier: String,
+    /** Feature gate: any paid tier OR an active trial. */
+    val isPaid: Boolean,
+    val isTrial: Boolean,
+    val trialDaysLeft: Int,
+    val quotaTotal: Int,
+    val quotaUsed: Int,
+    val purchased: Int,
+    val quotaLeft: Int,
+)
+
+/** Millis for an ISO-8601 instant, or null when it is absent/unparseable. */
+private fun epochMillisOrNull(iso: String?): Long? {
+    if (iso == null) return null
+    return runCatching { java.time.Instant.parse(iso).toEpochMilli() }.getOrNull()
+}
+
+private fun tierRank(t: String?): Int = when (t) { "pro", "premium" -> 2; "lite" -> 1; else -> 0 }
+
+private fun tierName(rank: Int): String = when (rank) { 2 -> "pro"; 1 -> "lite"; else -> "free" }
+
+fun entitlementState(
+    tier: String?,
+    premiumTrialStartDate: String?,
+    compTier: String?,
+    compUntil: String?,
+    nowMillis: Long,
+    monthlyQuotaTotal: Int? = null,
+    monthlyQuotaUsed: Int? = null,
+    purchasedQuotaRemaining: Int? = null,
+    additionalPurchasedQuota: Int? = null,
+): EntitlementState {
+    val baseRank = tierRank(tier)
+    val compActive = (epochMillisOrNull(compUntil) ?: 0L) > nowMillis
+    val compRank = if (compActive) tierRank(compTier) else 0
     val effectiveRank = kotlin.math.max(baseRank, compRank)
-    if (effectiveRank > 0) return true
-    if (premiumTrialStartDate == null) return false
-    val trialStart = runCatching { java.time.Instant.parse(premiumTrialStartDate).toEpochMilli() }.getOrNull() ?: return false
-    val days = Math.ceil((nowMillis - trialStart) / 86_400_000.0)
-    return days <= 14
+
+    var isTrial = false
+    var trialDaysLeft = 0
+    val trialStart = epochMillisOrNull(premiumTrialStartDate)
+    if (trialStart != null && effectiveRank == 0) {
+        val days = Math.ceil((nowMillis - trialStart) / 86_400_000.0).toInt()
+        if (days <= 14) {
+            isTrial = true
+            trialDaysLeft = kotlin.math.max(0, 14 - days)
+        }
+    }
+
+    val quotaTotal = monthlyQuotaTotal ?: 0
+    val quotaUsed = monthlyQuotaUsed ?: 0
+    val purchased = (purchasedQuotaRemaining ?: 0) + (additionalPurchasedQuota ?: 0)
+    return EntitlementState(
+        tier = tierName(effectiveRank),
+        isPaid = effectiveRank > 0 || isTrial,
+        isTrial = isTrial,
+        trialDaysLeft = trialDaysLeft,
+        quotaTotal = quotaTotal,
+        quotaUsed = quotaUsed,
+        purchased = purchased,
+        quotaLeft = kotlin.math.max(0, quotaTotal - quotaUsed) + purchased,
+    )
 }

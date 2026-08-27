@@ -330,6 +330,53 @@ public final class LedgerRepository: @unchecked Sendable {
         return try db.watch(sql: "SELECT * FROM accounts WHERE \(where_) ORDER BY created_at", parameters: [], mapper: accountMapper)
     }
 
+    /// How many REAL accounts exist (reactive).
+    ///
+    /// Web's `useWalkthrough()` counts with exactly this WHERE clause, and the
+    /// difference from ``watchAccounts(includeArchived:)`` is deliberate on its
+    /// part: an ARCHIVED account still means "this person has set the app up",
+    /// so the first-run walkthrough must not reappear for someone who archived
+    /// their only account. `kind` is excluded because a virtual account (a
+    /// split group's ledger, a loan's shadow) is created BY the app, not by the
+    /// user, and would otherwise silently satisfy the check.
+    public func watchRealAccountCount() throws -> AsyncThrowingStream<Int, Error> {
+        let upstream = try db.watch(
+            sql: "SELECT COUNT(*) AS c FROM accounts WHERE deleted_at IS NULL AND IFNULL(kind,'real') = 'real'",
+            parameters: [],
+            mapper: { cursor in Int(try cursor.getInt64(name: "c")) }
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await rows in upstream { continuation.yield(rows.first ?? 0) }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    /// The oldest real account's id, or nil when there is none.
+    ///
+    /// A one-shot, not a watch: the walkthrough's optional first-spend step
+    /// needs an account to charge against exactly once, at the moment the user
+    /// taps save. Web reads `repos.accounts.list()[0]` there for the same
+    /// reason, and `created_at` ordering makes "the first one" mean the same
+    /// thing on both.
+    public func firstRealAccountId() async throws -> String? {
+        try await db.getOptional(
+            sql: """
+                SELECT id FROM accounts
+                WHERE deleted_at IS NULL AND IFNULL(is_archived, 0) = 0 AND IFNULL(kind,'real') = 'real'
+                ORDER BY created_at LIMIT 1
+                """,
+            parameters: [],
+            mapper: { cursor in try cursor.getString(name: "id") }
+        )
+    }
+
     /// Single account by id (reactive) -- matches accounts/[id]/edit/page.tsx's
     /// useQuery(single row, WHERE id = ?). Added 2026-08-05 for the Accounts
     /// edit screen, mirrors Android's LedgerRepository.kt addition the same

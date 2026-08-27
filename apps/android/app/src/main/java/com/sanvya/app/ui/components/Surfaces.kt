@@ -37,6 +37,13 @@ fun SanvyaCard(
     shape: Shape = SanvyaShape.radiusLg,
     padding: PaddingValues = PaddingValues(16.dp),
     onClick: (() -> Unit)? = null,
+    /**
+     * Overrides the fill. Web's `.card` takes a `background:` override in the
+     * handful of places a card is nested INSIDE another card — `surface` on
+     * `surface` is two identical fills separated only by a hairline, so the
+     * inner one all but disappears. `null` keeps the token default.
+     */
+    background: Color? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = LocalSanvyaColors.current
@@ -46,7 +53,7 @@ fun SanvyaCard(
     m = m
         .sanvyaShadow(LocalSanvyaShadows.current.shadow, shape)
         .clip(shape)
-        .background(colors.surface)
+        .background(background ?: colors.surface)
         .border(1.dp, colors.border, shape)
     if (onClick != null) {
         m = m.clickable(interactionSource = interaction, indication = null, onClick = onClick)

@@ -16,4 +16,31 @@ func registerEntitlementsVectors() {
         let d = input as! [String: Any]
         return isPremiumFeature(d["feature"] as! String)
     }
+
+    FunctionRegistry.register(domain: domain, fn: "entitlementState") { input in
+        let d = input as! [String: Any]
+        func str(_ k: String) -> String? { d[k] as? String }
+        func int(_ k: String) -> Int? { (d[k] as? NSNumber)?.intValue }
+        let s = entitlementState(
+            tier: str("tier"),
+            premiumTrialStartDate: str("premiumTrialStartDate"),
+            compTier: str("compTier"),
+            compUntil: str("compUntil"),
+            nowMillis: (d["nowMillis"] as! NSNumber).int64Value,
+            monthlyQuotaTotal: int("monthlyQuotaTotal"),
+            monthlyQuotaUsed: int("monthlyQuotaUsed"),
+            purchasedQuotaRemaining: int("purchasedQuotaRemaining"),
+            additionalPurchasedQuota: int("additionalPurchasedQuota")
+        )
+        return [
+            "tier": s.tier,
+            "isPaid": s.isPaid,
+            "isTrial": s.isTrial,
+            "trialDaysLeft": s.trialDaysLeft,
+            "quotaTotal": s.quotaTotal,
+            "quotaUsed": s.quotaUsed,
+            "purchased": s.purchased,
+            "quotaLeft": s.quotaLeft,
+        ] as [String: Any]
+    }
 }

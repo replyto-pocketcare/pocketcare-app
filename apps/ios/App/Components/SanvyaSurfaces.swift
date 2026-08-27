@@ -16,17 +16,24 @@ public struct SanvyaCard<Content: View>: View {
     private let padding: CGFloat
     private let cornerRadius: CGFloat
     private let action: (() -> Void)?
+    /// Overrides the fill. Web's `.card` takes a `background:` override in the
+    /// handful of places a card is nested INSIDE another card -- `surface` on
+    /// `surface` is two identical fills separated only by a hairline, so the
+    /// inner one all but disappears. `nil` keeps the token default.
+    private let background: Color?
     private let content: () -> Content
 
     public init(
         padding: CGFloat = 16,
         cornerRadius: CGFloat = SanvyaRadius.radiusLg,
         action: (() -> Void)? = nil,
+        background: Color? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.padding = padding
         self.cornerRadius = cornerRadius
         self.action = action
+        self.background = background
         self.content = content
     }
 
@@ -45,7 +52,7 @@ public struct SanvyaCard<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color.surface)
+                    .fill(background ?? Color.surface)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)

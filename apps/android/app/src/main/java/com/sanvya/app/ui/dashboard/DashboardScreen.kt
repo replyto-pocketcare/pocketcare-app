@@ -34,6 +34,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.SanvyaButton
 import com.sanvya.app.ui.components.SanvyaText
+import com.sanvya.app.ui.onboarding.WalkthroughHost
 import com.sanvya.app.data.repository.AccountWithBalance
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaRadius
@@ -58,6 +59,12 @@ import com.sanvya.app.i18n.sRes
 @Composable
 fun DashboardScreen(
     onOpenSettings: () -> Unit = {},
+    /**
+     * A guest choosing "Create a free account" from the walkthrough's last step.
+     * The shell owns the same destination for its guest chips; the dashboard
+     * only needs to be able to ask for it.
+     */
+    onSignIn: () -> Unit = {},
     onAddAccount: () -> Unit = {},
     onViewAccounts: () -> Unit = {},
     onViewTransactions: () -> Unit = {},
@@ -159,6 +166,17 @@ fun DashboardScreen(
     }
 
     AddWidgetSheet(open = addOpen, isPaid = isPaid, onClose = { addOpen = false })
+
+    // The first-run walkthrough, mounted here rather than in the shell because
+    // that is where web mounts it (`apps/web/app/page.tsx` renders
+    // `<Walkthrough />` in both of the dashboard's branches) -- and it is the
+    // right place: the dashboard is where a new user actually lands and stalls.
+    // It gates itself; `WalkthroughHost` renders nothing when it should not
+    // show.
+    WalkthroughHost(
+        onNavigateToLogin = onSignIn,
+        onNavigateToPlans = onOpenSettings,
+    )
 }
 
 @Composable

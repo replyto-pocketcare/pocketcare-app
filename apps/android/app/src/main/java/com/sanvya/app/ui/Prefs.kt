@@ -21,6 +21,7 @@ import org.koin.core.component.inject
  */
 object Prefs : KoinComponent {
     private const val PREFS_NAME = "sanvya_prefs"
+    private const val WALKTHROUGH_DONE_KEY = "sanvya:walkthroughDone"
     private const val HIDE_KEY = "amountsHidden"
     private const val THEME_KEY = "theme"
     private const val CURRENCY_KEY = "baseCurrency"
@@ -78,5 +79,26 @@ object Prefs : KoinComponent {
     fun setBaseCurrency(value: String) {
         sharedPrefs.edit().putString(CURRENCY_KEY, value).apply()
         _baseCurrency.value = value
+    }
+
+    /**
+     * First-run walkthrough, closed for good.
+     *
+     * Same key string as web's localStorage entry (`sanvya:walkthroughDone`) so
+     * the two clients mean the same thing by it, even though the stores differ.
+     * Its sibling — "skipped" — is deliberately NOT here: web keeps that one in
+     * `sessionStorage`, because skipping is "not now", and someone who taps it
+     * while still having no account should meet the walkthrough again next
+     * launch. That flag lives in the gate's own memory instead, which is the
+     * same lifetime.
+     */
+    private val _walkthroughDone: MutableStateFlow<Boolean> by lazy {
+        MutableStateFlow(sharedPrefs.getBoolean(WALKTHROUGH_DONE_KEY, false))
+    }
+    val walkthroughDone: StateFlow<Boolean> get() = _walkthroughDone
+
+    fun setWalkthroughDone() {
+        sharedPrefs.edit().putBoolean(WALKTHROUGH_DONE_KEY, true).apply()
+        _walkthroughDone.value = true
     }
 }

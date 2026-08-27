@@ -159,6 +159,7 @@ fun SanvyaNavHost() {
         composable("dashboard") {
             DashboardScreen(
                 onOpenSettings = { navController.navigate("settings") },
+                onSignIn = { navController.navigate("login") },
                 onAddAccount = { navController.navigate("accounts/new") },
                 onViewAccounts = { navController.navigate("accounts") },
                 onViewTransactions = { navController.navigate("transactions") },

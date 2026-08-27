@@ -43,6 +43,15 @@ struct DashboardView: View {
     @State private var showingAddTransactionSheet = false
     @State private var showingReceiptCapture = false
     @State private var reviewingScanId: String?
+    /// The first-run walkthrough. Mounted here, not in the shell, because that
+    /// is where web mounts it (`apps/web/app/page.tsx` renders `<Walkthrough />`
+    /// in both of the dashboard's branches) — and it is the right place: the
+    /// dashboard is where a new user actually lands and stalls.
+    @State private var walkthrough = WalkthroughGate()
+    /// A guest tapping step 7's "Create an account". `AppShell` owns the same
+    /// cover for its guest chips, but the walkthrough is presented FROM this
+    /// view, so it has to be the one to present what comes after it.
+    @State private var showingLogin = false
 
     var body: some View {
         NavigationStack {
@@ -207,9 +216,28 @@ struct DashboardView: View {
         .sanvyaModal(isPresented: $addOpen, label: S.Dashboard.addWidget) {
             AddWidgetSheet(isPaid: shellViewModel.canScan, onClose: { addOpen = false })
         }
+        // The design system's dialog, which is the port of web's `Modal` — the
+        // walkthrough is a dialog there too, and a plain `.fullScreenCover`
+        // would be a different presentation with different metrics.
+        //
+        // A scrim tap resolves to skip(), matching web's `onClose={skip}`: a
+        // tap outside is "not now", never "done".
+        .sanvyaModal(isPresented: Binding(
+            get: { walkthrough.isOpen },
+            set: { if !$0 { walkthrough.skip() } }
+        ), label: S.Onboarding.wtDialogLabel) {
+            WalkthroughView(
+                onFinish: { walkthrough.finish() },
+                onSkip: { walkthrough.skip() },
+                onNavigateToLogin: { showingLogin = true },
+                onNavigateToPlans: { currentTab = .settings }
+            )
+        }
+        .fullScreenCover(isPresented: $showingLogin) { LoginView() }
         .task { shellViewModel.start() }
         .onAppear {
             viewModel.start()
+            walkthrough.start()
         }
         .onDisappear {
             viewModel.cancel()

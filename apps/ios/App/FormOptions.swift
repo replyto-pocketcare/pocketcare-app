@@ -71,6 +71,20 @@ public enum FormOptions {
 
     public static let countries = ["", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other"]
 
+    /// A paid plan, straight from web's billing catalogue. Prices are RUPEES.
+    public struct Plan: Equatable, Sendable, Identifiable {
+        public let id: String
+        public let label: String
+        public let monthly: Int
+        public let yearly: Int
+        public let quota: Int
+    }
+
+    public static let plans: [Plan] = [
+        Plan(id: "lite", label: "Lite", monthly: 49, yearly: 499, quota: 50),
+        Plan(id: "pro", label: "Pro", monthly: 99, yearly: 999, quota: 200),
+    ]
+
     /**
      A stable colour for an id, when none was chosen.
 

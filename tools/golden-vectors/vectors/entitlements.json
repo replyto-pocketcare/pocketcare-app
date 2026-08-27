@@ -60,5 +60,749 @@
       "feature": "goals"
     },
     "expected": true
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": null,
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "lite",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "lite",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "pro",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "pro",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "premium",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "pro",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "2026-08-23T12:00:00Z",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": true,
+      "isTrial": true,
+      "trialDaysLeft": 14,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "2026-08-22T12:00:00Z",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": true,
+      "isTrial": true,
+      "trialDaysLeft": 13,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "2026-08-10T12:00:00Z",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": true,
+      "isTrial": true,
+      "trialDaysLeft": 1,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "2026-08-09T12:00:00Z",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": true,
+      "isTrial": true,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "2026-08-08T12:00:00Z",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "2026-01-01T12:00:00Z",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "pro",
+      "premiumTrialStartDate": "2026-08-22T12:00:00Z",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "pro",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "lite",
+      "premiumTrialStartDate": "2026-08-22T12:00:00Z",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "lite",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": "pro",
+      "compUntil": "2026-09-01T12:00:00Z",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "pro",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": "pro",
+      "compUntil": "2026-08-01T12:00:00Z",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": "lite",
+      "compUntil": "2026-09-01T12:00:00Z",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "lite",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "lite",
+      "premiumTrialStartDate": null,
+      "compTier": "pro",
+      "compUntil": "2026-09-01T12:00:00Z",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "pro",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "pro",
+      "premiumTrialStartDate": null,
+      "compTier": "lite",
+      "compUntil": "2026-09-01T12:00:00Z",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "pro",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "2026-08-22T12:00:00Z",
+      "compTier": "pro",
+      "compUntil": "2026-09-01T12:00:00Z",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "pro",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "2026-08-22T12:00:00Z",
+      "compTier": "pro",
+      "compUntil": "2026-08-01T12:00:00Z",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": true,
+      "isTrial": true,
+      "trialDaysLeft": 13,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": "premium",
+      "compUntil": "2026-09-01T12:00:00Z",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "pro",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": "2026-09-01T12:00:00Z",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "not-a-date",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": "pro",
+      "compUntil": "not-a-date",
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": "",
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": 100,
+      "monthlyQuotaUsed": 30,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 100,
+      "quotaUsed": 30,
+      "purchased": 0,
+      "quotaLeft": 70
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": 100,
+      "monthlyQuotaUsed": 30,
+      "purchasedQuotaRemaining": 20,
+      "additionalPurchasedQuota": 5
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 100,
+      "quotaUsed": 30,
+      "purchased": 25,
+      "quotaLeft": 95
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": 100,
+      "monthlyQuotaUsed": 140,
+      "purchasedQuotaRemaining": 20,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 100,
+      "quotaUsed": 140,
+      "purchased": 20,
+      "quotaLeft": 20
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "pro",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": 500,
+      "monthlyQuotaUsed": 0,
+      "purchasedQuotaRemaining": null,
+      "additionalPurchasedQuota": null
+    },
+    "expected": {
+      "tier": "pro",
+      "isPaid": true,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 500,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 500
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": null,
+      "monthlyQuotaUsed": null,
+      "purchasedQuotaRemaining": 7,
+      "additionalPurchasedQuota": 3
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 10,
+      "quotaLeft": 10
+    }
+  },
+  {
+    "fn": "entitlementState",
+    "input": {
+      "tier": "free",
+      "premiumTrialStartDate": null,
+      "compTier": null,
+      "compUntil": null,
+      "nowMillis": 1787486400000,
+      "monthlyQuotaTotal": 0,
+      "monthlyQuotaUsed": 0,
+      "purchasedQuotaRemaining": 0,
+      "additionalPurchasedQuota": 0
+    },
+    "expected": {
+      "tier": "free",
+      "isPaid": false,
+      "isTrial": false,
+      "trialDaysLeft": 0,
+      "quotaTotal": 0,
+      "quotaUsed": 0,
+      "purchased": 0,
+      "quotaLeft": 0
+    }
   }
 ]

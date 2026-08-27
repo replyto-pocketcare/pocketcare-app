@@ -140,6 +140,29 @@ const hexArray = (src, decl, what) => {
 const CHART_PALETTE = hexArray(readFileSync(INSIGHTS_SRC, "utf8"), "export const INSIGHT_PALETTE", "INSIGHT_PALETTE");
 const DASHBOARD_PALETTE = hexArray(readFileSync(TILES_SRC, "utf8"), "const PIE", "the dashboard PIE palette");
 const COUNTRIES = stringArray("COUNTRIES");
+
+/**
+ * The paid plans, from apps/web/src/billing/plans.ts.
+ *
+ * Prices, and prices are the last thing that should exist in three places. The
+ * walkthrough's last step quotes them, and a phone quoting a price the website
+ * has changed is worse than a phone that cannot quote one at all.
+ */
+const PLANS_SRC = path.join(REPO_ROOT, "apps/web/src/billing/plans.ts");
+const PLANS = (() => {
+  const src = readFileSync(PLANS_SRC, "utf8");
+  const out = [];
+  for (const m of src.matchAll(
+    /(\w+):\s*\{\s*id:\s*"(\w+)",\s*label:\s*"([^"]*)",\s*monthly:\s*(\d+),\s*yearly:\s*(\d+),\s*quota:\s*(\d+)/g,
+  )) {
+    out.push({ id: m[2], label: m[3], monthly: Number(m[4]), yearly: Number(m[5]), quota: Number(m[6]) });
+  }
+  if (out.length === 0) {
+    console.error("generate-options: parsed 0 plans from billing/plans.ts — the source shape changed. Fix this script rather than committing an empty list.");
+    process.exit(1);
+  }
+  return out;
+})();
 const GENDERS = genders();
 const DEFAULT_CURRENCY = scalar("DEFAULT_CURRENCY");
 const FALLBACK_ACCOUNT_COLOR = scalar("FALLBACK_ACCOUNT_COLOR");
@@ -216,6 +239,19 @@ ${GENDERS.map((g) => `        Option("${g.value}", "${g.label}"),`).join("\n")}
     )
 
     val countries = listOf(${ktList(COUNTRIES)})
+
+    /** A paid plan, straight from web's billing catalogue. Prices are RUPEES. */
+    data class Plan(
+        val id: String,
+        val label: String,
+        val monthly: Int,
+        val yearly: Int,
+        val quota: Int,
+    )
+
+    val plans = listOf(
+${PLANS.map((p) => `        Plan("${p.id}", "${p.label}", ${p.monthly}, ${p.yearly}, ${p.quota}),`).join("\n")}
+    )
 
     /**
      * A stable colour for an id, when none was chosen.
@@ -303,6 +339,19 @@ ${GENDERS.map((g) => `        Option(value: "${g.value}", label: "${g.label}"),`
 
     public static let countries = [${swiftList(COUNTRIES)}]
 
+    /// A paid plan, straight from web's billing catalogue. Prices are RUPEES.
+    public struct Plan: Equatable, Sendable, Identifiable {
+        public let id: String
+        public let label: String
+        public let monthly: Int
+        public let yearly: Int
+        public let quota: Int
+    }
+
+    public static let plans: [Plan] = [
+${PLANS.map((p) => `        Plan(id: "${p.id}", label: "${p.label}", monthly: ${p.monthly}, yearly: ${p.yearly}, quota: ${p.quota}),`).join("\n")}
+    ]
+
     /**
      A stable colour for an id, when none was chosen.
 
@@ -335,7 +384,7 @@ console.log(
   `catalog: ${CURRENCIES.length} currencies, ${PERIODS.length} periods, ` +
     `${ACCOUNT_TYPES.length} account types (${INVESTMENT_ACCOUNT_TYPES.length} investment), ${ACCOUNT_COLORS.length} colours, ` +
     `${CHART_PALETTE.length}+${DASHBOARD_PALETTE.length} chart colours, ` +
-    `${GENDERS.length} genders, ${COUNTRIES.length} countries.`,
+    `${GENDERS.length} genders, ${COUNTRIES.length} countries, ${PLANS.length} plans.`,
 );
 console.log("Wrote:");
 console.log(` - ${path.relative(REPO_ROOT, ANDROID_OUT)}`);

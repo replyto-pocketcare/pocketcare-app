@@ -81,6 +81,19 @@ final class ShellViewModel {
             }
         })
 
+        // `isGuest`/`guestDaysLeft` were DECLARED and never assigned (found
+        // 2026-08-23 while mounting the walkthrough). AppShell drives its
+        // sign-in cover off `isGuest` -- `.onChange(of: viewModel.isGuest)` is
+        // "the only exit" per its own comment -- so with the value frozen at
+        // `false` the cover could never close itself, and the guest chips it
+        // gates were dead. Web reads the same two off its session.
+        tasks.append(Task { [weak self] in
+            guard let self else { return }
+            for await _ in self.authRepository.authState {
+                await self.refreshGuest()
+            }
+        })
+
         Task { await refreshFailedWrites() }
     }
 
@@ -144,6 +157,20 @@ final class ShellViewModel {
      nothing. Web polls it every 30s for exactly this reason; do not "improve"
      it into a watch that would never fire.
      */
+    /// Web's guest trial is three days from sign-up (`created_at + 3 days`),
+    /// rounded UP to whole days remaining -- the same arithmetic
+    /// SettingsViewModel already does for the settings card.
+    private func refreshGuest() async {
+        let guest = await authRepository.isGuest()
+        isGuest = guest
+        guard guest, let createdAt = authRepository.currentUserCreatedAt else {
+            guestDaysLeft = nil
+            return
+        }
+        let remaining = createdAt.addingTimeInterval(3 * 86_400).timeIntervalSinceNow
+        guestDaysLeft = max(0, Int(ceil(remaining / 86_400)))
+    }
+
     func refreshFailedWrites() async {
         failedWriteCount = (try? await repairRepository.listFailedWrites(limit: 50).count) ?? 0
     }

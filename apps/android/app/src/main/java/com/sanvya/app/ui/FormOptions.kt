@@ -68,6 +68,20 @@ object FormOptions {
 
     val countries = listOf("", "IN", "US", "GB", "CA", "AU", "SG", "AE", "DE", "FR", "NL", "JP", "BR", "ZA", "NG", "KE", "Other")
 
+    /** A paid plan, straight from web's billing catalogue. Prices are RUPEES. */
+    data class Plan(
+        val id: String,
+        val label: String,
+        val monthly: Int,
+        val yearly: Int,
+        val quota: Int,
+    )
+
+    val plans = listOf(
+        Plan("lite", "Lite", 49, 499, 50),
+        Plan("pro", "Pro", 99, 999, 200),
+    )
+
     /**
      * A stable colour for an id, when none was chosen.
      *

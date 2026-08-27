@@ -66,27 +66,99 @@ public func isPremiumFeature(_ feature: String) -> Bool {
 /// while compUntil is still in the future; a 14-day-old-or-less
 /// premiumTrialStartDate grants paid access even on the free tier.
 public func isPaid(tier: String?, premiumTrialStartDate: String?, compTier: String?, compUntil: String?, now: Date) -> Bool {
-    func normalize(_ t: String?) -> Int {
-        switch t { case "pro", "premium": return 2; case "lite": return 1; default: return 0 }
-    }
-    // A fresh formatter per call (not cached) -- matches this codebase's
-    // established non-Sendable-Foundation-formatter rule; tries fractional
-    // seconds first, falls back to the no-fraction variant.
-    func parseIso(_ s: String) -> Date? {
-        let withFraction = ISO8601DateFormatter()
-        withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = withFraction.date(from: s) { return d }
-        return ISO8601DateFormatter().date(from: s)
-    }
-    let baseRank = normalize(tier)
-    let compActive: Bool = {
-        guard let compUntil, let compDate = parseIso(compUntil) else { return false }
-        return compDate > now
-    }()
-    let compRank = compActive ? normalize(compTier) : 0
+    entitlementState(
+        tier: tier,
+        premiumTrialStartDate: premiumTrialStartDate,
+        compTier: compTier,
+        compUntil: compUntil,
+        nowMillis: Int64((now.timeIntervalSince1970 * 1000).rounded())
+    ).isPaid
+}
+
+/// The whole of apps/web/src/entitlement.ts's `Entitlement` -- effective tier,
+/// paid/trial state, trial days left, and the AI quota arithmetic.
+///
+/// ``isPaid(tier:premiumTrialStartDate:compTier:compUntil:now:)`` above used to
+/// reimplement the paid half inline; it now delegates here, so there is exactly
+/// one place that decides what a tier means. Added 2026-08-23 for the first-run
+/// walkthrough, whose step 7 needs `isTrial` specifically -- "your trial is
+/// running" and "you are on a paid plan" are different sentences, and only the
+/// trial one has a countdown.
+///
+/// Note the trial rule ported verbatim from web: a trial only counts while the
+/// EFFECTIVE tier is free. A paid subscriber with a stale
+/// `premium_trial_start_date` is not on trial, they are a customer.
+public struct EntitlementState: Equatable, Sendable {
+    /// "free" | "lite" | "pro" -- comp tier folded in, highest rank wins.
+    public let tier: String
+    /// Feature gate: any paid tier OR an active trial.
+    public let isPaid: Bool
+    public let isTrial: Bool
+    public let trialDaysLeft: Int
+    public let quotaTotal: Int
+    public let quotaUsed: Int
+    public let purchased: Int
+    public let quotaLeft: Int
+}
+
+/// Millis for an ISO-8601 instant, or nil when it is absent/unparseable.
+/// A fresh formatter per call (not cached) -- matches this codebase's
+/// established non-Sendable-Foundation-formatter rule; tries fractional seconds
+/// first, falls back to the no-fraction variant.
+private func epochMillisOrNil(_ iso: String?) -> Int64? {
+    guard let iso else { return nil }
+    let withFraction = ISO8601DateFormatter()
+    withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    let date = withFraction.date(from: iso) ?? ISO8601DateFormatter().date(from: iso)
+    guard let date else { return nil }
+    return Int64((date.timeIntervalSince1970 * 1000).rounded())
+}
+
+private func tierRank(_ t: String?) -> Int {
+    switch t { case "pro", "premium": return 2; case "lite": return 1; default: return 0 }
+}
+
+private func tierName(_ rank: Int) -> String {
+    switch rank { case 2: return "pro"; case 1: return "lite"; default: return "free" }
+}
+
+public func entitlementState(
+    tier: String?,
+    premiumTrialStartDate: String?,
+    compTier: String?,
+    compUntil: String?,
+    nowMillis: Int64,
+    monthlyQuotaTotal: Int? = nil,
+    monthlyQuotaUsed: Int? = nil,
+    purchasedQuotaRemaining: Int? = nil,
+    additionalPurchasedQuota: Int? = nil
+) -> EntitlementState {
+    let baseRank = tierRank(tier)
+    let compActive = (epochMillisOrNil(compUntil) ?? 0) > nowMillis
+    let compRank = compActive ? tierRank(compTier) : 0
     let effectiveRank = max(baseRank, compRank)
-    if effectiveRank > 0 { return true }
-    guard let premiumTrialStartDate, let trialStart = parseIso(premiumTrialStartDate) else { return false }
-    let days = ceil(now.timeIntervalSince(trialStart) / 86_400.0)
-    return days <= 14
+
+    var isTrial = false
+    var trialDaysLeft = 0
+    if let trialStart = epochMillisOrNil(premiumTrialStartDate), effectiveRank == 0 {
+        let days = Int(ceil(Double(nowMillis - trialStart) / 86_400_000.0))
+        if days <= 14 {
+            isTrial = true
+            trialDaysLeft = max(0, 14 - days)
+        }
+    }
+
+    let quotaTotal = monthlyQuotaTotal ?? 0
+    let quotaUsed = monthlyQuotaUsed ?? 0
+    let purchased = (purchasedQuotaRemaining ?? 0) + (additionalPurchasedQuota ?? 0)
+    return EntitlementState(
+        tier: tierName(effectiveRank),
+        isPaid: effectiveRank > 0 || isTrial,
+        isTrial: isTrial,
+        trialDaysLeft: trialDaysLeft,
+        quotaTotal: quotaTotal,
+        quotaUsed: quotaUsed,
+        purchased: purchased,
+        quotaLeft: max(0, quotaTotal - quotaUsed) + purchased
+    )
 }

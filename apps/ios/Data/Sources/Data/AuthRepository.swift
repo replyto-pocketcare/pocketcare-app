@@ -4,6 +4,10 @@ import Supabase
 public protocol AuthRepository: Sendable {
     var authState: AsyncStream<AuthState> { get }
     var currentUserId: String? { get }
+
+    /// When the current user's account was created, or nil when signed out.
+    /// The guest trial is measured from it.
+    var currentUserCreatedAt: Date? { get }
     
     func ensureUser() async throws -> String
     func isGuest() async -> Bool
@@ -87,6 +91,12 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
     /// `.canonicalString`, not `.uuidString` — see Ids.swift.
     public var currentUserId: String? {
         client.auth.currentUser?.id.canonicalString
+    }
+
+    /// Same `currentUser` read as ``currentUserId`` — a local, non-refreshing
+    /// property, so it is safe to touch synchronously.
+    public var currentUserCreatedAt: Date? {
+        client.auth.currentUser?.createdAt
     }
     
     public func ensureUser() async throws -> String {
