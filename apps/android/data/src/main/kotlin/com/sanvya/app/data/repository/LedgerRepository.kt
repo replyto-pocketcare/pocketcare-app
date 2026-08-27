@@ -69,6 +69,13 @@ import com.sanvya.app.domain.ledger.aggregateNetWorth
 import com.sanvya.app.domain.ledger.deriveBalance
 import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.itemsReconcile
+import com.sanvya.app.domain.csv.CanonRow
+import com.sanvya.app.domain.csv.EXPORT_HEADERS
+import com.sanvya.app.domain.csv.guessAccountType
+import com.sanvya.app.domain.csv.importDate
+import com.sanvya.app.domain.csv.majorText
+import com.sanvya.app.domain.csv.toCsv
+import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.money.money
 import com.sanvya.app.domain.splits.SplitPosting
 import kotlinx.coroutines.flow.Flow
@@ -646,6 +653,230 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
      * for credit_card accounts (liabilities that carry a negative/owed
      * balance) and false otherwise, unless the caller passes an explicit
      * value -- matches `row.allow_negative ?? row.type === "credit_card"`. */
+    // -------------------------- CSV import / export --------------------------
+
+    data class ExportCsv(val csv: String, val count: Int)
+
+    /**
+     * Every non-deleted transaction as a PocketCare-format CSV.
+     *
+     * Web writes `(amount / 100).toFixed(2)` here -- the same hardcoded x100
+     * the de-hardcoding programme is removing everywhere else, and worse than
+     * usual because the importer reads it straight back: a JPY 500 charge
+     * exports as "5.00" and re-imports as JPY 5. This uses the currency's own
+     * minor-unit count in both directions, so a round trip is lossless for
+     * every currency.
+     */
+    suspend fun exportTransactionsCsv(): ExportCsv {
+        data class ExportRow(
+            val occurredAt: String,
+            val type: String,
+            val amount: Long,
+            val currency: String,
+            val account: String?,
+            val toAccount: String?,
+            val toAmount: Long?,
+            val category: String?,
+            val labels: String?,
+            val method: String?,
+            val note: String?,
+            val description: String?,
+        )
+
+        val rows = db.getAll(
+            sql = """
+                SELECT t.occurred_at, t.type, t.amount, t.currency,
+                       a.name  AS account,
+                       a2.name AS to_account, t.to_amount,
+                       c.name  AS category,
+                       (SELECT GROUP_CONCAT(l.name, '|') FROM transaction_labels tl
+                          JOIN labels l ON l.id = tl.label_id
+                         WHERE tl.transaction_id = t.id) AS labels,
+                       (SELECT pm.label FROM payment_methods pm WHERE pm.id = t.payment_method) AS method,
+                       t.note, t.description
+                  FROM transactions t
+                  LEFT JOIN accounts   a  ON a.id  = t.account_id
+                  LEFT JOIN accounts   a2 ON a2.id = t.to_account_id
+                  LEFT JOIN categories c  ON c.id  = t.category_id
+                 WHERE t.deleted_at IS NULL
+                 ORDER BY t.occurred_at
+            """.trimIndent(),
+            parameters = emptyList(),
+            mapper = { cursor ->
+                ExportRow(
+                    occurredAt = cursor.getString("occurred_at"),
+                    type = cursor.getString("type"),
+                    amount = cursor.getLongOptional("amount") ?: 0L,
+                    currency = cursor.getString("currency"),
+                    account = cursor.getStringOptional("account"),
+                    toAccount = cursor.getStringOptional("to_account"),
+                    toAmount = cursor.getLongOptional("to_amount"),
+                    category = cursor.getStringOptional("category"),
+                    labels = cursor.getStringOptional("labels"),
+                    method = cursor.getStringOptional("method"),
+                    note = cursor.getStringOptional("note"),
+                    description = cursor.getStringOptional("description"),
+                )
+            },
+        )
+
+        val table = mutableListOf<List<String?>>(EXPORT_HEADERS)
+        for (r in rows) {
+            table.add(
+                listOf(
+                    r.occurredAt,
+                    r.type,
+                    majorText(r.amount, r.currency),
+                    r.currency,
+                    r.account ?: "",
+                    r.toAccount ?: "",
+                    r.toAmount?.let { majorText(it, r.currency) } ?: "",
+                    r.category ?: "",
+                    r.labels ?: "",
+                    r.method ?: "",
+                    r.note ?: "",
+                    r.description ?: "",
+                )
+            )
+        }
+        return ExportCsv(toCsv(table), rows.size)
+    }
+
+    data class ImportResult(
+        val created: Int = 0,
+        val skipped: Int = 0,
+        val failed: Int = 0,
+        val errors: List<String> = emptyList(),
+    )
+
+    /**
+     * Imports canonical rows: find-or-create accounts and categories, then
+     * insert the transactions.
+     *
+     * ONE write transaction for the whole file, which is web's `...Bulk`
+     * variant rather than its per-row one. PowerSync records a CRUD entry per
+     * row and uploads a contiguous run as a single batched request; a
+     * transaction per row means one PostgREST request per row on the next sync,
+     * which for a ten-thousand-line statement is the difference between one
+     * upload and ten thousand.
+     *
+     * Labels, transfers' destination legs and the overdraft guard are NOT
+     * handled here, matching the bulk variant: imported rows are historical
+     * facts, not new spend to validate.
+     */
+    suspend fun importTransactions(
+        userId: String,
+        rows: List<CanonRow>,
+        baseCurrency: String,
+        stampIso: String,
+        skipDuplicates: Boolean = true,
+    ): ImportResult {
+        if (rows.isEmpty()) return ImportResult()
+
+        val accountCache = mutableMapOf<String, String>()
+        db.getAll(
+            sql = "SELECT id, name FROM accounts WHERE deleted_at IS NULL",
+            parameters = emptyList(),
+            mapper = { c -> c.getString("id") to c.getString("name") },
+        ).forEach { (id, name) -> accountCache[name.trim().lowercase()] = id }
+
+        val categoryCache = mutableMapOf<String, String>()
+        db.getAll(
+            sql = "SELECT id, name, kind FROM categories WHERE deleted_at IS NULL",
+            parameters = emptyList(),
+            mapper = { c -> Triple(c.getString("id"), c.getString("name"), c.getString("kind")) },
+        ).forEach { (id, name, kind) -> categoryCache["$kind:${name.trim().lowercase()}"] = id }
+
+        val seen = mutableSetOf<String>()
+        if (skipDuplicates) {
+            db.getAll(
+                sql = "SELECT account_id, amount, type, occurred_at FROM transactions WHERE deleted_at IS NULL",
+                parameters = emptyList(),
+                mapper = { c ->
+                    "${c.getString("account_id")}|${c.getLongOptional("amount") ?: 0L}|" +
+                        "${c.getString("type")}|${c.getString("occurred_at")}"
+                },
+            ).forEach { seen.add(it) }
+        }
+
+        val ts = nowIso()
+        var created = 0
+        var skipped = 0
+        var failed = 0
+        val errors = mutableListOf<String>()
+
+        db.writeTransaction { tx ->
+            for (row in rows) {
+                try {
+                    val currency = row.currency.ifEmpty { baseCurrency }
+                    val occurredAt = importDate(row.date, stampIso)
+                    val amountMinor = fromMajor(row.amount, currency).amount
+
+                    val accountKey = row.account.trim().lowercase()
+                    val accountId = accountCache[accountKey] ?: run {
+                        val id = newId()
+                        tx.execute(
+                            sql = """INSERT INTO accounts
+                                (id,user_id,name,type,currency,icon,color,is_archived,include_in_net_worth,created_at,updated_at)
+                                VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                            parameters = listOf(
+                                id, userId, row.account.trim(), guessAccountType(row.account),
+                                currency, null, null, 0L, 1L, ts, ts,
+                            ),
+                        )
+                        accountCache[accountKey] = id
+                        id
+                    }
+
+                    val dupKey = "$accountId|$amountMinor|${row.type}|$occurredAt"
+                    if (skipDuplicates && dupKey in seen) {
+                        skipped++
+                        continue
+                    }
+                    seen.add(dupKey)
+
+                    val categoryName = row.category
+                    val categoryId = if (categoryName != null && (row.type == "income" || row.type == "expense")) {
+                        val kind = if (row.type == "income") "income" else "expense"
+                        val key = "$kind:${categoryName.trim().lowercase()}"
+                        categoryCache[key] ?: run {
+                            val id = newId()
+                            tx.execute(
+                                sql = """INSERT INTO categories
+                                    (id,user_id,name,kind,is_system,parent_id,icon,color,created_at,updated_at)
+                                    VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                                parameters = listOf(
+                                    id, userId, categoryName.trim(), kind, 0L, null, null, null, ts, ts,
+                                ),
+                            )
+                            categoryCache[key] = id
+                            id
+                        }
+                    } else {
+                        null
+                    }
+
+                    tx.execute(
+                        sql = """INSERT INTO transactions
+                            (id,user_id,account_id,type,amount,currency,category_id,note,description,payment_method,
+                             occurred_at,transfer_group_id,to_account_id,to_amount,fx_rate,created_at,updated_at)
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        parameters = listOf(
+                            newId(), userId, accountId, row.type, amountMinor, currency, categoryId,
+                            row.note, row.description, null, occurredAt, null, null, null, null, ts, ts,
+                        ),
+                    )
+                    created++
+                } catch (e: Exception) {
+                    failed++
+                    if (errors.size < 8) errors.add(e.message ?: e.toString())
+                }
+            }
+        }
+
+        return ImportResult(created, skipped, failed, errors)
+    }
+
     /**
      * One row of the Reflect queue. The category and account names are joined
      * in the query rather than resolved in the view model: this is the only

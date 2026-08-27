@@ -909,6 +909,240 @@ public final class LedgerRepository: @unchecked Sendable {
         return id
     }
 
+    // MARK: - CSV import / export
+
+    /// Every non-deleted transaction as a PocketCare-format CSV.
+    ///
+    /// Web writes `(amount / 100).toFixed(2)` here — the same hardcoded ×100
+    /// the de-hardcoding programme is removing everywhere else, and worse than
+    /// usual because the importer reads it straight back: a ¥500 charge exports
+    /// as "5.00" and re-imports as ¥5. This uses the currency's own minor-unit
+    /// count in both directions, so a round trip is lossless for every currency.
+    public func exportTransactionsCsv() async throws -> (csv: String, count: Int) {
+        struct ExportRow: Sendable {
+            let occurredAt: String
+            let type: String
+            let amount: Int64
+            let currency: String
+            let account: String?
+            let toAccount: String?
+            let toAmount: Int64?
+            let category: String?
+            let labels: String?
+            let method: String?
+            let note: String?
+            let description: String?
+        }
+
+        let rows: [ExportRow] = try await db.getAll(
+            sql: """
+                SELECT t.occurred_at, t.type, t.amount, t.currency,
+                       a.name  AS account,
+                       a2.name AS to_account, t.to_amount,
+                       c.name  AS category,
+                       (SELECT GROUP_CONCAT(l.name, '|') FROM transaction_labels tl
+                          JOIN labels l ON l.id = tl.label_id
+                         WHERE tl.transaction_id = t.id) AS labels,
+                       (SELECT pm.label FROM payment_methods pm WHERE pm.id = t.payment_method) AS method,
+                       t.note, t.description
+                  FROM transactions t
+                  LEFT JOIN accounts   a  ON a.id  = t.account_id
+                  LEFT JOIN accounts   a2 ON a2.id = t.to_account_id
+                  LEFT JOIN categories c  ON c.id  = t.category_id
+                 WHERE t.deleted_at IS NULL
+                 ORDER BY t.occurred_at
+                """,
+            parameters: [],
+            mapper: { cursor in
+                ExportRow(
+                    occurredAt: try cursor.getString(name: "occurred_at"),
+                    type: try cursor.getString(name: "type"),
+                    amount: try cursor.getInt64(name: "amount"),
+                    currency: try cursor.getString(name: "currency"),
+                    account: try cursor.getStringOptional(name: "account"),
+                    toAccount: try cursor.getStringOptional(name: "to_account"),
+                    toAmount: try cursor.getInt64Optional(name: "to_amount"),
+                    category: try cursor.getStringOptional(name: "category"),
+                    labels: try cursor.getStringOptional(name: "labels"),
+                    method: try cursor.getStringOptional(name: "method"),
+                    note: try cursor.getStringOptional(name: "note"),
+                    description: try cursor.getStringOptional(name: "description")
+                )
+            }
+        )
+
+        var table: [[String?]] = [exportHeaders]
+        for r in rows {
+            table.append([
+                r.occurredAt,
+                r.type,
+                majorText(r.amount, r.currency),
+                r.currency,
+                r.account ?? "",
+                r.toAccount ?? "",
+                r.toAmount.map { majorText($0, r.currency) } ?? "",
+                r.category ?? "",
+                r.labels ?? "",
+                r.method ?? "",
+                r.note ?? "",
+                r.description ?? "",
+            ])
+        }
+        return (csv: toCsv(table), count: rows.count)
+    }
+
+    public struct ImportResult: Sendable {
+        public var created = 0
+        public var skipped = 0
+        public var failed = 0
+        public var errors: [String] = []
+    }
+
+    /**
+     Imports canonical rows: find-or-create accounts and categories, then insert
+     the transactions.
+
+     ONE write transaction for the whole file, which is web's `…Bulk` variant
+     rather than its per-row one. PowerSync records a CRUD entry per row and
+     uploads a contiguous run as a single batched request; a transaction per row
+     means one PostgREST request per row on the next sync, which for a
+     ten-thousand-line statement is the difference between one upload and ten
+     thousand.
+
+     Labels, transfers' destination legs and the overdraft guard are NOT handled
+     here, matching the bulk variant: imported rows are historical facts, not
+     new spend to validate.
+     */
+    public func importTransactions(
+        userId: String,
+        rows: [CanonRow],
+        baseCurrency: String,
+        nowIso stampIso: String,
+        skipDuplicates: Bool = true
+    ) async throws -> ImportResult {
+        var result = ImportResult()
+        if rows.isEmpty { return result }
+
+        var accountCache: [String: String] = [:]
+        for row in try await db.getAll(
+            sql: "SELECT id, name FROM accounts WHERE deleted_at IS NULL",
+            parameters: [],
+            mapper: { c in (try c.getString(name: "id"), try c.getString(name: "name")) }
+        ) {
+            accountCache[row.1.trimmingCharacters(in: .whitespaces).lowercased()] = row.0
+        }
+
+        var categoryCache: [String: String] = [:]
+        for row in try await db.getAll(
+            sql: "SELECT id, name, kind FROM categories WHERE deleted_at IS NULL",
+            parameters: [],
+            mapper: { c in
+                (try c.getString(name: "id"), try c.getString(name: "name"), try c.getString(name: "kind"))
+            }
+        ) {
+            categoryCache["\(row.2):\(row.1.trimmingCharacters(in: .whitespaces).lowercased())"] = row.0
+        }
+
+        var seen = Set<String>()
+        if skipDuplicates {
+            for key in try await db.getAll(
+                sql: "SELECT account_id, amount, type, occurred_at FROM transactions WHERE deleted_at IS NULL",
+                parameters: [],
+                mapper: { c in
+                    "\(try c.getString(name: "account_id"))|\(try c.getInt64(name: "amount"))|\(try c.getString(name: "type"))|\(try c.getString(name: "occurred_at"))"
+                }
+            ) { seen.insert(key) }
+        }
+
+        let ts = nowIso()
+        // Captured out of the transaction body and copied back after: the
+        // closure cannot mutate `result` in place under Swift 6.
+        var created = 0, skipped = 0, failed = 0
+        var errors: [String] = []
+
+        try await db.writeTransaction { tx in
+            for row in rows {
+                do {
+                    let currency = row.currency.isEmpty ? baseCurrency : row.currency
+                    let occurredAt = importDate(row.date, nowIso: stampIso)
+                    let amountMinor = fromMajor(row.amount, currency).amount
+
+                    let accountKey = row.account.trimmingCharacters(in: .whitespaces).lowercased()
+                    let accountId: String
+                    if let hit = accountCache[accountKey] {
+                        accountId = hit
+                    } else {
+                        accountId = newId()
+                        try tx.execute(
+                            sql: """
+                                INSERT INTO accounts (id,user_id,name,type,currency,icon,color,is_archived,include_in_net_worth,created_at,updated_at)
+                                VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                                """,
+                            parameters: [
+                                accountId, userId, row.account.trimmingCharacters(in: .whitespaces),
+                                guessAccountType(row.account), currency, nil, nil, 0, 1, ts, ts,
+                            ]
+                        )
+                        accountCache[accountKey] = accountId
+                    }
+
+                    let dupKey = "\(accountId)|\(amountMinor)|\(row.type)|\(occurredAt)"
+                    if skipDuplicates && seen.contains(dupKey) {
+                        skipped += 1
+                        continue
+                    }
+                    seen.insert(dupKey)
+
+                    var categoryId: String?
+                    if let name = row.category, row.type == "income" || row.type == "expense" {
+                        let kind = row.type == "income" ? "income" : "expense"
+                        let key = "\(kind):\(name.trimmingCharacters(in: .whitespaces).lowercased())"
+                        if let hit = categoryCache[key] {
+                            categoryId = hit
+                        } else {
+                            let id = newId()
+                            try tx.execute(
+                                sql: """
+                                    INSERT INTO categories (id,user_id,name,kind,is_system,parent_id,icon,color,created_at,updated_at)
+                                    VALUES (?,?,?,?,?,?,?,?,?,?)
+                                    """,
+                                parameters: [
+                                    id, userId, name.trimmingCharacters(in: .whitespaces), kind,
+                                    0, nil, nil, nil, ts, ts,
+                                ]
+                            )
+                            categoryCache[key] = id
+                            categoryId = id
+                        }
+                    }
+
+                    try tx.execute(
+                        sql: """
+                            INSERT INTO transactions
+                              (id,user_id,account_id,type,amount,currency,category_id,note,description,payment_method,
+                               occurred_at,transfer_group_id,to_account_id,to_amount,fx_rate,created_at,updated_at)
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                            """,
+                        parameters: [
+                            newId(), userId, accountId, row.type, amountMinor, currency, categoryId,
+                            row.note, row.description, nil, occurredAt, nil, nil, nil, nil, ts, ts,
+                        ]
+                    )
+                    created += 1
+                } catch {
+                    failed += 1
+                    if errors.count < 8 { errors.append(String(describing: error)) }
+                }
+            }
+        }
+
+        result.created = created
+        result.skipped = skipped
+        result.failed = failed
+        result.errors = errors
+        return result
+    }
+
     /// The Reflect queue — web's `useIntentQueue`.
     ///
     /// Untagged expenses only, newest first, capped at 50. `intent` is the

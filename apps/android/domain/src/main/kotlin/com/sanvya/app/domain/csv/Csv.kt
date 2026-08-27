@@ -100,3 +100,25 @@ internal fun jsParseFloat(s: String): Double? {
     val match = Regex("^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?").find(s) ?: return null
     return match.value.toDoubleOrNull()
 }
+
+/**
+ * A minor-unit amount as the plain major-unit number a CSV cell holds:
+ * `49900` INR -> `"499.00"`, `500` JPY -> `"500"`.
+ *
+ * Web writes `(amount / 100).toFixed(2)` and its importer reads that straight
+ * back, so a JPY 500 charge exports as "5.00" and re-imports as JPY 5 -- a
+ * round trip that loses money for every currency that is not two-decimal. Using
+ * the currency's own minor-unit count in both directions makes the round trip
+ * lossless, and for INR, USD and EUR produces byte-identical output to web's.
+ *
+ * Deliberately NOT `formatMoney`: this is a machine-readable cell. A grouped,
+ * symbol-prefixed, locale-formatted number is what the importer's amount parser
+ * has to fight its way back out of.
+ */
+fun majorText(minor: Long, currency: String): String {
+    val decimals = com.sanvya.app.domain.money.minorUnits(currency)
+    val major = com.sanvya.app.domain.money.toMajor(
+        com.sanvya.app.domain.money.money(minor, currency)
+    )
+    return String.format(java.util.Locale.ROOT, "%.${decimals}f", major)
+}

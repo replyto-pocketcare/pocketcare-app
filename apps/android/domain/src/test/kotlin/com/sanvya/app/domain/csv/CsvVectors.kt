@@ -78,4 +78,18 @@ fun registerCsvVectors() {
             ).map(::canonToJson)
         )
     }
+
+    FunctionRegistry.register(DOMAIN, "importDate") { input ->
+        val o = input.jsonObject
+        JsonPrimitive(
+            importDate(
+                o.getValue("raw").jsonPrimitive.content,
+                o.getValue("nowIso").jsonPrimitive.content,
+            )
+        )
+    }
+
+    FunctionRegistry.register(DOMAIN, "guessAccountType") { input ->
+        JsonPrimitive(guessAccountType(input.jsonObject.getValue("name").jsonPrimitive.content))
+    }
 }

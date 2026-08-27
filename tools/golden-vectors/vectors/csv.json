@@ -685,5 +685,301 @@
         "description": null
       }
     ]
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-08-01",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-8-1",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-08-01T09:30",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-01T09:30:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-08-01T09:30:15",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-01T09:30:15.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-08-01 09:30",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-01T09:30:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-08-01T09:30:15.123Z",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-01T09:30:15.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-02-29",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2024-02-29",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2024-02-29T00:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-13-01",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-00-10",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "2026-08-32",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "31/12/2026",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-12-31T00:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "1/1/26",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "31-12-2026",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-12-31T00:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "31.12.2026",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-12-31T00:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "31/12/2026 23:45",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-12-31T23:45:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "29/02/2024",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2024-02-29T00:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "29/02/2026",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "13/13/2026",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "Aug 1, 2026",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "nonsense",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "importDate",
+    "input": {
+      "raw": "  2026-08-01",
+      "nowIso": "2026-08-26T12:00:00.000Z"
+    },
+    "expected": "2026-08-26T12:00:00.000Z"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "HDFC Savings"
+    },
+    "expected": "savings"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "ICICI Credit Card"
+    },
+    "expected": "credit_card"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "Zerodha Stocks"
+    },
+    "expected": "stocks"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "My MF Portfolio"
+    },
+    "expected": "mutual_funds"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "SIP account"
+    },
+    "expected": "mutual_funds"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "Cash"
+    },
+    "expected": "cash"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "Paytm Wallet"
+    },
+    "expected": "cash"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "Current Account"
+    },
+    "expected": "current"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "Checking"
+    },
+    "expected": "current"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "Equity Fund"
+    },
+    "expected": "stocks"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "shares"
+    },
+    "expected": "stocks"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "share"
+    },
+    "expected": "stocks"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "MFG"
+    },
+    "expected": "savings"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "discard"
+    },
+    "expected": "savings"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": ""
+    },
+    "expected": "savings"
+  },
+  {
+    "fn": "guessAccountType",
+    "input": {
+      "name": "SAVINGS"
+    },
+    "expected": "savings"
   }
 ]

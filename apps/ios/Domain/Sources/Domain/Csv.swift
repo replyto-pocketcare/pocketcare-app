@@ -125,3 +125,21 @@ func jsParseFloat(_ s: String) -> Double? {
           let range = Range(match.range, in: s) else { return nil }
     return Double(s[range])
 }
+
+/// A minor-unit amount as the plain major-unit number a CSV cell holds:
+/// `49900` INR → `"499.00"`, `500` JPY → `"500"`.
+///
+/// Web writes `(amount / 100).toFixed(2)` and its importer reads that straight
+/// back, so a ¥500 charge exports as "5.00" and re-imports as ¥5 — a round trip
+/// that loses money for every currency that is not two-decimal. Using the
+/// currency's own minor-unit count in both directions makes the round trip
+/// lossless, and for INR, USD and EUR produces byte-identical output to web's.
+///
+/// Deliberately NOT `formatMoney`: this is a machine-readable cell. A grouped,
+/// symbol-prefixed, locale-formatted number is what the importer's `num()` has
+/// to fight its way back out of.
+public func majorText(_ minor: Int64, _ currency: String) -> String {
+    let decimals = minorUnits(currency)
+    let major = toMajor(money(minor, currency))
+    return String(format: "%.\(decimals)f", locale: Locale(identifier: "en_US_POSIX"), major)
+}

@@ -292,7 +292,7 @@ source that is not a web file.
 
 ### Web bugs found while porting — for Akhilesh to schedule separately
 
-Found by reading web as the parity source. **None are fixed on web.** The first three are fixed
+Found by reading web as the parity source. **None are fixed on web.** All but #4 are fixed
 in the native ports, which deliberately diverge from their stated source; the fourth is
 reproduced deliberately and pinned by a vector, because a silent divergence on an amount is
 worse than a shared bug.
@@ -326,6 +326,20 @@ user base they are invisible today, which is exactly why they have survived.
    Both native ports reproduce it, and a golden vector pins it — so a fix on web makes that
    vector fail rather than passing quietly on two platforms out of three. **This one is
    worth scheduling ahead of the other three.**
+
+5. **`apps/web/src/data/exportCsv.ts` — the CSV round trip loses money for any currency
+   that is not two-decimal.** The exporter writes `(amount / 100).toFixed(2)` and the
+   importer reads that straight back with `fromMajor`, which uses the currency's real
+   minor-unit count. A ¥500 charge exports as `"5.00"` and re-imports as **¥5**.
+   Both native ports use `minorUnits(currency)` in both directions, which is byte-identical
+   to web's output for INR, USD and EUR and correct for the rest.
+
+6. **`toIso` in `apps/web/src/data/importCsv.ts` reads a dateless date column in the
+   DEVICE's timezone.** `new Date(yr, mm-1, dd, hh, mi)` is local, then `.toISOString()`.
+   The same CSV therefore imports different `occurred_at` values in Mumbai and in London,
+   and a `DD/MM/YYYY` row dated the 1st lands on the previous day for anyone east of UTC.
+   Both ports read it as UTC, which is the only answer that gives every device the same
+   ledger from the same file.
 
 ## 6a. De-hardcoding programme (Akhilesh, 2026-08-23)
 
@@ -1449,6 +1463,39 @@ Two deliberate shape changes:
 `downloadText` is deliberately NOT ported: there is nothing shared between a
 browser anchor click, an Android SAF intent and a `UIActivityViewController`.
 The repositories and the screen are the next commit.
+
+### Import/export, part two: the repositories — 2026-08-26
+
+`exportTransactionsCsv` and `importTransactions` are on both platforms, plus two
+more Domain pieces with 39 vectors between them: `importDate` (web's `toIso`)
+and `guessAccountType`.
+
+**One write transaction for the whole import file**, which is web's `…Bulk`
+variant rather than its per-row one. PowerSync records a CRUD entry per row and
+uploads a contiguous run as a single batched request; a transaction per row
+means one PostgREST request per row on the next sync — for a ten-thousand-line
+statement, the difference between one upload and ten thousand.
+
+**Two more web bugs, both now #5 and #6 on the list**, both fixed in the ports:
+
+- The CSV **round trip loses money** for any currency that is not two-decimal.
+  Export writes `(amount / 100).toFixed(2)`; import reads it back with
+  `fromMajor`, which uses the real minor-unit count. ¥500 exports as `"5.00"`
+  and re-imports as ¥5. `majorText` uses `minorUnits(currency)` in both
+  directions — byte-identical to web for INR/USD/EUR, correct for the rest.
+- `toIso` reads a dateless date column in the **device's timezone**. The same
+  file imports different `occurred_at` values in Mumbai and London, and a
+  `DD/MM/YYYY` row dated the 1st lands a day earlier for anyone east of UTC.
+  Both ports read it as UTC.
+
+`importDate` also narrows the accepted formats deliberately: web's `new Date(s)`
+takes anything the JS engine parses, including `"Aug 1, 2026"`. There is no
+equivalent on either phone and no specification to port, so the ports accept
+ISO-8601 and the day-first numeric forms real exports contain, and fall back to
+"now" for anything else — which is what an unparseable string does on web too.
+
+Still to come: the screen, and the platform file IO (Android SAF, iOS document
+picker + share sheet), which is the part with no shared shape at all.
 
 ### Done-when for this section
 

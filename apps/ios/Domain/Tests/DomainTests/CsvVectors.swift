@@ -67,4 +67,14 @@ func registerCsvVectors() {
             nowIso: d["nowIso"] as! String
         ).map(canonToJson)
     }
+
+    FunctionRegistry.register(domain: "csv", fn: "importDate") { input in
+        let d = input as! [String: Any]
+        return importDate(d["raw"] as! String, nowIso: d["nowIso"] as! String)
+    }
+
+    FunctionRegistry.register(domain: "csv", fn: "guessAccountType") { input in
+        let d = input as! [String: Any]
+        return guessAccountType(d["name"] as! String)
+    }
 }
