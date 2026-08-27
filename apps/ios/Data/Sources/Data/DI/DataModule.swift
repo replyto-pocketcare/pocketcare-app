@@ -116,6 +116,19 @@ public extension Container {
         self { InvitesRepository(client: self.supabaseClient()) }.singleton
     }
 
+    var assistantRepository: Factory<AssistantRepository> {
+        self {
+            AssistantRepository(
+                db: self.powerSyncDatabase(),
+                ledgerRepository: self.ledgerRepository(),
+                goalsRepository: self.goalsRepository(),
+                budgetRepository: self.budgetRepository(),
+                subscriptionsRepository: self.subscriptionsRepository(),
+                splitsRepository: self.splitsRepository()
+            )
+        }.singleton
+    }
+
     var goalsRepository: Factory<GoalsRepository> {
         self { GoalsRepository(db: self.powerSyncDatabase()) }.singleton
     }

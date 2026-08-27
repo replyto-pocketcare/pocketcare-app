@@ -266,9 +266,6 @@ data class AssistantAction(val label: String, val send: String? = null, val href
 
 data class AssistantUi(val cards: List<AssistantCard>, val actions: List<AssistantAction>)
 
-/** Prose plus, at most, one validated UI block. */
-data class AssistantMessage(val text: String, val ui: AssistantUi? = null)
-
 internal const val ASSISTANT_MAX_CARDS = 4
 internal const val ASSISTANT_MAX_ACTIONS = 4
 internal const val ASSISTANT_MAX_BREAKDOWN_ITEMS = 6

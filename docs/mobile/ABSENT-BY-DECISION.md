@@ -151,3 +151,12 @@ into a chat.
 neither app has a "paste an invite link" entry point. Worth adding if
 verification stays blocked, and pointless once it isn't.
 
+## The assistant's writes — what is deliberately not fixed, 2026-08-27
+
+| Gap | Why |
+| --- | --- |
+| **An assistant-created subscription has no `next_renewal`** | Web's tool inserts null, so the subscription counts toward `fixedMonthlyObligations` but never appears in `upcoming` until the user fills the date in. Filling it in on mobile only would make the two clients disagree about what is coming up. Closes when web sets one |
+| **`major()` keeps its hardcoded `/100`** | Web bug #8's SIXTH site, and the only one reproduced rather than fixed. The parser sites write to the DATABASE, where a JPY user's stored amount being wrong is a real defect. This number goes into a PROMPT: fixing it would make a JPY user's phone send a different snapshot than their browser for the same ledger, and the assistant would answer differently on each. The bug is shared on purpose |
+| **`"Uncategorized"` here, `"Uncategorised"` in the analyzer** | Both are web's, in two different files. Reproduced as-is; making them agree is a change to `apps/web` |
+| **`liquidSavings` counts only base-currency accounts** | Web's rule. A dollar balance summed into a rupee total would be a wrong number stated confidently, which is the worst kind for a model to reason from — but it also means a user whose savings are all in a second currency is told they have none |
+

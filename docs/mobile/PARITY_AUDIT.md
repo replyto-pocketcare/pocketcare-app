@@ -2435,3 +2435,47 @@ the one that caught it was the one I would not have thought to try by hand.
 `showStandardStreams`, added in the same commit, is why Android's 71/71 is
 visible above rather than inferred from a green build.
 
+### The assistant, part three — the writes — 2026-08-27
+
+`AssistantRepository` on both platforms: durable memory, chat threads, the seven
+tool executions, and `buildFinancialSummary`.
+
+**Every write goes through the repository that owns its table.** That matters
+most for `record_transaction`: `LedgerRepository.createTransaction` carries the
+overdraft guard and the transfer/items validation, and a tool doing its own
+INSERT would let the model write rows the user's own Add Transaction screen
+would have refused. `SubscriptionsRepository` was READ-ONLY until this pass and
+gained a `create` rather than having the assistant reach past it — the first
+exception would have been the one that made the rule stop meaning anything.
+
+**Failure is a RESULT, not an exception.** The model reads the result line back
+and has to be able to tell "no goal by that name" from "no account to record
+into"; an exception reaches it as a generic failure and it retries the same call.
+The strings are web's, verbatim.
+
+**Two orderings that would otherwise be platform-specific.** `pairwiseEdges` is
+order-sensitive at the rounding boundary, so both the expense grouping and the
+net-balance map are insertion-ordered by hand — a `HashMap` on Android and a
+`Dictionary` on iOS would each have made the last paisa of a three-way split
+depend on hash order.
+
+**`todayIso` and `now` are parameters, not clock reads.** Same rule every
+date-sensitive port here follows: a function that reads the clock cannot be
+tested against a fixture.
+
+**Not vector-tested, and that is not an oversight.** This layer is repository
+I/O — SQL against a live PowerSync database. What CAN be pinned already is:
+`summaryForPrompt` shapes its output under 8 vectors, `describeToolCall` and
+`isValidToolInput` under 32. The untested part is the SQL, and the honest way to
+cover that is the integration testing that is blocked on a test Supabase +
+PowerSync project.
+
+**Four deliberate gaps recorded in ABSENT-BY-DECISION**, including web bug #8's
+sixth `/100` — the ONLY one of the six reproduced rather than fixed, because
+this number goes into a prompt rather than into the database, and a phone that
+sent a different snapshot than the browser would get a different answer to the
+same question.
+
+**Still to come:** `AssistantChat.tsx` (644) — the streaming chat, the confirm
+cards and the thread list — plus `speech.ts` + `MicButton.tsx` (voice).
+
