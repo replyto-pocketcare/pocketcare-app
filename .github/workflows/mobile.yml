@@ -109,6 +109,12 @@ jobs:
             # behaves, so a hand-copy into two languages is a behaviour fork
             # waiting to happen.
             node tools/parity/generate-assistant-tools.mjs
+            # The assistant's SYSTEM PROMPT -- its voice, its refusal scope, the
+            # <ui> card grammar, the route list, and the rule separating a tool
+            # call from a navigation link. A reflowed paragraph on one platform
+            # is a different assistant, and nobody would attribute that to a
+            # transcription.
+            node tools/parity/generate-assistant-persona.mjs
             # The PowerSync client schema, mirrored into both native platforms.
             # These were NOT in this list, and that is exactly why the mirrors
             # fell four migrations behind packages/db/src/index.ts without a

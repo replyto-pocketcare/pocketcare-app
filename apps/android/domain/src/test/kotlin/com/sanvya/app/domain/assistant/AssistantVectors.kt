@@ -190,7 +190,100 @@ private fun JsonElement.toSummary(): FinancialSummary {
     )
 }
 
+private fun AssistantJson.toJson(): JsonElement = when (this) {
+    is AssistantJson.Str -> JsonPrimitive(value)
+    is AssistantJson.Num -> JsonPrimitive(value)
+    is AssistantJson.Bool -> JsonPrimitive(value)
+    is AssistantJson.Arr -> JsonArray(values.map { it.toJson() })
+    is AssistantJson.Obj -> JsonObject(values.mapValues { (_, v) -> v.toJson() })
+    AssistantJson.Null -> JsonNull
+}
+
+private fun Map<String, AssistantJson>.toJson(): JsonElement =
+    JsonObject(mapValues { (_, v) -> v.toJson() })
+
+private fun JsonElement.toContentBlock(): AssistantContent {
+    val o = jsonObject
+    return when (o.getValue("type").jsonPrimitive.content) {
+        "text" -> AssistantContent.Text(o.getValue("text").jsonPrimitive.content)
+        "tool_use" -> AssistantContent.Use(
+            ToolUse(
+                id = o.getValue("id").jsonPrimitive.content,
+                name = o.getValue("name").jsonPrimitive.content,
+                input = (o.getValue("input").toAssistantJson() as AssistantJson.Obj).values,
+            ),
+        )
+        else -> AssistantContent.Result(
+            toolUseId = o.getValue("tool_use_id").jsonPrimitive.content,
+            content = o.getValue("content").jsonPrimitive.content,
+        )
+    }
+}
+
+private fun JsonElement.toApiMessage(): ApiMessage {
+    val o = jsonObject
+    return ApiMessage(
+        role = o.getValue("role").jsonPrimitive.content,
+        textContent = o["text"]?.takeIf { it !is JsonNull }?.jsonPrimitive?.content,
+        blocks = (o["blocks"] as? JsonArray)?.map { it.toContentBlock() } ?: emptyList(),
+    )
+}
+
+private fun AssistantContent.toJson(): JsonElement = when (this) {
+    is AssistantContent.Text -> JsonObject(mapOf("type" to JsonPrimitive("text"), "text" to JsonPrimitive(text)))
+    is AssistantContent.Use -> JsonObject(
+        mapOf(
+            "type" to JsonPrimitive("tool_use"),
+            "id" to JsonPrimitive(use.id),
+            "name" to JsonPrimitive(use.name),
+            "input" to use.input.toJson(),
+        ),
+    )
+    is AssistantContent.Result -> JsonObject(
+        mapOf(
+            "type" to JsonPrimitive("tool_result"),
+            "tool_use_id" to JsonPrimitive(toolUseId),
+            "content" to JsonPrimitive(content),
+        ),
+    )
+}
+
+private fun ApiMessage.toJson(): JsonElement = JsonObject(
+    buildMap {
+        put("role", JsonPrimitive(role))
+        // Absent, not null: web's messages carry EITHER a string content or a
+        // block array, never both, and JSON.stringify drops the other.
+        textContent?.let { put("text", JsonPrimitive(it)) }
+        if (blocks.isNotEmpty()) put("blocks", JsonArray(blocks.map { it.toJson() }))
+    },
+)
+
 fun registerAssistantVectors() {
+    FunctionRegistry.register(DOMAIN, "trimAssistantHistory") { input ->
+        val msgs = input.jsonObject.getValue("messages").jsonArray.map { it.toApiMessage() }
+        JsonArray(trimAssistantHistory(msgs).map { it.toJson() })
+    }
+
+    FunctionRegistry.register(DOMAIN, "planAssistantTurn") { input ->
+        val content = input.jsonObject.getValue("content").jsonArray.map { it.toContentBlock() }
+        val plan = planAssistantTurn(content)
+        JsonObject(
+            mapOf(
+                "text" to JsonPrimitive(plan.text),
+                // Ids only: the fixture proves which BUCKET each call landed in,
+                // and the calls themselves are the input.
+                "autoRun" to JsonArray(plan.autoRun.map { JsonPrimitive(it.id) }),
+                "rejected" to JsonArray(plan.rejected.map { JsonPrimitive(it.id) }),
+                "confirmQueue" to JsonArray(plan.confirmQueue.map { JsonPrimitive(it.id) }),
+            ),
+        )
+    }
+
+    FunctionRegistry.register(DOMAIN, "assistantErrorKey") { input ->
+        val raw = input.jsonObject["error"]?.takeIf { it !is JsonNull }?.jsonPrimitive?.content
+        JsonPrimitive(assistantErrorKey(raw))
+    }
+
     FunctionRegistry.register(DOMAIN, "jsonNumber") { input ->
         val o = input.jsonObject
         // NaN and the infinities cannot survive a JSON fixture, so they travel

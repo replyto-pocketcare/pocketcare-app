@@ -2521,3 +2521,66 @@ this has something to fail.
 helpers — which were the same narrow thing under two more names — are gone with
 it. Assistant vectors now total **152**.
 
+### CI run 33086393752 (158d366) — AssistantRepository compiled
+
+parity ✅ · android ❌ · ios ❌ — but the ONLY failure on either was the
+`summaryForPrompt` vector already fixed in `01f5728`. `** TEST SUCCEEDED **` on
+the app scheme, `Compiling AssistantRepository.swift` in the Data target, and
+Android's `:app` and `:data` both built. The largest file of that cycle — the
+seven tool executions, the snapshot, the new `SubscriptionsRepository.create`
+and the DI on both platforms — went through clean.
+
+### The assistant, part four — the turn loop — 2026-08-27
+
+`AssistantChat.tsx` is 644 lines. This is its brain, not its screen.
+
+**PERSONA is GENERATED.** `tools/parity/generate-assistant-persona.mjs` emits
+41 lines / 8,662 characters into both Domains, and it is in the parity job. This
+is a bigger deal than the tool descriptions were: PERSONA is the assistant's
+voice, its refusal scope, the exact `<ui>` card grammar it may emit, the route
+list it may link to, and the rule separating a TOOL CALL from a NAVIGATION LINK.
+Every one of those is behaviour. A hand-copy would drift the first time someone
+reflowed a paragraph, and the failure would be invisible — the phone's assistant
+declining something the browser answers, or calling a tool where the browser
+links, with nobody attributing it to a transcription.
+
+**`planAssistantTurn` is the safety-critical function in this feature**, and it
+is in Domain under vectors for exactly that reason. It sorts a model turn's tool
+calls into three disjoint buckets, and each is a policy:
+
+| Bucket | What it is | Why |
+| --- | --- | --- |
+| `autoRun` | everything web's `CONFIRM_TOOLS` does not list — today, `remember` alone | the one tool that writes no money |
+| `rejected` | a financial call whose arguments fail `isValidToolInput` | never becomes a card. Web's own comment names the case: `record_transaction` with amount 0 because the user asked to be taken somewhere. Surfacing that as "authorise a ₹0 expense?" would train people to tap through confirmations |
+| `confirmQueue` | the rest, **one at a time** | someone who agrees to "create this goal" has not agreed to the transaction queued behind it |
+
+A tool that ran without confirmation on one platform and with it on another
+would not be a rendering difference — it would be a write to someone's ledger
+they were never asked about.
+
+**`trimAssistantHistory`'s second half is the part that would get dropped in a
+rewrite.** Taking the last 16 messages is obvious; *then shifting until the
+window opens on a plain user turn* is not, and without it the API rejects the
+request outright — a conversation cannot begin on a `tool_result` or an
+assistant turn. Nine fixtures cover it, including the all-non-user case where
+web falls back to the single last message rather than sending nothing.
+
+**28 new vectors** (9 history + 9 turn plans + 10 error keys), assistant total
+now **180**. `friendly()` is ported as `assistantErrorKey` returning an i18n KEY
+rather than a string, because web calls `t(…)` inline and the native ports have
+to resolve through their own catalogues. Its four patterns are checked in web's
+order — `errModel`'s would also match some network errors, so the order is not
+incidental.
+
+**One finding worth writing down.** An UNKNOWN tool name lands in `autoRun` —
+`needsConfirm` is a Set lookup and returns false for anything unlisted. It is
+currently unreachable (the API only accepts tool calls from the declared list,
+and `executeTool` answers "Unknown tool: X" and writes nothing), so it is
+faithful-to-web rather than a defect. Recording it because "unknown ⇒ runs
+without asking" is the wrong default to inherit silently if that list ever
+becomes dynamic.
+
+**Still to come:** the chat SCREEN on both platforms — thread list, message
+bubbles, confirm cards, quota chip, the disclaimer gate — plus the Edge Function
+call and voice.
+

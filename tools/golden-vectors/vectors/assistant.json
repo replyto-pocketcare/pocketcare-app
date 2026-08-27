@@ -2383,5 +2383,1193 @@
       "baseCurrency": "INR"
     },
     "expected": "Run do_something"
+  },
+  {
+    "fn": "trimAssistantHistory",
+    "input": {
+      "name": "short",
+      "messages": [
+        {
+          "role": "user",
+          "text": "hi"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "hello"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": [
+      {
+        "role": "user",
+        "text": "hi"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "hello"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "trimAssistantHistory",
+    "input": {
+      "name": "single-user",
+      "messages": [
+        {
+          "role": "user",
+          "text": "hi"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "role": "user",
+        "text": "hi"
+      }
+    ]
+  },
+  {
+    "fn": "trimAssistantHistory",
+    "input": {
+      "name": "opens-on-assistant",
+      "messages": [
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "stray"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "hi"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "hello"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": [
+      {
+        "role": "user",
+        "text": "hi"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "hello"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "trimAssistantHistory",
+    "input": {
+      "name": "opens-on-tool-result",
+      "messages": [
+        {
+          "role": "user",
+          "blocks": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "t1",
+              "content": "ok"
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "hello"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": [
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "hello"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "trimAssistantHistory",
+    "input": {
+      "name": "all-non-user",
+      "messages": [
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "blocks": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "t1",
+              "content": "ok"
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "b"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": [
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "trimAssistantHistory",
+    "input": {
+      "name": "exactly-cap",
+      "messages": [
+        {
+          "role": "user",
+          "text": "u0"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a1"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u2"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a3"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u4"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a5"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u6"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a7"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u8"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a9"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u10"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a11"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u12"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a13"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u14"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a15"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": [
+      {
+        "role": "user",
+        "text": "u0"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a1"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u2"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a3"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u4"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a5"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u6"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a7"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u8"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a9"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u10"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a11"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u12"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a13"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u14"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a15"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "trimAssistantHistory",
+    "input": {
+      "name": "over-cap",
+      "messages": [
+        {
+          "role": "user",
+          "text": "u0"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a1"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u2"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a3"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u4"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a5"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u6"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a7"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u8"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a9"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u10"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a11"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u12"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a13"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u14"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a15"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u16"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a17"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u18"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a19"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u20"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a21"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u22"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "a23"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "text": "u24"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "role": "user",
+        "text": "u10"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a11"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u12"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a13"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u14"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a15"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u16"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a17"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u18"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a19"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u20"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a21"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u22"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "a23"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "text": "u24"
+      }
+    ]
+  },
+  {
+    "fn": "trimAssistantHistory",
+    "input": {
+      "name": "over-cap-tool-heavy",
+      "messages": [
+        {
+          "role": "user",
+          "text": "u0"
+        },
+        {
+          "role": "user",
+          "text": "u1"
+        },
+        {
+          "role": "user",
+          "text": "u2"
+        },
+        {
+          "role": "user",
+          "text": "u3"
+        },
+        {
+          "role": "user",
+          "text": "u4"
+        },
+        {
+          "role": "user",
+          "text": "u5"
+        },
+        {
+          "role": "user",
+          "text": "u6"
+        },
+        {
+          "role": "user",
+          "text": "u7"
+        },
+        {
+          "role": "user",
+          "text": "u8"
+        },
+        {
+          "role": "user",
+          "text": "u9"
+        },
+        {
+          "role": "user",
+          "text": "u10"
+        },
+        {
+          "role": "user",
+          "text": "u11"
+        },
+        {
+          "role": "user",
+          "text": "u12"
+        },
+        {
+          "role": "user",
+          "text": "u13"
+        },
+        {
+          "role": "user",
+          "text": "u14"
+        },
+        {
+          "role": "user",
+          "text": "u15"
+        },
+        {
+          "role": "user",
+          "text": "u16"
+        },
+        {
+          "role": "user",
+          "text": "u17"
+        },
+        {
+          "role": "user",
+          "text": "u18"
+        },
+        {
+          "role": "user",
+          "text": "u19"
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "x"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "blocks": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "t1",
+              "content": "ok"
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "y"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "blocks": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "t2",
+              "content": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": [
+      {
+        "role": "user",
+        "text": "u8"
+      },
+      {
+        "role": "user",
+        "text": "u9"
+      },
+      {
+        "role": "user",
+        "text": "u10"
+      },
+      {
+        "role": "user",
+        "text": "u11"
+      },
+      {
+        "role": "user",
+        "text": "u12"
+      },
+      {
+        "role": "user",
+        "text": "u13"
+      },
+      {
+        "role": "user",
+        "text": "u14"
+      },
+      {
+        "role": "user",
+        "text": "u15"
+      },
+      {
+        "role": "user",
+        "text": "u16"
+      },
+      {
+        "role": "user",
+        "text": "u17"
+      },
+      {
+        "role": "user",
+        "text": "u18"
+      },
+      {
+        "role": "user",
+        "text": "u19"
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "x"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "blocks": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "t1",
+            "content": "ok"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "y"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "blocks": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "t2",
+            "content": "ok"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fn": "trimAssistantHistory",
+    "input": {
+      "name": "empty",
+      "messages": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "planAssistantTurn",
+    "input": {
+      "name": "text-only",
+      "content": [
+        {
+          "type": "text",
+          "text": "Here you go."
+        }
+      ]
+    },
+    "expected": {
+      "text": "Here you go.",
+      "autoRun": [],
+      "rejected": [],
+      "confirmQueue": []
+    }
+  },
+  {
+    "fn": "planAssistantTurn",
+    "input": {
+      "name": "two-text-blocks",
+      "content": [
+        {
+          "type": "text",
+          "text": "One."
+        },
+        {
+          "type": "text",
+          "text": "Two."
+        }
+      ]
+    },
+    "expected": {
+      "text": "One.\nTwo.",
+      "autoRun": [],
+      "rejected": [],
+      "confirmQueue": []
+    }
+  },
+  {
+    "fn": "planAssistantTurn",
+    "input": {
+      "name": "text-padded",
+      "content": [
+        {
+          "type": "text",
+          "text": "  spaced  "
+        }
+      ]
+    },
+    "expected": {
+      "text": "spaced",
+      "autoRun": [],
+      "rejected": [],
+      "confirmQueue": []
+    }
+  },
+  {
+    "fn": "planAssistantTurn",
+    "input": {
+      "name": "auto-run-remember",
+      "content": [
+        {
+          "type": "text",
+          "text": "Noted."
+        },
+        {
+          "type": "tool_use",
+          "id": "r1",
+          "name": "remember",
+          "input": {
+            "fact": "Pays rent on the 3rd"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "text": "Noted.",
+      "autoRun": [
+        "r1"
+      ],
+      "rejected": [],
+      "confirmQueue": []
+    }
+  },
+  {
+    "fn": "planAssistantTurn",
+    "input": {
+      "name": "confirmable-valid",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "g1",
+          "name": "create_goal",
+          "input": {
+            "name": "iPhone",
+            "target_amount": 79900
+          }
+        }
+      ]
+    },
+    "expected": {
+      "text": "",
+      "autoRun": [],
+      "rejected": [],
+      "confirmQueue": [
+        "g1"
+      ]
+    }
+  },
+  {
+    "fn": "planAssistantTurn",
+    "input": {
+      "name": "confirmable-invalid",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "x1",
+          "name": "record_transaction",
+          "input": {
+            "type": "expense",
+            "amount": 0
+          }
+        }
+      ]
+    },
+    "expected": {
+      "text": "",
+      "autoRun": [],
+      "rejected": [
+        "x1"
+      ],
+      "confirmQueue": []
+    }
+  },
+  {
+    "fn": "planAssistantTurn",
+    "input": {
+      "name": "mixed",
+      "content": [
+        {
+          "type": "text",
+          "text": "Done."
+        },
+        {
+          "type": "tool_use",
+          "id": "r1",
+          "name": "remember",
+          "input": {
+            "fact": "f"
+          }
+        },
+        {
+          "type": "tool_use",
+          "id": "g1",
+          "name": "create_goal",
+          "input": {
+            "name": "G",
+            "target_amount": 100
+          }
+        },
+        {
+          "type": "tool_use",
+          "id": "x1",
+          "name": "create_budget",
+          "input": {
+            "name": "",
+            "limit_amount": 0
+          }
+        },
+        {
+          "type": "tool_use",
+          "id": "g2",
+          "name": "create_group",
+          "input": {
+            "name": "Goa",
+            "kind": "trip"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "text": "Done.",
+      "autoRun": [
+        "r1"
+      ],
+      "rejected": [
+        "x1"
+      ],
+      "confirmQueue": [
+        "g1",
+        "g2"
+      ]
+    }
+  },
+  {
+    "fn": "planAssistantTurn",
+    "input": {
+      "name": "unknown-tool",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "u1",
+          "name": "do_something",
+          "input": {}
+        }
+      ]
+    },
+    "expected": {
+      "text": "",
+      "autoRun": [
+        "u1"
+      ],
+      "rejected": [],
+      "confirmQueue": []
+    }
+  },
+  {
+    "fn": "planAssistantTurn",
+    "input": {
+      "name": "no-blocks",
+      "content": []
+    },
+    "expected": {
+      "text": "",
+      "autoRun": [],
+      "rejected": [],
+      "confirmQueue": []
+    }
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {},
+    "expected": "errDefault"
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {
+      "error": ""
+    },
+    "expected": "errDefault"
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {
+      "error": "ANTHROPIC_API_KEY not configured"
+    },
+    "expected": "errNotConfigured"
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {
+      "error": "not configured"
+    },
+    "expected": "errNotConfigured"
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {
+      "error": "model: claude-x not_found"
+    },
+    "expected": "errModel"
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {
+      "error": "model foo is not available"
+    },
+    "expected": "errModel"
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {
+      "error": "network error"
+    },
+    "expected": "errNetwork"
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {
+      "error": "Failed to send a request to the Edge Function"
+    },
+    "expected": "errNetwork"
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {
+      "error": "fetch failed"
+    },
+    "expected": "errNetwork"
+  },
+  {
+    "fn": "assistantErrorKey",
+    "input": {
+      "error": "something else entirely"
+    },
+    "expected": "errGeneric"
   }
 ]

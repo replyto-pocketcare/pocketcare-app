@@ -168,8 +168,87 @@ private func toSummary(_ any: Any) -> FinancialSummary {
     )
 }
 
+private func assistantJsonToAny(_ j: AssistantJson) -> Any {
+    switch j {
+    case let .str(v): return v
+    case let .num(v): return v
+    case let .bool(v): return v
+    case let .arr(v): return v.map(assistantJsonToAny)
+    case let .obj(v): return v.mapValues(assistantJsonToAny)
+    case .null: return NSNull()
+    }
+}
+
+private func toContentBlock(_ any: Any) -> AssistantContent {
+    let d = any as! [String: Any]
+    switch d["type"] as! String {
+    case "text":
+        return .text(d["text"] as! String)
+    case "tool_use":
+        guard case let .obj(args) = toAssistantJson(d["input"] ?? [String: Any]()) else {
+            return .use(ToolUse(id: d["id"] as! String, name: d["name"] as! String, input: [:]))
+        }
+        return .use(ToolUse(id: d["id"] as! String, name: d["name"] as! String, input: args))
+    default:
+        return .result(toolUseId: d["tool_use_id"] as! String, content: d["content"] as! String)
+    }
+}
+
+private func contentBlockToJson(_ b: AssistantContent) -> [String: Any] {
+    switch b {
+    case let .text(t):
+        return ["type": "text", "text": t]
+    case let .use(u):
+        return ["type": "tool_use", "id": u.id, "name": u.name, "input": u.input.mapValues(assistantJsonToAny)]
+    case let .result(id, content):
+        return ["type": "tool_result", "tool_use_id": id, "content": content]
+    }
+}
+
+private func toApiMessage(_ any: Any) -> ApiMessage {
+    let d = any as! [String: Any]
+    return ApiMessage(
+        role: d["role"] as! String,
+        textContent: d["text"] as? String,
+        blocks: (d["blocks"] as? [Any])?.map(toContentBlock) ?? []
+    )
+}
+
+private func apiMessageToJson(_ m: ApiMessage) -> [String: Any] {
+    var out: [String: Any] = ["role": m.role]
+    // Absent, not NSNull: web's messages carry EITHER a string content or a
+    // block array, never both, and JSON.stringify drops the other.
+    if let t = m.textContent { out["text"] = t }
+    if !m.blocks.isEmpty { out["blocks"] = m.blocks.map(contentBlockToJson) }
+    return out
+}
+
 func registerAssistantVectors() {
     let domain = "assistant"
+
+    FunctionRegistry.register(domain: domain, fn: "trimAssistantHistory") { input in
+        let d = input as! [String: Any]
+        let msgs = (d["messages"] as! [Any]).map(toApiMessage)
+        return trimAssistantHistory(msgs).map(apiMessageToJson)
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "planAssistantTurn") { input in
+        let d = input as! [String: Any]
+        let plan = planAssistantTurn((d["content"] as! [Any]).map(toContentBlock))
+        return [
+            "text": plan.text,
+            // Ids only: the fixture proves which BUCKET each call landed in, and
+            // the calls themselves are the input.
+            "autoRun": plan.autoRun.map(\.id),
+            "rejected": plan.rejected.map(\.id),
+            "confirmQueue": plan.confirmQueue.map(\.id),
+        ] as [String: Any]
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "assistantErrorKey") { input in
+        let d = input as! [String: Any]
+        return assistantErrorKey(d["error"] as? String)
+    }
 
     FunctionRegistry.register(domain: domain, fn: "jsonNumber") { input in
         let d = input as! [String: Any]
