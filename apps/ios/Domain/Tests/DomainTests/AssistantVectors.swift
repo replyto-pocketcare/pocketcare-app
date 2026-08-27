@@ -110,6 +110,64 @@ private func spanToJson(_ s: InlineSpan) -> [String: Any] {
     drop([("t", s.kind.rawValue), ("s", s.text), ("href", s.href)])
 }
 
+private func toSummary(_ any: Any) -> FinancialSummary {
+    let d = any as! [String: Any]
+    func num(_ k: String) -> Double { (d[k] as? NSNumber)?.doubleValue ?? 0 }
+    func str(_ k: String) -> String { d[k] as? String ?? "" }
+    func rows(_ k: String) -> [[String: Any]] { d[k] as? [[String: Any]] ?? [] }
+
+    let splits = d["splits"] as? [String: Any] ?? [:]
+    return FinancialSummary(
+        baseCurrency: str("baseCurrency"),
+        today: str("today"),
+        accounts: rows("accounts").map {
+            SummaryAccount(
+                id: $0["id"] as! String,
+                name: $0["name"] as! String,
+                type: $0["type"] as! String,
+                currency: $0["currency"] as! String,
+                balance: ($0["balance"] as! NSNumber).doubleValue
+            )
+        },
+        liquidSavings: num("liquidSavings"),
+        avgMonthlyIncome: num("avgMonthlyIncome"),
+        avgMonthlyExpense: num("avgMonthlyExpense"),
+        monthlySurplus: num("monthlySurplus"),
+        fixedMonthlyObligations: num("fixedMonthlyObligations"),
+        goals: rows("goals").map {
+            SummaryGoal(
+                name: $0["name"] as! String,
+                target: ($0["target"] as! NSNumber).doubleValue,
+                saved: ($0["saved"] as! NSNumber).doubleValue,
+                currency: $0["currency"] as! String
+            )
+        },
+        upcoming: rows("upcoming").map {
+            SummaryUpcoming(
+                name: $0["name"] as! String,
+                date: $0["date"] as! String,
+                amount: ($0["amount"] as! NSNumber).doubleValue,
+                currency: $0["currency"] as! String
+            )
+        },
+        splits: SummarySplits(
+            owed: (splits["owed"] as? NSNumber)?.doubleValue ?? 0,
+            owe: (splits["owe"] as? NSNumber)?.doubleValue ?? 0,
+            groups: (splits["groups"] as? NSNumber)?.intValue ?? 0
+        ),
+        monthlyCashflow: rows("monthlyCashflow").map {
+            SummaryMonth(
+                ym: $0["ym"] as! String,
+                income: ($0["income"] as! NSNumber).doubleValue,
+                expense: ($0["expense"] as! NSNumber).doubleValue
+            )
+        },
+        topCategories: rows("topCategories").map {
+            SummaryCategory(name: $0["name"] as! String, amount: ($0["amount"] as! NSNumber).doubleValue)
+        }
+    )
+}
+
 func registerAssistantVectors() {
     let domain = "assistant"
 
@@ -126,6 +184,27 @@ func registerAssistantVectors() {
     FunctionRegistry.register(domain: domain, fn: "assistantInlineSpans") { input in
         let d = input as! [String: Any]
         return assistantInlineSpans(d["s"] as! String).map(spanToJson)
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "isValidToolInput") { input in
+        let d = input as! [String: Any]
+        guard case let .obj(args) = toAssistantJson(d["args"]!) else { return false }
+        return isValidToolInput(d["tool"] as! String, args)
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "describeToolCall") { input in
+        let d = input as! [String: Any]
+        guard case let .obj(args) = toAssistantJson(d["args"]!) else { return "" }
+        return describeToolCall(
+            d["tool"] as! String,
+            args,
+            baseCurrency: d["baseCurrency"] as! String
+        )
+    }
+
+    FunctionRegistry.register(domain: domain, fn: "summaryForPrompt") { input in
+        let d = input as! [String: Any]
+        return summaryForPrompt(toSummary(d["summary"]!))
     }
 
     FunctionRegistry.register(domain: domain, fn: "parseAssistantMessage") { input in

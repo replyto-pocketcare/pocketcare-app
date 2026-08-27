@@ -1135,5 +1135,966 @@
         "s": "*a\nb*"
       }
     ]
+  },
+  {
+    "fn": "summaryForPrompt",
+    "input": {
+      "name": "empty",
+      "summary": {
+        "baseCurrency": "INR",
+        "today": "2026-08-27",
+        "accounts": [],
+        "liquidSavings": 0,
+        "avgMonthlyIncome": 0,
+        "avgMonthlyExpense": 0,
+        "monthlySurplus": 0,
+        "fixedMonthlyObligations": 0,
+        "goals": [],
+        "upcoming": [],
+        "splits": {
+          "owed": 0,
+          "owe": 0,
+          "groups": 0
+        },
+        "monthlyCashflow": [],
+        "topCategories": []
+      }
+    },
+    "expected": "{\"baseCurrency\":\"INR\",\"liquidSavings\":0,\"avgMonthlyIncome\":0,\"avgMonthlyExpense\":0,\"monthlySurplus\":0,\"fixedMonthlyObligations\":0,\"accounts\":[]}"
+  },
+  {
+    "fn": "summaryForPrompt",
+    "input": {
+      "name": "full",
+      "summary": {
+        "baseCurrency": "INR",
+        "today": "2026-08-27",
+        "accounts": [
+          {
+            "id": "a1",
+            "name": "Account 1",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 1000.5
+          },
+          {
+            "id": "a2",
+            "name": "Account 2",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 2001
+          },
+          {
+            "id": "a3",
+            "name": "Account 3",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 3001.5
+          }
+        ],
+        "liquidSavings": 125000.25,
+        "avgMonthlyIncome": 90000,
+        "avgMonthlyExpense": 61234.5,
+        "monthlySurplus": 28765.5,
+        "fixedMonthlyObligations": 18400.1,
+        "goals": [
+          {
+            "name": "Goal 1",
+            "target": 10000,
+            "saved": 1234.56,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 2",
+            "target": 20000,
+            "saved": 2469.12,
+            "currency": "INR"
+          }
+        ],
+        "upcoming": [
+          {
+            "name": "Sub 1",
+            "date": "2026-09-01",
+            "amount": 99.99,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 2",
+            "date": "2026-09-02",
+            "amount": 199.98,
+            "currency": "INR"
+          }
+        ],
+        "splits": {
+          "owed": 1500,
+          "owe": 240.75,
+          "groups": 3
+        },
+        "monthlyCashflow": [
+          {
+            "ym": "2026-03",
+            "income": 0,
+            "expense": 0
+          },
+          {
+            "ym": "2026-04",
+            "income": 90000,
+            "expense": 61000
+          }
+        ],
+        "topCategories": [
+          {
+            "name": "Food & Dining",
+            "amount": 6400
+          },
+          {
+            "name": "Uncategorized",
+            "amount": 120
+          }
+        ]
+      }
+    },
+    "expected": "{\"baseCurrency\":\"INR\",\"liquidSavings\":125000.25,\"avgMonthlyIncome\":90000,\"avgMonthlyExpense\":61234.5,\"monthlySurplus\":28765.5,\"fixedMonthlyObligations\":18400.1,\"accounts\":[{\"id\":\"a1\",\"n\":\"Account 1\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":1000.5},{\"id\":\"a2\",\"n\":\"Account 2\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":2001},{\"id\":\"a3\",\"n\":\"Account 3\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":3001.5}],\"goals\":[{\"n\":\"Goal 1\",\"target\":10000,\"saved\":1234.56,\"c\":\"INR\"},{\"n\":\"Goal 2\",\"target\":20000,\"saved\":2469.12,\"c\":\"INR\"}],\"upcoming\":[{\"n\":\"Sub 1\",\"date\":\"2026-09-01\",\"amt\":99.99},{\"n\":\"Sub 2\",\"date\":\"2026-09-02\",\"amt\":199.98}],\"splits\":{\"friendsOweYou\":1500,\"youOwe\":240.75,\"groups\":3},\"monthly\":[{\"ym\":\"2026-03\",\"in\":0,\"exp\":0},{\"ym\":\"2026-04\",\"in\":90000,\"exp\":61000}],\"topSpendCategories\":[{\"n\":\"Food & Dining\",\"amt\":6400},{\"n\":\"Uncategorized\",\"amt\":120}]}"
+  },
+  {
+    "fn": "summaryForPrompt",
+    "input": {
+      "name": "caps",
+      "summary": {
+        "baseCurrency": "INR",
+        "today": "2026-08-27",
+        "accounts": [
+          {
+            "id": "a1",
+            "name": "Account 1",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 1000.5
+          },
+          {
+            "id": "a2",
+            "name": "Account 2",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 2001
+          },
+          {
+            "id": "a3",
+            "name": "Account 3",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 3001.5
+          },
+          {
+            "id": "a4",
+            "name": "Account 4",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 4002
+          },
+          {
+            "id": "a5",
+            "name": "Account 5",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 5002.5
+          },
+          {
+            "id": "a6",
+            "name": "Account 6",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 6003
+          },
+          {
+            "id": "a7",
+            "name": "Account 7",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 7003.5
+          },
+          {
+            "id": "a8",
+            "name": "Account 8",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 8004
+          },
+          {
+            "id": "a9",
+            "name": "Account 9",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 9004.5
+          },
+          {
+            "id": "a10",
+            "name": "Account 10",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 10005
+          },
+          {
+            "id": "a11",
+            "name": "Account 11",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 11005.5
+          },
+          {
+            "id": "a12",
+            "name": "Account 12",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 12006
+          },
+          {
+            "id": "a13",
+            "name": "Account 13",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 13006.5
+          },
+          {
+            "id": "a14",
+            "name": "Account 14",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 14007
+          },
+          {
+            "id": "a15",
+            "name": "Account 15",
+            "type": "savings",
+            "currency": "INR",
+            "balance": 15007.5
+          }
+        ],
+        "liquidSavings": 0,
+        "avgMonthlyIncome": 0,
+        "avgMonthlyExpense": 0,
+        "monthlySurplus": 0,
+        "fixedMonthlyObligations": 0,
+        "goals": [
+          {
+            "name": "Goal 1",
+            "target": 10000,
+            "saved": 1234.56,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 2",
+            "target": 20000,
+            "saved": 2469.12,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 3",
+            "target": 30000,
+            "saved": 3703.68,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 4",
+            "target": 40000,
+            "saved": 4938.24,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 5",
+            "target": 50000,
+            "saved": 6172.799999999999,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 6",
+            "target": 60000,
+            "saved": 7407.36,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 7",
+            "target": 70000,
+            "saved": 8641.92,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 8",
+            "target": 80000,
+            "saved": 9876.48,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 9",
+            "target": 90000,
+            "saved": 11111.039999999999,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 10",
+            "target": 100000,
+            "saved": 12345.599999999999,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 11",
+            "target": 110000,
+            "saved": 13580.16,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 12",
+            "target": 120000,
+            "saved": 14814.72,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 13",
+            "target": 130000,
+            "saved": 16049.279999999999,
+            "currency": "INR"
+          },
+          {
+            "name": "Goal 14",
+            "target": 140000,
+            "saved": 17283.84,
+            "currency": "INR"
+          }
+        ],
+        "upcoming": [
+          {
+            "name": "Sub 1",
+            "date": "2026-09-01",
+            "amount": 99.99,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 2",
+            "date": "2026-09-02",
+            "amount": 199.98,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 3",
+            "date": "2026-09-03",
+            "amount": 299.96999999999997,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 4",
+            "date": "2026-09-04",
+            "amount": 399.96,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 5",
+            "date": "2026-09-05",
+            "amount": 499.95,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 6",
+            "date": "2026-09-06",
+            "amount": 599.9399999999999,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 7",
+            "date": "2026-09-07",
+            "amount": 699.93,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 8",
+            "date": "2026-09-08",
+            "amount": 799.92,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 9",
+            "date": "2026-09-09",
+            "amount": 899.91,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 1",
+            "date": "2026-09-01",
+            "amount": 99.99,
+            "currency": "INR"
+          },
+          {
+            "name": "Sub 2",
+            "date": "2026-09-02",
+            "amount": 199.98,
+            "currency": "INR"
+          }
+        ],
+        "splits": {
+          "owed": 0,
+          "owe": 0,
+          "groups": 0
+        },
+        "monthlyCashflow": [],
+        "topCategories": []
+      }
+    },
+    "expected": "{\"baseCurrency\":\"INR\",\"liquidSavings\":0,\"avgMonthlyIncome\":0,\"avgMonthlyExpense\":0,\"monthlySurplus\":0,\"fixedMonthlyObligations\":0,\"accounts\":[{\"id\":\"a1\",\"n\":\"Account 1\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":1000.5},{\"id\":\"a2\",\"n\":\"Account 2\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":2001},{\"id\":\"a3\",\"n\":\"Account 3\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":3001.5},{\"id\":\"a4\",\"n\":\"Account 4\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":4002},{\"id\":\"a5\",\"n\":\"Account 5\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":5002.5},{\"id\":\"a6\",\"n\":\"Account 6\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":6003},{\"id\":\"a7\",\"n\":\"Account 7\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":7003.5},{\"id\":\"a8\",\"n\":\"Account 8\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":8004},{\"id\":\"a9\",\"n\":\"Account 9\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":9004.5},{\"id\":\"a10\",\"n\":\"Account 10\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":10005},{\"id\":\"a11\",\"n\":\"Account 11\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":11005.5},{\"id\":\"a12\",\"n\":\"Account 12\",\"t\":\"savings\",\"c\":\"INR\",\"bal\":12006}],\"goals\":[{\"n\":\"Goal 1\",\"target\":10000,\"saved\":1234.56,\"c\":\"INR\"},{\"n\":\"Goal 2\",\"target\":20000,\"saved\":2469.12,\"c\":\"INR\"},{\"n\":\"Goal 3\",\"target\":30000,\"saved\":3703.68,\"c\":\"INR\"},{\"n\":\"Goal 4\",\"target\":40000,\"saved\":4938.24,\"c\":\"INR\"},{\"n\":\"Goal 5\",\"target\":50000,\"saved\":6172.799999999999,\"c\":\"INR\"},{\"n\":\"Goal 6\",\"target\":60000,\"saved\":7407.36,\"c\":\"INR\"},{\"n\":\"Goal 7\",\"target\":70000,\"saved\":8641.92,\"c\":\"INR\"},{\"n\":\"Goal 8\",\"target\":80000,\"saved\":9876.48,\"c\":\"INR\"},{\"n\":\"Goal 9\",\"target\":90000,\"saved\":11111.039999999999,\"c\":\"INR\"},{\"n\":\"Goal 10\",\"target\":100000,\"saved\":12345.599999999999,\"c\":\"INR\"},{\"n\":\"Goal 11\",\"target\":110000,\"saved\":13580.16,\"c\":\"INR\"},{\"n\":\"Goal 12\",\"target\":120000,\"saved\":14814.72,\"c\":\"INR\"}],\"upcoming\":[{\"n\":\"Sub 1\",\"date\":\"2026-09-01\",\"amt\":99.99},{\"n\":\"Sub 2\",\"date\":\"2026-09-02\",\"amt\":199.98},{\"n\":\"Sub 3\",\"date\":\"2026-09-03\",\"amt\":299.96999999999997},{\"n\":\"Sub 4\",\"date\":\"2026-09-04\",\"amt\":399.96},{\"n\":\"Sub 5\",\"date\":\"2026-09-05\",\"amt\":499.95},{\"n\":\"Sub 6\",\"date\":\"2026-09-06\",\"amt\":599.9399999999999},{\"n\":\"Sub 7\",\"date\":\"2026-09-07\",\"amt\":699.93},{\"n\":\"Sub 8\",\"date\":\"2026-09-08\",\"amt\":799.92}]}"
+  },
+  {
+    "fn": "summaryForPrompt",
+    "input": {
+      "name": "zero-cashflow-dropped",
+      "summary": {
+        "baseCurrency": "INR",
+        "today": "2026-08-27",
+        "accounts": [],
+        "liquidSavings": 0,
+        "avgMonthlyIncome": 0,
+        "avgMonthlyExpense": 0,
+        "monthlySurplus": 0,
+        "fixedMonthlyObligations": 0,
+        "goals": [],
+        "upcoming": [],
+        "splits": {
+          "owed": 0,
+          "owe": 0,
+          "groups": 0
+        },
+        "monthlyCashflow": [
+          {
+            "ym": "2026-03",
+            "income": 0,
+            "expense": 0
+          }
+        ],
+        "topCategories": []
+      }
+    },
+    "expected": "{\"baseCurrency\":\"INR\",\"liquidSavings\":0,\"avgMonthlyIncome\":0,\"avgMonthlyExpense\":0,\"monthlySurplus\":0,\"fixedMonthlyObligations\":0,\"accounts\":[]}"
+  },
+  {
+    "fn": "summaryForPrompt",
+    "input": {
+      "name": "splits-only-groups",
+      "summary": {
+        "baseCurrency": "INR",
+        "today": "2026-08-27",
+        "accounts": [],
+        "liquidSavings": 0,
+        "avgMonthlyIncome": 0,
+        "avgMonthlyExpense": 0,
+        "monthlySurplus": 0,
+        "fixedMonthlyObligations": 0,
+        "goals": [],
+        "upcoming": [],
+        "splits": {
+          "owed": 0,
+          "owe": 0,
+          "groups": 2
+        },
+        "monthlyCashflow": [],
+        "topCategories": []
+      }
+    },
+    "expected": "{\"baseCurrency\":\"INR\",\"liquidSavings\":0,\"avgMonthlyIncome\":0,\"avgMonthlyExpense\":0,\"monthlySurplus\":0,\"fixedMonthlyObligations\":0,\"accounts\":[],\"splits\":{\"friendsOweYou\":0,\"youOwe\":0,\"groups\":2}}"
+  },
+  {
+    "fn": "summaryForPrompt",
+    "input": {
+      "name": "splits-only-owe",
+      "summary": {
+        "baseCurrency": "INR",
+        "today": "2026-08-27",
+        "accounts": [],
+        "liquidSavings": 0,
+        "avgMonthlyIncome": 0,
+        "avgMonthlyExpense": 0,
+        "monthlySurplus": 0,
+        "fixedMonthlyObligations": 0,
+        "goals": [],
+        "upcoming": [],
+        "splits": {
+          "owed": 0,
+          "owe": 5,
+          "groups": 0
+        },
+        "monthlyCashflow": [],
+        "topCategories": []
+      }
+    },
+    "expected": "{\"baseCurrency\":\"INR\",\"liquidSavings\":0,\"avgMonthlyIncome\":0,\"avgMonthlyExpense\":0,\"monthlySurplus\":0,\"fixedMonthlyObligations\":0,\"accounts\":[],\"splits\":{\"friendsOweYou\":0,\"youOwe\":5,\"groups\":0}}"
+  },
+  {
+    "fn": "summaryForPrompt",
+    "input": {
+      "name": "negatives",
+      "summary": {
+        "baseCurrency": "INR",
+        "today": "2026-08-27",
+        "accounts": [],
+        "liquidSavings": -1200.5,
+        "avgMonthlyIncome": 0,
+        "avgMonthlyExpense": 0.5,
+        "monthlySurplus": -0.05,
+        "fixedMonthlyObligations": 0,
+        "goals": [],
+        "upcoming": [],
+        "splits": {
+          "owed": 0,
+          "owe": 0,
+          "groups": 0
+        },
+        "monthlyCashflow": [],
+        "topCategories": []
+      }
+    },
+    "expected": "{\"baseCurrency\":\"INR\",\"liquidSavings\":-1200.5,\"avgMonthlyIncome\":0,\"avgMonthlyExpense\":0.5,\"monthlySurplus\":-0.05,\"fixedMonthlyObligations\":0,\"accounts\":[]}"
+  },
+  {
+    "fn": "summaryForPrompt",
+    "input": {
+      "name": "quoting",
+      "summary": {
+        "baseCurrency": "INR",
+        "today": "2026-08-27",
+        "accounts": [
+          {
+            "id": "a\"1",
+            "name": "He said \"hi\"\\n",
+            "type": "cash",
+            "currency": "INR",
+            "balance": 1
+          }
+        ],
+        "liquidSavings": 0,
+        "avgMonthlyIncome": 0,
+        "avgMonthlyExpense": 0,
+        "monthlySurplus": 0,
+        "fixedMonthlyObligations": 0,
+        "goals": [],
+        "upcoming": [],
+        "splits": {
+          "owed": 0,
+          "owe": 0,
+          "groups": 0
+        },
+        "monthlyCashflow": [],
+        "topCategories": [
+          {
+            "name": "Food & Dining — café",
+            "amount": 1.05
+          }
+        ]
+      }
+    },
+    "expected": "{\"baseCurrency\":\"INR\",\"liquidSavings\":0,\"avgMonthlyIncome\":0,\"avgMonthlyExpense\":0,\"monthlySurplus\":0,\"fixedMonthlyObligations\":0,\"accounts\":[{\"id\":\"a\\\"1\",\"n\":\"He said \\\"hi\\\"\\\\n\",\"t\":\"cash\",\"c\":\"INR\",\"bal\":1}],\"topSpendCategories\":[{\"n\":\"Food & Dining — café\",\"amt\":1.05}]}"
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "record-ok",
+      "tool": "record_transaction",
+      "args": {
+        "type": "expense",
+        "amount": 200
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "record-zero",
+      "tool": "record_transaction",
+      "args": {
+        "type": "expense",
+        "amount": 0
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "record-neg",
+      "tool": "record_transaction",
+      "args": {
+        "type": "expense",
+        "amount": -5
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "record-bad-type",
+      "tool": "record_transaction",
+      "args": {
+        "type": "transfer",
+        "amount": 5
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "record-missing-type",
+      "tool": "record_transaction",
+      "args": {
+        "amount": 5
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "goal-ok",
+      "tool": "create_goal",
+      "args": {
+        "name": "iPhone 16",
+        "target_amount": 79900
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "goal-blank-name",
+      "tool": "create_goal",
+      "args": {
+        "name": "   ",
+        "target_amount": 79900
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "goal-no-target",
+      "tool": "create_goal",
+      "args": {
+        "name": "iPhone"
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "reserve-ok",
+      "tool": "reserve_to_goal",
+      "args": {
+        "goal_name": "iPhone",
+        "amount": 1000
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "budget-ok",
+      "tool": "create_budget",
+      "args": {
+        "name": "Festival",
+        "limit_amount": 5000,
+        "period": "monthly"
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "budget-no-limit",
+      "tool": "create_budget",
+      "args": {
+        "name": "Festival",
+        "period": "monthly"
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "sub-ok",
+      "tool": "create_subscription",
+      "args": {
+        "name": "Netflix",
+        "amount": 199,
+        "billing_cycle": "monthly"
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "group-ok",
+      "tool": "create_group",
+      "args": {
+        "name": "Goa",
+        "kind": "trip"
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "group-no-name",
+      "tool": "create_group",
+      "args": {
+        "kind": "trip"
+      }
+    },
+    "expected": false
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "remember",
+      "tool": "remember",
+      "args": {
+        "fact": "Pays rent on the 3rd"
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "isValidToolInput",
+    "input": {
+      "name": "unknown-tool",
+      "tool": "do_something",
+      "args": {
+        "anything": 1
+      }
+    },
+    "expected": true
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "goal-full",
+      "tool": "create_goal",
+      "args": {
+        "name": "iPhone 16",
+        "target_amount": 79900,
+        "by_date": "2027-01-01",
+        "currency": "USD"
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Create goal “iPhone 16” — target USD 79900 by 2027-01-01"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "goal-no-date",
+      "tool": "create_goal",
+      "args": {
+        "name": "iPhone 16",
+        "target_amount": 79900
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Create goal “iPhone 16” — target INR 79900"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "goal-empty-date",
+      "tool": "create_goal",
+      "args": {
+        "name": "iPhone 16",
+        "target_amount": 79900,
+        "by_date": ""
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Create goal “iPhone 16” — target INR 79900"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "reserve",
+      "tool": "reserve_to_goal",
+      "args": {
+        "goal_name": "iPhone 16",
+        "amount": 1000.5
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Reserve INR 1000.5 toward “iPhone 16”"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "budget",
+      "tool": "create_budget",
+      "args": {
+        "name": "Festival shopping",
+        "limit_amount": 5000,
+        "period": "monthly"
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Create monthly budget “Festival shopping” — limit INR 5000"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "record-full",
+      "tool": "record_transaction",
+      "args": {
+        "type": "expense",
+        "amount": 200,
+        "description": "Coffee",
+        "account": "HDFC"
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Record expense of INR 200 — Coffee (HDFC)"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "record-bare",
+      "tool": "record_transaction",
+      "args": {
+        "type": "income",
+        "amount": 90000
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Record income of INR 90000"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "record-empty-desc",
+      "tool": "record_transaction",
+      "args": {
+        "type": "expense",
+        "amount": 200,
+        "description": "",
+        "account": ""
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Record expense of INR 200"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "sub-monthly",
+      "tool": "create_subscription",
+      "args": {
+        "name": "Netflix",
+        "amount": 199,
+        "billing_cycle": "monthly"
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Add subscription “Netflix” — INR 199/month"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "sub-yearly",
+      "tool": "create_subscription",
+      "args": {
+        "name": "Prime",
+        "amount": 1499,
+        "billing_cycle": "yearly"
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Add subscription “Prime” — INR 1499/year"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "group-trip",
+      "tool": "create_group",
+      "args": {
+        "name": "Goa",
+        "kind": "trip",
+        "start_date": "2026-12-01",
+        "end_date": "2026-12-07",
+        "auto_split": true
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Create trip “Goa” · 2026-12-01–2026-12-07 · auto-split"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "group-start-only",
+      "tool": "create_group",
+      "args": {
+        "name": "Goa",
+        "kind": "trip",
+        "start_date": "2026-12-01"
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Create trip “Goa” · 2026-12-01"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "group-plain",
+      "tool": "create_group",
+      "args": {
+        "name": "Flatmates",
+        "kind": "group"
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Create group “Flatmates”"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "group-autosplit-false",
+      "tool": "create_group",
+      "args": {
+        "name": "Flatmates",
+        "kind": "group",
+        "auto_split": false
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Create group “Flatmates”"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "remember",
+      "tool": "remember",
+      "args": {
+        "fact": "Pays rent on the 3rd"
+      },
+      "baseCurrency": "INR"
+    },
+    "expected": "Remembered: Pays rent on the 3rd"
+  },
+  {
+    "fn": "describeToolCall",
+    "input": {
+      "name": "unknown",
+      "tool": "do_something",
+      "args": {},
+      "baseCurrency": "INR"
+    },
+    "expected": "Run do_something"
   }
 ]

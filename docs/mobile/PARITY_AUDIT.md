@@ -2327,3 +2327,58 @@ aggregate that is the only financial data sent), `speech.ts` + `MicButton.tsx`
 (181 — voice, and the earlier audit claim that "web has no voice input" was
 wrong). `summary.ts` also carries a **sixth** hardcoded `/100`.
 
+### The assistant, part two — the prompt and the tool surface — 2026-08-27
+
+**`summaryForPrompt` — the only financial data that leaves the device.** Web's
+header makes the claim and this is the function that keeps it: aggregates only,
+never raw transactions. No merchant names, no dates of individual spends, no
+counterparties. Ported with **8 vectors** against web's real output, including
+the caps (12 accounts, 12 goals, 8 upcoming) and the drop rules — each of which
+is a token budget, not a display choice.
+
+Two details in it are easy to lose and are load-bearing:
+
+* **`today` is on the type and not in the prompt.** The date is carried
+  separately.
+* **`upcoming` drops its currency.** Web projects `{n, date, amt}` and nothing
+  else, so a renewal in a second currency goes as a bare number. Reproduced
+  rather than fixed — a phone that sent an extra field would be answering a
+  different prompt.
+
+**`JSON.stringify` on a number is a real problem, solved narrowly.** The general
+algorithm is shortest-round-trip and is hard to reimplement twice identically;
+`1234.0` is what both Kotlin and Swift produce and `1234` is what JS produces.
+But every number in this prompt is `Math.round(minor)/100` or `+(x).toFixed(2)`
+— an integer number of hundredths — and for those the formatting is three cases.
+`jsonHundredths` implements exactly that and documents the contract. A general
+"close enough" formatter would have put a different prompt in front of the model
+on each platform and nothing would ever have failed loudly.
+
+**The tool surface is GENERATED.** `tools/parity/generate-assistant-tools.mjs`
+reads `ASSISTANT_TOOLS` and `CONFIRM_TOOLS` out of `tools.ts` and emits
+`AssistantTools.kt`/`.swift` — 7 tools, 6 requiring confirmation. It is in the
+parity job. The reason it is generated rather than transcribed is that those
+descriptions are **prompt text, not documentation**: "Use sparingly — not
+one-off details" is doing real work on the model, and a paraphrase on one
+platform is a behaviour change nobody would ever attribute to a typo. The
+schemas are emitted as JSON string literals because that is what goes over the
+wire; building a typed tree on each platform only to re-serialise it would add
+two chances to differ and buy nothing.
+
+**`describeToolCall` is the most consequential sentence in this feature**, so it
+is in Domain under 16 vectors rather than formatted at each call site. It is the
+line a user reads before authorising a write to their ledger. The curly quotes
+and middle dots are web's character for character — `Create goal "X"` versus
+`Create goal “X”` is a visible difference on the one screen where trust is being
+asked for. `isValidToolInput` has 16 more; web's own comment names the case it
+exists for, the model firing `record_transaction` with amount 0 for what was
+really a navigation request.
+
+**Assistant vectors now total 111** across seven functions.
+
+**Still to come:** `AssistantChat.tsx` (644 — the streaming chat and the confirm
+cards), `executeTool` (repository writes for all seven tools),
+`buildFinancialSummary` (the repository half of the snapshot — and web bug #8's
+**sixth** hardcoded `/100` lives in its `major()`), and `speech.ts` +
+`MicButton.tsx` (voice).
+

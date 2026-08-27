@@ -103,6 +103,12 @@ jobs:
             # normalisation at all -- one platform missing a bank code silently
             # changes what every statement row categorises as.
             node tools/parity/generate-category-seeds.mjs
+            # The assistant's tool surface: seven names, their JSON schemas and
+            # the descriptions the MODEL reads. Those descriptions are prompt
+            # text, not documentation -- paraphrasing one changes how the model
+            # behaves, so a hand-copy into two languages is a behaviour fork
+            # waiting to happen.
+            node tools/parity/generate-assistant-tools.mjs
             # The PowerSync client schema, mirrored into both native platforms.
             # These were NOT in this list, and that is exactly why the mirrors
             # fell four migrations behind packages/db/src/index.ts without a

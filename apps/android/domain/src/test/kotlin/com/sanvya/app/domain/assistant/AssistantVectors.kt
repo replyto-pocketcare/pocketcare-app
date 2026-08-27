@@ -8,6 +8,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.int
 import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -126,6 +127,68 @@ private fun InlineSpan.toJson(): JsonElement = obj(
     "href" to href?.let { JsonPrimitive(it) },
 )
 
+private fun JsonElement.toSummary(): FinancialSummary {
+    val o = jsonObject
+    fun d(key: String): Double = o[key]?.jsonPrimitive?.doubleOrNull ?: 0.0
+    fun str(key: String): String = o[key]?.jsonPrimitive?.content.orEmpty()
+    fun rows(key: String): List<JsonObject> =
+        (o[key] as? JsonArray)?.map { it.jsonObject } ?: emptyList()
+
+    val splits = o["splits"]?.jsonObject
+    return FinancialSummary(
+        baseCurrency = str("baseCurrency"),
+        today = str("today"),
+        accounts = rows("accounts").map {
+            SummaryAccount(
+                id = it.getValue("id").jsonPrimitive.content,
+                name = it.getValue("name").jsonPrimitive.content,
+                type = it.getValue("type").jsonPrimitive.content,
+                currency = it.getValue("currency").jsonPrimitive.content,
+                balance = it.getValue("balance").jsonPrimitive.double,
+            )
+        },
+        liquidSavings = d("liquidSavings"),
+        avgMonthlyIncome = d("avgMonthlyIncome"),
+        avgMonthlyExpense = d("avgMonthlyExpense"),
+        monthlySurplus = d("monthlySurplus"),
+        fixedMonthlyObligations = d("fixedMonthlyObligations"),
+        goals = rows("goals").map {
+            SummaryGoal(
+                name = it.getValue("name").jsonPrimitive.content,
+                target = it.getValue("target").jsonPrimitive.double,
+                saved = it.getValue("saved").jsonPrimitive.double,
+                currency = it.getValue("currency").jsonPrimitive.content,
+            )
+        },
+        upcoming = rows("upcoming").map {
+            SummaryUpcoming(
+                name = it.getValue("name").jsonPrimitive.content,
+                date = it.getValue("date").jsonPrimitive.content,
+                amount = it.getValue("amount").jsonPrimitive.double,
+                currency = it.getValue("currency").jsonPrimitive.content,
+            )
+        },
+        splits = SummarySplits(
+            owed = splits?.get("owed")?.jsonPrimitive?.double ?: 0.0,
+            owe = splits?.get("owe")?.jsonPrimitive?.double ?: 0.0,
+            groups = splits?.get("groups")?.jsonPrimitive?.int ?: 0,
+        ),
+        monthlyCashflow = rows("monthlyCashflow").map {
+            SummaryMonth(
+                ym = it.getValue("ym").jsonPrimitive.content,
+                income = it.getValue("income").jsonPrimitive.double,
+                expense = it.getValue("expense").jsonPrimitive.double,
+            )
+        },
+        topCategories = rows("topCategories").map {
+            SummaryCategory(
+                name = it.getValue("name").jsonPrimitive.content,
+                amount = it.getValue("amount").jsonPrimitive.double,
+            )
+        },
+    )
+}
+
 fun registerAssistantVectors() {
     FunctionRegistry.register(DOMAIN, "assistantCompactNum") { input ->
         JsonPrimitive(assistantCompactNum(input.jsonObject.getValue("n").jsonPrimitive.double))
@@ -137,6 +200,31 @@ fun registerAssistantVectors() {
 
     FunctionRegistry.register(DOMAIN, "assistantInlineSpans") { input ->
         JsonArray(assistantInlineSpans(input.jsonObject.getValue("s").jsonPrimitive.content).map { it.toJson() })
+    }
+
+    FunctionRegistry.register(DOMAIN, "isValidToolInput") { input ->
+        val o = input.jsonObject
+        JsonPrimitive(
+            isValidToolInput(
+                o.getValue("tool").jsonPrimitive.content,
+                (o.getValue("args").toAssistantJson() as AssistantJson.Obj).values,
+            ),
+        )
+    }
+
+    FunctionRegistry.register(DOMAIN, "describeToolCall") { input ->
+        val o = input.jsonObject
+        JsonPrimitive(
+            describeToolCall(
+                o.getValue("tool").jsonPrimitive.content,
+                (o.getValue("args").toAssistantJson() as AssistantJson.Obj).values,
+                o.getValue("baseCurrency").jsonPrimitive.content,
+            ),
+        )
+    }
+
+    FunctionRegistry.register(DOMAIN, "summaryForPrompt") { input ->
+        JsonPrimitive(summaryForPrompt(input.jsonObject.getValue("summary").toSummary()))
     }
 
     FunctionRegistry.register(DOMAIN, "parseAssistantMessage") { input ->
