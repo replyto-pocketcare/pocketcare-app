@@ -188,8 +188,8 @@ fun StatementAnalyzeScreen(viewModel: StatementAnalyzeViewModel = viewModel()) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Field(S.StatementsAnalyze.statementType(res)) {
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                SanvyaChip(S.StatementsAnalyze.bank(res), kind == "bank") { viewModel.setKind("bank") }
-                                SanvyaChip(S.StatementsAnalyze.card(res), kind == "card") { viewModel.setKind("card") }
+                                SanvyaChip(S.StatementsAnalyze.bank(res), kind == "bank", onClick = { viewModel.setKind("bank") })
+                                SanvyaChip(S.StatementsAnalyze.card(res), kind == "card", onClick = { viewModel.setKind("card") })
                             }
                         }
                         Field(S.StatementsAnalyze.accountToReconcile(res)) {
@@ -197,11 +197,13 @@ fun StatementAnalyzeScreen(viewModel: StatementAnalyzeViewModel = viewModel()) {
                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
-                                SanvyaChip(S.StatementsAnalyze.chooseLater(res), accountId.isEmpty()) {
-                                    viewModel.setAccountId("")
-                                }
+                                SanvyaChip(
+                                    S.StatementsAnalyze.chooseLater(res),
+                                    accountId.isEmpty(),
+                                    onClick = { viewModel.setAccountId("") },
+                                )
                                 accounts.forEach { a ->
-                                    SanvyaChip(a.name, accountId == a.id) { viewModel.setAccountId(a.id) }
+                                    SanvyaChip(a.name, accountId == a.id, onClick = { viewModel.setAccountId(a.id) })
                                 }
                             }
                         }
@@ -400,7 +402,8 @@ private fun Results(
                 SanvyaChip(
                     if (showAll) S.StatementsAnalyze.showLess(res) else S.StatementsAnalyze.showAll(res, parsed.txns.size),
                     false,
-                ) { viewModel.toggleShowAll() }
+                    onClick = { viewModel.toggleShowAll() },
+                )
             }
         }
     }
@@ -561,7 +564,7 @@ private fun Recurring(
                             color = colors.positive,
                         )
                     } else {
-                        SanvyaChip(S.StatementsAnalyze.addAsRecurring(res), false) { onAdd(r) }
+                        SanvyaChip(S.StatementsAnalyze.addAsRecurring(res), false, onClick = { onAdd(r) })
                     }
                 }
             }

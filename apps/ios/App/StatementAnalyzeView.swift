@@ -369,7 +369,9 @@ struct StatementAnalyzeView: View {
         }
     }
 
-    private func chartCard(_ title: String, @ViewBuilder content: () -> some View) -> some View {
+    // `@escaping` and an explicit generic, not `some View`: SanvyaCard stores its
+    // content closure, so a non-escaping parameter cannot be handed to it.
+    private func chartCard<C: View>(_ title: String, @ViewBuilder content: @escaping () -> C) -> some View {
         SanvyaCard(padding: 16) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title.uppercased())

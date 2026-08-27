@@ -124,6 +124,11 @@ jobs:
       # so this one saves more debugging than the Swift greps do.
       - name: Kotlin imports
         run: node tools/parity/check-kotlin-imports.mjs 2>&1 | tee -a parity.log
+      # A trailing lambda on a composable whose last parameter is a Modifier
+      # binds to the Modifier. Twelve CI errors on one screen, none of which
+      # said "trailing lambda" -- see the script's header.
+      - name: Compose trailing lambdas
+        run: node tools/parity/check-trailing-lambda.mjs 2>&1 | tee -a parity.log
       - name: Fail if generated output drifted
         run: |
           if ! git diff --exit-code | tee -a parity.log; then

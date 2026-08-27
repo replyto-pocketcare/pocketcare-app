@@ -2200,3 +2200,23 @@ gate.
 Both gates now start CLOSED and stay closed when the entitlement can't be read.
 A gate that fails open is not a gate.
 
+### CI run 33067200029 (f9811d5) — 3 real errors, none of them in the PDF work
+
+Worth recording because of WHERE they came from: `aa0315f` (the analyzer screen)
+and `bf9759e` (the categoriser) were pushed together, so GitHub only ran the
+head commit. Two commits' worth of errors surfaced against the third, and the
+log named files the third commit had barely touched.
+
+| Error | Cause | Guard added |
+| --- | --- | --- |
+| 12 × `No value passed for parameter 'onClick'` / `'() -> Unit' but 'Modifier' was expected` | `SanvyaChip(label, active) { … }`. Its signature is `(label, active, onClick, modifier = Modifier)` — `modifier` is LAST, so a trailing lambda binds to it | **`tools/parity/check-trailing-lambda.mjs`**, now in the parity job. It READS every `@Composable fun Sanvya*` signature, works out whether the last parameter is a function type, and only flags call sites of the ones where it is not |
+| `No parameter with name 'nowIso'` | `importTransactions`'s parameter is `stampIso`; the analyzer called it `nowIso` because the helper that produces the value is called `nowIso()` | none — one wrong keyword, and the compiler's message is already the answer |
+| `escaping closure captures non-escaping parameter 'content'` | `chartCard(_:content:)` declared `@ViewBuilder content: () -> some View` and handed it to `SanvyaCard`, whose init stores it (`@escaping`) | new **escaping-content scan** in `check-swift-traps.mjs`. Which components need `@escaping` is read from their own initialisers, so a component that stops storing its content stops being flagged |
+
+Both guards were verified the usual way: break the file deliberately, watch the
+guard name it and exit 1, restore, watch it go clean.
+
+**The parity job passed**, including the two new generators and the 28 PDF
+vectors' regeneration check — so the PDF work itself has no drift. It has still
+never been through a compiler.
+

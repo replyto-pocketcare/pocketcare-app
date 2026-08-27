@@ -319,7 +319,7 @@ class StatementAnalyzeViewModel : ViewModel(), KoinComponent {
             runCatching {
                 ledgerRepository.importTransactions(
                     userId = userId, rows = rows, baseCurrency = baseCurrencyNow(),
-                    nowIso = nowIso(), skipDuplicates = false,
+                    stampIso = nowIso(), skipDuplicates = false,
                 )
             }
             _imported.value = true

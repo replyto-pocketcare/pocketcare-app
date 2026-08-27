@@ -215,7 +215,65 @@ for (const file of swiftFiles) {
   }
 }
 
-console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} line rules + bindable + missing-import scans, ${failures.length} hit(s)`);
+/* ------------------------------------------------------------------ *
+ * A non-`@escaping` @ViewBuilder closure handed to a component that STORES it.
+ *
+ * `SanvyaCard`, `SanvyaButton` and friends keep their content closure in a
+ * property, so their initialisers declare `@ViewBuilder content: @escaping`.
+ * A local helper written the obvious way —
+ *
+ *     private func chartCard(_ t: String, @ViewBuilder content: () -> some View) -> some View {
+ *         SanvyaCard { ... content() ... }
+ *     }
+ *
+ * — gets "escaping closure captures non-escaping parameter 'content'", which
+ * points at the CARD, names the parameter, and says nothing about the helper's
+ * own signature being the fixable end. StatementAnalyzeView.swift shipped it.
+ *
+ * Which components need it is read from their own initialisers, not listed
+ * here, so a component that stops storing its content stops being flagged.
+ * ------------------------------------------------------------------ */
+const escapingContentComponents = new Set();
+for (const file of swiftFiles) {
+  const src = readFileSync(file, "utf8");
+  for (const m of src.matchAll(/struct\s+(\w+)\s*<[^>]*>\s*:\s*View\b/g)) {
+    const name = m[1];
+    const after = src.slice(m.index, m.index + 4000);
+    if (/@ViewBuilder\s+\w+\s*:\s*@escaping/.test(after)) escapingContentComponents.add(name);
+  }
+}
+
+if (escapingContentComponents.size) {
+  for (const file of swiftFiles) {
+    const src = readFileSync(file, "utf8");
+    // `func name(... @ViewBuilder label: () -> X ...) ` with no @escaping.
+    for (const m of src.matchAll(/func\s+\w+[^\n]*?@ViewBuilder\s+(\w+)\s*:\s*(?!@escaping)\(\s*\)\s*->/g)) {
+      const param = m[1];
+      // Take the helper's body by brace matching from its opening `{`.
+      const open = src.indexOf("{", m.index);
+      if (open < 0) continue;
+      let depth = 0;
+      let end = open;
+      for (; end < src.length; end++) {
+        if (src[end] === "{") depth++;
+        else if (src[end] === "}") { depth--; if (depth === 0) break; }
+      }
+      const body = src.slice(open, end);
+      const stored = [...escapingContentComponents].filter((c) =>
+        new RegExp(`\\b${c}\\s*[({]`).test(body) && new RegExp(`\\b${param}\\s*\\(`).test(body),
+      );
+      if (stored.length) {
+        const lineNo = src.slice(0, m.index).split("\n").length;
+        failures.push(
+          `${path.relative(repoRoot, file)}:${lineNo}  non-@escaping @ViewBuilder '${param}' handed to ${stored[0]}, which stores it\n` +
+          `    → make it \`@ViewBuilder ${param}: @escaping () -> C\` with an explicit \`<C: View>\`; \`some View\` cannot carry @escaping cleanly.`,
+        );
+      }
+    }
+  }
+}
+
+console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} line rules + bindable + escaping-content + missing-import scans, ${failures.length} hit(s)`);
 if (failures.length) {
   console.error("\n" + failures.join("\n\n"));
   console.error(`\n::error::${failures.length} known Swift trap(s). Each of these has broken CI before.`);
