@@ -20,6 +20,7 @@ struct CreateTransactionView: View {
     @Environment(\.dismiss) private var dismiss
     @Injected(\.ledgerRepository) private var ledgerRepository
     @Injected(\.authRepository) private var authRepository
+    @Injected(\.prefsRepository) private var prefsRepository
 
     @State private var accounts: [Account] = []
     @State private var categories: [CategoryRow] = []
@@ -52,6 +53,18 @@ struct CreateTransactionView: View {
     /// latch and never clears it.
     @State private var manualCategory = false
     @State private var suggestTask: Task<Void, Never>?
+    /// Whether the categoriser runs at all.
+    ///
+    /// Web gates BOTH halves on the entitlement — `useAutoCategorize(text, cats,
+    /// isPaid && type !== "transfer")` and `if (... && isPaid) learnCategory(...)`.
+    /// The first port of this screen missed it, so a free account was quietly
+    /// getting a paid feature and, worse, writing category rules that would then
+    /// shape suggestions it was never supposed to see.
+    ///
+    /// Starts CLOSED and stays closed if the entitlement can't be read: a gate
+    /// that fails open is not a gate.
+    @State private var isPaid = false
+    @State private var entitlementTask: Task<Void, Never>?
 
     private var account: Account? { accounts.first { $0.id == accountId } ?? accounts.first }
     private var toAccount: Account? { accounts.first { $0.id == toAccountId } ?? accounts.first { $0.id != account?.id } }
@@ -180,12 +193,16 @@ struct CreateTransactionView: View {
             }
         }
         .task { await loadLookups() }
+        .task { await watchEntitlement() }
         // Re-suggest whenever the text that feeds the categoriser changes.
         // Keyed on the joined string, not on `items`, so moving the cursor or
         // re-selecting text does not re-suggest and stomp a manual choice.
         .onChange(of: autoCategorizeText) { _, _ in scheduleSuggestion() }
         .onChange(of: type) { _, _ in scheduleSuggestion() }
-        .onDisappear { suggestTask?.cancel() }
+        .onDisappear {
+            suggestTask?.cancel()
+            entitlementTask?.cancel()
+        }
     }
 
     private var itemsEditor: some View {
@@ -256,10 +273,30 @@ struct CreateTransactionView: View {
     /// long POS narration would still be dozens of round-trips for one answer.
     /// Cancelling the previous task is what makes it a debounce rather than a
     /// queue.
+    private func watchEntitlement() async {
+        guard entitlementTask == nil else { return }
+        entitlementTask = Task {
+            do {
+                for try await row in try prefsRepository.watchEntitlement() {
+                    isPaid = Domain.isPaid(
+                        tier: row?.tier,
+                        premiumTrialStartDate: row?.premiumTrialStartDate,
+                        compTier: row?.compTier,
+                        compUntil: row?.compUntil,
+                        now: Date()
+                    )
+                }
+            } catch {
+                isPaid = false
+            }
+        }
+        await entitlementTask?.value
+    }
+
     private func scheduleSuggestion() {
         suggestTask?.cancel()
         let text = autoCategorizeText
-        guard !text.isEmpty, type != "transfer" else {
+        guard isPaid, !text.isEmpty, type != "transfer" else {
             suggestedCategoryId = nil
             return
         }
@@ -295,7 +332,7 @@ struct CreateTransactionView: View {
     /// an error the user has to read.
     private func learnFromThisSave(userId: String) async {
         let text = autoCategorizeText
-        guard !text.isEmpty, let chosen = categoryId else { return }
+        guard isPaid, !text.isEmpty, let chosen = categoryId else { return }
         try? await ledgerRepository.learnFromSave(
             userId: userId,
             text: text,

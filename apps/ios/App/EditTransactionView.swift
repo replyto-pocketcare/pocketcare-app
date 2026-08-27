@@ -20,6 +20,7 @@ struct EditTransactionView: View {
     @Environment(\.dismiss) private var dismiss
     @Injected(\.ledgerRepository) private var ledgerRepository
     @Injected(\.authRepository) private var authRepository
+    @Injected(\.prefsRepository) private var prefsRepository
 
     @State private var loaded = false
     @State private var accounts: [Account] = []
@@ -43,6 +44,22 @@ struct EditTransactionView: View {
     @State private var confirmDelete = false
     @State private var deleting = false
     @State private var error: String?
+
+    /// The category the transaction ALREADY had when it was opened.
+    ///
+    /// This is the "suggestion" the categoriser learns against on this screen.
+    /// Web passes `originalCategoryId` where the create screen passes the
+    /// auto-applied suggestion, and the two mean the same thing: something was
+    /// on screen proposing a category, and the user chose otherwise. Changing it
+    /// is a correction, and `scoreTokens` weights a correction at five ordinary
+    /// sightings.
+    @State private var originalCategoryId: String?
+
+    /// The categoriser is a paid feature and web gates BOTH halves on it —
+    /// `if (type !== "transfer" && isPaid && categoryId !== originalCategoryId)`.
+    /// Starts CLOSED and stays closed if the entitlement can't be read: a gate
+    /// that fails open is not a gate.
+    @State private var isPaid = false
 
     private var account: Account? { accounts.first { $0.id == accountId } }
     private var relevantCategories: [CategoryRow] { categories.filter { $0.kind == (type == "income" ? "income" : "expense") } }
@@ -172,7 +189,8 @@ struct EditTransactionView: View {
         async let l: () = watchLabelsLoop()
         async let p: () = watchPaymentMethodsLoop()
         async let t: () = watchTransactionLoop()
-        _ = await (a, c, l, p, t)
+        async let e: () = watchEntitlement()
+        _ = await (a, c, l, p, t, e)
     }
     private func watchAccountsLoop() async {
         do { for try await list in try ledgerRepository.watchAccounts(includeArchived: true) { accounts = list } }
@@ -212,6 +230,7 @@ struct EditTransactionView: View {
                 transferAmount = String(Double(txn.amount) / 100.0)
                 items = drafts
                 categoryId = txn.categoryId
+                originalCategoryId = txn.categoryId
                 selectedLabels = labelNames
                 paymentMethod = txn.paymentMethod ?? ""
                 note = txn.note ?? ""
@@ -285,6 +304,7 @@ struct EditTransactionView: View {
                 }
                 patch["labels"] = selectedLabels
                 try await ledgerRepository.updateTransaction(userId: userId, id: transactionId, patch: patch)
+                await learnFromThisSave(userId: userId, description: patch["description"] as? String)
                 saving = false
                 dismiss()
             } catch {
@@ -292,6 +312,49 @@ struct EditTransactionView: View {
                 saving = false
             }
         }
+    }
+
+    private func watchEntitlement() async {
+        do {
+            for try await row in try prefsRepository.watchEntitlement() {
+                isPaid = Domain.isPaid(
+                    tier: row?.tier,
+                    premiumTrialStartDate: row?.premiumTrialStartDate,
+                    compTier: row?.compTier,
+                    compUntil: row?.compUntil,
+                    now: Date()
+                )
+            }
+        } catch {
+            isPaid = false
+        }
+    }
+
+    /// Teach the categoriser from a re-categorisation.
+    ///
+    /// Three differences from the create screen, all of them web's:
+    ///
+    /// * only fires when the category actually CHANGED. Re-saving a transaction
+    ///   without touching its category is not evidence of anything.
+    /// * the text is the combined DESCRIPTION only, not description + note. The
+    ///   create screen joins the note in; this one does not, and mirroring that
+    ///   matters because the two write into the same rule table — a phrase rule
+    ///   keyed on "coffee" and one keyed on "coffee paid back Ravi" are
+    ///   different rules, and only one of them will ever match again.
+    /// * `originalCategoryId` plays the suggestion's part.
+    ///
+    /// Best-effort: a learning failure must never turn a saved edit into an
+    /// error the user has to read.
+    private func learnFromThisSave(userId: String, description: String?) async {
+        guard type != "transfer", isPaid, categoryId != originalCategoryId else { return }
+        try? await ledgerRepository.learnFromSave(
+            userId: userId,
+            // `|| ""` on web: an item-less transaction still learns nothing,
+            // because learnFromSave itself returns early on empty text.
+            text: description ?? "",
+            chosenCategoryId: categoryId,
+            suggestedCategoryId: originalCategoryId
+        )
     }
 
     private func delete() {

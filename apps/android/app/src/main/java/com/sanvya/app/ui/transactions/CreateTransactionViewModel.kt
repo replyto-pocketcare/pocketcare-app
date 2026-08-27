@@ -8,8 +8,10 @@ import com.sanvya.app.data.repository.CategoryRow
 import com.sanvya.app.data.repository.LabelRow
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.PaymentMethodRow
+import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.data.repository.TransactionItemInput
 import com.sanvya.app.domain.categorize.CategoryData
+import com.sanvya.app.domain.entitlements.isPaid as domainIsPaid
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.money.money
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,6 +79,7 @@ data class CreateTransactionUiState(
 class CreateTransactionViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
     private val authRepository: AuthRepository by inject()
+    private val prefsRepository: PrefsRepository by inject()
 
     private val ui = MutableStateFlow(CreateTransactionUiState())
 
@@ -137,6 +140,17 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
         // cursor or re-selecting text re-emits the same string, and without it
         // every one of those would re-suggest and stomp a manual choice.
         viewModelScope.launch {
+            prefsRepository.watchEntitlement().collect { ent ->
+                _isPaid.value = domainIsPaid(
+                    ent?.tier,
+                    ent?.premiumTrialStartDate,
+                    ent?.compTier,
+                    ent?.compUntil,
+                    System.currentTimeMillis(),
+                )
+            }
+        }
+        viewModelScope.launch {
             ui.map { autoCategorizeTextOf(it) }
                 .distinctUntilChanged()
                 .debounce(AUTO_CATEGORIZE_DEBOUNCE_MS)
@@ -155,7 +169,22 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
         return listOf(descriptions, state.note.trim()).filter { it.isNotEmpty() }.joinToString(" ")
     }
 
+    /**
+     * Whether the categoriser runs at all.
+     *
+     * Web gates BOTH halves on the entitlement — `useAutoCategorize(text, cats,
+     * isPaid && type !== "transfer")` and `if (... && isPaid) learnCategory(...)`.
+     * The first port of this screen missed it, so a free account was quietly
+     * getting a paid feature and, worse, writing category rules that would then
+     * shape suggestions it was never supposed to see.
+     */
+    private val _isPaid = MutableStateFlow(false)
+
     private suspend fun suggest(text: String) {
+        if (!_isPaid.value) {
+            ui.value = ui.value.copy(suggestedCategoryId = null)
+            return
+        }
         if (text.isBlank() || ui.value.type == "transfer") {
             ui.value = ui.value.copy(suggestedCategoryId = null)
             return
@@ -294,7 +323,7 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
      * an error the user has to read.
      */
     private suspend fun learnFromThisSave(state: CreateTransactionUiState) {
-        if (state.type == "transfer") return
+        if (!_isPaid.value || state.type == "transfer") return
         val text = autoCategorizeTextOf(state)
         if (text.isBlank() || state.categoryId == null) return
         val userId = authRepository.currentUserId.value ?: return

@@ -9,7 +9,9 @@ import com.sanvya.app.data.repository.CategoryRow
 import com.sanvya.app.data.repository.LabelRow
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.PaymentMethodRow
+import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.data.repository.TransactionItemInput
+import com.sanvya.app.domain.entitlements.isPaid as domainIsPaid
 import com.sanvya.app.domain.money.fromMajor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -57,8 +59,29 @@ class EditTransactionViewModel(
 ) : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
     private val authRepository: AuthRepository by inject()
+    private val prefsRepository: PrefsRepository by inject()
 
     private val transactionId: String = checkNotNull(savedStateHandle["transactionId"]) { "EditTransactionViewModel needs a transactionId nav arg" }
+
+    /**
+     * The category the transaction ALREADY had when it was opened.
+     *
+     * This is the "suggestion" the categoriser learns against on this screen.
+     * Web passes `originalCategoryId` where the create screen passes the
+     * auto-applied suggestion, and the two mean the same thing: something was on
+     * screen proposing a category, and the user chose otherwise. Changing it is
+     * a correction, and `scoreTokens` weights a correction at five ordinary
+     * sightings.
+     */
+    private var originalCategoryId: String? = null
+
+    /**
+     * The categoriser is a paid feature and web gates BOTH halves on it —
+     * `if (type !== "transfer" && isPaid && categoryId !== originalCategoryId)`.
+     * Starts CLOSED and stays closed if the entitlement can't be read: a gate
+     * that fails open is not a gate.
+     */
+    private val isPaid = MutableStateFlow(false)
 
     private val ui = MutableStateFlow(EditTransactionUiState())
     val uiState: StateFlow<EditTransactionUiState> = ui.asStateFlow()
@@ -86,6 +109,17 @@ class EditTransactionViewModel(
 
     init {
         viewModelScope.launch {
+            prefsRepository.watchEntitlement().collect { ent ->
+                isPaid.value = domainIsPaid(
+                    ent?.tier,
+                    ent?.premiumTrialStartDate,
+                    ent?.compTier,
+                    ent?.compUntil,
+                    System.currentTimeMillis(),
+                )
+            }
+        }
+        viewModelScope.launch {
             combine(
                 ledgerRepository.watchAllTransactions().map { list -> list.find { it.id == transactionId } },
                 ledgerRepository.watchTransactionLabelNames(),
@@ -102,6 +136,7 @@ class EditTransactionViewModel(
                     } else {
                         listOf(TxItemDraft(id = "new_${System.currentTimeMillis()}", description = txn.description ?: "", value = (txn.amount / 100.0).toString()))
                     }
+                    originalCategoryId = txn.categoryId
                     ui.value = ui.value.copy(
                         loaded = true,
                         type = txn.type,
@@ -191,10 +226,45 @@ class EditTransactionViewModel(
                 patch["labels"] = state.selectedLabels
                 if (state.type == "expense") patch["intent"] = state.intent
                 ledgerRepository.updateTransaction(userId, transactionId, patch)
+                learnFromThisSave(state, patch["description"] as? String)
                 ui.value = ui.value.copy(saving = false, saved = true)
             } catch (e: Exception) {
                 ui.value = ui.value.copy(saving = false, error = e.message ?: "Couldn't save changes")
             }
+        }
+    }
+
+    /**
+     * Teach the categoriser from a re-categorisation.
+     *
+     * Three differences from the create screen, all of them web's:
+     *
+     * * only fires when the category actually CHANGED. Re-saving a transaction
+     *   without touching its category is not evidence of anything.
+     * * the text is the combined DESCRIPTION only, not description + note. The
+     *   create screen joins the note in; this one does not, and mirroring that
+     *   matters because the two write into the same rule table — a phrase rule
+     *   keyed on "coffee" and one keyed on "coffee paid back Ravi" are
+     *   different rules, and only one of them will ever match again.
+     * * `originalCategoryId` plays the suggestion's part.
+     *
+     * Best-effort: a learning failure must never turn a saved edit into an
+     * error the user has to read.
+     */
+    private suspend fun learnFromThisSave(state: EditTransactionUiState, description: String?) {
+        if (state.type == "transfer") return
+        if (!isPaid.value) return
+        if (state.categoryId == originalCategoryId) return
+        val userId = authRepository.currentUserId.value ?: return
+        runCatching {
+            ledgerRepository.learnFromSave(
+                userId = userId,
+                // `|| ""` on web: an item-less transaction still learns nothing,
+                // because learnFromSave itself returns early on empty text.
+                text = description.orEmpty(),
+                chosenCategoryId = state.categoryId,
+                suggestedCategoryId = originalCategoryId,
+            )
         }
     }
 

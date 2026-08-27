@@ -2150,3 +2150,53 @@ The rest needs a base-currency source on both platforms (web has `useBaseCurrenc
 be one change set with a lint rule or test behind it — a hardcoded currency is invisible in
 review, and a **default parameter** of `"INR"` is worse than a literal because no call site
 shows it.
+
+### Open 2026-08-27 — hardcoded ×100 / ÷100 across BOTH apps' UI layers
+
+Found while wiring `learnFromSave` into the edit screens. **29 sites on Android,
+20 on iOS**, all in `ui/` and `App/` — not Domain, which is clean.
+
+They are not one bug, they are two:
+
+1. **Faithful ports of web bug #8.** Web itself writes `Math.round(x * 100)` in
+   `GoalsPage`, `GroupDetail`, `Walkthrough`, `parseCsv`, `parsePdf`. Porting
+   the literal reproduces the bug; using `fromMajor` diverges from the browser.
+   Every place the ports have already chosen `fromMajor` is recorded against
+   bug #8, and the golden vectors pin the divergence deliberately.
+2. **Port-introduced, with no web counterpart.** These are the ones that matter
+   here, because nothing forced them. The clearest is
+   `EditTransactionViewModel.kt:213` / `EditTransactionView.swift:271`: the
+   transaction's `amount` is summed with `* 100` while the *items* directly
+   beside it go through `fromMajor(..., currency)`. On JPY or KWD the header and
+   its own breakdown disagree, inside a single write.
+
+Also here: `ui/goals`, `ui/budgets`, `ui/insights` (chart series), `ui/splits`,
+`ui/receipts`, `ui/loans` and their iOS equivalents.
+
+**Not fixed in this pass, deliberately.** Each site needs a per-call judgement —
+"does web hardcode here too, and if so do we reproduce or fix?" — and a sweep
+that guesses would either break browser parity or leave the bug in half the
+places. It should be one change set with a **grep guard in the parity job**
+behind it (`* 100` / `/ 100.0` on anything money-shaped outside Domain), because
+a hardcoded scale factor is invisible in review — it looks like arithmetic.
+
+### Open 2026-08-27 — the auto-categoriser was not entitlement-gated on either phone
+
+Found while porting `learnFromSave` to the edit screens, and **fixed in the same
+commit**. Web gates both halves:
+
+```
+useAutoCategorize(autoCategorizeText, categories, isPaid && type !== "transfer")
+if (type !== "transfer" && autoCategorizeText && isPaid) learnCategory(...)
+```
+
+The first port of the create screen carried neither check across. A free account
+was getting a paid feature — which is the small half. The larger half is that it
+was **writing category rules**, at weight 1000 for a phrase and with corrections
+counted at five ordinary sightings, into a table it was never supposed to touch.
+Those rules then shape suggestions after an upgrade, so the damage outlives the
+gate.
+
+Both gates now start CLOSED and stay closed when the entitlement can't be read.
+A gate that fails open is not a gate.
+
