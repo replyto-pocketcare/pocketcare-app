@@ -1,0 +1,180 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :data:preBuild UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :data:processDebugNavigationResources
+> Task :app:generateDebugResources
+> Task :app:processDebugGoogleServices
+> Task :data:generateDebugBuildConfig
+> Task :data:generateDebugResources
+> Task :data:packageDebugResources
+> Task :app:packageDebugResources
+> Task :domain:processResources NO-SOURCE
+> Task :domain:processTestResources
+> Task :data:parseDebugLocalResources
+> Task :data:generateDebugRFile
+> Task :data:generateDebugAssets UP-TO-DATE
+> Task :data:mergeDebugAssets
+> Task :data:javaPreCompileDebug
+> Task :data:extractDeepLinksDebug
+> Task :data:writeDebugAarMetadata
+> Task :data:mapDebugSourceSetPaths
+> Task :app:processDebugNavigationResources
+> Task :data:processDebugManifest
+> Task :data:compileDebugLibraryResources
+> Task :app:javaPreCompileDebug FROM-CACHE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :data:mergeDebugJniLibFolders
+> Task :data:mergeDebugNativeLibs NO-SOURCE
+> Task :data:copyDebugJniLibsProjectOnly
+> Task :data:preReleaseBuild UP-TO-DATE
+> Task :app:parseDebugLocalResources
+> Task :data:mergeReleaseJniLibFolders
+> Task :data:mergeReleaseNativeLibs NO-SOURCE
+> Task :data:copyReleaseJniLibsProjectOnly
+> Task :data:generateReleaseBuildConfig
+> Task :data:generateReleaseResources FROM-CACHE
+> Task :data:packageReleaseResources
+> Task :app:mergeDebugAssets
+> Task :data:processReleaseNavigationResources FROM-CACHE
+> Task :data:parseReleaseLocalResources FROM-CACHE
+> Task :data:generateReleaseRFile FROM-CACHE
+> Task :data:javaPreCompileRelease FROM-CACHE
+> Task :data:writeReleaseAarMetadata
+> Task :app:generateDebugRFile
+> Task :data:extractDeepLinksRelease FROM-CACHE
+> Task :data:processReleaseManifest FROM-CACHE
+> Task :data:mapReleaseSourceSetPaths
+> Task :data:compileReleaseLibraryResources
+> Task :data:prepareReleaseArtProfile
+> Task :data:generateReleaseAssets UP-TO-DATE
+> Task :data:mergeReleaseAssets
+> Task :app:compressDebugAssets
+> Task :data:extractProguardFiles
+> Task :data:prepareLintJarForPublish
+> Task :data:stripReleaseDebugSymbols NO-SOURCE
+> Task :data:copyReleaseJniLibsProjectAndLocalJars
+> Task :data:extractDeepLinksForAarRelease
+> Task :data:writeReleaseLintModelMetadata
+> Task :data:checkReleaseAarMetadata
+> Task :data:stripDebugDebugSymbols NO-SOURCE
+> Task :data:checkDebugAarMetadata
+> Task :data:copyDebugJniLibsProjectAndLocalJars
+> Task :data:extractDeepLinksForAarDebug FROM-CACHE
+> Task :data:prepareDebugArtProfile
+> Task :data:writeDebugLintModelMetadata
+> Task :data:preDebugAndroidTestBuild UP-TO-DATE
+> Task :data:preDebugUnitTestBuild UP-TO-DATE
+> Task :data:mergeReleaseResources
+> Task :app:generateDebugGlobalSynthetics
+> Task :data:generateDebugUnitTestStubRFile
+> Task :data:javaPreCompileDebugUnitTest FROM-CACHE
+> Task :app:desugarDebugFileDependencies
+> Task :app:checkDebugDuplicateClasses
+> Task :app:checkDebugAarMetadata
+> Task :data:verifyReleaseResources
+> Task :domain:compileKotlin
+> Task :app:mergeExtDexDebug
+
+> Task :domain:compileKotlin
+w: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/domain/src/main/kotlin/com/sanvya/app/domain/investments/InvestmentsModel.kt:104:50 Unnecessary non-null assertion (!!) on a non-null receiver of type 'Double'.
+
+> Task :domain:compileJava NO-SOURCE
+> Task :domain:classes UP-TO-DATE
+> Task :domain:jar
+> Task :domain:assemble
+
+> Task :domain:compileTestKotlin
+w: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/domain/src/test/kotlin/com/sanvya/app/domain/diagnostics/DiagnosticsVectors.kt:69:49 Unnecessary non-null assertion (!!) on a non-null receiver of type 'DetailValue.Obj'.
+
+> Task :domain:compileTestJava NO-SOURCE
+> Task :domain:testClasses
+> Task :domain:test
+> Task :domain:check
+> Task :domain:build
+> Task :app:mapDebugSourceSetPaths
+> Task :app:compileDebugNavigationResources
+> Task :data:compileDebugKotlin
+w: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LedgerRepository.kt:1340:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'List<String>'.
+w: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RepairRepository.kt:234:16 Redundant creation of Json format. Creating instances for each usage can be slow.
+
+> Task :data:compileReleaseKotlin
+w: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/LedgerRepository.kt:1340:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'List<String>'.
+w: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/data/src/main/kotlin/com/sanvya/app/data/repository/RepairRepository.kt:234:16 Redundant creation of Json format. Creating instances for each usage can be slow.
+
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:mergeDebugResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:mergeDebugJniLibFolders
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :data:compileDebugJavaWithJavac
+> Task :app:mergeDebugNativeLibs
+> Task :data:processDebugJavaRes
+> Task :data:bundleLibCompileToJarDebug
+> Task :data:bundleLibRuntimeToDirDebug
+> Task :data:compileReleaseJavaWithJavac
+> Task :data:bundleLibCompileToJarRelease
+> Task :data:bundleLibRuntimeToJarRelease
+> Task :data:bundleLibRuntimeToDirRelease
+> Task :data:processReleaseJavaRes
+> Task :data:createFullJarRelease
+> Task :app:validateSigningDebug
+> Task :data:generateReleaseLintModel
+> Task :data:extractReleaseAnnotations
+> Task :data:mergeReleaseGeneratedProguardFiles
+> Task :data:mergeReleaseConsumerProguardFiles
+> Task :data:mergeReleaseJavaResource
+> Task :data:generateReleaseLintVitalModel
+> Task :data:syncReleaseLibJars
+> Task :data:bundleReleaseLocalLintAar
+> Task :data:extractDebugAnnotations
+> Task :data:mergeDebugGeneratedProguardFiles
+> Task :data:mergeDebugConsumerProguardFiles
+> Task :data:mergeDebugJavaResource
+> Task :data:syncDebugLibJars
+> Task :data:bundleDebugLocalLintAar
+> Task :data:bundleLibRuntimeToJarDebug
+> Task :data:generateDebugLintModel
+> Task :data:createFullJarDebug
+> Task :app:mergeLibDexDebug
+> Task :app:stripDebugDebugSymbols
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:mergeReleaseJniLibFolders
+> Task :app:mergeReleaseNativeLibs
+> Task :app:stripReleaseDebugSymbols
+> Task :app:extractReleaseNativeSymbolTables
+> Task :app:mergeReleaseNativeDebugMetadata
+> Task :app:checkReleaseDuplicateClasses
+> Task :app:generateReleaseResources FROM-CACHE
+> Task :app:processReleaseGoogleServices FROM-CACHE
+> Task :app:packageReleaseResources
+> Task :app:processReleaseNavigationResources FROM-CACHE
+> Task :app:parseReleaseLocalResources FROM-CACHE
+> Task :app:generateReleaseRFile FROM-CACHE
+> Task :app:compileDebugKotlin
+> Task :data:lintVitalAnalyzeRelease
+> Task :data:lintAnalyzeDebug
+> Task :app:compileReleaseKotlin
+> Task :app:javaPreCompileRelease FROM-CACHE
+> Task :app:checkReleaseAarMetadata
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:compileReleaseNavigationResources FROM-CACHE
+> Task :app:mergeReleaseResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease FROM-CACHE
+> Task :app:processReleaseMainManifest
+> Task :app:processReleaseManifest
+> Task :app:processReleaseManifestForPackage
+> Task :app:processReleaseResources
+> Task :app:desugarReleaseFileDependencies
+> Task :app:mergeReleaseStartupProfile
+[lint] no XML report produced

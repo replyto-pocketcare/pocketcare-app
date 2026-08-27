@@ -1,0 +1,283 @@
+888:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+892:     |                                  `- error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+896:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+900:     |                         `- error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+904:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+908:     |                                          `- error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+912:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+916:     |                         `- error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+920:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+924:     |                     `- error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+928:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+932:     |                                      `- error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+936:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+940:     |                             `- error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+944:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+948:     |                     `- error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+952:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+956:     |                     `- error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+960:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+964:     |                        `- error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+968:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+972:     |                                           `- error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+986:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+990:     |                                  `- error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+994:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+998:     |                         `- error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1002:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1006:     |                                          `- error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1010:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1014:     |                         `- error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1018:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1022:     |                     `- error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1026:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1030:     |                                      `- error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1034:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1038:     |                             `- error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1042:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1046:     |                     `- error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1050:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1054:     |                     `- error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1058:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1062:     |                        `- error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1066:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1070:     |                                           `- error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1084:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1088:     |                                  `- error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1092:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1096:     |                         `- error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1100:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1104:     |                                          `- error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1108:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1112:     |                         `- error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1116:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1120:     |                     `- error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1124:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1128:     |                                      `- error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1132:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1136:     |                             `- error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1140:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1144:     |                     `- error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1148:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1152:     |                     `- error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1156:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1160:     |                        `- error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1164:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1168:     |                                           `- error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1182:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1186:     |                                  `- error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1190:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1194:     |                         `- error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1198:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1202:     |                                          `- error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1206:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1210:     |                         `- error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1214:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1218:     |                     `- error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1222:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1226:     |                                      `- error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1230:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1234:     |                             `- error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1238:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1242:     |                     `- error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1246:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1250:     |                     `- error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1254:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1258:     |                        `- error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1262:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1266:     |                                           `- error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1280:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1284:     |                                  `- error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1288:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1292:     |                         `- error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1296:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1300:     |                                          `- error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1304:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1308:     |                         `- error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1312:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1316:     |                     `- error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1320:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1324:     |                                      `- error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1328:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1332:     |                             `- error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1336:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1340:     |                     `- error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1344:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1348:     |                     `- error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1352:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1356:     |                        `- error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1360:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1364:     |                                           `- error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1378:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1382:     |                                  `- error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1386:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1390:     |                         `- error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1394:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1398:     |                                          `- error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1402:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1406:     |                         `- error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1410:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1414:     |                     `- error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1418:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1422:     |                                      `- error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1426:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1430:     |                             `- error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1434:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1438:     |                     `- error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1442:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1446:     |                     `- error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1450:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1454:     |                        `- error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1458:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1462:     |                                           `- error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1476:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1480:     |                                  `- error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1484:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1488:     |                         `- error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1492:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1496:     |                                          `- error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1500:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1504:     |                         `- error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1508:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1512:     |                     `- error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1516:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1520:     |                                      `- error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1524:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1528:     |                             `- error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1532:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1536:     |                     `- error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1540:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1544:     |                     `- error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1548:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1552:     |                        `- error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1556:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1560:     |                                           `- error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1574:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1578:     |                                  `- error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1582:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1586:     |                         `- error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1590:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1594:     |                                          `- error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1598:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1602:     |                         `- error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1606:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1610:     |                     `- error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1614:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1618:     |                                      `- error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1622:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1626:     |                             `- error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1630:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1634:     |                     `- error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1638:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1642:     |                     `- error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1646:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1650:     |                        `- error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1654:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1658:     |                                           `- error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1672:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1676:     |                                  `- error: reference to captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1680:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1684:     |                         `- error: mutation of captured var 'accountCache' in concurrently-executing code [#SendableClosureCaptures]
+1688:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1692:     |                                          `- error: reference to captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1696:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1700:     |                         `- error: mutation of captured var 'skipped' in concurrently-executing code [#SendableClosureCaptures]
+1704:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1708:     |                     `- error: mutation of captured var 'seen' in concurrently-executing code [#SendableClosureCaptures]
+1712:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1716:     |                                      `- error: reference to captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1720:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1724:     |                             `- error: mutation of captured var 'categoryCache' in concurrently-executing code [#SendableClosureCaptures]
+1728:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1732:     |                     `- error: mutation of captured var 'created' in concurrently-executing code [#SendableClosureCaptures]
+1736:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1740:     |                     `- error: mutation of captured var 'failed' in concurrently-executing code [#SendableClosureCaptures]
+1744:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1748:     |                        `- error: reference to captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1752:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1756:     |                                           `- error: mutation of captured var 'errors' in concurrently-executing code [#SendableClosureCaptures]
+1776: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1781:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1789: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1800: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1805:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1813: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1824: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1829:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1837: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1848: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1853:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1861: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1872: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1877:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1885: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1896: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1901:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1909: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1920: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1925:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1933: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1944: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1949:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1957: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1968: 55 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1973:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1981: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1999:320 |                         .in("id", value: chunk)
+2001:    |                          `- note: use 'in(_:values:)' instead
+2008:206 |                         try await rel.delete().in("id", value: ids).execute()
+2010:    |                                                `- note: use 'in(_:values:)' instead
+2035:320 |                         .in("id", value: chunk)
+2037:    |                          `- note: use 'in(_:values:)' instead
+2044:206 |                         try await rel.delete().in("id", value: ids).execute()
+2046:    |                                                `- note: use 'in(_:values:)' instead
+2071:320 |                         .in("id", value: chunk)
+2073:    |                          `- note: use 'in(_:values:)' instead
+2080:206 |                         try await rel.delete().in("id", value: ids).execute()
+2082:    |                                                `- note: use 'in(_:values:)' instead
+2107:320 |                         .in("id", value: chunk)
+2109:    |                          `- note: use 'in(_:values:)' instead
+2116:206 |                         try await rel.delete().in("id", value: ids).execute()
+2118:    |                                                `- note: use 'in(_:values:)' instead
+2143:320 |                         .in("id", value: chunk)
+2145:    |                          `- note: use 'in(_:values:)' instead
+2152:206 |                         try await rel.delete().in("id", value: ids).execute()
+2154:    |                                                `- note: use 'in(_:values:)' instead
+2179:320 |                         .in("id", value: chunk)
+2181:    |                          `- note: use 'in(_:values:)' instead
+2188:206 |                         try await rel.delete().in("id", value: ids).execute()
+2190:    |                                                `- note: use 'in(_:values:)' instead
+2215:320 |                         .in("id", value: chunk)
+2217:    |                          `- note: use 'in(_:values:)' instead
+2224:206 |                         try await rel.delete().in("id", value: ids).execute()
+2226:    |                                                `- note: use 'in(_:values:)' instead
+2251:320 |                         .in("id", value: chunk)
+2253:    |                          `- note: use 'in(_:values:)' instead
+2260:206 |                         try await rel.delete().in("id", value: ids).execute()
+2262:    |                                                `- note: use 'in(_:values:)' instead
+2287:320 |                         .in("id", value: chunk)
+2289:    |                          `- note: use 'in(_:values:)' instead
+2296:206 |                         try await rel.delete().in("id", value: ids).execute()
+2298:    |                                                `- note: use 'in(_:values:)' instead
+2414:  PowerSyncSQLiteCore: https://github.com/powersync-ja/powersync-sqlite-core-swift.git @ 0.4.13
+2416:  Supabase: https://github.com/supabase/supabase-swift.git @ 2.54.1
+2422:  CSQLite: https://github.com/powersync-ja/CSQLite.git @ 3.51.2
+2445:note: Building targets in dependency order
+2446:note: Target dependency graph (47 targets)
+2651:Build description signature: 6e9dd3b89babf4070e7c05800e73d16f
+3878:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3917:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+4044:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+4537:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+8541:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1072:34: error: reference to captured var 'accountCache' in concurrently-executing code
+8544:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1086:25: error: mutation of captured var 'accountCache' in concurrently-executing code
+8547:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1090:42: error: reference to captured var 'seen' in concurrently-executing code
+8550:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1091:25: error: mutation of captured var 'skipped' in concurrently-executing code
+8553:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1094:21: error: mutation of captured var 'seen' in concurrently-executing code
+8556:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1100:38: error: reference to captured var 'categoryCache' in concurrently-executing code
+8559:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1114:29: error: mutation of captured var 'categoryCache' in concurrently-executing code
+8562:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1131:21: error: mutation of captured var 'created' in concurrently-executing code
+8565:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1133:21: error: mutation of captured var 'failed' in concurrently-executing code
+8568:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:24: error: reference to captured var 'errors' in concurrently-executing code
+8571:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/LedgerRepository.swift:1134:43: error: mutation of captured var 'errors' in concurrently-executing code
+8668:** TEST FAILED **
