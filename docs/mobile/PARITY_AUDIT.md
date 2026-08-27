@@ -2409,3 +2409,29 @@ half-away-from-zero; `toFixed(1)` is nearest-on-exact-binary with ties toward
 the larger digit AFTER the sign is stripped; `parseFloat` takes a leading prefix
 where both platforms' parsers demand the whole string.
 
+### CI run 33076171227 (f3bb08d) — one iOS vector, and it was the one the fixtures were for
+
+parity ✅ · android ✅ (assistant **71/71**) · ios ❌ — a single failure:
+
+```
+assistant[19] assistantCompactNum: expected Optional(1.1k) but got 1.2k
+```
+
+`1150 / 1000` is `1.15`, and the double is `1.1499999999999999111…`. JS rounds
+on that exact value and says `1.1`; Swift's `Decimal(Double)` converts via the
+double's SHORTEST decimal form — exactly `1.15` — and `NSDecimalRound(.plain)`
+then says `1.2`. Kotlin's `BigDecimal(double)` is exact-binary and was right all
+along, which is why only one platform failed.
+
+The fix does the rounding by hand from `String(format: "%.20f", v)`, which is
+printf printing the exact expansion rather than a rounded one. Because
+ECMA-262 strips the sign first and breaks ties toward the larger digit, "more
+than half" and "exactly half" collapse into one test — **is the next digit ≥ 5**
+— and the whole function is six lines.
+
+**This is the fixture set doing its job.** Those tie cases (1050, 1150, 1250,
+−1250, 99950) were added specifically because three languages disagree here, and
+the one that caught it was the one I would not have thought to try by hand.
+`showStandardStreams`, added in the same commit, is why Android's 71/71 is
+visible above rather than inferred from a green build.
+
