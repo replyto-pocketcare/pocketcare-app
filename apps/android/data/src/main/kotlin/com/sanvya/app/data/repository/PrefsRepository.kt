@@ -40,15 +40,38 @@ private fun notificationPrefsMapper(cursor: SqlCursor): NotificationPrefs = Noti
     emi_lead_days = cursor.getLongOptional("emi_lead_days") ?: 3L
 )
 
-/** The 4 columns Insights' entitlement gate (domain.entitlements.isPaid)
- * needs -- see that function's doc comment. Added 2026-08-06, task #28. */
-data class EntitlementRow(val tier: String?, val premiumTrialStartDate: String?, val compTier: String?, val compUntil: String?)
+/**
+ * The entitlement columns the app reads.
+ *
+ * Was the 4 that Insights' gate (domain.entitlements.isPaid) needs, added
+ * 2026-08-06. The five AI-quota columns joined them 2026-08-27 for the
+ * assistant, which is the only screen that shows a remaining-queries count --
+ * and `entitlementState` has taken them as optional arguments since it was
+ * ported, so nothing downstream needed changing to start filling them in.
+ */
+data class EntitlementRow(
+    val tier: String?,
+    val premiumTrialStartDate: String?,
+    val compTier: String?,
+    val compUntil: String?,
+    val monthlyQuotaTotal: Int? = null,
+    val monthlyQuotaUsed: Int? = null,
+    val purchasedQuotaRemaining: Int? = null,
+    val additionalPurchasedQuota: Int? = null,
+    /** ISO date the monthly allowance refills. */
+    val quotaResetDate: String? = null,
+)
 
 private fun entitlementMapper(cursor: SqlCursor): EntitlementRow = EntitlementRow(
     tier = cursor.getStringOptional("tier"),
     premiumTrialStartDate = cursor.getStringOptional("premium_trial_start_date"),
     compTier = cursor.getStringOptional("comp_tier"),
     compUntil = cursor.getStringOptional("comp_until"),
+    monthlyQuotaTotal = cursor.getLongOptional("monthly_quota_total")?.toInt(),
+    monthlyQuotaUsed = cursor.getLongOptional("monthly_quota_used")?.toInt(),
+    purchasedQuotaRemaining = cursor.getLongOptional("purchased_quota_remaining")?.toInt(),
+    additionalPurchasedQuota = cursor.getLongOptional("additional_purchased_quota")?.toInt(),
+    quotaResetDate = cursor.getStringOptional("quota_reset_date"),
 )
 
 class PrefsRepository(private val db: PowerSyncDatabase) {
@@ -58,7 +81,12 @@ class PrefsRepository(private val db: PowerSyncDatabase) {
      * user). Real db.watch() so Insights' premium gate reacts immediately
      * to a plan change synced down from Supabase. */
     fun watchEntitlement(): Flow<EntitlementRow?> = db.watch(
-        "SELECT tier, premium_trial_start_date, comp_tier, comp_until FROM entitlements LIMIT 1",
+        """
+        SELECT tier, premium_trial_start_date, comp_tier, comp_until,
+               monthly_quota_total, monthly_quota_used, purchased_quota_remaining,
+               additional_purchased_quota, quota_reset_date
+        FROM entitlements LIMIT 1
+        """.trimIndent(),
         mapper = ::entitlementMapper,
     ).map { it.firstOrNull() }
 

@@ -204,6 +204,33 @@ public final class AssistantRepository: @unchecked Sendable {
         )
     }
 
+    /**
+     A thread's messages, once.
+
+     Reopening a thread is a one-shot read, not a subscription: the transcript of
+     a finished conversation does not change under you, and a live query here
+     would re-emit on every message this screen itself appends.
+     */
+    public func messagesOnce(threadId: String) async throws -> [AssistantChatMessage] {
+        try await db.getAll(
+            sql: """
+                SELECT id, thread_id, role, content, created_at FROM assistant_messages
+                WHERE thread_id = ?
+                ORDER BY created_at
+                """,
+            parameters: [threadId],
+            mapper: { cursor in
+                AssistantChatMessage(
+                    id: try cursor.getString(name: "id"),
+                    threadId: try cursor.getString(name: "thread_id"),
+                    role: try cursor.getString(name: "role"),
+                    content: try cursor.getString(name: "content"),
+                    createdAt: try cursor.getString(name: "created_at")
+                )
+            }
+        )
+    }
+
     public func createThread(userId: String, title: String?) async throws -> String {
         let id = newId()
         let ts = nowIso()

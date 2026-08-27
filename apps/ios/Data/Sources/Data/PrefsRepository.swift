@@ -64,6 +64,34 @@ public struct EntitlementRow: Sendable {
     public let premiumTrialStartDate: String?
     public let compTier: String?
     public let compUntil: String?
+    public let monthlyQuotaTotal: Int?
+    public let monthlyQuotaUsed: Int?
+    public let purchasedQuotaRemaining: Int?
+    public let additionalPurchasedQuota: Int?
+    /// ISO date the monthly allowance refills.
+    public let quotaResetDate: String?
+
+    public init(
+        tier: String?,
+        premiumTrialStartDate: String?,
+        compTier: String?,
+        compUntil: String?,
+        monthlyQuotaTotal: Int? = nil,
+        monthlyQuotaUsed: Int? = nil,
+        purchasedQuotaRemaining: Int? = nil,
+        additionalPurchasedQuota: Int? = nil,
+        quotaResetDate: String? = nil
+    ) {
+        self.tier = tier
+        self.premiumTrialStartDate = premiumTrialStartDate
+        self.compTier = compTier
+        self.compUntil = compUntil
+        self.monthlyQuotaTotal = monthlyQuotaTotal
+        self.monthlyQuotaUsed = monthlyQuotaUsed
+        self.purchasedQuotaRemaining = purchasedQuotaRemaining
+        self.additionalPurchasedQuota = additionalPurchasedQuota
+        self.quotaResetDate = quotaResetDate
+    }
 }
 
 private func entitlementMapper(_ cursor: SqlCursor) throws -> EntitlementRow {
@@ -71,7 +99,12 @@ private func entitlementMapper(_ cursor: SqlCursor) throws -> EntitlementRow {
         tier: try cursor.getStringOptional(name: "tier"),
         premiumTrialStartDate: try cursor.getStringOptional(name: "premium_trial_start_date"),
         compTier: try cursor.getStringOptional(name: "comp_tier"),
-        compUntil: try cursor.getStringOptional(name: "comp_until")
+        compUntil: try cursor.getStringOptional(name: "comp_until"),
+        monthlyQuotaTotal: (try cursor.getInt64Optional(name: "monthly_quota_total")).map(Int.init),
+        monthlyQuotaUsed: (try cursor.getInt64Optional(name: "monthly_quota_used")).map(Int.init),
+        purchasedQuotaRemaining: (try cursor.getInt64Optional(name: "purchased_quota_remaining")).map(Int.init),
+        additionalPurchasedQuota: (try cursor.getInt64Optional(name: "additional_purchased_quota")).map(Int.init),
+        quotaResetDate: try cursor.getStringOptional(name: "quota_reset_date")
     )
 }
 
@@ -89,7 +122,12 @@ public final class PrefsRepository: @unchecked Sendable {
     /// change synced down from Supabase.
     public func watchEntitlement() throws -> AsyncThrowingStream<EntitlementRow?, Error> {
         let upstream = try db.watch(
-            sql: "SELECT tier, premium_trial_start_date, comp_tier, comp_until FROM entitlements LIMIT 1",
+            sql: """
+                SELECT tier, premium_trial_start_date, comp_tier, comp_until,
+                       monthly_quota_total, monthly_quota_used, purchased_quota_remaining,
+                       additional_purchased_quota, quota_reset_date
+                FROM entitlements LIMIT 1
+                """,
             parameters: [],
             mapper: entitlementMapper
         )

@@ -1,10 +1,13 @@
 package com.sanvya.app.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -64,4 +67,41 @@ fun SanvyaIcon(
             color = tint,
         ),
     )
+}
+
+/**
+ * Web's `ArrowUpIcon` — the send arrow, drawn rather than looked up.
+ *
+ * It is not a Material Symbol: `apps/web/src/ui/icons.tsx` draws it as a
+ * stroked SVG, so there is no codepoint in the bundled subset to paint and
+ * substituting a similar Material glyph would be a different shape at a
+ * different weight. The two SVG commands (`M12 19 V5` and `M5 12l7-7 7 7`) are
+ * transcribed here against a 24-unit box and scaled, which is the only way to
+ * get web's icon rather than one like it.
+ *
+ * The first of that stroked set to be ported. The rest follow when a screen
+ * needs them; a whole second icon family built ahead of its callers is a
+ * component inventory nobody reads.
+ */
+@Composable
+fun SanvyaArrowUpIcon(
+    modifier: Modifier = Modifier,
+    size: Dp = 19.dp,
+    tint: Color = LocalSanvyaColors.current.text,
+    strokeWidth: Dp = 2.dp,
+    description: String? = null,
+) {
+    val semantics = if (description == null) {
+        Modifier.clearAndSetSemantics { }
+    } else {
+        Modifier.semantics { contentDescription = description }
+    }
+    Canvas(modifier = modifier.size(size).then(semantics)) {
+        val unit = this.size.minDimension / 24f
+        val stroke = strokeWidth.toPx()
+        fun p(x: Float, y: Float) = Offset(x * unit, y * unit)
+        drawLine(tint, p(12f, 19f), p(12f, 5f), stroke, StrokeCap.Round)
+        drawLine(tint, p(5f, 12f), p(12f, 5f), stroke, StrokeCap.Round)
+        drawLine(tint, p(12f, 5f), p(19f, 12f), stroke, StrokeCap.Round)
+    }
 }

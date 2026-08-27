@@ -13,6 +13,45 @@ public let searchTypes = ["all", "income", "expense", "transfer"]
 /// Web slices the filtered list to 300 before rendering.
 public let searchResultLimit = 300
 
+/// A deep link's query, resolved into the Search screen's starting state.
+///
+/// Web does this in a one-shot effect on `/search?q=&type=&account=&from=&to=&
+/// min=&max=`; the assistant leans on it hard ("take them straight to
+/// results"). It is here rather than in either screen because the rules are not
+/// obvious and are easy to get subtly different on two platforms: an
+/// unrecognised `type` is IGNORED rather than applied or refused, and the
+/// filter panel opens when any non-`q` parameter is PRESENT, even one whose
+/// value was then discarded.
+public struct SearchPrefill: Equatable, Sendable {
+    public let criteria: SearchCriteria
+    public let showFilters: Bool
+
+    public init(criteria: SearchCriteria, showFilters: Bool) {
+        self.criteria = criteria
+        self.showFilters = showFilters
+    }
+}
+
+/// Web's prefill effect, as a function. See `SearchPrefill`.
+public func searchPrefillFromQuery(_ query: [String: String]) -> SearchPrefill {
+    func g(_ key: String) -> String { query[key] ?? "" }
+    let type = g("type")
+    return SearchPrefill(
+        criteria: SearchCriteria(
+            query: g("q"),
+            type: !type.isEmpty && searchTypes.contains(type) ? type : "all",
+            accountId: g("account"),
+            from: g("from"),
+            to: g("to"),
+            min: g("min"),
+            max: g("max")
+        ),
+        // Presence, not validity: web tests `g(k)` for truthiness across the
+        // six filter keys before it has decided whether `type` was usable.
+        showFilters: ["type", "account", "from", "to", "min", "max"].contains { !g($0).isEmpty }
+    )
+}
+
 /// A transaction with its display names already resolved.
 ///
 /// Web resolves them in the component (`catName`, `acct`, and the

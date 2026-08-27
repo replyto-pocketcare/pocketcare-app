@@ -7,6 +7,7 @@ import com.sanvya.app.data.repository.CategoryRow
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.TransactionRow
 import com.sanvya.app.domain.search.SearchCriteria
+import com.sanvya.app.domain.search.SearchPrefill
 import com.sanvya.app.domain.search.SearchRow
 import com.sanvya.app.domain.search.searchTransactions
 import com.sanvya.app.domain.splits.SplitInfo
@@ -66,6 +67,24 @@ class SearchViewModel : ViewModel(), KoinComponent {
     fun setMin(v: String) { _criteria.value = _criteria.value.copy(min = v) }
     fun setMax(v: String) { _criteria.value = _criteria.value.copy(max = v) }
     fun toggleFilters() { _showFilters.value = !_showFilters.value }
+
+    /**
+     * Apply a deep link's filters -- once.
+     *
+     * Web guards its prefill effect with a `prefilled` flag for a reason: the
+     * effect re-runs on every `params` identity change, and re-applying would
+     * wipe whatever the user had typed since arriving. The flag lives here
+     * rather than in the composable because a view model survives the
+     * configuration changes a `remember` does not.
+     */
+    fun applyPrefill(prefill: SearchPrefill) {
+        if (prefilled) return
+        prefilled = true
+        _criteria.value = prefill.criteria
+        if (prefill.showFilters) _showFilters.value = true
+    }
+
+    private var prefilled = false
 
     /** Clears every filter but keeps what was typed -- web's `clearFilters`. */
     fun clearFilters() { _criteria.value = SearchCriteria(query = _criteria.value.query) }

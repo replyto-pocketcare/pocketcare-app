@@ -135,7 +135,8 @@ object S {
         fun sendAria(res: Resources): String = res.getString(R.string.assistant_send_aria)
         fun skip(res: Resources): String = res.getString(R.string.assistant_skip)
         fun startChat(res: Resources): String = res.getString(R.string.assistant_start_chat)
-        fun suggestions(res: Resources): String = res.getString(R.string.assistant_suggestions)
+        fun suggestions(res: Resources): List<String> =
+            res.getStringArray(R.array.assistant_suggestions).toList()
         fun thinking(res: Resources): String = res.getString(R.string.assistant_thinking)
         fun title(res: Resources): String = res.getString(R.string.assistant_title)
         fun understand(res: Resources): String = res.getString(R.string.assistant_understand)

@@ -2917,5 +2917,253 @@
       }
     },
     "expected": 2
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {}
+    },
+    "expected": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": false
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "q": "Swiggy"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "Swiggy",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": false
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "q": "Swiggy",
+        "type": "expense"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "Swiggy",
+        "type": "expense",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": true
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "type": "transfer"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "",
+        "type": "transfer",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": true
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "type": "all"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": true
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "type": "savings"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": true
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "type": ""
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": false
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "account": "acc-1"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "acc-1",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": true
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "from": "2026-06-01",
+        "to": "2026-06-30"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "2026-06-01",
+        "to": "2026-06-30",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": true
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "min": "100",
+        "max": "2000"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "100",
+        "max": "2000"
+      },
+      "showFilters": true
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "q": "food",
+        "type": "expense",
+        "account": "acc-2",
+        "from": "2026-01-01",
+        "to": "2026-12-31",
+        "min": "50",
+        "max": "5000"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "food",
+        "type": "expense",
+        "accountId": "acc-2",
+        "from": "2026-01-01",
+        "to": "2026-12-31",
+        "min": "50",
+        "max": "5000"
+      },
+      "showFilters": true
+    }
+  },
+  {
+    "fn": "searchPrefillFromQuery",
+    "input": {
+      "query": {
+        "q": "food",
+        "unknown": "x"
+      }
+    },
+    "expected": {
+      "criteria": {
+        "query": "food",
+        "type": "all",
+        "accountId": "",
+        "from": "",
+        "to": "",
+        "min": "",
+        "max": ""
+      },
+      "showFilters": false
+    }
   }
 ]

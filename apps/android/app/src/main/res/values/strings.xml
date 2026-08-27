@@ -107,7 +107,15 @@
     <string name="assistant_send_aria">Send</string>
     <string name="assistant_skip">Skip</string>
     <string name="assistant_start_chat">Start a new chat</string>
-    <string name="assistant_suggestions">What can you help me with?,I want to buy an iPhone in the Diwali sale — help me plan for it.,Can I afford a ₹40,000 trip in 3 months?,Set up a monthly budget for eating out.,How do I split rent with my flatmates?,Who owes me money right now, and how much?,Create a Goa trip so I can split expenses with friends.</string>
+    <string-array name="assistant_suggestions">
+        <item>What can you help me with?</item>
+        <item>I want to buy an iPhone in the Diwali sale — help me plan for it.</item>
+        <item>Can I afford a ₹40,000 trip in 3 months?</item>
+        <item>Set up a monthly budget for eating out.</item>
+        <item>How do I split rent with my flatmates?</item>
+        <item>Who owes me money right now, and how much?</item>
+        <item>Create a Goa trip so I can split expenses with friends.</item>
+    </string-array>
     <string name="assistant_thinking">Thinking…</string>
     <string name="assistant_title">Ask Sanvya</string>
     <string name="assistant_understand">I understand</string>

@@ -1,0 +1,712 @@
+[
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/"
+    },
+    "expected": {
+      "screen": "DASHBOARD",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/accounts"
+    },
+    "expected": {
+      "screen": "ACCOUNTS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/accounts/new"
+    },
+    "expected": {
+      "screen": "ACCOUNT_NEW",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/transactions"
+    },
+    "expected": {
+      "screen": "TRANSACTIONS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/transactions/new"
+    },
+    "expected": {
+      "screen": "TRANSACTION_NEW",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/budgets"
+    },
+    "expected": {
+      "screen": "BUDGETS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/goals"
+    },
+    "expected": {
+      "screen": "GOALS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/recurring"
+    },
+    "expected": {
+      "screen": "RECURRING",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/subscriptions"
+    },
+    "expected": {
+      "screen": "RECURRING",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/loans"
+    },
+    "expected": {
+      "screen": "LOANS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/investments"
+    },
+    "expected": {
+      "screen": "INVESTMENTS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/cards"
+    },
+    "expected": {
+      "screen": "CARDS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/friends"
+    },
+    "expected": {
+      "screen": "SPLITS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/groups"
+    },
+    "expected": {
+      "screen": "SPLITS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/insights"
+    },
+    "expected": {
+      "screen": "INSIGHTS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/reflect"
+    },
+    "expected": {
+      "screen": "REFLECT",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/statements"
+    },
+    "expected": {
+      "screen": "STATEMENTS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/statements/analyze"
+    },
+    "expected": {
+      "screen": "STATEMENTS_ANALYZE",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/receipts/new"
+    },
+    "expected": {
+      "screen": "RECEIPT_NEW",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/notifications"
+    },
+    "expected": {
+      "screen": "NOTIFICATIONS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/assistant"
+    },
+    "expected": {
+      "screen": "ASSISTANT",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/help"
+    },
+    "expected": {
+      "screen": "HELP",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/settings"
+    },
+    "expected": {
+      "screen": "SETTINGS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/settings/categories"
+    },
+    "expected": {
+      "screen": "SETTINGS_CATEGORIES",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/settings/labels"
+    },
+    "expected": {
+      "screen": "SETTINGS_LABELS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/data"
+    },
+    "expected": {
+      "screen": "SETTINGS_DATA",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/login"
+    },
+    "expected": {
+      "screen": "LOGIN",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/accounts/acc-1/edit"
+    },
+    "expected": {
+      "screen": "ACCOUNT_EDIT",
+      "id": "acc-1",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/transactions/t-9/edit"
+    },
+    "expected": {
+      "screen": "TRANSACTION_EDIT",
+      "id": "t-9",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/loans/loan-3"
+    },
+    "expected": {
+      "screen": "LOAN_DETAIL",
+      "id": "loan-3",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/groups/grp-7"
+    },
+    "expected": {
+      "screen": "GROUP_DETAIL",
+      "id": "grp-7",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/recurring/income"
+    },
+    "expected": {
+      "screen": "RECURRING_DIRECTION",
+      "id": "income",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/recurring/expense"
+    },
+    "expected": {
+      "screen": "RECURRING_DIRECTION",
+      "id": "expense",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/groups/goa%20trip"
+    },
+    "expected": {
+      "screen": "GROUP_DETAIL",
+      "id": "goa trip",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/groups/a+b"
+    },
+    "expected": {
+      "screen": "GROUP_DETAIL",
+      "id": "a+b",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/budgets/"
+    },
+    "expected": {
+      "screen": "BUDGETS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "//budgets"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/budgets#top"
+    },
+    "expected": {
+      "screen": "BUDGETS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "  /budgets  "
+    },
+    "expected": {
+      "screen": "BUDGETS",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/loans//loan-3"
+    },
+    "expected": {
+      "screen": "LOAN_DETAIL",
+      "id": "loan-3",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=Swiggy&type=expense"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "Swiggy",
+        "type": "expense"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=Swiggy&type=expense&from=2026-06-01&to=2026-06-30"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "Swiggy",
+        "type": "expense",
+        "from": "2026-06-01",
+        "to": "2026-06-30"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=hello%20world"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "hello world"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=hello+world"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "hello world"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=caf%C3%A9"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "café"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q="
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": ""
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": ""
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=a&q=b"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "a"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?&&q=a&"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "a"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?=novalue"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {}
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=100%&type=expense"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "100%",
+        "type": "expense"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=%zz"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "%zz"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=%-1"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "%-1"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?min=100&max=2000"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "min": "100",
+        "max": "2000"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/search?q=x#results"
+    },
+    "expected": {
+      "screen": "SEARCH",
+      "query": {
+        "q": "x"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/budgets?highlight=food"
+    },
+    "expected": {
+      "screen": "BUDGETS",
+      "query": {
+        "highlight": "food"
+      }
+    }
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "https://example.com/budgets"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "http://localhost:3000/budgets"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "budgets"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": ""
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/cashflow"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/templates"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/admin/users"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/auth/callback"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/onboarding"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/join/tok-1"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/recurring/weekly"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/accounts/acc-1"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/accounts/acc-1/delete"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseAppLink",
+    "input": {
+      "href": "/settings/notifications"
+    },
+    "expected": null
+  }
+]

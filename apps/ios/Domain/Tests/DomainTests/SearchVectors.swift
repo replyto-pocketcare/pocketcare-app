@@ -68,4 +68,28 @@ func registerSearchVectors() {
         let d = input as! [String: Any]
         return activeFilterCount(searchCriteria(d["criteria"] as! [String: Any]))
     }
+
+    // The deep-link prefill. Unlike the filter above, this one CAN be read
+    // straight off web — it is a plain effect in the page component, not a
+    // useMemo over React state — so these expectations are a transcription of
+    // `app/search/page.tsx`'s prefill block, including its two surprises: an
+    // unrecognised `type` is dropped rather than refused, and the filter panel
+    // opens on the PRESENCE of a filter key even when its value was discarded.
+    FunctionRegistry.register(domain: "search", fn: "searchPrefillFromQuery") { input in
+        let d = input as! [String: Any]
+        let query = (d["query"] as! [String: Any]).mapValues { $0 as! String }
+        let prefill = searchPrefillFromQuery(query)
+        return [
+            "criteria": [
+                "query": prefill.criteria.query,
+                "type": prefill.criteria.type,
+                "accountId": prefill.criteria.accountId,
+                "from": prefill.criteria.from,
+                "to": prefill.criteria.to,
+                "min": prefill.criteria.min,
+                "max": prefill.criteria.max,
+            ] as [String: Any],
+            "showFilters": prefill.showFilters,
+        ] as [String: Any]
+    }
 }

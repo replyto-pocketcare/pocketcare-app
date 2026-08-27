@@ -2255,25 +2255,163 @@
         }
       }
     },
-    "assistant:suggestions": {
+    "assistant:suggestions.1": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What can you help me with?,I want to buy an iPhone in the Diwali sale — help me plan for it.,Can I afford a ₹40,000 trip in 3 months?,Set up a monthly budget for eating out.,How do I split rent with my flatmates?,Who owes me money right now, and how much?,Create a Goa trip so I can split expenses with friends."
+            "value": "What can you help me with?"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आप मेरी किसमें मदद कर सकते हैं?,मैं दिवाली सेल में एक iPhone खरीदना चाहता हूँ — इसकी योजना बनाने में मदद करें।,क्या मैं 3 महीने में ₹40,000 की यात्रा वहन कर सकता हूँ?,बाहर खाने के लिए एक मासिक बजट सेट करें।,मैं अपने रूममेट्स के साथ किराया कैसे बाँटूँ?,अभी मुझे कौन पैसा देता है, और कितना?,एक गोवा यात्रा बनाएं ताकि मैं दोस्तों के साथ खर्च बाँट सकूँ।"
+            "value": "आप मेरी किसमें मदद कर सकते हैं?"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waarmee kun je me helpen?,Ik wil een iPhone kopen tijdens de uitverkoop — help me het te plannen.,Kan ik over 3 maanden een reis van ₹40.000 betalen?,Stel een maandbudget in voor uit eten gaan.,Hoe splits ik de huur met mijn huisgenoten?,Wie is mij nu geld schuldig, en hoeveel?,Maak een Goa-reis zodat ik uitgaven met vrienden kan splitsen."
+            "value": "Waarmee kun je me helpen?"
+          }
+        }
+      }
+    },
+    "assistant:suggestions.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I want to buy an iPhone in the Diwali sale — help me plan for it."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मैं दिवाली सेल में एक iPhone खरीदना चाहता हूँ — इसकी योजना बनाने में मदद करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ik wil een iPhone kopen tijdens de uitverkoop — help me het te plannen."
+          }
+        }
+      }
+    },
+    "assistant:suggestions.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can I afford a ₹40,000 trip in 3 months?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "क्या मैं 3 महीने में ₹40,000 की यात्रा वहन कर सकता हूँ?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kan ik over 3 maanden een reis van ₹40.000 betalen?"
+          }
+        }
+      }
+    },
+    "assistant:suggestions.4": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up a monthly budget for eating out."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बाहर खाने के लिए एक मासिक बजट सेट करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stel een maandbudget in voor uit eten gaan."
+          }
+        }
+      }
+    },
+    "assistant:suggestions.5": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How do I split rent with my flatmates?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मैं अपने रूममेट्स के साथ किराया कैसे बाँटूँ?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoe splits ik de huur met mijn huisgenoten?"
+          }
+        }
+      }
+    },
+    "assistant:suggestions.6": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who owes me money right now, and how much?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी मुझे कौन पैसा देता है, और कितना?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie is mij nu geld schuldig, en hoeveel?"
+          }
+        }
+      }
+    },
+    "assistant:suggestions.7": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a Goa trip so I can split expenses with friends."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक गोवा यात्रा बनाएं ताकि मैं दोस्तों के साथ खर्च बाँट सकूँ।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak een Goa-reis zodat ik uitgaven met vrienden kan splitsen."
           }
         }
       }

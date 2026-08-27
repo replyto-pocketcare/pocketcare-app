@@ -60,7 +60,12 @@ const CHECK_ONLY = process.argv.includes("--check");
 function flatten(obj, prefix = "", out = {}) {
   for (const [k, v] of Object.entries(obj)) {
     const key = prefix ? `${prefix}.${k}` : k;
-    if (v && typeof v === "object" && !Array.isArray(v)) flatten(v, key, out);
+    // An array is a LIST entry -- web's `t(key, { returnObjects: true })`. It is
+    // kept AS an array rather than joined into one string: one of the assistant
+    // suggestions contains a comma, so any join-then-split round trip on the
+    // native side silently turns 7 suggestions into 8.
+    if (Array.isArray(v)) out[key] = v.map(String);
+    else if (v && typeof v === "object") flatten(v, key, out);
     else out[key] = String(v);
   }
   return out;
@@ -186,6 +191,24 @@ for (const ns of namespaces) {
     /** @type {Record<string,string>} */
     const values = {};
     for (const loc of LOCALES) values[loc] = data[ns][loc][k] ?? data[ns][SOURCE_LOCALE][k];
+    if (Array.isArray(values[SOURCE_LOCALE])) {
+      // A list is emitted as a `<string-array>` / an indexed group of
+      // .xcstrings keys, and its accessor returns a List<String> / [String].
+      // Interpolation inside a list item is REFUSED rather than supported:
+      // there is no call site for it, and an argument list derived from a
+      // union across items would number specifiers differently per item.
+      const n = values[SOURCE_LOCALE].length;
+      for (const loc of LOCALES) {
+        const v = values[loc];
+        if (!Array.isArray(v)) { problems.push(`${ns}:${k} (${loc}) is a string where ${SOURCE_LOCALE} is a list`); continue; }
+        if (v.length !== n) problems.push(`${ns}:${k} (${loc}) has ${v.length} item(s) where ${SOURCE_LOCALE} has ${n} — list lengths must match`);
+        for (const item of v) {
+          if (argsOf(item).length) problems.push(`${ns}:${k} (${loc}) interpolates inside a list item; list entries carry no arguments`);
+        }
+      }
+      entries.push({ ns, key: k, args: [], plural: false, list: true, values, localeArgsDiffer: false });
+      continue;
+    }
     const args = unionArgs(
       values[SOURCE_LOCALE],
       LOCALES.filter((l) => l !== SOURCE_LOCALE).map((l) => values[l]),
@@ -210,6 +233,7 @@ entries.sort((a, b) => (a.ns === b.ns ? a.key.localeCompare(b.key) : a.ns.locale
 // one that did not would be emitted as a literal `{{name}}` on screen, which
 // is precisely the class of bug this generator exists to make impossible.
 for (const e of entries) {
+  if (e.list) continue; // validated above, and carries no arguments by construction
   for (const loc of LOCALES) {
     const vals = e.plural ? Object.values(e.values[loc] ?? {}) : [e.values[loc]];
     for (const v of vals) {
@@ -332,6 +356,10 @@ function androidStringsXml(locale) {
         lines.push(`        <item quantity="${c}">${xmlEscape(toPlatformFormat(v, e.args, "android", true))}</item>`);
       }
       lines.push("    </plurals>");
+    } else if (e.list) {
+      lines.push(`    <string-array name="${e.androidId}">`);
+      for (const item of e.values[locale]) lines.push(`        <item>${xmlEscape(item)}</item>`);
+      lines.push("    </string-array>");
     } else {
       lines.push(`    <string name="${e.androidId}">${xmlEscape(toPlatformFormat(e.values[locale], e.args, "android", false))}</string>`);
     }
@@ -378,6 +406,9 @@ function androidAccessorsKt() {
         const params = e.args.map((a) => (a === "count" ? "count: Int" : `${ktIdent(a)}: Any`)).join(", "); // plural only
         const fmtArgs = e.args.map((a) => (a === "count" ? "count" : ktIdent(a))).join(", ");
         return `        fun ${objName}(res: Resources, ${params}): String =\n            res.getQuantityString(R.plurals.${e.androidId}, count, ${fmtArgs})`;
+      }
+      if (e.list) {
+        return `        fun ${objName}(res: Resources): List<String> =\n            res.getStringArray(R.array.${e.androidId}).toList()`;
       }
       if (e.args.length === 0) {
         return `        fun ${objName}(res: Resources): String = res.getString(R.string.${e.androidId})`;
@@ -429,6 +460,19 @@ function xcstrings() {
   const strings = {};
   for (const e of entries) {
     const id = `${e.ns}:${e.key}`;
+    if (e.list) {
+      // One key per item, 1-based, so each line is independently translatable
+      // and Xcode's editor shows them in order.
+      for (let i = 0; i < e.values[SOURCE_LOCALE].length; i++) {
+        /** @type {Record<string, any>} */
+        const itemLocalizations = {};
+        for (const loc of LOCALES) {
+          itemLocalizations[loc] = { stringUnit: { state: "translated", value: e.values[loc][i] } };
+        }
+        strings[`${id}.${i + 1}`] = { extractionState: "manual", localizations: itemLocalizations };
+      }
+      continue;
+    }
     /** @type {Record<string, any>} */
     const localizations = {};
     for (const loc of LOCALES) {
@@ -469,6 +513,12 @@ function iosAccessorsSwift() {
         const params = e.args.map((a) => (a === "count" ? "count: Int" : `${swiftIdent(a)}: CVarArg`)).join(", "); // plural only
         const fmtArgs = e.args.map((a) => (a === "count" ? "count" : swiftIdent(a))).join(", ");
         return `        public static func ${name}(${params}) -> String {\n            String(format: String(localized: "${id}", defaultValue: "", table: "Localizable"), ${fmtArgs})\n        }`;
+      }
+      if (e.list) {
+        const items = e.values[SOURCE_LOCALE]
+          .map((_, i) => `                String(localized: "${id}.${i + 1}", table: "Localizable"),`)
+          .join("\n");
+        return `        public static var ${name}: [String] {\n            [\n${items}\n            ]\n        }`;
       }
       if (e.args.length === 0) {
         return `        public static var ${name}: String { String(localized: "${id}", table: "Localizable") }`;

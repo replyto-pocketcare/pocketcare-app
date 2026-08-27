@@ -48,15 +48,15 @@ import com.sanvya.app.ui.isoLabel
 /**
  * The notification inbox -- ported from apps/web/app/notifications/page.tsx.
  *
- * **Not ported: the deep link.** Web's row navigates to `n.href`, a web path
- * like `/budgets`. Turning that into a native destination needs a path -> route
- * mapping that does not exist yet -- and guessing one would send a user to the
- * wrong screen, which is worse than a row that only marks itself read. Tracked
- * in PARITY_AUDIT.
+ * The row's deep link is web's `n.href` -- a web path like `/budgets` -- handed
+ * to [onOpenHref], which resolves it through Domain's `parseAppLink`. A row
+ * whose href resolves to nothing is still tappable and still marks itself read;
+ * it simply does not move, which is what a dead link on web does too.
  */
 @Composable
 fun NotificationsScreen(
     onOpenSettings: (() -> Unit)? = null,
+    onOpenHref: (String) -> Unit = {},
     viewModel: NotificationsViewModel = viewModel(),
 ) {
     val items by viewModel.items.collectAsState()
@@ -137,7 +137,10 @@ fun NotificationsScreen(
                     NotificationRowView(
                         item = item,
                         colors = colors,
-                        onOpen = { if (item.readAt == null) viewModel.markRead(item.id) },
+                        onOpen = {
+                            if (item.readAt == null) viewModel.markRead(item.id)
+                            item.href?.takeIf { it.isNotEmpty() }?.let(onOpenHref)
+                        },
                         onDismiss = { viewModel.dismiss(item.id) },
                     )
                 }

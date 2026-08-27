@@ -22,6 +22,38 @@ val SEARCH_TYPES = listOf("all", "income", "expense", "transfer")
 const val SEARCH_RESULT_LIMIT = 300
 
 /**
+ * A deep link's query, resolved into the Search screen's starting state.
+ *
+ * Web does this in a one-shot effect on `/search?q=&type=&account=&from=&to=&
+ * min=&max=`; the assistant leans on it hard ("take them straight to results").
+ * It is here rather than in either screen because the rules are not obvious and
+ * are easy to get subtly different on two platforms: an unrecognised `type` is
+ * IGNORED rather than applied or refused, and the filter panel opens when any
+ * non-`q` parameter is PRESENT, even one whose value was then discarded.
+ */
+data class SearchPrefill(val criteria: SearchCriteria, val showFilters: Boolean)
+
+/** Web's prefill effect, as a function. See [SearchPrefill]. */
+fun searchPrefillFromQuery(query: Map<String, String>): SearchPrefill {
+    fun g(key: String): String = query[key].orEmpty()
+    val type = g("type")
+    return SearchPrefill(
+        criteria = SearchCriteria(
+            query = g("q"),
+            type = if (type.isNotEmpty() && SEARCH_TYPES.contains(type)) type else "all",
+            accountId = g("account"),
+            from = g("from"),
+            to = g("to"),
+            min = g("min"),
+            max = g("max"),
+        ),
+        // Presence, not validity: web tests `g(k)` for truthiness across the
+        // six filter keys before it has decided whether `type` was usable.
+        showFilters = listOf("type", "account", "from", "to", "min", "max").any { g(it).isNotEmpty() },
+    )
+}
+
+/**
  * A transaction with its display names already resolved.
  *
  * Web resolves them in the component (`catName`, `acct`, and the `method_label`

@@ -2,6 +2,7 @@ package com.sanvya.app.ui
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 /**
  * Locale-aware labels for the ISO date strings the database stores.
@@ -24,6 +25,18 @@ fun dayMonthLabel(iso: String): String = isoLabel(iso, "d MMM")
  * which also means the date is read as the civil date the database wrote, not
  * re-derived in the device's zone.
  */
+/**
+ * "23/08/2026" -- web's bare `toLocaleDateString()`, the numeric short form.
+ *
+ * `ofLocalizedDate(SHORT)` rather than a pattern: the ORDER of day, month and
+ * year is what varies by locale, and a pattern string picks one order for
+ * everybody.
+ */
+fun shortDateLabel(iso: String): String {
+    val date = runCatching { LocalDate.parse(iso.take(10)) }.getOrNull() ?: return iso
+    return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
+}
+
 fun isoLabel(iso: String, pattern: String): String {
     val date = runCatching { LocalDate.parse(iso.take(10)) }.getOrNull() ?: return iso
     return date.format(DateTimeFormatter.ofPattern(pattern))

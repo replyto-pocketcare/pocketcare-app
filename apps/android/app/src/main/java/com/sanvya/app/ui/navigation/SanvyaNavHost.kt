@@ -22,14 +22,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.ui.shell.LocalWindowClass
 import com.sanvya.app.ui.shell.SanvyaWindowClass
 import com.sanvya.app.ui.ComingSoonScreen
-import com.sanvya.app.i18n.S
-import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.shell.AddAction
 import com.sanvya.app.ui.shell.AppShell
 import com.sanvya.app.ui.SettingsScreen
 import com.sanvya.app.ui.accounts.AccountsScreen
 import com.sanvya.app.ui.accounts.CreateAccountScreen
 import com.sanvya.app.ui.accounts.EditAccountScreen
+import com.sanvya.app.domain.search.searchPrefillFromQuery
 import com.sanvya.app.ui.budgets.BudgetsScreen
 import com.sanvya.app.ui.budgets.CreateBudgetScreen
 import com.sanvya.app.ui.budgets.EditBudgetScreen
@@ -111,23 +110,18 @@ private fun NavGraphBuilder.formDestination(
     }
 }
 
-/**
- * A destination that exists only so the nav entry pointing at it is not a
- * crash.
+/*
+ * `comingSoon()` used to live here.
  *
- * `ComingSoonScreen`'s own doc comment has said since the drawer was built that
- * it exists "so a tap on an unbuilt drawer item behaves identically on both
- * platforms instead of doing nothing or **crashing**". Nothing was ever routed
- * to it. `search`, `reflect`, `assistant`, `help` and `notifications` are in
- * `NAV_GROUPS`, in the side nav, and two of them in the bottom-bar catalog --
- * and none of them was a destination, so every tap called
- * `navController.navigate("search")` on a route the graph does not contain and
- * threw `IllegalArgumentException`. iOS shows a `PlaceholderView` for the same
- * five; this is the equivalent.
+ * It existed because `search`, `reflect`, `assistant`, `help` and
+ * `notifications` were all in `NAV_GROUPS` and none of them was a destination,
+ * so every tap called `navController.navigate("search")` on a route the graph
+ * did not contain and threw `IllegalArgumentException`. All five are now real
+ * screens -- the assistant was the last -- so the helper is gone rather than
+ * kept warm for a hypothetical sixth. `ComingSoonScreen` itself stays: the
+ * `coming_soon/{title}` route below is still reachable from the More sheet's
+ * customise flow.
  */
-private fun NavGraphBuilder.comingSoon(route: String, label: (android.content.res.Resources) -> String) {
-    composable(route) { ComingSoonScreen(title = label(sRes())) }
-}
 
 @Composable
 fun SanvyaNavHost(inviteToken: String? = null) {
@@ -266,21 +260,44 @@ fun SanvyaNavHost(inviteToken: String? = null) {
                 title = java.net.URLDecoder.decode(encoded, "UTF-8"),
             )
         }
-        composable("search") {
+        // Every filter is an optional argument, so `search` and
+        // `search?q=Swiggy&type=expense` are the same destination -- web's
+        // `/search?...` deep link, which the assistant's actions lean on.
+        composable(
+            SEARCH_ROUTE,
+            arguments = SEARCH_ARGS.map { key ->
+                navArgument(key) { type = NavType.StringType; nullable = true; defaultValue = null }
+            },
+        ) { entry ->
+            val query = SEARCH_ARGS.mapNotNull { key ->
+                entry.arguments?.getString(key)?.takeIf { it.isNotEmpty() }?.let { key to it }
+            }.toMap()
             com.sanvya.app.ui.search.SearchScreen(
+                prefill = if (query.isEmpty()) null else searchPrefillFromQuery(query),
                 onEditTransaction = { id -> navController.navigate("transactions/$id/edit") },
             )
         }
         composable("notifications") {
             com.sanvya.app.ui.notifications.NotificationsScreen(
                 onOpenSettings = { navController.navigate("settings") },
+                // Web's row is a `<Link href={n.href}>`. The path -> route
+                // translation that was missing when this screen was ported now
+                // exists (Domain's parseAppLink), so the row navigates.
+                onOpenHref = { href -> routeForHref(href)?.let { navController.navigate(it) } },
             )
         }
         composable("help") { com.sanvya.app.ui.help.HelpScreen() }
         composable("reflect") { com.sanvya.app.ui.reflect.ReflectScreen() }
-        // The assistant is the one NAV_GROUPS entry still unbuilt on both
-        // platforms. A placeholder, not a crash -- see comingSoon() above.
-        comingSoon("assistant", S.Translation::navAssistant)
+        composable("assistant") {
+            com.sanvya.app.ui.assistant.AssistantScreen(
+                // An action the model emits carries a WEB path; anything with
+                // no native destination was already refused by parseAppLink and
+                // never reaches here.
+                onOpenHref = { href -> routeForHref(href)?.let { navController.navigate(it) } },
+                onOpenHelp = { navController.navigate("help") },
+                onOpenSettings = { navController.navigate("settings") },
+            )
+        }
         // The guest banner in the More sheet and the side nav both link here,
         // matching web's `<Link href="/login">`. LoginScreen is normally the
         // auth gate ABOVE this graph (MainActivity), so a guest -- who is

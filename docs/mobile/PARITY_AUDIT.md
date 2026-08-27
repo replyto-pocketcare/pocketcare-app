@@ -370,6 +370,38 @@ user base they are invisible today, which is exactly why they have survived.
    entire purpose is to convince a nervous first-timer the app can be trusted with numbers.
    Both ports use `fromMajor` on both.
 
+9. **The assistant persona advertises two routes web does not have.** `AssistantChat.tsx`'s
+   `PERSONA` lists the pages the model may deep-link to, and two of them — `/cashflow` and
+   `/templates` — have no `page.tsx` anywhere under `apps/web/app`. The model is being told, in
+   its system prompt, to hand users links that 404. Found 2026-08-27 while building the
+   web-path → native-route translation.
+
+   Native cannot reproduce a 404, so `parseAppLink` **refuses** both paths and the action is
+   never offered. Those two refusals are pinned as `null` in `applink.json`, so a later "fix"
+   that invents a native destination for them fails loudly. The real fix is one of: build the
+   two pages, or drop them from the persona text (which is generated from web's own source, so
+   the edit belongs there).
+
+10. **The out-of-quota card's free-plan branch is unreachable.** `AssistantChat.tsx` gates the
+    whole screen on `isPremiumUser || hasActiveTrial`, which is exactly `useEntitlement().isPaid`
+    — and then branches the out-of-quota card on `isPaid` again. Anyone who can see the card has
+    already passed the same test, so `outFreeBold` / `outFreeRest` / `seePlans` can never render.
+    Three translated strings in three languages, dead. Ported as-is (the branch is web's, and the
+    day the gate loosens the right words are already in place), noted here rather than quietly
+    dropped.
+
+11. **`var(--negative-ghost)` is not a token.** The quota chip is written
+    `background: isOutOfQuota ? "var(--negative-ghost)" : "var(--surface-2)"` in both places it
+    appears, and `--negative-ghost` is defined **nowhere** in `globals.css`. An undefined custom
+    property invalidates the whole declaration, so the out-of-quota chip does not turn red — it
+    silently falls back to `.chip`'s own surface, and the one state the chip exists to signal is
+    the one state it does not signal. `SecurityPanel.tsx` uses the same variable **with an inline
+    fallback**, so this was already known somewhere.
+
+    Both ports reproduce web's actual rendering rather than its evident intent: inventing the
+    colour natively would make the phone and the browser disagree about something the user can
+    see. One line in `globals.css` fixes all three sites at once.
+
 ## 6a. De-hardcoding programme (Akhilesh, 2026-08-23)
 
 > *"remove any hardcoding from any platform to structured and easy swappable design

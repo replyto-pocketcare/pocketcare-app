@@ -107,7 +107,15 @@
     <string name="assistant_send_aria">Verzenden</string>
     <string name="assistant_skip">Overslaan</string>
     <string name="assistant_start_chat">Een nieuwe chat starten</string>
-    <string name="assistant_suggestions">Waarmee kun je me helpen?,Ik wil een iPhone kopen tijdens de uitverkoop — help me het te plannen.,Kan ik over 3 maanden een reis van ₹40.000 betalen?,Stel een maandbudget in voor uit eten gaan.,Hoe splits ik de huur met mijn huisgenoten?,Wie is mij nu geld schuldig, en hoeveel?,Maak een Goa-reis zodat ik uitgaven met vrienden kan splitsen.</string>
+    <string-array name="assistant_suggestions">
+        <item>Waarmee kun je me helpen?</item>
+        <item>Ik wil een iPhone kopen tijdens de uitverkoop — help me het te plannen.</item>
+        <item>Kan ik over 3 maanden een reis van ₹40.000 betalen?</item>
+        <item>Stel een maandbudget in voor uit eten gaan.</item>
+        <item>Hoe splits ik de huur met mijn huisgenoten?</item>
+        <item>Wie is mij nu geld schuldig, en hoeveel?</item>
+        <item>Maak een Goa-reis zodat ik uitgaven met vrienden kan splitsen.</item>
+    </string-array>
     <string name="assistant_thinking">Nadenken…</string>
     <string name="assistant_title">Ask Sanvya</string>
     <string name="assistant_understand">Ik begrijp het</string>

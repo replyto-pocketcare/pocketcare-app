@@ -107,7 +107,15 @@
     <string name="assistant_send_aria">भेजें</string>
     <string name="assistant_skip">छोड़ें</string>
     <string name="assistant_start_chat">एक नई चैट शुरू करें</string>
-    <string name="assistant_suggestions">आप मेरी किसमें मदद कर सकते हैं?,मैं दिवाली सेल में एक iPhone खरीदना चाहता हूँ — इसकी योजना बनाने में मदद करें।,क्या मैं 3 महीने में ₹40,000 की यात्रा वहन कर सकता हूँ?,बाहर खाने के लिए एक मासिक बजट सेट करें।,मैं अपने रूममेट्स के साथ किराया कैसे बाँटूँ?,अभी मुझे कौन पैसा देता है, और कितना?,एक गोवा यात्रा बनाएं ताकि मैं दोस्तों के साथ खर्च बाँट सकूँ।</string>
+    <string-array name="assistant_suggestions">
+        <item>आप मेरी किसमें मदद कर सकते हैं?</item>
+        <item>मैं दिवाली सेल में एक iPhone खरीदना चाहता हूँ — इसकी योजना बनाने में मदद करें।</item>
+        <item>क्या मैं 3 महीने में ₹40,000 की यात्रा वहन कर सकता हूँ?</item>
+        <item>बाहर खाने के लिए एक मासिक बजट सेट करें।</item>
+        <item>मैं अपने रूममेट्स के साथ किराया कैसे बाँटूँ?</item>
+        <item>अभी मुझे कौन पैसा देता है, और कितना?</item>
+        <item>एक गोवा यात्रा बनाएं ताकि मैं दोस्तों के साथ खर्च बाँट सकूँ।</item>
+    </string-array>
     <string name="assistant_thinking">सोच रहा है…</string>
     <string name="assistant_title">Ask Sanvya</string>
     <string name="assistant_understand">मैं समझता हूँ</string>

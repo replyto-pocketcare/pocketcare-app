@@ -144,7 +144,17 @@ public enum S {
         public static var sendAria: String { String(localized: "assistant:sendAria", table: "Localizable") }
         public static var skip: String { String(localized: "assistant:skip", table: "Localizable") }
         public static var startChat: String { String(localized: "assistant:startChat", table: "Localizable") }
-        public static var suggestions: String { String(localized: "assistant:suggestions", table: "Localizable") }
+        public static var suggestions: [String] {
+            [
+                String(localized: "assistant:suggestions.1", table: "Localizable"),
+                String(localized: "assistant:suggestions.2", table: "Localizable"),
+                String(localized: "assistant:suggestions.3", table: "Localizable"),
+                String(localized: "assistant:suggestions.4", table: "Localizable"),
+                String(localized: "assistant:suggestions.5", table: "Localizable"),
+                String(localized: "assistant:suggestions.6", table: "Localizable"),
+                String(localized: "assistant:suggestions.7", table: "Localizable"),
+            ]
+        }
         public static var thinking: String { String(localized: "assistant:thinking", table: "Localizable") }
         public static var title: String { String(localized: "assistant:title", table: "Localizable") }
         public static var understand: String { String(localized: "assistant:understand", table: "Localizable") }

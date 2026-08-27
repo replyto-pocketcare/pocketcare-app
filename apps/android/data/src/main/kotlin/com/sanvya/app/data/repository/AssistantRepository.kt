@@ -32,6 +32,8 @@ import com.powersync.db.getLong
 import com.powersync.db.getString
 import com.powersync.db.getStringOptional
 import com.sanvya.app.domain.assistant.AssistantJson
+import com.sanvya.app.domain.assistant.AssistantUi
+import com.sanvya.app.domain.assistant.assistantUiFrom
 import com.sanvya.app.domain.assistant.FinancialSummary
 import com.sanvya.app.domain.assistant.SummaryAccount
 import com.sanvya.app.domain.assistant.SummaryCategory
@@ -156,6 +158,23 @@ class AssistantRepository(
     )
 
     fun watchMessages(threadId: String): Flow<List<AssistantMessage>> = db.watch(
+        sql = """
+            SELECT id, thread_id, role, content, created_at FROM assistant_messages
+            WHERE thread_id = ?
+            ORDER BY created_at
+            """.trimIndent(),
+        parameters = listOf(threadId),
+        mapper = ::messageMapper,
+    )
+
+    /**
+     * A thread's messages, once.
+     *
+     * Reopening a thread is a one-shot read, not a subscription: the transcript
+     * of a finished conversation does not change under you, and a live query
+     * here would re-emit on every message this screen itself appends.
+     */
+    suspend fun messagesOnce(threadId: String): List<AssistantMessage> = db.getAll(
         sql = """
             SELECT id, thread_id, role, content, created_at FROM assistant_messages
             WHERE thread_id = ?
@@ -753,6 +772,25 @@ private const val UNCATEGORIZED_LABEL = "Uncategorized"
 private const val BUDGET_DEFAULT_THRESHOLD_PCT = 80
 
 // ---- wire format ----------------------------------------------------------
+
+/**
+ * The `<ui>` payload of an assistant message, parsed.
+ *
+ * `splitAssistantUi` deliberately stops at the raw string: Domain has no JSON
+ * parser, and giving it one for this alone would drag kotlinx into a module
+ * whose whole point is that it has no platform dependencies. This is the other
+ * half, and it lives here because this is where the app's JSON parser already
+ * is -- the screen calls it and never sees a `JsonElement`.
+ *
+ * Returns null on anything the model got wrong: a payload that is not JSON at
+ * all, or JSON that `assistantUiFrom` refuses. Web's own `try { JSON.parse }`
+ * does the same, and the message's prose is still shown either way.
+ */
+fun parseAssistantUiPayload(payload: String?): AssistantUi? {
+    if (payload.isNullOrBlank()) return null
+    val parsed = runCatching { Json.parseToJsonElement(payload) }.getOrNull() ?: return null
+    return assistantUiFrom(parsed.toDomainJson())
+}
 
 /** Domain's own JSON tree back out to kotlinx, for a tool call's `input`. */
 private fun AssistantJson.toWire(): JsonElement = when (this) {

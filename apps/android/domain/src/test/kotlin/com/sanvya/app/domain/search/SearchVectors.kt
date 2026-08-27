@@ -75,4 +75,32 @@ fun registerSearchVectors() {
     FunctionRegistry.register(DOMAIN, "activeFilterCount") { input ->
         JsonPrimitive(activeFilterCount(criteria(input.jsonObject.getValue("criteria").jsonObject)))
     }
+
+    // The deep-link prefill. Unlike the filter above, this one CAN be read
+    // straight off web -- it is a plain effect in the page component, not a
+    // useMemo over React state -- so these expectations are a transcription of
+    // `app/search/page.tsx`'s prefill block, including its two surprises: an
+    // unrecognised `type` is dropped rather than refused, and the filter panel
+    // opens on the PRESENCE of a filter key even when its value was discarded.
+    FunctionRegistry.register(DOMAIN, "searchPrefillFromQuery") { input ->
+        val query = input.jsonObject.getValue("query").jsonObject
+            .mapValues { (_, v) -> v.jsonPrimitive.content }
+        val prefill = searchPrefillFromQuery(query)
+        JsonObject(
+            mapOf(
+                "criteria" to JsonObject(
+                    mapOf(
+                        "query" to JsonPrimitive(prefill.criteria.query),
+                        "type" to JsonPrimitive(prefill.criteria.type),
+                        "accountId" to JsonPrimitive(prefill.criteria.accountId),
+                        "from" to JsonPrimitive(prefill.criteria.from),
+                        "to" to JsonPrimitive(prefill.criteria.to),
+                        "min" to JsonPrimitive(prefill.criteria.min),
+                        "max" to JsonPrimitive(prefill.criteria.max),
+                    ),
+                ),
+                "showFilters" to JsonPrimitive(prefill.showFilters),
+            ),
+        )
+    }
 }

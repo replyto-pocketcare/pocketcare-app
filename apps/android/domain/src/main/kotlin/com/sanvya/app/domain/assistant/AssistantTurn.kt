@@ -168,3 +168,25 @@ fun assistantErrorKey(error: String?): String {
     if (Regex("network|fetch|Failed to send", RegexOption.IGNORE_CASE).containsMatchIn(error)) return "errNetwork"
     return "errGeneric"
 }
+
+/**
+ * The remaining-queries chip, as both screens draw it.
+ *
+ * Web renders `{planLeft} / {total}` plus a `+N credits` suffix, and colours the
+ * chip when nothing is left. Splitting plan allowance from purchased credits is
+ * the load-bearing part: credits never expire and the plan allowance refills, so
+ * "3 / 50 +12 credits" and "15 / 50" are different situations wearing similar
+ * numbers.
+ */
+data class EntitlementQuota(
+    /** What is left of the monthly allowance, floored at zero. */
+    val planLeft: Int,
+    val total: Int,
+    /** Purchased credits, which do not expire. */
+    val purchased: Int,
+    /** planLeft + purchased. Zero means the composer is disabled. */
+    val left: Int,
+    /** ISO date the monthly allowance refills, when known. */
+    val resetDate: String?,
+)
+

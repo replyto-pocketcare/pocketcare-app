@@ -14,6 +14,7 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.domain.search.SEARCH_TYPES
+import com.sanvya.app.domain.search.SearchPrefill
 import com.sanvya.app.domain.search.activeFilterCount
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
@@ -40,16 +42,18 @@ import com.sanvya.app.ui.transactions.TransactionRowCard
  * the dashboard's Recent tile use, because web renders the same
  * `<TransactionTile>` on all three. The filter is domain's, vector-tested.
  *
- * **Not ported: the deep-link prefill.** Web reads `?q=&type=&account=...` so
- * the assistant can hand a user a pre-filtered search. There is no assistant on
- * either native platform yet and no URL to read, so building the reader first
- * would be a parameter nothing can set. Tracked in PARITY_AUDIT.
+ * The deep-link prefill (`?q=&type=&account=...`) arrives as [prefill], already
+ * decoded by Domain's `searchPrefillFromQuery`. It is applied ONCE, in the view
+ * model, exactly as web's effect guards itself with a `prefilled` flag -- a
+ * recomposition must not undo what the user has since typed.
  */
 @Composable
 fun SearchScreen(
+    prefill: SearchPrefill? = null,
     onEditTransaction: (String) -> Unit = {},
     viewModel: SearchViewModel = viewModel(),
 ) {
+    LaunchedEffect(prefill) { prefill?.let(viewModel::applyPrefill) }
     val state by viewModel.state.collectAsState()
     val criteria by viewModel.criteria.collectAsState()
     val showFilters by viewModel.showFilters.collectAsState()

@@ -190,3 +190,33 @@ public func assistantErrorKey(_ error: String?) -> String {
     if hit("network|fetch|Failed to send") { return "errNetwork" }
     return "errGeneric"
 }
+
+/**
+ The remaining-queries chip, as both screens draw it.
+
+ Web renders `{planLeft} / {total}` plus a `+N credits` suffix, and colours the
+ chip when nothing is left. Splitting plan allowance from purchased credits is
+ the load-bearing part: credits never expire and the plan allowance refills, so
+ "3 / 50 +12 credits" and "15 / 50" are different situations wearing similar
+ numbers.
+ */
+public struct EntitlementQuota: Equatable, Sendable {
+    /// What is left of the monthly allowance, floored at zero.
+    public let planLeft: Int
+    public let total: Int
+    /// Purchased credits, which do not expire.
+    public let purchased: Int
+    /// planLeft + purchased. Zero means the composer is disabled.
+    public let left: Int
+    /// ISO date the monthly allowance refills, when known.
+    public let resetDate: String?
+
+    public init(planLeft: Int, total: Int, purchased: Int, left: Int, resetDate: String?) {
+        self.planLeft = planLeft
+        self.total = total
+        self.purchased = purchased
+        self.left = left
+        self.resetDate = resetDate
+    }
+}
+

@@ -23,6 +23,7 @@ object Prefs : KoinComponent {
     private const val PREFS_NAME = "sanvya_prefs"
     private const val WALKTHROUGH_DONE_KEY = "sanvya:walkthroughDone"
     private const val ONBOARDING_SEEN_KEY = "onboardingSeen"
+    private const val AI_DISCLAIMER_KEY = "sanvya:ai-disclaimer"
     private const val HIDE_KEY = "amountsHidden"
     private const val PENDING_INVITE_KEY = "pendingInvite"
     private const val THEME_KEY = "theme"
@@ -137,5 +138,23 @@ object Prefs : KoinComponent {
 
     fun setOnboardingSeen() {
         sharedPrefs.edit().putString(ONBOARDING_SEEN_KEY, "1").apply()
+    }
+
+    /**
+     * The assistant's privacy notice has been read.
+     *
+     * Same key and same stored value ("true") as web's localStorage entry. It
+     * gates a modal that appears on the FIRST chat, so it is per-device by
+     * design on all three clients -- a notice about what leaves this device is
+     * one this device should show once.
+     */
+    private val _aiDisclaimerAcked: MutableStateFlow<Boolean> by lazy {
+        MutableStateFlow(sharedPrefs.getString(AI_DISCLAIMER_KEY, null) == "true")
+    }
+    val aiDisclaimerAcked: StateFlow<Boolean> get() = _aiDisclaimerAcked
+
+    fun setAiDisclaimerAcked() {
+        sharedPrefs.edit().putString(AI_DISCLAIMER_KEY, "true").apply()
+        _aiDisclaimerAcked.value = true
     }
 }
