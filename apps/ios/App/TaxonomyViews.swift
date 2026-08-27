@@ -1,4 +1,5 @@
 import SwiftUI
+import Data
 import Domain
 
 /// Manage categories — ported from apps/web/app/settings/categories/page.tsx.

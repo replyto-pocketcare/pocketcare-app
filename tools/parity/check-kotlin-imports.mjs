@@ -45,6 +45,15 @@ const WATCHED = [
   "S", "sRes",
   "formatMoney", "formatMoneyAware", "formatMoneyUnmasked", "baseCurrencyNow",
   "Prefs", "colorForId", "accountColor",
+  // Added 2026-08-26 as the small-screens sweep spread these across screens
+  // that had never named them. `parseHexColor` in particular had three
+  // competing definitions in this module until it was promoted, so a file
+  // reaching for it without an import is exactly the case worth catching.
+  "parseHexColor", "ColorSwatchRow", "ConfirmDialog",
+  "isoLabel", "dayMonthLabel",
+  "transactionListItem", "TransactionRowCard", "merchantTitle", "avatarColor",
+  "splitInfoByTransaction", "collapseSplitRowIds", "SplitInfo",
+  "searchTransactions", "activeFilterCount", "categoryTree", "timeAgo", "filterHelp",
 ];
 
 /**

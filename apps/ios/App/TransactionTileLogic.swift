@@ -1,5 +1,6 @@
 import SwiftUI
 import Data
+import Domain
 
 /// Ported byte-for-byte from apps/web/src/ui/TransactionTile.tsx's
 /// avatarColor/merchantTitle/txTags -- the shared row logic used everywhere

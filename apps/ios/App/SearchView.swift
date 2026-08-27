@@ -1,4 +1,5 @@
 import SwiftUI
+import Data
 import Domain
 
 /// Search — ported from apps/web/app/search/page.tsx.

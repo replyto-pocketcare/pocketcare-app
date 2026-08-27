@@ -1352,6 +1352,50 @@ Notifications, Help and Reflect are all built on both platforms. `AssistantView`
 is the one nav entry still a placeholder — 1,669 lines on web, and its own
 piece of work.
 
+### A guard that reads imports, and the three bugs it found — 2026-08-26
+
+None of the App-layer code written during the small-screens sweep had been
+through a compiler: every iOS run since 0613aad died inside the `Data` module,
+so the build never reached `App`. Rather than wait, `check-swift-traps.mjs`
+grew a scan that would have caught the most likely class of failure.
+
+**The scan:** collect every top-level `public` type declared in `Data` and in
+`Domain`, then flag any file under `apps/ios/App` that NAMES one without
+importing that module. Comments and string literals are stripped first, names
+the App module also declares are excluded, and a short denylist covers names
+Apple's own frameworks define (`GridItem`, `Label`, `Section`, `Item`, …) —
+a file using SwiftUI's `GridItem` is not evidence that it wants Domain's.
+Nested types are excluded by matching only zero-indent declarations: a file
+containing the word "Item" is not naming `RecurringRepository.Item`.
+
+Swift's error for the real thing is *"cannot find type 'LabelRow' in scope"*,
+which reads like a typo rather than a missing import — and a view that got the
+type by inference compiles right up until someone writes the name down.
+
+**It found three, all mine, all from this sweep:** `SearchView.swift` and
+`TaxonomyViews.swift` named `Account` and `LabelRow` with no `import Data`, and
+`TransactionTileLogic.swift` named `SplitInfo` with no `import Domain`. In each
+case the view model beside it had the import, so nothing looked wrong.
+
+Two more found by reading rather than by grep, both would have been runtime
+rather than compile failures:
+
+- iOS `ReflectView` passed `.gesture(isTop ? swipe(row) : nil)`. `.gesture()`
+  takes a `Gesture`, not an `Optional`, so that would not have type-checked at
+  all; the stack is two branches now.
+- Android `ReflectScreen` returned early past a `remember`. The Compose
+  compiler says nothing, and the bug shows up later as state whose identity
+  does not survive the card it belonged to. Every `remember` runs before the
+  guard now.
+
+The Kotlin guard's watch list grew too — `parseHexColor`, `ColorSwatchRow`,
+`ConfirmDialog`, `isoLabel`, the split-collapse pair and the four new Domain
+entry points. `parseHexColor` earned its place: it had three competing
+definitions in the Android module until this sweep promoted it.
+
+Both guards were verified against deliberately-broken probes: strip the import,
+the guard names the file and exits 1; restore it, clean.
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*

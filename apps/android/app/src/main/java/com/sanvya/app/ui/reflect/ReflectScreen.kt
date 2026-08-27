@@ -153,13 +153,19 @@ private fun CardStack(
 ) {
     // Three cards at most; web renders the same slice for the same reason.
     val cards = rows.take(3)
-    val top = cards.firstOrNull() ?: return
+    val top = cards.firstOrNull()
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     // Keyed on the top card's id: a fresh Animatable per card, so the next one
     // does not inherit the last one's offset.
-    val offsetX = remember(top.id) { Animatable(0f) }
+    //
+    // Every `remember` runs BEFORE the empty guard below. A composable that
+    // returns early past a `remember` loses that state's identity on the next
+    // pass -- the compiler says nothing, and the bug shows up as an offset that
+    // survives a card it should not have.
+    val offsetX = remember(top?.id) { Animatable(0f) }
     val commitPx = with(density) { 100.dp.toPx() }
+    if (top == null) return
 
     Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         cards.asReversed().forEachIndexed { reversedIndex, row ->

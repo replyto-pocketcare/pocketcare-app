@@ -79,14 +79,24 @@ struct ReflectView: View {
         let cards = Array(viewModel.visible.prefix(3))
         return ZStack {
             ForEach(Array(cards.enumerated()).reversed(), id: \.element.id) { index, row in
-                IntentCard(row: row, offset: index == 0 ? drag : .zero)
-                    .scaleEffect(index == 0 ? 1 : 1 - CGFloat(index) * 0.05)
-                    .offset(y: index == 0 ? 0 : CGFloat(index) * 15)
-                    .rotationEffect(index == 0 ? .degrees(Double(drag.width / 20)) : .zero)
-                    .zIndex(index == 0 ? 10 : Double(3 - index))
-                    .allowsHitTesting(index == 0)
-                    .gesture(index == 0 ? swipe(row) : nil)
-                    .animation(SanvyaMotion.standard(0.3), value: drag == .zero)
+                let isTop = index == 0
+                // `.gesture()` takes a Gesture, not an Optional, so the top
+                // card is a separate branch rather than a ternary ending in
+                // `nil` — which does not type-check.
+                Group {
+                    if isTop {
+                        IntentCard(row: row, offset: drag)
+                            .rotationEffect(.degrees(Double(drag.width / 20)))
+                            .gesture(swipe(row))
+                            .animation(SanvyaMotion.standard(0.3), value: drag == .zero)
+                    } else {
+                        IntentCard(row: row, offset: .zero)
+                            .scaleEffect(1 - CGFloat(index) * 0.05)
+                            .offset(y: CGFloat(index) * 15)
+                            .allowsHitTesting(false)
+                    }
+                }
+                .zIndex(isTop ? 10 : Double(3 - index))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
