@@ -17,6 +17,7 @@ import com.sanvya.app.data.repository.SettingsRepository
 import com.sanvya.app.data.repository.StrandedRow
 import com.sanvya.app.domain.diagnostics.LogEntry
 import com.sanvya.app.domain.entitlements.isPaid
+import com.sanvya.app.ui.notifications.PushController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -160,6 +161,94 @@ class SettingsViewModel : ViewModel(), KoinComponent {
                 e.printStackTrace()
             }
         }
+    }
+
+    // ---- push ----
+
+    /** "granted" | "denied" | "notDetermined", refreshed whenever the screen appears. */
+    private val _pushPermission = MutableStateFlow("notDetermined")
+    val pushPermission: StateFlow<String> = _pushPermission.asStateFlow()
+
+    private val _pushBusy = MutableStateFlow(false)
+    val pushBusy: StateFlow<Boolean> = _pushBusy.asStateFlow()
+
+    /** The one-line result of the last push action — an error, or the test-sent note. */
+    private val _pushMessage = MutableStateFlow<String?>(null)
+    val pushMessage: StateFlow<String?> = _pushMessage.asStateFlow()
+
+    fun refreshPushPermission(controller: PushController) {
+        _pushPermission.value = controller.permission()
+    }
+
+    fun clearPushMessage() { _pushMessage.value = null }
+
+    /**
+     * Turn push on: ask the OS if needed, mint a token, register it, and only
+     * THEN write the pref.
+     *
+     * The order is the point. Writing `push_enabled = 1` first — which is all
+     * the switch used to do — leaves a user looking at an "on" switch with no
+     * token registered anywhere and no alert ever arriving. The pref means "a
+     * token for this device is on the server", so it must not be set until one
+     * is.
+     */
+    fun enablePush(controller: PushController, requestPermission: ((Boolean) -> Unit) -> Unit) {
+        if (_pushBusy.value) return
+        _pushBusy.value = true
+        _pushMessage.value = null
+        requestPermission { granted ->
+            _pushPermission.value = controller.permission()
+            if (!granted) {
+                _pushMessage.value = PUSH_DENIED
+                _pushBusy.value = false
+                return@requestPermission
+            }
+            viewModelScope.launch {
+                try {
+                    val userId = authRepository.currentUserId.value ?: authRepository.ensureGuest()
+                    controller.ensureChannel()
+                    controller.register(userId)
+                    updatePref { it.copy(push_enabled = 1) }
+                } catch (e: Exception) {
+                    // Surfaced, not swallowed. The repository used to eat this
+                    // and the switch would go green over a registration that
+                    // had failed.
+                    _pushMessage.value = e.message ?: PUSH_FAILED
+                } finally {
+                    _pushBusy.value = false
+                }
+            }
+        }
+    }
+
+    /**
+     * Turn push off: drop the token, then clear the pref.
+     *
+     * The OS permission is deliberately left alone — revoking it is the user's
+     * business and there is no API to do it anyway. Web's `disablePush()` has
+     * the same shape.
+     */
+    fun disablePush(controller: PushController) {
+        if (_pushBusy.value) return
+        _pushBusy.value = true
+        _pushMessage.value = null
+        viewModelScope.launch {
+            try {
+                controller.unregister()
+            } catch (e: Exception) {
+                _pushMessage.value = e.message ?: PUSH_FAILED
+            }
+            // The pref clears even when the delete failed: the user asked for
+            // off, and leaving the switch on because the network was down would
+            // be the wrong half to honour. A stale row is the dispatcher's
+            // problem and `last_seen` is how it finds one.
+            updatePref { it.copy(push_enabled = 0) }
+            _pushBusy.value = false
+        }
+    }
+
+    fun sendTestNotification(controller: PushController) {
+        _pushMessage.value = if (controller.sendTest()) PUSH_TEST_SENT else PUSH_TEST_BLOCKED
     }
 
     fun updatePref(updater: (NotificationPrefs) -> NotificationPrefs) {
@@ -424,5 +513,15 @@ class SettingsViewModel : ViewModel(), KoinComponent {
                 _deleting.value = false
             }
         }
+    }
+
+    private companion object {
+        // English on all three platforms, because these are English literals in
+        // web's NotificationPanel.tsx too -- see PARITY_AUDIT's i18n row.
+        const val PUSH_DENIED =
+            "Notifications are blocked in your system settings \u2014 allow them for Sanvya and try again."
+        const val PUSH_FAILED = "Couldn't set up notifications on this device."
+        const val PUSH_TEST_SENT = "Sent \u2014 check your device notifications."
+        const val PUSH_TEST_BLOCKED = "Allow notifications for Sanvya first."
     }
 }

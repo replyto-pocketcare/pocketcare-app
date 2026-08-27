@@ -139,6 +139,105 @@ class SettingsViewModel {
         }
     }
 
+    // MARK: - Push
+
+    /// "granted" | "denied" | "notDetermined", refreshed whenever the screen appears.
+    public private(set) var pushPermission = "notDetermined"
+    public private(set) var pushBusy = false
+    /// The one-line result of the last push action — an error, or the test-sent note.
+    public private(set) var pushMessage: String?
+
+    private let pushController = PushController()
+
+    func refreshPushPermission() async {
+        pushPermission = await pushController.permission()
+    }
+
+    /// Turn push on: ask iOS if needed, wait for the APNs token, register it,
+    /// and only THEN write the pref.
+    ///
+    /// The order is the point. Writing `push_enabled = 1` first — which is all
+    /// the switch used to do — leaves a user looking at an "on" switch with no
+    /// token registered anywhere and no alert ever arriving. The pref means "a
+    /// token for this device is on the server", so it must not be set until one
+    /// is.
+    func enablePush() {
+        guard !pushBusy else { return }
+        pushBusy = true
+        pushMessage = nil
+        Task { [weak self] in
+            guard let self else { return }
+            defer { self.pushBusy = false }
+
+            var permission = await self.pushController.permission()
+            if permission == "notDetermined" {
+                _ = await self.pushController.requestPermission()
+                permission = await self.pushController.permission()
+            }
+            self.pushPermission = permission
+            guard permission == "granted" else {
+                self.pushMessage = Self.pushDenied
+                return
+            }
+            do {
+                var uid = self.authRepo.currentUserId
+                if uid == nil { uid = try? await self.authRepo.ensureUser() }
+                guard let userId = uid else {
+                    self.pushMessage = Self.pushFailed
+                    return
+                }
+                try await self.pushController.register(userId: userId)
+                self.updatePref(keyPath: \.push_enabled, value: true)
+            } catch {
+                // Surfaced, not swallowed. The repository used to eat this and
+                // the switch would go green over a registration that had
+                // failed.
+                self.pushMessage = error.localizedDescription
+            }
+        }
+    }
+
+    /// Turn push off: drop the token, then clear the pref.
+    ///
+    /// The OS permission is deliberately left alone — revoking it is the user's
+    /// business and there is no API to do it anyway. Web's `disablePush()` has
+    /// the same shape.
+    func disablePush() {
+        guard !pushBusy else { return }
+        pushBusy = true
+        pushMessage = nil
+        Task { [weak self] in
+            guard let self else { return }
+            defer { self.pushBusy = false }
+            do {
+                try await self.pushController.unregister()
+            } catch {
+                self.pushMessage = error.localizedDescription
+            }
+            // The pref clears even when the delete failed: the user asked for
+            // off, and leaving the switch on because the network was down would
+            // be the wrong half to honour. A stale row is the dispatcher's
+            // problem and `last_seen` is how it finds one.
+            self.updatePref(keyPath: \.push_enabled, value: false)
+        }
+    }
+
+    func sendTestNotification() {
+        Task { [weak self] in
+            guard let self else { return }
+            let ok = await self.pushController.sendTest()
+            self.pushMessage = ok ? Self.pushTestSent : Self.pushTestBlocked
+        }
+    }
+
+    // English on all three platforms, because these are English literals in
+    // web's NotificationPanel.tsx too — see PARITY_AUDIT's i18n row.
+    private static let pushDenied =
+        "Notifications are blocked in iOS Settings \u{2014} allow them for Sanvya and try again."
+    private static let pushFailed = "Couldn't set up notifications on this device."
+    private static let pushTestSent = "Sent \u{2014} check your device notifications."
+    private static let pushTestBlocked = "Allow notifications for Sanvya first."
+
     func updatePref(keyPath: WritableKeyPath<NotificationPrefs, Int>, value: Bool) {
         guard var prefs = notifPrefs else { return }
         prefs[keyPath: keyPath] = value ? 1 : 0

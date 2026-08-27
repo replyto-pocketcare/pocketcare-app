@@ -1677,6 +1677,68 @@ empty option means "create a new group". Both native screens use a chip row and
 show the new-group field when nothing is selected, because a placeholder option
 inside a native picker reads as a value rather than an action.
 
+### Push notifications — 2026-08-27
+
+Both platforms already had the SHAPE of push — a `PushRepository`, an FCM
+service, an APNs delegate, a Firebase config, a `push_enabled` toggle. None of
+it worked, and each broken piece was silent in a different way.
+
+**Five real defects, all fixed:**
+
+1. **The upsert could never succeed, on either platform.** Both sent
+   `onConflict = "user_id, token"`, but migration 0048 adds exactly one unique
+   constraint for native devices — `unique (token)`. Postgres requires the ON
+   CONFLICT target to match a unique index, so every registration failed with
+   "there is no unique or exclusion constraint matching the ON CONFLICT
+   specification". **No device token has ever been stored by either app.**
+   `token` alone is also the right key on its own terms: if a phone signs in as
+   somebody else, the row must MOVE, not duplicate, or the previous account
+   keeps getting that device's alerts.
+2. **Android's repository swallowed every failure** into `printStackTrace()`,
+   which is why #1 survived the whole life of the feature. The try/catch is
+   gone; callers handle it.
+3. **iOS had no `aps-environment` entitlement and no `remote-notification`
+   background mode.** Both absences are silent: `registerForRemoteNotifications()`
+   returns happily, the delegate callback never fires, and the app waits forever
+   for a token Apple was never asked to mint.
+4. **There was no way to turn push OFF.** Neither platform had an
+   `unregisterToken`, so the switch only flipped a local pref and the dispatcher
+   kept delivering to a device whose owner had just said no.
+5. **Both asked for notification permission in the first frame of the first
+   launch** — before the user had seen a single screen. On iOS the prompt can be
+   shown exactly once, a refusal is permanent, and asking without context is on
+   App Review's own list of rejection reasons. Permission is now asked from
+   Settings, when the switch is turned on.
+
+**What replaced the toggle.** `push_enabled` used to be a plain switch that
+wrote a number: no permission ask, no token, no test. It is now the real thing
+on both — permission → token → register → *then* set the pref, in that order,
+because the pref means "a token for this device is on the server" and setting it
+first leaves someone staring at an "on" switch that will never deliver anything.
+Web's per-row hints came with it; both phones had none, which turned "Upcoming
+EMIs & bills" into a switch whose lead time was invisible.
+
+**Shared, in Domain:** `pushState()` and `shouldRegisterAtLaunch()` under 30
+vectors — the whole cross-product. The distinction worth pinning is **blocked vs
+off**: they render identically, and only one of them can be fixed by tapping the
+switch. Once the OS permission is denied neither platform will ever show the
+prompt again, so a row that says "off" when it means "I can't ask again" is a
+switch the user will flip forever.
+
+**The test button is ported deliberately, not as decoration.** Web's own comment
+says why: a LOCAL notification proves permission and the delivery path work on
+this device, so when it shows and real alerts do not, the gap is the server
+dispatch — not the phone. That is the single most useful thing a support
+conversation can establish. iOS uses a 1-second trigger rather than `nil`
+(a nil-triggered notification while its own app is foregrounded is suppressed,
+so the button would appear to do nothing), and the delegate now returns
+`.banner` for foreground presentation.
+
+**Still not verifiable here.** None of this can be end-to-end tested without a
+real device, a real APNs key and a real FCM sender — CI compiles it and the
+vectors pin the state machine, and that is the honest limit. The dispatcher side
+(`notify-dispatch`) is a Supabase edge function and was not touched.
+
 ### Done-when for this section
 
 - [x] Android has a login screen reaching every method its data layer already supports. *(2026-08-24)*

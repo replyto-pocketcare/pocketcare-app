@@ -106,6 +106,12 @@ final class VectorRunnerTests: XCTestCase {
         registerWalkthroughVectors()
         try runDomain("walkthrough")
     }
+    func testPushState() throws {
+        // PushState.swift — the whole cross-product; blocked and off look
+        // identical on screen and only one is fixable by tapping.
+        registerPushStateVectors()
+        try runDomain("push-state")
+    }
     func testSplitAssign() throws {
         // SplitAssign.swift — the per-item split screen's own arithmetic,
         // including the sign rule for exactly splitting a discount.

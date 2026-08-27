@@ -123,37 +123,77 @@ struct SettingsView: View {
                     }
                 }
 
-                // MARK: Notifications (existing)
+                // MARK: Notifications
+                //
+                // The push row used to be a plain Toggle that wrote
+                // `push_enabled` and nothing else: no permission ask, no APNs
+                // token, no way to send a test. It was a switch that turned on
+                // a lie. Ported properly from web's NotificationPanel.tsx,
+                // whose hints and test button come with it.
                 if let notif = viewModel.notifPrefs {
                     Section(header: Text(S.Translation.navNotifications), footer: Text("Get alerted about bills, budgets, low balances and unusual spend.")) {
-                        Toggle("Push notifications", isOn: Binding(
-                            get: { notif.push_enabled == 1 },
-                            set: { viewModel.updatePref(keyPath: \.push_enabled, value: $0) }
-                        )).tint(Color.accent)
-                        Toggle("Upcoming EMIs & bills", isOn: Binding(
-                            get: { notif.emi_due == 1 },
-                            set: { viewModel.updatePref(keyPath: \.emi_due, value: $0) }
-                        )).tint(Color.accent)
-                        Toggle("Budget limits", isOn: Binding(
-                            get: { notif.budget == 1 },
-                            set: { viewModel.updatePref(keyPath: \.budget, value: $0) }
-                        )).tint(Color.accent)
-                        Toggle("Low balance", isOn: Binding(
-                            get: { notif.low_balance == 1 },
-                            set: { viewModel.updatePref(keyPath: \.low_balance, value: $0) }
-                        )).tint(Color.accent)
-                        Toggle("Unusual transactions", isOn: Binding(
-                            get: { notif.outlier == 1 },
-                            set: { viewModel.updatePref(keyPath: \.outlier, value: $0) }
-                        )).tint(Color.accent)
-                        Toggle("Group activity", isOn: Binding(
-                            get: { notif.group_invite == 1 },
-                            set: { viewModel.updatePref(keyPath: \.group_invite, value: $0) }
-                        )).tint(Color.accent)
-                        Toggle("Shared expenses", isOn: Binding(
-                            get: { notif.group_expense == 1 },
-                            set: { viewModel.updatePref(keyPath: \.group_expense, value: $0) }
-                        )).tint(Color.accent)
+                        let state = pushState(
+                            supported: true,
+                            permission: viewModel.pushPermission,
+                            prefEnabled: notif.push_enabled == 1
+                        )
+                        if state == .unsupported {
+                            Text("This device can't show notifications. In-app alerts still work.")
+                                .font(.system(size: 13))
+                                .foregroundStyle(Color.text2)
+                        } else {
+                            Toggle(isOn: Binding(
+                                get: { state == .on },
+                                set: { on in
+                                    if on { viewModel.enablePush() } else { viewModel.disablePush() }
+                                }
+                            )) {
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(viewModel.pushBusy ? "Working\u{2026}" : "Push notifications")
+                                    // `.blocked` is not `.off`: once iOS has
+                                    // been told no, the prompt can never be
+                                    // shown again, so a live switch here would
+                                    // be a control that can never do anything.
+                                    // The hint sends them to Settings instead.
+                                    Text(state == .blocked
+                                         ? "Blocked in iOS Settings \u{203A} Notifications"
+                                         : "Deliver alerts to this device")
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(Color.text2)
+                                }
+                            }
+                            .tint(Color.accent)
+                            .disabled(viewModel.pushBusy || state == .blocked)
+
+                            if let message = viewModel.pushMessage {
+                                Text(message)
+                                    .font(.system(size: 12.5))
+                                    .foregroundStyle(Color.text2)
+                            }
+
+                            Button("Send test notification") { viewModel.sendTestNotification() }
+                                .font(.system(size: 13))
+                                .foregroundStyle(Color.accent)
+                        }
+
+                        notifToggle("Upcoming EMIs & bills",
+                                    hint: "Alert \(notif.emi_lead_days) days before due",
+                                    on: notif.emi_due == 1, keyPath: \.emi_due)
+                        notifToggle("Budget limits",
+                                    hint: "When you cross 80% and 100% of a budget",
+                                    on: notif.budget == 1, keyPath: \.budget)
+                        notifToggle("Low balance",
+                                    hint: "When an account drops below your floor",
+                                    on: notif.low_balance == 1, keyPath: \.low_balance)
+                        notifToggle("Unusual transactions",
+                                    hint: "Large or out-of-pattern spends",
+                                    on: notif.outlier == 1, keyPath: \.outlier)
+                        notifToggle("Group activity",
+                                    hint: "When someone joins a group or trip you're in",
+                                    on: notif.group_invite == 1, keyPath: \.group_invite)
+                        notifToggle("Shared expenses",
+                                    hint: "When someone adds an expense to split",
+                                    on: notif.group_expense == 1, keyPath: \.group_expense)
                     }
                 }
 
@@ -292,6 +332,11 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .task {
                 await viewModel.start()
+                // Re-read on every entry: the user can revoke notifications
+                // from iOS Settings while the app is backgrounded, and a stale
+                // "on" switch would be the last thing they see before wondering
+                // why nothing arrives.
+                await viewModel.refreshPushPermission()
             }
             .onChange(of: viewModel.session?.username) { _, newValue in
                 if let newValue, username.isEmpty { username = newValue }
@@ -322,6 +367,32 @@ struct SettingsView: View {
                 Text("This permanently deletes your account and data. This can't be undone." + (viewModel.deleteError.map { "\n\($0)" } ?? ""))
             }
         }
+    }
+
+    /// One notification toggle with its explanatory line.
+    ///
+    /// Web has a hint on every row and iOS had none, which turned "Upcoming
+    /// EMIs & bills" into a switch whose meaning you had to guess -- the lead
+    /// time it actually uses was invisible.
+    @ViewBuilder
+    private func notifToggle(
+        _ title: String,
+        hint: String,
+        on: Bool,
+        keyPath: WritableKeyPath<NotificationPrefs, Int>
+    ) -> some View {
+        Toggle(isOn: Binding(
+            get: { on },
+            set: { viewModel.updatePref(keyPath: keyPath, value: $0) }
+        )) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                Text(hint)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.text2)
+            }
+        }
+        .tint(Color.accent)
     }
 
     private func shareDiagnostics() {

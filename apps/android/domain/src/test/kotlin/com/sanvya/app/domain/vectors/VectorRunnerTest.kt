@@ -130,6 +130,13 @@ class VectorRunnerTest {
         runDomain("walkthrough")
     }
     @Test
+    fun pushState() {
+        // PushState.kt -- the whole cross-product; BLOCKED and OFF look
+        // identical on screen and only one is fixable by tapping.
+        com.sanvya.app.domain.notifications.registerPushStateVectors()
+        runDomain("push-state")
+    }
+    @Test
     fun splitAssign() {
         // SplitAssign.kt -- the per-item split screen's own arithmetic,
         // including the sign rule for exactly splitting a discount.

@@ -28,6 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.data.repository.FailedWriteItem
+import com.sanvya.app.domain.notifications.PushState
+import com.sanvya.app.domain.notifications.pushState
+import com.sanvya.app.ui.notifications.LocalNotificationPermissionRequester
+import com.sanvya.app.ui.notifications.PushController
 import com.sanvya.app.data.repository.StrandedRow
 import com.sanvya.app.theme.*
 import com.sanvya.app.i18n.S
@@ -60,6 +64,16 @@ fun SettingsScreen(
     val profileGender by viewModel.profileGender.collectAsState()
     val profileCountry by viewModel.profileCountry.collectAsState()
     val profileMsg by viewModel.profileMsg.collectAsState()
+    val pushPermission by viewModel.pushPermission.collectAsState()
+    val pushBusy by viewModel.pushBusy.collectAsState()
+    val pushMessage by viewModel.pushMessage.collectAsState()
+    val requestNotificationPermission = LocalNotificationPermissionRequester.current
+    val pushController = remember(context) { PushController(context.applicationContext) }
+    // Re-read on every entry: the user can revoke notifications from system
+    // settings while the app is backgrounded, and a stale "on" switch would be
+    // the last thing they see before wondering why nothing arrives.
+    LaunchedEffect(Unit) { viewModel.refreshPushPermission(pushController) }
+
     val syncConnected by viewModel.syncConnected.collectAsState()
     val syncLastSyncedAt by viewModel.syncLastSyncedAt.collectAsState()
     val diagnosticsEntries by viewModel.diagnosticsEntries.collectAsState()
@@ -224,18 +238,82 @@ fun SettingsScreen(
                 }
             }
 
-            // ---- Notifications (existing) ----
+            // ---- Notifications ----
+            //
+            // The push row used to be a plain toggle that wrote `push_enabled`
+            // and nothing else: no permission ask, no token, no way to send a
+            // test. It was a switch that turned on a lie. Ported properly from
+            // web's NotificationPanel.tsx, whose hints and test button come
+            // with it.
             if (notifPrefs != null) {
+                val prefs = notifPrefs!!
+                val state = pushState(
+                    supported = pushController.supported(),
+                    permission = pushPermission,
+                    prefEnabled = prefs.push_enabled == 1L,
+                )
                 SettingsCard(title = S.Translation.navNotifications(sRes()), subtitle = "Get alerted about bills, budgets, low balances and unusual spend.") {
-                    NotificationToggleRow("Push notifications", notifPrefs!!.push_enabled == 1L) { v -> viewModel.updatePref { it.copy(push_enabled = if (v) 1 else 0) } }
-                    NotificationToggleRow("Upcoming EMIs & bills", notifPrefs!!.emi_due == 1L) { v -> viewModel.updatePref { it.copy(emi_due = if (v) 1 else 0) } }
-                    NotificationToggleRow("Budget limits", notifPrefs!!.budget == 1L) { v -> viewModel.updatePref { it.copy(budget = if (v) 1 else 0) } }
-                    NotificationToggleRow("Low balance", notifPrefs!!.low_balance == 1L) { v -> viewModel.updatePref { it.copy(low_balance = if (v) 1 else 0) } }
-                    NotificationToggleRow("Unusual transactions", notifPrefs!!.outlier == 1L) { v -> viewModel.updatePref { it.copy(outlier = if (v) 1 else 0) } }
+                    if (state == PushState.UNSUPPORTED) {
+                        Text(
+                            "This device can't show notifications. In-app alerts still work.",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        NotificationToggleRow(
+                            title = if (pushBusy) "Working\u2026" else "Push notifications",
+                            checked = state == PushState.ON,
+                            // BLOCKED is not OFF: once Android has refused
+                            // twice it will never show the prompt again, so a
+                            // live switch here would be a control that can
+                            // never do anything. The hint sends them to system
+                            // settings instead.
+                            enabled = !pushBusy && state != PushState.BLOCKED,
+                            hint = when (state) {
+                                PushState.BLOCKED -> "Blocked in your system settings"
+                                else -> "Deliver alerts to this device"
+                            },
+                        ) { v ->
+                            if (v) {
+                                viewModel.enablePush(pushController, requestNotificationPermission)
+                            } else {
+                                viewModel.disablePush(pushController)
+                            }
+                        }
+                        pushMessage?.let {
+                            Text(it, fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        TextButton(onClick = { viewModel.sendTestNotification(pushController) }) {
+                            Text("Send test notification", fontSize = 13.sp, color = LocalSanvyaColors.current.accent)
+                        }
+                    }
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    NotificationToggleRow(
+                        "Upcoming EMIs & bills", prefs.emi_due == 1L,
+                        hint = "Alert ${prefs.emi_lead_days} days before due",
+                    ) { v -> viewModel.updatePref { it.copy(emi_due = if (v) 1 else 0) } }
+                    NotificationToggleRow(
+                        "Budget limits", prefs.budget == 1L,
+                        hint = "When you cross 80% and 100% of a budget",
+                    ) { v -> viewModel.updatePref { it.copy(budget = if (v) 1 else 0) } }
+                    NotificationToggleRow(
+                        "Low balance", prefs.low_balance == 1L,
+                        hint = "When an account drops below your floor",
+                    ) { v -> viewModel.updatePref { it.copy(low_balance = if (v) 1 else 0) } }
+                    NotificationToggleRow(
+                        "Unusual transactions", prefs.outlier == 1L,
+                        hint = "Large or out-of-pattern spends",
+                    ) { v -> viewModel.updatePref { it.copy(outlier = if (v) 1 else 0) } }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                     Text(S.Groups.title(sRes()), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    NotificationToggleRow("Group activity", notifPrefs!!.group_invite == 1L) { v -> viewModel.updatePref { it.copy(group_invite = if (v) 1 else 0) } }
-                    NotificationToggleRow("Shared expenses", notifPrefs!!.group_expense == 1L) { v -> viewModel.updatePref { it.copy(group_expense = if (v) 1 else 0) } }
+                    NotificationToggleRow(
+                        "Group activity", prefs.group_invite == 1L,
+                        hint = "When someone joins a group or trip you're in",
+                    ) { v -> viewModel.updatePref { it.copy(group_invite = if (v) 1 else 0) } }
+                    NotificationToggleRow(
+                        "Shared expenses", prefs.group_expense == 1L,
+                        hint = "When someone adds an expense to split",
+                    ) { v -> viewModel.updatePref { it.copy(group_expense = if (v) 1 else 0) } }
                 }
             }
 
@@ -545,15 +623,31 @@ private fun RepairSection(
 }
 
 @Composable
-fun NotificationToggleRow(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun NotificationToggleRow(
+    title: String,
+    checked: Boolean,
+    /**
+     * The line under the label. Web has one on every row and both phones had
+     * none, which turned "Upcoming EMIs & bills" into a switch whose meaning
+     * you had to guess — the lead time it actually uses was invisible.
+     */
+    hint: String? = null,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
+            if (hint != null) {
+                Text(hint, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
     }
 }

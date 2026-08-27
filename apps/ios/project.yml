@@ -64,6 +64,12 @@ targets:
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
+        # Push. Without `remote-notification` iOS delivers a silent/background
+        # payload to a suspended app and nothing else -- the app is simply never
+        # woken. It was missing entirely, which is one of the reasons the push
+        # feature could look wired and still do nothing.
+        UIBackgroundModes:
+          - remote-notification
         # Orientation policy (Akhilesh, 2026-08-23): phones portrait, tablets
         # free. Declared rather than set at runtime, so the system applies it
         # before the first frame instead of after one has already been laid out

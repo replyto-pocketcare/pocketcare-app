@@ -1,0 +1,262 @@
+[
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "granted",
+      "prefEnabled": true
+    },
+    "expected": "on"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "granted",
+      "prefEnabled": false
+    },
+    "expected": "off"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "denied",
+      "prefEnabled": true
+    },
+    "expected": "blocked"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "denied",
+      "prefEnabled": false
+    },
+    "expected": "blocked"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "notDetermined",
+      "prefEnabled": true
+    },
+    "expected": "off"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "notDetermined",
+      "prefEnabled": false
+    },
+    "expected": "off"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "",
+      "prefEnabled": true
+    },
+    "expected": "off"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "",
+      "prefEnabled": false
+    },
+    "expected": "off"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "unknown",
+      "prefEnabled": true
+    },
+    "expected": "off"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": true,
+      "permission": "unknown",
+      "prefEnabled": false
+    },
+    "expected": "off"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "granted",
+      "prefEnabled": true
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "granted",
+      "prefEnabled": false
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "denied",
+      "prefEnabled": true
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "denied",
+      "prefEnabled": false
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "notDetermined",
+      "prefEnabled": true
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "notDetermined",
+      "prefEnabled": false
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "",
+      "prefEnabled": true
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "",
+      "prefEnabled": false
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "unknown",
+      "prefEnabled": true
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "pushState",
+    "input": {
+      "supported": false,
+      "permission": "unknown",
+      "prefEnabled": false
+    },
+    "expected": "unsupported"
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "granted",
+      "prefEnabled": true
+    },
+    "expected": true
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "granted",
+      "prefEnabled": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "denied",
+      "prefEnabled": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "denied",
+      "prefEnabled": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "notDetermined",
+      "prefEnabled": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "notDetermined",
+      "prefEnabled": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "",
+      "prefEnabled": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "",
+      "prefEnabled": false
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "unknown",
+      "prefEnabled": true
+    },
+    "expected": false
+  },
+  {
+    "fn": "shouldRegisterAtLaunch",
+    "input": {
+      "permission": "unknown",
+      "prefEnabled": false
+    },
+    "expected": false
+  }
+]
