@@ -86,8 +86,13 @@ public final class ReceiptCaptureViewModel {
     public func watchEntitlement() {
         entitlementTask?.cancel()
         entitlementTask = Task { [weak self] in
+            // `guard let self` rather than `self?.` at each use: the stream is
+            // long-lived and the compiler requires the control flow to be
+            // explicit inside it. Same shape as ShellViewModel's own
+            // entitlement watch, which this mirrors.
+            guard let self else { return }
             do {
-                for try await row in try prefsRepository.watchEntitlement() {
+                for try await row in try self.prefsRepository.watchEntitlement() {
                     let state = entitlementState(
                         tier: row?.tier,
                         premiumTrialStartDate: row?.premiumTrialStartDate,
@@ -99,8 +104,8 @@ public final class ReceiptCaptureViewModel {
                         purchasedQuotaRemaining: row?.purchasedQuotaRemaining,
                         additionalPurchasedQuota: row?.additionalPurchasedQuota
                     )
-                    self?.canScan = state.isPaid
-                    self?.quotaLeft = state.quotaLeft
+                    self.canScan = state.isPaid
+                    self.quotaLeft = state.quotaLeft
                 }
             } catch {
                 // Offline — keep the last known tier.
