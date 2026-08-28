@@ -98,6 +98,9 @@ struct AppShell<Content: View>: View {
         .onChange(of: viewModel.isGuest) { _, guest in if !guest { signInOpen = false } }
         .environment(\.addActionSetter) { pageAction = $0 }
         .environment(\.backActionSetter) { pageBack = $0 }
+        // Lets a screen — or a sheet it presents — move the shell, which web
+        // gets from its router. See SelectTabAction.swift.
+        .environment(\.selectTab) { select($0) }
         // Both overlays belong to the bottom bar. At `.expanded` the bar is gone
         // and the sidebar shows every destination directly, so there is nothing
         // to open them from — and a sheet that can never be dismissed by its own

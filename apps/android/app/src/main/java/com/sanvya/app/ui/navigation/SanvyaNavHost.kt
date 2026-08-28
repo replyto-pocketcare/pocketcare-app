@@ -395,7 +395,18 @@ fun SanvyaNavHost(inviteToken: String? = null) {
         formDestination("accounts/new", windowClass) {
             CreateAccountScreen(
                 onBack = { navController.popBackStack() },
-                onSaved = { navController.popBackStack() },
+                // Web routes by TYPE after saving -- a new card lands on Cards,
+                // a new demat on Investments -- because that is where the thing
+                // the user just made actually lives. Popping back to Accounts
+                // would leave a credit card apparently missing.
+                onSaved = { type ->
+                    navController.popBackStack()
+                    when (type) {
+                        "credit_card" -> navController.navigate("cards")
+                        "demat" -> navController.navigate("investments")
+                        else -> Unit
+                    }
+                },
             )
         }
         formDestination(

@@ -228,8 +228,8 @@ Ranked by whether a native-only user can complete the job at all, not by size.
 |---|---|---|---|---|
 | ~~1~~ | ~~**Group invites**~~ | both | L | ✅ **2026-08-27.** Connection search, typed-email chips, one call per chip, and the share link. The selection rules are Domain's under 30 vectors; the link is the SERVER's, because a phone has no origin to build one from |
 | 2 | **Split expense on New transaction** | both | L | ✅ **Done 2026-08-28.** Domain (`splitPlan`, `splitActive`, `forOtherActive`, `autoSplitGroupFor`, `jsNumber`) under 35 vectors landed 2026-08-27; the editor followed — `SplitEditor.kt` / `SplitEditorView.swift`, both save() branches (split + "paid for someone else"), `watchAllGroupMembers()` on both repositories, and the auto-split preselection with web's `splitTouched` guard. Nothing in the UI computes: every number and the Save gate come from Domain |
-| 3 | **Android: Add-expense in a group is unreachable** | Android | S | The sheet is fully implemented; nothing sets `showAddExpense`, and the page action is an empty lambda. A group is read-only on Android |
-| 4 | **Credit-card branch on New account** — limit, statement day, due day, cycle-aware `pending_due` | both | L | A card created natively silently drops every field the Cards screen and its reminders are built on |
+| 3 | **Android: Add-expense in a group is unreachable** | Android | S | ✅ **Done.** The group page action opens the sheet |
+| 4 | **Credit-card branch on New account** — limit, statement day, due day, cycle-aware `pending_due` | both | L | ✅ **Done 2026-08-28.** `CardCycle.{kt,swift}` (`cardDueDate`, `clampCardDay`) under 27 vectors, the four fields + live cycle preview on both screens, the negative opening balance, `upsertDetails` + `setCycleDetails`, and web's route-by-type after save — which needed a new `selectTab` environment hook on iOS. Demat copy and the three `allowNeg` strings were hardcoded English on Android and are now wired |
 | 5 | **Receipt capture is camera-only** — no file upload, no PDF, no AI escalation, no entitlement gate | both | L | The emailed PDF bill is the feature's main input. Free-tier users meet a server rejection instead of the paywall card |
 | 6 | **Pending settlements** — confirm / dispute | both | M | Both repositories already have `confirmSettlement`/`disputeSettlement`. With no UI, a UPI settlement raised natively is stuck pending until the payee opens the browser |
 | 7 | **Live market quotes** | both | L | Without LTP and day-change every portfolio figure on native is whatever was last typed in. Investments is a manual ledger where web is a live portfolio |
@@ -528,6 +528,25 @@ user base they are invisible today, which is exactly why they have survived.
     `split-plan.json` fixtures for JPY and KWD are the only vectors in the corpus
     that deliberately disagree with what a browser would produce, and they are
     annotated in place so the disagreement stays deliberate.
+
+16. **A credit card's due date is stored one day early for every user east of
+    Greenwich.** `apps/web/app/accounts/new/page.tsx`'s `cardDueDate` builds
+    `new Date(year, dueMonth, dueDay)` — LOCAL midnight — and the save then
+    stores `dueOn.toISOString().slice(0, 10)`, which is UTC. In IST, local
+    midnight on the 20th is 18:30 UTC on the **19th**, so `credit_card_details.
+    due_on` is a day before the date the preview sentence showed the user, and
+    the payment reminder built on it fires a day early forever.
+
+    The bug is invisible in a UTC or western timezone, which is presumably why
+    it has survived. Both ports compute the calendar date and keep it as a
+    calendar date — no instant anywhere in the path — so the day shown is the
+    day stored. `card-cycle.json` pins it.
+
+17. **Two day fields accept a fractional day.** The same file clamps with
+    `Math.min(28, Math.max(1, Number(v) || 1))`, which passes `2.7` straight
+    through into `statement_day`. It is harmless today only because the input
+    strips non-digits; nothing in the function itself stops it. Both ports
+    truncate to an integer, which is what `new Date(y, m, 2.7)` does anyway.
 
 ### iOS was formatting numbers as pointers — twelve call sites, 2026-08-27
 

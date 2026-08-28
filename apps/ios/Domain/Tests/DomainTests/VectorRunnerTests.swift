@@ -119,6 +119,14 @@ final class VectorRunnerTests: XCTestCase {
         registerAssistantVectors()
         try runDomain("assistant")
     }
+    func testCardCycle() throws {
+        // CardCycle.swift — when a newly-entered credit-card balance is
+        // payable. A SPEC, and the fixtures deliberately disagree with a
+        // browser about the day: web stores a LOCAL midnight as UTC. See
+        // CardCycleVectors.
+        registerCardCycleVectors()
+        try runDomain("card-cycle")
+    }
     func testSplitPlan() throws {
         // SplitPlan.swift — the Add-transaction split editor's arithmetic. A
         // SPEC, and the ONE domain with a fixture that deliberately disagrees

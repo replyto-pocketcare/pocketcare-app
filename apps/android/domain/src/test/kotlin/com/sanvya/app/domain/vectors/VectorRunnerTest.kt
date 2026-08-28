@@ -167,6 +167,14 @@ class VectorRunnerTest {
         runDomain("feedback")
     }
     @Test
+    fun `card-cycle`() {
+        // CardCycle.kt -- when a newly-entered credit-card balance is payable.
+        // A SPEC, and the fixtures deliberately disagree with a browser about
+        // the day: web stores a LOCAL midnight as UTC. See CardCycleVectors.kt.
+        com.sanvya.app.domain.cards.registerCardCycleVectors()
+        runDomain("card-cycle")
+    }
+    @Test
     fun applink() {
         // AppLink.kt -- web paths to native destinations. A SPEC, not a
         // capture: web has no such function, only a router. See AppLinkVectors.kt.

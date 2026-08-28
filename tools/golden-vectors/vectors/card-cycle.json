@@ -1,0 +1,274 @@
+[
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-03-01",
+      "statementDay": 1,
+      "dueDay": 20
+    },
+    "expected": {
+      "dueOn": "2026-03-20",
+      "thisCycle": true
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-03-01",
+      "statementDay": 5,
+      "dueDay": 20
+    },
+    "expected": {
+      "dueOn": "2026-03-20",
+      "thisCycle": true
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-03-06",
+      "statementDay": 5,
+      "dueDay": 20
+    },
+    "expected": {
+      "dueOn": "2026-04-20",
+      "thisCycle": false
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-03-05",
+      "statementDay": 5,
+      "dueDay": 20
+    },
+    "expected": {
+      "dueOn": "2026-03-20",
+      "thisCycle": true
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-03-10",
+      "statementDay": 25,
+      "dueDay": 5
+    },
+    "expected": {
+      "dueOn": "2026-04-05",
+      "thisCycle": true
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-03-26",
+      "statementDay": 25,
+      "dueDay": 5
+    },
+    "expected": {
+      "dueOn": "2026-05-05",
+      "thisCycle": false
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-12-01",
+      "statementDay": 1,
+      "dueDay": 20
+    },
+    "expected": {
+      "dueOn": "2026-12-20",
+      "thisCycle": true
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-12-02",
+      "statementDay": 1,
+      "dueDay": 20
+    },
+    "expected": {
+      "dueOn": "2027-01-20",
+      "thisCycle": false
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-12-26",
+      "statementDay": 25,
+      "dueDay": 5
+    },
+    "expected": {
+      "dueOn": "2027-02-05",
+      "thisCycle": false
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-11-30",
+      "statementDay": 28,
+      "dueDay": 28
+    },
+    "expected": {
+      "dueOn": "2026-12-28",
+      "thisCycle": false
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-01-31",
+      "statementDay": 28,
+      "dueDay": 1
+    },
+    "expected": {
+      "dueOn": "2026-03-01",
+      "thisCycle": false
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-02-28",
+      "statementDay": 28,
+      "dueDay": 28
+    },
+    "expected": {
+      "dueOn": "2026-02-28",
+      "thisCycle": true
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-06-15",
+      "statementDay": 15,
+      "dueDay": 15
+    },
+    "expected": {
+      "dueOn": "2026-06-15",
+      "thisCycle": true
+    }
+  },
+  {
+    "fn": "cardDueDate",
+    "input": {
+      "createdIso": "2026-06-16",
+      "statementDay": 15,
+      "dueDay": 14
+    },
+    "expected": {
+      "dueOn": "2026-08-14",
+      "thisCycle": false
+    }
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "1",
+      "fallback": 1
+    },
+    "expected": 1
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "",
+      "fallback": 1
+    },
+    "expected": 1
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "0",
+      "fallback": 20
+    },
+    "expected": 20
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "abc",
+      "fallback": 20
+    },
+    "expected": 20
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "28",
+      "fallback": 1
+    },
+    "expected": 28
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "29",
+      "fallback": 1
+    },
+    "expected": 28
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "31",
+      "fallback": 1
+    },
+    "expected": 28
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "100",
+      "fallback": 1
+    },
+    "expected": 28
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "-5",
+      "fallback": 1
+    },
+    "expected": 1
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "2.7",
+      "fallback": 1
+    },
+    "expected": 2
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "  7  ",
+      "fallback": 1
+    },
+    "expected": 7
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "20",
+      "fallback": 1
+    },
+    "expected": 20
+  },
+  {
+    "fn": "clampCardDay",
+    "input": {
+      "raw": "0.5",
+      "fallback": 1
+    },
+    "expected": 1
+  }
+]

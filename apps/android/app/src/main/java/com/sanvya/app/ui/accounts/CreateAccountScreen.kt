@@ -30,21 +30,27 @@ import com.sanvya.app.ui.components.ColorSwatchRow
 
 /**
  * New account — ported from apps/web/app/accounts/new/page.tsx per
- * docs/mobile/screen-specs/accounts.md, regular-account path only (credit
- * card / demat branches explicitly deferred to those screens, see spec).
+ * docs/mobile/screen-specs/accounts.md.
+ *
+ * The credit-card branch was built 2026-08-28. Until then a card created
+ * natively silently dropped its limit, statement day, due day and amount due
+ * — every field the Cards screen and its reminders are built on — so a card
+ * added on the phone was an inert account with a name.
+ *
+ * Mirrors iOS's CreateAccountView.swift.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateAccountScreen(
     onBack: () -> Unit = {},
-    onSaved: () -> Unit = {},
+    onSaved: (accountType: String) -> Unit = {},
     viewModel: CreateAccountViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val colors = LocalSanvyaColors.current
 
     LaunchedEffect(uiState.savedAccountId) {
-        if (uiState.savedAccountId != null) onSaved()
+        if (uiState.savedAccountId != null) onSaved(uiState.savedType ?: uiState.type)
     }
 
     SanvyaPage(
@@ -101,23 +107,40 @@ fun CreateAccountScreen(
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Checkbox(checked = uiState.allowNegativeEffective, onCheckedChange = viewModel::setAllowNegative)
                 Column {
-                    Text("Allow negative balance", fontSize = 14.sp, color = colors.text)
+                    Text(S.Accounts.allowNeg(sRes()), fontSize = 14.sp, color = colors.text)
                     Text(
-                        if (uiState.allowNegativeEffective) "This account can go below zero without a warning."
-                        else "You'll be warned before this account would go below zero.",
+                        if (uiState.allowNegativeEffective) {
+                            S.Accounts.allowNegOn(sRes())
+                        } else {
+                            S.Accounts.allowNegOff(sRes())
+                        },
                         fontSize = 12.sp,
                         color = colors.text2,
                     )
                 }
             }
 
-            OutlinedTextField(
-                value = uiState.openingBalance,
-                onValueChange = { v -> viewModel.setOpeningBalance(v.filter { it.isDigit() || it == '.' || it == '-' }) },
-                label = { Text("Opening balance (${uiState.currency})") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-            )
+            when {
+                uiState.isCard -> CardFields(uiState = uiState, viewModel = viewModel)
+                uiState.isDemat -> {
+                    AmountField(
+                        value = uiState.openingBalance,
+                        onChange = viewModel::setOpeningBalance,
+                        label = S.Accounts.invested(sRes(), uiState.currency),
+                    )
+                    Text(
+                        S.Accounts.dematNote(sRes()),
+                        fontSize = 12.sp,
+                        color = colors.text2,
+                        modifier = Modifier.padding(top = (-4).dp),
+                    )
+                }
+                else -> AmountField(
+                    value = uiState.openingBalance,
+                    onChange = viewModel::setOpeningBalance,
+                    label = S.Accounts.openingBalance(sRes(), uiState.currency),
+                )
+            }
 
             Button(
                 onClick = { viewModel.save() },
@@ -128,6 +151,102 @@ fun CreateAccountScreen(
             }
         }
     }
+}
+
+/**
+ * The credit-card branch: limit, amount due, and the two cycle days, with the
+ * live preview underneath.
+ *
+ * The preview is not decoration. The roll-forward rule -- enter a balance after
+ * the statement has closed and it is due NEXT cycle -- is invisible in the
+ * fields themselves, and a due date the user did not expect reads as a bug in
+ * the app rather than as the rule it is. Web shows the sentence for exactly
+ * that reason, and the date in it comes from Domain, under vectors.
+ */
+@Composable
+private fun CardFields(uiState: CreateAccountUiState, viewModel: CreateAccountViewModel) {
+    val colors = LocalSanvyaColors.current
+    val res = sRes()
+    Text(S.Accounts.creditCardDetails(res), fontSize = 13.sp, color = colors.text2)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        AmountField(
+            value = uiState.creditLimit,
+            onChange = viewModel::setCreditLimit,
+            label = S.Accounts.creditLimit(res, uiState.currency),
+            modifier = Modifier.weight(1f),
+        )
+        AmountField(
+            value = uiState.dueAmount,
+            onChange = viewModel::setDueAmount,
+            label = S.Accounts.amountDue(res, uiState.currency),
+            modifier = Modifier.weight(1f),
+        )
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = uiState.statementDay,
+            onValueChange = viewModel::setStatementDay,
+            label = { Text(S.Accounts.statementDay(res)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f),
+        )
+        OutlinedTextField(
+            value = uiState.dueDay,
+            onValueChange = viewModel::setDueDay,
+            label = { Text(S.Accounts.dueDay(res)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f),
+        )
+    }
+    uiState.cardPreview?.let { preview ->
+        val amount = "${uiState.currency} ${uiState.dueAmount}"
+        val date = formatCardDay(preview.dueOn)
+        Text(
+            if (preview.thisCycle) {
+                S.Accounts.dueThisCycle(res, amount, date)
+            } else {
+                S.Accounts.dueNextCycle(res, amount, date)
+            },
+            fontSize = 12.5.sp,
+            color = colors.text2,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(colors.surface2)
+                .border(1.dp, colors.border, RoundedCornerShape(10.dp))
+                .padding(horizontal = 12.dp, vertical = 9.dp),
+        )
+    }
+}
+
+/**
+ * `yyyy-MM-dd` in the device's own short date format.
+ *
+ * Web calls `toLocaleDateString()` with no locale, which is the browser's.
+ * `DateFormat.SHORT` with the default locale is the same promise on Android:
+ * the user's format, not ours.
+ */
+private fun formatCardDay(iso: String): String = runCatching {
+    java.time.LocalDate.parse(iso).format(
+        java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.SHORT),
+    )
+}.getOrDefault(iso)
+
+/** A money field: decimal keyboard, and web's "digits, dot and minus" filter. */
+@Composable
+private fun AmountField(
+    value: String,
+    onChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { v -> onChange(v.filter { it.isDigit() || it == '.' || it == '-' }) },
+        label = { Text(label) },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = modifier.fillMaxWidth(),
+    )
 }
 
 @Composable
