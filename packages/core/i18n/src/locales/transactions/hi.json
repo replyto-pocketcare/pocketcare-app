@@ -4,9 +4,17 @@
   "searchPlaceholder": "लेबल या नोट खोजें…",
   "noMatching": "कोई मेल खाता लेनदेन नहीं।",
   "uncategorised": "अवर्गीकृत",
-  "filter": { "all": "सभी", "income": "आय", "expense": "व्यय", "transfer": "स्थानांतरण" },
-  "type": { "expense": "व्यय", "income": "आय", "transfer": "स्थानांतरण" },
-
+  "filter": {
+    "all": "सभी",
+    "income": "आय",
+    "expense": "व्यय",
+    "transfer": "स्थानांतरण"
+  },
+  "type": {
+    "expense": "व्यय",
+    "income": "आय",
+    "transfer": "स्थानांतरण"
+  },
   "addTitle": "लेनदेन जोड़ें",
   "createAccountFirst": "पहले एक खाता बनाएं।",
   "newAccountCta": "नया खाता",
@@ -35,7 +43,11 @@
   "pickGroupPre": "एक समूह चुनें। एक बनाएं और दोस्तों को आमंत्रित करें ",
   "pickGroupLink": "समूह और यात्राएँ",
   "onlyYou": "इस समूह में अभी सिर्फ़ आप हैं — पहले समूह पेज से किसी को आमंत्रित करें।",
-  "mode": { "equal": "बराबर", "exact": "सटीक", "percent": "प्रतिशत" },
+  "mode": {
+    "equal": "बराबर",
+    "exact": "सटीक",
+    "percent": "प्रतिशत"
+  },
   "splitBetween": "इनके बीच बाँटें:",
   "splitChip": "बँटा",
   "sharesMatch": "हिस्से का कुल {{total}} में से {{sum}} ✓",
@@ -73,7 +85,6 @@
   "defaultIncome": "आय",
   "defaultExpense": "व्यय",
   "defaultTransfer": "स्थानांतरण",
-
   "editTitle": "लेनदेन संपादित करें",
   "txOptions": "लेनदेन विकल्प",
   "viewHistory": "संपादन इतिहास देखें",
@@ -100,5 +111,9 @@
     "account_id": "खाता",
     "to_account_id": "किस खाते को",
     "payment_method_id": "भुगतान विधि"
-  }
+  },
+  "paidForSomeone": "मैंने यह किसी और के लिए चुकाया",
+  "paidForSomeoneHint": "पूरी रकम उन्हें लौटानी है — यह आपके खर्च में नहीं गिनी जाएगी।",
+  "paidForSomeoneNoOne": "पहले किसी को जोड़ें — 'साझा और बकाया' से किसी व्यक्ति को जोड़ें।",
+  "paidForSomeonePick": "यह किसके लिए था?"
 }

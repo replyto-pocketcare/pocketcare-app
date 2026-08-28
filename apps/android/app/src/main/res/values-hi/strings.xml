@@ -1506,6 +1506,10 @@
     <string name="transactions_only_your_payment">केवल आपका भुगतान %1$s का उपयोग करता है; दूसरों के भुगतान बस यह बदलते हैं कि कौन किसका देनदार है।</string>
     <string name="transactions_optional_note">वैकल्पिक नोट</string>
     <string name="transactions_others_owe_you">दूसरे आपको %1$s देते हैं</string>
+    <string name="transactions_paid_for_someone">मैंने यह किसी और के लिए चुकाया</string>
+    <string name="transactions_paid_for_someone_hint">पूरी रकम उन्हें लौटानी है — यह आपके खर्च में नहीं गिनी जाएगी।</string>
+    <string name="transactions_paid_for_someone_no_one">पहले किसी को जोड़ें — \'साझा और बकाया\' से किसी व्यक्ति को जोड़ें।</string>
+    <string name="transactions_paid_for_someone_pick">यह किसके लिए था?</string>
     <string name="transactions_paid_match">भुगतान कुल %2$s में से %1$s ✓</string>
     <string name="transactions_paid_mismatch">भुगतान कुल %2$s में से %1$s — मेल खाना चाहिए</string>
     <string name="transactions_payment_method">भुगतान विधि</string>

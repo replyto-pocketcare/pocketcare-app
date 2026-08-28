@@ -1670,6 +1670,10 @@ object S {
         fun optionalNote(res: Resources): String = res.getString(R.string.transactions_optional_note)
         fun othersOweYou(res: Resources, amount: Any): String =
             res.getString(R.string.transactions_others_owe_you, amount)
+        fun paidForSomeone(res: Resources): String = res.getString(R.string.transactions_paid_for_someone)
+        fun paidForSomeoneHint(res: Resources): String = res.getString(R.string.transactions_paid_for_someone_hint)
+        fun paidForSomeoneNoOne(res: Resources): String = res.getString(R.string.transactions_paid_for_someone_no_one)
+        fun paidForSomeonePick(res: Resources): String = res.getString(R.string.transactions_paid_for_someone_pick)
         fun paidMatch(res: Resources, sum: Any, total: Any): String =
             res.getString(R.string.transactions_paid_match, sum, total)
         fun paidMismatch(res: Resources, sum: Any, total: Any): String =

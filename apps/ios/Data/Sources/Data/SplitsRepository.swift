@@ -328,6 +328,47 @@ public final class SplitsRepository: @unchecked Sendable {
         )
     }
 
+    /// Every group's member ids in one subscription, keyed by group id.
+    ///
+    /// The split editor on Add transaction needs the membership of whichever
+    /// group the user picks, and the picker can change on every tap. One watch
+    /// per group would mean tearing a subscription down and standing another up
+    /// mid-gesture; this is a single watch over a small table instead.
+    ///
+    /// Order within each group is `created_at`, matching web's member chips.
+    /// Swift preserves array order inside a dictionary value, so the order that
+    /// matters survives even though the keys themselves are unordered.
+    ///
+    /// Mirrors Android's SplitsRepository.watchAllGroupMembers().
+    public func watchAllGroupMembers() throws -> AsyncThrowingStream<[String: [String]], Error> {
+        struct Row: Sendable { let groupId: String; let userId: String }
+        let rows: AsyncThrowingStream<[Row], Error> = try db.watch(
+            sql: """
+                SELECT group_id, user_id FROM split_group_members
+                WHERE deleted_at IS NULL ORDER BY created_at
+                """,
+            parameters: [],
+            mapper: { cursor in
+                Row(groupId: try cursor.getString(name: "group_id"), userId: try cursor.getString(name: "user_id"))
+            }
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await batch in rows {
+                        var map: [String: [String]] = [:]
+                        for row in batch { map[row.groupId, default: []].append(row.userId) }
+                        continuation.yield(map)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { @Sendable _ in task.cancel() }
+        }
+    }
+
     public func watchGroupExpenses(groupId: String) throws -> AsyncThrowingStream<[GroupExpense], Error> {
         try db.watch(
             sql: "SELECT id, description, amount, currency, occurred_at, has_items FROM expenses WHERE group_id = ? AND deleted_at IS NULL ORDER BY occurred_at DESC",

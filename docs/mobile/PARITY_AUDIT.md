@@ -162,7 +162,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/accounts/new` | (165) | `CreateAccountScreen.kt` (176) | `CreateAccountView.swift` (128) | 🔶 credit-card/demat branches + `MultiCurrencyCard` deferred |
 | `/accounts/[id]/edit` | (189) | `EditAccountScreen.kt` (203) | `EditAccountView.swift` (261) | 🔶 |
 | `/transactions` | (92) + `TransactionTile.tsx` (273) | `TransactionsScreen.kt` (148) | `TransactionsView.swift` (124) | 🔶 Split-row collapsing added 2026-08-26 (it was showing one dinner as three rows). Absent: the "Scanned" chip |
-| `/transactions/new` | (674) | `CreateTransactionScreen.kt` (251) | `CreateTransactionView.swift` (262) | 🔶 splits-create, templates, auto-categorise deferred |
+| `/transactions/new` | (674) | `CreateTransactionScreen.kt` (258) + `SplitEditor.kt` (408) | `CreateTransactionView.swift` (568) + `SplitEditorView.swift` (307) | 🔶 **Split editor built 2026-08-28** (both cards, all three modes, multi-payer, auto-split). Auto-categorise is built. Remaining: templates |
 | `/transactions/[id]/edit` | (449) | `EditTransactionScreen.kt` (211) | `EditTransactionView.swift` (315) | 🔶 edit-history audit modal missing |
 | `/cards` | (352) + `src/cards` (75) | `creditcards/CreditCardsScreen.kt` (307) | `CreditCardsView.swift` (282) | 🔶 |
 | `/friends` (shared & owed) | (493) + `src/splits/*` (1432) | `splits/SplitsScreen.kt` (226) | `SplitsView.swift` (144) | 🔶 FriendInsights/Patterns panel not rendered; 2026-08-12 tiles redesign not ported |
@@ -227,7 +227,7 @@ Ranked by whether a native-only user can complete the job at all, not by size.
 | # | Gap | Platforms | Size | Why it is first |
 |---|---|---|---|---|
 | ~~1~~ | ~~**Group invites**~~ | both | L | ✅ **2026-08-27.** Connection search, typed-email chips, one call per chip, and the share link. The selection rules are Domain's under 30 vectors; the link is the SERVER's, because a phone has no origin to build one from |
-| 2 | **Split expense on New transaction** | both | L | 🔶 **Domain landed 2026-08-27** — `splitPlan`, `splitActive`, `forOtherActive` and `autoSplitGroupFor` under 35 vectors, plus `jsNumber` (the `Number(string)` coercion web reads its amount fields with). The EDITOR is next; the arithmetic it will drive is now pinned, including the JPY case where this port deliberately disagrees with web |
+| 2 | **Split expense on New transaction** | both | L | ✅ **Done 2026-08-28.** Domain (`splitPlan`, `splitActive`, `forOtherActive`, `autoSplitGroupFor`, `jsNumber`) under 35 vectors landed 2026-08-27; the editor followed — `SplitEditor.kt` / `SplitEditorView.swift`, both save() branches (split + "paid for someone else"), `watchAllGroupMembers()` on both repositories, and the auto-split preselection with web's `splitTouched` guard. Nothing in the UI computes: every number and the Save gate come from Domain |
 | 3 | **Android: Add-expense in a group is unreachable** | Android | S | The sheet is fully implemented; nothing sets `showAddExpense`, and the page action is an empty lambda. A group is read-only on Android |
 | 4 | **Credit-card branch on New account** — limit, statement day, due day, cycle-aware `pending_due` | both | L | A card created natively silently drops every field the Cards screen and its reminders are built on |
 | 5 | **Receipt capture is camera-only** — no file upload, no PDF, no AI escalation, no entitlement gate | both | L | The emailed PDF bill is the feature's main input. Free-tier users meet a server rejection instead of the paywall card |

@@ -4,9 +4,17 @@
   "searchPlaceholder": "Search label or note…",
   "noMatching": "No matching transactions.",
   "uncategorised": "Uncategorised",
-  "filter": { "all": "All", "income": "Income", "expense": "Expense", "transfer": "Transfer" },
-  "type": { "expense": "Expense", "income": "Income", "transfer": "Transfer" },
-
+  "filter": {
+    "all": "All",
+    "income": "Income",
+    "expense": "Expense",
+    "transfer": "Transfer"
+  },
+  "type": {
+    "expense": "Expense",
+    "income": "Income",
+    "transfer": "Transfer"
+  },
   "addTitle": "Add transaction",
   "createAccountFirst": "Create an account first.",
   "newAccountCta": "New account",
@@ -35,7 +43,11 @@
   "pickGroupPre": "Pick a group. Create one and invite friends from ",
   "pickGroupLink": "Groups & trips",
   "onlyYou": "This group has only you so far — invite someone from the group page first.",
-  "mode": { "equal": "Equally", "exact": "Exact", "percent": "Percent" },
+  "mode": {
+    "equal": "Equally",
+    "exact": "Exact",
+    "percent": "Percent"
+  },
   "splitBetween": "Split between:",
   "splitChip": "Split",
   "sharesMatch": "Shares total {{sum}} of {{total}} ✓",
@@ -73,7 +85,6 @@
   "defaultIncome": "Income",
   "defaultExpense": "Expense",
   "defaultTransfer": "Transfer",
-
   "editTitle": "Edit transaction",
   "txOptions": "Transaction options",
   "viewHistory": "View edit history",
@@ -100,5 +111,9 @@
     "account_id": "Account",
     "to_account_id": "To account",
     "payment_method_id": "Payment method"
-  }
+  },
+  "paidForSomeone": "I paid this for someone else",
+  "paidForSomeoneHint": "The whole amount is theirs to repay — it won't count as your spending.",
+  "paidForSomeoneNoOne": "You'll need someone to owe first — add a person from Shared & owed.",
+  "paidForSomeonePick": "Who was it for?"
 }

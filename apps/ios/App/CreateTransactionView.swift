@@ -21,6 +21,7 @@ struct CreateTransactionView: View {
     @Injected(\.ledgerRepository) private var ledgerRepository
     @Injected(\.authRepository) private var authRepository
     @Injected(\.prefsRepository) private var prefsRepository
+    @Injected(\.splitsRepository) private var splitsRepository
 
     @State private var accounts: [Account] = []
     @State private var categories: [CategoryRow] = []
@@ -66,6 +67,30 @@ struct CreateTransactionView: View {
     @State private var isPaid = false
     @State private var entitlementTask: Task<Void, Never>?
 
+    // ---- split ----
+    /// Web keeps the split editor's state on the page, not in a store, and so
+    /// does this: every field below feeds `splitPlan` in Domain, which decides
+    /// the numbers, and `save()`, which writes them. Nothing here computes.
+    @State private var groups: [SplitGroup] = []
+    /// Every membership row, keyed by group id. One watch over a small table
+    /// beats standing a subscription up and down as the picker changes.
+    @State private var groupMembers: [String: [String]] = [:]
+    @State private var connections: [UserProfile] = []
+    @State private var me = ""
+    @State private var splitOn = false
+    /// Set the moment the user touches the toggle or the group picker. It is
+    /// the whole guard on auto-split: without it a deliberate "no, not this
+    /// trip" would be undone on the next state change.
+    @State private var splitTouched = false
+    @State private var splitGroupId = ""
+    @State private var splitMode = SplitModes.equal
+    @State private var splitMembers: [String] = []
+    @State private var shareText: [String: String] = [:]
+    @State private var multiPayer = false
+    @State private var paidText: [String: String] = [:]
+    @State private var forOtherOn = false
+    @State private var forOtherUserId = ""
+
     private var account: Account? { accounts.first { $0.id == accountId } ?? accounts.first }
     private var toAccount: Account? { accounts.first { $0.id == toAccountId } ?? accounts.first { $0.id != account?.id } }
     private var isInvestment: Bool { account?.type == "stocks" || account?.type == "mutual_funds" }
@@ -73,11 +98,93 @@ struct CreateTransactionView: View {
     private var relevantCategories: [CategoryRow] { categories.filter { $0.kind == (type == "income" ? "income" : "expense") } }
     private var relevantPaymentMethods: [PaymentMethodRow] { paymentMethods.filter { $0.accountTypeId == account?.type } }
 
-    private var total: Double { items.reduce(0) { $0 + (Double($1.value) ?? 0) } }
+    /// The typed amount.
+    ///
+    /// Web is `items.map(it => fromMajor(parseFloat(it.value) || 0, currency))`
+    /// summed — per item, not on the sum, so each item rounds the way web's
+    /// does, and `fromMajor` rather than a hardcoded ×100 so a zero-decimal
+    /// currency is not read as a hundredth of itself.
+    private var totalMoney: Money {
+        items.reduce(money(0, currency)) { acc, it in
+            money(acc.amount + fromMajor(jsParseFloat(it.value) ?? 0, currency).amount, currency)
+        }
+    }
+    private var totalMinor: Int64 { totalMoney.amount }
+
     private var canSave: Bool {
-        guard account != nil, total > 0, !saving else { return false }
+        guard account != nil, totalMinor > 0, !saving else { return false }
         if type == "transfer" { return toAccount != nil && toAccount!.id != account!.id }
         return true
+    }
+
+    // ---- split, derived ----
+
+    /// Members of a group in `created_at` order — the order web's chips use.
+    private func membersOf(_ groupId: String) -> [String] { groupMembers[groupId] ?? [] }
+
+    /// A member's display name. "You" for the current user, as web has it.
+    private func memberName(_ userId: String) -> String {
+        userId == me
+            ? S.Receipts.splitYou
+            : (connections.first { $0.id == userId }?.name ?? String(userId.prefix(8)))
+    }
+
+    private var splitIsActive: Bool {
+        splitActive(type: type, splitOn: splitOn, groupId: splitGroupId, memberCount: splitMembers.count)
+    }
+
+    private var forOtherIsActive: Bool {
+        forOtherActive(
+            type: type, splitOn: splitOn, forOtherOn: forOtherOn,
+            otherUserId: forOtherUserId, totalMinor: totalMinor
+        )
+    }
+
+    /// The whole split, recomputed by Domain whenever anything it reads moves.
+    private var plan: SplitPlan {
+        splitPlan(
+            groupId: splitGroupId, mode: splitMode, memberIds: splitMembers, me: me,
+            totalMinor: totalMinor, currency: currency, shareText: shareText,
+            multiPayer: multiPayer, paidText: paidText, hasAccount: account != nil
+        )
+    }
+
+    private var splitEditor: some View {
+        SplitEditorView(
+            type: type, currency: currency, accountName: account?.name ?? "", me: me,
+            groups: groups, connections: connections,
+            plan: plan, totalMinor: totalMinor,
+            membersOf: membersOf, memberName: memberName,
+            splitOn: $splitOn, splitTouched: $splitTouched,
+            splitGroupId: $splitGroupId, splitMode: $splitMode,
+            splitMembers: $splitMembers, shareText: $shareText,
+            multiPayer: $multiPayer, paidText: $paidText,
+            forOtherOn: $forOtherOn, forOtherUserId: $forOtherUserId
+        )
+    }
+
+    /// Auto-split: a date inside an auto-split trip preselects it, ONCE.
+    ///
+    /// `splitTouched` is the whole guard — see its declaration. Runs on the
+    /// inputs web's effect depends on, and on nothing else.
+    private func applyAutoSplit() {
+        guard type == "expense", !splitTouched else { return }
+        let candidates = groups.map {
+            AutoSplitCandidate(id: $0.id, startDate: $0.startDate, endDate: $0.endDate, autoSplit: $0.autoSplit)
+        }
+        // The LOCAL calendar day, not UTC: web reads the first 10 chars of a
+        // `datetime-local` value, so a 1am expense on the 3rd is the 3rd. An
+        // ISO8601 (UTC) string would move it across the trip boundary east of
+        // Greenwich. Built per call -- DateFormatter is not Sendable.
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "en_US_POSIX")
+        fmt.dateFormat = "yyyy-MM-dd"
+        guard let auto = autoSplitGroupFor(groups: candidates, dateIso: fmt.string(from: occurredAt)),
+              splitGroupId != auto else { return }
+        splitOn = true
+        splitGroupId = auto
+        splitMembers = membersOf(auto)
+        splitMode = SplitModes.equal
     }
 
     var body: some View {
@@ -159,6 +266,13 @@ struct CreateTransactionView: View {
                                 }
                             }
 
+                            // Web places the two split cards immediately
+                            // above Labels, after category and payment method
+                            // and before the free-text fields. Both are
+                            // expense-only and mutually exclusive;
+                            // SplitEditorView decides which (if either) to draw.
+                            splitEditor
+
                             Text(S.Transactions.labelsOptional).font(.system(size: 13)).foregroundColor(Color.text2)
                             LabelPickerRow(available: labelOptions.map(\.name), selected: $selectedLabels)
 
@@ -199,6 +313,8 @@ struct CreateTransactionView: View {
         // re-selecting text does not re-suggest and stomp a manual choice.
         .onChange(of: autoCategorizeText) { _, _ in scheduleSuggestion() }
         .onChange(of: type) { _, _ in scheduleSuggestion() }
+        .onChange(of: type) { _, _ in applyAutoSplit() }
+        .onChange(of: occurredAt) { _, _ in applyAutoSplit() }
         .onDisappear {
             suggestTask?.cancel()
             entitlementTask?.cancel()
@@ -230,7 +346,37 @@ struct CreateTransactionView: View {
         async let catsTask: () = watchCategoriesLoop()
         async let labelsTask: () = watchLabelsLoop()
         async let methodsTask: () = watchPaymentMethodsLoop()
-        _ = await (acctsTask, catsTask, labelsTask, methodsTask)
+        async let groupsTask: () = watchGroupsLoop()
+        async let membersTask: () = watchGroupMembersLoop()
+        async let connsTask: () = watchConnectionsLoop()
+        _ = await (acctsTask, catsTask, labelsTask, methodsTask, groupsTask, membersTask, connsTask)
+    }
+
+    private func watchGroupsLoop() async {
+        do {
+            // `includeDirect: false`, matching web's `useGroups()`: a direct
+            // group is the 1:1 container "I paid for someone else" creates and
+            // is not something to pick from a list.
+            for try await list in try splitsRepository.watchGroups(includeDirect: false) {
+                groups = list
+                applyAutoSplit()
+            }
+        } catch { print("Failed to watch groups: \(error)") }
+    }
+    private func watchGroupMembersLoop() async {
+        do {
+            for try await map in try splitsRepository.watchAllGroupMembers() {
+                groupMembers = map
+                applyAutoSplit()
+            }
+        } catch { print("Failed to watch group members: \(error)") }
+    }
+    private func watchConnectionsLoop() async {
+        do {
+            guard let userId = authRepository.currentUserId else { return }
+            me = userId
+            for try await list in try splitsRepository.watchConnections(userId: userId) { connections = list }
+        } catch { print("Failed to watch connections: \(error)") }
     }
     private func watchAccountsLoop() async {
         do {
@@ -363,30 +509,109 @@ struct CreateTransactionView: View {
             do {
                 let userId = try await authRepository.ensureUser()
                 let occurredIso = ISO8601DateFormatter().string(from: occurredAt)
+                let nonZeroItems = items.filter { (jsParseFloat($0.value) ?? 0) > 0 }
+                let splitDescription: String? = {
+                    let joined = nonZeroItems
+                        .map { $0.description.trimmingCharacters(in: .whitespaces) }
+                        .filter { !$0.isEmpty }
+                        .joined(separator: ", ")
+                    return joined.isEmpty ? nil : joined
+                }()
+                let trimmedNote = note.trimmingCharacters(in: .whitespaces)
+
+                // Paid entirely for someone else: a 1:1 split where they carry
+                // the whole share and you carry none. `mode = "exact"` with your
+                // share pinned to 0 is what makes projectPersonal book the full
+                // amount as `lend` rather than as your own spending -- the money
+                // left your account, but none of it was yours to spend.
+                if forOtherIsActive {
+                    let person = connections.first { $0.id == forOtherUserId }
+                    let groupId = try await splitsRepository.getOrCreateDirectGroup(
+                        userId: userId, otherUserId: forOtherUserId,
+                        otherName: person?.name ?? "Direct", currency: acct.currency
+                    )
+                    _ = try await splitsRepository.createSplitExpense(
+                        userId: userId,
+                        input: SplitExpenseInput(
+                            groupId: groupId,
+                            mode: SplitModes.exact,
+                            total: totalMoney,
+                            participants: [
+                                ParticipantInput(userId: userId, value: 0),
+                                ParticipantInput(userId: forOtherUserId, value: Double(totalMinor)),
+                            ],
+                            payers: [PayerInput(userId: userId, paid: totalMinor, accountId: acct.id)],
+                            categoryId: categoryId,
+                            description: splitDescription,
+                            note: trimmedNote.isEmpty ? nil : trimmedNote,
+                            occurredAt: occurredIso
+                        )
+                    )
+                    await learnFromThisSave(userId: userId)
+                    saving = false
+                    dismiss()
+                    return
+                }
+
+                // Split path: book only your share; lend/borrow the rest via the
+                // virtual accounts createSplitExpense maintains.
+                let currentPlan = plan
+                if splitIsActive && currentPlan.valid {
+                    _ = try await splitsRepository.createSplitExpense(
+                        userId: userId,
+                        input: SplitExpenseInput(
+                            groupId: splitGroupId,
+                            mode: splitMode,
+                            total: totalMoney,
+                            participants: currentPlan.participants.map {
+                                ParticipantInput(userId: $0.userId, value: $0.value)
+                            },
+                            payers: currentPlan.payers.map {
+                                PayerInput(
+                                    userId: $0.userId,
+                                    paid: $0.paidMinor,
+                                    // Only MY leg carries an account -- the
+                                    // others' money did not move through one of
+                                    // mine, and web writes null for them.
+                                    accountId: $0.isMe ? acct.id : nil
+                                )
+                            },
+                            categoryId: categoryId,
+                            description: splitDescription,
+                            note: trimmedNote.isEmpty ? nil : trimmedNote,
+                            occurredAt: occurredIso
+                        )
+                    )
+                    await learnFromThisSave(userId: userId)
+                    saving = false
+                    dismiss()
+                    return
+                }
+
                 if type == "transfer" {
                     guard let to = toAccount else { return }
                     let crossCurrency = to.currency != currency
                     _ = try await ledgerRepository.createTransaction(
                         userId: userId, accountId: acct.id, type: "transfer",
-                        amount: fromMajor(total, currency), occurredAt: occurredIso,
+                        amount: totalMoney, occurredAt: occurredIso,
                         labels: selectedLabels.isEmpty ? nil : selectedLabels,
                         toAccountId: to.id,
                         toAmount: crossCurrency ? fromMajor(Double(toValue) ?? 0, to.currency) : nil
                     )
                 } else {
-                    let nonZero = items.filter { (Double($0.value) ?? 0) > 0 }
-                    let combinedDescription = nonZero.map { $0.description.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.joined(separator: ", ")
+                    let nonZero = nonZeroItems
+                    let combinedDescription = splitDescription ?? ""
                     let itemPayload: [TransactionItemInput]? = nonZero.count > 1
                         ? nonZero.enumerated().map { i, it in
                             TransactionItemInput(
                                 description: it.description.trimmingCharacters(in: .whitespaces).isEmpty ? "Item \(i + 1)" : it.description.trimmingCharacters(in: .whitespaces),
-                                amount: fromMajor(Double(it.value) ?? 0, currency)
+                                amount: fromMajor(jsParseFloat(it.value) ?? 0, currency)
                             )
                         }
                         : nil
                     _ = try await ledgerRepository.createTransaction(
                         userId: userId, accountId: acct.id, type: type,
-                        amount: fromMajor(total, currency), occurredAt: occurredIso,
+                        amount: totalMoney, occurredAt: occurredIso,
                         categoryId: categoryId, labels: selectedLabels.isEmpty ? nil : selectedLabels,
                         note: note.trimmingCharacters(in: .whitespaces).isEmpty ? nil : note.trimmingCharacters(in: .whitespaces),
                         description: combinedDescription.isEmpty ? nil : combinedDescription,

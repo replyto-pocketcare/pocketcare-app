@@ -1506,6 +1506,10 @@
     <string name="transactions_only_your_payment">Alleen jouw betaling gebruikt %1$s; betalingen van anderen veranderen alleen wie wie iets verschuldigd is.</string>
     <string name="transactions_optional_note">Optionele notitie</string>
     <string name="transactions_others_owe_you">Anderen zijn jou %1$s verschuldigd</string>
+    <string name="transactions_paid_for_someone">Ik heb dit voor iemand anders betaald</string>
+    <string name="transactions_paid_for_someone_hint">Het hele bedrag moeten zij terugbetalen — het telt niet als jouw uitgave.</string>
+    <string name="transactions_paid_for_someone_no_one">Je hebt eerst iemand nodig — voeg een persoon toe via Gedeeld &amp; openstaand.</string>
+    <string name="transactions_paid_for_someone_pick">Voor wie was het?</string>
     <string name="transactions_paid_match">Betaald totaal %1$s van %2$s ✓</string>
     <string name="transactions_paid_mismatch">Betaald totaal %1$s van %2$s — moet kloppen</string>
     <string name="transactions_payment_method">Betaalmethode</string>

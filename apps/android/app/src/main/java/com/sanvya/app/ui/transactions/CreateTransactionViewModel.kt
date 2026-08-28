@@ -12,6 +12,7 @@ import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.data.repository.TransactionItemInput
 import com.sanvya.app.domain.categorize.CategoryData
 import com.sanvya.app.domain.entitlements.isPaid as domainIsPaid
+import com.sanvya.app.domain.js.jsParseFloat
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.money.money
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +23,24 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import com.sanvya.app.data.repository.ParticipantInput
+import com.sanvya.app.data.repository.PayerInput
+import com.sanvya.app.data.repository.SplitExpenseInput
+import com.sanvya.app.data.repository.SplitGroup
+import com.sanvya.app.data.repository.SplitsRepository
+import com.sanvya.app.data.repository.UserProfile
+import com.sanvya.app.domain.splits.AutoSplitCandidate
+import com.sanvya.app.domain.splits.SplitModes
+import com.sanvya.app.domain.splits.autoSplitGroupFor
+import com.sanvya.app.domain.splits.SplitPlan
+import com.sanvya.app.domain.splits.forOtherActive
+import com.sanvya.app.domain.splits.splitActive
+import com.sanvya.app.domain.splits.splitPlan
+import com.sanvya.app.i18n.S
 import com.sanvya.app.ui.FormOptions
+import com.sanvya.app.ui.baseCurrencyNow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -67,6 +85,29 @@ data class CreateTransactionUiState(
     val autoApplied: Boolean = false,
     /** True once the user has touched the category picker themselves. */
     val manualCategory: Boolean = false,
+
+    // ---- split ----
+    //
+    // Web keeps the two toggles mutually exclusive by RENDERING: the "paid for
+    // someone else" card is hidden while the split is on and vice versa. Both
+    // flags live here so the same exclusion is one condition rather than two
+    // screens' worth of `if`.
+    val splitOn: Boolean = false,
+    /** True once the user has touched the toggle or the group picker. Web uses
+     *  it to stop the auto-split effect from overriding a deliberate choice. */
+    val splitTouched: Boolean = false,
+    val splitGroupId: String = "",
+    val splitMode: String = SplitModes.EQUAL,
+    /** User ids taking part in THIS expense -- a subset of the group. */
+    val splitMembers: List<String> = emptyList(),
+    /** Raw text per member: a percent in percent mode, an amount in exact. */
+    val shareText: Map<String, String> = emptyMap(),
+    val multiPayer: Boolean = false,
+    /** Raw text per member: what they put in. */
+    val paidText: Map<String, String> = emptyMap(),
+
+    val forOtherOn: Boolean = false,
+    val forOtherUserId: String = "",
 )
 
 /** New transaction — ported from transactions/new/page.tsx's regular
@@ -79,6 +120,7 @@ data class CreateTransactionUiState(
  * unless the user has picked a category themselves, and learned from on save. */
 class CreateTransactionViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
+    private val splitsRepository: SplitsRepository by inject()
     private val authRepository: AuthRepository by inject()
     private val prefsRepository: PrefsRepository by inject()
 
@@ -119,6 +161,103 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
         accts.find { it.id == state.toAccountId } ?: accts.firstOrNull { it.id != acct?.id }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // ---- split ----
+
+    /**
+     * Groups and trips for the picker.
+     *
+     * `includeDirect = false`, matching web's `useGroups()`: a direct group is
+     * the 1:1 container created by "I paid for someone else" and is not
+     * something to pick from a list.
+     */
+    val groups: StateFlow<List<SplitGroup>> = splitsRepository.watchGroups()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Every membership row, so the picker can list a group's members. */
+    private val groupMembers: StateFlow<Map<String, List<String>>> =
+        splitsRepository.watchAllGroupMembers()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** People this user is connected to -- the "paid for someone else" list. */
+    val connections: StateFlow<List<UserProfile>> = authRepository.currentUserId
+        .flatMapLatest { uid -> if (uid == null) flowOf(emptyList()) else splitsRepository.watchConnections(uid) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun membersOf(groupId: String): List<String> = groupMembers.value[groupId].orEmpty()
+
+    /** The signed-in user's id, for the summary's "your share" row. */
+    val currentUserId: String? get() = authRepository.currentUserId.value
+
+    /** A member's display name. "You" for the current user, as web has it. */
+    fun memberName(userId: String, res: android.content.res.Resources): String =
+        if (userId == authRepository.currentUserId.value) {
+            S.Receipts.splitYou(res)
+        } else {
+            connections.value.firstOrNull { it.id == userId }?.name ?: userId.take(8)
+        }
+
+    val splitActive: StateFlow<Boolean> = ui
+        .map { splitActive(it.type, it.splitOn, it.splitGroupId, it.splitMembers.size) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val forOtherActive: StateFlow<Boolean> = combine(ui, account) { state, acct ->
+        forOtherActive(
+            type = state.type,
+            splitOn = state.splitOn,
+            forOtherOn = state.forOtherOn,
+            otherUserId = state.forOtherUserId,
+            totalMinor = totalMinor(acct?.currency ?: baseCurrencyNow()),
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    /** The whole split, recomputed by Domain whenever anything it reads moves. */
+    val splitPlan: StateFlow<SplitPlan> = combine(ui, account) { state, acct ->
+        val currency = acct?.currency ?: baseCurrencyNow()
+        splitPlan(
+            groupId = state.splitGroupId,
+            mode = state.splitMode,
+            memberIds = state.splitMembers,
+            me = authRepository.currentUserId.value.orEmpty(),
+            totalMinor = totalMinor(currency),
+            currency = currency,
+            shareText = state.shareText,
+            multiPayer = state.multiPayer,
+            paidText = state.paidText,
+            hasAccount = acct != null,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        splitPlan("", SplitModes.EQUAL, emptyList(), "", 0L, baseCurrencyNow(), emptyMap(), false, emptyMap(), false),
+    )
+
+    fun setSplitOn(v: Boolean) = update { it.copy(splitOn = v, splitTouched = true) }
+    fun setSplitMode(v: String) = update { it.copy(splitMode = v) }
+    fun setMultiPayer(v: Boolean) = update { it.copy(multiPayer = v) }
+    fun setShareText(userId: String, v: String) = update { it.copy(shareText = it.shareText + (userId to v)) }
+    fun setPaidText(userId: String, v: String) = update { it.copy(paidText = it.paidText + (userId to v)) }
+    fun setForOtherOn(v: Boolean) = update { it.copy(forOtherOn = v) }
+    fun setForOtherUserId(v: String) = update { it.copy(forOtherUserId = v) }
+
+    /** Choosing a group replaces the participant list with its members. */
+    fun setSplitGroup(groupId: String) = update {
+        it.copy(
+            splitTouched = true,
+            splitGroupId = groupId,
+            splitMembers = if (groupId.isEmpty()) emptyList() else membersOf(groupId),
+        )
+    }
+
+    fun toggleSplitMember(userId: String) = update {
+        it.copy(
+            splitMembers = if (it.splitMembers.contains(userId)) {
+                it.splitMembers - userId
+            } else {
+                it.splitMembers + userId
+            },
+        )
+    }
+
     val isInvestment: StateFlow<Boolean> = account
         .map { it?.type in setOf("stocks", "mutual_funds") }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
@@ -133,6 +272,30 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
+        // Auto-split: a date inside an auto-split trip preselects it, ONCE.
+        //
+        // `splitTouched` is the whole guard: web sets it the moment the user
+        // touches the toggle or the group picker, and without it a deliberate
+        // "no, not this trip" would be undone on the next recomposition.
+        viewModelScope.launch {
+            combine(groups, groupMembers, ui) { list, membersByGroup, state ->
+                Triple(list, membersByGroup, state)
+            }.collect { (list, membersByGroup, state) ->
+                if (state.type != "expense" || state.splitTouched) return@collect
+                val candidates = list.map {
+                    AutoSplitCandidate(it.id, it.startDate, it.endDate, it.autoSplit)
+                }
+                val auto = autoSplitGroupFor(candidates, state.occurredAt.toLocalDate().toString())
+                if (auto != null && state.splitGroupId != auto) {
+                    ui.value = state.copy(
+                        splitOn = true,
+                        splitGroupId = auto,
+                        splitMembers = membersByGroup[auto].orEmpty(),
+                        splitMode = SplitModes.EQUAL,
+                    )
+                }
+            }
+        }
         // Investment accounts (stocks/mutual funds) can only move money via
         // transfers -- matches the `isInvestment && type !== transfer` effect.
         viewModelScope.launch {
@@ -221,6 +384,11 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
         }
     }
 
+    /** The file's `ui.value = ui.value.copy(...)` shape, named once. */
+    private inline fun update(block: (CreateTransactionUiState) -> CreateTransactionUiState) {
+        ui.value = block(ui.value)
+    }
+
     fun setType(v: TxType) { ui.value = ui.value.copy(type = v) }
     fun setAccountId(v: String) { ui.value = ui.value.copy(accountId = v) }
     fun setToAccountId(v: String) { ui.value = ui.value.copy(toAccountId = v) }
@@ -261,8 +429,17 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
         ui.value = ui.value.copy(items = listOf(first.copy(value = v)))
     }
 
+    /**
+     * The typed amount in minor units.
+     *
+     * Web is `items.map(it => fromMajor(parseFloat(it.value) || 0, currency))`
+     * summed -- per item, not on the sum, so each item rounds the way web's
+     * does. This used to be `Math.round(v * 100)`, which quietly gave a JPY
+     * expense a hundred times too many units and made every split refuse to
+     * balance against it.
+     */
     fun totalMinor(currency: String): Long =
-        ui.value.items.sumOf { (it.value.toDoubleOrNull() ?: 0.0).let { v -> Math.round(v * 100) } }
+        ui.value.items.sumOf { fromMajor(jsParseFloat(it.value) ?: 0.0, currency).amount }
 
     fun canSave(): Boolean {
         val state = ui.value
@@ -288,6 +465,80 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
             try {
                 val total = totalMinor(acct.currency)
                 val occurredAt = state.occurredAt.atZone(ZoneId.systemDefault()).toInstant().toString()
+                val nonZeroItems = state.items.filter { (it.value.toDoubleOrNull() ?: 0.0) > 0 }
+                val splitDescription = nonZeroItems
+                    .joinToString(", ") { it.description.trim() }
+                    .ifEmpty { null }
+
+                // Paid entirely for someone else: a 1:1 split where they carry
+                // the whole share and you carry none. `mode = "exact"` with your
+                // share pinned to 0 is what makes projectPersonal book the full
+                // amount as `lend` rather than as your own spending -- the money
+                // left your account, but none of it was yours to spend.
+                if (forOtherActive.value) {
+                    val person = connections.value.firstOrNull { it.id == state.forOtherUserId }
+                    val groupId = splitsRepository.getOrCreateDirectGroup(
+                        userId = userId,
+                        otherUserId = state.forOtherUserId,
+                        otherName = person?.name ?: "Direct",
+                        currency = acct.currency,
+                    )
+                    splitsRepository.createSplitExpense(
+                        userId = userId,
+                        input = SplitExpenseInput(
+                            groupId = groupId,
+                            mode = SplitModes.EXACT,
+                            total = money(total, acct.currency),
+                            participants = listOf(
+                                ParticipantInput(userId, 0.0),
+                                ParticipantInput(state.forOtherUserId, total.toDouble()),
+                            ),
+                            payers = listOf(PayerInput(userId, total, acct.id)),
+                            categoryId = state.categoryId,
+                            description = splitDescription,
+                            note = state.note.trim().ifEmpty { null },
+                            occurredAt = occurredAt,
+                        ),
+                    )
+                    learnFromThisSave(state)
+                    ui.value = ui.value.copy(saving = false, saved = true)
+                    return@launch
+                }
+
+                // Split path: book only your share; lend/borrow the rest via the
+                // virtual accounts createSplitExpense maintains.
+                val plan = splitPlan.value
+                if (splitActive.value && plan.valid) {
+                    splitsRepository.createSplitExpense(
+                        userId = userId,
+                        input = SplitExpenseInput(
+                            groupId = state.splitGroupId,
+                            mode = state.splitMode,
+                            total = money(total, acct.currency),
+                            participants = plan.participants.map {
+                                ParticipantInput(it.userId, it.value)
+                            },
+                            payers = plan.payers.map {
+                                PayerInput(
+                                    userId = it.userId,
+                                    paid = it.paidMinor,
+                                    // Only MY leg carries an account -- the
+                                    // others' money did not move through one of
+                                    // mine, and web writes null for them.
+                                    accountId = if (it.isMe) acct.id else null,
+                                )
+                            },
+                            categoryId = state.categoryId,
+                            description = splitDescription,
+                            note = state.note.trim().ifEmpty { null },
+                            occurredAt = occurredAt,
+                        ),
+                    )
+                    learnFromThisSave(state)
+                    ui.value = ui.value.copy(saving = false, saved = true)
+                    return@launch
+                }
+
                 if (state.type == "transfer") {
                     val to = toAccount.value ?: error("Destination account required")
                     val crossCurrency = to.currency != acct.currency

@@ -55,6 +55,7 @@ import com.sanvya.app.domain.splitsinsights.pickFriendInsights
 import com.sanvya.app.domain.splitsmath.Party
 import com.sanvya.app.domain.splitsmath.pairwiseEdges
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 
 data class SplitGroup(
@@ -251,6 +252,27 @@ class SplitsRepository(
         parameters = listOf(groupId),
         mapper = { cursor -> cursor.getString("user_id") },
     )
+
+    /**
+     * Every membership row, grouped by group.
+     *
+     * Web queries the whole table once (`SELECT group_id, user_id FROM
+     * split_group_members`) because the Add-transaction split editor has to
+     * answer "who is in the group the user just picked" without a round trip
+     * per group. The table is small -- one row per person per group -- and one
+     * watch is cheaper than a watch that restarts on every picker change.
+     */
+    fun watchAllGroupMembers(): Flow<Map<String, List<String>>> = db.watch(
+        sql = """SELECT group_id, user_id FROM split_group_members
+            WHERE deleted_at IS NULL ORDER BY created_at""",
+        mapper = { cursor -> cursor.getString("group_id") to cursor.getString("user_id") },
+    ).map { rows ->
+        // Insertion order preserved: web renders members in `created_at` order
+        // and a re-sort here would give the two clients different chip orders.
+        val out = LinkedHashMap<String, MutableList<String>>()
+        for ((groupId, userId) in rows) out.getOrPut(groupId) { mutableListOf() }.add(userId)
+        out
+    }
 
     fun watchGroupExpenses(groupId: String): Flow<List<GroupExpense>> = db.watch(
         sql = "SELECT id, description, amount, currency, occurred_at, has_items FROM expenses WHERE group_id = ? AND deleted_at IS NULL ORDER BY occurred_at DESC",

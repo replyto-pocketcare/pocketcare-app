@@ -4,9 +4,17 @@
   "searchPlaceholder": "Zoek op label of notitie…",
   "noMatching": "Geen overeenkomende transacties.",
   "uncategorised": "Niet-gecategoriseerd",
-  "filter": { "all": "Alle", "income": "Inkomsten", "expense": "Uitgaven", "transfer": "Overboeking" },
-  "type": { "expense": "Uitgave", "income": "Inkomsten", "transfer": "Overboeking" },
-
+  "filter": {
+    "all": "Alle",
+    "income": "Inkomsten",
+    "expense": "Uitgaven",
+    "transfer": "Overboeking"
+  },
+  "type": {
+    "expense": "Uitgave",
+    "income": "Inkomsten",
+    "transfer": "Overboeking"
+  },
   "addTitle": "Transactie toevoegen",
   "createAccountFirst": "Maak eerst een rekening aan.",
   "newAccountCta": "Nieuwe rekening",
@@ -35,7 +43,11 @@
   "pickGroupPre": "Kies een groep. Maak er een en nodig vrienden uit via ",
   "pickGroupLink": "Groepen & reizen",
   "onlyYou": "Deze groep bestaat voorlopig alleen uit jou — nodig eerst iemand uit via de groepspagina.",
-  "mode": { "equal": "Gelijk", "exact": "Exact", "percent": "Percentage" },
+  "mode": {
+    "equal": "Gelijk",
+    "exact": "Exact",
+    "percent": "Percentage"
+  },
   "splitBetween": "Splitsen tussen:",
   "splitChip": "Gedeeld",
   "sharesMatch": "Aandelen totaal {{sum}} van {{total}} ✓",
@@ -73,7 +85,6 @@
   "defaultIncome": "Inkomsten",
   "defaultExpense": "Uitgave",
   "defaultTransfer": "Overboeking",
-
   "editTitle": "Transactie bewerken",
   "txOptions": "Transactieopties",
   "viewHistory": "Bewerkingsgeschiedenis bekijken",
@@ -100,5 +111,9 @@
     "account_id": "Rekening",
     "to_account_id": "Naar rekening",
     "payment_method_id": "Betaalmethode"
-  }
+  },
+  "paidForSomeone": "Ik heb dit voor iemand anders betaald",
+  "paidForSomeoneHint": "Het hele bedrag moeten zij terugbetalen — het telt niet als jouw uitgave.",
+  "paidForSomeoneNoOne": "Je hebt eerst iemand nodig — voeg een persoon toe via Gedeeld & openstaand.",
+  "paidForSomeonePick": "Voor wie was het?"
 }

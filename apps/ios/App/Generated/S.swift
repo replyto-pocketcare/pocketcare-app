@@ -1861,6 +1861,10 @@ public enum S {
         public static func othersOweYou(amount: String) -> String {
             String(format: String(localized: "transactions:othersOweYou", table: "Localizable"), amount)
         }
+        public static var paidForSomeone: String { String(localized: "transactions:paidForSomeone", table: "Localizable") }
+        public static var paidForSomeoneHint: String { String(localized: "transactions:paidForSomeoneHint", table: "Localizable") }
+        public static var paidForSomeoneNoOne: String { String(localized: "transactions:paidForSomeoneNoOne", table: "Localizable") }
+        public static var paidForSomeonePick: String { String(localized: "transactions:paidForSomeonePick", table: "Localizable") }
         public static func paidMatch(sum: String, total: String) -> String {
             String(format: String(localized: "transactions:paidMatch", table: "Localizable"), sum, total)
         }

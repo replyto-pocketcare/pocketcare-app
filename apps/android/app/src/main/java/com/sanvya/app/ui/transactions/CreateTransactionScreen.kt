@@ -174,6 +174,12 @@ fun CreateTransactionScreen(
                 }
             }
 
+            // Web places the two split cards immediately above Labels, after
+            // category and payment method and before the free-text fields.
+            // Both are expense-only and mutually exclusive; SplitEditor
+            // decides which (if either) to draw.
+            SplitEditor(viewModel = viewModel, currency = currency)
+
             Text(S.Transactions.labelsOptional(sRes()), fontSize = 13.sp, color = colors.text2)
             LabelPickerRow(
                 available = labelOptions.map { it.name },

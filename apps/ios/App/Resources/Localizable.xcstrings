@@ -32293,6 +32293,98 @@
         }
       }
     },
+    "transactions:paidForSomeone": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I paid this for someone else"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मैंने यह किसी और के लिए चुकाया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ik heb dit voor iemand anders betaald"
+          }
+        }
+      }
+    },
+    "transactions:paidForSomeoneHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The whole amount is theirs to repay — it won't count as your spending."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पूरी रकम उन्हें लौटानी है — यह आपके खर्च में नहीं गिनी जाएगी।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het hele bedrag moeten zij terugbetalen — het telt niet als jouw uitgave."
+          }
+        }
+      }
+    },
+    "transactions:paidForSomeoneNoOne": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You'll need someone to owe first — add a person from Shared & owed."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पहले किसी को जोड़ें — 'साझा और बकाया' से किसी व्यक्ति को जोड़ें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hebt eerst iemand nodig — voeg een persoon toe via Gedeeld & openstaand."
+          }
+        }
+      }
+    },
+    "transactions:paidForSomeonePick": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who was it for?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह किसके लिए था?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voor wie was het?"
+          }
+        }
+      }
+    },
     "transactions:paidMatch": {
       "extractionState": "manual",
       "localizations": {

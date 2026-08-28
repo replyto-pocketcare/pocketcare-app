@@ -1506,6 +1506,10 @@
     <string name="transactions_only_your_payment">Only your payment uses %1$s; others\' payments just change who owes whom.</string>
     <string name="transactions_optional_note">Optional note</string>
     <string name="transactions_others_owe_you">Others owe you %1$s</string>
+    <string name="transactions_paid_for_someone">I paid this for someone else</string>
+    <string name="transactions_paid_for_someone_hint">The whole amount is theirs to repay — it won\'t count as your spending.</string>
+    <string name="transactions_paid_for_someone_no_one">You\'ll need someone to owe first — add a person from Shared &amp; owed.</string>
+    <string name="transactions_paid_for_someone_pick">Who was it for?</string>
     <string name="transactions_paid_match">Paid total %1$s of %2$s ✓</string>
     <string name="transactions_paid_mismatch">Paid total %1$s of %2$s — must match</string>
     <string name="transactions_payment_method">Payment method</string>
