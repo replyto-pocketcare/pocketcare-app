@@ -42,7 +42,19 @@ struct TransactionsView: View {
                 }
 
                 ScrollView {
-                    if viewModel.items.isEmpty {
+                    if viewModel.items.isEmpty && viewModel.showSkeleton {
+                        // Web's own order: rows first, then `(rowsLoading ||
+                        // syncPending)`, and only then the empty state. Six
+                        // rows, matching `Array.from({ length: 6 })` on the
+                        // browser — enough to fill the fold, few enough not to
+                        // read as content.
+                        LazyVStack(spacing: 8) {
+                            ForEach(0..<transactionSkeletonRows, id: \.self) { _ in
+                                SanvyaSkeleton(height: 64, cornerRadius: 12)
+                            }
+                        }
+                        .padding(16)
+                    } else if viewModel.items.isEmpty {
                         Text(S.Transactions.noMatching)
                             .foregroundColor(Color.text2)
                             .padding(.top, 40)
@@ -74,6 +86,13 @@ struct TransactionsView: View {
 
     struct EditingTransactionId: Identifiable { let id: String }
 }
+
+/// Placeholder rows drawn while the first sync lands.
+///
+/// Web draws six (`Array.from({ length: 6 })`); the phone's fold is shorter but
+/// a scrolled-off skeleton costs nothing and keeping the number the same is one
+/// less thing that can drift.
+private let transactionSkeletonRows = 6
 
 /// The translated label for a type-filter key.
 ///

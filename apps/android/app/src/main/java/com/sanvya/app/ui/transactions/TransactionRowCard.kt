@@ -67,6 +67,7 @@ fun TransactionRowCard(
                     modifier = Modifier.weight(1f, fill = false),
                 )
                 if (item.isSplit) SplitChip(colors)
+                if (item.isScanned) ScannedChip(colors)
             }
             if (item.subtitle.isNotEmpty()) {
                 Text(item.subtitle, fontSize = 11.5.sp, color = colors.text2, maxLines = 2)
@@ -114,6 +115,29 @@ private fun SplitChip(colors: com.sanvya.app.theme.SanvyaColors) {
         modifier = Modifier
             .clip(RoundedCornerShape(999.dp))
             .background(colors.accentGhost)
+            .padding(horizontal = 7.dp, vertical = 1.dp),
+    )
+}
+
+/**
+ * The "Scanned" pill on a row a receipt photo created -- web's `ScannedChip`.
+ *
+ * Neutral where the Split pill is accented, exactly as on web: "this came from
+ * a photo" is provenance, not something the user has to act on, and two accent
+ * pills side by side on a split scanned bill would read as two warnings.
+ */
+@Composable
+private fun ScannedChip(colors: com.sanvya.app.theme.SanvyaColors) {
+    Text(
+        S.Transactions.scannedChip(sRes()).uppercase(),
+        fontSize = 10.5.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.3.sp,
+        color = colors.text2,
+        maxLines = 1,
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(colors.surface2)
             .padding(horizontal = 7.dp, vertical = 1.dp),
     )
 }

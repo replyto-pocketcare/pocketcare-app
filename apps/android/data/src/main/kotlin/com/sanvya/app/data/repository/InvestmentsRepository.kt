@@ -58,6 +58,12 @@ data class Holding(
     val maturityDate: String?,
     val sourceAccountId: String?,
     val plannedId: String?,
+    /** Amount-based SIP fields (migration 0061). `plannedId` alone is not
+     * enough to tell a live SIP from a stopped one -- it can still point at a
+     * recurring row that was already cancelled -- so web gates the SIP UI on
+     * `planned_id && sip_amount > 0` and so does mobile. */
+    val sipAmount: Long?,
+    val sipDay: Long?,
 )
 
 /** Funding mode for a new holding -- matches web's AddHoldingInput.funding
@@ -108,6 +114,8 @@ class InvestmentsRepository(private val db: PowerSyncDatabase) {
         maturityDate = cursor.getStringOptional("maturity_date"),
         sourceAccountId = cursor.getStringOptional("source_account_id"),
         plannedId = cursor.getStringOptional("planned_id"),
+        sipAmount = cursor.getLongOptional("sip_amount"),
+        sipDay = cursor.getLongOptional("sip_day"),
     )
 
     fun watchHoldings(userId: String): Flow<List<Holding>> = db.watch(
@@ -215,9 +223,35 @@ class InvestmentsRepository(private val db: PowerSyncDatabase) {
         )
     }
 
-    /** Matches web's remove(): soft-delete the holding row only -- no
-     * reversal of the funding transaction (same accepted asymmetry as
-     * Goals' allocation-delete-doesn't-cascade, already documented in
-     * docs/mobile/screen-specs/goals.md). */
-    suspend fun deleteHolding(id: String) = softDelete(db, "holdings", id)
+    /**
+     * Stop the SIP attached to a holding -- web's `stopSipForHolding()`.
+     *
+     * The recurring transfer is a standing debit on a real account, and
+     * recurring savings are not browsable under Recurring, so if this is
+     * skipped there is nowhere left for the user to go and cancel it: the
+     * money keeps leaving every month for an investment that no longer
+     * exists. No-op when the holding never had one.
+     */
+    suspend fun stopSipForHolding(plannedId: String?) {
+        if (plannedId != null) softDelete(db, "recurring_items", plannedId)
+    }
+
+    /** Clears the holding's own SIP fields, so `sip_amount > 0` stops
+     * reporting a live SIP once the recurring row is gone. Matches web's
+     * `updateRow("holdings", id, { sip_amount: null, sip_day: null })`. */
+    suspend fun clearSipFields(id: String) {
+        updateRow(db, "holdings", id, mapOf<String, Any?>("sip_amount" to null, "sip_day" to null))
+    }
+
+    /**
+     * Matches web's remove(): soft-delete the holding row, and kill its SIP
+     * first -- the funding transaction is deliberately NOT reversed (same
+     * accepted asymmetry as Goals' allocation-delete-doesn't-cascade,
+     * documented in docs/mobile/screen-specs/goals.md), but a live standing
+     * debit is not an asymmetry, it is money still moving.
+     */
+    suspend fun deleteHolding(id: String, plannedId: String?) {
+        stopSipForHolding(plannedId)
+        softDelete(db, "holdings", id)
+    }
 }

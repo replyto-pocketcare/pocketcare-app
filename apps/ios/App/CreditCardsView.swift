@@ -29,7 +29,7 @@ struct CreditCardsView: View {
                     ScrollView {
                         VStack(spacing: 20) {
                             ForEach(Array(viewModel.cards.enumerated()), id: \.element.id) { i, card in
-                                CreditCardPanelView(card: card, index: i, sources: viewModel.sources, viewModel: viewModel)
+                                CreditCardPanelView(card: card, index: i, holderName: viewModel.holderName, sources: viewModel.sources, viewModel: viewModel)
                             }
                         }
                         .padding(16)
@@ -63,6 +63,7 @@ struct CreditCardsView: View {
 private struct CreditCardPanelView: View {
     let card: CreditCardUiModel
     let index: Int
+    let holderName: String
     let sources: [SettleSourceOption]
     let viewModel: CreditCardsViewModel
 
@@ -77,8 +78,8 @@ private struct CreditCardPanelView: View {
     @State private var amountText = ""
     @State private var error: String?
 
-    init(card: CreditCardUiModel, index: Int, sources: [SettleSourceOption], viewModel: CreditCardsViewModel) {
-        self.card = card; self.index = index; self.sources = sources; self.viewModel = viewModel
+    init(card: CreditCardUiModel, index: Int, holderName: String, sources: [SettleSourceOption], viewModel: CreditCardsViewModel) {
+        self.card = card; self.index = index; self.holderName = holderName; self.sources = sources; self.viewModel = viewModel
         _editing = State(initialValue: !card.hasCycle)
         _stmt = State(initialValue: String(card.statementDay))
         _due = State(initialValue: String(card.dueDay))
@@ -108,6 +109,14 @@ private struct CreditCardPanelView: View {
                                 }
                                 if let payBy = card.payByIso {
                                     Text("Pay by \(payBy.toDisplayDate())").font(.caption2).foregroundColor(Color.text2)
+                                }
+                                // A closed statement whose due date has moved
+                                // past this cycle shows "Due this cycle 0";
+                                // without this line nothing says where the
+                                // balance went. Web renders the same pair
+                                // together (cards/page.tsx).
+                                if card.rolledToNext, let pending = card.pendingDueFormatted {
+                                    Text(S.Cards.dueNextCycle(amount: pending)).font(.caption2).foregroundColor(Color.text2)
                                 }
                             }
                         }
@@ -204,7 +213,11 @@ private struct CreditCardPanelView: View {
                 HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(S.Cards.cardHolder).font(.system(size: 9, weight: .bold)).foregroundColor(.white.opacity(0.7))
-                        Text(S.Cards.cardHolder).font(.subheadline).fontWeight(.bold).foregroundColor(.white)
+                        // Web: `(session?.username || "").trim() || t("cardHolder")` --
+                        // an unnamed user still gets a plausible-looking card
+                        // rather than a blank line.
+                        Text(holderName.isEmpty ? S.Cards.cardHolder : holderName)
+                            .font(.subheadline).fontWeight(.bold).foregroundColor(.white)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {

@@ -35,7 +35,24 @@ struct AccountsView: View {
             }
         } content: {
             ScrollView {
-                if viewModel.visible.isEmpty {
+                if viewModel.visible.isEmpty && viewModel.showSkeleton {
+                    // Web's `CardsSkeleton count={4} minWidth={260}` — the same
+                    // four cards in the same adaptive grid, so the screen does
+                    // not resize when the real accounts land.
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        ForEach(0..<accountSkeletonCards, id: \.self) { _ in
+                            VStack(alignment: .leading, spacing: 10) {
+                                SkeletonBar(height: 12, fraction: 0.4)
+                                SkeletonBar(height: 24, fraction: 0.7)
+                            }
+                            .padding(16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusLg, style: .continuous))
+                        }
+                    }
+                    .padding(16)
+                } else if viewModel.visible.isEmpty {
                     Text(S.Accounts.noAccounts)
                         .foregroundColor(Color.text2)
                         .padding(.top, 48)
@@ -64,6 +81,31 @@ struct AccountsView: View {
         }
     }
 }
+
+/// A skeleton bar occupying a fraction of its card's width — web's
+/// `<Skeleton w="40%">`.
+///
+/// A `GeometryReader` because SwiftUI has no percentage frame and the cards are
+/// adaptive: a fixed width would read as 40% on a phone and as a stub on an
+/// iPad. The outer `.frame(height:)` is what stops the reader claiming all the
+/// vertical space it is offered.
+private struct SkeletonBar: View {
+    let height: CGFloat
+    let fraction: CGFloat
+
+    var body: some View {
+        GeometryReader { geo in
+            SanvyaSkeleton(height: height).frame(width: geo.size.width * fraction)
+        }
+        .frame(height: height)
+    }
+}
+
+/// Placeholder cards drawn while the first sync lands.
+///
+/// Web's `CardsSkeleton count={4}`; kept identical so the two clients settle at
+/// the same visual weight while they wait.
+private let accountSkeletonCards = 4
 
 private struct AccountCardView: View {
     let acct: AccountsViewModel.AccountUiModel

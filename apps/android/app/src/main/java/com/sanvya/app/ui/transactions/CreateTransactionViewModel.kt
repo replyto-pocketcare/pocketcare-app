@@ -13,6 +13,7 @@ import com.sanvya.app.data.repository.TransactionItemInput
 import com.sanvya.app.domain.categorize.CategoryData
 import com.sanvya.app.domain.entitlements.isPaid as domainIsPaid
 import com.sanvya.app.domain.js.jsParseFloat
+import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.money.money
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,6 +84,16 @@ data class CreateTransactionUiState(
      */
     val suggestedCategoryId: String? = null,
     val autoApplied: Boolean = false,
+    /**
+     * True from the keystroke until the suggestion lands.
+     *
+     * Web sets `working` immediately on every keystroke and clears it after the
+     * debounce resolves, so the badge reads "Finding category…" while the user
+     * is still typing rather than appearing 220ms after they stop. The spinner
+     * IS the feedback that something is happening; showing it only afterwards
+     * would be showing it only once it no longer matters.
+     */
+    val autoCategorizeWorking: Boolean = false,
     /** True once the user has touched the category picker themselves. */
     val manualCategory: Boolean = false,
 
@@ -271,6 +282,21 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
         cats.filter { it.kind == kind }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /**
+     * The running total, in the selected account's currency.
+     *
+     * Web shows it as the headline of the amount card and again on the Save
+     * button (`saveWithTotal`), and both matter on a multi-item bill: the
+     * button is the only place the sum is visible once the item rows have
+     * scrolled off. Neither phone had either, so a three-item expense was
+     * saved without the user ever seeing what it came to.
+     */
+    val total: StateFlow<Money> = combine(ui, account) { state, acct ->
+        val currency = acct?.currency ?: baseCurrencyNow()
+        // Per ITEM, not on the sum -- each item rounds the way web's does.
+        money(state.items.sumOf { fromMajor(jsParseFloat(it.value) ?: 0.0, currency).amount }, currency)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), money(0L, baseCurrencyNow()))
+
     init {
         // Auto-split: a date inside an auto-split trip preselects it, ONCE.
         //
@@ -328,6 +354,20 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
                 )
             }
         }
+        // Two collectors over the SAME derived text, on purpose. The badge has
+        // to flip to "Finding category…" on the keystroke; the query must not
+        // run until the typing stops. One debounced flow cannot do both, and
+        // web does not try -- `useAutoCategorize` sets `working` in the effect
+        // body and resolves it inside the timeout.
+        //
+        // Writing to `ui` from a collector of `ui` does not loop: the mapped
+        // text is unchanged by the flag, so `distinctUntilChanged` swallows the
+        // re-emission.
+        viewModelScope.launch {
+            ui.map { autoCategorizeTextOf(it) }
+                .distinctUntilChanged()
+                .collect { text -> update { it.copy(autoCategorizeWorking = willSuggest(text)) } }
+        }
         viewModelScope.launch {
             ui.map { autoCategorizeTextOf(it) }
                 .distinctUntilChanged()
@@ -358,29 +398,46 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
      */
     private val _isPaid = MutableStateFlow(false)
 
+    /**
+     * Whether this text will produce a suggestion at all -- the same three
+     * conditions `suggest` bails on, asked BEFORE the debounce so the badge
+     * never promises a lookup that is not going to happen.
+     */
+    private fun willSuggest(text: String): Boolean =
+        _isPaid.value && text.isNotBlank() && ui.value.type != "transfer"
+
     private suspend fun suggest(text: String) {
         if (!_isPaid.value) {
-            ui.value = ui.value.copy(suggestedCategoryId = null)
+            ui.value = ui.value.copy(suggestedCategoryId = null, autoCategorizeWorking = false)
             return
         }
         if (text.isBlank() || ui.value.type == "transfer") {
-            ui.value = ui.value.copy(suggestedCategoryId = null)
+            ui.value = ui.value.copy(suggestedCategoryId = null, autoCategorizeWorking = false)
             return
         }
-        val userId = authRepository.currentUserId.value ?: return
+        val userId = authRepository.currentUserId.value ?: run {
+            ui.value = ui.value.copy(autoCategorizeWorking = false)
+            return
+        }
         val cats = relevantCategories.value.map { CategoryData(it.id, it.name) }
-        if (cats.isEmpty()) return
+        if (cats.isEmpty()) {
+            ui.value = ui.value.copy(autoCategorizeWorking = false)
+            return
+        }
         val suggestion = runCatching {
             ledgerRepository.suggestCategory(text, userId, cats)
         }.getOrNull() ?: run {
-            ui.value = ui.value.copy(suggestedCategoryId = null)
+            ui.value = ui.value.copy(suggestedCategoryId = null, autoCategorizeWorking = false)
             return
         }
         val state = ui.value
         ui.value = if (!state.manualCategory && state.categoryId != suggestion) {
-            state.copy(suggestedCategoryId = suggestion, categoryId = suggestion, autoApplied = true)
+            state.copy(
+                suggestedCategoryId = suggestion, categoryId = suggestion,
+                autoApplied = true, autoCategorizeWorking = false,
+            )
         } else {
-            state.copy(suggestedCategoryId = suggestion)
+            state.copy(suggestedCategoryId = suggestion, autoCategorizeWorking = false)
         }
     }
 

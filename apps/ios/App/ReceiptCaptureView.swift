@@ -103,6 +103,7 @@ struct ReceiptCaptureView: View {
                                         mediaType: "image/jpeg"
                                     )
                                 }
+                                viewModel.onPreviewImage(image)
                                 recognizeText(in: image)
                             },
                             onCancel: { showingPicker = false }
@@ -211,6 +212,7 @@ struct ReceiptCaptureView: View {
             // compressed re-compression measurably worse, and this is the one
             // shot the user paid a credit for.
             viewModel.onImageCaptured(base64: data.base64EncodedString(), mediaType: mediaType(of: data))
+            viewModel.onPreviewImage(image)
             recognizeText(in: image)
         } else {
             viewModel.onCaptureFailed(S.Receipts.errorsUnsupportedFile)
@@ -242,6 +244,17 @@ struct ReceiptCaptureView: View {
         VStack(spacing: 14) {
             Text(S.Receipts.captureUnclearTitle).font(.headline).fontWeight(.bold).foregroundColor(.text)
             Text(viewModel.mismatchMessage(reason)).font(.caption).foregroundColor(.text2).multilineTextAlignment(.center)
+            // The picture the claim is about. Without it "the items don't add
+            // up to the total" is unanswerable — the paper is out of frame by
+            // now, and Improve-with-AI vs Retake becomes a guess.
+            if let preview = viewModel.previewImage {
+                Image(uiImage: preview)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: previewMaxHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.row, style: .continuous))
+                    .accessibilityLabel(S.Receipts.capturePreviewAlt)
+            }
             HStack(spacing: 10) {
                 if viewModel.canEscalate {
                     // Plain text, not a nested chip: web's own note says a chip
@@ -409,3 +422,11 @@ private func mediaType(of data: Data) -> String {
     if data.count >= 4, Array(data.prefix(4)) == png { return "image/png" }
     return "image/jpeg"
 }
+
+/**
+ How tall the receipt preview may get on the mismatch card.
+
+ Web's `maxHeight: 220`. Any taller and the three buttons under it fall below
+ the fold on a short phone, which is the opposite of what the picture is for.
+ */
+private let previewMaxHeight: CGFloat = 220

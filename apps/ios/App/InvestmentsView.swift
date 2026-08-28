@@ -16,6 +16,7 @@ struct InvestmentsView: View {
     @State private var viewModel = InvestmentsViewModel()
     @State private var drilledKey: String?
     @State private var showingAddSheet = false
+    @State private var showingCreateAccountSheet = false
 
     private var drilledGroup: InvestmentsViewModel.GroupUiModel? {
         guard let drilledKey else { return nil }
@@ -41,14 +42,15 @@ struct InvestmentsView: View {
                                         onUpdate: { qty, avgCost, curVal, rate in
                                             Task { _ = await viewModel.updateHolding(id: holding.id, quantityText: qty, avgCostMajorText: avgCost, currentValueMajorText: curVal, annualRateText: rate, currency: holding.currency) }
                                         },
-                                        onDelete: { viewModel.deleteHolding(holding.id) }
+                                        onDelete: { viewModel.deleteHolding(holding.id) },
+                                        onStopSip: { viewModel.stopSip(holding.id) }
                                     )
                                 }
                                 Button("+ Add to \(drilledGroup.label)") { showingAddSheet = true }
                                     .foregroundColor(Color.accent)
                                     .fontWeight(.semibold)
                             } else {
-                                PortfolioTotalCard(valueFormatted: viewModel.totalValueFormatted, gainFormatted: viewModel.totalGainFormatted, gainPositive: viewModel.totalGainPositive)
+                                PortfolioTotalCard(valueFormatted: viewModel.totalValueFormatted, costFormatted: viewModel.totalCostFormatted, gainFormatted: viewModel.totalGainFormatted, gainPositive: viewModel.totalGainPositive)
                                 if viewModel.groups.isEmpty {
                                     Text("No holdings yet — tap + to add your first investment.")
                                         .font(.subheadline)
@@ -74,6 +76,9 @@ struct InvestmentsView: View {
         .sanvyaFormPresentation(isPresented: $showingAddSheet) {
             AddHoldingView(initialGroupKey: drilledGroup?.key, viewModel: viewModel)
         }
+        .sanvyaFormPresentation(isPresented: $showingCreateAccountSheet) {
+            CreateAccountView()
+        }
     }
 
     private var emptyAccountState: some View {
@@ -84,6 +89,14 @@ struct InvestmentsView: View {
                 .font(.subheadline)
                 .foregroundColor(Color.text2)
                 .multilineTextAlignment(.center)
+            // Without this the empty state was a dead end: nothing on the screen
+            // could create the account it asks for. Web's own empty state links
+            // to /accounts/new, so the CTA opens the same form rather than
+            // bouncing the user to the Accounts tab to find it.
+            Button(S.Investments.addInvAccount) { showingCreateAccountSheet = true }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.accent)
+                .padding(.top, 4)
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -93,6 +106,7 @@ struct InvestmentsView: View {
 
 private struct PortfolioTotalCard: View {
     let valueFormatted: String
+    let costFormatted: String
     let gainFormatted: String
     let gainPositive: Bool
 
@@ -100,6 +114,12 @@ private struct PortfolioTotalCard: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Total portfolio value").font(.caption).fontWeight(.medium).foregroundColor(Color.text2)
             Text(valueFormatted).font(.system(size: 30, weight: .bold)).foregroundColor(Color.text)
+            // Web's grand total puts Invested next to Current value: without the
+            // cost there is no way to read what the gain figure is a gain ON.
+            // Empty only until the first rebuild lands.
+            if !costFormatted.isEmpty {
+                Text(S.Investments.investedLabel(amount: costFormatted)).font(.caption).foregroundColor(Color.text2)
+            }
             Text(gainFormatted).font(.caption).fontWeight(.semibold).foregroundColor(gainPositive ? Color.positive : Color.negative)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -129,6 +149,10 @@ private struct GroupTileView: View {
                     Spacer()
                     Text(group.gainFormatted).font(.caption).fontWeight(.semibold).foregroundColor(group.gainPositive ? Color.positive : Color.negative)
                 }
+                HStack {
+                    Text(S.Investments.investedLabel(amount: group.costFormatted)).font(.caption).foregroundColor(Color.text2)
+                    Spacer()
+                }
             }
             .padding(18)
             .background(Color.surface)
@@ -146,9 +170,11 @@ private struct HoldingRowView: View {
     let holding: InvestmentsViewModel.HoldingUiModel
     let onUpdate: (String, String, String, String) -> Void
     let onDelete: () -> Void
+    let onStopSip: () -> Void
 
     @State private var editing = false
     @State private var showDeleteConfirm = false
+    @State private var showStopSipConfirm = false
     @State private var quantityText = ""
     @State private var avgCostText = ""
     @State private var currentValueText = ""
@@ -177,9 +203,28 @@ private struct HoldingRowView: View {
                 }
             }
             HStack {
-                Text(holding.fdExtra.map { "\(holding.metaLine) · \($0)" } ?? holding.metaLine)
+                // A running SIP is a standing debit on a real account and has no
+                // other home in the app -- recurring savings are not browsable
+                // under Recurring -- so it has to be legible and stoppable right
+                // here, exactly as web's HoldingTile does it.
+                Text(metaLine)
                     .font(.caption2).foregroundColor(Color.text2)
                 Spacer()
+                if holding.sipOn {
+                    Button(S.Investments.stopSip) { showStopSipConfirm = true }
+                        .font(.caption2)
+                        .foregroundColor(Color.orange)
+                        // Hung off the button, not the tile: two `.alert`
+                        // modifiers on the SAME view is the case where SwiftUI
+                        // only honours one of them, and the tile already owns
+                        // the remove confirmation.
+                        .alert(S.Investments.stopSipTitle, isPresented: $showStopSipConfirm) {
+                            Button(S.Investments.stopSip, role: .destructive, action: onStopSip)
+                            Button(S.Investments.cancel, role: .cancel) {}
+                        } message: {
+                            Text(S.Investments.stopSipMsg)
+                        }
+                }
                 Button {
                     if !editing {
                         quantityText = holding.rawQuantity == holding.rawQuantity.rounded() ? String(Int64(holding.rawQuantity)) : String(holding.rawQuantity)
@@ -225,6 +270,14 @@ private struct HoldingRowView: View {
         } message: {
             Text("This removes the holding. It doesn't reverse any transfer used to fund it.")
         }
+    }
+
+    /// Asset-class meta, FD extras and the live-SIP amount, in web's order.
+    private var metaLine: String {
+        var parts = [holding.metaLine]
+        if let fd = holding.fdExtra { parts.append(fd) }
+        if let sip = holding.sipAmountFormatted { parts.append("\(S.Investments.sipLine) \(sip)") }
+        return parts.joined(separator: " · ")
     }
 }
 

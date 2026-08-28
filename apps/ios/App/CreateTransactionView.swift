@@ -53,6 +53,14 @@ struct CreateTransactionView: View {
     /// pick stops the suggester overwriting it, for good — web keeps the same
     /// latch and never clears it.
     @State private var manualCategory = false
+    /// True from the keystroke until the suggestion lands.
+    ///
+    /// Web sets `working` immediately in the effect body and clears it inside
+    /// the debounce, so the badge reads "Finding category…" while the user is
+    /// still typing rather than appearing 220ms after they stop. The spinner IS
+    /// the feedback that something is happening; showing it only afterwards
+    /// would be showing it only once it no longer matters.
+    @State private var autoCatWorking = false
     @State private var suggestTask: Task<Void, Never>?
     /// Whether the categoriser runs at all.
     ///
@@ -213,7 +221,7 @@ struct CreateTransactionView: View {
                     // sheet has no path to also present the Accounts flow on
                     // top of itself) -- Close is what it actually does, say so.
                     VStack(spacing: 12) {
-                        Text("Add an account first, from the Accounts screen").font(.headline).foregroundColor(Color.text).multilineTextAlignment(.center)
+                        Text(S.Transactions.createAccountFirst).font(.headline).foregroundColor(Color.text).multilineTextAlignment(.center)
                         Button(S.Translation.commonClose) { dismiss() }
                     }
                     .padding(24)
@@ -222,9 +230,12 @@ struct CreateTransactionView: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 14) {
                             Picker(S.Transactions.auditType, selection: $type) {
-                                Text(S.Transactions.filterExpense).tag("expense")
-                                Text(S.Transactions.filterIncome).tag("income")
-                                Text(S.Transactions.filterTransfer).tag("transfer")
+                                // `type.*`, not `filter.*`: the form's three
+                                // chips come from web's `t(`type.${tp}`)`, and
+                                // the two namespaces are free to diverge.
+                                Text(S.Transactions.typeExpense).tag("expense")
+                                Text(S.Transactions.typeIncome).tag("income")
+                                Text(S.Transactions.typeTransfer).tag("transfer")
                             }
                             .pickerStyle(.segmented)
                             .disabled(isInvestment)
@@ -234,16 +245,7 @@ struct CreateTransactionView: View {
                                     .font(.system(size: 12)).foregroundColor(Color.text2)
                             }
 
-                            if type == "transfer" {
-                                TextField("Amount (\(currency))", text: Binding(
-                                    get: { items.first?.value ?? "" },
-                                    set: { items = [DraftItem(id: items.first?.id ?? UUID().uuidString, description: "", value: $0)] }
-                                ))
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(.roundedBorder)
-                            } else {
-                                itemsEditor
-                            }
+                            amountCard
 
                             Text(type == "transfer" ? S.Transactions.fromAccount : S.Transactions.account).font(.system(size: 13)).foregroundColor(Color.text2)
                             ChipRow(options: accounts.map(\.id), selected: accountId ?? account?.id ?? "",
@@ -256,14 +258,28 @@ struct CreateTransactionView: View {
                                         label: { id in accounts.first { $0.id == id }.map { "\($0.name) · \($0.currency)" } ?? "" },
                                         onSelect: { toAccountId = $0 })
                                 if let to = toAccount, to.currency != currency {
-                                    TextField("Amount received (\(to.currency))", text: $toValue)
+                                    TextField(S.Transactions.amountReceived(currency: to.currency), text: $toValue)
                                         .keyboardType(.decimalPad)
                                         .textFieldStyle(.roundedBorder)
                                 }
                             }
 
                             if type != "transfer" {
-                                Text(S.Transactions.category).font(.system(size: 13)).foregroundColor(Color.text2)
+                                HStack {
+                                    Text(S.Transactions.category).font(.system(size: 13)).foregroundColor(Color.text2)
+                                    Spacer()
+                                    // Web draws this badge over the top-right
+                                    // corner of the category select. On a phone
+                                    // it sits on the label's line instead —
+                                    // same place in the reading order, without
+                                    // overlapping a control about to be tapped.
+                                    if autoCatWorking || autoApplied {
+                                        AutoCategoriseBadge(
+                                            working: autoCatWorking,
+                                            categoryName: relevantCategories.first { $0.id == categoryId }?.name
+                                        )
+                                    }
+                                }
                                 CategoryPickerView(
                                     categories: relevantCategories,
                                     selectedId: Binding(
@@ -301,7 +317,12 @@ struct CreateTransactionView: View {
                             if let error { Text(error).foregroundColor(Color.negative).font(.system(size: 13)) }
 
                             Button(action: save) {
-                                Text(saving ? S.Transactions.saving : S.Translation.commonSave)
+                                // "Save · ₹1,240" — web's own label. On a long
+                                // form the button is the only place the total
+                                // is still on screen when the user commits.
+                                Text(saving
+                                     ? S.Transactions.saving
+                                     : S.Transactions.saveWithTotal(total: formatMoneyUnmasked(totalMoney)))
                                     .font(.headline)
                                     .frame(maxWidth: .infinity)
                                     .foregroundColor(.white)
@@ -339,24 +360,86 @@ struct CreateTransactionView: View {
         }
     }
 
+    /**
+     Web's amount card: the running total as the headline, the inputs that feed
+     it directly underneath.
+
+     Neither phone showed the total at all, so a three-item bill was saved
+     without the user ever seeing what it came to.
+     */
+    private var amountCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(items.count > 1 ? S.Transactions.amountWithItems : S.Transactions.amount)
+                    .font(.system(size: 13))
+                    .foregroundColor(Color.text2)
+                // Unmasked on purpose. This is the number the user is typing,
+                // not one being shown to them, and the hide-amounts mask would
+                // make the form unusable — which is why web reaches past
+                // `useMoneyFmt` here too.
+                Text(formatMoneyUnmasked(totalMoney))
+                    .font(.system(size: 40, weight: .bold))
+                    .foregroundColor(amountAccent)
+            }
+
+            if type == "transfer" {
+                TextField(S.Transactions.amountCurrency(currency: currency), text: Binding(
+                    get: { items.first?.value ?? "" },
+                    set: { items = [DraftItem(id: items.first?.id ?? UUID().uuidString, description: "", value: $0)] }
+                ))
+                .keyboardType(.decimalPad)
+                .textFieldStyle(.roundedBorder)
+            } else {
+                itemsEditor
+            }
+        }
+        .padding(22)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.surface)
+        .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusLg, style: .continuous))
+    }
+
+    /// Web's `accentFor`: the total is coloured by what kind of movement it is.
+    private var amountAccent: Color {
+        switch type {
+        case "income": Color.positive
+        case "transfer": Color.forest
+        default: Color.negative
+        }
+    }
+
     private var itemsEditor: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach($items) { $item in
                 HStack {
-                    TextField(items.count > 1 ? S.Receipts.kindItem : "What for?", text: $item.description)
-                        .textFieldStyle(.roundedBorder)
-                    TextField("0.00", text: $item.value)
+                    TextField(
+                        items.count > 1
+                            ? S.Transactions.item(n: String(itemNumber(of: item.id)))
+                            : S.Transactions.whatFor,
+                        text: $item.description
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    TextField(amountPlaceholder, text: $item.value)
                         .keyboardType(.decimalPad)
                         .frame(width: 100)
                         .textFieldStyle(.roundedBorder)
                     if items.count > 1 {
                         Button("×") { items.removeAll { $0.id == item.id } }
+                            .foregroundColor(Color.text2)
                     }
                 }
             }
-            Button("+ Add item") { items.append(DraftItem(id: UUID().uuidString, description: "", value: "")) }
+            Button(S.Transactions.addItemSplit) { items.append(DraftItem(id: UUID().uuidString, description: "", value: "")) }
                 .font(.system(size: 13)).foregroundColor(Color.accent)
         }
+    }
+
+    /// 1-based position of a draft row — web's `t("item", { n: idx + 1 })`.
+    ///
+    /// Looked up by id rather than taken from `ForEach`'s index, because the
+    /// binding form of `ForEach` hands back the element, not its offset.
+    private func itemNumber(of id: String) -> Int {
+        (items.firstIndex { $0.id == id } ?? 0) + 1
     }
 
     private func loadLookups() async {
@@ -474,25 +557,39 @@ struct CreateTransactionView: View {
         let text = autoCategorizeText
         guard isPaid, !text.isEmpty, type != "transfer" else {
             suggestedCategoryId = nil
+            autoCatWorking = false
             return
         }
         let options = relevantCategories.map { CategoryData(id: $0.id, name: $0.name) }
-        guard !options.isEmpty else { return }
+        guard !options.isEmpty else {
+            autoCatWorking = false
+            return
+        }
+        // Set BEFORE the debounce, cleared on every exit below — the badge has
+        // to flip on the keystroke, not 220ms after the typing stops.
+        autoCatWorking = true
         suggestTask = Task {
             try? await Task.sleep(for: .milliseconds(220))
             if Task.isCancelled { return }
             var uid = authRepository.currentUserId
             if uid == nil { uid = try? await authRepository.ensureUser() }
-            guard let userId = uid else { return }
+            guard let userId = uid else {
+                autoCatWorking = false
+                return
+            }
             let suggestion = try? await ledgerRepository.suggestCategory(
                 text: text, userId: userId, categories: options
             )
+            // A cancelled task leaves the flag alone: the run that cancelled it
+            // has already set it true for its own text, and clearing it here
+            // would blank the badge mid-keystroke.
             if Task.isCancelled { return }
             suggestedCategoryId = suggestion
             if let suggestion, !manualCategory, categoryId != suggestion {
                 categoryId = suggestion
                 autoApplied = true
             }
+            autoCatWorking = false
         }
     }
 
@@ -647,6 +744,65 @@ struct CreateTransactionView: View {
         }
     }
 }
+
+/**
+ "Finding category…" while the categoriser runs, "Auto-categorised · Food" once
+ it lands.
+
+ Web shows exactly these two states and nothing between them, and the pair is
+ the point: a category that changes under the user's hands with no explanation
+ reads as a bug, and one that appears 220ms after they stop typing with no
+ warning reads as a glitch. Both ports had the categoriser and neither had the
+ badge, so it was doing precisely that.
+ */
+private struct AutoCategoriseBadge: View {
+    let working: Bool
+    let categoryName: String?
+
+    var body: some View {
+        Text("\(autoCategoriseGlyph) \(label)")
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(Color.accent)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            // The theme has no 4pt token (web's `borderRadius: 4`);
+            // `checkbox` is its smallest square-ish corner and the nearest
+            // thing to it. Adding a token belongs to the design system, not to
+            // one badge.
+            .background(
+                Color.accentGhost,
+                in: RoundedRectangle(cornerRadius: SanvyaRadius.checkbox, style: .continuous)
+            )
+    }
+
+    private var label: String {
+        if working { return S.Transactions.findingCategory }
+        let base = S.Transactions.autoCategorised
+        guard let categoryName else { return base }
+        return "\(base) · \(categoryName)"
+    }
+}
+
+/**
+ The four-pointed star web puts in front of both auto-categorise states.
+
+ A glyph, not copy: it is the same mark in every language and carries no meaning
+ a translator could change, so it stays out of the string files rather than
+ being duplicated into three of them.
+ */
+private let autoCategoriseGlyph = "\u{2726}"
+
+/**
+ The numeric hint in an amount field.
+
+ Not translated, and web does not translate it either: it is a NUMBER shaped
+ like the input, and localising the separators would put a hint on screen that
+ the decimal keypad cannot type.
+
+ Not `private`: the Edit form shows the same hint in the same field, and a
+ second copy of a literal is how the two drift.
+ */
+let amountPlaceholder = "0.00"
 
 #Preview {
     CreateTransactionView()

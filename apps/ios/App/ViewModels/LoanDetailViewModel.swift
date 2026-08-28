@@ -17,6 +17,9 @@ public struct EmiRowUiModel: Identifiable, Equatable, Sendable {
     public let emiMinor: Int64
     public let state: EmiRowState
     public let dueFormatted: String
+    /// The raw `yyyy-MM-dd` due date (nil when the loan has no start date).
+    /// `dueFormatted` is display-only; mark-paid needs the comparable value.
+    public let dueIso: String?
     public let paidOnOrDueFormatted: String
     // fixed-rate only:
     public let principalFormatted: String?
@@ -171,6 +174,7 @@ public final class LoanDetailViewModel {
                     emiMinor: amounts[m] ?? 0,
                     state: paid ? (manualSet.contains(m) ? .paid : .autoMarked) : .due,
                     dueFormatted: fmtDateShort(due),
+                    dueIso: due,
                     paidOnOrDueFormatted: paid ? fmtDateShort(paidOnMap[m] ?? due) : fmtDateShort(due),
                     principalFormatted: nil, interestFormatted: nil, balanceFormatted: nil, hasInterest: false,
                     rawAmountMajor: amounts[m].map { formatMajorPlain($0) } ?? ""
@@ -185,6 +189,7 @@ public final class LoanDetailViewModel {
                     emiMinor: r.emi,
                     state: paid ? (manualSet.contains(r.month) ? .paid : .autoMarked) : .due,
                     dueFormatted: fmtDateShort(due),
+                    dueIso: due,
                     paidOnOrDueFormatted: paid ? fmtDateShort(paidOnMap[r.month] ?? due) : fmtDateShort(due),
                     principalFormatted: formatMoney(r.principal, cur),
                     interestFormatted: hasInterest ? formatMoney(r.interest, cur) : nil,

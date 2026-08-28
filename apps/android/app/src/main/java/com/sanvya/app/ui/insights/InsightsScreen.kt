@@ -43,7 +43,25 @@ import com.sanvya.app.i18n.sRes
  * docs/mobile/screen-specs/insights.md's "Chart rendering" section for the
  * geometry each visual kind must match.
  */
-private val ROUTABLE_CTAS = setOf("/budgets", "/goals", "/transactions", "/investments")
+/**
+ * The CTA targets this screen can follow, and the route each one means.
+ *
+ * `/subscriptions` is a MAPPING, not a rename. Web's `/subscriptions` page is a
+ * redirect to `/recurring` -- its own comment says it is "kept so old links --
+ * dashboard tiles, insights CTAs, bookmarks -- still land" -- and the
+ * subscriptions-load insight (`Insights.kt`, cadenceKey `subscriptions_load`)
+ * is one of those links. It was absent from this list, so that card drew a
+ * "Manage subscriptions" button that did nothing at all; adding the raw path
+ * without the mapping would have been worse, because `subscriptions` is not a
+ * destination in the nav graph and navigating to it throws.
+ */
+private val ROUTABLE_CTAS = mapOf(
+    "/budgets" to "budgets",
+    "/goals" to "goals",
+    "/transactions" to "transactions",
+    "/investments" to "investments",
+    "/subscriptions" to "recurring",
+)
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @Composable
@@ -113,7 +131,7 @@ private fun InsightPagerFeed(cards: List<InsightCard>, activeIndex: Int, onIndex
     Box(Modifier.fillMaxSize()) {
         VerticalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
             InsightCardView(cards[page], colors) { target ->
-                if (target in ROUTABLE_CTAS) onNavigate(target.removePrefix("/"))
+                ROUTABLE_CTAS[target]?.let(onNavigate)
             }
         }
 

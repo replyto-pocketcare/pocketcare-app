@@ -16,7 +16,23 @@ import Domain
 /// no native vertical page style, so the whole TabView is rotated -90° and
 /// each page's content rotated back +90° with width/height swapped. This is
 /// the standard SwiftUI vertical-pager trick.
-private let ROUTABLE_CTAS: Set<String> = ["/budgets", "/goals", "/transactions", "/investments"]
+/**
+ The CTA targets this screen can follow, and the tab each one means.
+
+ `/subscriptions` is a MAPPING, not a rename. Web's `/subscriptions` page is a
+ redirect to `/recurring` — its own comment says it is "kept so old links —
+ dashboard tiles, insights CTAs, bookmarks — still land" — and the
+ subscriptions-load insight (`Insights.swift`, cadenceKey `subscriptions_load`)
+ is one of those links. It was absent from this list, so that card drew a
+ "Manage subscriptions" button that did nothing at all.
+ */
+private let ROUTABLE_CTAS: [String: NavTab] = [
+    "/budgets": .budgets,
+    "/goals": .goals,
+    "/transactions": .transactions,
+    "/investments": .investments,
+    "/subscriptions": .recurring,
+]
 
 private let TYPE_LABEL: [String: String] = [
     "weekly_summary": "Weekly recap", "budget_warning": "Budget alert", "savings_achievement": "Achievement",
@@ -54,8 +70,8 @@ struct InsightsView: View {
                             set: { viewModel.setActiveIndex($0) }
                         ),
                         onCta: { target in
-                            guard ROUTABLE_CTAS.contains(target) else { return }
-                            currentTab = tabFor(target)
+                            guard let tab = ROUTABLE_CTAS[target] else { return }
+                            currentTab = tab
                         }
                     )
                 }
@@ -65,16 +81,6 @@ struct InsightsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { viewModel.start() }
             .onDisappear { viewModel.cancel() }
-        }
-    }
-
-    private func tabFor(_ target: String) -> NavTab {
-        switch target {
-        case "/budgets": return .budgets
-        case "/goals": return .goals
-        case "/transactions": return .transactions
-        case "/investments": return .investments
-        default: return .insights
         }
     }
 }

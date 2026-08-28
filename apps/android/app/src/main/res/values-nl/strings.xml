@@ -329,6 +329,8 @@
     <string name="categories_under">onder %1$s</string>
 
     <!-- dashboard -->
+    <string name="dashboard_accounts_add">Toevoegen</string>
+    <string name="dashboard_accounts_add_a11y">Rekening toevoegen</string>
     <string name="dashboard_add_widget">Widget toevoegen</string>
     <string name="dashboard_add_widget_intro">Kies een tegel om aan je dashboard toe te voegen. Grootte en volgorde pas je direct op de pagina aan.</string>
     <string name="dashboard_all_added">Elke widget staat al op je dashboard.</string>
@@ -345,6 +347,12 @@
     <string name="dashboard_empty_subscriptions">Geen actieve abonnementen.</string>
     <string name="dashboard_empty_title">Je dashboard is leeg</string>
     <string name="dashboard_empty_upcoming">Niets openstaand.</string>
+    <string name="dashboard_greeting_afternoon">Goedemiddag</string>
+    <string name="dashboard_greeting_evening">Goedenavond</string>
+    <string name="dashboard_greeting_fallback">daar</string>
+    <string name="dashboard_greeting_morning">Goedemorgen</string>
+    <string name="dashboard_greeting_night">Goedenacht</string>
+    <string name="dashboard_hide_amounts_a11y">Bedragen verbergen</string>
     <string name="dashboard_inflow">In</string>
     <string name="dashboard_last_month">Vorige maand</string>
     <string name="dashboard_more_categories">+%1$s meer</string>
@@ -356,6 +364,7 @@
     <string name="dashboard_per_month">per maand</string>
     <string name="dashboard_premium">Premium</string>
     <string name="dashboard_premium_note">Premium-tegels ontgrendel je met een Lite- of Pro-abonnement.</string>
+    <string name="dashboard_show_amounts_a11y">Bedragen tonen</string>
     <string name="dashboard_single_currency">Al je geld staat in %1$s. Voeg een rekening in een andere valuta toe om de verdeling te zien.</string>
     <string name="dashboard_spent">%1$s uitgegeven</string>
     <plurals name="dashboard_subs_count">
@@ -386,6 +395,8 @@
     <string name="dashboard_trend_last1w">Vorige week</string>
     <string name="dashboard_trend_last1y">Vorig jaar</string>
     <string name="dashboard_trend_last3d">Laatste 3 dagen</string>
+    <string name="dashboard_view_all">Alles bekijken</string>
+    <string name="dashboard_view_all_count">Alles bekijken (%1$s)</string>
     <string name="dashboard_width">Breedte</string>
     <string name="dashboard_you_are_owed">Jij krijgt</string>
     <string name="dashboard_you_owe">Jij bent verschuldigd</string>
@@ -675,7 +686,11 @@
     <string name="investments_sip_freq_monthly">maandelijks</string>
     <string name="investments_sip_freq_weekly">wekelijks</string>
     <string name="investments_sip_freq_yearly">jaarlijks</string>
+    <string name="investments_sip_line">SIP</string>
     <string name="investments_sip_note">Op elke SIP-datum leggen we een overboeking van %1$s van die rekening naar %2$s vast — het verschijnt ook onder Terugkerend &amp; Geplande cashflow.</string>
+    <string name="investments_stop_sip">SIP stoppen</string>
+    <string name="investments_stop_sip_msg">Er worden geen termijnen meer vastgelegd. De belegging blijft staan.</string>
+    <string name="investments_stop_sip_title">SIP stoppen?</string>
     <string name="investments_sync_note">Live koersen verschijnen zodra de dagelijkse marktsync draait; niet-genoteerde regelingen gebruiken de waarde die je invoert, anders de kostprijs.</string>
     <string name="investments_the_amount">het bedrag</string>
     <string name="investments_this_account">deze rekening</string>
@@ -1136,6 +1151,7 @@
     <!-- recurring -->
     <string name="recurring_actions">Acties voor %1$s</string>
     <string name="recurring_add">Toevoegen</string>
+    <string name="recurring_alert_time">Herinneringstijd</string>
     <string name="recurring_amount_label">Bedrag</string>
     <string name="recurring_auto_posts">boekt automatisch</string>
     <string name="recurring_cancel">Annuleren</string>
@@ -1356,6 +1372,7 @@
     <string name="statements_premium_body">Genereer een net afschrift voor elke periode en sla het op als PDF.</string>
     <string name="statements_premium_title">Afschriften zijn een Premium-functie</string>
     <string name="statements_print">Afdrukken / PDF opslaan</string>
+    <string name="statements_share">Afschrift delen</string>
     <string name="statements_statement_name">Sanvya-afschrift</string>
     <string name="statements_title">Afschriften</string>
     <string name="statements_to_date">Tot datum</string>
@@ -1534,6 +1551,7 @@
     <string name="transactions_save_error">Kon deze transactie niet opslaan.</string>
     <string name="transactions_save_with_total">Opslaan · %1$s</string>
     <string name="transactions_saving">Opslaan…</string>
+    <string name="transactions_scanned_chip">Gescand</string>
     <string name="transactions_search_category">Zoek een categorie…</string>
     <string name="transactions_search_placeholder">Zoek op label of notitie…</string>
     <string name="transactions_shares_match">Aandelen totaal %1$s van %2$s ✓</string>

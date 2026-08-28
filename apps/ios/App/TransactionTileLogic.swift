@@ -78,12 +78,18 @@ func txTags(_ categoryName: String?, _ labels: [String]?) -> [TxTag] {
 ///   negative and the colour never the income green, and the account name is
 ///   dropped — a split spans up to three accounts, so naming one would be a
 ///   lie.
+/// - Parameter scanned: set when a receipt photo produced this transaction.
+///   Defaults to false because only the Transactions list carries the chip —
+///   web passes `scanned` to `<TransactionTile>` there and nowhere else, so
+///   Search and the dashboard tile stay as they are rather than each growing a
+///   second `receipt_scans` watch for a pill they do not draw.
 func transactionListItem(
     _ txn: TransactionRow,
     accountMap: [String: Account],
     categoryMap: [String: CategoryRow],
     labels: [String]?,
-    split: SplitInfo? = nil
+    split: SplitInfo? = nil,
+    scanned: Bool = false
 ) -> TransactionListItem {
     let categoryName = txn.categoryId.flatMap { categoryMap[$0]?.name } ?? S.Transactions.uncategorised
     let labelsCsv = labels?.joined(separator: ", ")
@@ -123,6 +129,7 @@ func transactionListItem(
         amountFormatted: "\(sign)\(formatted)",
         isPositive: txn.type == "income" && !isSplit,
         isSplit: isSplit,
+        isScanned: scanned,
         dateFormatted: dateFormatted,
         avatarLetter: String((title.first ?? "•")).uppercased()
     )

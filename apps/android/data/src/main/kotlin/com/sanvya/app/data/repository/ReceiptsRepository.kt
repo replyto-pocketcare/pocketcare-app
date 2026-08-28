@@ -22,6 +22,8 @@ import io.github.jan.supabase.functions.functions
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonNull
@@ -290,6 +292,23 @@ class ReceiptsRepository(
             )
         }
     )
+
+    /**
+     * Transaction ids that came from a receipt photo, live.
+     *
+     * Web's `useScannedTransactionIds()` (apps/web/src/splits/hooks.ts) reads
+     * exactly this and the Transactions list uses it to draw the "Scanned"
+     * pill. Neither phone ever queried `receipt_scans.transaction_id`, so a
+     * scanned transaction looked like any other hand-typed one.
+     *
+     * A whole-column watch rather than a per-row lookup: the list needs the
+     * answer for up to 200 rows at once, and the table has one row per scan --
+     * two orders of magnitude smaller than the ledger it annotates.
+     */
+    fun watchScannedTransactionIds(): Flow<Set<String>> = db.watch(
+        sql = "SELECT transaction_id FROM receipt_scans WHERE transaction_id IS NOT NULL AND deleted_at IS NULL",
+        mapper = { cursor -> cursor.getString("transaction_id") },
+    ).map { it.toSet() }
 
     suspend fun delete(scanId: String) {
         val ts = Instant.now().toString()

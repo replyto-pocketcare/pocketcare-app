@@ -42,6 +42,9 @@ data class EmiRowUiModel(
     val emiMinor: Long,
     val state: EmiRowState,
     val dueFormatted: String,
+    /** The raw `yyyy-MM-dd` due date (null when the loan has no start date).
+     * `dueFormatted` is display-only; mark-paid needs the comparable value. */
+    val dueIso: String?,
     val paidOnOrDueFormatted: String,
     // fixed-rate only:
     val principalFormatted: String? = null,
@@ -173,6 +176,7 @@ class LoanDetailViewModel : ViewModel(), KoinComponent {
                     emiMinor = amounts[m] ?: 0L,
                     state = if (paid && m !in manualSet) EmiRowState.AUTO_MARKED else if (paid) EmiRowState.PAID else EmiRowState.DUE,
                     dueFormatted = fmtDateShort(due),
+                    dueIso = due,
                     paidOnOrDueFormatted = if (paid) fmtDateShort(paidOnMap[m] ?: due) else fmtDateShort(due),
                     rawAmountMajor = amounts[m]?.let { formatMajorPlain(it, cur) } ?: "",
                 )
@@ -186,6 +190,7 @@ class LoanDetailViewModel : ViewModel(), KoinComponent {
                     emiMinor = r.emi,
                     state = if (paid && r.month !in manualSet) EmiRowState.AUTO_MARKED else if (paid) EmiRowState.PAID else EmiRowState.DUE,
                     dueFormatted = fmtDateShort(due),
+                    dueIso = due,
                     paidOnOrDueFormatted = if (paid) fmtDateShort(paidOnMap[r.month] ?: due) else fmtDateShort(due),
                     principalFormatted = formatMoney(r.principal, cur),
                     interestFormatted = if (hasInterest) formatMoney(r.interest, cur) else null,

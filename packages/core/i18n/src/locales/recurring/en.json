@@ -1,6 +1,7 @@
 {
   "actions": "{{name}} actions",
   "add": "Add",
+  "alertTime": "Alert time",
   "amountLabel": "Amount",
   "autoPosts": "auto-posts",
   "cancel": "Cancel",

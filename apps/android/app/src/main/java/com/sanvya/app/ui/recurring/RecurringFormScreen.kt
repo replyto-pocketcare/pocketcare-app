@@ -29,7 +29,10 @@ import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaType
+import com.sanvya.app.ui.budgets.TimePickerDialogSimple
+import com.sanvya.app.ui.budgets.utcToLocalTime
 import com.sanvya.app.ui.components.Eyebrow
+import com.sanvya.app.ui.components.ISO_DATE_HINT
 import com.sanvya.app.ui.components.SanvyaButton
 import com.sanvya.app.ui.components.SanvyaChip
 import com.sanvya.app.ui.components.SanvyaInput
@@ -55,9 +58,11 @@ import com.sanvya.app.ui.components.SanvyaText
  *   so they are pure convenience, and web's own list is hardcoded English —
  *   porting it would put untranslated strings in a screen that is otherwise
  *   fully localised.
- * - **Alert time.** The column is written as null. A time-of-day picker is a
- *   control neither platform's spec has settled, and the reminder that would
- *   consume it is not built on either.
+ *
+ * **Alert time is no longer in that list.** It shipped as a hardcoded null,
+ * which is not "absent by decision" -- the column is what the engine reads to
+ * decide when to nudge, so every item created here was quietly unremindable.
+ * It is now a time picker, the same Material 3 one the budget forms use.
  */
 @Composable
 fun RecurringFormScreen(
@@ -81,7 +86,9 @@ fun RecurringFormScreen(
     var categoryId by rememberSaveable { mutableStateOf<String?>(null) }
     var frequency by rememberSaveable { mutableStateOf("monthly") }
     var firstDue by rememberSaveable { mutableStateOf(RecurringFormViewModel.todayIso()) }
+    var alertTime by rememberSaveable { mutableStateOf(RecurringFormViewModel.defaultAlertTimeLocal()) }
     var autoPost by rememberSaveable { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
     var prefilled by rememberSaveable { mutableStateOf(false) }
 
     // Fill from the row being edited, once. Re-running on every emission would
@@ -96,6 +103,8 @@ fun RecurringFormScreen(
         categoryId = item.categoryId
         frequency = item.frequency
         firstDue = item.nextDue
+        // Stored UTC, shown local -- web's `utcToLocalTime(edit?.alert_time_utc)`.
+        alertTime = utcToLocalTime(item.alertTimeUtc)
         autoPost = item.autoPost
     }
 
@@ -194,10 +203,25 @@ fun RecurringFormScreen(
             SanvyaInput(
                 value = firstDue,
                 onValueChange = { firstDue = it },
-                placeholder = "YYYY-MM-DD",
+                placeholder = ISO_DATE_HINT,
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
+
+        // Web's `<input type="time">`. A button carrying the current value
+        // rather than a text field: "HH:MM" typed free-hand is a validation
+        // problem the platform already solves, and the budget forms next door
+        // solve it the same way.
+        Field(S.Recurring.alertTime(sRes())) {
+            SanvyaButton(
+                onClick = { showTimePicker = true },
+                ghost = true,
+                enabled = !busy,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                SanvyaText(alertTime, style = SanvyaType.button)
+            }
         }
 
         // A checkbox, not a chip: web's control is a checkbox with a
@@ -234,6 +258,7 @@ fun RecurringFormScreen(
                     categoryId = categoryId,
                     frequency = frequency,
                     firstDue = firstDue,
+                    alertTimeLocal = alertTime,
                     autoPost = autoPost,
                     onSaved = onDone,
                 )
@@ -261,6 +286,17 @@ fun RecurringFormScreen(
         ) {
             SanvyaText(S.Cashflow.cancel(sRes()), style = SanvyaType.button)
         }
+    }
+
+    // The budget forms' dialog, not a second one. It is `internal` to :app for
+    // exactly this -- a second time picker is how two clock conventions end up
+    // in one app.
+    if (showTimePicker) {
+        TimePickerDialogSimple(
+            initial = alertTime,
+            onDismiss = { showTimePicker = false },
+            onConfirm = { alertTime = it; showTimePicker = false },
+        )
     }
 }
 

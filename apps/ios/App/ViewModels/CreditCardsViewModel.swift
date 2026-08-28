@@ -3,6 +3,7 @@ import Observation
 import Factory
 import Domain
 import Data
+import Supabase
 
 /// Real port of apps/web/app/cards/page.tsx (task #29), replacing a fake
 /// predecessor: hardcoded "Bank • Visa" network label, a fake "Day N" due
@@ -36,6 +37,10 @@ public struct CreditCardUiModel: Identifiable, Sendable {
     public let payByIso: String?
     public let dueThisCycle: Int64?
     public let dueThisCycleFormatted: String?
+    /// True when this card's statement due date has moved past the current
+    /// cycle -- `dueThisCycle` is then 0 and `pendingDueFormatted` is what
+    /// actually rolled forward. Mirrors Android's CreditCardUiModel.
+    public let rolledToNext: Bool
     public let pendingDueFormatted: String?
     public let newSpend: Int64
     public let newSpendFormatted: String?
@@ -48,6 +53,7 @@ public final class CreditCardsViewModel {
     @ObservationIgnored @Injected(\.ledgerRepository) private var ledgerRepository
     @ObservationIgnored @Injected(\.loansRepository) private var loansRepository
     @ObservationIgnored @Injected(\.authRepository) private var authRepository
+    @ObservationIgnored @Injected(\.supabaseClient) private var supabaseClient
 
     public var cards: [CreditCardUiModel] = []
     public var sources: [SettleSourceOption] = []
@@ -55,6 +61,11 @@ public final class CreditCardsViewModel {
     /// Covered EMIs from the most recent settle() -- non-empty triggers the
     /// "Mark N EMI(s) paid?" confirm sheet.
     public var coveredEmis: [CoveredEmi] = []
+    /// The signed-in user's display name, for the name printed on the card
+    /// face. Web reads `session.username` and falls back to the `cardHolder`
+    /// string only when it is blank, so this stays the RAW name and the view
+    /// applies the fallback. Read once -- the name only changes from Settings.
+    public var holderName: String = ""
     private var settledAt: String = ""
 
     private var tasks: [Task<Void, Never>] = []
@@ -81,7 +92,15 @@ public final class CreditCardsViewModel {
                 }
             } catch { print("CreditCards: failed to watch details: \(error)") }
         }
-        tasks = [accountsTask, detailsTask]
+        let holderTask = Task { [weak self] in
+            guard let self else { return }
+            // Signed-out / offline reads throw; an empty name just falls back
+            // to the "Card Holder" label, so this must not take the screen down.
+            guard let session = try? await self.supabaseClient.auth.session else { return }
+            let name = session.user.userMetadata["username"]?.stringValue ?? ""
+            self.holderName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        tasks = [accountsTask, detailsTask, holderTask]
     }
 
     public func cancel() {
@@ -115,7 +134,7 @@ public final class CreditCardsViewModel {
                     currency: currency, last4: nil, owed: owed, owedFormatted: formatMoneyGeneric(owed, currency),
                     creditLimit: nil, creditLimitFormatted: nil, availableCreditFormatted: nil,
                     hasCycle: false, statementDay: 1, dueDay: 20, statementDateIso: nil, payByIso: nil,
-                    dueThisCycle: nil, dueThisCycleFormatted: nil, pendingDueFormatted: nil,
+                    dueThisCycle: nil, dueThisCycleFormatted: nil, rolledToNext: false, pendingDueFormatted: nil,
                     newSpend: 0, newSpendFormatted: nil
                 ))
                 continue
@@ -136,6 +155,7 @@ public final class CreditCardsViewModel {
                 hasCycle: true, statementDay: detail.statementDay, dueDay: detail.dueDay,
                 statementDateIso: "\(cycle.statementDate)", payByIso: "\(dueOnYmd)",
                 dueThisCycle: dueThisCycle, dueThisCycleFormatted: dueThisCycle.map { formatMoneyGeneric($0, currency) },
+                rolledToNext: rolledToNext,
                 pendingDueFormatted: detail.pendingDue.map { formatMoneyGeneric($0, currency) },
                 newSpend: newSpend, newSpendFormatted: newSpend > 0 ? formatMoneyGeneric(newSpend, currency) : nil
             ))

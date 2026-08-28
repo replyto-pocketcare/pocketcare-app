@@ -11,6 +11,7 @@ import com.sanvya.app.data.repository.SplitsRepository
 import com.sanvya.app.data.repository.TransactionItemInput
 import com.sanvya.app.data.repository.UpdateScanDraftInput
 import com.sanvya.app.data.auth.AuthRepository
+import com.sanvya.app.domain.categorize.CategoryData
 import com.sanvya.app.domain.money.money
 import com.sanvya.app.domain.receipts.ReceiptDraft
 import com.sanvya.app.domain.receipts.ReceiptLine
@@ -21,6 +22,8 @@ import com.sanvya.app.domain.receipts.reconcile
 import com.sanvya.app.domain.receipts.subtotals
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -175,7 +178,44 @@ class ReceiptReviewViewModel : ViewModel(), KoinComponent {
             // blank row in the picker -- watchGroups() excludes them by
             // default, same as web's useGroups().
             splitsRepository.watchGroups().onEach { _groups.value = it }.launchIn(viewModelScope)
+
+            // Suggest a category from the merchant, once both halves exist.
+            //
+            // Web's effect keys on `[draft?.merchant, categoryId, categories]`
+            // and this is the same three inputs: the merchant can arrive from
+            // the scan or be retyped by the user here, and the categories
+            // arrive on their own watch. Neither phone ran it, so EVERY scanned
+            // receipt was filed uncategorised no matter how many times the user
+            // had already told the app where that merchant goes.
+            combine(_draft, _categories) { d, cats -> d?.merchant to cats }
+                .distinctUntilChanged()
+                .onEach { (merchant, cats) -> suggestCategoryFor(merchant, cats) }
+                .launchIn(viewModelScope)
         }
+    }
+
+    /**
+     * The same learned classifier the add-transaction form uses, so a scanned
+     * "SPICE GARDEN" lands in whatever category that merchant usually goes to.
+     *
+     * Deliberately NOT entitlement-gated, unlike the create form. Web gates the
+     * create form's `useAutoCategorize` on `isPaid` and does not gate this one:
+     * the paid feature is the LIVE suggester that runs while you type, and
+     * `suggestCategory` here is one read of rules the user's own saves wrote.
+     * Adding a gate the browser does not have would be a divergence, not a fix.
+     *
+     * Only ever SETS a category, never clears one -- web's `if (!cancelled &&
+     * id)`. A miss leaves the picker exactly where the user left it.
+     */
+    private suspend fun suggestCategoryFor(merchant: String?, categories: List<CategoryRow>) {
+        if (merchant.isNullOrBlank() || _categoryId.value != null || categories.isEmpty()) return
+        val userId = authRepository.currentUserId.value ?: return
+        val suggestion = runCatching {
+            ledgerRepository.suggestCategory(merchant, userId, categories.map { CategoryData(it.id, it.name) })
+        }.getOrNull() ?: return
+        // Re-checked after the await: the user may have picked one themselves
+        // while the read was in flight, and their choice outranks the guess.
+        if (_categoryId.value == null) _categoryId.value = suggestion
     }
 
     fun reconcileResult(): ReconcileResult? = _draft.value?.let { reconcile(it) }

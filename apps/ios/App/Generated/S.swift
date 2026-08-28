@@ -435,6 +435,8 @@ public enum S {
     }
 
     public enum Dashboard {
+        public static var accountsAdd: String { String(localized: "dashboard:accountsAdd", table: "Localizable") }
+        public static var accountsAddA11y: String { String(localized: "dashboard:accountsAddA11y", table: "Localizable") }
         public static var addWidget: String { String(localized: "dashboard:addWidget", table: "Localizable") }
         public static var addWidgetIntro: String { String(localized: "dashboard:addWidgetIntro", table: "Localizable") }
         public static var allAdded: String { String(localized: "dashboard:allAdded", table: "Localizable") }
@@ -451,6 +453,12 @@ public enum S {
         public static var emptySubscriptions: String { String(localized: "dashboard:emptySubscriptions", table: "Localizable") }
         public static var emptyTitle: String { String(localized: "dashboard:emptyTitle", table: "Localizable") }
         public static var emptyUpcoming: String { String(localized: "dashboard:emptyUpcoming", table: "Localizable") }
+        public static var greetingAfternoon: String { String(localized: "dashboard:greetingAfternoon", table: "Localizable") }
+        public static var greetingEvening: String { String(localized: "dashboard:greetingEvening", table: "Localizable") }
+        public static var greetingFallback: String { String(localized: "dashboard:greetingFallback", table: "Localizable") }
+        public static var greetingMorning: String { String(localized: "dashboard:greetingMorning", table: "Localizable") }
+        public static var greetingNight: String { String(localized: "dashboard:greetingNight", table: "Localizable") }
+        public static var hideAmountsA11y: String { String(localized: "dashboard:hideAmountsA11y", table: "Localizable") }
         public static var inflow: String { String(localized: "dashboard:inflow", table: "Localizable") }
         public static var lastMonth: String { String(localized: "dashboard:lastMonth", table: "Localizable") }
         public static func moreCategories(count: String) -> String {
@@ -466,6 +474,7 @@ public enum S {
         public static var perMonth: String { String(localized: "dashboard:perMonth", table: "Localizable") }
         public static var premium: String { String(localized: "dashboard:premium", table: "Localizable") }
         public static var premiumNote: String { String(localized: "dashboard:premiumNote", table: "Localizable") }
+        public static var showAmountsA11y: String { String(localized: "dashboard:showAmountsA11y", table: "Localizable") }
         public static func singleCurrency(base: String) -> String {
             String(format: String(localized: "dashboard:singleCurrency", table: "Localizable"), base)
         }
@@ -498,6 +507,10 @@ public enum S {
         public static var trendLast1w: String { String(localized: "dashboard:trendLast1w", table: "Localizable") }
         public static var trendLast1y: String { String(localized: "dashboard:trendLast1y", table: "Localizable") }
         public static var trendLast3d: String { String(localized: "dashboard:trendLast3d", table: "Localizable") }
+        public static var viewAll: String { String(localized: "dashboard:viewAll", table: "Localizable") }
+        public static func viewAllCount(n: String) -> String {
+            String(format: String(localized: "dashboard:viewAllCount", table: "Localizable"), n)
+        }
         public static var width: String { String(localized: "dashboard:width", table: "Localizable") }
         public static var youAreOwed: String { String(localized: "dashboard:youAreOwed", table: "Localizable") }
         public static var youOwe: String { String(localized: "dashboard:youOwe", table: "Localizable") }
@@ -871,9 +884,13 @@ public enum S {
         public static var sipFreqMonthly: String { String(localized: "investments:sipFreq.monthly", table: "Localizable") }
         public static var sipFreqWeekly: String { String(localized: "investments:sipFreq.weekly", table: "Localizable") }
         public static var sipFreqYearly: String { String(localized: "investments:sipFreq.yearly", table: "Localizable") }
+        public static var sipLine: String { String(localized: "investments:sipLine", table: "Localizable") }
         public static func sipNote(amount: String, account: String) -> String {
             String(format: String(localized: "investments:sipNote", table: "Localizable"), amount, account)
         }
+        public static var stopSip: String { String(localized: "investments:stopSip", table: "Localizable") }
+        public static var stopSipMsg: String { String(localized: "investments:stopSipMsg", table: "Localizable") }
+        public static var stopSipTitle: String { String(localized: "investments:stopSipTitle", table: "Localizable") }
         public static var syncNote: String { String(localized: "investments:syncNote", table: "Localizable") }
         public static var theAmount: String { String(localized: "investments:theAmount", table: "Localizable") }
         public static var thisAccount: String { String(localized: "investments:thisAccount", table: "Localizable") }
@@ -1429,6 +1446,7 @@ public enum S {
             String(format: String(localized: "recurring:actions", table: "Localizable"), name)
         }
         public static var add: String { String(localized: "recurring:add", table: "Localizable") }
+        public static var alertTime: String { String(localized: "recurring:alertTime", table: "Localizable") }
         public static var amountLabel: String { String(localized: "recurring:amountLabel", table: "Localizable") }
         public static var autoPosts: String { String(localized: "recurring:autoPosts", table: "Localizable") }
         public static var cancel: String { String(localized: "recurring:cancel", table: "Localizable") }
@@ -1678,6 +1696,7 @@ public enum S {
         public static var premiumBody: String { String(localized: "statements:premiumBody", table: "Localizable") }
         public static var premiumTitle: String { String(localized: "statements:premiumTitle", table: "Localizable") }
         public static var print: String { String(localized: "statements:print", table: "Localizable") }
+        public static var share: String { String(localized: "statements:share", table: "Localizable") }
         public static var statementName: String { String(localized: "statements:statementName", table: "Localizable") }
         public static var title: String { String(localized: "statements:title", table: "Localizable") }
         public static var toDate: String { String(localized: "statements:toDate", table: "Localizable") }
@@ -1903,6 +1922,7 @@ public enum S {
             String(format: String(localized: "transactions:saveWithTotal", table: "Localizable"), total)
         }
         public static var saving: String { String(localized: "transactions:saving", table: "Localizable") }
+        public static var scannedChip: String { String(localized: "transactions:scannedChip", table: "Localizable") }
         public static var searchCategory: String { String(localized: "transactions:searchCategory", table: "Localizable") }
         public static var searchPlaceholder: String { String(localized: "transactions:searchPlaceholder", table: "Localizable") }
         public static func sharesMatch(sum: String, total: String) -> String {

@@ -14,6 +14,12 @@ import Data
 /// is a *date-ranged* view of real transactions with an income/expense summary,
 /// behind the paid gate. Android had no screen at all, which was at least
 /// honest about it.
+///
+/// The rows are `TransactionListItem`s — the same model Transactions, Search
+/// and the dashboard's recent activity render, because web renders one
+/// `<TransactionTile>` on all four. The one substitution is the right-hand
+/// meta: web's Statements passes the TIME there rather than the date, because
+/// the date is already the header of the group the row sits in.
 @Observable
 @MainActor
 public final class StatementsViewModel {
@@ -22,12 +28,22 @@ public final class StatementsViewModel {
     @ObservationIgnored
     @Injected(\.prefsRepository) private var prefsRepository
 
-    public struct TxUiModel: Identifiable, Equatable, Sendable {
+    /// One calendar day of the statement — web's `groupTxnsByDay`.
+    ///
+    /// The day is the LOCAL calendar day, not `occurred_at.slice(0, 10)`. Web
+    /// slices the stored UTC timestamp, so east of Greenwich a 02:00 purchase
+    /// is filed under yesterday's header while the row beside it prints
+    /// "2:00 AM" — the header and its own rows disagree. The rows here read
+    /// local (that is what `transactionListItem` already does), so the header
+    /// does too.
+    public struct DayGroup: Identifiable, Sendable {
+        /// The local `yyyy-MM-dd`, which is also the group's identity.
         public let id: String
-        public let title: String
-        public let occurredOn: String
-        public let amountFormatted: String
-        public let isIncome: Bool
+        public let label: String
+        /// Day net, sign stripped — the view prepends + or − from `isPositive`.
+        public let netFormatted: String
+        public let isPositive: Bool
+        public let items: [TransactionListItem]
     }
 
     public private(set) var isPaid = false
@@ -44,7 +60,9 @@ public final class StatementsViewModel {
     public private(set) var expenseFormatted = ""
     public private(set) var netFormatted = ""
     public private(set) var netIsPositive = true
-    public private(set) var transactions: [TxUiModel] = []
+    /// Web's third summary row — a plain count, not money.
+    public private(set) var transactionCount = 0
+    public private(set) var days: [DayGroup] = []
 
     /// Defaults to this calendar month so far, exactly as web does.
     ///
@@ -72,6 +90,21 @@ public final class StatementsViewModel {
 
     private var entitlementTask: Task<Void, Never>?
     private var rowsTask: Task<Void, Never>?
+    private var accountsTask: Task<Void, Never>?
+    private var categoriesTask: Task<Void, Never>?
+    private var labelsTask: Task<Void, Never>?
+
+    /// The last value of every stream the rows are built from.
+    ///
+    /// Four independent watches feed one derived list, so each of them stores
+    /// what it saw and asks for a rebuild. Combining them into one stream is
+    /// Android's shape because Kotlin has `combine`; Swift's `AsyncSequence`
+    /// has no equivalent that keeps the latest of each, and hand-rolling one
+    /// here would be a concurrency primitive living in a screen.
+    private var rows: [TransactionRow] = []
+    private var accountMap: [String: Account] = [:]
+    private var categoryMap: [String: CategoryRow] = [:]
+    private var labelNames: [String: [String]] = [:]
 
     public init() {
         let today = isoToday()
@@ -102,7 +135,52 @@ public final class StatementsViewModel {
                 // view shows nothing instead of the upsell.
             }
         }
+        startContext()
         restartRows()
+    }
+
+    /// The three range-independent watches the row model needs: accounts for
+    /// the account line, categories for the category tag, labels for the rest.
+    /// One task each, matching every other view model here — nudging a date
+    /// restarts only `rowsTask`, never these.
+    private func startContext() {
+        guard accountsTask == nil else { return }
+
+        accountsTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                // includeArchived: an archived account still names the row that
+                // was posted to it. Hiding the name would not un-spend the
+                // money.
+                for try await list in try self.ledgerRepository.watchAccounts(includeArchived: true) {
+                    // `uniquingKeysWith` rather than `uniqueKeysWithValues`:
+                    // the latter TRAPS on a duplicate id, and a screen is not
+                    // the place to crash over a row the sync layer let through.
+                    self.accountMap = Dictionary(list.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
+                    self.rebuild()
+                }
+            } catch {}
+        }
+
+        categoriesTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await list in try self.ledgerRepository.watchCategories() {
+                    self.categoryMap = Dictionary(list.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
+                    self.rebuild()
+                }
+            } catch {}
+        }
+
+        labelsTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await map in try self.ledgerRepository.watchTransactionLabelNames() {
+                    self.labelNames = map
+                    self.rebuild()
+                }
+            } catch {}
+        }
     }
 
     private func restartRows() {
@@ -119,13 +197,14 @@ public final class StatementsViewModel {
                     startIso: "\(from)T00:00:00.000Z",
                     endIso: "\(to)T00:00:00.000Z"
                 ) {
-                    self.apply(rows)
+                    self.rows = rows
+                    self.rebuild()
                 }
             } catch {}
         }
     }
 
-    private func apply(_ rows: [TransactionRow]) {
+    private func rebuild() {
         let base = baseCurrencyNow()
         let income = rows.filter { $0.type == "income" }.reduce(Int64(0)) { $0 + $1.amount }
         let expense = rows.filter { $0.type == "expense" }.reduce(Int64(0)) { $0 + $1.amount }
@@ -135,19 +214,120 @@ public final class StatementsViewModel {
         expenseFormatted = formatMoney(expense, base)
         netFormatted = formatMoney(abs(net), base)
         netIsPositive = net >= 0
-        transactions = rows.map { t in
-            TxUiModel(
-                id: t.id,
-                // Web's TransactionTile falls back through description then
-                // note; an untitled row shows blank rather than as an invented
-                // label.
-                title: t.description?.isEmpty == false ? t.description!
-                    : (t.note?.isEmpty == false ? t.note! : ""),
-                occurredOn: String(t.occurredAt.prefix(10)),
-                amountFormatted: formatMoney(t.amount, t.currency),
-                isIncome: t.type == "income"
+        transactionCount = rows.count
+
+        let grouped = Dictionary(grouping: rows) { Self.localDay($0.occurredAt) }
+        // Newest day first, and newest row first inside it — web's
+        // `.sort((a, b) => b[0].localeCompare(a[0]))` and the same on the rows.
+        days = grouped.keys.sorted(by: >).map { day in
+            let items = (grouped[day] ?? []).sorted { $0.occurredAt > $1.occurredAt }
+            let dayNet = items.reduce(Int64(0)) { total, row in
+                switch row.type {
+                case "income": return total + row.amount
+                case "expense": return total - row.amount
+                default: return total
+                }
+            }
+            return DayGroup(
+                id: day,
+                label: Self.dayLabel(day),
+                netFormatted: formatMoney(abs(dayNet), base),
+                isPositive: dayNet >= 0,
+                items: items.map { row in
+                    let built = transactionListItem(
+                        row,
+                        accountMap: accountMap,
+                        categoryMap: categoryMap,
+                        labels: labelNames[row.id]
+                    )
+                    // Web's Statements passes a TIME as the row's meta, not a
+                    // date: the date is the header this row already sits under,
+                    // and repeating it on every line says nothing. The rest of
+                    // the model is the shared builder's, untouched.
+                    return TransactionListItem(
+                        id: built.id,
+                        title: built.title,
+                        subtitle: built.subtitle,
+                        tagsText: built.tagsText,
+                        accountName: built.accountName,
+                        amountFormatted: built.amountFormatted,
+                        isPositive: built.isPositive,
+                        isSplit: built.isSplit,
+                        // Always false here. Web draws the "Scanned" pill on
+                        // the Transactions list and nowhere else, and this
+                        // screen has no `receipt_scans` watch to answer it
+                        // from -- see `transactionListItem`'s `scanned`
+                        // parameter.
+                        isScanned: false,
+                        dateFormatted: Self.timeLabel(row.occurredAt),
+                        avatarLetter: built.avatarLetter
+                    )
+                }
             )
         }
+    }
+
+    /// The statement, as plain text, for `ShareLink`.
+    ///
+    /// Web prints the page; a phone has no printer dialog, so the same intent —
+    /// get this statement out of the app — becomes a share. Every figure in it
+    /// is already through `formatMoney`, so the hide-amounts privacy toggle
+    /// applies to what leaves the app exactly as it does on screen.
+    public var shareText: String {
+        var out = [
+            S.Statements.statementName,
+            "\(shortDateLabel(startDate)) – \(shortDateLabel(endDate))",
+            "",
+            "\(S.Statements.income): \(incomeFormatted)",
+            "\(S.Statements.expenses): \(expenseFormatted)",
+            "\(S.Statements.transactions): \(transactionCount)",
+            "\(S.Statements.netForPeriod): \(netIsPositive ? "+" : "\u{2212}")\(netFormatted)",
+        ]
+        for day in days {
+            out.append("")
+            out.append("\(day.label)  \(day.isPositive ? "+" : "\u{2212}")\(day.netFormatted)")
+            for item in day.items {
+                out.append("  \(item.title)  \(item.dateFormatted)  \(item.amountFormatted)")
+            }
+        }
+        return out.joined(separator: "\n")
+    }
+
+    /// The local calendar day a timestamp fell on, as `yyyy-MM-dd`.
+    ///
+    /// Falls back to the stored date part when the string is not a timestamp
+    /// this can parse — the same defensive shape `transactionListItem` uses,
+    /// because a row that cannot be parsed still has to land in some group.
+    private static func localDay(_ occurredAt: String) -> String {
+        guard let date = parseOccurredAt(occurredAt) else { return String(occurredAt.prefix(10)) }
+        return IsoDay.string(from: date)
+    }
+
+    /// Today / Yesterday / "23 Aug 26" — web's `groupTxnsByDay` labels.
+    ///
+    /// Resolved here rather than handed to the view as a flag, which is where
+    /// Android puts it: Swift's generated accessors read the bundle with no
+    /// context, so a view model naming a string costs nothing, while Kotlin's
+    /// need a `Resources` a view model must not hold. `transactionListItem`
+    /// already splits the same way on the same line.
+    private static func dayLabel(_ day: String) -> String {
+        if day == IsoDay.today() { return S.Statements.today }
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())
+        if let yesterday, day == IsoDay.string(from: yesterday) { return S.Statements.yesterday }
+        // Web's `{ day: "numeric", month: "short", year: "2-digit" }`.
+        return isoLabel(day, "d MMM yy")
+    }
+
+    /// "2:30 PM" — web's `toLocaleTimeString(undefined, { hour: "numeric",
+    /// minute: "2-digit" })`. `.short` rather than a format string: whether the
+    /// clock is 12- or 24-hour is a locale fact, and a pattern picks one for
+    /// everybody.
+    private static func timeLabel(_ occurredAt: String) -> String {
+        guard let date = parseOccurredAt(occurredAt) else { return "" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 
     /// One day after a YYYY-MM-DD date, in UTC. Nil only if the input is not a date.

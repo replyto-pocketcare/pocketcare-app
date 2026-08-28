@@ -20,9 +20,10 @@ import Domain
 ///   field, so they are pure convenience, and web's own list is hardcoded
 ///   English — porting it would put untranslated strings in a screen that is
 ///   otherwise fully localised.
-/// - **Alert time.** The column is written as null. A time-of-day picker is a
-///   control neither platform's spec has settled, and the reminder that would
-///   consume it is not built on either.
+///
+/// **Alert time is no longer in that list.** It shipped as a hardcoded null,
+/// which is not "absent by decision" — the column is what the engine reads to
+/// decide when to nudge, so every item created here was quietly unremindable.
 struct RecurringFormView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: RecurringFormViewModel
@@ -121,6 +122,24 @@ struct RecurringFormView: View {
             // rarely changes. Tracked.
             SanvyaInput(text: $viewModel.firstDue, placeholder: "YYYY-MM-DD")
                 .disabled(viewModel.busy)
+        }
+
+        // Web's `<input type="time">`. The wheel, not a text field: "HH:MM"
+        // typed free-hand is a validation problem the platform already solves,
+        // and the budget forms next door solve it the same way — through the
+        // same two converters, so there is one clock conversion in the app.
+        field(S.Recurring.alertTime) {
+            DatePicker(
+                S.Recurring.alertTime,
+                selection: Binding(
+                    get: { timeStringToDate(viewModel.alertTimeLocal) },
+                    set: { viewModel.alertTimeLocal = dateToTimeString($0) }
+                ),
+                displayedComponents: .hourAndMinute
+            )
+            .labelsHidden()
+            .tint(Color.accent)
+            .disabled(viewModel.busy)
         }
     }
 

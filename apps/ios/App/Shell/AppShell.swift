@@ -200,7 +200,13 @@ struct AppShell<Content: View>: View {
         VStack(spacing: 0) {
             // Banners stay full-bleed above the frame: they are system messages
             // about the app, not content inside it.
-            SyncProblemsBanner(count: viewModel.failedWriteCount) { select(.settings) }
+            SyncProblemsBanner(count: viewModel.failedWriteCount) {
+                // Web pushes `/settings#problems`; the fragment is what scrolls
+                // the panel into view. A tab has no fragment, so the section
+                // travels beside the tab change instead.
+                SettingsSectionRequest.shared.request(.problems)
+                select(.settings)
+            }
             OfflineBanner(offline: connectivity.isOffline)
 
             HStack(spacing: 0) {
@@ -263,7 +269,13 @@ struct AppShell<Content: View>: View {
 
             VStack(spacing: 0) {
                 // Banners sit above everything, in web's z-order: problems first.
-                SyncProblemsBanner(count: viewModel.failedWriteCount) { select(.settings) }
+                SyncProblemsBanner(count: viewModel.failedWriteCount) {
+                    // Web pushes `/settings#problems`; the fragment is what
+                    // scrolls the panel into view. A tab has no fragment, so
+                    // the section travels beside the tab change instead.
+                    SettingsSectionRequest.shared.request(.problems)
+                    select(.settings)
+                }
                 OfflineBanner(offline: connectivity.isOffline)
 
                 VStack(spacing: 0) {

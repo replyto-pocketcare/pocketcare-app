@@ -377,6 +377,9 @@ fun SanvyaNavHost(inviteToken: String? = null) {
         composable("statements") {
             com.sanvya.app.ui.statements.StatementsScreen(
                 onAnalyze = { navController.navigate("statements/analyze") },
+                // Web's statement rows are links to the transaction's edit
+                // page; the same route the Transactions list uses.
+                onEditTransaction = { id -> navController.navigate("transactions/$id/edit") },
             )
         }
 

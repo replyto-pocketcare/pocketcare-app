@@ -1,5 +1,6 @@
 package com.sanvya.app.ui.receipts
 
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.repository.AiScanError
@@ -108,6 +109,23 @@ class ReceiptCaptureViewModel : ViewModel(), KoinComponent {
     private val _canEscalate = MutableStateFlow(false)
     val canEscalate: StateFlow<Boolean> = _canEscalate
 
+    /**
+     * The photo, shrunk for the "couldn't read this cleanly" card.
+     *
+     * Web puts the picture on that card and it is the whole reason the card is
+     * answerable: "the items don't add up to the total" is a claim about a
+     * piece of paper the user can no longer see, and without it "Improve with
+     * AI" and "Retake" are a coin toss. Both ports drew the card and neither
+     * drew the photo.
+     *
+     * A DOWNSCALED copy, not the capture. A 12-megapixel frame is tens of
+     * megabytes decoded and this is a 220dp thumbnail; holding the original
+     * would trade an OOM for a preview. The full bytes stay in [pendingImage]
+     * where the escalation needs them, and neither copy is ever written to disk.
+     */
+    private val _previewImage = MutableStateFlow<Bitmap?>(null)
+    val previewImage: StateFlow<Bitmap?> = _previewImage
+
     private val _aiBusy = MutableStateFlow(false)
     val aiBusy: StateFlow<Boolean> = _aiBusy
 
@@ -147,6 +165,19 @@ class ReceiptCaptureViewModel : ViewModel(), KoinComponent {
      */
     fun onImageCaptured(base64: String, mediaType: String) {
         pendingImage = EscalationImage(base64, mediaType)
+    }
+
+    /**
+     * The decoded, correctly-rotated photo, for the on-screen preview.
+     *
+     * Separate from [onImageCaptured] because the two want different things:
+     * the escalation wants the ORIGINAL bytes (a re-encode reads measurably
+     * worse to the model), and the preview wants a small upright bitmap. The
+     * screen already holds both at the moment of capture, so neither is
+     * re-derived here.
+     */
+    fun onPreviewImage(bitmap: Bitmap) {
+        _previewImage.value = downscaleForPreview(bitmap)
     }
 
     /** A file was chosen from the picker -- an image or a PDF. */
@@ -224,6 +255,7 @@ class ReceiptCaptureViewModel : ViewModel(), KoinComponent {
     fun retake() {
         pendingDraft = null
         pendingImage = null
+        _previewImage.value = null
         _canEscalate.value = false
         _stage.value = CaptureStage.Idle
     }
@@ -326,3 +358,29 @@ private const val PDF_TEXT_FLOOR = 20
  * misread, not an error.
  */
 data class EscalationImage(val base64: String, val mediaType: String)
+
+/**
+ * Shrink a capture to preview size, preserving its aspect ratio.
+ *
+ * Returns the original when it is already small enough — `createScaledBitmap`
+ * would otherwise allocate a second copy of the same picture.
+ */
+private fun downscaleForPreview(source: Bitmap): Bitmap {
+    val longEdge = maxOf(source.width, source.height)
+    if (longEdge <= PREVIEW_LONG_EDGE_PX) return source
+    val scale = PREVIEW_LONG_EDGE_PX.toFloat() / longEdge
+    return Bitmap.createScaledBitmap(
+        source,
+        (source.width * scale).toInt().coerceAtLeast(1),
+        (source.height * scale).toInt().coerceAtLeast(1),
+        true,
+    )
+}
+
+/**
+ * Long edge of the preview copy, in pixels.
+ *
+ * The card shows it at 220dp tall; this leaves headroom for a 3x screen without
+ * keeping a photograph in memory behind a thumbnail.
+ */
+private const val PREVIEW_LONG_EDGE_PX = 720

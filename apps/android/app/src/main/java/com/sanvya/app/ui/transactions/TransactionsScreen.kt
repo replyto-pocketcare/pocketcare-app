@@ -17,6 +17,7 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.components.SanvyaPage
+import com.sanvya.app.ui.components.Skeleton
 
 /**
  * Transactions list — ported from apps/web/app/transactions/page.tsx +
@@ -39,6 +40,7 @@ fun TransactionsScreen(
     val items by viewModel.items.collectAsState()
     val query by viewModel.query.collectAsState()
     val typeFilter by viewModel.typeFilter.collectAsState()
+    val showSkeleton by viewModel.showSkeleton.collectAsState()
     val colors = LocalSanvyaColors.current
 
     SanvyaPage(
@@ -76,7 +78,20 @@ fun TransactionsScreen(
                 }
             }
 
-            if (items.isEmpty()) {
+            if (items.isEmpty() && showSkeleton) {
+                // Web's own order: rows first, then `(rowsLoading ||
+                // syncPending)`, and only then the empty state. Six rows,
+                // matching `Array.from({ length: 6 })` on the browser -- enough
+                // to fill the fold, few enough not to read as content.
+                Column(
+                    Modifier.fillMaxSize().padding(16.dp, 4.dp, 16.dp, 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    repeat(TX_SKELETON_ROWS) {
+                        Skeleton(height = 64.dp, radius = 12.dp, modifier = Modifier.fillMaxWidth())
+                    }
+                }
+            } else if (items.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(S.Transactions.noMatching(sRes()), color = colors.text2, fontSize = 14.sp)
                 }
@@ -108,3 +123,12 @@ fun txTypeFilterLabel(key: String): String = when (key) {
     "transfer" -> S.Transactions.filterTransfer(sRes())
     else -> S.Transactions.filterAll(sRes())
 }
+
+/**
+ * Placeholder rows drawn while the first sync lands.
+ *
+ * Web draws six (`Array.from({ length: 6 })`); the phone's fold is shorter but
+ * a scrolled-off skeleton costs nothing and keeping the number the same is one
+ * less thing that can drift.
+ */
+private const val TX_SKELETON_ROWS = 6

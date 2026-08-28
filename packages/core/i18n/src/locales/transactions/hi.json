@@ -50,6 +50,7 @@
   },
   "splitBetween": "इनके बीच बाँटें:",
   "splitChip": "बँटा",
+  "scannedChip": "स्कैन किया",
   "sharesMatch": "हिस्से का कुल {{total}} में से {{sum}} ✓",
   "sharesMismatch": "हिस्से का कुल {{total}} में से {{sum}} — मेल खाना चाहिए",
   "percentMatch": "प्रतिशत कुल {{pct}}% ✓",

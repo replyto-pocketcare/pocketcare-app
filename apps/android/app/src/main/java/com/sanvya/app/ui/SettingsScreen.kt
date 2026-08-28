@@ -18,6 +18,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -26,6 +28,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.data.repository.FailedWriteItem
 import com.sanvya.app.domain.notifications.PushState
@@ -34,6 +38,12 @@ import com.sanvya.app.ui.notifications.LocalNotificationPermissionRequester
 import com.sanvya.app.ui.notifications.PushController
 import com.sanvya.app.data.repository.StrandedRow
 import com.sanvya.app.theme.*
+import com.sanvya.app.ui.components.ConfirmDialog
+import com.sanvya.app.ui.onboarding.OnboardingDeckScreen
+import com.sanvya.app.ui.shell.LocalShellNavigate
+import com.sanvya.app.ui.shell.SettingsSection
+import com.sanvya.app.ui.shell.SettingsSectionRequest
+import kotlin.math.roundToInt
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 
@@ -53,6 +63,14 @@ fun SettingsScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
+    // Hoisted once: several strings below are assembled inside plain (non
+    // composable) lambdas -- `buildString`, `semantics` -- where `sRes()`
+    // cannot be called.
+    val res = sRes()
+    // Web links straight to `/login` from the guest card and the sign-out
+    // dialog. The nav graph hands this screen no such callback, so it asks the
+    // shell, which owns navigation for every page inside it.
+    val navigate = LocalShellNavigate.current
 
     val amountsHidden by Prefs.amountsHidden.collectAsState()
     val notifPrefs by viewModel.notifPrefs.collectAsState()
@@ -93,7 +111,46 @@ fun SettingsScreen(
     var username by rememberSaveable { mutableStateOf("") }
     var confirmSignout by rememberSaveable { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    var confirmReplay by rememberSaveable { mutableStateOf(false) }
+    var replayOpen by rememberSaveable { mutableStateOf(false) }
     var expandedLog by rememberSaveable { mutableStateOf(false) }
+
+    // ---- Deep link into the Problems panel -------------------------------
+    //
+    // Web's sync-problems banner pushes `/settings#problems` and the browser
+    // scrolls the panel into view. A native route has no fragment, so the
+    // shell records the request (see SettingsSectionRequest) and this screen
+    // performs the scroll once it knows where the panel actually is.
+    //
+    // Positions are read in ROOT coordinates and differenced, rather than
+    // trusting a child's offset inside a scrolling column: `viewportTop` is
+    // measured before `verticalScroll` and so does not move, while `problemsTop`
+    // does -- which makes `scrollState.value + (problemsTop - viewportTop)` the
+    // panel's absolute offset no matter where the page is currently scrolled.
+    val pendingSection by SettingsSectionRequest.pending.collectAsState()
+    var viewportTop by remember { mutableStateOf(0f) }
+    var problemsTop by remember { mutableStateOf<Float?>(null) }
+
+    LaunchedEffect(pendingSection, problemsTop) {
+        if (pendingSection != SettingsSection.PROBLEMS) return@LaunchedEffect
+        // Null until the panel has been laid out -- and it is only laid out when
+        // something is actually stuck, which is the only time the banner exists
+        // to send anyone here.
+        val top = problemsTop ?: return@LaunchedEffect
+        scrollState.animateScrollTo(
+            (scrollState.value + (top - viewportTop)).roundToInt().coerceAtLeast(0),
+        )
+        // One-shot: returning to Settings later must not jump the page again.
+        SettingsSectionRequest.consume()
+        problemsTop = null
+    }
+
+    // A request that could not be honoured -- the panel was not on screen
+    // because the failed writes had already cleared -- dies with the screen
+    // rather than waiting to surprise the next visit.
+    DisposableEffect(Unit) {
+        onDispose { SettingsSectionRequest.consume() }
+    }
 
     LaunchedEffect(session?.username) {
         session?.username?.let { if (username.isEmpty()) username = it }
@@ -118,6 +175,9 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                // BEFORE verticalScroll on purpose: this reports the viewport,
+                // which stays put, rather than the content, which moves.
+                .onGloballyPositioned { viewportTop = it.localToRoot(Offset.Zero).y }
                 .verticalScroll(scrollState)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -135,18 +195,42 @@ fun SettingsScreen(
                                 .fillMaxWidth()
                                 .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(10.dp))
                                 .padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
+                            // Web's four fragments in web's order: the lead-in,
+                            // the bolded word "guest", the full stop, then the
+                            // countdown -- omitted entirely when the sign-up
+                            // date could not be read, rather than guessed at.
+                            // There is no inline <strong> here, so the three
+                            // fragments join into one sentence; the emphasis is
+                            // the only thing lost and the deadline is the half
+                            // that does the work.
+                            val daysLeft = session?.daysLeft
                             Text(
-                                "You're using Sanvya as a guest.${session?.daysLeft?.let { " Your data will be deleted in $it day${if (it == 1) "" else "s"} unless you create an account." } ?: ""}",
+                                buildString {
+                                    append(S.Settings.guestPre(res))
+                                    append(S.Settings.guestBold(res))
+                                    append(S.Settings.guestDot(res))
+                                    if (daysLeft != null) {
+                                        append(" ")
+                                        append(S.Settings.guestDelete(res, daysLeft))
+                                    }
+                                },
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
+                            // The way out of the warning. Both phones printed
+                            // the deadline and then offered nothing to do about
+                            // it; web has had this button since the card
+                            // existed.
+                            Button(onClick = { navigate("login") }) {
+                                Text(S.Settings.createToKeep(res))
+                            }
                         }
                     }
                 } else {
                     Text(
-                        "Signed in as ${session?.email ?: "—"}",
+                        "${S.Settings.signedInAs(res)} ${session?.email ?: "—"}",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -373,6 +457,20 @@ fun SettingsScreen(
             // ---- Problems syncing (dead-letter queue; renders nothing when empty) ----
             if (failedWrites.isNotEmpty()) {
                 SettingsCard(
+                    // The anchor the sync-problems banner scrolls to -- web's
+                    // `id="problems"`, which its `/settings#problems` link lands
+                    // on. Measured rather than assumed: the panels above it come
+                    // and go (the notification card is absent until prefs load),
+                    // so a fixed offset would be wrong most of the time.
+                    // Measured ONCE, and only while a jump is pending. Writing
+                    // on every layout pass would recompose this whole screen on
+                    // every scroll frame, and re-writing it mid-animation would
+                    // restart the animation that is moving it.
+                    modifier = Modifier.onGloballyPositioned {
+                        if (pendingSection != null && problemsTop == null) {
+                            problemsTop = it.localToRoot(Offset.Zero).y
+                        }
+                    },
                     title = "Problems syncing",
                     subtitle = "${failedWrites.size} change${if (failedWrites.size == 1) "" else "s"} couldn't be saved to the server. Still on this device — nothing has been lost.",
                     borderColor = MaterialTheme.colorScheme.error,
@@ -448,13 +546,24 @@ fun SettingsScreen(
             }
 
             // ---- Help & support ----
-            SettingsCard(title = S.Settings.help(sRes())) {
+            SettingsCard(title = S.Settings.help(res)) {
                 OutlinedButton(onClick = {
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
                         data = android.net.Uri.parse("mailto:support@sanvya.app")
                     }
                     try { context.startActivity(intent) } catch (_: Exception) { /* no mail app */ }
-                }) { Text(S.Settings.contactSupport(sRes())) }
+                }) { Text(S.Settings.contactSupport(res)) }
+                // Web's "Replay the intro". Four translated strings for it have
+                // existed in the catalogue since the deck was ported and nothing
+                // rendered any of them.
+                OutlinedButton(onClick = { confirmReplay = true }) {
+                    Text(S.Settings.replayIntro(res))
+                }
+                Text(
+                    S.Settings.helpNote(res),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
 
             // ---- Sign out / delete ----
@@ -476,19 +585,35 @@ fun SettingsScreen(
     if (confirmSignout) {
         AlertDialog(
             onDismissRequest = { confirmSignout = false },
-            title = { Text(S.Settings.signoutTitle(sRes())) },
+            title = { Text(S.Settings.signoutTitle(res)) },
             text = {
                 Text(
-                    if (session?.isGuest == true) "You're a guest — signing out deletes this device's data with nothing backed up."
-                    else "You can sign back in any time to restore your data.",
+                    if (session?.isGuest == true) {
+                        S.Settings.guestSignoutWarn(res)
+                    } else {
+                        S.Settings.signoutRestore(res)
+                    },
                 )
             },
             confirmButton = {
                 TextButton(onClick = { confirmSignout = false; viewModel.signOut() }) {
-                    Text(S.Settings.signOutAnyway(sRes()), color = MaterialTheme.colorScheme.error)
+                    Text(S.Settings.signOutAnyway(res), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { confirmSignout = false }) { Text(S.Settings.cancel(sRes())) } },
+            dismissButton = {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TextButton(onClick = { confirmSignout = false }) { Text(S.Settings.cancel(res)) }
+                    // Web puts "Create account" beside Cancel for a guest, and
+                    // it is the whole point of the warning above it: signing out
+                    // as a guest is a delete, so the dialog has to offer the one
+                    // action that prevents it.
+                    if (session?.isGuest == true) {
+                        TextButton(onClick = { confirmSignout = false; navigate("login") }) {
+                            Text(S.Settings.createAccount(res))
+                        }
+                    }
+                }
+            },
         )
     }
 
@@ -498,7 +623,7 @@ fun SettingsScreen(
             title = { Text(S.Settings.deleteAccount(sRes()), color = MaterialTheme.colorScheme.error) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("This permanently deletes your account and data. This can't be undone.")
+                    Text(S.Settings.deleteBody(res))
                     deleteError?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 13.sp) }
                 }
             },
@@ -507,8 +632,55 @@ fun SettingsScreen(
                     Text(if (deleting) S.Settings.deleting(sRes()) else S.Settings.deleteEverything(sRes()), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(enabled = !deleting, onClick = { confirmDelete = false }) { Text(S.Settings.cancel(sRes())) } },
+            dismissButton = { TextButton(enabled = !deleting, onClick = { confirmDelete = false }) { Text(S.Settings.cancel(res)) } },
         )
+    }
+
+    if (confirmReplay) {
+        // `danger = false`: web passes exactly that, because replaying the intro
+        // destroys nothing.
+        ConfirmDialog(
+            title = S.Settings.replayTitle(res),
+            message = S.Settings.replayMsg(res),
+            confirmLabel = S.Settings.replayConfirm(res),
+            cancelLabel = S.Settings.cancel(res),
+            danger = false,
+            onConfirm = { confirmReplay = false; replayOpen = true },
+            onDismiss = { confirmReplay = false },
+        )
+    }
+
+    /*
+     * The deck itself, shown here rather than by clearing `onboardingSeen` and
+     * signing out.
+     *
+     * Web can do it the other way round because `signOut()` ends in
+     * `window.location.href = "/onboarding"` -- a full reload, after which the
+     * auth gate re-reads localStorage and the deck is what a signed-out visitor
+     * meets. Neither phone reloads: both gates read the flag ONCE, into
+     * `rememberSaveable` / `@State` at launch (MainActivity.kt, SanvyaApp.swift),
+     * so clearing it after that point changes nothing until the next cold start
+     * and the user would be dropped on the login form having been promised the
+     * welcome screens.
+     *
+     * So the deck is presented and the sign-out happens on the way OUT of it,
+     * on whichever of its three exits is taken. The screens the user sees, and
+     * the state they end in -- signed out, at the login form -- are web's.
+     */
+    if (replayOpen) {
+        Dialog(
+            onDismissRequest = { replayOpen = false },
+            // The platform default caps a dialog well below full width, and the
+            // deck is a full-screen experience, not a card.
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            OnboardingDeckScreen(
+                onDone = {
+                    replayOpen = false
+                    viewModel.signOut()
+                },
+            )
+        }
     }
 }
 
@@ -517,10 +689,11 @@ private fun SettingsCard(
     title: String,
     subtitle: String? = null,
     borderColor: androidx.compose.ui.graphics.Color? = null,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
         border = borderColor?.let { androidx.compose.foundation.BorderStroke(1.dp, it) },

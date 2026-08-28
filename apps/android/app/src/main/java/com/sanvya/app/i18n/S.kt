@@ -380,6 +380,8 @@ object S {
     }
 
     object Dashboard {
+        fun accountsAdd(res: Resources): String = res.getString(R.string.dashboard_accounts_add)
+        fun accountsAddA11y(res: Resources): String = res.getString(R.string.dashboard_accounts_add_a11y)
         fun addWidget(res: Resources): String = res.getString(R.string.dashboard_add_widget)
         fun addWidgetIntro(res: Resources): String = res.getString(R.string.dashboard_add_widget_intro)
         fun allAdded(res: Resources): String = res.getString(R.string.dashboard_all_added)
@@ -396,6 +398,12 @@ object S {
         fun emptySubscriptions(res: Resources): String = res.getString(R.string.dashboard_empty_subscriptions)
         fun emptyTitle(res: Resources): String = res.getString(R.string.dashboard_empty_title)
         fun emptyUpcoming(res: Resources): String = res.getString(R.string.dashboard_empty_upcoming)
+        fun greetingAfternoon(res: Resources): String = res.getString(R.string.dashboard_greeting_afternoon)
+        fun greetingEvening(res: Resources): String = res.getString(R.string.dashboard_greeting_evening)
+        fun greetingFallback(res: Resources): String = res.getString(R.string.dashboard_greeting_fallback)
+        fun greetingMorning(res: Resources): String = res.getString(R.string.dashboard_greeting_morning)
+        fun greetingNight(res: Resources): String = res.getString(R.string.dashboard_greeting_night)
+        fun hideAmountsA11y(res: Resources): String = res.getString(R.string.dashboard_hide_amounts_a11y)
         fun inflow(res: Resources): String = res.getString(R.string.dashboard_inflow)
         fun lastMonth(res: Resources): String = res.getString(R.string.dashboard_last_month)
         fun moreCategories(res: Resources, count: Any): String =
@@ -409,6 +417,7 @@ object S {
         fun perMonth(res: Resources): String = res.getString(R.string.dashboard_per_month)
         fun premium(res: Resources): String = res.getString(R.string.dashboard_premium)
         fun premiumNote(res: Resources): String = res.getString(R.string.dashboard_premium_note)
+        fun showAmountsA11y(res: Resources): String = res.getString(R.string.dashboard_show_amounts_a11y)
         fun singleCurrency(res: Resources, base: Any): String =
             res.getString(R.string.dashboard_single_currency, base)
         fun spent(res: Resources, amount: Any): String =
@@ -437,6 +446,9 @@ object S {
         fun trendLast1w(res: Resources): String = res.getString(R.string.dashboard_trend_last1w)
         fun trendLast1y(res: Resources): String = res.getString(R.string.dashboard_trend_last1y)
         fun trendLast3d(res: Resources): String = res.getString(R.string.dashboard_trend_last3d)
+        fun viewAll(res: Resources): String = res.getString(R.string.dashboard_view_all)
+        fun viewAllCount(res: Resources, n: Any): String =
+            res.getString(R.string.dashboard_view_all_count, n)
         fun width(res: Resources): String = res.getString(R.string.dashboard_width)
         fun youAreOwed(res: Resources): String = res.getString(R.string.dashboard_you_are_owed)
         fun youOwe(res: Resources): String = res.getString(R.string.dashboard_you_owe)
@@ -758,8 +770,12 @@ object S {
         fun sipFreqMonthly(res: Resources): String = res.getString(R.string.investments_sip_freq_monthly)
         fun sipFreqWeekly(res: Resources): String = res.getString(R.string.investments_sip_freq_weekly)
         fun sipFreqYearly(res: Resources): String = res.getString(R.string.investments_sip_freq_yearly)
+        fun sipLine(res: Resources): String = res.getString(R.string.investments_sip_line)
         fun sipNote(res: Resources, amount: Any, account: Any): String =
             res.getString(R.string.investments_sip_note, amount, account)
+        fun stopSip(res: Resources): String = res.getString(R.string.investments_stop_sip)
+        fun stopSipMsg(res: Resources): String = res.getString(R.string.investments_stop_sip_msg)
+        fun stopSipTitle(res: Resources): String = res.getString(R.string.investments_stop_sip_title)
         fun syncNote(res: Resources): String = res.getString(R.string.investments_sync_note)
         fun theAmount(res: Resources): String = res.getString(R.string.investments_the_amount)
         fun thisAccount(res: Resources): String = res.getString(R.string.investments_this_account)
@@ -1277,6 +1293,7 @@ object S {
         fun actions(res: Resources, name: Any): String =
             res.getString(R.string.recurring_actions, name)
         fun add(res: Resources): String = res.getString(R.string.recurring_add)
+        fun alertTime(res: Resources): String = res.getString(R.string.recurring_alert_time)
         fun amountLabel(res: Resources): String = res.getString(R.string.recurring_amount_label)
         fun autoPosts(res: Resources): String = res.getString(R.string.recurring_auto_posts)
         fun cancel(res: Resources): String = res.getString(R.string.recurring_cancel)
@@ -1502,6 +1519,7 @@ object S {
         fun premiumBody(res: Resources): String = res.getString(R.string.statements_premium_body)
         fun premiumTitle(res: Resources): String = res.getString(R.string.statements_premium_title)
         fun print(res: Resources): String = res.getString(R.string.statements_print)
+        fun share(res: Resources): String = res.getString(R.string.statements_share)
         fun statementName(res: Resources): String = res.getString(R.string.statements_statement_name)
         fun title(res: Resources): String = res.getString(R.string.statements_title)
         fun toDate(res: Resources): String = res.getString(R.string.statements_to_date)
@@ -1705,6 +1723,7 @@ object S {
         fun saveWithTotal(res: Resources, total: Any): String =
             res.getString(R.string.transactions_save_with_total, total)
         fun saving(res: Resources): String = res.getString(R.string.transactions_saving)
+        fun scannedChip(res: Resources): String = res.getString(R.string.transactions_scanned_chip)
         fun searchCategory(res: Resources): String = res.getString(R.string.transactions_search_category)
         fun searchPlaceholder(res: Resources): String = res.getString(R.string.transactions_search_placeholder)
         fun sharesMatch(res: Resources, sum: Any, total: Any): String =

@@ -8,6 +8,8 @@ import com.sanvya.app.data.repository.RecurringRepository
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.ui.FormOptions
 import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.ui.budgets.localToUtcTime
+import com.sanvya.app.ui.budgets.utcToLocalTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -88,6 +90,10 @@ class RecurringFormViewModel : ViewModel(), KoinComponent {
 
     /**
      * @param amountMajor what the user typed, in major units.
+     * @param alertTimeLocal "HH:MM" in the DEVICE's zone, as the field shows it.
+     *   Converted here, once, at the boundary -- the column is UTC and every
+     *   other alert-carrying form in this app (budgets, goals, loans) does the
+     *   same conversion in the same place with the same helper.
      * @param editingId null to create.
      */
     fun save(
@@ -99,6 +105,7 @@ class RecurringFormViewModel : ViewModel(), KoinComponent {
         categoryId: String?,
         frequency: String,
         firstDue: String,
+        alertTimeLocal: String,
         autoPost: Boolean,
         onSaved: () -> Unit,
     ) {
@@ -126,6 +133,10 @@ class RecurringFormViewModel : ViewModel(), KoinComponent {
                     frequency = frequency,
                     firstDue = firstDue,
                     autoPost = autoPost,
+                    // Was hardcoded null, which is what made every recurring
+                    // item silently unremindable: the engine reads this column
+                    // to decide WHEN to nudge, and a null is "never".
+                    alertTimeUtc = localToUtcTime(alertTimeLocal),
                 )
                 if (editingId != null) {
                     recurringRepository.update(editingId, input)
@@ -149,6 +160,16 @@ class RecurringFormViewModel : ViewModel(), KoinComponent {
     companion object {
         /** Today, for a new item's first due date. Matches web's default. */
         fun todayIso(): String = LocalDate.now().toString()
+
+        /**
+         * A new item's alert time, in local clock terms.
+         *
+         * `utcToLocalTime(null)` rather than a literal "09:00": web's
+         * `utcToLocalTime(edit?.alert_time_utc)` returns the same default for a
+         * row that has none, and routing through the one helper keeps the
+         * default in a single place instead of two that can drift.
+         */
+        fun defaultAlertTimeLocal(): String = utcToLocalTime(null)
 
         /**
          * Web's `FREQS`, which is the same list as the generated

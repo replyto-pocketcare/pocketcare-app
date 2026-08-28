@@ -86,6 +86,11 @@ data class TransactionListItem(
      * posting of it -- the row shows a "Split" chip and the amount you paid.
      */
     val isSplit: Boolean,
+    /**
+     * True when a receipt photo created this transaction -- the row shows a
+     * "Scanned" chip. Web's `scannedIds.has(tx.id)`, from `receipt_scans`.
+     */
+    val isScanned: Boolean,
     val dateFormatted: String,
     val avatarColor: androidx.compose.ui.graphics.Color,
     val avatarLetter: String,
@@ -100,6 +105,11 @@ enum class TxAmountColor { POSITIVE, DEFAULT }
  *   currency) rather than this one posting's figure, the sign is always
  *   negative and the colour never the income green, and the account name is
  *   dropped -- a split spans up to three accounts, so naming one would be a lie.
+ * @param scanned set when a receipt photo produced this transaction. Defaults
+ *   to false because only the Transactions list carries the chip -- web passes
+ *   `scanned` from `<TransactionTile>` there and nowhere else, so Search and
+ *   the dashboard tile stay as they are rather than each growing a second
+ *   `receipt_scans` watch for a pill they do not draw.
  */
 fun transactionListItem(
     txn: TransactionRow,
@@ -107,6 +117,7 @@ fun transactionListItem(
     categoryMap: Map<String, CategoryRow>,
     labels: List<String>?,
     split: SplitInfo? = null,
+    scanned: Boolean = false,
 ): TransactionListItem {
     val categoryName = txn.categoryId?.let { categoryMap[it]?.name } ?: "Uncategorised"
     val labelsCsv = labels?.joinToString(", ")
@@ -148,6 +159,7 @@ fun transactionListItem(
         amountFormatted = amountFormatted,
         amountColor = amountColor,
         isSplit = isSplit,
+        isScanned = scanned,
         dateFormatted = dateFormatted,
         avatarColor = avatarColor(title),
         avatarLetter = (title.firstOrNull() ?: '•').uppercase(),

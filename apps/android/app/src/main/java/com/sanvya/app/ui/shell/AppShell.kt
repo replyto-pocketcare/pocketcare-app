@@ -172,7 +172,7 @@ fun AppShell(
                 onNotifications = { onNavigate("notifications") },
             )
         }
-        CompositionLocalProviderForAddAction(onSetPageAction) { content() }
+        ProvideShellLocals(onSetPageAction, onNavigate) { content() }
     }
 
     // One Box around both layouts so the write indicator has somewhere to sit
@@ -197,7 +197,13 @@ fun AppShell(
                 Column(modifier = Modifier.fillMaxSize()) {
                     // Banners sit above everything, in web's z-order: problems first.
                     Column(modifier = Modifier.padding(WindowInsets.statusBars.asPaddingValues())) {
-                        SyncProblemsBanner(failedWrites) { onNavigate("settings") }
+                        SyncProblemsBanner(failedWrites) {
+                            // Web pushes `/settings#problems`; the fragment is what scrolls
+                            // the panel into view. A native route has no fragment, so the
+                            // section travels beside the navigation instead.
+                            SettingsSectionRequest.request(SettingsSection.PROBLEMS)
+                            onNavigate("settings")
+                        }
                         OfflineBanner(offline)
                     }
 
@@ -293,13 +299,23 @@ fun AppShell(
     )
 }
 
+/**
+ * The two ambient capabilities every page inside the shell gets: registering its
+ * own "+" action, and asking the shell to navigate.
+ *
+ * Both are things web has for free — a screen sets its add action through a
+ * context provider and links anywhere with `next/link` — and both would
+ * otherwise have to be threaded through the nav graph as per-screen callbacks.
+ */
 @Composable
-private fun CompositionLocalProviderForAddAction(
+private fun ProvideShellLocals(
     setter: (AddAction?) -> Unit,
+    navigate: (String) -> Unit,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
         LocalAddActionSetter provides setter,
+        LocalShellNavigate provides navigate,
         content = content,
     )
 }
@@ -467,7 +483,13 @@ private fun ExpandedShell(
     ) {
         // Banners stay full-bleed above the frame: they are system messages
         // about the app, not content inside it.
-        SyncProblemsBanner(failedWrites) { onNavigate("settings") }
+        SyncProblemsBanner(failedWrites) {
+            // Web pushes `/settings#problems`; the fragment is what scrolls
+            // the panel into view. A native route has no fragment, so the
+            // section travels beside the navigation instead.
+            SettingsSectionRequest.request(SettingsSection.PROBLEMS)
+            onNavigate("settings")
+        }
         OfflineBanner(offline)
 
         Row(

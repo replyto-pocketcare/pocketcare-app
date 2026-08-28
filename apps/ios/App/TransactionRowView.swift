@@ -25,6 +25,7 @@ struct TransactionRowView: View {
                         .foregroundColor(Color.text)
                         .lineLimit(1)
                     if item.isSplit { SplitChip() }
+                    if item.isScanned { ScannedChip() }
                 }
                 if !item.subtitle.isEmpty {
                     Text(item.subtitle)
@@ -72,5 +73,23 @@ private struct SplitChip: View {
             .padding(.horizontal, 7)
             .padding(.vertical, 1)
             .background(Color.accentGhost, in: Capsule())
+    }
+}
+
+/// The "Scanned" pill on a row a receipt photo created — web's `ScannedChip`.
+///
+/// Neutral where the Split pill is accented, exactly as on web: "this came from
+/// a photo" is provenance, not something the user has to act on, and two accent
+/// pills side by side on a split scanned bill would read as two warnings.
+private struct ScannedChip: View {
+    var body: some View {
+        Text(S.Transactions.scannedChip.uppercased())
+            .font(.system(size: 10.5, weight: .bold))
+            .kerning(0.3)
+            .foregroundColor(Color.text2)
+            .lineLimit(1)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 1)
+            .background(Color.surface2, in: Capsule())
     }
 }

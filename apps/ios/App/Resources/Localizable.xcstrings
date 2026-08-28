@@ -7019,6 +7019,52 @@
         }
       }
     },
+    "dashboard:accountsAdd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जोड़ें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toevoegen"
+          }
+        }
+      }
+    },
+    "dashboard:accountsAddA11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add account"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खाता जोड़ें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekening toevoegen"
+          }
+        }
+      }
+    },
     "dashboard:addWidget": {
       "extractionState": "manual",
       "localizations": {
@@ -7387,6 +7433,144 @@
         }
       }
     },
+    "dashboard:greetingAfternoon": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good afternoon"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शुभ दोपहर"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goedemiddag"
+          }
+        }
+      }
+    },
+    "dashboard:greetingEvening": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good evening"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शुभ संध्या"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goedenavond"
+          }
+        }
+      }
+    },
+    "dashboard:greetingFallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "there"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "daar"
+          }
+        }
+      }
+    },
+    "dashboard:greetingMorning": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good morning"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सुप्रभात"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goedemorgen"
+          }
+        }
+      }
+    },
+    "dashboard:greetingNight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good night"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शुभ रात्रि"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goedenacht"
+          }
+        }
+      }
+    },
+    "dashboard:hideAmountsA11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide amounts"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "राशियाँ छिपाएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedragen verbergen"
+          }
+        }
+      }
+    },
     "dashboard:inflow": {
       "extractionState": "manual",
       "localizations": {
@@ -7636,6 +7820,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Premium-tegels ontgrendel je met een Lite- of Pro-abonnement."
+          }
+        }
+      }
+    },
+    "dashboard:showAmountsA11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show amounts"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "राशियाँ दिखाएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedragen tonen"
           }
         }
       }
@@ -8260,6 +8467,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Laatste 3 dagen"
+          }
+        }
+      }
+    },
+    "dashboard:viewAll": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View all"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सभी देखें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles bekijken"
+          }
+        }
+      }
+    },
+    "dashboard:viewAllCount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View all (%1$@)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सभी देखें (%1$@)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles bekijken (%1$@)"
           }
         }
       }
@@ -14292,6 +14545,29 @@
         }
       }
     },
+    "investments:sipLine": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIP"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एसआईपी"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIP"
+          }
+        }
+      }
+    },
     "investments:sipNote": {
       "extractionState": "manual",
       "localizations": {
@@ -14311,6 +14587,75 @@
           "stringUnit": {
             "state": "translated",
             "value": "Op elke SIP-datum leggen we een overboeking van %1$@ van die rekening naar %2$@ vast — het verschijnt ook onder Terugkerend & Geplande cashflow."
+          }
+        }
+      }
+    },
+    "investments:stopSip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop SIP"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एसआईपी बंद करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIP stoppen"
+          }
+        }
+      }
+    },
+    "investments:stopSipMsg": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No further instalments will be recorded. The holding stays."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आगे कोई किस्त दर्ज नहीं की जाएगी। निवेश बना रहेगा।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er worden geen termijnen meer vastgelegd. De belegging blijft staan."
+          }
+        }
+      }
+    },
+    "investments:stopSipTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop SIP?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एसआईपी बंद करें?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIP stoppen?"
           }
         }
       }
@@ -24415,6 +24760,29 @@
         }
       }
     },
+    "recurring:alertTime": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alert time"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अलर्ट का समय"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herinneringstijd"
+          }
+        }
+      }
+    },
     "recurring:amountLabel": {
       "extractionState": "manual",
       "localizations": {
@@ -28981,6 +29349,29 @@
         }
       }
     },
+    "statements:share": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share statement"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्टेटमेंट साझा करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afschrift delen"
+          }
+        }
+      }
+    },
     "statements:statementName": {
       "extractionState": "manual",
       "localizations": {
@@ -32933,6 +33324,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opslaan…"
+          }
+        }
+      }
+    },
+    "transactions:scannedChip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanned"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्कैन किया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gescand"
           }
         }
       }

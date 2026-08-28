@@ -45,11 +45,11 @@ struct AddLoanView: View {
                 }
 
                 Section(header: Text("Loan details")) {
-                    TextField("Principal (INR)", text: $principalText).keyboardType(.decimalPad)
+                    TextField(S.Loans.principal(cur: baseCurrencyNow()), text: $principalText).keyboardType(.decimalPad)
                     TextField(S.Loans.tenureMonths, text: $tenureText).keyboardType(.numberPad)
                     TextField(rateType == "variable" ? "Current interest %" : S.Loans.interestPa, text: $rateText).keyboardType(.decimalPad)
                     if rateType == "fixed" {
-                        TextField("Monthly EMI (INR)", text: emiFieldBinding).keyboardType(.decimalPad)
+                        TextField(S.Loans.monthlyEmi(cur: baseCurrencyNow()), text: emiFieldBinding).keyboardType(.decimalPad)
                         if computedEmiMinor > 0 {
                             HStack {
                                 Text(emiTouched ? "Auto-calculated EMI was \(formatMoney(computedEmiMinor, baseCurrencyNow()))" : "EMI auto-calculated from principal, rate & tenure.")

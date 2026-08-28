@@ -50,6 +50,7 @@
   },
   "splitBetween": "Split between:",
   "splitChip": "Split",
+  "scannedChip": "Scanned",
   "sharesMatch": "Shares total {{sum}} of {{total}} ✓",
   "sharesMismatch": "Shares total {{sum}} of {{total}} — must match",
   "percentMatch": "Percent total {{pct}}% ✓",

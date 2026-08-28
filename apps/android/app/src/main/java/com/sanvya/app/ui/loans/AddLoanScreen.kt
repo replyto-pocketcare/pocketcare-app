@@ -92,7 +92,7 @@ fun AddLoanScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = principal, onValueChange = { principal = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text("Principal (INR)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    label = { Text(S.Loans.principal(sRes(), baseCurrencyNow())) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
                 )
                 OutlinedTextField(
@@ -110,7 +110,7 @@ fun AddLoanScreen(
                 if (rateType == "fixed") {
                     OutlinedTextField(
                         value = emiValue, onValueChange = { emi = it; emiTouched = true },
-                        label = { Text("Monthly EMI (INR)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        label = { Text(S.Loans.monthlyEmi(sRes(), baseCurrencyNow())) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f),
                     )
                 }

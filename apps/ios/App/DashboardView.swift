@@ -21,7 +21,7 @@ struct DashboardView: View {
     // here since it's the same hero/accounts-strip code this file already
     // owns). Mirrors Android's Prefs.amountsHidden the same way.
     @StateObject private var prefs = Prefs.shared
-    // Both the empty-state CTA and the header "+ Account" button open the
+    // Both the empty-state CTA and the accounts strip's "Add" tile open the
     // same sheet -- matches AccountsView.swift's existing
     // showingCreateSheet/CreateAccountView() pattern (no dedicated NavTab
     // exists for "create account", so every other screen that offers this
@@ -45,21 +45,38 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             Group {
-                // Empty/onboarding state -- apps/web/app/page.tsx's
-                // `balances.length === 0` early return, matching Android's
-                // EmptyDashboard (DashboardScreen.kt). Was missing entirely
-                // on iOS (found 2026-08-06, Akhilesh: "if we don't have an
-                // account I am not getting the add your account first card
-                // like android") -- the populated layout below rendered
-                // unconditionally even with zero accounts, showing a ₹0.00
-                // hero with no sparkline (correctly per spec -- fewer than 2
-                // months of data -- but with nothing explaining why, since
-                // there was no accounts-yet messaging at all).
-                if viewModel.accounts.isEmpty {
+                // While the local read has not returned OR the first sync from
+                // the server has not landed, show widget-shaped placeholders --
+                // never the "add your first account" screen. page.tsx guards the
+                // same way and says why: that screen flashed during the initial
+                // sync, which tells a returning user their money is gone. Both
+                // ports used to accept the two-state simplification; they no
+                // longer do, on the same day, on both platforms.
+                if viewModel.accounts.isEmpty && (!viewModel.accountsLoaded || viewModel.syncPending) {
+                    DashboardSkeletonView()
+                } else if viewModel.accounts.isEmpty {
+                    // Empty/onboarding state -- apps/web/app/page.tsx's
+                    // `balances.length === 0` early return, matching Android's
+                    // EmptyDashboard (DashboardScreen.kt).
                     DashboardEmptyStateView(onAddAccount: { showingCreateAccountSheet = true })
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 20) {
+                            // Web's `.dash-header`: the time-of-day greeting as
+                            // an eyebrow, the person's name as the page's h1,
+                            // and the control row beside it. This is why the
+                            // shell skips its shared utility row on this tab
+                            // (AppShell.swift) -- the bell belongs here.
+                            DashboardHeaderView(
+                                displayName: viewModel.displayName,
+                                editing: editing,
+                                hidden: prefs.amountsHidden,
+                                unreadCount: shellViewModel.unreadCount,
+                                onToggleEditing: { editing.toggle() },
+                                onToggleHidden: { prefs.amountsHidden.toggle() },
+                                onNotifications: { currentTab = .notifications }
+                            )
+
                             // Net-worth hero -- ported from apps/web/app/page.tsx's
                             // NetWorthHero per docs/mobile/screen-specs/dashboard.md.
                             // Replaces this file's previous flat Color.accent card
@@ -80,11 +97,23 @@ struct DashboardView: View {
                                         .fontWeight(.bold)
                                         .foregroundColor(Color.text)
                                     Spacer()
-                                    // A chevron used to sit here with an empty
-                                    // action — it read as "see all accounts"
-                                    // and did nothing. Web's dashboard has no
-                                    // such affordance, so it is removed rather
-                                    // than given one.
+                                    // Web's "View all", with the total appended
+                                    // only once the strip has stopped showing
+                                    // them all -- the number is there to say
+                                    // "there are more", not to count what is
+                                    // already visible. A chevron used to sit
+                                    // here wired to an empty action; this is
+                                    // the link it was pretending to be.
+                                    Button {
+                                        currentTab = .accounts
+                                    } label: {
+                                        Text(viewModel.accounts.count > 8
+                                             ? S.Dashboard.viewAllCount(n: String(viewModel.accounts.count))
+                                             : S.Dashboard.viewAll)
+                                            .font(.system(size: 13))
+                                            .foregroundColor(Color.accent)
+                                    }
+                                    .buttonStyle(SanvyaPressStyle())
                                 }
 
                                 ScrollView(.horizontal, showsIndicators: false) {
@@ -116,18 +145,23 @@ struct DashboardView: View {
                                             .background(accountColor(explicit: acctWithBal.account.color, id: acctWithBal.account.id))
                                             .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusSm, style: .continuous))
                                         }
+
+                                        // The add-account tile, last in the strip
+                                        // and the same footprint as an account:
+                                        // outlined instead of filled, exactly as
+                                        // web draws it. Without it the only way to
+                                        // add a second account was to leave for the
+                                        // Accounts screen first -- two screens for
+                                        // the one action this strip is about.
+                                        AddAccountTile { showingCreateAccountSheet = true }
                                     }
                                 }
                             }
 
                             // Tile catalog (recent/spending/trends/budgets/goals/
-                            // etc.) is explicitly deferred -- see
-                            // docs/mobile/screen-specs/dashboard.md "Explicitly
-                            // deferred". This card says so instead of silently
-                            // omitting the section or faking a grid -- matches
-                            // Android's DashboardScreen.kt card exactly (found
-                            // missing on iOS 2026-08-06, Akhilesh: "I don't see
-                            // an option to add widgets").
+                            // etc.) -- matches Android's DashboardTileGrid exactly
+                            // (found missing on iOS 2026-08-06, Akhilesh: "I don't
+                            // see an option to add widgets").
                             DashboardTileGrid(
                                 editing: editing,
                                 isPaid: shellViewModel.canScan,
@@ -145,36 +179,13 @@ struct DashboardView: View {
                 }
             }
             .background(Color.bg.ignoresSafeArea())
-            .navigationTitle(S.Translation.appName)
-            .toolbar {
-                // Hide/Show -- apps/web/app/page.tsx's header chip row has
-                // Customize/Hide-Show/Account+; Android's toolbar
-                // (DashboardScreen.kt) only ported the hide/show eye-toggle
-                // of those three (plus Transactions/Settings icons, which
-                // duplicate paths the hamburger drawer already covers on
-                // both platforms). A header "+Account" is still skipped for
-                // the reason Android skipped it: account creation is already
-                // one tap away (empty-state CTA when there are none, the
-                // Accounts screen's own "+" once there are some).
-                //
-                // "Customize" was skipped too, because it had nothing to open
-                // until the tile catalog itself was built. It does now, so it
-                // is here — on both platforms, in the same pass.
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button { editing.toggle() } label: {
-                        Text(editing ? S.Translation.commonDone : S.Dashboard.customize)
-                            .foregroundColor(Color.accent)
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        prefs.amountsHidden.toggle()
-                    } label: {
-                        Image(systemName: prefs.amountsHidden ? "eye" : "eye.slash")
-                            .foregroundColor(Color.text2)
-                    }
-                }
-            }
+            // Web's dashboard has no chrome above the greeting: the greeting IS
+            // the page header, and the controls that used to sit in this bar
+            // (Customize, hide/show) now sit beside it, with the bell they were
+            // always meant to be next to. A "+Account" is still skipped for the
+            // reason Android skipped it: account creation is one tap away from
+            // the strip's own Add tile.
+            .toolbar(.hidden, for: .navigationBar)
         }
         .sanvyaFormPresentation(isPresented: $showingCreateAccountSheet) {
             CreateAccountView()
@@ -217,14 +228,172 @@ struct DashboardView: View {
     }
 }
 
+// MARK: - Header
+
+/**
+ Web's `.dash-header`: the time-of-day greeting as an eyebrow, the person's name
+ as the page's h1, and the control row beside it.
+
+ Rendered in the page rather than in the navigation bar, because that is where
+ web puts it — and it is why `AppShell` skips its shared utility row on this tab.
+ Drawing the bell in both places would put two of them on the one screen that
+ carries its own.
+ */
+struct DashboardHeaderView: View {
+    let displayName: String
+    let editing: Bool
+    let hidden: Bool
+    let unreadCount: Int
+    let onToggleEditing: () -> Void
+    let onToggleHidden: () -> Void
+    let onNotifications: () -> Void
+
+    /// Refreshed on appear, not read inside `body`.
+    ///
+    /// Reading a clock inside `body` makes what a frame renders depend on when
+    /// the frame happened to run. But this is a TAB, and `@State` outlives a
+    /// tab switch and a backgrounding -- initialising once meant a session
+    /// opened at 11:55 still said "Good morning" at three in the afternoon.
+    @State private var hour = Calendar.current.component(.hour, from: Date())
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                SanvyaEyebrow(timeGreeting(hour: hour))
+                // `compact: false` — web's is clamp(24px, 6.5vw, 30px), i.e. the
+                // full h1, not the tightened one lists use.
+                SanvyaH1(displayName.isEmpty ? S.Dashboard.greetingFallback : displayName, compact: false)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 0)
+            SanvyaChip(
+                editing ? S.Translation.commonDone : S.Dashboard.customize,
+                isActive: editing,
+                action: onToggleEditing
+            )
+            HideAmountsButton(hidden: hidden, action: onToggleHidden)
+            NotifBell(unreadCount: unreadCount, action: onNotifications)
+        }
+        .onAppear { hour = Calendar.current.component(.hour, from: Date()) }
+    }
+}
+
+/**
+ The eye toggle, icon-only.
+
+ Web's is a chip with the word "Hide"/"Show" beside the icon. At phone width
+ three labelled chips plus the bell do not fit next to a name, so this keeps the
+ icon and moves the words into the accessibility label — where a screen reader
+ still gets them, which is the half that was load-bearing.
+ */
+private struct HideAmountsButton: View {
+    let hidden: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: hidden ? "eye" : "eye.slash")
+                .font(.system(size: 15))
+                .foregroundStyle(Color.text)
+                .frame(width: SanvyaMetrics.UtilRow.buttonSize,
+                       height: SanvyaMetrics.UtilRow.buttonSize)
+                .background(Color.surface)
+                .clipShape(Circle())
+                .overlay(Circle().strokeBorder(Color.border, lineWidth: 1))
+        }
+        .buttonStyle(SanvyaPressStyle())
+        .accessibilityLabel(hidden ? S.Dashboard.showAmountsA11y : S.Dashboard.hideAmountsA11y)
+    }
+}
+
+/**
+ Good morning / afternoon / evening / night, on page.tsx's own boundaries:
+ < 5 night, < 12 morning, < 17 afternoon, < 21 evening, else night.
+
+ Web's `timeGreeting()` returns four hardcoded English strings — the greeting is
+ the one line on its dashboard that never translates. Recorded in
+ docs/mobile/PARITY_AUDIT.md under the web defects; both ports use real keys.
+ */
+private func timeGreeting(hour: Int) -> String {
+    switch hour {
+    case ..<5: return S.Dashboard.greetingNight
+    case ..<12: return S.Dashboard.greetingMorning
+    case ..<17: return S.Dashboard.greetingAfternoon
+    case ..<21: return S.Dashboard.greetingEvening
+    default: return S.Dashboard.greetingNight
+    }
+}
+
+// MARK: - Accounts strip
+
+/// The dashed "Add" tile that closes web's accounts strip, at the same 112pt
+/// footprint as an account so the row does not step at its last item.
+private struct AddAccountTile: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: "plus")
+                    .font(.system(size: 16))
+                Text(S.Dashboard.accountsAdd)
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundStyle(Color.text2)
+            .frame(width: 112, minHeight: 58)
+            .padding(.horizontal, 11)
+            .padding(.vertical, 9)
+            .overlay(
+                RoundedRectangle(cornerRadius: SanvyaRadius.radiusSm, style: .continuous)
+                    .strokeBorder(Color.borderStrong, lineWidth: 1.5)
+            )
+        }
+        .buttonStyle(SanvyaPressStyle())
+        .accessibilityLabel(S.Dashboard.accountsAddA11y)
+    }
+}
+
+// MARK: - Loading
+
+/**
+ Widget-shaped placeholders for the first seconds of a returning user's first
+ launch — page.tsx's own skeleton block, block for block: a hero, the accounts
+ card with six chips, one full-width tile and a pair of half ones.
+ */
+struct DashboardSkeletonView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                SanvyaSkeleton(height: 132, cornerRadius: SanvyaRadius.radiusLg)
+                SanvyaCard {
+                    VStack(alignment: .leading, spacing: 14) {
+                        SanvyaSkeleton(height: 18).frame(width: 120)
+                        ForEach(0..<2, id: \.self) { _ in
+                            HStack(spacing: 8) {
+                                ForEach(0..<3, id: \.self) { _ in
+                                    SanvyaSkeleton(height: 58, cornerRadius: SanvyaRadius.radiusSm)
+                                }
+                            }
+                        }
+                    }
+                }
+                SanvyaSkeleton(height: 190, cornerRadius: SanvyaRadius.radiusLg)
+                HStack(spacing: 16) {
+                    ForEach(0..<2, id: \.self) { _ in
+                        SanvyaSkeleton(height: 150, cornerRadius: SanvyaRadius.radiusLg)
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+}
+
 /// Matches apps/web/app/page.tsx's `balances.length === 0` early return and
 /// Android's `EmptyDashboard` (DashboardScreen.kt) copy exactly -- see
-/// docs/mobile/screen-specs/dashboard.md "States" #2. Not gated on a
-/// separate loading flag (web distinguishes loading-skeleton vs. empty to
-/// avoid an initial-sync flash; Android's port already accepted that
-/// simplification -- see dashboard.md "Explicitly deferred" -- matching it
-/// here for cross-platform consistency rather than reintroducing a
-/// three-state gate on only one platform).
+/// docs/mobile/screen-specs/dashboard.md "States" #2. Reached only once the
+/// local read HAS returned and the first sync HAS landed -- see
+/// `DashboardSkeletonView` above, which holds the screen until then.
 struct DashboardEmptyStateView: View {
     let onAddAccount: () -> Void
 

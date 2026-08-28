@@ -162,7 +162,7 @@ struct LoanDetailContentView: View {
         .sheet(item: Binding(get: { payForMonth.map { IdentifiableInt(value: $0) } }, set: { payForMonth = $0?.value })) { wrapped in
             if let model = viewModel.uiModel, let row = model.rows.first(where: { $0.month == wrapped.value }) {
                 MarkPaidSheetView(
-                    month: wrapped.value, dueLabel: row.dueFormatted, emiAmountMinor: row.emiMinor,
+                    month: wrapped.value, dueLabel: row.dueFormatted, dueIso: row.dueIso, emiAmountMinor: row.emiMinor,
                     emiAmountFormatted: row.emiMinor > 0 ? row.amountFormatted : nil, currency: model.currency,
                     accounts: viewModel.markPaidAccounts, defaultAccountId: viewModel.defaultFundingAccountId,
                     onConfirm: { paidOn, accountId in
@@ -391,6 +391,7 @@ private struct EmiRowCardView: View {
 struct MarkPaidSheetView: View {
     let month: Int
     let dueLabel: String
+    let dueIso: String?
     let emiAmountMinor: Int64
     let emiAmountFormatted: String?
     let currency: String
@@ -402,6 +403,17 @@ struct MarkPaidSheetView: View {
     @State private var paidOn = Date()
     @State private var accountId: String = ""
 
+    /// Web seeds this with the EMI's own due date and caps the input at today
+    /// (`useState(due && due <= todayIso() ? due : todayIso())`, `max={todayIso()}`).
+    /// Defaulting to today makes every late payment record the wrong date
+    /// unless the user notices and changes it, and a paid-on in the FUTURE is
+    /// not a thing that can have happened.
+    private var seededPaidOn: Date {
+        let today = IsoDay.today()
+        if let iso = dueIso, iso <= today, let due = IsoDay.date(from: iso) { return due }
+        return IsoDay.date(from: today) ?? Date()
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -410,7 +422,7 @@ struct MarkPaidSheetView: View {
                         Text([dueLabel.isEmpty ? nil : "Due \(dueLabel)", emiAmountFormatted].compactMap { $0 }.joined(separator: " · "))
                             .font(.caption).foregroundColor(Color.text2)
                     }
-                    DatePicker(S.Loans.paidOn, selection: $paidOn, displayedComponents: .date)
+                    DatePicker(S.Loans.paidOn, selection: $paidOn, in: ...Date(), displayedComponents: .date)
                 }
                 Section(header: Text("Also record as an expense")) {
                     Picker(S.Translation.settingsAccount, selection: $accountId) {
@@ -435,7 +447,7 @@ struct MarkPaidSheetView: View {
                     Button(S.Loans.cancel) { dismiss() }.foregroundColor(Color.text2)
                 }
             }
-            .onAppear { accountId = defaultAccountId ?? "" }
+            .onAppear { accountId = defaultAccountId ?? ""; paidOn = seededPaidOn }
         }
     }
 }

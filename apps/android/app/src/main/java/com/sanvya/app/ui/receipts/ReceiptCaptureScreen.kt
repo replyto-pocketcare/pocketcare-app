@@ -14,9 +14,11 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Camera
@@ -25,7 +27,10 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +44,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.sanvya.app.theme.LocalSanvyaColors
+import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.Muted
 import com.sanvya.app.ui.components.SanvyaCard
@@ -96,6 +102,7 @@ fun ReceiptCaptureScreen(
     val canEscalate by viewModel.canEscalate.collectAsState()
     val quotaLeft by viewModel.quotaLeft.collectAsState()
     val aiBusy by viewModel.aiBusy.collectAsState()
+    val previewImage by viewModel.previewImage.collectAsState()
     val res = sRes()
     val scope = rememberCoroutineScope()
     val pdfExtractor: PdfTextExtractor = koinInject()
@@ -142,6 +149,7 @@ fun ReceiptCaptureScreen(
                     base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP),
                     mediaType = imageMediaType(bytes, mime),
                 )
+                viewModel.onPreviewImage(bitmap)
                 recognizer.process(InputImage.fromBitmap(bitmap, 0))
                     .addOnSuccessListener { text -> viewModel.onTextRecognized(text.text) }
                     .addOnFailureListener { viewModel.onCaptureFailed(S.Receipts.errorsUnsupportedFile(res)) }
@@ -237,6 +245,7 @@ fun ReceiptCaptureScreen(
                     val reason = (stage as CaptureStage.Mismatch).reason
                     MismatchCard(
                         message = viewModel.mismatchMessage(res, reason),
+                        preview = previewImage,
                         colors = colors,
                         canEscalate = canEscalate,
                         quotaLeft = quotaLeft,
@@ -342,6 +351,7 @@ private fun PermissionNeeded(colors: com.sanvya.app.theme.SanvyaColors, onReques
 @Composable
 private fun MismatchCard(
     message: String,
+    preview: android.graphics.Bitmap?,
     colors: com.sanvya.app.theme.SanvyaColors,
     canEscalate: Boolean,
     quotaLeft: Int,
@@ -357,6 +367,21 @@ private fun MismatchCard(
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(S.Receipts.captureUnclearTitle(res), fontWeight = FontWeight.Bold, color = colors.text)
                 Text(message, fontSize = 13.sp, color = colors.text2)
+                // The picture the claim is about. Without it "the items don't
+                // add up to the total" is unanswerable -- the paper is out of
+                // frame by now, and Improve-with-AI vs Retake becomes a guess.
+                preview?.let { bitmap ->
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = S.Receipts.capturePreviewAlt(res),
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .fillMaxWidth()
+                            .heightIn(max = PREVIEW_MAX_HEIGHT)
+                            .clip(RoundedCornerShape(SanvyaRadius.row)),
+                    )
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (canEscalate) {
                         Button(onClick = onImproveWithAi, enabled = !aiBusy && quotaLeft > 0) {
@@ -424,6 +449,9 @@ private fun captureAndRecognize(
                     base64 = android.util.Base64.encodeToString(jpegBytes, android.util.Base64.NO_WRAP),
                     mediaType = "image/jpeg",
                 )
+                // The ROTATED bitmap, so the preview is upright. The escalation
+                // above keeps the original bytes; only what is shown is turned.
+                viewModel.onPreviewImage(rotated)
                 val inputImage = InputImage.fromBitmap(rotated, 0)
                 recognizer.process(inputImage)
                     .addOnSuccessListener { text -> viewModel.onTextRecognized(text.text) }
@@ -551,3 +579,11 @@ private fun PasswordCard(
         }
     }
 }
+
+/**
+ * How tall the receipt preview may get on the mismatch card.
+ *
+ * Web's `maxHeight: 220`. Any taller and the three buttons under it fall below
+ * the fold on a short phone, which is the opposite of what the picture is for.
+ */
+private val PREVIEW_MAX_HEIGHT = 220.dp

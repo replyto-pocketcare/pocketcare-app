@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import Factory
+import PowerSync
 import Domain
 import Data
 
@@ -14,6 +15,8 @@ import Data
 public final class AccountsViewModel {
     @ObservationIgnored
     @Injected(\.ledgerRepository) private var ledgerRepository
+    @ObservationIgnored
+    @Injected(\.powerSyncDatabase) private var db
 
     public struct AccountUiModel: Identifiable, Equatable {
         public let id: String
@@ -28,14 +31,33 @@ public final class AccountsViewModel {
 
     public var visible: [AccountUiModel] = []
     public var archivedCount: Int = 0
+    /// Show card skeletons rather than "no accounts yet".
+    ///
+    /// Web's guard is `balances.length === 0 && (accountsLoading ||
+    /// syncPending)`. The half that matters is `syncPending`: on a returning
+    /// user's first launch the local database is empty because the accounts are
+    /// still downloading, and this screen told them they had none — which for
+    /// an accounts list reads as "your money is gone", not as "still loading".
+    public private(set) var showSkeleton = true
     public var showArchived: Bool = false {
         didSet { recompute() }
     }
 
     private var all: [AccountUiModel] = []
+    /// False until the first balance read lands — web's `useAccountsLoading()`.
+    /// A list of no accounts that has not been read yet is not a list of no
+    /// accounts.
+    private var loaded = false
+    private var syncPending = true
 
     public init() {
         Task { await startObserving() }
+        Task { [weak self] in
+            guard let self else { return }
+            await awaitInitialSync(self.db)
+            self.syncPending = false
+            self.recompute()
+        }
     }
 
     private func startObserving() async {
@@ -65,15 +87,22 @@ public final class AccountsViewModel {
                     includeInNetWorth: acct.includeInNetWorth
                 )
             }
+            loaded = true
             recompute()
         } catch {
             print("Failed to load account balances: \(error)")
+            // A read that threw is still an answer -- we are not waiting any
+            // more. Leaving this false turns one failure into a permanent
+            // skeleton.
+            loaded = true
+            recompute()
         }
     }
 
     private func recompute() {
         archivedCount = all.filter(\.isArchived).count
         visible = showArchived ? all : all.filter { !$0.isArchived }
+        showSkeleton = !loaded || syncPending
     }
 
     public func toggleShowArchived() {

@@ -3116,3 +3116,109 @@ and Material 3's `DatePicker` is a dialog with its own visual language, while
 SwiftUI's `DatePicker` is the platform-native control the rest of the iOS app
 already uses. The toggle exists because web's inputs can be EMPTY and a
 `DatePicker` cannot; without it the sheet could set a range but never clear one.
+
+## Tranche 4 — twenty-six gaps in one pass (2026-08-28)
+
+Four slices worked in parallel — cards/investments/loans, transactions/receipts,
+dashboard/shell/settings, statements/recurring/sync — then two whole-diff
+compile-sanity reviews (Kotlin, Swift) before commit, because CI is the compiler
+of record and a broken build costs a full round trip. Both reviews came back
+with **zero compile breaks and two real behavioural regressions**, both fixed
+below before the commit landed. That review step is now part of the loop.
+
+### What closed
+
+| Slice | Closed |
+|---|---|
+| Cards · investments · loans | rolled-to-next-cycle line · card face shows the real holder name · portfolio "Invested" figure · iOS investments empty-state CTA · add-loan "(INR)" → the real base currency · mark-EMI-paid defaults to the due date clamped to today · deleting a holding stops its linked SIP |
+| Transactions · receipts | "Scanned" chip · running total + `saveWithTotal` · auto-categorisation spinner and badge · receipt review calls `suggestCategory` · image preview on the couldn't-read card · skeleton instead of the empty state during first sync |
+| Dashboard · shell · settings | dashboard loading guard · notification bell · time-of-day greeting + display name · accounts strip "Add" tile and "View all" · `/subscriptions` CTA · guest "Create an account" · sync-problems banner scrolls to its section · replay intro |
+| Statements · recurring · sync | iOS statements date pickers · per-day grouping with day net, tappable rows, category and label tags · share a generated statement · iOS "Save a copy" on sync problems · recurring alert-time field |
+
+### The two regressions the review caught
+
+**A placeholder that never leaves.** The new `InitialSyncGate` polls PowerSync's
+`hasSynced` and drops web's `online &&` (the connectivity signal lives in the
+shell and is unreachable from a view model). On a brand-new install with no
+network `hasSynced` never flips, so the gate waited **forever** — Dashboard,
+Accounts and Transactions all shimmering, and on the dashboard the same change
+had removed the top app bar. A first-run user offline would have seen three grey
+screens and no way forward. The wait is now bounded at ten seconds: past that the
+empty state is not a guess, it is what we actually know.
+
+The same failure had a second door on iOS: the three view models set their
+`loaded` flag **only on the success path**, so one throwing read or one stream
+that failed before its first yield left the skeleton up for the life of the
+process. The flag only ever answers "is the skeleton still the honest thing to
+show?", and after a failure it is not — we are not waiting any more. It is now
+set in the `catch` too, and the error is reported by the error surface rather
+than by withholding the screen.
+
+**A greeting frozen at launch.** iOS read the hour once into `@State` with a
+comment saying the hour cannot change while the dashboard is on screen. It is a
+TAB: `@State` outlives a tab switch and a backgrounding, so a session opened at
+11:55 still said "Good morning" at three in the afternoon. Recomputed on appear.
+
+### New web defects found (still not fixed on web)
+
+| # | Defect |
+|---|---|
+| 20 | `src/cards/CreditCard.tsx` hardcodes "Card holder" and "Currency" as English while `cards:cardHolder` and `accounts:currency` exist. Both mobile ports are now more correct than ground truth |
+| 21 | A dozen keys exist only as inline i18next `defaultValue`s and were never added to the JSON (`investments:stopSip/stopSipTitle/stopSipMsg/sipLine/importHoldings`, `cards:cardTxnsTitle/…`). Every non-English locale falls through to English |
+| 22 | `src/ui/TransactionTile.tsx` renders the literals "Split" and "Scanned" — the only untranslated strings on that page |
+| 23 | `receipts/review/page.tsx:99` passes ALL categories to `suggestCategory`, income ones included, so a scanned expense can be auto-filed into an income category. Both ports filter `kind !== 'income'` and are stricter |
+| 24 | The new/edit transaction running total is `format(total, "en-US")` — US grouping in every locale |
+| 25 | `page.tsx`'s `timeGreeting()` returns four hardcoded English strings; the dashboard greeting never translates |
+| 26 | `page.tsx` calls `t("dashboard.greetingFallback")` with no namespace, so with `defaultNS: "translation"` and `keySeparator: "."` it resolves to `translation.dashboard.*`, which does not exist. A dead lookup that silently renders English. `recordTransaction` has no key anywhere |
+| 27 | `page.tsx`'s `NetWorthHero` sparkline divides by a hardcoded 100 — JPY plots at 1/100 height. The ×100 sweep missed this one |
+| 28 | `settings/page.tsx` seeds `useState` from `localStorage` inside render — the server renders `en` and a hi/nl client hydrate-mismatches on first paint |
+| 29 | `statements/page.tsx` throws `RangeError: Invalid time value` during render if a date input is cleared — `new Date("").toISOString()`, two unguarded lines |
+| 30 | Same file: `groupTxnsByDay` groups on UTC while each row renders a LOCAL time. East of Greenwich a 02:00 IST purchase sits under yesterday's header showing "2:00 AM", and the day-net line is cut at UTC midnight. **Both ports deliberately group locally instead** — the header agreeing with its own rows is visible to every user east of UTC; matching web's row-set is visible to nobody |
+| 31 | `RecurringModal.tsx` divides amounts by a hardcoded 100 twice, and `statements/analyze/page.tsx:172` a third time. Wrong for JPY and BHD |
+| 32 | `RecurringModal.tsx`'s "Alert time" is a bare English literal in a file that is otherwise entirely `t(...)` |
+
+### Standing problems the slices surfaced — not fixed, worth scheduling
+
+1. **The card edit form silently wipes `pending_due` and the credit limit** on both
+   platforms. `editDetails` blanks the inputs and `saveCycle` then writes null, so
+   opening "Edit details" and pressing Save without retyping **erases data**. Web
+   seeds the inputs from the loaded detail, so an unchanged save is a no-op. This
+   is live data loss and should be the next thing fixed.
+2. **There is no session holder.** Reading a username now requires
+   `SettingsRepository` on Android and the raw `SupabaseClient` on iOS, and several
+   view models each re-read the session independently. One observable session
+   (username / email / isGuest / daysLeft) belongs in `:data` / `Data`.
+3. **There is no shared sync status.** `hasSynced` is on `SettingsRepository`,
+   `connected` is on `syncSnapshot()`, and real connectivity is trapped privately
+   inside the shell's `rememberIsOffline` / `NWPathMonitor`. Web has one
+   `src/sync.ts` with all three. Four separate 400 ms pollers now exist. This
+   should become one app-level `SyncStatus` before a fifth appears.
+4. **No guard catches hardcoded user-facing strings** — which is the defect class
+   actually strewn through these files (the whole cards screen, the Settings
+   diagnostics section, Edit transaction's intent chips, Accounts' archived
+   labels). A grep guard over `Text("…")` with an allowlist would pay for itself
+   immediately. It is the cheapest guard left unbuilt.
+5. **`transactionListItem` date formatting has drifted three ways.** Android
+   hardcodes English "Today"/"Yesterday" and "Uncategorised"; iOS uses the
+   generated keys; **web's transactions list has neither** — it is an
+   unconditional `toLocaleDateString`. The two ports disagree with each other AND
+   with ground truth on every row of the main list.
+6. **The `S` layer is locale-immutable by construction**, which is why the in-app
+   language selector could not be built. All ~1,500 iOS accessors are
+   `String(localized:table:)` with no `bundle:`/`locale:`, so they resolve against
+   the system language, full stop. Android has no `appcompat` and so no
+   `AppCompatDelegate.setApplicationLocales`; `minSdk` is 26, so the framework
+   `LocaleManager` (API 33+) would be a lie on most devices. This is a
+   **generator-level** fix, not a screen-level one. Until it is done, "Language"
+   is a platform setting, not a Settings feature, and `settings.language` should
+   either open the system per-app language screen or leave the catalogue.
+7. **`SanvyaNavHost.kt` is a contention hotspot** — every screen that needs to
+   navigate anywhere edits one 500-line file. Worth splitting per feature before
+   the next parallel pass.
+8. **No `FileProvider` in `AndroidManifest.xml`**, so Android cannot share or
+   export a *file* from anywhere. Statement share is text-only because of a
+   missing four-line manifest entry, not because of the feature.
+9. **Mobile cannot create a SIP at all** — `addHolding` writes `planned_id = null`
+   and never writes `sip_amount`/`sip_day`. So the new Stop-SIP control can only
+   ever appear for holdings created on web. The delete-stops-the-SIP fix is the
+   half that matters today.

@@ -19,7 +19,9 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.ui.accounts.ChipRow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaCard
 import com.sanvya.app.ui.components.SanvyaPage
+import com.sanvya.app.ui.formatMoneyUnmasked
 
 /**
  * Edit transaction — ported from transactions/[id]/edit/page.tsx per
@@ -40,6 +42,7 @@ fun EditTransactionScreen(
     val relevantCategories by viewModel.relevantCategories.collectAsState()
     val relevantPaymentMethods by viewModel.relevantPaymentMethods.collectAsState()
     val labelOptions by viewModel.labels.collectAsState()
+    val total by viewModel.total.collectAsState()
     val colors = LocalSanvyaColors.current
 
     LaunchedEffect(uiState.saved) { if (uiState.saved) onSaved() }
@@ -69,7 +72,10 @@ fun EditTransactionScreen(
                     FilterChip(
                         selected = tp == uiState.type,
                         onClick = { viewModel.setType(tp) },
-                        label = { Text(tp.replaceFirstChar { it.uppercase() }) },
+                        // The translated type name, not the KEY capitalised --
+                        // `tp.replaceFirstChar {}` rendered "Expense"/"Income"
+                        // in every language.
+                        label = { Text(txTypeLabel(tp)) },
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -88,33 +94,77 @@ fun EditTransactionScreen(
                 OutlinedTextField(
                     value = uiState.transferAmount,
                     onValueChange = { viewModel.setTransferAmount(it.filter { c -> c.isDigit() || c == '.' }) },
-                    label = { Text("Amount (${uiState.currency})") },
+                    label = { Text(S.Transactions.amountCurrency(sRes(), uiState.currency)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                 )
             } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    uiState.items.forEachIndexed { idx, item ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            OutlinedTextField(
-                                value = item.description,
-                                onValueChange = { viewModel.updateItem(item.id, description = it) },
-                                placeholder = { Text(if (uiState.items.size > 1) "Item ${idx + 1}" else "What for?") },
-                                modifier = Modifier.weight(1f),
+                // Web's amount card: the running total as the headline, the
+                // item rows that feed it underneath. The rows each show a part;
+                // this is the only place the edited transaction's new total
+                // appears before it is saved.
+                SanvyaCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(22.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Column {
+                            Text(
+                                if (uiState.items.size > 1) {
+                                    S.Transactions.amountWithItems(sRes())
+                                } else {
+                                    S.Transactions.amount(sRes())
+                                },
+                                fontSize = 13.sp,
+                                color = colors.text2,
                             )
-                            OutlinedTextField(
-                                value = item.value,
-                                onValueChange = { viewModel.updateItem(item.id, value = it.filter { c -> c.isDigit() || c == '.' }) },
-                                placeholder = { Text("0.00") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.width(120.dp),
+                            Text(
+                                // Unmasked: the user is editing this number,
+                                // and the hide-amounts mask would make the form
+                                // unusable. Web reaches past `useMoneyFmt` here
+                                // for the same reason.
+                                formatMoneyUnmasked(total),
+                                fontSize = 40.sp,
+                                fontWeight = FontWeight.Bold,
+                                // Web's edit page has only the two colours --
+                                // it draws the card for expense and income
+                                // only, never for a transfer.
+                                color = if (uiState.type == "expense") colors.negative else colors.positive,
                             )
-                            if (uiState.items.size > 1) {
-                                TextButton(onClick = { viewModel.removeItem(item.id) }) { Text("×") }
+                        }
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            uiState.items.forEachIndexed { idx, item ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    OutlinedTextField(
+                                        value = item.description,
+                                        onValueChange = { viewModel.updateItem(item.id, description = it) },
+                                        placeholder = {
+                                            Text(
+                                                if (uiState.items.size > 1) {
+                                                    S.Transactions.item(sRes(), idx + 1)
+                                                } else {
+                                                    S.Transactions.whatFor(sRes())
+                                                },
+                                            )
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    OutlinedTextField(
+                                        value = item.value,
+                                        onValueChange = { viewModel.updateItem(item.id, value = it.filter { c -> c.isDigit() || c == '.' }) },
+                                        placeholder = { Text(AMOUNT_PLACEHOLDER) },
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                        modifier = Modifier.width(120.dp),
+                                    )
+                                    if (uiState.items.size > 1) {
+                                        TextButton(onClick = { viewModel.removeItem(item.id) }) {
+                                            Text("×", color = colors.text2)
+                                        }
+                                    }
+                                }
+                            }
+                            TextButton(onClick = { viewModel.addItem() }) {
+                                Text(S.Transactions.addItemSplit(sRes()))
                             }
                         }
                     }
-                    TextButton(onClick = { viewModel.addItem() }) { Text("+ Add item") }
                 }
 
                 Text(S.Transactions.category(sRes()), fontSize = 13.sp, color = colors.text2)

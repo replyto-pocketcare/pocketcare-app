@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UIKit
 import Factory
 import Data
 import Domain
@@ -69,6 +70,21 @@ public final class ReceiptCaptureViewModel {
     public var canEscalate = false
     public var aiBusy = false
 
+    /// The photo, shrunk for the "couldn't read this cleanly" card.
+    ///
+    /// Web puts the picture on that card and it is the whole reason the card is
+    /// answerable: "the items don't add up to the total" is a claim about a
+    /// piece of paper the user can no longer see, and without it "Improve with
+    /// AI" and "Retake" are a coin toss. Both ports drew the card and neither
+    /// drew the photo.
+    ///
+    /// A DOWNSCALED copy, not the capture. A 12-megapixel frame is tens of
+    /// megabytes decoded and this is a 220pt thumbnail. The full bytes stay in
+    /// `pendingImage` where the escalation needs them, and neither copy is ever
+    /// written to disk — `receipt_scans.image_path` stays null, exactly as web
+    /// promises.
+    public private(set) var previewImage: UIImage?
+
     /// The photo, kept in memory for a possible escalation.
     ///
     /// Non-nil ONLY for a photograph that did not reconcile: a PDF has no image
@@ -128,6 +144,17 @@ public final class ReceiptCaptureViewModel {
     /// Called by the view just before OCR.
     public func onImageCaptured(base64: String, mediaType: String) {
         pendingImage = EscalationImage(base64: base64, mediaType: mediaType)
+    }
+
+    /// The decoded photo, for the on-screen preview.
+    ///
+    /// Separate from ``onImageCaptured(base64:mediaType:)`` because the two want
+    /// different things: the escalation wants the ORIGINAL bytes (a re-encode
+    /// reads measurably worse to the model), and the preview wants a small
+    /// thumbnail. The view already holds both at the moment of capture, so
+    /// neither is re-derived here.
+    public func onPreviewImage(_ image: UIImage) {
+        previewImage = downscaleForPreview(image)
     }
 
     /// A file was chosen from the picker — an image or a PDF.
@@ -201,6 +228,7 @@ public final class ReceiptCaptureViewModel {
     public func retake() {
         pendingDraft = nil
         pendingImage = nil
+        previewImage = nil
         canEscalate = false
         stage = .idle
     }
@@ -299,3 +327,30 @@ private struct EscalationImage {
     let base64: String
     let mediaType: String
 }
+
+/**
+ Shrink a capture to preview size, preserving its aspect ratio and its
+ orientation.
+
+ Returns the original when it is already small enough — redrawing it would
+ otherwise allocate a second copy of the same picture. `UIGraphicsImageRenderer`
+ rather than `CGImage` cropping because it applies `imageOrientation` for free:
+ a portrait phone photo drawn from its `CGImage` alone comes out sideways.
+ */
+private func downscaleForPreview(_ source: UIImage) -> UIImage {
+    let longEdge = max(source.size.width, source.size.height)
+    guard longEdge > previewLongEdgePoints else { return source }
+    let scale = previewLongEdgePoints / longEdge
+    let target = CGSize(width: source.size.width * scale, height: source.size.height * scale)
+    return UIGraphicsImageRenderer(size: target).image { _ in
+        source.draw(in: CGRect(origin: .zero, size: target))
+    }
+}
+
+/**
+ Long edge of the preview copy, in points.
+
+ The card shows it at 220pt tall; this leaves headroom for a 3x screen without
+ keeping a photograph in memory behind a thumbnail.
+ */
+private let previewLongEdgePoints: CGFloat = 720

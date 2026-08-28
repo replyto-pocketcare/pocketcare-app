@@ -329,6 +329,8 @@
     <string name="categories_under">under %1$s</string>
 
     <!-- dashboard -->
+    <string name="dashboard_accounts_add">Add</string>
+    <string name="dashboard_accounts_add_a11y">Add account</string>
     <string name="dashboard_add_widget">Add a widget</string>
     <string name="dashboard_add_widget_intro">Pick a tile to add to your dashboard. Resize and reorder it right on the page.</string>
     <string name="dashboard_all_added">Every widget is already on your dashboard.</string>
@@ -345,6 +347,12 @@
     <string name="dashboard_empty_subscriptions">No active subscriptions.</string>
     <string name="dashboard_empty_title">Your dashboard is empty</string>
     <string name="dashboard_empty_upcoming">Nothing due.</string>
+    <string name="dashboard_greeting_afternoon">Good afternoon</string>
+    <string name="dashboard_greeting_evening">Good evening</string>
+    <string name="dashboard_greeting_fallback">there</string>
+    <string name="dashboard_greeting_morning">Good morning</string>
+    <string name="dashboard_greeting_night">Good night</string>
+    <string name="dashboard_hide_amounts_a11y">Hide amounts</string>
     <string name="dashboard_inflow">In</string>
     <string name="dashboard_last_month">Last month</string>
     <string name="dashboard_more_categories">+%1$s more</string>
@@ -356,6 +364,7 @@
     <string name="dashboard_per_month">per month</string>
     <string name="dashboard_premium">Premium</string>
     <string name="dashboard_premium_note">Premium tiles unlock with a Lite or Pro plan.</string>
+    <string name="dashboard_show_amounts_a11y">Show amounts</string>
     <string name="dashboard_single_currency">All your money is in %1$s. Add an account in another currency to see the split.</string>
     <string name="dashboard_spent">Spent %1$s</string>
     <plurals name="dashboard_subs_count">
@@ -386,6 +395,8 @@
     <string name="dashboard_trend_last1w">Last week</string>
     <string name="dashboard_trend_last1y">Last year</string>
     <string name="dashboard_trend_last3d">Last 3 days</string>
+    <string name="dashboard_view_all">View all</string>
+    <string name="dashboard_view_all_count">View all (%1$s)</string>
     <string name="dashboard_width">Width</string>
     <string name="dashboard_you_are_owed">You\'re owed</string>
     <string name="dashboard_you_owe">You owe</string>
@@ -675,7 +686,11 @@
     <string name="investments_sip_freq_monthly">monthly</string>
     <string name="investments_sip_freq_weekly">weekly</string>
     <string name="investments_sip_freq_yearly">yearly</string>
+    <string name="investments_sip_line">SIP</string>
     <string name="investments_sip_note">On each SIP date we record a transfer of %1$s from that account into %2$s — it shows under Recurring &amp; Planned Cashflow too.</string>
+    <string name="investments_stop_sip">Stop SIP</string>
+    <string name="investments_stop_sip_msg">No further instalments will be recorded. The holding stays.</string>
+    <string name="investments_stop_sip_title">Stop SIP?</string>
     <string name="investments_sync_note">Live prices appear once the daily market sync runs; unlisted schemes use the value you enter, else cost.</string>
     <string name="investments_the_amount">the amount</string>
     <string name="investments_this_account">this account</string>
@@ -1136,6 +1151,7 @@
     <!-- recurring -->
     <string name="recurring_actions">%1$s actions</string>
     <string name="recurring_add">Add</string>
+    <string name="recurring_alert_time">Alert time</string>
     <string name="recurring_amount_label">Amount</string>
     <string name="recurring_auto_posts">auto-posts</string>
     <string name="recurring_cancel">Cancel</string>
@@ -1356,6 +1372,7 @@
     <string name="statements_premium_body">Generate a clean statement for any period and save it as a PDF.</string>
     <string name="statements_premium_title">Statements are a Premium feature</string>
     <string name="statements_print">Print / Save PDF</string>
+    <string name="statements_share">Share statement</string>
     <string name="statements_statement_name">Sanvya Statement</string>
     <string name="statements_title">Statements</string>
     <string name="statements_to_date">To date</string>
@@ -1534,6 +1551,7 @@
     <string name="transactions_save_error">Couldn\'t save this transaction.</string>
     <string name="transactions_save_with_total">Save · %1$s</string>
     <string name="transactions_saving">Saving…</string>
+    <string name="transactions_scanned_chip">Scanned</string>
     <string name="transactions_search_category">Search a category…</string>
     <string name="transactions_search_placeholder">Search label or note…</string>
     <string name="transactions_shares_match">Shares total %1$s of %2$s ✓</string>

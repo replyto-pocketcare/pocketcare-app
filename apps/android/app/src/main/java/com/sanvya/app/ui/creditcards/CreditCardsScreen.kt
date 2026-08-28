@@ -61,6 +61,7 @@ fun CreditCardsScreen(
     val sources by viewModel.sources.collectAsState()
     val loaded by viewModel.loaded.collectAsState()
     val coveredEmis by viewModel.coveredEmis.collectAsState()
+    val holderName by viewModel.holderName.collectAsState()
     val colors = LocalSanvyaColors.current
     val scope = rememberCoroutineScope()
 
@@ -79,7 +80,7 @@ fun CreditCardsScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     cards.forEachIndexed { i, card ->
-                        CreditCardPanel(card = card, index = i, sources = sources, viewModel = viewModel, colors = colors, scope = scope)
+                        CreditCardPanel(card = card, index = i, holderName = holderName, sources = sources, viewModel = viewModel, colors = colors, scope = scope)
                     }
                     Spacer(Modifier.height(8.dp))
                 }
@@ -117,6 +118,7 @@ private fun EmptyCardsState(colors: SanvyaColors, onAddAccount: () -> Unit) {
 private fun CreditCardPanel(
     card: CreditCardUiModel,
     index: Int,
+    holderName: String,
     sources: List<SettleSourceOption>,
     viewModel: CreditCardsViewModel,
     colors: SanvyaColors,
@@ -139,8 +141,8 @@ private fun CreditCardPanel(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         // Card face -- mirrors CreditCard.tsx: gradient from the account's own
         // color, network = account name (no real "network" concept exists),
-        // masked digits, "Card holder" placeholder (no session-username plumbing
-        // wired up for this label yet), currency in the bottom corner.
+        // masked digits, the signed-in user's name under the "Card Holder"
+        // label, currency in the bottom corner.
         Box(
             modifier = Modifier.fillMaxWidth().aspectRatio(1.586f)
                 .clip(RoundedCornerShape(18.dp))
@@ -163,7 +165,13 @@ private fun CreditCardPanel(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
                     Column {
                         Text(S.Cards.cardHolder(sRes()), color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                        Text(S.Cards.cardHolder(sRes()), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        // Web: `(session?.username || "").trim() || t("cardHolder")` --
+                        // an unnamed user still gets a plausible-looking card
+                        // rather than a blank line.
+                        Text(
+                            holderName.ifBlank { S.Cards.cardHolder(sRes()) },
+                            color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                        )
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text(S.Accounts.currency(sRes()), color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
@@ -189,6 +197,15 @@ private fun CreditCardPanel(
                                 Text(it, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = if (card.dueThisCycle != 0L) colors.negative else colors.positive)
                             }
                             card.payByIso?.let { Text("Pay by ${it.toDisplayDate()}", fontSize = 11.sp, color = colors.text2) }
+                            // A closed statement whose due date has moved past
+                            // this cycle shows "Due this cycle 0"; without this
+                            // line nothing says where the balance went. Web
+                            // renders the same pair together (cards/page.tsx).
+                            if (card.rolledToNext) {
+                                card.pendingDueFormatted?.let {
+                                    Text(S.Cards.dueNextCycle(sRes(), it), fontSize = 11.sp, color = colors.text2)
+                                }
+                            }
                         }
                     }
                 }

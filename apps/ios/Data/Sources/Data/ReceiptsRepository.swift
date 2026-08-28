@@ -348,6 +348,37 @@ public final class ReceiptsRepository: @unchecked Sendable {
         }
     }
 
+    /**
+     Transaction ids that came from a receipt photo, live.
+
+     Web's `useScannedTransactionIds()` (apps/web/src/splits/hooks.ts) reads
+     exactly this and the Transactions list uses it to draw the "Scanned" pill.
+     Neither phone ever queried `receipt_scans.transaction_id`, so a scanned
+     transaction looked like any other hand-typed one.
+
+     A whole-column watch rather than a per-row lookup: the list needs the
+     answer for up to 200 rows at once, and this table has one row per scan —
+     two orders of magnitude smaller than the ledger it annotates.
+     */
+    public func watchScannedTransactionIds() throws -> AsyncThrowingStream<Set<String>, Error> {
+        let rows: AsyncThrowingStream<[String], Error> = try db.watch(
+            sql: "SELECT transaction_id FROM receipt_scans WHERE transaction_id IS NOT NULL AND deleted_at IS NULL",
+            parameters: [],
+            mapper: { cursor in try cursor.getString(name: "transaction_id") }
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await batch in rows { continuation.yield(Set(batch)) }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { @Sendable _ in task.cancel() }
+        }
+    }
+
     public func delete(scanId: String) async throws {
         let ts = currentIsoString()
         try await db.execute(

@@ -58,6 +58,12 @@ public struct Holding: Identifiable, Sendable {
     public let maturityDate: String?
     public let sourceAccountId: String?
     public let plannedId: String?
+    /// Amount-based SIP fields (migration 0061). `plannedId` alone is not
+    /// enough to tell a live SIP from a stopped one -- it can still point at a
+    /// recurring row that was already cancelled -- so web gates the SIP UI on
+    /// `planned_id && sip_amount > 0` and so does mobile.
+    public let sipAmount: Int64?
+    public let sipDay: Int64?
 }
 
 /// Funding mode for a new holding -- matches web's AddHoldingInput.funding
@@ -120,7 +126,9 @@ public actor InvestmentsRepository {
             annualRate: try cursor.getDoubleOptional(name: "annual_rate"),
             maturityDate: try cursor.getStringOptional(name: "maturity_date"),
             sourceAccountId: try cursor.getStringOptional(name: "source_account_id"),
-            plannedId: try cursor.getStringOptional(name: "planned_id")
+            plannedId: try cursor.getStringOptional(name: "planned_id"),
+            sipAmount: try cursor.getInt64Optional(name: "sip_amount"),
+            sipDay: try cursor.getInt64Optional(name: "sip_day")
         )
     }
 
@@ -238,11 +246,35 @@ public actor InvestmentsRepository {
         )
     }
 
-    /// Matches web's remove(): soft-delete the holding row only -- no
-    /// reversal of the funding transaction (same accepted asymmetry as
-    /// Goals' allocation-delete-doesn't-cascade, already documented in
-    /// docs/mobile/screen-specs/goals.md).
-    public func deleteHolding(id: String) async throws {
+    /// Stop the SIP attached to a holding -- web's `stopSipForHolding()`.
+    ///
+    /// The recurring transfer is a standing debit on a real account, and
+    /// recurring savings are not browsable under Recurring, so if this is
+    /// skipped there is nowhere left for the user to go and cancel it: the
+    /// money keeps leaving every month for an investment that no longer
+    /// exists. No-op when the holding never had one.
+    public func stopSipForHolding(plannedId: String?) async throws {
+        guard let plannedId else { return }
+        try await softDelete(db: db, table: "recurring_items", id: plannedId)
+    }
+
+    /// Clears the holding's own SIP fields, so `sipAmount > 0` stops reporting
+    /// a live SIP once the recurring row is gone. Matches web's
+    /// `updateRow("holdings", id, { sip_amount: null, sip_day: null })`.
+    public func clearSipFields(id: String) async throws {
+        try await db.execute(
+            sql: "UPDATE holdings SET sip_amount = NULL, sip_day = NULL, updated_at = ? WHERE id = ?",
+            parameters: [nowIso(), id]
+        )
+    }
+
+    /// Matches web's remove(): soft-delete the holding row, and kill its SIP
+    /// first -- the funding transaction is deliberately NOT reversed (same
+    /// accepted asymmetry as Goals' allocation-delete-doesn't-cascade,
+    /// documented in docs/mobile/screen-specs/goals.md), but a live standing
+    /// debit is not an asymmetry, it is money still moving.
+    public func deleteHolding(id: String, plannedId: String?) async throws {
+        try await stopSipForHolding(plannedId: plannedId)
         try await softDelete(db: db, table: "holdings", id: id)
     }
 }

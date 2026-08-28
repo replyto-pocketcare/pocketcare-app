@@ -8,6 +8,7 @@ import com.sanvya.app.data.repository.CreditCardDetails
 import com.sanvya.app.data.repository.CreditCardRepository
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.LoansRepository
+import com.sanvya.app.data.repository.SettingsRepository
 import com.sanvya.app.domain.budget.billingCycle
 import com.sanvya.app.domain.money.fromMajor
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,6 +64,7 @@ class CreditCardsViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
     private val loansRepository: LoansRepository by inject()
     private val authRepository: AuthRepository by inject()
+    private val settingsRepository: SettingsRepository by inject()
 
     private val _cards = MutableStateFlow<List<CreditCardUiModel>>(emptyList())
     val cards: StateFlow<List<CreditCardUiModel>> = _cards
@@ -73,6 +75,18 @@ class CreditCardsViewModel : ViewModel(), KoinComponent {
     private val _loaded = MutableStateFlow(false)
     val loaded: StateFlow<Boolean> = _loaded
 
+    /**
+     * The signed-in user's display name, for the name printed on the card face.
+     *
+     * Web reads `session.username` (src/account) and falls back to the
+     * `cardHolder` string only when it is blank -- so this stays the RAW name
+     * and the screen applies the fallback, keeping the localised default in the
+     * layer that owns `Resources`. Read once rather than watched: the name only
+     * changes from Settings, which is a different screen.
+     */
+    private val _holderName = MutableStateFlow("")
+    val holderName: StateFlow<String> = _holderName
+
     /** Covered EMIs from the most recent settle() -- non-empty triggers the
      * "Mark N EMI(s) paid?" confirm dialog. */
     private val _coveredEmis = MutableStateFlow<List<CoveredEmi>>(emptyList())
@@ -80,6 +94,12 @@ class CreditCardsViewModel : ViewModel(), KoinComponent {
     private var settledAt: String = ""
 
     init {
+        viewModelScope.launch {
+            // Offline / signed-out reads throw; an empty name just falls back to
+            // the "Card Holder" label, so a failure here must not kill the
+            // collector below.
+            _holderName.value = runCatching { settingsRepository.currentSession()?.username }.getOrNull().orEmpty().trim()
+        }
         viewModelScope.launch {
             combine(
                 ledgerRepository.watchAccountBalances(includeArchived = false),

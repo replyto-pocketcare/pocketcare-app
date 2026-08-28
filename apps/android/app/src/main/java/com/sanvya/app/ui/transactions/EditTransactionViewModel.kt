@@ -12,7 +12,10 @@ import com.sanvya.app.data.repository.PaymentMethodRow
 import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.data.repository.TransactionItemInput
 import com.sanvya.app.domain.entitlements.isPaid as domainIsPaid
+import com.sanvya.app.domain.js.jsParseFloat
+import com.sanvya.app.domain.money.Money
 import com.sanvya.app.domain.money.fromMajor
+import com.sanvya.app.domain.money.money
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -107,6 +110,19 @@ class EditTransactionViewModel(
     val relevantPaymentMethods: StateFlow<List<PaymentMethodRow>> = combine(paymentMethods, account) { methods, acct ->
         methods.filter { it.accountTypeId == acct?.type }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * The running total of the item rows, in the transaction's own currency.
+     *
+     * Web heads the amount card with it (`format(total, "en-US")`), and it is
+     * the only place an edited multi-item expense shows what it now comes to --
+     * the rows themselves each show a part. This port had the rows and not the
+     * sum.
+     */
+    val total: StateFlow<Money> = ui.map { state ->
+        // Per ITEM, not on the sum -- each item rounds the way web's does.
+        money(state.items.sumOf { fromMajor(jsParseFloat(it.value) ?: 0.0, state.currency).amount }, state.currency)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), money(0L, FormOptions.DEFAULT_CURRENCY))
 
     init {
         viewModelScope.launch {

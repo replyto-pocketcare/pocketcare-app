@@ -1,5 +1,7 @@
 import Foundation
 import Observation
+import Factory
+import PowerSync
 import Data
 import Domain
 
@@ -14,6 +16,9 @@ public struct TransactionListItem: Identifiable, Sendable {
     /// True when this row stands for a whole split expense rather than one
     /// posting of it — the row shows a "Split" chip and the amount you paid.
     public let isSplit: Bool
+    /// True when a receipt photo created this transaction — the row shows a
+    /// "Scanned" chip. Web's `scannedIds.has(tx.id)`, from `receipt_scans`.
+    public let isScanned: Bool
     public let dateFormatted: String
     public let avatarLetter: String
 }
@@ -32,9 +37,23 @@ let txTypeFilters = ["all", "income", "expense", "transfer"]
 @MainActor
 public final class TransactionsViewModel {
     private let ledgerRepository: LedgerRepository
+    /// `@Injected`, not a constructor argument, for the two dependencies added
+    /// after this view model's wiring was written: the container already
+    /// vends both, and widening `init` would have meant editing the DI module
+    /// for a list that only reads from them.
+    @ObservationIgnored @Injected(\.receiptsRepository) private var receiptsRepository
+    @ObservationIgnored @Injected(\.powerSyncDatabase) private var db
     private var tasks: [Task<Void, Never>] = []
 
     public var items: [TransactionListItem] = []
+    /// Show skeletons rather than "no matching transactions".
+    ///
+    /// Web's guard is `rows.length > 0 ? list : (rowsLoading || syncPending) ?
+    /// skeletons : empty`, and the misleading half is the one that matters: for
+    /// the first seconds of a returning user's first launch the local database
+    /// is empty because the data is still downloading, and this list told them
+    /// they had none.
+    public private(set) var showSkeleton = true
     public var query: String = "" { didSet { recompute() } }
     public var typeFilter: String = "all" { didSet { recompute() } }
 
@@ -43,6 +62,17 @@ public final class TransactionsViewModel {
     private var categoryMap: [String: CategoryRow] = [:]
     private var labelNames: [String: [String]] = [:]
     private var splitInfo: [String: SplitInfo] = [:]
+    /// Transactions a receipt photo created — the "Scanned" chip.
+    ///
+    /// Web's `useScannedTransactionIds()`, which neither phone ever called:
+    /// `receipt_scans.transaction_id` was written on save and then never read
+    /// back, so a scanned bill was indistinguishable from a hand-typed one.
+    private var scannedIds: Set<String> = []
+    /// False until the first ledger read lands — web's `isLoading` from
+    /// `useQuery`. An empty list that has not been read yet is not an empty
+    /// list.
+    private var rowsLoaded = false
+    private var syncPending = true
 
     public init(ledgerRepository: LedgerRepository) {
         self.ledgerRepository = ledgerRepository
@@ -54,9 +84,31 @@ public final class TransactionsViewModel {
             do {
                 for try await txns in try ledgerRepository.watchAllTransactions() {
                     self.allTxns = txns
+                    self.rowsLoaded = true
                     self.recompute()
                 }
-            } catch { print("Error watching transactions: \(error)") }
+            } catch {
+                print("Error watching transactions: \(error)")
+                // A stream that failed before its first yield is still an
+                // answer -- we are not waiting any more. Without this the
+                // skeleton shimmers for the life of the process.
+                self.rowsLoaded = true
+                self.recompute()
+            }
+        })
+        tasks.append(Task {
+            do {
+                for try await ids in try receiptsRepository.watchScannedTransactionIds() {
+                    self.scannedIds = ids
+                    self.recompute()
+                }
+            } catch { print("Error watching scanned transaction ids: \(error)") }
+        })
+        tasks.append(Task { [weak self] in
+            guard let self else { return }
+            await awaitInitialSync(self.db)
+            self.syncPending = false
+            self.recompute()
         })
         tasks.append(Task {
             do {
@@ -133,9 +185,11 @@ public final class TransactionsViewModel {
                 accountMap: accountMap,
                 categoryMap: categoryMap,
                 labels: labelNames[id],
-                split: splitInfo[id]
+                split: splitInfo[id],
+                scanned: scannedIds.contains(id)
             )
         }
+        showSkeleton = !rowsLoaded || syncPending
     }
 
 }

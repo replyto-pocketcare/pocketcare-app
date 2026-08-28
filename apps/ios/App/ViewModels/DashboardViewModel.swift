@@ -1,7 +1,10 @@
 import Foundation
 import Observation
+import Factory
 import Data
 import Domain
+import PowerSync
+import Supabase
 
 /// Net-worth hero content -- mirrors apps/web/app/page.tsx's NetWorthHero
 /// exactly (see docs/mobile/screen-specs/dashboard.md), and Android's
@@ -19,10 +22,32 @@ public struct NetWorthHeroState: Sendable {
 @MainActor
 public final class DashboardViewModel {
     private let ledgerRepository: LedgerRepository
+    /// Property-wrapper injection alongside the constructor-injected repository
+    /// above -- the newer of this app's two Factory conventions (see
+    /// DI/AppModule.swift's own note), used here so the registration in that
+    /// file does not have to change shape for two reads that belong to this
+    /// screen alone.
+    @ObservationIgnored @Injected(\.supabaseClient) private var client
+    @ObservationIgnored @Injected(\.powerSyncDatabase) private var db
     private var tasks: [Task<Void, Never>] = []
 
     public var accounts: [AccountWithBalance] = []
     public var hero: NetWorthHeroState = NetWorthHeroState()
+
+    /// Who the greeting is addressed to -- page.tsx's
+    /// `session?.username || session.email.split("@")[0]`. Empty when neither is
+    /// known; the view supplies `dashboard.greetingFallback`, as web does.
+    public var displayName: String = ""
+
+    /// The local read has returned at least once. Web reads the equivalent off
+    /// `useAccountsLoading()`; here it is simply "a snapshot has landed".
+    public var accountsLoaded = false
+
+    /// The FIRST sync from the server has not finished, so the local database
+    /// may still be empty because the data is on its way. Together with
+    /// `accountsLoaded` this is what stops the dashboard telling a returning
+    /// user to add their first account while their accounts are downloading.
+    public var syncPending = true
 
     /// Mirrors page.tsx's `showAvailable` local state (net-worth toggle).
     public func toggleShowAvailable() {
@@ -39,6 +64,31 @@ public final class DashboardViewModel {
 
         // Initial fetch of snapshots
         Task { await refreshSnapshots() }
+
+        // Read once, not watched: the name on the greeting comes off the auth
+        // session, which changes only by signing in or out -- and either of
+        // those replaces this whole screen.
+        let nameTask = Task { [weak self] in
+            guard let self else { return }
+            guard let session = try? await self.client.auth.session else { return }
+            let username = session.user.userMetadata["username"]?.stringValue ?? ""
+            let email = session.user.email ?? ""
+            let localPart = email.split(separator: "@").first.map { String($0) } ?? ""
+            // Web's precedence exactly: username, else the local part of the
+            // email, else nothing.
+            self.displayName = username.isEmpty ? localPart : username
+        }
+
+        // The shared gate, not a private copy of the poll: Transactions,
+        // Accounts and this screen showing different answers to "has the data
+        // arrived?" would be worse than any one of the answers. See
+        // Components/InitialSyncGate.swift for why it polls at all.
+        let syncTask = Task { [weak self] in
+            guard let self else { return }
+            await awaitInitialSync(self.db)
+            if Task.isCancelled { return }
+            self.syncPending = false
+        }
 
         // Watch for changes in transactions to trigger a snapshot refresh
         // (net worth / sparkline / delta all derive from transaction data).
@@ -71,7 +121,7 @@ public final class DashboardViewModel {
             }
         }
         
-        tasks = [txnTask, acctTask]
+        tasks = [txnTask, acctTask, nameTask, syncTask]
     }
 
     public func cancel() {
@@ -121,8 +171,19 @@ public final class DashboardViewModel {
             self.hero.deltaMinor = deltaMinor
             self.hero.hasTrend = !months.isEmpty
             self.hero.sparkline = sparkline
+            // Set LAST, after every field it gates, so a half-built hero is
+            // never shown as a finished one.
+            self.accountsLoaded = true
         } catch {
             print("Error refreshing snapshots: \(error)")
+            // Also set on FAILURE, and this is the important half. The flag
+            // only ever answers "is the skeleton still the honest thing to
+            // show?", and after a read that threw it is not: we are not
+            // waiting for anything any more. Leaving it false turns one failed
+            // read into a placeholder that shimmers for the life of the
+            // process. The error is reported by the error surface, not by
+            // withholding the screen.
+            self.accountsLoaded = true
         }
     }
 }

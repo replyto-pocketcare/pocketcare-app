@@ -4,14 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.repository.AccountWithBalance
 import com.sanvya.app.data.repository.LedgerRepository
+import com.sanvya.app.data.repository.SettingsRepository
 import com.sanvya.app.data.repository.NetWorth
 import com.sanvya.app.data.repository.TransactionRow
 import com.sanvya.app.domain.money.money
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.time.format.DateTimeFormatter
@@ -22,6 +25,7 @@ import com.sanvya.app.ui.formatMoneyAware
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.ui.FormOptions
 import com.sanvya.app.ui.majorScale
+import com.sanvya.app.ui.components.initialSyncPending
 
 /**
  * Net-worth hero content — mirrors apps/web/app/page.tsx's NetWorthHero
@@ -69,6 +73,20 @@ data class DashboardUiState(
     val accounts: List<AccountWithBalance> = emptyList(),
     val recentTransactions: List<DashboardTxnRow> = emptyList(),
     val hero: NetWorthHeroState = NetWorthHeroState(),
+    /**
+     * Who the greeting is addressed to -- page.tsx's
+     * `session?.username || session.email.split("@")[0]`. Empty when neither is
+     * known; the screen falls back to `dashboard.greetingFallback`, as web does.
+     */
+    val displayName: String = "",
+    /**
+     * The local accounts query has returned at least once. Web reads this off
+     * `useAccountsLoading()`; here it is simply "the combine below has emitted",
+     * which is the same fact.
+     */
+    val accountsLoaded: Boolean = false,
+    /** The FIRST sync from the server has not landed yet -- see [initialSyncPending]. */
+    val syncPending: Boolean = true,
 )
 
 /** No-arg constructor + KoinComponent/by inject() -- matches SettingsViewModel's
@@ -76,15 +94,33 @@ data class DashboardUiState(
  * factory can construct it directly (no Koin viewModel-DSL module needed). */
 class DashboardViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
+    private val settingsRepository: SettingsRepository by inject()
 
     /** Mirrors page.tsx's `showAvailable` local state (net-worth toggle). */
     private val showAvailable = MutableStateFlow(false)
+
+    /**
+     * Read once, not watched: the name on the greeting comes off the auth
+     * session, which changes only by signing in or out -- and either of those
+     * replaces this view model anyway.
+     */
+    private val displayName = MutableStateFlow("")
+
+    init {
+        viewModelScope.launch {
+            val session = runCatching { settingsRepository.currentSession() }.getOrNull()
+            // Web's precedence exactly: username, else the local part of the
+            // email, else nothing (the screen supplies the fallback copy).
+            displayName.value = session?.username?.takeIf { it.isNotBlank() }
+                ?: session?.email?.substringBefore("@").orEmpty()
+        }
+    }
 
     fun toggleShowAvailable() {
         showAvailable.value = !showAvailable.value
     }
 
-    val uiState: StateFlow<DashboardUiState> = combine(
+    private val core: Flow<DashboardUiState> = combine(
         ledgerRepository.watchNetWorth(baseCurrencyNow()),
         ledgerRepository.watchAccountBalances(includeArchived = false),
         ledgerRepository.watchRecentTransactions(limit = 10),
@@ -172,7 +208,27 @@ class DashboardViewModel : ViewModel(), KoinComponent {
                 hasTrend = months.isNotEmpty(),
                 sparkline = sparkline,
             ),
+            // `combine` does not emit until every source has, so reaching this
+            // line IS the local read having returned -- web's `accountsLoading`
+            // flipping false.
+            accountsLoaded = true,
         )
+    }
+
+    /**
+     * The screen's state, with the two flags that stop it lying during a first
+     * sync.
+     *
+     * A second `combine` rather than five more sources in the first: the typed
+     * overload tops out at five, and these two change on a completely different
+     * cadence from the ledger -- the name settles once, the sync flag once.
+     */
+    val uiState: StateFlow<DashboardUiState> = combine(
+        core,
+        displayName,
+        initialSyncPending(settingsRepository),
+    ) { state, name, syncPending ->
+        state.copy(displayName = name, syncPending = syncPending)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

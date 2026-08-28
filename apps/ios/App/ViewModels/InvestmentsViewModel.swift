@@ -62,6 +62,11 @@ public final class InvestmentsViewModel {
         public let rawCurrentValueMajor: String
         public let rawAnnualRate: String
         public let currency: String
+        /// True only while the holding still has a live SIP: `plannedId` alone
+        /// can point at a recurring row that was already stopped, so web gates
+        /// on `planned_id && sip_amount > 0` and so does this.
+        public let sipOn: Bool
+        public let sipAmountFormatted: String?
     }
 
     public struct GroupUiModel: Identifiable, Equatable {
@@ -79,6 +84,9 @@ public final class InvestmentsViewModel {
 
     public var groups: [GroupUiModel] = []
     public var totalValueFormatted: String = "₹0"
+    /// Web's grand-total row shows Current value / Invested / Gain-loss side by
+    /// side; the cost figure is what makes the gain readable at all.
+    public var totalCostFormatted: String = ""
     public var totalGainFormatted: String = ""
     public var totalGainPositive: Bool = true
     public var invAccounts: [InvAccountOption] = []
@@ -150,12 +158,16 @@ public final class InvestmentsViewModel {
 
         let totals = portfolioTotals(groupsResult)
         totalValueFormatted = formatMoney(totals.value, baseCurrencyNow())
+        totalCostFormatted = formatMoney(totals.cost, baseCurrencyNow())
         totalGainPositive = totals.gain >= 0
         totalGainFormatted = "\(totals.gain >= 0 ? "+" : "")\(formatMoney(totals.gain, baseCurrencyNow())) (\(formatPct(totals.gainPct)))"
     }
 
     private func toUiModel(_ h: Holding) -> HoldingUiModel {
         let row = h.toHoldingRow()
+        // Web's `sipOn`: a SIP is running only while it still has an amount AND
+        // its recurring item is alive.
+        let sipLive = h.plannedId != nil && (h.sipAmount ?? 0) > 0
         let v = valuation(row)
         let cls = assetClassOf(row)
         var meta = "\(cls.icon) \(cls.label)"
@@ -181,7 +193,9 @@ public final class InvestmentsViewModel {
             rawAvgCostMajor: h.avgCost.map { formatMajorPlain($0) } ?? "",
             rawCurrentValueMajor: h.currentValue.map { formatMajorPlain($0) } ?? "",
             rawAnnualRate: h.annualRate.map { $0 == $0.rounded() ? String(Int64($0)) : String($0) } ?? "",
-            currency: h.currency
+            currency: h.currency,
+            sipOn: sipLive,
+            sipAmountFormatted: sipLive ? formatMoney(h.sipAmount ?? 0, h.currency) : nil
         )
     }
 
@@ -250,13 +264,30 @@ public final class InvestmentsViewModel {
         }
     }
 
+    /// Web's remove(): kills the SIP with the holding, or it keeps debiting
+    /// forever for an investment that no longer exists.
     public func deleteHolding(_ id: String) {
         Task {
             do {
-                try await investmentsRepository.deleteHolding(id: id)
+                try await investmentsRepository.deleteHolding(id: id, plannedId: latestHoldings.first(where: { $0.id == id })?.plannedId)
                 await rebuild(holdings: latestHoldings)
             } catch {
                 print("Failed to delete holding: \(error)")
+            }
+        }
+    }
+
+    /// Web's Stop SIP chip: cancel the recurring item, then clear the holding's
+    /// own SIP fields so nothing still reads as running. The holding itself
+    /// stays -- the units already bought are still owned.
+    public func stopSip(_ id: String) {
+        Task {
+            do {
+                try await investmentsRepository.stopSipForHolding(plannedId: latestHoldings.first(where: { $0.id == id })?.plannedId)
+                try await investmentsRepository.clearSipFields(id: id)
+                await rebuild(holdings: latestHoldings)
+            } catch {
+                print("Failed to stop SIP: \(error)")
             }
         }
     }

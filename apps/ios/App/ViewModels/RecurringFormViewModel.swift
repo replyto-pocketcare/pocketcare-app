@@ -40,6 +40,13 @@ public final class RecurringFormViewModel {
     public var categoryId: String?
     public var frequency = "monthly"
     public var firstDue = isoToday()
+    /// "HH:MM" in the DEVICE's zone. Converted to UTC once, at save.
+    ///
+    /// `utcToLocalTime(nil)` rather than a literal "09:00": web's
+    /// `utcToLocalTime(edit?.alert_time_utc)` returns the same default for a row
+    /// that has none, and routing through the one helper keeps the default in a
+    /// single place instead of two that can drift.
+    public var alertTimeLocal = utcToLocalTime(nil)
     public var autoPost = false
 
     public let slug: RecurringDirectionSlug
@@ -112,6 +119,9 @@ public final class RecurringFormViewModel {
                     self.categoryId = item.categoryId
                     self.frequency = item.frequency
                     self.firstDue = item.nextDue
+                    // Stored UTC, shown local -- web's
+                    // `utcToLocalTime(edit?.alert_time_utc)`.
+                    self.alertTimeLocal = utcToLocalTime(item.alertTimeUtc)
                     self.autoPost = item.autoPost
                 }
             } catch {}
@@ -148,7 +158,13 @@ public final class RecurringFormViewModel {
                 categoryId: isPayment ? self.categoryId : nil,
                 frequency: self.frequency,
                 firstDue: self.firstDue,
-                autoPost: self.autoPost
+                autoPost: self.autoPost,
+                // Was hardcoded null, which is what made every recurring item
+                // silently unremindable: the engine reads this column to decide
+                // WHEN to nudge, and a null is "never". Converted here, once,
+                // at the boundary -- the same helper every other alert-carrying
+                // form in this app (budgets, goals, loans) uses.
+                alertTimeUtc: localToUtcTime(self.alertTimeLocal)
             )
             do {
                 if let editingId = self.editingId {

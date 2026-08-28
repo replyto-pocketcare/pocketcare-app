@@ -50,6 +50,7 @@
   },
   "splitBetween": "Splitsen tussen:",
   "splitChip": "Gedeeld",
+  "scannedChip": "Gescand",
   "sharesMatch": "Aandelen totaal {{sum}} van {{total}} ✓",
   "sharesMismatch": "Aandelen totaal {{sum}} van {{total}} — moet kloppen",
   "percentMatch": "Percentage totaal {{pct}}% ✓",

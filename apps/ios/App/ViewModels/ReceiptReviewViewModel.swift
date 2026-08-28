@@ -24,6 +24,7 @@ public final class ReceiptReviewViewModel {
     @ObservationIgnored @Injected(\.authRepository) private var authRepository
     @ObservationIgnored @Injected(\.splitsRepository) private var splitsRepository
     private var tasks: [Task<Void, Never>] = []
+    @ObservationIgnored private var suggestTask: Task<Void, Never>?
     private var scanId: String = ""
 
     public var draft: ReceiptDraft?
@@ -65,6 +66,7 @@ public final class ReceiptReviewViewModel {
             self.error = error.localizedDescription
         }
         loaded = true
+        suggestCategoryFromMerchant()
 
         tasks.append(Task { [weak self] in
             guard let self else { return }
@@ -80,6 +82,7 @@ public final class ReceiptReviewViewModel {
             do {
                 for try await list in try self.ledgerRepository.watchCategories() {
                     self.categories = list.filter { $0.kind != "income" }
+                    self.suggestCategoryFromMerchant()
                 }
             } catch { print("Error watching categories: \(error)") }
         })
@@ -153,7 +156,55 @@ public final class ReceiptReviewViewModel {
         if let d = draft { draft = fn(d) }
     }
 
-    public func setMerchant(_ value: String) { patch { ReceiptDraft(merchant: value, occurredAt: $0.occurredAt, currency: $0.currency, lines: $0.lines, total: $0.total, confidence: $0.confidence, engine: $0.engine, rawText: $0.rawText) } }
+    public func setMerchant(_ value: String) {
+        patch { ReceiptDraft(merchant: value, occurredAt: $0.occurredAt, currency: $0.currency, lines: $0.lines, total: $0.total, confidence: $0.confidence, engine: $0.engine, rawText: $0.rawText) }
+        // Web's effect keys on `draft?.merchant`, so retyping the merchant
+        // re-runs the suggestion — which is the whole point on a scan the
+        // reader got wrong.
+        suggestCategoryFromMerchant()
+    }
+
+    /**
+     Suggest a category from the merchant, with the same learned classifier the
+     add-transaction form uses — so a scanned "SPICE GARDEN" lands in whatever
+     category that merchant usually goes to.
+
+     Web runs this on `[draft?.merchant, categoryId, categories]` and neither
+     phone ran it at all, so EVERY scanned receipt arrived uncategorised no
+     matter how many times the user had already told the app where that merchant
+     goes.
+
+     Deliberately NOT entitlement-gated, unlike the create form. Web gates the
+     create form's `useAutoCategorize` on `isPaid` and does not gate this one:
+     the paid feature is the LIVE suggester that runs while you type, and
+     `suggestCategory` here is one read of rules the user's own saves wrote.
+     Adding a gate the browser does not have would be a divergence, not a fix.
+
+     Only ever SETS a category, never clears one — web's `if (!cancelled && id)`.
+     A miss leaves the picker exactly where the user left it.
+     */
+    private func suggestCategoryFromMerchant() {
+        guard let merchant = draft?.merchant,
+              !merchant.trimmingCharacters(in: .whitespaces).isEmpty,
+              categoryId == nil,
+              !categories.isEmpty else { return }
+        let options = categories.map { CategoryData(id: $0.id, name: $0.name) }
+        suggestTask?.cancel()
+        suggestTask = Task { [weak self] in
+            guard let self else { return }
+            var uid = self.authRepository.currentUserId
+            if uid == nil { uid = try? await self.authRepository.ensureUser() }
+            guard let userId = uid else { return }
+            let suggestion = try? await self.ledgerRepository.suggestCategory(
+                text: merchant, userId: userId, categories: options
+            )
+            // Re-checked after the await: the user may have picked a category
+            // themselves while the read was in flight, and their choice
+            // outranks the guess.
+            guard !Task.isCancelled, let suggestion, self.categoryId == nil else { return }
+            self.categoryId = suggestion
+        }
+    }
     public func setOccurredAt(_ value: String) { patch { ReceiptDraft(merchant: $0.merchant, occurredAt: value, currency: $0.currency, lines: $0.lines, total: $0.total, confidence: $0.confidence, engine: $0.engine, rawText: $0.rawText) } }
     public func setTotal(_ minor: Int64?) { patch { ReceiptDraft(merchant: $0.merchant, occurredAt: $0.occurredAt, currency: $0.currency, lines: $0.lines, total: minor, confidence: $0.confidence, engine: $0.engine, rawText: $0.rawText) } }
 

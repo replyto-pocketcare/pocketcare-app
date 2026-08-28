@@ -74,9 +74,12 @@ struct EditTransactionView: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 14) {
                             Picker(S.Transactions.auditType, selection: $type) {
-                                Text(S.Transactions.filterExpense).tag("expense")
-                                Text(S.Transactions.filterIncome).tag("income")
-                                Text(S.Transactions.filterTransfer).tag("transfer")
+                                // `type.*`, not `filter.*`: the form's three
+                                // chips come from web's `t(`type.${tp}`)`, and
+                                // the two namespaces are free to diverge.
+                                Text(S.Transactions.typeExpense).tag("expense")
+                                Text(S.Transactions.typeIncome).tag("income")
+                                Text(S.Transactions.typeTransfer).tag("transfer")
                             }
                             .pickerStyle(.segmented)
 
@@ -86,11 +89,11 @@ struct EditTransactionView: View {
                                     onSelect: { accountId = $0 })
 
                             if type == "transfer" {
-                                TextField("Amount (\(currency))", text: $transferAmount)
+                                TextField(S.Transactions.amountCurrency(currency: currency), text: $transferAmount)
                                     .keyboardType(.decimalPad)
                                     .textFieldStyle(.roundedBorder)
                             } else {
-                                itemsEditor
+                                amountCard
 
                                 Text(S.Transactions.category).font(.system(size: 13)).foregroundColor(Color.text2)
                                 CategoryPickerView(categories: relevantCategories, selectedId: $categoryId)
@@ -163,24 +166,78 @@ struct EditTransactionView: View {
             .clipShape(Capsule())
     }
 
+    /**
+     The running total of the item rows, in the transaction's own currency.
+
+     Web heads the amount card with it (`format(total, "en-US")`), and it is the
+     only place an edited multi-item expense shows what it now comes to — the
+     rows themselves each show a part. This port had the rows and not the sum.
+
+     Summed per ITEM, not on the sum, so each item rounds the way web's does,
+     and through `fromMajor` so a zero-decimal currency is not read as a
+     hundredth of itself.
+     */
+    private var totalMoney: Money {
+        money(items.reduce(Int64(0)) { $0 + fromMajor(jsParseFloat($1.value) ?? 0, currency).amount }, currency)
+    }
+
+    /// Web's amount card: the running total as the headline, the item rows that
+    /// feed it underneath.
+    private var amountCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(items.count > 1 ? S.Transactions.amountWithItems : S.Transactions.amount)
+                    .font(.system(size: 13))
+                    .foregroundColor(Color.text2)
+                // Unmasked: the user is editing this number, and the
+                // hide-amounts mask would make the form unusable. Web reaches
+                // past `useMoneyFmt` here for the same reason.
+                Text(formatMoneyUnmasked(totalMoney))
+                    .font(.system(size: 40, weight: .bold))
+                    // Web's edit page has only the two colours — it draws the
+                    // card for expense and income only, never for a transfer.
+                    .foregroundColor(type == "expense" ? Color.negative : Color.positive)
+            }
+            itemsEditor
+        }
+        .padding(22)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.surface)
+        .clipShape(RoundedRectangle(cornerRadius: SanvyaRadius.radiusLg, style: .continuous))
+    }
+
     private var itemsEditor: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach($items) { $item in
                 HStack {
-                    TextField(items.count > 1 ? S.Receipts.kindItem : "What for?", text: $item.description)
-                        .textFieldStyle(.roundedBorder)
-                    TextField("0.00", text: $item.value)
+                    TextField(
+                        items.count > 1
+                            ? S.Transactions.item(n: String(itemNumber(of: item.id)))
+                            : S.Transactions.whatFor,
+                        text: $item.description
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    TextField(amountPlaceholder, text: $item.value)
                         .keyboardType(.decimalPad)
                         .frame(width: 100)
                         .textFieldStyle(.roundedBorder)
                     if items.count > 1 {
                         Button("×") { items.removeAll { $0.id == item.id } }
+                            .foregroundColor(Color.text2)
                     }
                 }
             }
-            Button("+ Add item") { items.append(DraftItem(id: UUID().uuidString, description: "", value: "")) }
+            Button(S.Transactions.addItemSplit) { items.append(DraftItem(id: UUID().uuidString, description: "", value: "")) }
                 .font(.system(size: 13)).foregroundColor(Color.accent)
         }
+    }
+
+    /// 1-based position of a draft row — web's `t("item", { n: idx + 1 })`.
+    ///
+    /// Looked up by id rather than taken from `ForEach`'s index, because the
+    /// binding form of `ForEach` hands back the element, not its offset.
+    private func itemNumber(of id: String) -> Int {
+        (items.firstIndex { $0.id == id } ?? 0) + 1
     }
 
     private func loadAll() async {

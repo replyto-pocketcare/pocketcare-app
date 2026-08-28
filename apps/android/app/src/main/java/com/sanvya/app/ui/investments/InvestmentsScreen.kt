@@ -56,6 +56,7 @@ fun InvestmentsScreen(
 ) {
     val groups by viewModel.groups.collectAsState()
     val totalValue by viewModel.totalValueFormatted.collectAsState()
+    val totalCost by viewModel.totalCostFormatted.collectAsState()
     val totalGain by viewModel.totalGainFormatted.collectAsState()
     val totalGainPositive by viewModel.totalGainPositive.collectAsState()
     val invAccounts by viewModel.invAccounts.collectAsState()
@@ -92,7 +93,7 @@ fun InvestmentsScreen(
                     Button(onClick = onNoInvestmentAccount, modifier = Modifier.padding(top = 4.dp)) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Add account")
+                        Text(S.Investments.addInvAccount(sRes()))
                     }
                 }
             }
@@ -104,7 +105,7 @@ fun InvestmentsScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             if (drilledGroup == null) {
-                PortfolioTotalCard(totalValue, totalGain, totalGainPositive)
+                PortfolioTotalCard(totalValue, totalCost, totalGain, totalGainPositive)
                 if (groups.isEmpty()) {
                     Box(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
                         Text("No holdings yet — tap + to add your first investment.", fontSize = 14.sp, color = colors.text2)
@@ -122,6 +123,7 @@ fun InvestmentsScreen(
                             scope.launch { viewModel.updateHolding(h.id, qty, avgCost, curVal, rate, h.currency) }
                         },
                         onDelete = { viewModel.deleteHolding(h.id) },
+                        onStopSip = { viewModel.stopSip(h.id) },
                     )
                 }
                 TextButton(onClick = { onAddInvestment(drilledGroup.key) }) {
@@ -133,7 +135,7 @@ fun InvestmentsScreen(
 }
 
 @Composable
-private fun PortfolioTotalCard(valueFormatted: String, gainFormatted: String, gainPositive: Boolean) {
+private fun PortfolioTotalCard(valueFormatted: String, costFormatted: String, gainFormatted: String, gainPositive: Boolean) {
     val colors = LocalSanvyaColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -143,6 +145,9 @@ private fun PortfolioTotalCard(valueFormatted: String, gainFormatted: String, ga
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Total portfolio value", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = colors.text2)
             Text(valueFormatted, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.text)
+            // Web's grand total puts Invested next to Current value: without the
+            // cost there is no way to read what the gain figure is a gain ON.
+            Text(S.Investments.investedLabel(sRes(), costFormatted), fontSize = 12.sp, color = colors.text2)
             Text(
                 gainFormatted,
                 fontSize = 13.sp,
@@ -174,6 +179,7 @@ private fun GroupTile(group: GroupUiModel, onClick: () -> Unit) {
                 Text(group.valueFormatted, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = colors.text)
                 Text(group.gainFormatted, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = tint)
             }
+            Text(S.Investments.investedLabel(sRes(), group.costFormatted), fontSize = 12.sp, color = colors.text2)
         }
     }
 }
@@ -184,10 +190,16 @@ private fun GroupTile(group: GroupUiModel, onClick: () -> Unit) {
  * expands an inline edit form in place (web's EditHolding), matching this
  * screen's own established inline-edit convention (see file header). */
 @Composable
-private fun HoldingTile(holding: HoldingUiModel, onUpdate: (String, String, String, String) -> Unit, onDelete: () -> Unit) {
+private fun HoldingTile(
+    holding: HoldingUiModel,
+    onUpdate: (String, String, String, String) -> Unit,
+    onDelete: () -> Unit,
+    onStopSip: () -> Unit,
+) {
     val colors = LocalSanvyaColors.current
     var editing by rememberSaveable(holding.id) { mutableStateOf(false) }
     var showDeleteConfirm by rememberSaveable(holding.id) { mutableStateOf(false) }
+    var showStopSipConfirm by rememberSaveable(holding.id) { mutableStateOf(false) }
     var quantityText by rememberSaveable(holding.id, editing) { mutableStateOf(if (holding.rawQuantity == Math.floor(holding.rawQuantity)) holding.rawQuantity.toLong().toString() else holding.rawQuantity.toString()) }
     var avgCostText by rememberSaveable(holding.id, editing) { mutableStateOf(holding.rawAvgCostMajor) }
     var currentValueText by rememberSaveable(holding.id, editing) { mutableStateOf(holding.rawCurrentValueMajor) }
@@ -217,8 +229,23 @@ private fun HoldingTile(holding: HoldingUiModel, onUpdate: (String, String, Stri
                 }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(holding.fdExtra?.let { "${holding.metaLine} · $it" } ?: holding.metaLine, fontSize = 11.sp, color = colors.text2)
+                // A running SIP is a standing debit on a real account and has no
+                // other home in the app -- recurring savings are not browsable
+                // under Recurring -- so it has to be legible and stoppable right
+                // here, exactly as web's HoldingTile does it.
+                Text(
+                    buildString {
+                        append(holding.fdExtra?.let { "${holding.metaLine} · $it" } ?: holding.metaLine)
+                        holding.sipAmountFormatted?.let { append(" · ").append(S.Investments.sipLine(sRes())).append(' ').append(it) }
+                    },
+                    fontSize = 11.sp, color = colors.text2, modifier = Modifier.weight(1f),
+                )
                 Row {
+                    if (holding.sipOn) {
+                        TextButton(onClick = { showStopSipConfirm = true }, contentPadding = PaddingValues(horizontal = 8.dp)) {
+                            Text(S.Investments.stopSip(sRes()), fontSize = 11.sp, color = colors.warning)
+                        }
+                    }
                     IconButton(onClick = { editing = !editing }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Edit, contentDescription = S.Investments.edit(sRes()), tint = colors.text2, modifier = Modifier.size(16.dp))
                     }
@@ -262,6 +289,18 @@ private fun HoldingTile(holding: HoldingUiModel, onUpdate: (String, String, Stri
                         }) { Text(S.Investments.save(sRes())) }
                     }
                 }
+            }
+
+            if (showStopSipConfirm) {
+                AlertDialog(
+                    onDismissRequest = { showStopSipConfirm = false },
+                    title = { Text(S.Investments.stopSipTitle(sRes())) },
+                    text = { Text(S.Investments.stopSipMsg(sRes())) },
+                    confirmButton = {
+                        TextButton(onClick = { onStopSip(); showStopSipConfirm = false }) { Text(S.Investments.stopSip(sRes())) }
+                    },
+                    dismissButton = { TextButton(onClick = { showStopSipConfirm = false }) { Text(S.Investments.cancel(sRes())) } },
+                )
             }
 
             if (showDeleteConfirm) {

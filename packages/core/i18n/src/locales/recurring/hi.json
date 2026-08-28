@@ -1,6 +1,7 @@
 {
   "actions": "{{name}} क्रियाएँ",
   "add": "जोड़ें",
+  "alertTime": "अलर्ट का समय",
   "amountLabel": "राशि",
   "autoPosts": "स्वतः पोस्ट",
   "cancel": "रद्द करें",

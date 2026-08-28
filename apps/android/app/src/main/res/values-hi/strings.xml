@@ -329,6 +329,8 @@
     <string name="categories_under">%1$s के अंतर्गत</string>
 
     <!-- dashboard -->
+    <string name="dashboard_accounts_add">जोड़ें</string>
+    <string name="dashboard_accounts_add_a11y">खाता जोड़ें</string>
     <string name="dashboard_add_widget">विजेट जोड़ें</string>
     <string name="dashboard_add_widget_intro">अपने डैशबोर्ड में जोड़ने के लिए एक टाइल चुनें। आकार और क्रम पेज पर ही बदलें।</string>
     <string name="dashboard_all_added">हर विजेट पहले से आपके डैशबोर्ड पर है।</string>
@@ -345,6 +347,12 @@
     <string name="dashboard_empty_subscriptions">कोई सक्रिय सदस्यता नहीं।</string>
     <string name="dashboard_empty_title">आपका डैशबोर्ड खाली है</string>
     <string name="dashboard_empty_upcoming">कुछ भी देय नहीं।</string>
+    <string name="dashboard_greeting_afternoon">शुभ दोपहर</string>
+    <string name="dashboard_greeting_evening">शुभ संध्या</string>
+    <string name="dashboard_greeting_fallback">आप</string>
+    <string name="dashboard_greeting_morning">सुप्रभात</string>
+    <string name="dashboard_greeting_night">शुभ रात्रि</string>
+    <string name="dashboard_hide_amounts_a11y">राशियाँ छिपाएँ</string>
     <string name="dashboard_inflow">आया</string>
     <string name="dashboard_last_month">पिछला महीना</string>
     <string name="dashboard_more_categories">+%1$s और</string>
@@ -356,6 +364,7 @@
     <string name="dashboard_per_month">प्रति माह</string>
     <string name="dashboard_premium">प्रीमियम</string>
     <string name="dashboard_premium_note">प्रीमियम टाइलें Lite या Pro प्लान के साथ खुलती हैं।</string>
+    <string name="dashboard_show_amounts_a11y">राशियाँ दिखाएँ</string>
     <string name="dashboard_single_currency">आपका सारा पैसा %1$s में है। बँटवारा देखने के लिए किसी दूसरी मुद्रा का खाता जोड़ें।</string>
     <string name="dashboard_spent">%1$s खर्च</string>
     <plurals name="dashboard_subs_count">
@@ -386,6 +395,8 @@
     <string name="dashboard_trend_last1w">पिछला सप्ताह</string>
     <string name="dashboard_trend_last1y">पिछला वर्ष</string>
     <string name="dashboard_trend_last3d">पिछले 3 दिन</string>
+    <string name="dashboard_view_all">सभी देखें</string>
+    <string name="dashboard_view_all_count">सभी देखें (%1$s)</string>
     <string name="dashboard_width">चौड़ाई</string>
     <string name="dashboard_you_are_owed">आपको मिलना है</string>
     <string name="dashboard_you_owe">आप पर बकाया</string>
@@ -675,7 +686,11 @@
     <string name="investments_sip_freq_monthly">मासिक</string>
     <string name="investments_sip_freq_weekly">साप्ताहिक</string>
     <string name="investments_sip_freq_yearly">वार्षिक</string>
+    <string name="investments_sip_line">एसआईपी</string>
     <string name="investments_sip_note">हर एसआईपी तिथि पर हम उस खाते से %2$s में %1$s का स्थानांतरण दर्ज करते हैं — यह आवर्ती और नियोजित नकदी प्रवाह में भी दिखता है।</string>
+    <string name="investments_stop_sip">एसआईपी बंद करें</string>
+    <string name="investments_stop_sip_msg">आगे कोई किस्त दर्ज नहीं की जाएगी। निवेश बना रहेगा।</string>
+    <string name="investments_stop_sip_title">एसआईपी बंद करें?</string>
     <string name="investments_sync_note">दैनिक बाज़ार सिंक चलने पर लाइव कीमतें दिखती हैं; असूचीबद्ध योजनाएँ आपके दर्ज मूल्य का उपयोग करती हैं, अन्यथा लागत का।</string>
     <string name="investments_the_amount">राशि</string>
     <string name="investments_this_account">यह खाता</string>
@@ -1136,6 +1151,7 @@
     <!-- recurring -->
     <string name="recurring_actions">%1$s क्रियाएँ</string>
     <string name="recurring_add">जोड़ें</string>
+    <string name="recurring_alert_time">अलर्ट का समय</string>
     <string name="recurring_amount_label">राशि</string>
     <string name="recurring_auto_posts">स्वतः पोस्ट</string>
     <string name="recurring_cancel">रद्द करें</string>
@@ -1356,6 +1372,7 @@
     <string name="statements_premium_body">किसी भी अवधि के लिए एक साफ़ स्टेटमेंट बनाएं और इसे PDF के रूप में सहेजें।</string>
     <string name="statements_premium_title">स्टेटमेंट एक प्रीमियम सुविधा है</string>
     <string name="statements_print">प्रिंट / PDF सहेजें</string>
+    <string name="statements_share">स्टेटमेंट साझा करें</string>
     <string name="statements_statement_name">Sanvya स्टेटमेंट</string>
     <string name="statements_title">स्टेटमेंट</string>
     <string name="statements_to_date">समाप्ति तिथि</string>
@@ -1534,6 +1551,7 @@
     <string name="transactions_save_error">यह लेनदेन सहेजा नहीं जा सका।</string>
     <string name="transactions_save_with_total">सहेजें · %1$s</string>
     <string name="transactions_saving">सहेजा जा रहा है…</string>
+    <string name="transactions_scanned_chip">स्कैन किया</string>
     <string name="transactions_search_category">श्रेणी खोजें…</string>
     <string name="transactions_search_placeholder">लेबल या नोट खोजें…</string>
     <string name="transactions_shares_match">हिस्से का कुल %2$s में से %1$s ✓</string>

@@ -27,7 +27,9 @@ import com.sanvya.app.theme.SanvyaRadius
 import com.sanvya.app.ui.accountColor
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaCard
 import com.sanvya.app.ui.components.SanvyaPage
+import com.sanvya.app.ui.components.Skeleton
 
 /**
  * Accounts list — ported from apps/web/app/accounts/page.tsx per
@@ -43,6 +45,7 @@ fun AccountsScreen(
     viewModel: AccountsViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val showSkeleton by viewModel.showSkeleton.collectAsState()
     val colors = LocalSanvyaColors.current
 
     SanvyaPage(
@@ -65,7 +68,27 @@ fun AccountsScreen(
                 }
         },
     ) {
-        if (uiState.visible.isEmpty()) {
+        if (uiState.visible.isEmpty() && showSkeleton) {
+            // Web's `CardsSkeleton count={4} minWidth={260}` -- the same four
+            // cards in the same adaptive grid, so the screen does not resize
+            // when the real accounts land.
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 260.dp),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(ACCOUNT_SKELETON_CARDS) { _ ->
+                    SanvyaCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Skeleton(height = 12.dp, modifier = Modifier.fillMaxWidth(0.4f))
+                            Skeleton(height = 24.dp, modifier = Modifier.fillMaxWidth(0.7f))
+                        }
+                    }
+                }
+            }
+        } else if (uiState.visible.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
@@ -146,3 +169,11 @@ private fun AccountCard(
         }
     }
 }
+
+/**
+ * Placeholder cards drawn while the first sync lands.
+ *
+ * Web's `CardsSkeleton count={4}`; kept identical so the two clients settle at
+ * the same visual weight while they wait.
+ */
+private const val ACCOUNT_SKELETON_CARDS = 4

@@ -168,6 +168,7 @@ fun LoanDetailScreen(
         MarkPaidDialog(
             month = month,
             dueLabel = row?.dueFormatted ?: "",
+            dueIso = row?.dueIso,
             emiAmountMinor = emiMinorForPay,
             emiAmountFormatted = if (emiMinorForPay > 0) row?.amountFormatted else null,
             currency = model.currency,
@@ -301,6 +302,7 @@ private fun Chip(text: String, tint: androidx.compose.ui.graphics.Color, onClick
 private fun MarkPaidDialog(
     month: Int,
     dueLabel: String,
+    dueIso: String?,
     emiAmountMinor: Long,
     emiAmountFormatted: String?,
     currency: String,
@@ -310,7 +312,14 @@ private fun MarkPaidDialog(
     onConfirm: (paidOn: String, accountId: String?) -> Unit,
 ) {
     val colors = LocalSanvyaColors.current
-    var paidOn by rememberSaveable(month) { mutableStateOf(java.time.LocalDate.now().toString()) }
+    // Web seeds this with the EMI's own due date and caps the input at today
+    // (`useState(due && due <= todayIso() ? due : todayIso())`, `max={todayIso()}`).
+    // Defaulting to today instead makes every late payment record the wrong
+    // date unless the user notices and changes it, and a paid-on in the FUTURE
+    // is not a thing that can have happened. ISO days compare lexicographically.
+    val todayIso = java.time.LocalDate.now().toString()
+    val seededPaidOn = if (dueIso != null && dueIso <= todayIso) dueIso else todayIso
+    var paidOn by rememberSaveable(month) { mutableStateOf(seededPaidOn) }
     var accountId by rememberSaveable(month) { mutableStateOf(defaultAccountId ?: "") }
     var showDatePicker by rememberSaveable(month) { mutableStateOf(false) }
     var menuExpanded by rememberSaveable(month) { mutableStateOf(false) }
@@ -354,6 +363,12 @@ private fun MarkPaidDialog(
     )
 
     if (showDatePicker) {
-        DatePickerDialogSimple(onDismiss = { showDatePicker = false }, onConfirm = { paidOn = it; showDatePicker = false })
+        // The shared picker has no max-date parameter and is owned by another
+        // screen, so the cap is applied to what comes back rather than by
+        // greying out future days -- same guarantee, one screen's worth of code.
+        DatePickerDialogSimple(
+            onDismiss = { showDatePicker = false },
+            onConfirm = { picked -> paidOn = if (picked > todayIso) todayIso else picked; showDatePicker = false },
+        )
     }
 }

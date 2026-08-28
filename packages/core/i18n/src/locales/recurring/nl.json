@@ -1,6 +1,7 @@
 {
   "actions": "Acties voor {{name}}",
   "add": "Toevoegen",
+  "alertTime": "Herinneringstijd",
   "amountLabel": "Bedrag",
   "autoPosts": "boekt automatisch",
   "cancel": "Annuleren",

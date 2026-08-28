@@ -55,6 +55,13 @@ data class HoldingUiModel(
     val rawCurrentValueMajor: String,
     val rawAnnualRate: String,
     val currency: String,
+    /** True only while the holding still has a live SIP: `planned_id` alone
+     * can point at a recurring row that was already stopped, so web gates on
+     * `planned_id && sip_amount > 0` and so does this. */
+    val sipOn: Boolean,
+    val sipAmountFormatted: String?,
+    /** The recurring row this SIP debits through, so Stop SIP can cancel it. */
+    val plannedId: String?,
 )
 
 data class GroupUiModel(
@@ -93,6 +100,11 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
 
     private val _totalValueFormatted = MutableStateFlow(formatMoney(0, baseCurrencyNow()))
     val totalValueFormatted: StateFlow<String> = _totalValueFormatted
+
+    /** Web's grand-total row shows Current value / Invested / Gain-loss side
+     * by side; the cost figure is what makes the gain readable at all. */
+    private val _totalCostFormatted = MutableStateFlow(formatMoney(0, baseCurrencyNow()))
+    val totalCostFormatted: StateFlow<String> = _totalCostFormatted
 
     private val _totalGainFormatted = MutableStateFlow("")
     val totalGainFormatted: StateFlow<String> = _totalGainFormatted
@@ -157,6 +169,7 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
 
                 val totals = portfolioTotals(groupsResult)
                 _totalValueFormatted.value = formatMoney(totals.value, baseCurrencyNow())
+                _totalCostFormatted.value = formatMoney(totals.cost, baseCurrencyNow())
                 _totalGainPositive.value = totals.gain >= 0
                 _totalGainFormatted.value = "${if (totals.gain >= 0) "+" else ""}${formatMoney(totals.gain, baseCurrencyNow())} (${"%+.1f".format(totals.gainPct)}%)"
             }.collect {}
@@ -171,6 +184,9 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
 
     private fun Holding.toUiModel(): HoldingUiModel {
         val row = toHoldingRow()
+        // Web's `sipOn`: a SIP is running only while it still has an amount AND
+        // its recurring item is alive.
+        val sipLive = plannedId != null && (sipAmount ?: 0L) > 0L
         val v = valuation(row)
         val cls = assetClassOf(row)
         val metaLine = buildString {
@@ -204,6 +220,9 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
             rawCurrentValueMajor = currentValue?.let { formatMajorPlain(it, currency) } ?: "",
             rawAnnualRate = annualRate?.let { if (it == Math.floor(it)) it.toLong().toString() else it.toString() } ?: "",
             currency = currency,
+            sipOn = sipLive,
+            sipAmountFormatted = if (sipLive) formatMoney(sipAmount!!, currency) else null,
+            plannedId = plannedId,
         )
     }
 
@@ -284,10 +303,26 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
         }
     }
 
+    /** Web's remove(): kills the SIP with the holding, or it keeps debiting
+     * forever for an investment that no longer exists. */
     fun deleteHolding(id: String) {
         viewModelScope.launch {
             try {
-                investmentsRepository.deleteHolding(id)
+                investmentsRepository.deleteHolding(id, latestHoldings.find { it.id == id }?.plannedId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    /** Web's Stop SIP chip: cancel the recurring item, then clear the
+     * holding's own SIP fields so nothing still reads as running. The holding
+     * itself stays -- the units already bought are still owned. */
+    fun stopSip(id: String) {
+        viewModelScope.launch {
+            try {
+                investmentsRepository.stopSipForHolding(latestHoldings.find { it.id == id }?.plannedId)
+                investmentsRepository.clearSipFields(id)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

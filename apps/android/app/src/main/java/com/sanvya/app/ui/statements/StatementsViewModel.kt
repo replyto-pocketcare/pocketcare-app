@@ -7,7 +7,10 @@ import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.domain.entitlements.isPaid
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.transactions.TransactionListItem
+import com.sanvya.app.ui.transactions.transactionListItem
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,14 +22,38 @@ import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import kotlin.math.absoluteValue
 
-data class StatementTxUiModel(
-    val id: String,
-    val title: String,
-    val occurredOn: String,
-    val amountFormatted: String,
-    val isIncome: Boolean,
+/**
+ * Which words the day header wears.
+ *
+ * The view model does not resolve it. `S.Statements.today` needs a `Resources`,
+ * and this codebase's rule (I18n.kt, and the same note in
+ * RecurringDirectionViewModel) is that a view model must not hold one — so the
+ * *kind* of day crosses the boundary and the screen names it.
+ */
+enum class StatementDayKind { TODAY, YESTERDAY, OTHER }
+
+/**
+ * One calendar day of the statement — web's `groupTxnsByDay`.
+ *
+ * The day is the LOCAL calendar day, not `occurred_at.slice(0, 10)`. Web slices
+ * the stored UTC timestamp, so east of Greenwich a 02:00 purchase is filed
+ * under yesterday's header while the row beside it prints "2:00 AM" — the
+ * header and its own rows disagree. The rows here read local (that is what
+ * `transactionListItem` already does), so the header does too.
+ */
+data class StatementDayGroup(
+    val dayIso: String,
+    val kind: StatementDayKind,
+    /** Day net, sign stripped — the screen prepends + or − from [netIsPositive]. */
+    val netFormatted: String,
+    val netIsPositive: Boolean,
+    val items: List<TransactionListItem>,
 )
 
 data class StatementsUiState(
@@ -47,7 +74,9 @@ data class StatementsUiState(
     val expenseFormatted: String = "",
     val netFormatted: String = "",
     val netIsPositive: Boolean = true,
-    val transactions: List<StatementTxUiModel> = emptyList(),
+    /** Web's third summary row — a plain count, not money. */
+    val transactionCount: Int = 0,
+    val days: List<StatementDayGroup> = emptyList(),
 )
 
 /**
@@ -59,6 +88,12 @@ data class StatementsUiState(
  * product. Web's Statements is a *date-ranged* view of real transactions with
  * an income/expense summary, gated behind a paid tier. Android had no screen at
  * all, which was at least honest.
+ *
+ * The rows are `transactionListItem`s, the same model Transactions, Search and
+ * the dashboard's recent activity render — web renders one `<TransactionTile>`
+ * on all four. The one substitution is the right-hand meta: web's Statements
+ * passes the TIME there rather than the date, because the date is already the
+ * header of the group the row sits in.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class StatementsViewModel : ViewModel(), KoinComponent {
@@ -106,13 +141,79 @@ class StatementsViewModel : ViewModel(), KoinComponent {
             )
         }
 
+    /**
+     * Everything the row model needs beyond the transaction itself.
+     *
+     * Its own `combine` because Kotlin's tops out at five flows and the state
+     * below already spends four — and because these three are range-independent,
+     * so they are not re-read every time the user nudges a date.
+     */
+    private data class RowContext(
+        val accounts: List<com.sanvya.app.data.repository.Account>,
+        val categories: List<com.sanvya.app.data.repository.CategoryRow>,
+        val labelNames: Map<String, List<String>>,
+    )
+
+    private val rowContext: Flow<RowContext> = combine(
+        ledgerRepository.watchAccounts(includeArchived = true),
+        ledgerRepository.watchCategories(),
+        ledgerRepository.watchTransactionLabelNames(),
+    ) { accounts, categories, labelNames -> RowContext(accounts, categories, labelNames) }
+
     val uiState: StateFlow<StatementsUiState> =
-        combine(entitlement, rows, _start, _end) { ent, txns, start, end ->
+        combine(entitlement, rows, rowContext, _start, _end) { ent, txns, ctx, start, end ->
             val (paid, known) = ent
             val base = baseCurrencyNow()
             val income = txns.filter { it.type == "income" }.sumOf { it.amount }
             val expense = txns.filter { it.type == "expense" }.sumOf { it.amount }
             val net = income - expense
+            val accountMap = ctx.accounts.associateBy { it.id }
+            val categoryMap = ctx.categories.associateBy { it.id }
+
+            val today = LocalDate.now()
+            val days = txns
+                .groupBy { localDayOf(it.occurredAt) }
+                .entries
+                // Newest day first, and newest row first inside it — web's
+                // `.sort((a, b) => b[0].localeCompare(a[0]))` and the same on
+                // the rows.
+                .sortedByDescending { it.key }
+                .map { (dayIso, items) ->
+                    val dayNet = items.sumOf {
+                        when (it.type) {
+                            "income" -> it.amount
+                            "expense" -> -it.amount
+                            else -> 0L
+                        }
+                    }
+                    StatementDayGroup(
+                        dayIso = dayIso,
+                        kind = when (dayIso) {
+                            today.toString() -> StatementDayKind.TODAY
+                            today.minusDays(1).toString() -> StatementDayKind.YESTERDAY
+                            else -> StatementDayKind.OTHER
+                        },
+                        netFormatted = formatMoney(dayNet.absoluteValue, base),
+                        netIsPositive = dayNet >= 0,
+                        items = items
+                            .sortedByDescending { it.occurredAt }
+                            .map { txn ->
+                                transactionListItem(
+                                    txn = txn,
+                                    accountMap = accountMap,
+                                    categoryMap = categoryMap,
+                                    labels = ctx.labelNames[txn.id],
+                                ).copy(
+                                    // Web's Statements passes a TIME as the
+                                    // row's meta, not a date: the date is the
+                                    // header this row already sits under, and
+                                    // repeating it on every line says nothing.
+                                    dateFormatted = timeOf(txn.occurredAt),
+                                )
+                            },
+                    )
+                }
+
             StatementsUiState(
                 isPaid = paid,
                 entitlementKnown = known,
@@ -122,20 +223,8 @@ class StatementsViewModel : ViewModel(), KoinComponent {
                 expenseFormatted = formatMoney(expense, base),
                 netFormatted = formatMoney(net.absoluteValue, base),
                 netIsPositive = net >= 0,
-                transactions = txns.map { t ->
-                    StatementTxUiModel(
-                        id = t.id,
-                        // Web's TransactionTile falls back through description
-                        // then note; an untitled row shows as blank rather than
-                        // as an invented label.
-                        title = t.description?.takeIf { it.isNotBlank() }
-                            ?: t.note?.takeIf { it.isNotBlank() }
-                            ?: "",
-                        occurredOn = t.occurredAt.take(10),
-                        amountFormatted = formatMoney(t.amount, t.currency),
-                        isIncome = t.type == "income",
-                    )
-                },
+                transactionCount = txns.size,
+                days = days,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -143,3 +232,26 @@ class StatementsViewModel : ViewModel(), KoinComponent {
             initialValue = StatementsUiState(),
         )
 }
+
+/**
+ * The local calendar day a timestamp fell on, as `yyyy-MM-dd`.
+ *
+ * Falls back to the stored date part when the string is not a timestamp this
+ * can parse — the same defensive shape `transactionListItem` uses, because a
+ * row that cannot be parsed still has to land in some group.
+ */
+private fun localDayOf(occurredAt: String): String = runCatching {
+    OffsetDateTime.parse(occurredAt).atZoneSameInstant(ZoneId.systemDefault()).toLocalDate().toString()
+}.getOrDefault(occurredAt.take(10))
+
+/**
+ * "2:30 PM" — web's `toLocaleTimeString(undefined, { hour: "numeric", minute:
+ * "2-digit" })`. `ofLocalizedTime(SHORT)` rather than a pattern: whether the
+ * clock is 12- or 24-hour is a locale fact, and a pattern picks one for
+ * everybody.
+ */
+private fun timeOf(occurredAt: String): String = runCatching {
+    OffsetDateTime.parse(occurredAt)
+        .atZoneSameInstant(ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
+}.getOrDefault("")
