@@ -17,7 +17,7 @@ import Data
 @MainActor
 struct WriteIndicatorView: View {
     @Environment(\.colorScheme) private var colorScheme
-    private var activity = WriteActivity.shared
+    @StateObject private var activity = WriteActivity.shared
 
     var body: some View {
         Group {

@@ -172,6 +172,10 @@ private fun SplitCardBody(
     val colors = LocalSanvyaColors.current
     val groups by viewModel.groups.collectAsState()
     val plan by viewModel.splitPlan.collectAsState()
+    // Hoisted: three sentences below compare against the typed total, and the
+    // last of them sits in the single-payer branch, outside every block that
+    // used to declare its own copy.
+    val totalMinor = viewModel.totalMinor(currency)
     val account by viewModel.account.collectAsState()
     // The account the money leaves. Named in two sentences web shows under the
     // payers, so the user knows which of their accounts is being charged.
@@ -257,8 +261,7 @@ private fun SplitCardBody(
                             trailing = formatMoney(plan.shares.getOrElse(index) { 0L }, currency),
                         )
                     }
-                    val totalMinor = viewModel.totalMinor(currency)
-                    Muted(
+                            Muted(
                         if (state.splitMode == SplitModes.EXACT) {
                             val sum = formatMoney(plan.sharesSum, currency)
                             val total = formatMoney(totalMinor, currency)
@@ -293,8 +296,7 @@ private fun SplitCardBody(
             }
 
             if (state.multiPayer) {
-                val totalMinor = viewModel.totalMinor(currency)
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     state.splitMembers.forEach { uid ->
                         AmountRow(
                             label = S.Transactions.memberPaid(res, viewModel.memberName(uid, res)),

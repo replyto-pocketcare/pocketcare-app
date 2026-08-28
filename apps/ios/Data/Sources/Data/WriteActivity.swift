@@ -1,5 +1,5 @@
+import Combine
 import Foundation
-import Observation
 
 /// How many synced-row writes are in flight.
 ///
@@ -19,14 +19,20 @@ import Observation
 /// only ever touched on one actor, so the two mutations below cannot race no
 /// matter which thread the write itself ran on.
 ///
+/// `ObservableObject` rather than `@Observable`: this package's macOS floor is
+/// 13 (see Package.swift — Domain and Data are testable with a plain
+/// `swift test`, no simulator, and that is worth keeping), and the Observation
+/// macro needs 14. Combine's is the same contract for one `@Published` Int, and
+/// it is the pattern the app already uses for its other shared singletons
+/// (`Prefs`, `NavPrefs`, `ConnectivityMonitor`).
+///
 /// Mirrors Android's WriteActivity.kt.
 @MainActor
-@Observable
-public final class WriteActivity {
+public final class WriteActivity: ObservableObject {
     public static let shared = WriteActivity()
 
     /// Writes currently in flight. Zero means idle.
-    public private(set) var inFlight = 0
+    @Published public private(set) var inFlight = 0
 
     public var busy: Bool { inFlight > 0 }
 
