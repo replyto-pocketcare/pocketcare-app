@@ -175,6 +175,14 @@ class VectorRunnerTest {
         runDomain("card-cycle")
     }
     @Test
+    fun `receipts-ai`() {
+        // AiReceipt.kt -- the AI fallback's reply, mapped into a draft. A SPEC,
+        // and the JPY/KWD fixtures deliberately disagree with a browser: web's
+        // toMinor is a x100. See AiReceiptVectors.kt.
+        com.sanvya.app.domain.receipts.registerAiReceiptVectors()
+        runDomain("receipts-ai")
+    }
+    @Test
     fun applink() {
         // AppLink.kt -- web paths to native destinations. A SPEC, not a
         // capture: web has no such function, only a router. See AppLinkVectors.kt.

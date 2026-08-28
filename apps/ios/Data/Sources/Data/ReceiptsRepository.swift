@@ -1,5 +1,6 @@
 import Foundation
 import PowerSync
+import Supabase
 import Domain
 
 // Read/write facade for receipt scans (P2.5): receipt_scans table.
@@ -129,10 +130,91 @@ private func currentIsoString() -> String {
 public final class ReceiptsRepository: @unchecked Sendable {
     private let db: PowerSyncDatabaseProtocol
     private let getUserId: @Sendable () -> String
+    /// Only the AI fallback needs the network. Everything else on this
+    /// repository is local — which is the point of the feature, and is why the
+    /// client arrives as a dependency rather than being reached for globally.
+    private let client: SupabaseClient
 
-    public init(db: PowerSyncDatabaseProtocol, getUserId: @escaping @Sendable () -> String) {
+    public init(
+        db: PowerSyncDatabaseProtocol,
+        getUserId: @escaping @Sendable () -> String,
+        client: SupabaseClient
+    ) {
         self.db = db
         self.getUserId = getUserId
+        self.client = client
+    }
+
+    /**
+     Send the photo to the `receipt-scan` edge function and map its reply.
+
+     **The only code path in this feature where the image leaves the device**,
+     and it is reached only from an explicit "Improve with AI" tap. The scan
+     pipeline never calls it.
+
+     The MAPPING is not here — `aiReceiptDraft` in Domain does that under 18
+     vectors, because it decides money from untrusted input. This does the two
+     things a repository should: the call, and turning a failure into something
+     the UI can act on. `quotaExceeded` is separated from every other error
+     because it is the one failure with a next step: web shows the upgrade path
+     for it and only for it.
+     */
+    public func aiParseReceipt(
+        base64: String,
+        mediaType: String,
+        currencyHint: String,
+        today: String,
+        rawText: String? = nil
+    ) async throws -> ReceiptDraft {
+        let body: [String: String] = [
+            "image": base64,
+            "mediaType": mediaType,
+            "currencyHint": currencyHint,
+            "today": today,
+        ]
+        let data: Foundation.Data
+        do {
+            // The raw-bytes overload, matching AssistantRepository: the reply is
+            // a dynamic receipt shape, and a Decodable struct here would turn
+            // one unexpected field into a total failure.
+            data = try await client.functions.invoke(
+                "receipt-scan",
+                options: FunctionInvokeOptions(body: body)
+            ) { raw, _ in raw }
+        } catch let error as FunctionsError {
+            // A non-2xx carries the real reason in its body, and the function
+            // always answers with `{ error, code }` — the same unwrapping web's
+            // `edgeFnMessage()` does, for the same reason. The code matters as
+            // much as the message here.
+            if case let .httpError(code, body) = error {
+                let parsed = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any]
+                throw AiScanError(
+                    message: (parsed?["error"] as? String) ?? aiScanStatusMessage(code),
+                    quotaExceeded: (parsed?["code"] as? String) == "quota_exceeded"
+                )
+            }
+            throw AiScanError(message: error.localizedDescription)
+        } catch {
+            throw AiScanError(message: error.localizedDescription)
+        }
+
+        guard let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else {
+            throw AiScanError(message: aiScanEmpty)
+        }
+        if let message = json["error"] as? String {
+            throw AiScanError(
+                message: message,
+                quotaExceeded: (json["code"] as? String) == "quota_exceeded"
+            )
+        }
+        guard let receipt = json["receipt"] as? [String: Any] else {
+            throw AiScanError(message: aiScanEmpty)
+        }
+        return aiReceiptDraft(
+            receipt: aiReceipt(from: receipt),
+            currencyHint: currencyHint,
+            rawText: rawText
+        )
     }
 
     public func saveScan(_ input: SaveScanInput) async throws -> String {
@@ -273,4 +355,73 @@ public final class ReceiptsRepository: @unchecked Sendable {
             parameters: [ts, ts, scanId]
         )
     }
+}
+
+/**
+ A failed AI read.
+
+ `quotaExceeded` is separate because it is the only failure the user can do
+ something about: web shows the upgrade path for it and a plain message for
+ everything else.
+ */
+public struct AiScanError: LocalizedError {
+    public let message: String
+    public let quotaExceeded: Bool
+    public init(message: String, quotaExceeded: Bool = false) {
+        self.message = message
+        self.quotaExceeded = quotaExceeded
+    }
+    public var errorDescription: String? { message }
+}
+
+private let aiScanFailure = "Couldn't reach the scanner. Check your connection."
+private let aiScanEmpty = "The scan came back empty. Try a clearer photo."
+
+private func aiScanStatusMessage(_ code: Int) -> String {
+    code == 401 ? "Please sign in to use AI receipt reading." : aiScanFailure
+}
+
+/**
+ The edge function's `receipt` object, as Domain's input type.
+
+ Deliberately tolerant: every field is optional and a wrong TYPE reads as absent
+ rather than throwing. A model reply is untrusted input, and a strict decoder
+ here would turn one odd field into a total failure where web would have shown
+ the user a partial draft they could fix.
+
+ `as? NSNumber` is the `typeof x === "number"` guard: a model that returns
+ `"12.50"` as a STRING is rejected, and the line dropped, exactly as on web.
+ */
+private func aiText(_ d: [String: Any], _ key: String) -> String? {
+    if let s = d[key] as? String { return s }
+    if let n = d[key] as? NSNumber { return n.stringValue }
+    return nil
+}
+
+private func aiNumber(_ d: [String: Any], _ key: String) -> Double? {
+    (d[key] as? NSNumber)?.doubleValue
+}
+
+private func aiReceipt(from d: [String: Any]) -> AiReceipt {
+    AiReceipt(
+        merchant: aiText(d, "merchant"),
+        date: aiText(d, "date"),
+        currency: aiText(d, "currency"),
+        total: aiNumber(d, "total"),
+        confidence: aiNumber(d, "confidence"),
+        lines: ((d["lines"] as? [Any]) ?? []).compactMap { raw in
+            guard let o = raw as? [String: Any] else { return nil }
+            return AiLine(
+                kind: aiText(o, "kind"),
+                description: aiText(o, "description"),
+                quantity: aiNumber(o, "quantity"),
+                unit: aiText(o, "unit"),
+                // The wire name is snake_case; Domain's field is not.
+                // `receipts-ai.json` carries the WIRE name so the corpus pins
+                // it and both platforms' registrations must agree.
+                unitPrice: aiNumber(o, "unit_price"),
+                amount: aiNumber(o, "amount")
+            )
+        }
+    )
 }

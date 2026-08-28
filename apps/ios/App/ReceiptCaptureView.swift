@@ -97,6 +97,12 @@ struct ReceiptCaptureView: View {
                             onImage: { image in
                                 showingPicker = false
                                 viewModel.onCaptureStarted()
+                                if let jpeg = image.jpegData(compressionQuality: 0.9) {
+                                    viewModel.onImageCaptured(
+                                        base64: jpeg.base64EncodedString(),
+                                        mediaType: "image/jpeg"
+                                    )
+                                }
                                 recognizeText(in: image)
                             },
                             onCancel: { showingPicker = false }
@@ -201,6 +207,10 @@ struct ReceiptCaptureView: View {
             pendingPdf = data
             readPdf(data, password: nil)
         } else if let image = UIImage(data: data) {
+            // The ORIGINAL bytes, not a re-encode: the model reads a
+            // compressed re-compression measurably worse, and this is the one
+            // shot the user paid a credit for.
+            viewModel.onImageCaptured(base64: data.base64EncodedString(), mediaType: mediaType(of: data))
             recognizeText(in: image)
         } else {
             viewModel.onCaptureFailed(S.Receipts.errorsUnsupportedFile)
@@ -233,10 +243,34 @@ struct ReceiptCaptureView: View {
             Text(S.Receipts.captureUnclearTitle).font(.headline).fontWeight(.bold).foregroundColor(.text)
             Text(viewModel.mismatchMessage(reason)).font(.caption).foregroundColor(.text2).multilineTextAlignment(.center)
             HStack(spacing: 10) {
+                if viewModel.canEscalate {
+                    // Plain text, not a nested chip: web's own note says a chip
+                    // inside a button reads as a second, separately-pressable
+                    // control.
+                    Button(viewModel.quotaLeft > 0
+                           ? "\(S.Receipts.captureImproveWithAi) · \(S.Receipts.captureCreditsLeft(count: String(viewModel.quotaLeft)))"
+                           : S.Receipts.captureImproveWithAi) {
+                        viewModel.improveWithAi()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(viewModel.aiBusy || viewModel.quotaLeft <= 0)
+                }
                 Button(S.Receipts.captureEditManually) { viewModel.editManually() }
                     .buttonStyle(.borderedProminent)
+                    .disabled(viewModel.aiBusy)
                 Button(S.Receipts.captureRetake) { viewModel.retake(); showingPicker = true }
                     .buttonStyle(.bordered)
+                    .disabled(viewModel.aiBusy)
+            }
+            if viewModel.canEscalate {
+                if viewModel.quotaLeft <= 0 {
+                    Text(S.Receipts.captureNoCredits).font(.caption2).foregroundColor(.text2)
+                    Button(S.Receipts.captureSeePlans, action: onSeePlans).font(.caption2)
+                } else {
+                    // The promise, at the moment the user decides. Web puts it
+                    // here rather than in a settings page for that reason.
+                    Text(S.Receipts.captureAiNote).font(.caption2).foregroundColor(.text2)
+                }
             }
         }
         .padding(24)
@@ -363,4 +397,15 @@ private struct CameraPicker: UIViewControllerRepresentable {
 private func looksLikePdf(_ data: Data) -> Bool {
     data.count >= 4 && data[data.startIndex] == 0x25 && data[data.startIndex + 1] == 0x50
         && data[data.startIndex + 2] == 0x44 && data[data.startIndex + 3] == 0x46
+}
+
+/// The media type for bytes the picker handed over.
+///
+/// PNG and JPEG are the two a camera roll realistically produces, and the edge
+/// function needs the right one: a PNG announced as JPEG is a silent misread by
+/// the model rather than an error anything reports.
+private func mediaType(of data: Data) -> String {
+    let png: [UInt8] = [0x89, 0x50, 0x4E, 0x47]
+    if data.count >= 4, Array(data.prefix(4)) == png { return "image/png" }
+    return "image/jpeg"
 }

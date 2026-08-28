@@ -230,8 +230,8 @@ Ranked by whether a native-only user can complete the job at all, not by size.
 | 2 | **Split expense on New transaction** | both | L | ✅ **Done 2026-08-28.** Domain (`splitPlan`, `splitActive`, `forOtherActive`, `autoSplitGroupFor`, `jsNumber`) under 35 vectors landed 2026-08-27; the editor followed — `SplitEditor.kt` / `SplitEditorView.swift`, both save() branches (split + "paid for someone else"), `watchAllGroupMembers()` on both repositories, and the auto-split preselection with web's `splitTouched` guard. Nothing in the UI computes: every number and the Save gate come from Domain |
 | 3 | **Android: Add-expense in a group is unreachable** | Android | S | ✅ **Done.** The group page action opens the sheet |
 | 4 | **Credit-card branch on New account** — limit, statement day, due day, cycle-aware `pending_due` | both | L | ✅ **Done 2026-08-28.** `CardCycle.{kt,swift}` (`cardDueDate`, `clampCardDay`) under 27 vectors, the four fields + live cycle preview on both screens, the negative opening balance, `upsertDetails` + `setCycleDetails`, and web's route-by-type after save — which needed a new `selectTab` environment hook on iOS. Demat copy and the three `allowNeg` strings were hardcoded English on Android and are now wired |
-| 5 | **Receipt capture is camera-only** — no file upload, no PDF, no AI escalation, no entitlement gate | both | L | 🔶 **Three of four done 2026-08-28.** Entitlement gate (the plan card, same `isPaid` the shell uses), file upload (`OpenDocument` / `.fileImporter`, images + PDF), and the PDF text-layer path (existing `PdfTextExtractor` → `groupPdfGlyphs` → `pdfRowsToText` → `parseReceiptText`, engine recorded as `pdf`), plus the password form for an encrypted bill. Both platforms also gained the `source` column ("camera"/"upload") and web's 8000-char `raw_text` cap, neither of which was being written. **Remaining: AI escalation** — it needs the image bytes plumbed to the edge function, which the text-only pipeline does not currently keep |
-| 5a | **AI escalation on receipt capture** — "Improve with AI", the credits counter, the out-of-credits branch | both | M | The on-device read is the only read. A bill it cannot reconcile has no second attempt, where web offers one against the user's monthly quota |
+| 5 | **Receipt capture is camera-only** — no file upload, no PDF, no AI escalation, no entitlement gate | both | L | ✅ **Done 2026-08-28.** Entitlement gate (the plan card, same `isPaid` the shell uses), file upload (`OpenDocument` / `.fileImporter`, images + PDF), and the PDF text-layer path (existing `PdfTextExtractor` → `groupPdfGlyphs` → `pdfRowsToText` → `parseReceiptText`, engine left null so `parseReceiptText` defaults it to `pdf_text`, the value web writes), plus the password form for an encrypted bill. Both platforms also gained the `source` column ("camera"/"upload") and web's 8000-char `raw_text` cap, neither of which was being written. AI escalation followed in the same session — see #5a |
+| 5a | **AI escalation on receipt capture** — "Improve with AI", the credits counter, the out-of-credits branch | both | M | ✅ **Done 2026-08-28.** `AiReceipt.{kt,swift}` in Domain under 18 vectors (the reply mapping, which decides money from untrusted input), `aiParseReceipt` on both `ReceiptsRepository`s (the edge-function call and the `quota_exceeded` unwrap), and the button + credits count + out-of-credits upgrade line on both mismatch cards. The ORIGINAL photo bytes are kept in memory and sent as-is — no re-encode — and still never touch disk or `image_path` |
 | 6 | **Pending settlements** — confirm / dispute | both | M | Both repositories already have `confirmSettlement`/`disputeSettlement`. With no UI, a UPI settlement raised natively is stuck pending until the payee opens the browser |
 | 7 | **Live market quotes** | both | L | Without LTP and day-change every portfolio figure on native is whatever was last typed in. Investments is a manual ledger where web is a live portfolio |
 
@@ -564,6 +564,17 @@ user base they are invisible today, which is exactly why they have survived.
     three up the moment anyone drops the fallbacks; the four in `scan.ts` need
     a real change there, because a thrown `Error` message has no `t()` around
     it to fall back from.
+
+19. **The AI receipt reader's `toMinor` is the ×100, for the third time.**
+    `apps/web/src/receipts/aiParse.ts` converts every amount the model returns
+    with `Math.round(value * 10 ** minorDigits)`. `minorDigits` is a real
+    parameter — and no caller ever passes it, so it is 2 for every currency.
+    A ¥3000 bill read by AI comes back as 300000 minor units: a hundred times
+    the amount, on the one path the user has explicitly paid a credit for.
+
+    Both ports use `fromMajor(major, currency)`. `receipts-ai.json`'s JPY and
+    KWD fixtures are the third pair in the corpus that deliberately disagrees
+    with a browser, after `split-plan.json` and `card-cycle.json`.
 
 ### iOS was formatting numbers as pointers — twelve call sites, 2026-08-27
 

@@ -1,0 +1,754 @@
+[
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "merchant": "Barbeque Nation",
+        "date": "2026-08-12",
+        "currency": "INR",
+        "total": 2360.0,
+        "confidence": 92,
+        "lines": [
+          {
+            "kind": "item",
+            "description": "Buffet x2",
+            "quantity": 2,
+            "unit": "pcs",
+            "amount": 1800,
+            "unit_price": 900
+          },
+          {
+            "kind": "tax",
+            "description": "GST",
+            "amount": 360
+          },
+          {
+            "kind": "discount",
+            "description": "Coupon",
+            "amount": 200
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": "Barbeque Nation",
+      "occurredAt": "2026-08-12",
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "Buffet x2",
+          "quantity": "2000",
+          "unit": "pcs",
+          "unitPrice": "90000",
+          "amount": "180000",
+          "confidence": 90
+        },
+        {
+          "id": "ai1",
+          "kind": "tax",
+          "description": "GST",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "36000",
+          "confidence": 90
+        },
+        {
+          "id": "ai2",
+          "kind": "discount",
+          "description": "Coupon",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "-20000",
+          "confidence": 90
+        }
+      ],
+      "total": "236000",
+      "confidence": 92,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "merchant": "Ichiran",
+        "date": "2026-03-04",
+        "currency": "JPY",
+        "total": 3000,
+        "confidence": 88,
+        "lines": [
+          {
+            "kind": "item",
+            "description": "Ramen",
+            "amount": 1500
+          },
+          {
+            "kind": "item",
+            "description": "Gyoza",
+            "amount": 1500
+          }
+        ]
+      },
+      "currencyHint": "JPY"
+    },
+    "expected": {
+      "merchant": "Ichiran",
+      "occurredAt": "2026-03-04",
+      "currency": "JPY",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "Ramen",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1500",
+          "confidence": 90
+        },
+        {
+          "id": "ai1",
+          "kind": "item",
+          "description": "Gyoza",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1500",
+          "confidence": 90
+        }
+      ],
+      "total": "3000",
+      "confidence": 88,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "KWD",
+        "total": 12.345,
+        "lines": [
+          {
+            "kind": "item",
+            "description": "Coffee",
+            "amount": 12.345
+          }
+        ]
+      },
+      "currencyHint": "KWD"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "KWD",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "Coffee",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "12345",
+          "confidence": 90
+        }
+      ],
+      "total": "12345",
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "total": 50,
+        "lines": [
+          {
+            "kind": "item",
+            "description": "Tea",
+            "amount": 50
+          }
+        ]
+      },
+      "currencyHint": "usd"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "USD",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "Tea",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "5000",
+          "confidence": 90
+        }
+      ],
+      "total": "5000",
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "lines": [
+          {
+            "kind": "gratuity",
+            "description": "Tip?",
+            "amount": 100
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "Tip?",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "10000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "total": 100,
+        "lines": [
+          {
+            "kind": "item",
+            "description": "Ghost"
+          },
+          {
+            "kind": "item",
+            "description": "Real",
+            "amount": 100
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai1",
+          "kind": "item",
+          "description": "Real",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "10000",
+          "confidence": 90
+        }
+      ],
+      "total": "10000",
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "lines": [
+          {
+            "kind": "service_charge",
+            "description": "   ",
+            "amount": 50
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "service_charge",
+          "description": "service charge",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "5000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "lines": [
+          {
+            "kind": "discount",
+            "description": "Off",
+            "amount": 75
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "discount",
+          "description": "Off",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "-7500",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "confidence": 130.6,
+        "lines": [
+          {
+            "kind": "item",
+            "description": "A",
+            "amount": 10
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "A",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 100,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "confidence": -5,
+        "lines": [
+          {
+            "kind": "item",
+            "description": "A",
+            "amount": 10
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "A",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 0,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "lines": [
+          {
+            "kind": "item",
+            "description": "A",
+            "amount": 10
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "A",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "date": "12/08/2026",
+        "lines": [
+          {
+            "kind": "item",
+            "description": "A",
+            "amount": 10
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "A",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "date": "2026-8-12",
+        "lines": [
+          {
+            "kind": "item",
+            "description": "A",
+            "amount": 10
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "A",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "lines": [
+          {
+            "kind": "item",
+            "description": "Rice",
+            "quantity": 1.5,
+            "unit": " KG ",
+            "amount": 90,
+            "unit_price": 60
+          },
+          {
+            "kind": "item",
+            "description": "Zero",
+            "quantity": 0,
+            "amount": 10
+          },
+          {
+            "kind": "item",
+            "description": "Neg",
+            "quantity": -2,
+            "amount": 10
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "Rice",
+          "quantity": "1500",
+          "unit": "kg",
+          "unitPrice": "6000",
+          "amount": "9000",
+          "confidence": 90
+        },
+        {
+          "id": "ai1",
+          "kind": "item",
+          "description": "Zero",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        },
+        {
+          "id": "ai2",
+          "kind": "item",
+          "description": "Neg",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "merchant": "",
+        "currency": "INR",
+        "lines": [
+          {
+            "kind": "item",
+            "description": "A",
+            "unit": "",
+            "amount": 10
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "A",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "merchant": "  ",
+        "currency": "INR",
+        "lines": [
+          {
+            "kind": "item",
+            "description": "A",
+            "unit": "  ",
+            "amount": 10
+          }
+        ]
+      },
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": "",
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "A",
+          "quantity": null,
+          "unit": "",
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {
+        "currency": "INR",
+        "lines": [
+          {
+            "kind": "item",
+            "description": "A",
+            "amount": 10
+          }
+        ]
+      },
+      "currencyHint": "INR",
+      "rawText": "RAW OCR DUMP"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [
+        {
+          "id": "ai0",
+          "kind": "item",
+          "description": "A",
+          "quantity": null,
+          "unit": null,
+          "unitPrice": null,
+          "amount": "1000",
+          "confidence": 90
+        }
+      ],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": "RAW OCR DUMP"
+    }
+  },
+  {
+    "fn": "aiReceiptDraft",
+    "input": {
+      "receipt": {},
+      "currencyHint": "INR"
+    },
+    "expected": {
+      "merchant": null,
+      "occurredAt": null,
+      "currency": "INR",
+      "lines": [],
+      "total": null,
+      "confidence": 80,
+      "engine": "claude",
+      "rawText": null
+    }
+  }
+]

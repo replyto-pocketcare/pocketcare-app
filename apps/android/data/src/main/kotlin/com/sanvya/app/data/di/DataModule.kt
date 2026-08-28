@@ -103,7 +103,7 @@ val dataModule = module {
     single { com.sanvya.app.data.repository.NotificationsRepository(get()) }
     single {
         val auth: AuthRepository = get()
-        ReceiptsRepository(db = get(), getUserId = { auth.currentUserId.value ?: "" })
+        ReceiptsRepository(db = get(), getUserId = { auth.currentUserId.value ?: "" }, client = get())
     }
     single<com.sanvya.app.domain.repository.PushRepository> { com.sanvya.app.data.repository.SupabasePushRepository(get()) }
     single {

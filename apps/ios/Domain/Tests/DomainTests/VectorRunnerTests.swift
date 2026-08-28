@@ -127,6 +127,13 @@ final class VectorRunnerTests: XCTestCase {
         registerCardCycleVectors()
         try runDomain("card-cycle")
     }
+    func testReceiptsAi() throws {
+        // AiReceipt.swift — the AI fallback's reply, mapped into a draft. A
+        // SPEC, and the JPY/KWD fixtures deliberately disagree with a browser:
+        // web's toMinor is a ×100. See AiReceiptVectors.
+        registerAiReceiptVectors()
+        try runDomain("receipts-ai")
+    }
     func testSplitPlan() throws {
         // SplitPlan.swift — the Add-transaction split editor's arithmetic. A
         // SPEC, and the ONE domain with a fixture that deliberately disagrees

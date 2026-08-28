@@ -93,6 +93,9 @@ fun ReceiptCaptureScreen(
     val mainExecutor = remember { ContextCompat.getMainExecutor(context) }
 
     val canScan by viewModel.canScan.collectAsState()
+    val canEscalate by viewModel.canEscalate.collectAsState()
+    val quotaLeft by viewModel.quotaLeft.collectAsState()
+    val aiBusy by viewModel.aiBusy.collectAsState()
     val res = sRes()
     val scope = rememberCoroutineScope()
     val pdfExtractor: PdfTextExtractor = koinInject()
@@ -135,6 +138,10 @@ fun ReceiptCaptureScreen(
                     viewModel.onCaptureFailed(S.Receipts.errorsUnsupportedFile(res))
                     return@launch
                 }
+                viewModel.onImageCaptured(
+                    base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP),
+                    mediaType = imageMediaType(bytes, mime),
+                )
                 recognizer.process(InputImage.fromBitmap(bitmap, 0))
                     .addOnSuccessListener { text -> viewModel.onTextRecognized(text.text) }
                     .addOnFailureListener { viewModel.onCaptureFailed(S.Receipts.errorsUnsupportedFile(res)) }
@@ -231,6 +238,11 @@ fun ReceiptCaptureScreen(
                     MismatchCard(
                         message = viewModel.mismatchMessage(res, reason),
                         colors = colors,
+                        canEscalate = canEscalate,
+                        quotaLeft = quotaLeft,
+                        aiBusy = aiBusy,
+                        onImproveWithAi = { viewModel.improveWithAi(res) },
+                        onSeePlans = onSeePlans,
                         onEditManually = { viewModel.editManually() },
                         onRetake = { viewModel.retake() },
                     )
@@ -328,15 +340,55 @@ private fun PermissionNeeded(colors: com.sanvya.app.theme.SanvyaColors, onReques
 }
 
 @Composable
-private fun MismatchCard(message: String, colors: com.sanvya.app.theme.SanvyaColors, onEditManually: () -> Unit, onRetake: () -> Unit) {
+private fun MismatchCard(
+    message: String,
+    colors: com.sanvya.app.theme.SanvyaColors,
+    canEscalate: Boolean,
+    quotaLeft: Int,
+    aiBusy: Boolean,
+    onImproveWithAi: () -> Unit,
+    onSeePlans: () -> Unit,
+    onEditManually: () -> Unit,
+    onRetake: () -> Unit,
+) {
+    val res = sRes()
     Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
         Card(colors = CardDefaults.cardColors(containerColor = colors.surface)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(S.Receipts.captureUnclearTitle(sRes()), fontWeight = FontWeight.Bold, color = colors.text)
+                Text(S.Receipts.captureUnclearTitle(res), fontWeight = FontWeight.Bold, color = colors.text)
                 Text(message, fontSize = 13.sp, color = colors.text2)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = onEditManually) { Text(S.Receipts.captureEditManually(sRes())) }
-                    OutlinedButton(onClick = onRetake) { Text(S.Receipts.captureRetake(sRes())) }
+                    if (canEscalate) {
+                        Button(onClick = onImproveWithAi, enabled = !aiBusy && quotaLeft > 0) {
+                            Text(
+                                if (quotaLeft > 0) {
+                                    // Plain text, not a nested chip: web's own
+                                    // note says a chip inside a button reads as
+                                    // a second, separately-pressable control.
+                                    S.Receipts.captureImproveWithAi(res) +
+                                        " · " + S.Receipts.captureCreditsLeft(res, quotaLeft)
+                                } else {
+                                    S.Receipts.captureImproveWithAi(res)
+                                },
+                            )
+                        }
+                    }
+                    Button(onClick = onEditManually, enabled = !aiBusy) {
+                        Text(S.Receipts.captureEditManually(res))
+                    }
+                    OutlinedButton(onClick = onRetake, enabled = !aiBusy) {
+                        Text(S.Receipts.captureRetake(res))
+                    }
+                }
+                if (canEscalate) {
+                    if (quotaLeft <= 0) {
+                        Text(S.Receipts.captureNoCredits(res), fontSize = 11.5.sp, color = colors.text2)
+                        TextButton(onClick = onSeePlans) { Text(S.Receipts.captureSeePlans(res)) }
+                    } else {
+                        // The promise, at the moment the user decides. Web puts
+                        // it here rather than in a settings page for that reason.
+                        Text(S.Receipts.captureAiNote(res), fontSize = 11.5.sp, color = colors.text2)
+                    }
                 }
             }
         }
@@ -360,9 +412,18 @@ private fun captureAndRecognize(
         override fun onCaptureSuccess(image: ImageProxy) {
             viewModel.onReadingStarted()
             try {
-                val bitmap = imageProxyToBitmap(image)
+                val jpegBytes = imageProxyBytes(image)
+                val bitmap = BitmapFactory.decodeByteArray(jpegBytes, 0, jpegBytes.size)
+                    ?: throw IllegalStateException("Couldn't decode the captured photo.")
                 val rotation = image.imageInfo.rotationDegrees
                 val rotated = if (rotation != 0) rotateBitmap(bitmap, rotation) else bitmap
+                // Kept in memory for a possible "Improve with AI". The ORIGINAL
+                // JPEG, not a re-encode: the model reads a compressed
+                // re-compression measurably worse, and this is the one shot.
+                viewModel.onImageCaptured(
+                    base64 = android.util.Base64.encodeToString(jpegBytes, android.util.Base64.NO_WRAP),
+                    mediaType = "image/jpeg",
+                )
                 val inputImage = InputImage.fromBitmap(rotated, 0)
                 recognizer.process(inputImage)
                     .addOnSuccessListener { text -> viewModel.onTextRecognized(text.text) }
@@ -380,12 +441,19 @@ private fun captureAndRecognize(
     })
 }
 
-private fun imageProxyToBitmap(image: ImageProxy): Bitmap {
+/**
+ * The captured frame's raw JPEG bytes.
+ *
+ * Returns the BYTES rather than a Bitmap because both callers need them: the
+ * OCR path decodes them, and the AI escalation sends them as-is. Decoding to a
+ * Bitmap and re-encoding for the upload would put the model in front of a
+ * double-compressed photo for no reason.
+ */
+private fun imageProxyBytes(image: ImageProxy): ByteArray {
     val buffer = image.planes[0].buffer
     val bytes = ByteArray(buffer.remaining())
     buffer.get(bytes)
-    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-        ?: throw IllegalStateException("Couldn't decode the captured photo.")
+    return bytes
 }
 
 private fun rotateBitmap(bitmap: Bitmap, degrees: Int): Bitmap {
@@ -415,6 +483,21 @@ private val UPLOAD_MIME_TYPES = arrayOf("image/*", "application/pdf")
 private fun looksLikePdf(bytes: ByteArray): Boolean =
     bytes.size >= 4 && bytes[0] == 0x25.toByte() && bytes[1] == 0x50.toByte() &&
         bytes[2] == 0x44.toByte() && bytes[3] == 0x46.toByte()
+
+/**
+ * The media type for bytes the picker handed over.
+ *
+ * The provider's own type wins when it is an image type; otherwise the bytes
+ * decide. PNG and JPEG are the two a gallery realistically produces, and the
+ * edge function needs the right one: a PNG announced as JPEG is a silent
+ * misread by the model rather than an error anything reports.
+ */
+private fun imageMediaType(bytes: ByteArray, providerType: String): String = when {
+    providerType.startsWith("image/") -> providerType
+    bytes.size >= 4 && bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() &&
+        bytes[2] == 0x4E.toByte() && bytes[3] == 0x47.toByte() -> "image/png"
+    else -> "image/jpeg"
+}
 
 /** Web's plan card, shown instead of the camera on a free plan. */
 @OptIn(ExperimentalMaterial3Api::class)

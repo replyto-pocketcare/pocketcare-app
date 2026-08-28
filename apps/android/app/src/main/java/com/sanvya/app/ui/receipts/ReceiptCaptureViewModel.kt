@@ -2,15 +2,17 @@ package com.sanvya.app.ui.receipts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sanvya.app.data.repository.AiScanError
 import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.data.repository.ReceiptsRepository
 import com.sanvya.app.data.repository.SaveScanInput
 import com.sanvya.app.domain.receipts.ParseOptions
 import com.sanvya.app.domain.receipts.ReceiptDraft
 import com.sanvya.app.domain.receipts.parseReceiptText
+import com.sanvya.app.domain.receipts.shouldEscalate
 import com.sanvya.app.domain.receipts.reconcile
 import com.sanvya.app.domain.receipts.subtotals
-import com.sanvya.app.domain.entitlements.isPaid
+import com.sanvya.app.domain.entitlements.entitlementState
 import com.sanvya.app.i18n.S
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -83,18 +85,50 @@ class ReceiptCaptureViewModel : ViewModel(), KoinComponent {
     private val _canScan = MutableStateFlow(false)
     val canScan: StateFlow<Boolean> = _canScan
 
+    /**
+     * AI reads left this month. Web shows the count on the button and swaps the
+     * whole note for an upgrade line at zero, because "Improve with AI" that
+     * silently fails is worse than one that says why it cannot.
+     */
+    private val _quotaLeft = MutableStateFlow(0)
+    val quotaLeft: StateFlow<Int> = _quotaLeft
+
+    /**
+     * Whether "Improve with AI" is worth offering, and the bytes it would send.
+     *
+     * Non-null ONLY for a photograph that did not reconcile: a PDF has no image
+     * to escalate with (web's `canEscalate: false` on that branch), and a clean
+     * read never reaches the card at all. Held here rather than in the screen
+     * because the screen is recreated on rotation and the photo is not
+     * retakeable once the camera has closed.
+     */
+    private var pendingImage: EscalationImage? = null
+
+    /** True when the mismatch card should offer the AI button. */
+    private val _canEscalate = MutableStateFlow(false)
+    val canEscalate: StateFlow<Boolean> = _canEscalate
+
+    private val _aiBusy = MutableStateFlow(false)
+    val aiBusy: StateFlow<Boolean> = _aiBusy
+
     init {
         viewModelScope.launch {
             prefsRepository.watchEntitlement()
                 .catch { /* offline -- keep the last known tier */ }
                 .collectLatest { row ->
-                    _canScan.value = isPaid(
-                        row?.tier,
-                        row?.premiumTrialStartDate,
-                        row?.compTier,
-                        row?.compUntil,
-                        System.currentTimeMillis(),
+                    val state = entitlementState(
+                        tier = row?.tier,
+                        premiumTrialStartDate = row?.premiumTrialStartDate,
+                        compTier = row?.compTier,
+                        compUntil = row?.compUntil,
+                        nowMillis = System.currentTimeMillis(),
+                        monthlyQuotaTotal = row?.monthlyQuotaTotal,
+                        monthlyQuotaUsed = row?.monthlyQuotaUsed,
+                        purchasedQuotaRemaining = row?.purchasedQuotaRemaining,
+                        additionalPurchasedQuota = row?.additionalPurchasedQuota,
                     )
+                    _canScan.value = state.isPaid
+                    _quotaLeft.value = state.quotaLeft
                 }
         }
     }
@@ -102,6 +136,17 @@ class ReceiptCaptureViewModel : ViewModel(), KoinComponent {
     fun onCaptureStarted() {
         source = ScanSource.CAMERA
         _stage.value = CaptureStage.Preparing
+    }
+
+    /**
+     * The photo, kept in memory for a possible escalation.
+     *
+     * Called by the screen just before OCR. Nothing here is written to disk or
+     * to the database: `receipt_scans.image_path` stays null on both platforms,
+     * exactly as web promises, and this copy dies with the ViewModel.
+     */
+    fun onImageCaptured(base64: String, mediaType: String) {
+        pendingImage = EscalationImage(base64, mediaType)
     }
 
     /** A file was chosen from the picker -- an image or a PDF. */
@@ -130,8 +175,12 @@ class ReceiptCaptureViewModel : ViewModel(), KoinComponent {
      *
      * Web's PDF branch skips OCR entirely and calls `parseReceiptText` on the
      * joined rows -- an emailed bill is the single most accurate input this
-     * feature accepts, which is why it is worth the separate path. The engine
-     * is recorded as "pdf" rather than an OCR engine that never ran.
+     * feature accepts, which is why it is worth the separate path.
+     *
+     * The engine is left NULL, not set: `parseReceiptText` defaults it to
+     * "pdf_text", which is the value web writes and the value the review
+     * screen and `receipt_scans.engine` already understand. Naming a new one
+     * here would have put a value in the column nothing else recognises.
      */
     fun onPdfText(res: android.content.res.Resources, text: String) {
         // Web's own floor: below this there is no text layer worth parsing, and
@@ -141,14 +190,18 @@ class ReceiptCaptureViewModel : ViewModel(), KoinComponent {
             _stage.value = CaptureStage.Error(S.Receipts.errorsPdfNoText(res))
             return
         }
-        ingest(text, engine = "pdf")
+        ingest(text, engine = null)
     }
 
-    private fun ingest(rawText: String, engine: String) {
+    private fun ingest(rawText: String, engine: String?) {
         _stage.value = CaptureStage.Understanding
         val today = LocalDate.now(ZoneOffset.UTC).toString()
         val draft = parseReceiptText(rawText, ParseOptions(currency = baseCurrencyNow(), today = today, engine = engine))
         pendingDraft = draft
+        // A PDF has no image to escalate with -- web sets `canEscalate: false`
+        // on that branch outright, and offering a button that cannot work is
+        // worse than not offering one.
+        _canEscalate.value = pendingImage != null && shouldEscalate(draft)
         val rec = reconcile(draft)
         if (rec.ok) {
             commit(draft)
@@ -170,7 +223,48 @@ class ReceiptCaptureViewModel : ViewModel(), KoinComponent {
 
     fun retake() {
         pendingDraft = null
+        pendingImage = null
+        _canEscalate.value = false
         _stage.value = CaptureStage.Idle
+    }
+
+    /**
+     * "Improve with AI" -- send the ORIGINAL photo for a second reading.
+     *
+     * The on-device read is kept and passed along as `rawText`: web does the
+     * same, and it is what lets the review screen show what the phone thought
+     * next to what the model thought.
+     *
+     * A successful escalation commits straight to review, exactly as web's
+     * `improveWithAi` does -- the user asked for a better read, not for another
+     * decision.
+     */
+    fun improveWithAi(res: android.content.res.Resources) {
+        val image = pendingImage ?: return
+        if (_aiBusy.value) return
+        _aiBusy.value = true
+        viewModelScope.launch {
+            try {
+                val draft = receiptsRepository.aiParseReceipt(
+                    base64 = image.base64,
+                    mediaType = image.mediaType,
+                    currencyHint = baseCurrencyNow(),
+                    today = LocalDate.now(ZoneOffset.UTC).toString(),
+                    rawText = pendingDraft?.rawText,
+                )
+                pendingDraft = draft
+                commit(draft)
+            } catch (e: AiScanError) {
+                // The quota case is not hidden behind a generic failure: web
+                // swaps the whole note for an upgrade line, and it can only do
+                // that because the error says which failure it was.
+                _stage.value = CaptureStage.Error(e.message ?: S.Receipts.errorsPdfUnreadable(res))
+            } catch (e: Exception) {
+                _stage.value = CaptureStage.Error(e.message ?: S.Receipts.errorsPdfUnreadable(res))
+            } finally {
+                _aiBusy.value = false
+            }
+        }
     }
 
     /** Human-facing reason text -- mirrors `describeMismatch` exactly. */
@@ -223,3 +317,12 @@ private const val RAW_TEXT_CAP = 8000
  * the paper beats a photo of a scan, so it says so rather than trying.
  */
 private const val PDF_TEXT_FLOOR = 20
+
+/**
+ * The photo, base64-encoded, ready for the edge function.
+ *
+ * A tiny type rather than two loose fields because the two must travel
+ * together: sending the bytes with the wrong media type is a silent
+ * misread, not an error.
+ */
+data class EscalationImage(val base64: String, val mediaType: String)

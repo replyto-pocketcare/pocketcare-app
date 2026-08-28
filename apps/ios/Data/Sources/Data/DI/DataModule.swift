@@ -181,7 +181,11 @@ public extension Container {
     var receiptsRepository: Factory<ReceiptsRepository> {
         self {
             let auth = self.authRepository()
-            return ReceiptsRepository(db: self.powerSyncDatabase(), getUserId: { auth.currentUserId ?? "" })
+            return ReceiptsRepository(
+                db: self.powerSyncDatabase(),
+                getUserId: { auth.currentUserId ?? "" },
+                client: self.supabaseClient()
+            )
         }.singleton
     }
 }

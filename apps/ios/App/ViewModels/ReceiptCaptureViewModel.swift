@@ -59,6 +59,24 @@ public final class ReceiptCaptureViewModel {
     /// Starts closed and stays closed if the entitlement cannot be read. A gate
     /// that fails open is not a gate.
     public var canScan = false
+
+    /// AI reads left this month. Web shows the count on the button and swaps
+    /// the whole note for an upgrade line at zero, because "Improve with AI"
+    /// that silently fails is worse than one that says why it cannot.
+    public var quotaLeft = 0
+
+    /// True when the mismatch card should offer the AI button.
+    public var canEscalate = false
+    public var aiBusy = false
+
+    /// The photo, kept in memory for a possible escalation.
+    ///
+    /// Non-nil ONLY for a photograph that did not reconcile: a PDF has no image
+    /// to escalate with (web's `canEscalate: false` on that branch). Nothing
+    /// here is written to disk or to the database — `receipt_scans.image_path`
+    /// stays null on both platforms, exactly as web promises, and this copy
+    /// dies with the view model.
+    @ObservationIgnored private var pendingImage: EscalationImage?
     /// Set once a scan is saved -- the view navigates to review on this
     /// becoming non-nil.
     public var savedScanId: String?
@@ -70,13 +88,19 @@ public final class ReceiptCaptureViewModel {
         entitlementTask = Task { [weak self] in
             do {
                 for try await row in try prefsRepository.watchEntitlement() {
-                    self?.canScan = isPaid(
+                    let state = entitlementState(
                         tier: row?.tier,
                         premiumTrialStartDate: row?.premiumTrialStartDate,
                         compTier: row?.compTier,
                         compUntil: row?.compUntil,
-                        now: Date()
+                        nowMillis: Int64((Date().timeIntervalSince1970 * 1000).rounded()),
+                        monthlyQuotaTotal: row?.monthlyQuotaTotal,
+                        monthlyQuotaUsed: row?.monthlyQuotaUsed,
+                        purchasedQuotaRemaining: row?.purchasedQuotaRemaining,
+                        additionalPurchasedQuota: row?.additionalPurchasedQuota
                     )
+                    self?.canScan = state.isPaid
+                    self?.quotaLeft = state.quotaLeft
                 }
             } catch {
                 // Offline — keep the last known tier.
@@ -92,6 +116,13 @@ public final class ReceiptCaptureViewModel {
     public func onCaptureStarted() {
         source = ScanSource.camera
         stage = .preparing
+    }
+
+    /// The photo, kept in memory for a possible escalation.
+    ///
+    /// Called by the view just before OCR.
+    public func onImageCaptured(base64: String, mediaType: String) {
+        pendingImage = EscalationImage(base64: base64, mediaType: mediaType)
     }
 
     /// A file was chosen from the picker — an image or a PDF.
@@ -117,8 +148,12 @@ public final class ReceiptCaptureViewModel {
     ///
     /// Web's PDF branch skips OCR entirely and calls `parseReceiptText` on the
     /// joined rows — an emailed bill is the single most accurate input this
-    /// feature accepts, which is why it is worth the separate path. The engine
-    /// is recorded as "pdf" rather than an OCR engine that never ran.
+    /// feature accepts, which is why it is worth the separate path.
+    ///
+    /// The engine is left NIL, not set: `parseReceiptText` defaults it to
+    /// "pdf_text", which is the value web writes and the value the review
+    /// screen and `receipt_scans.engine` already understand. Naming a new one
+    /// here would have put a value in the column nothing else recognises.
     public func onPdfText(_ text: String) {
         // Web's own floor: below this there is no text layer worth parsing, and
         // rasterising a scan to OCR it reads worse than photographing the paper
@@ -127,14 +162,18 @@ public final class ReceiptCaptureViewModel {
             stage = .error(S.Receipts.errorsPdfNoText)
             return
         }
-        ingest(text, engine: "pdf")
+        ingest(text, engine: nil)
     }
 
-    private func ingest(_ rawText: String, engine: String) {
+    private func ingest(_ rawText: String, engine: String?) {
         stage = .understanding
         let today = ISO8601DateFormatter().string(from: Date()).prefix(10)
         let draft = parseReceiptText(rawText, ParseOptions(currency: baseCurrencyNow(), today: String(today), engine: engine))
         pendingDraft = draft
+        // A PDF has no image to escalate with — web sets `canEscalate: false`
+        // on that branch outright, and offering a button that cannot work is
+        // worse than not offering one.
+        canEscalate = pendingImage != nil && shouldEscalate(draft)
         let rec = reconcile(draft)
         if rec.ok {
             commit(draft)
@@ -156,7 +195,45 @@ public final class ReceiptCaptureViewModel {
 
     public func retake() {
         pendingDraft = nil
+        pendingImage = nil
+        canEscalate = false
         stage = .idle
+    }
+
+    /// "Improve with AI" — send the ORIGINAL photo for a second reading.
+    ///
+    /// The on-device read is kept and passed along as `rawText`: web does the
+    /// same, and it is what lets the review screen show what the phone thought
+    /// next to what the model thought.
+    ///
+    /// A successful escalation commits straight to review, exactly as web's
+    /// `improveWithAi` does — the user asked for a better read, not for another
+    /// decision.
+    public func improveWithAi() {
+        guard let image = pendingImage, !aiBusy else { return }
+        aiBusy = true
+        Task {
+            do {
+                let today = ISO8601DateFormatter().string(from: Date()).prefix(10)
+                let draft = try await receiptsRepository.aiParseReceipt(
+                    base64: image.base64,
+                    mediaType: image.mediaType,
+                    currencyHint: baseCurrencyNow(),
+                    today: String(today),
+                    rawText: pendingDraft?.rawText
+                )
+                pendingDraft = draft
+                commit(draft)
+            } catch let error as AiScanError {
+                // The quota case is not hidden behind a generic failure: web
+                // swaps the whole note for an upgrade line, and it can only do
+                // that because the error says which failure it was.
+                stage = .error(error.message)
+            } catch {
+                stage = .error(error.localizedDescription)
+            }
+            aiBusy = false
+        }
     }
 
     /// Mirrors `describeMismatch` exactly.
@@ -207,3 +284,13 @@ private let rawTextCap = 8000
 /// Web's own floor. It could rasterise and OCR the page instead, but a photo of
 /// the paper beats a photo of a scan, so it says so rather than trying.
 private let pdfTextFloor = 20
+
+/// The photo, base64-encoded, ready for the edge function.
+///
+/// A tiny type rather than two loose fields because the two must travel
+/// together: sending the bytes with the wrong media type is a silent misread,
+/// not an error.
+private struct EscalationImage {
+    let base64: String
+    let mediaType: String
+}

@@ -104,12 +104,17 @@ struct CreateTransactionView: View {
     /// summed — per item, not on the sum, so each item rounds the way web's
     /// does, and `fromMajor` rather than a hardcoded ×100 so a zero-decimal
     /// currency is not read as a hundredth of itself.
-    private var totalMoney: Money {
-        items.reduce(money(0, currency)) { acc, it in
-            money(acc.amount + fromMajor(jsParseFloat(it.value) ?? 0, currency).amount, currency)
-        }
+    /// Summed in MINOR UNITS, then wrapped once.
+    ///
+    /// Not `reduce` over `Money`: `money(0, currency)` is ambiguous between the
+    /// `Int64` and `Double` overloads at an integer literal, and threading a
+    /// `Money` through the accumulator only to unwrap `.amount` on every step
+    /// adds nothing. The rounding that matters still happens per item, inside
+    /// `fromMajor`, which is the whole point.
+    private var totalMinor: Int64 {
+        items.reduce(Int64(0)) { $0 + fromMajor(jsParseFloat($1.value) ?? 0, currency).amount }
     }
-    private var totalMinor: Int64 { totalMoney.amount }
+    private var totalMoney: Money { money(totalMinor, currency) }
 
     private var canSave: Bool {
         guard account != nil, totalMinor > 0, !saving else { return false }
