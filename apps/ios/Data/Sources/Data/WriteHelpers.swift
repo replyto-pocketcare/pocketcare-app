@@ -52,10 +52,12 @@ public func insertRow(
     }
     let keys = Array(row.keys)
     let placeholders = keys.map { _ in "?" }.joined(separator: ",")
-    try await db.execute(
-        sql: "INSERT INTO \(table) (\(keys.joined(separator: ","))) VALUES (\(placeholders))",
-        parameters: keys.map { row[$0] ?? nil }
-    )
+    try await withLoading {
+        try await db.execute(
+            sql: "INSERT INTO \(table) (\(keys.joined(separator: ","))) VALUES (\(placeholders))",
+            parameters: keys.map { row[$0] ?? nil }
+        )
+    }
     return id
 }
 
@@ -72,14 +74,18 @@ public func updateRow(
     var params: [Sendable?] = keys.map { values[$0] ?? nil }
     params.append(nowIso())
     params.append(id)
-    try await db.execute(sql: "UPDATE \(table) SET \(sets) WHERE id = ?", parameters: params)
+    try await withLoading {
+        try await db.execute(sql: "UPDATE \(table) SET \(sets) WHERE id = ?", parameters: params)
+    }
 }
 
 /// Soft-delete a row (sets deleted_at) so the change syncs.
 public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
     let ts = nowIso()
-    try await db.execute(
-        sql: "UPDATE \(table) SET deleted_at = ?, updated_at = ? WHERE id = ?",
-        parameters: [ts, ts, id]
-    )
+    try await withLoading {
+        try await db.execute(
+            sql: "UPDATE \(table) SET deleted_at = ?, updated_at = ? WHERE id = ?",
+            parameters: [ts, ts, id]
+        )
+    }
 }

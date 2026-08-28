@@ -58,10 +58,12 @@ suspend fun insertRow(
     }
     val keys = row.keys.toList()
     val placeholders = keys.joinToString(",") { "?" }
-    db.execute(
-        "INSERT INTO $table (${keys.joinToString(",")}) VALUES ($placeholders)",
-        keys.map { row[it] },
-    )
+    WriteActivity.withLoading {
+        db.execute(
+            "INSERT INTO $table (${keys.joinToString(",")}) VALUES ($placeholders)",
+            keys.map { row[it] },
+        )
+    }
     return id
 }
 
@@ -77,11 +79,15 @@ suspend fun updateRow(
     val params = values.values.toMutableList()
     params.add(nowIso())
     params.add(id)
-    db.execute("UPDATE $table SET ${sets.joinToString(", ")} WHERE id = ?", params)
+    WriteActivity.withLoading {
+        db.execute("UPDATE $table SET ${sets.joinToString(", ")} WHERE id = ?", params)
+    }
 }
 
 /** Soft-delete a row (sets deleted_at) so the change syncs. */
 suspend fun softDelete(db: PowerSyncDatabase, table: String, id: String) {
     val ts = nowIso()
-    db.execute("UPDATE $table SET deleted_at = ?, updated_at = ? WHERE id = ?", listOf(ts, ts, id))
+    WriteActivity.withLoading {
+        db.execute("UPDATE $table SET deleted_at = ?, updated_at = ? WHERE id = ?", listOf(ts, ts, id))
+    }
 }

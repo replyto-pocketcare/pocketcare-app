@@ -112,8 +112,8 @@ collision with `BottomNav.swift`'s private `NavItem`. Screens that navigate
 (`InsightsView`, `CreditCardsView`) get a `Binding<NavTab>` from the shell — writing through it
 routes via `select()`, so a screen cannot navigate and leave the More sheet open.
 Still missing on **both**: per-route scroll restoration, the launch-time recurring/auto-post
-pass, the in-flow sync-status strip (`syncMessage()` + Force Sync / Report Issue),
-`TrialNotice`, and `GlobalLoader`.
+pass, the in-flow sync-status strip (`syncMessage()` + Force Sync / Report Issue), and
+`TrialNotice`. `GlobalLoader` was built 2026-08-28 (`WriteIndicator`).
 
 **Residual on both: every top-level screen still wraps itself in its own
 `NavigationView`/`Scaffold` with a `navigationTitle`/`TopAppBar`.** Web's shell has no title bar
@@ -252,7 +252,8 @@ absence, and they are almost all `S`.
 | ~~The "investment accounts only support transfers" line is hardcoded English~~ | both | S | ✅ 2026-08-27 — `transactions:investmentTransferOnly` existed the whole time |
 | Settle-up: no "None — mark settled" option; UPI is offered regardless of currency or sign | both | S | open |
 | Android's `SyncStatusStrip` is defined and never called | Android | S | open — dead CODE, not a dead control: nothing renders, so nothing lies. Wiring it is a real port (`syncMessage` is not in Domain and the shell has no sync-status stream), not a two-line fix |
-| `BlockingLoader` / `GlobalLoader` exists on both with zero call sites | both | S | open — same reasoning as above |
+| `GlobalLoader` had no native counterpart | both | S | ✅ **Done 2026-08-28.** `WriteActivity` (a counter in the layer that performs every write, mirroring web's module-level `count` in GlobalLoader.tsx) + `WriteIndicator.kt` / `WriteIndicatorView.swift` in the shell. Non-blocking, top-right, 24pt — web's shape exactly |
+| Android's `BlockingLoader` still has zero call sites | Android | S | open — it is NOT web's GlobalLoader (that one is now built): it is a blocking modal for a foreground operation the user must wait out, and no screen has yet identified one |
 | Settings' "Replay intro" string exists in `S.kt` and is wired to nothing | Android | S | open |
 
 #### Blocked on Akhilesh, not on code
@@ -301,7 +302,8 @@ approximation per screen (iOS's old credit-card face).
 | `Money` / `useMoneyFmt` / `amountFormat` | `src/ui/Money.tsx`, `amountFormat.ts` | 🔶 per-screen formatters | 🔶 per-screen formatters |
 | `Modal`, `Confirm`, `KebabMenu` | `src/ui/*` | ❌ | ❌ |
 | `AmountInput`, `FloatingInput`, `PasswordInput`, `SearchSelect`, `MultiSelect`, `LabelPicker` | `src/ui/*` | ❌ | ❌ |
-| `ProgressBar`, `Skeleton`, `Spinner`, `GlobalLoader` | `src/ui/*` | ❌ | ❌ |
+| `ProgressBar`, `Skeleton`, `Spinner` | `src/ui/*` | ❌ | ❌ |
+| `GlobalLoader` | `src/ui/GlobalLoader.tsx` | ✅ `WriteIndicator.kt` | ✅ `WriteIndicatorView.swift` |
 | `AddSpeedDial` / `AddAction` context | `src/ui/AddSpeedDial.tsx` (224) | 🔶 dashboard-only FAB | 🔶 dashboard-only FAB |
 | `BottomNavCustomizer` | `src/ui/BottomNavCustomizer.tsx` | ❌ | ❌ |
 | `TrialNotice`, `UpgradeModal`, `Billing` | `src/ui/*` | ❌ | ❌ |

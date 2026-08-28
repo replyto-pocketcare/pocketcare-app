@@ -175,80 +175,87 @@ fun AppShell(
         CompositionLocalProviderForAddAction(onSetPageAction) { content() }
     }
 
-    if (windowClass == SanvyaWindowClass.EXPANDED) {
-        ExpandedShell(
-            currentRoute = currentRoute,
-            unreadCount = unreadCount,
-            failedWrites = failedWrites,
-            offline = offline,
-            isGuest = isGuest,
-            guestDaysLeft = guestDaysLeft,
-            onNavigate = onNavigate,
-            onFeedback = { feedbackOpen = true },
-            page = page,
-        )
-    } else {
-        Box(modifier = Modifier.fillMaxSize().background(colors.bg)) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                // Banners sit above everything, in web's z-order: problems first.
-                Column(modifier = Modifier.padding(WindowInsets.statusBars.asPaddingValues())) {
-                    SyncProblemsBanner(failedWrites) { onNavigate("settings") }
-                    OfflineBanner(offline)
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(
-                            top = SanvyaMetrics.Page.paddingTop,
-                            start = SanvyaMetrics.Page.paddingHorizontal,
-                            end = SanvyaMetrics.Page.paddingHorizontal,
-                        )
-                        // At MEDIUM the column caps and centres rather than
-                        // stretching a phone layout across a tablet, which is
-                        // exactly what web does above its own middle breakpoint.
-                        .then(
-                            if (windowClass.capsContentWidth) {
-                                Modifier.widthIn(max = SanvyaMetrics.Page.maxWidth)
-                            } else {
-                                Modifier
-                            },
-                        ),
-                ) {
-                    page()
-                }
-            }
-
-            BottomNav(
+    // One Box around both layouts so the write indicator has somewhere to sit
+    // at every window class. Web renders `<GlobalLoader />` once, next to the
+    // shell rather than inside it, for the same reason: it is about the app,
+    // not about the page.
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (windowClass == SanvyaWindowClass.EXPANDED) {
+            ExpandedShell(
                 currentRoute = currentRoute,
-                navIds = navIds,
                 unreadCount = unreadCount,
-                addLabel = action.label,
+                failedWrites = failedWrites,
+                offline = offline,
+                isGuest = isGuest,
+                guestDaysLeft = guestDaysLeft,
                 onNavigate = onNavigate,
-                onAdd = runAdd,
-                onMore = { moreOpen = true },
-                moreOpen = moreOpen,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(WindowInsets.navigationBars.asPaddingValues())
-                    .padding(
-                        start = SanvyaMetrics.BottomNav.sideInset,
-                        end = SanvyaMetrics.BottomNav.sideInset,
-                        bottom = SanvyaMetrics.BottomNav.bottomInset,
-                    )
-                    .widthIn(max = SanvyaMetrics.BottomNav.maxWidth),
+                onFeedback = { feedbackOpen = true },
+                page = page,
             )
+        } else {
+            Box(modifier = Modifier.fillMaxSize().background(colors.bg)) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Banners sit above everything, in web's z-order: problems first.
+                    Column(modifier = Modifier.padding(WindowInsets.statusBars.asPaddingValues())) {
+                        SyncProblemsBanner(failedWrites) { onNavigate("settings") }
+                        OfflineBanner(offline)
+                    }
 
-            if (addOpen && action is AddAction.Menu) {
-                AddPopover(
-                    action = action,
-                    onDismiss = { addOpen = false },
-                    onNavigate = { route -> addOpen = false; onNavigate(route) },
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(
+                                top = SanvyaMetrics.Page.paddingTop,
+                                start = SanvyaMetrics.Page.paddingHorizontal,
+                                end = SanvyaMetrics.Page.paddingHorizontal,
+                            )
+                            // At MEDIUM the column caps and centres rather than
+                            // stretching a phone layout across a tablet, which is
+                            // exactly what web does above its own middle breakpoint.
+                            .then(
+                                if (windowClass.capsContentWidth) {
+                                    Modifier.widthIn(max = SanvyaMetrics.Page.maxWidth)
+                                } else {
+                                    Modifier
+                                },
+                            ),
+                    ) {
+                        page()
+                    }
+                }
+
+                BottomNav(
+                    currentRoute = currentRoute,
+                    navIds = navIds,
+                    unreadCount = unreadCount,
+                    addLabel = action.label,
+                    onNavigate = onNavigate,
+                    onAdd = runAdd,
+                    onMore = { moreOpen = true },
+                    moreOpen = moreOpen,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(WindowInsets.navigationBars.asPaddingValues())
+                        .padding(
+                            start = SanvyaMetrics.BottomNav.sideInset,
+                            end = SanvyaMetrics.BottomNav.sideInset,
+                            bottom = SanvyaMetrics.BottomNav.bottomInset,
+                        )
+                        .widthIn(max = SanvyaMetrics.BottomNav.maxWidth),
                 )
+
+                if (addOpen && action is AddAction.Menu) {
+                    AddPopover(
+                        action = action,
+                        onDismiss = { addOpen = false },
+                        onNavigate = { route -> addOpen = false; onNavigate(route) },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
             }
         }
+        WriteIndicator()
     }
 
     // Both overlays belong to the bottom bar. At EXPANDED the bar is gone and

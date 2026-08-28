@@ -84,6 +84,11 @@ struct AppShell<Content: View>: View {
                 compactBody
             }
         }
+        // Web renders `<GlobalLoader />` once, next to the shell rather than
+        // inside it: it is about the app, not about the page. An overlay is the
+        // SwiftUI equivalent, and it sits outside the window-class branch so it
+        // is present at every size.
+        .overlay { WriteIndicatorView() }
         // A full-screen cover, not a sheet: this is the whole login screen, and
         // a card with the app showing behind it reads as optional.
         .fullScreenCover(isPresented: $signInOpen) { LoginView() }
