@@ -149,7 +149,11 @@ class DashboardViewModel : ViewModel(), KoinComponent {
             inc - exp
         } else 0L
         var acc = 0f
-        val sparkline = months.map { (_, v) -> acc += (v.first - v.second) / 100f; acc }
+        // `majorScale`, not `/ 100f`: the sparkline is drawn in MAJOR units and
+        // a zero-decimal currency was being plotted at a hundredth of its real
+        // height.
+        val sparkScale = majorScale(baseCurrencyNow()).toFloat()
+        val sparkline = months.map { (_, v) -> acc += (v.first - v.second) / sparkScale; acc }
 
         val net = if (showAvail) netWorth.available else netWorth.total
 

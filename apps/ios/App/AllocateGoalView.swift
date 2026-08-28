@@ -77,8 +77,11 @@ struct AllocateGoalView: View {
     }
 
     private var remainingText: String {
-        let major = Double(goal.remainingMinor) / 100.0
-        return String(format: "%.2f %@", major, goal.currency)
+        // The app's own formatter, not `/ 100.0` and `%.2f`. Both hardcoded
+        // the same assumption twice over -- the scale AND the decimal count --
+        // so a zero-decimal currency read as a hundredth of itself and then
+        // printed two fake decimals after it.
+        formatMoney(goal.remainingMinor, goal.currency)
     }
 
     private func allocate() {

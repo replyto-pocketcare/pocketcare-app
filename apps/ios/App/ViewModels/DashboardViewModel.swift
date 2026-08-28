@@ -107,8 +107,12 @@ public final class DashboardViewModel {
             let months = order.suffix(8).map { ($0, byMonth[$0]!) }
             let deltaMinor: Int64 = months.last.map { $0.1.inc - $0.1.exp } ?? 0
             var acc: Float = 0
+            // `majorScale`, not `/ 100`: the sparkline is drawn in MAJOR units
+            // and a zero-decimal currency was being plotted at a hundredth of
+            // its real height.
+            let sparkScale = Float(majorScale(baseCurrencyNow()))
             let sparkline: [Float] = months.map { (_, v) in
-                acc += Float(v.inc - v.exp) / 100
+                acc += Float(v.inc - v.exp) / sparkScale
                 return acc
             }
 

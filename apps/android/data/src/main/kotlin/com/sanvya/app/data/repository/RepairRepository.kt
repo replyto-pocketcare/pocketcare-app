@@ -32,6 +32,8 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonNull
 import java.time.Instant
+import com.sanvya.app.domain.money.toMajor
+import com.sanvya.app.domain.money.money
 
 /** Postgres schema every table/RPC lives in (matches SupabaseConnector.DB_SCHEMA). */
 private const val REPAIR_SCHEMA = "pocketcare"
@@ -101,14 +103,14 @@ fun describeRow(table: String, row: Map<String, Any?>): String {
             val amt = (row["amount"] as? Number)?.toLong() ?: 0L
             val curr = (row["currency"] as? String) ?: "INR"
             val dt = (row["occurred_at"] as? String)?.take(10) ?: ""
-            "$desc · $curr ${amt / 100.0} · $dt"
+            "$desc · $curr ${toMajor(money(amt, curr))} · $dt"
         }
         "expenses" -> {
             val desc = (row["description"] as? String)?.ifEmpty { null } ?: "Shared expense"
             val amt = (row["amount"] as? Number)?.toLong() ?: 0L
             val curr = (row["currency"] as? String) ?: "INR"
             val dt = (row["occurred_at"] as? String)?.take(10) ?: ""
-            "$desc · $curr ${amt / 100.0} · $dt"
+            "$desc · $curr ${toMajor(money(amt, curr))} · $dt"
         }
         "accounts" -> "Account “${row["name"] ?: ""}”"
         "split_groups" -> "Group “${row["name"] ?: ""}”"
@@ -117,7 +119,7 @@ fun describeRow(table: String, row: Map<String, Any?>): String {
         "settlements" -> {
             val amt = (row["amount"] as? Number)?.toLong() ?: 0L
             val curr = (row["currency"] as? String) ?: "INR"
-            "Settlement · $curr ${amt / 100.0}"
+            "Settlement · $curr ${toMajor(money(amt, curr))}"
         }
         "categories" -> "Category “${row["name"] ?: ""}”"
         "labels" -> "Label “${row["name"] ?: ""}”"

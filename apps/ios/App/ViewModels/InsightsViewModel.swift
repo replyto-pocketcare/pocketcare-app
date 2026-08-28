@@ -255,6 +255,9 @@ public final class InsightsViewModel {
         }
 
         // weekday averages, last 60 days
+        // Every chart below plots MAJOR units. One scale for the whole pass:
+        // insights are computed in the user's base currency throughout.
+        let scale = majorScale(baseCurrencyNow())
         var wdSum = [Double](repeating: 0, count: 7); var wdCnt = [Int](repeating: 0, count: 7)
         for i in 0..<60 {
             let d = addDays(now, -i)
@@ -263,7 +266,7 @@ public final class InsightsViewModel {
         }
         let wdLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
         let weekday: [SeriesPoint] = (0..<7).map { i in
-            SeriesPoint(wdLabels[i], wdCnt[i] > 0 ? ((wdSum[i] / Double(wdCnt[i])).rounded() / 100.0) : 0)
+            SeriesPoint(wdLabels[i], wdCnt[i] > 0 ? ((wdSum[i] / Double(wdCnt[i])).rounded() / scale) : 0)
         }
         let weekdayTop = weekday.max(by: { $0.value < $1.value })?.label ?? wdLabels[0]
 
@@ -277,7 +280,7 @@ public final class InsightsViewModel {
         for dd in 1...max(dom, 1) where dd <= dom {
             let k = "\(thisM)-\(String(format: "%02d", dd))"
             let v = Double(expDay[k] ?? 0); thisSoFar += v; if v > 0 { spendDays += 1 }
-            cumulative.append(SeriesPoint(String(dd), thisSoFar / 100.0))
+            cumulative.append(SeriesPoint(String(dd), thisSoFar / scale))
         }
         var lastSameSoFar: Double = 0; var lastFull: Double = 0
         for dd in 1...max(daysInLastMonth, 1) where dd <= daysInLastMonth {
@@ -341,7 +344,7 @@ public final class InsightsViewModel {
             let divRows = latestDividends.map { DivRow(symbol: $0.symbol, exchange: $0.exchange, exDate: $0.exDate, payDate: $0.payDate, amount: $0.amount, currency: $0.currency) }
             let events = computeDividendEvents(lite, divRows, rates, baseCurrencyNow())
             let summary = dividendSummary(events)
-            let buckets = bucketize(events, .month).map { SeriesPoint($0.label, Double($0.value) / 100.0) }
+            let buckets = bucketize(events, .month).map { SeriesPoint($0.label, Double($0.value) / majorScale(baseCurrencyNow())) }
             dividends = DividendAgg(holdings: latestHoldings.count, trailing12: summary.trailing12, upcoming12: summary.upcoming12, total: summary.total, buckets: buckets)
 
             func qKey(_ s: String, _ e: String?) -> String { "\(s.uppercased())|\((e ?? "").uppercased())" }
@@ -363,11 +366,12 @@ public final class InsightsViewModel {
             // nearest minor unit first, THEN convert to major, preserving
             // 2-decimal precision; rounding the major value directly would
             // instead round to whole rupees and lose precision).
-            var series: [SeriesPoint] = [SeriesPoint("Now", currentValue.rounded() / 100.0)]
+            let projScale = majorScale(baseCurrencyNow())
+        var series: [SeriesPoint] = [SeriesPoint("Now", currentValue.rounded() / projScale)]
             for m in 1...(projYears * 12) {
                 value *= (1 + mGrowth)
                 value += (value * yieldRate) / 12
-                if m % 12 == 0 && (m / 12) % 3 == 0 { series.append(SeriesPoint("\(m / 12)y", value.rounded() / 100.0)) }
+                if m % 12 == 0 && (m / 12) % 3 == 0 { series.append(SeriesPoint("\(m / 12)y", value.rounded() / projScale)) }
             }
             projection = ProjectionAgg(holdings: latestHoldings.count, currentValue: currentValue, endValue: value, contributed: currentValue, years: projYears, growthPct: projGrowthPct, series: series)
         }

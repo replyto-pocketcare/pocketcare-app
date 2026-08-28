@@ -267,7 +267,8 @@ Nothing below can be closed by writing native code, and three of them gate a rel
 | APNs auth key + Push capability; `notify-dispatch` reading `platform`/`token` | Any push notification reaching an iOS device |
 | Two Google OAuth client IDs; `com.sanvya.app://auth-callback` in the Supabase allowlist | A live Google sign-in has **never completed** on either platform |
 | A test Supabase + PowerSync project | Any integration test at all — now also the assistant's SQL |
-| Go-ahead on the ×100 sweep (29 Android / 20 iOS sites) and on `anchor_day` | Correct behaviour for JPY/KWD/BHD; recurring drift |
+| ~~Go-ahead on the ×100 sweep~~ — **given 2026-08-28, swept, guarded** | ~~Correct behaviour for JPY/KWD/BHD~~ |
+| Go-ahead on `anchor_day` | Recurring drift |
 | A decision on the eight web defects | Whether native keeps reproducing them |
 
 ### Score, honestly
@@ -2913,6 +2914,46 @@ was failing**, each time in a different disguise — first a bare `(`-less call
 The pattern is worth naming: the check matches USES, and every time it misses,
 it is because Kotlin has another syntax for using something. Verified the new
 rule by running it against the broken file before fixing it.
+
+## The ×100 sweep — done 2026-08-28
+
+Go-ahead given, all sites swept, and `tools/parity/check-money-scale.mjs` now
+stands behind it in CI.
+
+`100` is the minor-unit scale for the rupee, the dollar and the euro. It is
+wrong for the yen (0 decimals) and the dinar (3). Three of the sites were not
+cosmetic: the split editor's `toMinor` made an exact-mode JPY split
+**impossible to save at all**, the AI receipt reader returned a ¥3000 bill as
+¥300000, and a credit card's entered balance was read a hundred times too small.
+
+What the sweep actually changed, beyond the arithmetic:
+
+| Found | Fix |
+|---|---|
+| **Four copies of `formatMajorPlain(minor)`** on Android, three of them dividing by 100. The one correct copy lived in `InvestmentsViewModel` with a comment explaining exactly why | One `formatMajorPlain(minor, currency)` in `ui/MoneyFormat.kt`; the four local copies deleted. A helper duplicated per screen is a helper that gets fixed on one screen |
+| `%.2f` next to a `/ 100.0` in three places — the settle-up prefill, the goal-remaining hint, the allocate dialog | Both halves hardcoded the same assumption. A zero-decimal currency prefilled a hundredth of the balance **and then printed two decimals that do not exist in it** |
+| Android's insights charts scaled first and rounded the result to two decimals; iOS rounded the minor value then scaled | Web is `major = (minor) => Math.round(minor) / 100` — round, then scale. Android now matches web and iOS. **The two platforms had been drawing different numbers on every insights chart**, and the sweep is what surfaced it |
+| Both dashboards' sparklines divided by 100 | `majorScale(currency)`; a JPY sparkline was being plotted at a hundredth of its real height |
+| `RepairRepository`'s diagnostic rows on both platforms | `toMajor(money(amt, curr))` — the currency was already in the row |
+
+Deliberately NOT changed, and allowlisted in the guard with reasons:
+
+- **UPI** (`PayViaUpiDialog`, `PayViaUpiSheet`, both `Upi` domains). The NPCI URI
+  spec defines `am` as INR with two decimals. UPI carries no other currency, and
+  both sheets are gated on the group being in INR. Converting by
+  `minorUnits(currency)` here would be *less* correct — it would build a
+  malformed intent URL the moment someone made it reachable for a non-INR group.
+- **The assistant's prompt summary** (`major()` on both). It mirrors web's own
+  function exactly and the vectors pin it; changing it would diverge from the
+  corpus rather than fix anything.
+
+The guard skips a `100` that is plainly a percentage — a line naming `pct` /
+`progress` / `ratio`, or the unambiguous `(a / b) * 100` shape — and the
+Gregorian century rule in date arithmetic. Everything else needs an ALLOWED
+entry **with a reason**: the point is that a new ÷100 has to be argued for in
+writing, not that it can never exist. Verified the usual way: plant a
+`Math.round(amountMajor * 100)` back into `GoalsViewModel`, watch it name the
+file and the line and exit 1, restore, watch it go clean.
 
 ## CI round 2026-08-28 — two mechanical breaks, two new guards
 

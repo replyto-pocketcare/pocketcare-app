@@ -67,7 +67,7 @@ fun AddLoanScreen(
 
     val principalMinor = principal.toDoubleOrNull()?.let { fromMajor(it, baseCurrencyNow()).amount } ?: 0L
     val computedEmiMinor = if (rateType == "fixed") emiFromPrincipal(principalMinor, rate.toDoubleOrNull() ?: 0.0, tenure.toIntOrNull() ?: 0) else 0L
-    val computedEmiMajor = if (computedEmiMinor > 0) formatMajorPlain(computedEmiMinor) else ""
+    val computedEmiMajor = if (computedEmiMinor > 0) formatMajorPlain(computedEmiMinor, baseCurrencyNow()) else ""
     val emiValue = if (rateType == "variable") "" else if (emiTouched) emi else computedEmiMajor
 
     SanvyaPage(
@@ -212,7 +212,3 @@ fun AddLoanScreen(
     }
 }
 
-internal fun formatMajorPlain(minor: Long): String {
-    val major = minor / 100.0
-    return if (major == Math.floor(major)) major.toLong().toString() else major.toString()
-}

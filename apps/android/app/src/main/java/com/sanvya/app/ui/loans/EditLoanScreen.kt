@@ -22,6 +22,7 @@ import com.sanvya.app.ui.budgets.DatePickerDialogSimple
 import com.sanvya.app.ui.budgets.TimePickerDialogSimple
 import com.sanvya.app.ui.budgets.localToUtcTime
 import kotlinx.coroutines.launch
+import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
@@ -67,7 +68,7 @@ fun EditLoanScreen(
 
     val principalMinor = principal.toDoubleOrNull()?.let { fromMajor(it, model.currency).amount } ?: 0L
     val computedEmiMinor = if (rateType == "fixed") emiFromPrincipal(principalMinor, rate.toDoubleOrNull() ?: 0.0, tenure.toIntOrNull() ?: 0) else 0L
-    val computedEmiMajor = if (computedEmiMinor > 0) formatMajorPlain(computedEmiMinor) else ""
+    val computedEmiMajor = if (computedEmiMinor > 0) formatMajorPlain(computedEmiMinor, baseCurrencyNow()) else ""
     val emiValue = if (rateType == "variable") "" else if (emiTouched) emi else (emi.ifBlank { computedEmiMajor })
 
     SanvyaPage(

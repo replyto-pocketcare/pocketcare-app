@@ -175,7 +175,7 @@ public final class GoalsViewModel {
             try await goalsRepository.create(
                 userId: userId,
                 name: trimmedName,
-                targetAmount: Int64((targetMajor * 100).rounded()),
+                targetAmount: fromMajor(targetMajor, currency).amount,
                 currency: currency,
                 isEmergencyFund: isEmergencyFund && !hasEmergencyFund,
                 priority: Int64(goals.count),
@@ -191,10 +191,15 @@ public final class GoalsViewModel {
     public func update(id: String, name: String, targetMajorText: String, alertTimeLocal: String) async -> String? {
         do {
             let targetMajor = Double(targetMajorText) ?? 0
+            // The GOAL's currency, looked up rather than passed: `update` is
+            // called from a row that already knows which goal it is editing,
+            // and threading the currency through the call would let the two
+            // disagree.
+            let goalCurrency = goals.first { $0.id == id }?.currency ?? baseCurrencyNow()
             try await goalsRepository.update(
                 id: id,
                 name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-                targetAmount: Int64((targetMajor * 100).rounded()),
+                targetAmount: fromMajor(targetMajor, goalCurrency).amount,
                 alertTimeUtc: localToUtcTime(alertTimeLocal)
             )
             return nil
@@ -218,7 +223,7 @@ public final class GoalsViewModel {
     public func allocate(goalId: String, sourceAccountId: String, amountMajorText: String, remainingMinor: Int64, currency: String) async -> String? {
         guard let amountMajor = Double(amountMajorText), amountMajor > 0 else { return "Enter an amount." }
         guard let userId = await resolveUserId() else { return "Couldn't determine the current user." }
-        let requested = Int64((amountMajor * 100).rounded())
+        let requested = fromMajor(amountMajor, currency).amount
         let capped = min(requested, remainingMinor)
         guard capped > 0 else { return nil }
         do {

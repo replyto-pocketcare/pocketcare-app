@@ -47,6 +47,21 @@ public func amountsHiddenNow() -> Bool {
     UserDefaults.standard.bool(forKey: Prefs.hideKey)
 }
 
+/**
+ The divisor that turns minor units into major ones for a currency.
+
+ For a CHART, where the value is already a Double (an average, a running total)
+ and wrapping it back into a `Money` would round it. Everywhere an exact integer
+ amount is in hand, `toMajor` is the right call instead.
+
+ It exists so chart code stops writing `/ 100.0`, which is correct for the
+ rupee, the dollar and the euro and wrong for the yen — a JPY chart drawn that
+ way plots every point at a hundredth of its real height, silently.
+ */
+public func majorScale(_ currency: String) -> Double {
+    pow(10.0, Double(Domain.minorUnits(currency)))
+}
+
 /// Format a `Money`, respecting the hide-amounts privacy setting.
 ///
 /// This is the native `useMoneyFmt()`. Use it for every amount that reaches the

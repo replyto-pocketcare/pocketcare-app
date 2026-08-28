@@ -132,16 +132,16 @@ class EditTransactionViewModel(
                         emptyList()
                     }
                     val itemDrafts = if (items.isNotEmpty()) {
-                        items.map { TxItemDraft(id = it.id, description = it.description, value = (it.amount / 100.0).toString()) }
+                        items.map { TxItemDraft(id = it.id, description = it.description, value = formatMajorPlain(it.amount, txn.currency)) }
                     } else {
-                        listOf(TxItemDraft(id = "new_${System.currentTimeMillis()}", description = txn.description ?: "", value = (txn.amount / 100.0).toString()))
+                        listOf(TxItemDraft(id = "new_${System.currentTimeMillis()}", description = txn.description ?: "", value = formatMajorPlain(txn.amount, txn.currency)))
                     }
                     originalCategoryId = txn.categoryId
                     ui.value = ui.value.copy(
                         loaded = true,
                         type = txn.type,
                         accountId = txn.accountId,
-                        transferAmount = (txn.amount / 100.0).toString(),
+                        transferAmount = formatMajorPlain(txn.amount, txn.currency),
                         items = itemDrafts,
                         categoryId = txn.categoryId,
                         selectedLabels = labelNames,
@@ -200,7 +200,7 @@ class EditTransactionViewModel(
                     "occurred_at" to state.occurredAt.atZone(ZoneId.systemDefault()).toInstant().toString(),
                 )
                 if (state.type == "transfer") {
-                    patch["amount"] = Math.round((state.transferAmount.toDoubleOrNull() ?: 0.0) * 100)
+                    patch["amount"] = fromMajor(state.transferAmount.toDoubleOrNull() ?: 0.0, state.currency).amount
                     patch["category_id"] = null
                     patch["description"] = null
                     // Explicit clear, not "don't touch" -- matches web sending
@@ -210,7 +210,7 @@ class EditTransactionViewModel(
                     patch["items"] = null
                 } else {
                     val nonZero = state.items.filter { (it.value.toDoubleOrNull() ?: 0.0) > 0 }
-                    val total = nonZero.sumOf { Math.round((it.value.toDoubleOrNull() ?: 0.0) * 100) }
+                    val total = nonZero.sumOf { fromMajor(it.value.toDoubleOrNull() ?: 0.0, state.currency).amount }
                     patch["amount"] = total
                     patch["category_id"] = state.categoryId
                     patch["description"] = nonZero.joinToString(", ") { it.description.trim() }.ifEmpty { null }

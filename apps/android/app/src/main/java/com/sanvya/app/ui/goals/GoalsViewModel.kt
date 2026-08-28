@@ -20,6 +20,9 @@ import java.util.Currency
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.min
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.domain.money.toMajor
+import com.sanvya.app.domain.money.money
 
 data class GoalUiModel(
     val id: String,
@@ -117,7 +120,7 @@ class GoalsViewModel : ViewModel(), KoinComponent {
                     locked = !g.isEmergencyFund && !efFunded,
                     remainingMinor = remaining,
                     rawName = g.name,
-                    targetMajor = formatMajorPlain(g.targetAmount),
+                    targetMajor = formatMajorPlain(g.targetAmount, g.currency),
                     currency = g.currency,
                     alertTimeLocal = utcToLocalTime(g.alertTimeUtc),
                 )
@@ -138,7 +141,7 @@ class GoalsViewModel : ViewModel(), KoinComponent {
             goalsRepository.create(
                 userId = userId,
                 name = trimmedName,
-                targetAmount = Math.round(targetMajor * 100),
+                targetAmount = fromMajor(targetMajor, currency).amount,
                 currency = currency,
                 isEmergencyFund = isEmergencyFund && !hasEmergencyFund,
                 priority = _goals.value.size.toLong(),
@@ -154,10 +157,15 @@ class GoalsViewModel : ViewModel(), KoinComponent {
     suspend fun update(id: String, name: String, targetMajorText: String, alertTimeLocal: String): String? {
         return try {
             val targetMajor = targetMajorText.toDoubleOrNull() ?: 0.0
+            // The GOAL's currency, looked up rather than passed: `update` is
+            // called from a row that already knows which goal it is editing,
+            // and threading the currency through the call would let the two
+            // disagree.
+            val goalCurrency = _goals.value.firstOrNull { it.id == id }?.currency ?: baseCurrencyNow()
             goalsRepository.update(
                 id = id,
                 name = name.trim(),
-                targetAmount = Math.round(targetMajor * 100),
+                targetAmount = fromMajor(targetMajor, goalCurrency).amount,
                 alertTimeUtc = localToUtcTime(alertTimeLocal),
             )
             null
@@ -180,11 +188,17 @@ class GoalsViewModel : ViewModel(), KoinComponent {
 
     /** Matches web's allocate(): caps at the goal's remaining amount before
      * inserting. */
-    suspend fun allocate(goalId: String, sourceAccountId: String, amountMajorText: String, remainingMinor: Long): String? {
+    suspend fun allocate(
+        goalId: String,
+        sourceAccountId: String,
+        amountMajorText: String,
+        remainingMinor: Long,
+        currency: String,
+    ): String? {
         val amountMajor = amountMajorText.toDoubleOrNull()
         if (amountMajor == null || amountMajor <= 0) return "Enter an amount."
         val userId = authRepository.currentUserId.value ?: return "Couldn't determine the current user."
-        val requested = Math.round(amountMajor * 100)
+        val requested = fromMajor(amountMajor, currency).amount
         val capped = min(requested, remainingMinor)
         if (capped <= 0) return null
         return try {
@@ -195,10 +209,6 @@ class GoalsViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun formatMajorPlain(minor: Long): String {
-        val major = minor / 100.0
-        return if (major == Math.floor(major)) major.toLong().toString() else major.toString()
-    }
 }
 
 /** Locale-aware compact currency (e.g. ₹1.5L for INR, $1.2K otherwise) --
@@ -206,7 +216,9 @@ class GoalsViewModel : ViewModel(), KoinComponent {
  * rather than reimplementing its exact breakpoints, per the spec's
  * "Deferred" note (acceptable drift, not pixel-critical). */
 private fun compactMoney(minor: Long, currency: String): String {
-    val major = minor / 100.0
+    // `toMajor`, not `/ 100.0`: the compact form still has to start from the
+    // right number before it decides on lakh, crore or K.
+    val major = toMajor(money(minor, currency))
     val fmt = NumberFormat.getCurrencyInstance(Locale.US).apply {
         try { this.currency = Currency.getInstance(currency) } catch (e: IllegalArgumentException) { /* unknown code, keep default */ }
         maximumFractionDigits = if (abs(major) >= 1000) 1 else 0

@@ -12,6 +12,8 @@ import com.sanvya.app.theme.LocalSanvyaColors
 import kotlinx.coroutines.launch
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.domain.money.toMajor
+import com.sanvya.app.domain.money.money
 
 /**
  * "+ Add funds" / "+ Block funds" dialog, matching apps/web/app/goals/
@@ -39,7 +41,9 @@ fun AllocateGoalDialog(goal: GoalUiModel, viewModel: GoalsViewModel, onDismiss: 
     var errorText by rememberSaveable { mutableStateOf<String?>(null) }
 
     val actionLabel = if (goal.isEmergencyFund) S.Goals.add(sRes()) else S.Goals.block(sRes())
-    val remainingMajor = goal.remainingMinor / 100.0
+    // `toMajor`, not `/ 100.0`: the goal carries its own currency and a
+    // zero-decimal one would read as a hundredth of itself.
+    val remainingMajor = toMajor(money(goal.remainingMinor, goal.currency))
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -84,7 +88,7 @@ fun AllocateGoalDialog(goal: GoalUiModel, viewModel: GoalsViewModel, onDismiss: 
                     saving = true
                     errorText = null
                     scope.launch {
-                        val err = viewModel.allocate(goal.id, src, amountText, goal.remainingMinor)
+                        val err = viewModel.allocate(goal.id, src, amountText, goal.remainingMinor, goal.currency)
                         saving = false
                         if (err != null) errorText = err else onDismiss()
                     }

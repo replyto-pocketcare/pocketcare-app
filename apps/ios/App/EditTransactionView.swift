@@ -221,13 +221,17 @@ struct EditTransactionView: View {
                 let fetchedItems = (try? await ledgerRepository.items(transactionId: transactionId)) ?? []
                 let drafts: [DraftItem]
                 if !fetchedItems.isEmpty {
-                    drafts = fetchedItems.map { DraftItem(id: $0.id, description: $0.description, value: String(Double($0.amount) / 100.0)) }
+                    // `toMajor`, not `/ 100.0`: the field is edited in MAJOR
+                    // units and saved back through `fromMajor`, so a hardcoded
+                    // scale here would show a JPY amount a hundred times too
+                    // small and then save that back as the truth.
+                    drafts = fetchedItems.map { DraftItem(id: $0.id, description: $0.description, value: String(toMajor(money($0.amount, txn.currency)))) }
                 } else {
-                    drafts = [DraftItem(id: "new_\(Date().timeIntervalSince1970)", description: txn.description ?? "", value: String(Double(txn.amount) / 100.0))]
+                    drafts = [DraftItem(id: "new_\(Date().timeIntervalSince1970)", description: txn.description ?? "", value: String(toMajor(money(txn.amount, txn.currency))))]
                 }
                 type = txn.type
                 accountId = txn.accountId
-                transferAmount = String(Double(txn.amount) / 100.0)
+                transferAmount = String(toMajor(money(txn.amount, txn.currency)))
                 items = drafts
                 categoryId = txn.categoryId
                 originalCategoryId = txn.categoryId
@@ -264,7 +268,7 @@ struct EditTransactionView: View {
                     "occurred_at": ISO8601DateFormatter().string(from: occurredAt),
                 ]
                 if type == "transfer" {
-                    patch["amount"] = Int64(((Double(transferAmount) ?? 0) * 100).rounded())
+                    patch["amount"] = fromMajor(Double(transferAmount) ?? 0, currency).amount
                     // `patch["k"] = nil` (the literal) is special-cased by
                     // Swift's Dictionary subscript setter to REMOVE the key,
                     // even though patch's Value type (Sendable?) is itself
@@ -287,7 +291,7 @@ struct EditTransactionView: View {
                     // multi-item expense/income is retyped to a transfer.
                 } else {
                     let nonZero = items.filter { (Double($0.value) ?? 0) > 0 }
-                    let totalMinor = nonZero.reduce(Int64(0)) { $0 + Int64(((Double($1.value) ?? 0) * 100).rounded()) }
+                    let totalMinor = nonZero.reduce(Int64(0)) { $0 + fromMajor(Double($1.value) ?? 0, currency).amount }
                     patch["amount"] = totalMinor
                     patch["category_id"] = categoryId
                     let combined = nonZero.map { $0.description.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.joined(separator: ", ")

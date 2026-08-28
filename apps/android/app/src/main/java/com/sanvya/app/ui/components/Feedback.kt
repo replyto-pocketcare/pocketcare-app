@@ -128,9 +128,9 @@ fun ProgressBar(
     height: Dp = 10.dp,
 ) {
     val colors = LocalSanvyaColors.current
-    val clamped = pct.coerceIn(0f, 100f)
+    val clampedPct = pct.coerceIn(0f, 100f)
     val animated by animateFloatAsState(
-        targetValue = clamped / 100f,
+        targetValue = clampedPct / 100f,
         animationSpec = tween(400, easing = SanvyaMotion.standard),
         label = "progress",
     )

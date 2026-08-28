@@ -28,6 +28,14 @@ struct PayViaUpiSheet: View {
         maskVpa(vpa)
     }
 
+    /// RUPEES, and deliberately hardcoded as such.
+    ///
+    /// Not a ×100 to fix: the NPCI UPI URI spec defines `am` as an amount in
+    /// INR with two decimal places, full stop. UPI does not carry any other
+    /// currency, and `paymentAvailable` gates this sheet on the group being in
+    /// INR before it can be reached. Converting by `minorUnits(currency)` here
+    /// would be *less* correct — it would build a malformed intent URL the
+    /// moment someone made it reachable for a non-INR group.
     private var amountRupees: String {
         String(format: "%.2f", Double(amountMinor) / 100.0)
     }

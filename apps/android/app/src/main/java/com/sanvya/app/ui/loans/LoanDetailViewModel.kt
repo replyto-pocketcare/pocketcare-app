@@ -173,7 +173,7 @@ class LoanDetailViewModel : ViewModel(), KoinComponent {
                     state = if (paid && m !in manualSet) EmiRowState.AUTO_MARKED else if (paid) EmiRowState.PAID else EmiRowState.DUE,
                     dueFormatted = fmtDateShort(due),
                     paidOnOrDueFormatted = if (paid) fmtDateShort(paidOnMap[m] ?: due) else fmtDateShort(due),
-                    rawAmountMajor = amounts[m]?.let { formatMajorPlain(it) } ?: "",
+                    rawAmountMajor = amounts[m]?.let { formatMajorPlain(it, cur) } ?: "",
                 )
             }
         } else {
@@ -214,8 +214,8 @@ class LoanDetailViewModel : ViewModel(), KoinComponent {
             rows = rows,
             emptyScheduleHint = !isVariable && schedule.isEmpty(),
             rawLender = l.lender ?: "",
-            rawPrincipalMajor = formatMajorPlain(l.principal),
-            rawEmiMajor = l.emiAmount?.let { formatMajorPlain(it) } ?: "",
+            rawPrincipalMajor = formatMajorPlain(l.principal, l.currency),
+            rawEmiMajor = l.emiAmount?.let { formatMajorPlain(it, l.currency) } ?: "",
             rawInterestRate = l.interestRate?.let { if (it == Math.floor(it)) it.toLong().toString() else it.toString() } ?: "",
             rawTenure = l.tenureMonths?.toString() ?: "",
             rawStartDate = l.startDate ?: "",

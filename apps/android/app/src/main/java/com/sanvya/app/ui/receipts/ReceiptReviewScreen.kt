@@ -325,12 +325,15 @@ private fun parseMajor(text: String, digits: Int): Long? {
 }
 
 private fun formatMoney(minor: Long, currency: String): String {
+    // `toMajor`, not `/ 100.0`: this is the receipt review's own formatter and
+    // the receipt's currency is whatever was printed on it, not the user's.
+    val major = toMajor(money(minor, currency))
     return try {
         val fmt = NumberFormat.getCurrencyInstance(Locale.ROOT)
         fmt.currency = java.util.Currency.getInstance(currency)
-        fmt.format(minor / 100.0)
+        fmt.format(major)
     } catch (e: Exception) {
-        "${minor / 100.0} $currency"
+        "$major $currency"
     }
 }
 

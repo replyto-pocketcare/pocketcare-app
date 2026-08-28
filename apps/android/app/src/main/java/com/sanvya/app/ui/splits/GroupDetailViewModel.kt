@@ -290,7 +290,9 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
         val g = _group.value ?: return
         val amountMajor = amountMajorText.replace(",", "").toDoubleOrNull()
         if (amountMajor == null || amountMajor <= 0 || participantIds.isEmpty()) { onDone("Enter a valid amount and at least one participant."); return }
-        val amountMinor = Math.round(amountMajor * 100)
+        // `fromMajor`, not `* 100`: the group carries its own currency, and a
+        // zero-decimal one would be recorded a hundred times too large.
+        val amountMinor = fromMajor(amountMajor, g.currency).amount
         viewModelScope.launch {
             try {
                 splitsRepository.createSplitExpense(
@@ -320,7 +322,7 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
         if (amountMajor == null || amountMajor <= 0) { onDone("Enter a valid amount."); return }
         viewModelScope.launch {
             try {
-                splitsRepository.settleUp(userId = uid, otherUserId = otherUserId, groupId = groupId, amount = Math.round(amountMajor * 100), direction = direction, accountId = accountId, currency = g.currency)
+                splitsRepository.settleUp(userId = uid, otherUserId = otherUserId, groupId = groupId, amount = fromMajor(amountMajor, g.currency).amount, direction = direction, accountId = accountId, currency = g.currency)
                 onDone(null)
             } catch (e: Exception) {
                 onDone(e.message ?: "Couldn't record the settlement.")
@@ -356,7 +358,7 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
             try {
                 splitsRepository.settleUp(
                     userId = uid, otherUserId = otherUserId, groupId = groupId,
-                    amount = Math.round(amountMajor * 100), direction = direction, accountId = null,
+                    amount = fromMajor(amountMajor, g.currency).amount, direction = direction, accountId = null,
                     currency = g.currency, status = "pending", method = "upi_intent", upiRef = upiRef,
                 )
                 onDone(null)

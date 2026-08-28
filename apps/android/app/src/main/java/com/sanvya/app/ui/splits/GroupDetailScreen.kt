@@ -23,6 +23,8 @@ import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.components.SanvyaChip
 import com.sanvya.app.ui.components.SanvyaPage
+import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.ui.formatMajorPlain
 
 /**
  * Real port of apps/web/app/groups/[id]/page.tsx (task #30). See
@@ -225,7 +227,15 @@ private fun SettleUpSheet(viewModel: GroupDetailViewModel, target: MemberUiModel
     // direction from the CALLER's perspective: target.net > 0 means they owe
     // us (we "received"), target.net < 0 means we owe them (we "paid").
     val direction = if (target.net >= 0) "received" else "paid"
-    var amount by remember { mutableStateOf(String.format("%.2f", kotlin.math.abs(target.net) / 100.0)) }
+    // The GROUP's currency. `formatMajorPlain`, not `%.2f` on a `/ 100.0`:
+    // those hardcoded the same assumption twice over -- the scale AND the
+    // decimal count -- so a zero-decimal currency prefilled a hundredth of the
+    // balance and then printed two decimals that do not exist in it.
+    val settleGroup by viewModel.group.collectAsState()
+    val settleCurrency = settleGroup?.currency ?: baseCurrencyNow()
+    var amount by remember {
+        mutableStateOf(formatMajorPlain(kotlin.math.abs(target.net), settleCurrency))
+    }
     var accountId by remember { mutableStateOf(accounts.firstOrNull()?.id) }
     var error by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }

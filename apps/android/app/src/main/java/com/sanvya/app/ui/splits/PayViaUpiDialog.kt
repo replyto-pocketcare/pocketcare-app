@@ -48,6 +48,13 @@ fun PayViaUpiDialog(
     val built = remember(vpa, amountMinor, note) {
         runCatching { buildIntentUrl(IntentParams(vpa = vpa, name = counterpartyName, amountMinor = amountMinor.toDouble(), note = note)) }.getOrNull()
     }
+    // RUPEES, and deliberately hardcoded as such. Not a x100 to fix: the NPCI
+    // UPI URI spec defines `am` as an amount in INR with two decimal places,
+    // full stop. UPI does not carry any other currency, and the sheet is gated
+    // on the group being in INR before it can be reached. Converting by
+    // `minorUnits(currency)` here would be *less* correct -- it would build a
+    // malformed intent URL the moment someone made it reachable for a non-INR
+    // group.
     val amountRupees = String.format("%.2f", amountMinor / 100.0)
 
     AlertDialog(

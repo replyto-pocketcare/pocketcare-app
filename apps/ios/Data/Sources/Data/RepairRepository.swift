@@ -130,13 +130,13 @@ public func describeRow(table: String, row: [String: Sendable?]) -> String {
         let amt = (row["amount"] as? Int64) ?? 0
         let curr = (row["currency"] as? String) ?? "INR"
         let dt = String(((row["occurred_at"] as? String) ?? "").prefix(10))
-        return "\(desc) · \(curr) \(Double(amt) / 100.0) · \(dt)"
+        return "\(desc) · \(curr) \(toMajor(money(amt, curr))) · \(dt)"
     case "expenses":
         let desc = ((row["description"] as? String) ?? "").isEmpty ? "Shared expense" : ((row["description"] as? String) ?? "Shared expense")
         let amt = (row["amount"] as? Int64) ?? 0
         let curr = (row["currency"] as? String) ?? "INR"
         let dt = String(((row["occurred_at"] as? String) ?? "").prefix(10))
-        return "\(desc) · \(curr) \(Double(amt) / 100.0) · \(dt)"
+        return "\(desc) · \(curr) \(toMajor(money(amt, curr))) · \(dt)"
     case "accounts":
         return "Account “\((row["name"] as? String) ?? "")”"
     case "split_groups":
@@ -148,7 +148,7 @@ public func describeRow(table: String, row: [String: Sendable?]) -> String {
     case "settlements":
         let amt = (row["amount"] as? Int64) ?? 0
         let curr = (row["currency"] as? String) ?? "INR"
-        return "Settlement · \(curr) \(Double(amt) / 100.0)"
+        return "Settlement · \(curr) \(toMajor(money(amt, curr)))"
     case "categories":
         return "Category “\((row["name"] as? String) ?? "")”"
     case "labels":

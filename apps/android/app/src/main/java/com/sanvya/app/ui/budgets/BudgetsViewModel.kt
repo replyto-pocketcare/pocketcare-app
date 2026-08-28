@@ -139,7 +139,7 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
                     progress = if (progress.pct.isFinite()) progress.pct / 100 else 1.0,
                     progressColor = color,
                     rawName = b.name ?: "",
-                    limitMajor = formatMajorPlain(b.limitAmount),
+                    limitMajor = formatMajorPlain(b.limitAmount, b.currency),
                     currency = b.currency,
                     period = b.period,
                     thresholdPct = b.thresholdPct,
@@ -240,10 +240,6 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
 
     private fun formatMoney(m: com.sanvya.app.domain.money.Money): String = formatMoneyAware(m)
 
-    private fun formatMajorPlain(minor: Long): String {
-        val major = minor / 100.0
-        return if (major == Math.floor(major)) major.toLong().toString() else major.toString()
-    }
 }
 
 private fun periodLabel(period: String): String = when (period) {

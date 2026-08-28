@@ -91,7 +91,14 @@ struct GroupDetailView: View {
             AddExpenseView(viewModel: viewModel, members: viewModel.members)
         }
         .sanvyaFormPresentation(item: $settleTarget) { target in
-            SettleUpView(viewModel: viewModel, target: target)
+            SettleUpView(
+                viewModel: viewModel,
+                target: target,
+                // The GROUP's currency. It is not on MemberUiModel because it
+                // is not a property of the member — every balance in a group is
+                // denominated in the group's own currency.
+                currency: viewModel.group?.currency ?? baseCurrencyNow()
+            )
         }
     }
 
@@ -205,6 +212,7 @@ private struct SettleUpView: View {
     @Environment(\.dismiss) private var dismiss
     let viewModel: GroupDetailViewModel
     let target: MemberUiModel
+    let currency: String
 
     @State private var amount: String
     @State private var accountId: String?
@@ -213,10 +221,15 @@ private struct SettleUpView: View {
 
     private var direction: String { target.net >= 0 ? "received" : "paid" }
 
-    init(viewModel: GroupDetailViewModel, target: MemberUiModel) {
+    init(viewModel: GroupDetailViewModel, target: MemberUiModel, currency: String) {
         self.viewModel = viewModel
         self.target = target
-        _amount = State(initialValue: String(format: "%.2f", Double(abs(target.net)) / 100.0))
+        self.currency = currency
+        // `toMajor`, not `/ 100.0` and `%.2f`. Those hardcoded the same
+        // assumption twice over — the scale AND the decimal count — so a
+        // zero-decimal currency prefilled a hundredth of the balance and then
+        // printed two decimals that do not exist in it.
+        _amount = State(initialValue: majorText(abs(target.net), currency))
     }
 
     var body: some View {
@@ -298,7 +311,10 @@ private struct SettleUpView: View {
             PayViaUpiSheet(
                 counterpartyName: displayName ?? target.name,
                 vpa: vpa,
-                amountMinor: Int64((Double(amount) ?? (Double(abs(target.net)) / 100.0)) * 100),
+                amountMinor: fromMajor(
+                    Double(amount) ?? toMajor(money(abs(target.net), currency)),
+                    currency
+                ).amount,
                 onPaid: { ref in
                     Task {
                         let err = await viewModel.recordUpiSettlement(otherUserId: target.userId, amountMajorText: amount, direction: direction, upiRef: ref)
@@ -319,4 +335,15 @@ private struct SettleUpView: View {
             if err == nil { dismiss() }
         }
     }
+}
+
+/**
+ A minor amount as editable MAJOR text, with the currency's own decimal count.
+
+ `String(toMajor(...))` alone would print `1234.0` for a whole amount and
+ `1234.5` for a half one; a money field wants the currency's digits. Zero-decimal
+ currencies get no decimal point at all, which is what their users type.
+ */
+private func majorText(_ minor: Int64, _ currency: String) -> String {
+    String(format: "%.\(minorUnits(currency))f", toMajor(money(minor, currency)))
 }

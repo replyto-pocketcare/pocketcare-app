@@ -284,7 +284,9 @@ public final class GroupDetailViewModel {
         guard let amountMajor = Double(amountMajorText.replacingOccurrences(of: ",", with: "")), amountMajor > 0, !participantIds.isEmpty else {
             return "Enter a valid amount and at least one participant."
         }
-        let amountMinor = Int64((amountMajor * 100).rounded())
+        // `fromMajor`, not `* 100`: the group carries its own currency, and a
+        // zero-decimal one would be recorded a hundred times too large.
+        let amountMinor = fromMajor(amountMajor, g.currency).amount
         do {
             _ = try await splitsRepository.createSplitExpense(
                 userId: uid,
@@ -307,7 +309,7 @@ public final class GroupDetailViewModel {
         guard let uid = userId, let g = group else { return "Couldn't determine the current user." }
         guard let amountMajor = Double(amountMajorText.replacingOccurrences(of: ",", with: "")), amountMajor > 0 else { return "Enter a valid amount." }
         do {
-            _ = try await splitsRepository.settleUp(userId: uid, otherUserId: otherUserId, groupId: groupId, amount: Int64((amountMajor * 100).rounded()), direction: direction, accountId: accountId, currency: g.currency)
+            _ = try await splitsRepository.settleUp(userId: uid, otherUserId: otherUserId, groupId: groupId, amount: fromMajor(amountMajor, g.currency).amount, direction: direction, accountId: accountId, currency: g.currency)
             return nil
         } catch {
             return "Couldn't record the settlement: \(error.localizedDescription)"
@@ -339,7 +341,7 @@ public final class GroupDetailViewModel {
         do {
             _ = try await splitsRepository.settleUp(
                 userId: uid, otherUserId: otherUserId, groupId: groupId,
-                amount: Int64((amountMajor * 100).rounded()), direction: direction, accountId: nil,
+                amount: fromMajor(amountMajor, g.currency).amount, direction: direction, accountId: nil,
                 currency: g.currency, status: "pending", method: "upi_intent", upiRef: upiRef
             )
             return nil

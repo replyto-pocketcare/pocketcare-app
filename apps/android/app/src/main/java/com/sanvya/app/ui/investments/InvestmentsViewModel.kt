@@ -206,18 +206,6 @@ class InvestmentsViewModel : ViewModel(), KoinComponent {
         )
     }
 
-    /**
-     * The unformatted major-unit value, for a field the user is about to edit.
-     *
-     * Deliberately NOT `formatMoney`: an input field must contain something the
-     * user can type back, so no symbol, no grouping and no mask. It is still
-     * currency-aware — it used to divide by 100, which put an extra two decimal
-     * places into a JPY field and dropped one from a KWD field.
-     */
-    private fun formatMajorPlain(minor: Long, currency: String): String {
-        val major = toMajor(money(minor, currency))
-        return if (major == Math.floor(major)) major.toLong().toString() else major.toString()
-    }
 
     /** Matches AddInvestmentDialog's scoped-down submit(): validates, funds
      * the pool (transfer/adjustment), then inserts the holding row. */

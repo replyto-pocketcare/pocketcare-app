@@ -157,6 +157,11 @@ jobs:
         run: node tools/parity/check-i18n-args.mjs 2>&1 | tee -a parity.log
       - name: Golden-vector registration
         run: node tools/parity/check-vector-registration.mjs 2>&1 | tee -a parity.log
+      # 100 is the minor-unit scale for the rupee, the dollar and the euro, and
+      # wrong for the yen and the dinar. 47 sites assumed it; three of them
+      # broke a save or overstated a bill by 100x.
+      - name: Hardcoded money scale
+        run: node tools/parity/check-money-scale.mjs 2>&1 | tee -a parity.log
       - name: Fail if generated output drifted
         run: |
           if ! git diff --exit-code | tee -a parity.log; then

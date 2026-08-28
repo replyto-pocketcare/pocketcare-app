@@ -243,6 +243,14 @@ class InsightsViewModel : ViewModel(), KoinComponent {
         }
 
         // weekday averages, last 60 days
+        // Every chart below plots MAJOR units. One scale for the whole pass:
+        // insights are computed in the user's base currency throughout.
+        //
+        // The shape is web's `major = (minor) => Math.round(minor) / 100`:
+        // round the MINOR value, THEN scale. Android used to scale first and
+        // round the result to two decimal places, which is a different number
+        // and disagreed with iOS on every chart point.
+        val scale = majorScale(baseCurrencyNow())
         val wdSum = DoubleArray(7); val wdCnt = IntArray(7)
         for (i in 0 until 60) {
             val d = now.minusDays(i.toLong())
@@ -250,7 +258,7 @@ class InsightsViewModel : ViewModel(), KoinComponent {
             wdSum[wd] += (expDay[iso(d)] ?: 0L).toDouble(); wdCnt[wd] += 1
         }
         val wdLabels = arrayOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-        val weekday = wdLabels.indices.map { i -> SeriesPoint(wdLabels[i], if (wdCnt[i] > 0) (wdSum[i] / wdCnt[i] / 100.0).let { (it * 100).roundToLong() / 100.0 } else 0.0) }
+        val weekday = wdLabels.indices.map { i -> SeriesPoint(wdLabels[i], if (wdCnt[i] > 0) (wdSum[i] / wdCnt[i]).roundToLong() / scale else 0.0) }
         val weekdayTop = weekday.maxByOrNull { it.value }?.label ?: wdLabels[0]
 
         // month pace / no-spend / avg
@@ -263,7 +271,7 @@ class InsightsViewModel : ViewModel(), KoinComponent {
         for (dd in 1..dayOfMonth) {
             val k = "$thisM-${dd.toString().padStart(2, '0')}"
             val v = (expDay[k] ?: 0L).toDouble(); thisSoFar += v; if (v > 0) spendDays++
-            cumulative.add(SeriesPoint(dd.toString(), thisSoFar / 100.0))
+            cumulative.add(SeriesPoint(dd.toString(), thisSoFar / scale))
         }
         var lastSameSoFar = 0.0; var lastFull = 0.0
         for (dd in 1..daysInLastMonth) {
@@ -329,7 +337,7 @@ class InsightsViewModel : ViewModel(), KoinComponent {
             val divRows = g2.divs.map { DivRow(it.symbol, it.exchange, it.exDate, it.payDate, it.amount, it.currency) }
             val events: List<DivEvent> = computeDividendEvents(lite, divRows, g3.rates, baseCurrencyNow())
             val summary = dividendSummary(events)
-            val buckets = bucketize(events, DividendPeriod.MONTH).map { SeriesPoint(it.label, (it.value / 100.0).let { v -> (v * 100).roundToLong() / 100.0 }) }
+            val buckets = bucketize(events, DividendPeriod.MONTH).map { SeriesPoint(it.label, it.value.roundToLong() / majorScale(baseCurrencyNow())) }
             dividends = DividendAgg(g2.holdings.size, summary.trailing12, summary.upcoming12, summary.total, buckets)
 
             val qKey = { s: String, e: String? -> "${s.uppercase()}|${(e ?: "").uppercase()}" }
@@ -347,11 +355,12 @@ class InsightsViewModel : ViewModel(), KoinComponent {
             val yieldRate = if (currentValue > 0) (if (summary.trailing12 > 0) summary.trailing12 else summary.upcoming12).toDouble() / currentValue else 0.0
             val mGrowth = (1 + projGrowthPct / 100.0).pow(1.0 / 12.0) - 1
             var value = currentValue
-            val series = mutableListOf(SeriesPoint("Now", (currentValue / 100.0).let { v -> (v * 100).roundToLong() / 100.0 }))
+            val projScale = majorScale(baseCurrencyNow())
+            val series = mutableListOf(SeriesPoint("Now", currentValue.roundToLong() / projScale))
             for (m in 1..(projYears * 12)) {
                 value *= (1 + mGrowth)
                 value += (value * yieldRate) / 12
-                if (m % 12 == 0 && (m / 12) % 3 == 0) series.add(SeriesPoint("${m / 12}y", (value / 100.0).let { v -> (v * 100).roundToLong() / 100.0 }))
+                if (m % 12 == 0 && (m / 12) % 3 == 0) series.add(SeriesPoint("${m / 12}y", value.roundToLong() / projScale))
             }
             projection = ProjectionAgg(g2.holdings.size, currentValue, value, currentValue, projYears, projGrowthPct, series)
         }
