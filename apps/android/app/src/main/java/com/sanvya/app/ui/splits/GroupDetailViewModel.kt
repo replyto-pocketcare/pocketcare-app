@@ -49,7 +49,14 @@ data class MemberUiModel(
     val netFormatted: String,
     val isSelf: Boolean,
 )
-data class ExpenseUiModel(val id: String, val description: String, val amountFormatted: String, val date: String)
+data class ExpenseUiModel(
+    val id: String,
+    val description: String,
+    val amountFormatted: String,
+    /** Kept alongside the formatted string so the summary can total the group. */
+    val amountMinor: Long,
+    val date: String,
+)
 data class SettlementUiModel(val id: String, val fromUser: String, val toUser: String, val fromName: String, val toName: String, val amountFormatted: String, val date: String)
 data class AccountOption(val id: String, val name: String)
 
@@ -260,7 +267,13 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
 
             splitsRepository.watchGroupExpenses(groupId).onEach { list ->
                 _expenses.value = list.map { e ->
-                    ExpenseUiModel(id = e.id, description = e.description?.takeIf { it.isNotBlank() } ?: "Expense", amountFormatted = formatMoney(e.amount, e.currency), date = e.occurredAt.take(10))
+                    ExpenseUiModel(
+                        id = e.id,
+                        description = e.description?.takeIf { it.isNotBlank() } ?: "Expense",
+                        amountFormatted = formatMoney(e.amount, e.currency),
+                        amountMinor = e.amount,
+                        date = e.occurredAt.take(10),
+                    )
                 }
             }.launchIn(this)
 
@@ -311,6 +324,59 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
                 onDone(null)
             } catch (e: Exception) {
                 onDone(e.message ?: "Couldn't add the expense.")
+            }
+        }
+    }
+
+    /**
+     * The group's headline figures -- total spent, what you are owed, what you
+     * owe -- in the group's own currency.
+     *
+     * Web's summary card. Without it the screen listed rows and left the user
+     * to add them up: you could not tell what a trip cost in total, or which
+     * way your own side of it leaned, without doing arithmetic by hand.
+     *
+     * `total` is every expense in the group. The other two come from the
+     * members' nets, which the view model already computes for the rows.
+     */
+    val summary: StateFlow<GroupSummaryUiModel?> = combine(_group, _expenses, _members) { g, exps, mems ->
+        if (g == null) {
+            null
+        } else {
+            GroupSummaryUiModel(
+                totalSpentFormatted = formatMoney(exps.sumOf { it.amountMinor }, g.currency),
+                owedFormatted = formatMoney(mems.sumOf { maxOf(0L, it.net) }, g.currency),
+                oweFormatted = formatMoney(mems.sumOf { maxOf(0L, -it.net) }, g.currency),
+                memberCount = mems.size,
+                startDate = g.startDate,
+                endDate = g.endDate,
+                autoSplit = g.autoSplit,
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** Rename, re-date, or toggle auto-split. Matches web's `saveEdit()`. */
+    fun updateGroup(name: String, startDate: String, endDate: String, autoSplit: Boolean, onDone: (String?) -> Unit) {
+        if (name.isBlank()) { onDone("Enter a name."); return }
+        viewModelScope.launch {
+            try {
+                splitsRepository.updateGroup(groupId, name, startDate, endDate, autoSplit)
+                _group.value = splitsRepository.getGroup(groupId)
+                onDone(null)
+            } catch (e: Exception) {
+                onDone(e.message)
+            }
+        }
+    }
+
+    /** Soft-delete the group. Its expenses stay in the ledger -- see the repo. */
+    fun deleteGroup(onDone: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                splitsRepository.deleteGroup(groupId)
+                onDone(null)
+            } catch (e: Exception) {
+                onDone(e.message)
             }
         }
     }
@@ -369,3 +435,14 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
         }
     }
 }
+
+/** Web's summary card, as one value. */
+data class GroupSummaryUiModel(
+    val totalSpentFormatted: String,
+    val owedFormatted: String,
+    val oweFormatted: String,
+    val memberCount: Int,
+    val startDate: String?,
+    val endDate: String?,
+    val autoSplit: Boolean,
+)

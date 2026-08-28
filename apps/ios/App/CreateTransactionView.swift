@@ -196,13 +196,8 @@ struct CreateTransactionView: View {
             AutoSplitCandidate(id: $0.id, startDate: $0.startDate, endDate: $0.endDate, autoSplit: $0.autoSplit)
         }
         // The LOCAL calendar day, not UTC: web reads the first 10 chars of a
-        // `datetime-local` value, so a 1am expense on the 3rd is the 3rd. An
-        // ISO8601 (UTC) string would move it across the trip boundary east of
-        // Greenwich. Built per call -- DateFormatter is not Sendable.
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "en_US_POSIX")
-        fmt.dateFormat = "yyyy-MM-dd"
-        guard let auto = autoSplitGroupFor(groups: candidates, dateIso: fmt.string(from: occurredAt)),
+        // `datetime-local` value, so a 1am expense on the 3rd is the 3rd.
+        guard let auto = autoSplitGroupFor(groups: candidates, dateIso: IsoDay.string(from: occurredAt)),
               splitGroupId != auto else { return }
         splitOn = true
         splitGroupId = auto

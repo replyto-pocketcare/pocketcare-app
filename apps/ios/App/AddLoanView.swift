@@ -141,12 +141,10 @@ struct AddLoanView: View {
         saving = true
         errorText = nil
         Task {
-            let isoFormatter = DateFormatter()
-            isoFormatter.dateFormat = "yyyy-MM-dd"
             let err = await viewModel.create(
                 lender: lender, principalMajorText: principalText,
                 emiMajorText: rateType == "variable" ? nil : (emiFieldBinding.wrappedValue.isEmpty ? nil : emiFieldBinding.wrappedValue),
-                interestRateText: rateText, tenureText: tenureText, startDate: isoFormatter.string(from: startDate),
+                interestRateText: rateText, tenureText: tenureText, startDate: IsoDay.string(from: startDate),
                 dueDayText: dueDayText, autoMarkPaid: autoMark, rateType: rateType,
                 fundingAccountId: fundingAccountId.isEmpty ? nil : fundingAccountId,
                 alertTimeUtc: localToUtcTime(alertTime)

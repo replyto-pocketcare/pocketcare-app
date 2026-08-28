@@ -25,6 +25,11 @@ import com.sanvya.app.ui.components.SanvyaChip
 import com.sanvya.app.ui.components.SanvyaPage
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.ui.formatMajorPlain
+import com.sanvya.app.ui.components.ConfirmDialog
+import com.sanvya.app.ui.components.DateField
+import com.sanvya.app.ui.components.SanvyaModal
+import com.sanvya.app.ui.components.SanvyaCard
+import androidx.compose.runtime.saveable.rememberSaveable
 
 /**
  * Real port of apps/web/app/groups/[id]/page.tsx (task #30). See
@@ -49,6 +54,9 @@ fun GroupDetailScreen(
     var showAddExpense by remember { mutableStateOf(false) }
     var showInvite by remember { mutableStateOf(false) }
     var settleTarget by remember { mutableStateOf<MemberUiModel?>(null) }
+    var showEdit by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
+    val summary by viewModel.summary.collectAsState()
 
     SanvyaPage(
         title = group?.name ?: S.Groups.kindGroup(sRes()),
@@ -67,6 +75,11 @@ fun GroupDetailScreen(
                 active = false,
                 onClick = { showAddExpense = true },
             )
+            // Web puts these behind a kebab. A chip row is the native
+            // equivalent here and keeps the destructive one visibly separate
+            // from the two additive ones above.
+            SanvyaChip(S.Groups.edit(sRes()), active = false, onClick = { showEdit = true })
+            SanvyaChip(S.Groups.delete(sRes()), active = false, onClick = { confirmDelete = true })
         },
     ) {
         if (!loaded) {
@@ -75,6 +88,7 @@ fun GroupDetailScreen(
         }
 
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            summary?.let { sum -> item { GroupSummaryCard(sum, colors) } }
             item {
                 Text(S.Groups.membersTitle(sRes()), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.text2)
             }
@@ -126,7 +140,150 @@ fun GroupDetailScreen(
     settleTarget?.let { target ->
         SettleUpSheet(viewModel = viewModel, target = target, onDismiss = { viewModel.resetUpiStage(); settleTarget = null })
     }
+
+    if (showEdit) {
+        group?.let { g ->
+            EditGroupSheet(
+                group = g,
+                viewModel = viewModel,
+                onDismiss = { showEdit = false },
+            )
+        }
+    }
+
+    if (confirmDelete) {
+        ConfirmDialog(
+            title = S.Groups.deleteTitle(sRes()),
+            message = S.Groups.deleteMsg(sRes(), group?.name.orEmpty()),
+            confirmLabel = S.Groups.delete(sRes()),
+            cancelLabel = S.Translation.commonCancel(sRes()),
+            onConfirm = {
+                confirmDelete = false
+                viewModel.deleteGroup { err -> if (err == null) onBack() }
+            },
+            onDismiss = { confirmDelete = false },
+        )
+    }
 }
+
+/**
+ * Web's summary card: what the trip cost, and which way your side leans.
+ *
+ * Without it the screen listed rows and left the user to add them up -- you
+ * could not tell what a trip cost in total, or whether you were up or down on
+ * it, without doing arithmetic by hand.
+ *
+ * The auto-split badge is here rather than in the edit sheet because it is a
+ * FACT about the group that changes what happens to transactions you have not
+ * made yet. A setting you cannot see is a surprise waiting to happen.
+ */
+@Composable
+private fun GroupSummaryCard(summary: GroupSummaryUiModel, colors: SanvyaColors) {
+    val res = sRes()
+    SanvyaCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(20.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(S.Groups.totalSpent(res), fontSize = 13.sp, color = colors.text2)
+                    Text(summary.totalSpentFormatted, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                }
+                Column {
+                    Text(S.Groups.youreOwed(res), fontSize = 13.sp, color = colors.text2)
+                    Text(summary.owedFormatted, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.positive)
+                }
+                Column {
+                    Text(S.Groups.youOwe(res), fontSize = 13.sp, color = colors.text2)
+                    Text(summary.oweFormatted, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.negative)
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    if (summary.startDate != null) {
+                        summary.startDate + (summary.endDate?.let { " – $it" } ?: "")
+                    } else {
+                        S.Groups.noDates(res)
+                    },
+                    fontSize = 13.sp,
+                    color = colors.text2,
+                )
+                Text("· " + S.Groups.members(res, summary.memberCount), fontSize = 13.sp, color = colors.text2)
+                if (summary.autoSplit) {
+                    Text("· " + S.Groups.autoSplitOn(res), fontSize = 13.sp, color = colors.accent)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Rename, re-date, and the auto-split toggle -- web's edit modal.
+ *
+ * The toggle is DISABLED without both dates, and the repository forces the flag
+ * off in that case regardless. A trip with no range has nothing to match a
+ * transaction's date against, so an auto-split flag on one is a setting that
+ * silently never fires -- worse than an absent one, because the user believes
+ * it is working.
+ */
+@Composable
+private fun EditGroupSheet(
+    group: SplitGroup,
+    viewModel: GroupDetailViewModel,
+    onDismiss: () -> Unit,
+) {
+    val res = sRes()
+    var name by rememberSaveable(group.id) { mutableStateOf(group.name) }
+    var start by rememberSaveable(group.id) { mutableStateOf(group.startDate.orEmpty()) }
+    var end by rememberSaveable(group.id) { mutableStateOf(group.endDate.orEmpty()) }
+    var auto by rememberSaveable(group.id) { mutableStateOf(group.autoSplit) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val datesSet = start.isNotBlank() && end.isNotBlank()
+
+    SanvyaModal(open = true, onClose = onDismiss, label = S.Groups.edit(res)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(S.Groups.namePlaceholder(res)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(S.Groups.datesOptional(res), fontSize = 12.sp, color = colorsOf().text2)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DateField(value = start, onValueChange = { start = it; if (end.isNotBlank() && it > end) end = it }, modifier = Modifier.weight(1f))
+                DateField(value = end, onValueChange = { end = it }, modifier = Modifier.weight(1f))
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Switch(checked = auto && datesSet, onCheckedChange = { auto = it }, enabled = datesSet)
+                Column(Modifier.padding(start = 8.dp)) {
+                    Text(S.Groups.autoSplitLabel(res), fontSize = 14.sp, color = colorsOf().text)
+                    Text(
+                        S.Groups.autoSplitDesc(res, start.ifBlank { "—" }, end.ifBlank { "—" }, group.kind),
+                        fontSize = 12.sp,
+                        color = colorsOf().text2,
+                    )
+                }
+            }
+            error?.let { Text(it, color = colorsOf().negative, fontSize = 13.sp) }
+            Button(
+                onClick = {
+                    viewModel.updateGroup(name, start, end, auto) { err ->
+                        if (err == null) onDismiss() else error = err
+                    }
+                },
+                enabled = name.isNotBlank(),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(S.Translation.commonSave(res))
+            }
+        }
+    }
+}
+
+@Composable
+private fun colorsOf() = LocalSanvyaColors.current
+
 
 @Composable
 private fun MemberRow(m: MemberUiModel, colors: SanvyaColors, onClick: () -> Unit) {

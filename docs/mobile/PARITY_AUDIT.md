@@ -3061,3 +3061,58 @@ the file and the line and exit 1, restore, watch it go clean.
 `mobile-schema.json` is the one named exception in the second guard. It lives in
 `vectors/` because it is generated from web and versioned the same way, but it
 is consumed by `gen-mobile-schema.mjs` rather than by a runner.
+
+## Tranche 3 — a group you could open but never change (2026-08-28)
+
+Four more of the 64. Three were the same shape as tranche 2's: the write existed,
+nothing called it.
+
+| Gap | What was actually wrong |
+|---|---|
+| No group edit | Web's edit modal renames, re-dates and toggles auto-split. Neither port had it, and neither repository had an `updateGroup` to call — a group's name and dates were fixed at creation, permanently |
+| No group delete | Same: `softDelete` was there, no caller. The only way off a finished trip was to leave it in the list forever |
+| No group summary header | The screen listed expenses and members and left the user to add them up. What a trip cost, and which way your own side of it leaned, were both arithmetic-by-hand |
+| Create-group had no dates and no auto-split | The flag is only meaningful against a date range, and the range was only reachable from an edit sheet that did not exist. **A trip created on mobile could never auto-split at all** |
+
+Two rules are enforced in the repository rather than the sheet, on both platforms:
+
+- **`auto_split` is forced off unless both dates are set.** It is only ever read
+  by `autoSplitGroupFor`, which matches a transaction's date against the range.
+  On a group with no range it can never fire — so storing it true tells the user
+  a rule is active that nothing will ever apply. Worse than absent, because they
+  believe it works.
+- **Delete is soft and does NOT cascade.** The group's expenses stay in the
+  ledger. They are real money that really moved; a group is a lens on them, not
+  their owner.
+
+### Two duplications collapsed on the way
+
+Neither was cosmetic.
+
+**Android: `DateField` was private to `StatementsScreen`.** Groups needed the
+same control in two more places. Three copies of a date input is how three
+different date formats end up in one app, so it moved to
+`ui/components/DateField.kt` and took `ISO_DATE_HINT` with it. The two hints had
+already drifted — `YYYY-MM-DD` in one file, `yyyy-MM-dd` in the other.
+
+**iOS had SIX hand-rolled `yyyy-MM-dd` DateFormatters**, and four of them were
+missing `en_US_POSIX`. That is a live defect, not a tidiness point: without the
+POSIX locale, `DateFormatter` formats `yyyy` in the DEVICE's calendar era. A user
+on the Japanese calendar writing a loan start date stores `0008-08-23`; on the
+Buddhist calendar, `2569-08-23`. Both are then compared as strings against real
+dates by every Domain date function, and match nothing. `Components/IsoDay.swift`
+is now the single converter — local (not UTC, which moves the day east of
+Greenwich), Gregorian-pinned, built per call because `DateFormatter` is not
+`Sendable`. The one remaining separate formatter is `BudgetsViewModel`'s, which
+is deliberately UTC to match the Gregorian/UTC calendar it sits beside; it gained
+the POSIX locale in place.
+
+### Where the two platforms deliberately differ
+
+Android's date fields are ISO text; iOS's are `DatePicker`s behind a "Dates
+(optional)" toggle. This is not drift — it is the same decision recorded in
+`StatementsScreen` reached twice: Compose has no `<input type="date">` primitive
+and Material 3's `DatePicker` is a dialog with its own visual language, while
+SwiftUI's `DatePicker` is the platform-native control the rest of the iOS app
+already uses. The toggle exists because web's inputs can be EMPTY and a
+`DatePicker` cannot; without it the sheet could set a range but never clear one.

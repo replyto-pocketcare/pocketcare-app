@@ -284,12 +284,38 @@ public final class SplitsViewModel {
         return await resolveUserId()
     }
 
-    public func createGroup(name: String, kind: String, currency: String, memberIds: [String]) async -> String? {
+    /// Create a group or trip. Mirrors web's `NewGroupModal.create()`.
+    ///
+    /// `autoSplit` is forced off unless BOTH dates are set: the flag is only ever
+    /// read by `autoSplitGroupFor`, which matches a transaction's date against the
+    /// range. Set on a group with no range it can never fire, so storing it true
+    /// would tell the user a rule is active that nothing will apply.
+    public func createGroup(
+        name: String,
+        kind: String,
+        currency: String,
+        memberIds: [String],
+        startDate: String = "",
+        endDate: String = "",
+        autoSplit: Bool = false
+    ) async -> String? {
         // Not `userId ?? (await resolveUserId())`: `??`'s right side is an
         // autoclosure, and an autoclosure cannot be async.
         guard !name.isEmpty, let userId = await currentOrResolvedUserId() else { return nil }
+        let start = startDate.trimmingCharacters(in: .whitespaces)
+        let end = endDate.trimmingCharacters(in: .whitespaces)
+        let bothSet = !start.isEmpty && !end.isEmpty
         do {
-            return try await splitsRepository.createGroup(userId: userId, name: name, kind: kind, currency: currency, memberUserIds: memberIds)
+            return try await splitsRepository.createGroup(
+                userId: userId,
+                name: name,
+                kind: kind,
+                currency: currency,
+                startDate: start.isEmpty ? nil : start,
+                endDate: end.isEmpty ? nil : end,
+                autoSplit: autoSplit && bothSet,
+                memberUserIds: memberIds
+            )
         } catch {
             errorMessage = error.localizedDescription
             return nil

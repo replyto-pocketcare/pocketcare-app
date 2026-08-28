@@ -1,5 +1,6 @@
 import SwiftUI
 import Domain
+import Data
 
 /// Real port of apps/web/app/groups/[id]/page.tsx (task #30). See
 /// docs/mobile/screen-specs/splits.md for the deliberate scope cut
@@ -14,6 +15,8 @@ struct GroupDetailView: View {
     @State private var showingAddExpense = false
     @State private var showingInvite = false
     @State private var settleTarget: MemberUiModel?
+    @State private var showingEdit = false
+    @State private var confirmingDelete = false
 
     var body: some View {
         Group {
@@ -28,6 +31,19 @@ struct GroupDetailView: View {
                             SanvyaChip(S.Groups.invite, isActive: false) { showingInvite = true }
                             PrimaryButton(S.Splits.addExpense) { showingAddExpense = true }
                                 .frame(width: 140)
+                        }
+
+                        // Web puts these behind a kebab. A chip row is the
+                        // native equivalent and keeps the destructive one
+                        // visibly separate from the two additive ones above.
+                        HStack(spacing: 8) {
+                            SanvyaChip(S.Groups.edit, isActive: false) { showingEdit = true }
+                            SanvyaChip(S.Groups.delete, isActive: false) { confirmingDelete = true }
+                            Spacer(minLength: 0)
+                        }
+
+                        if let summary = viewModel.summary {
+                            GroupSummaryCard(summary: summary)
                         }
 
                         sectionHeader(S.Groups.membersTitle)
@@ -99,6 +115,24 @@ struct GroupDetailView: View {
                 // denominated in the group's own currency.
                 currency: viewModel.group?.currency ?? baseCurrencyNow()
             )
+        }
+        .sanvyaFormPresentation(isPresented: $showingEdit) {
+            if let g = viewModel.group {
+                EditGroupSheet(group: g, viewModel: viewModel)
+            }
+        }
+        .alert(S.Groups.deleteTitle, isPresented: $confirmingDelete) {
+            Button(S.Translation.commonCancel, role: .cancel) {}
+            Button(S.Groups.delete, role: .destructive) {
+                Task {
+                    // Leave the screen only if the delete actually landed.
+                    // Popping first and failing after would show the user a
+                    // group list that still contains the group they deleted.
+                    if await viewModel.deleteGroup() == nil { onBack() }
+                }
+            }
+        } message: {
+            Text(S.Groups.deleteMsg(name: viewModel.group?.name ?? ""))
         }
     }
 
@@ -346,4 +380,156 @@ private struct SettleUpView: View {
  */
 private func majorText(_ minor: Int64, _ currency: String) -> String {
     String(format: "%.\(minorUnits(currency))f", toMajor(money(minor, currency)))
+}
+
+/**
+ Web's summary card: what the trip cost, and which way your side leans.
+
+ Without it the screen listed rows and left the user to add them up — you could
+ not tell what a trip cost in total, or whether you were up or down on it,
+ without doing arithmetic by hand.
+
+ The auto-split badge sits here rather than inside the edit sheet because it is
+ a FACT about the group that changes what happens to transactions you have not
+ made yet. A setting you cannot see is a surprise waiting to happen.
+ */
+private struct GroupSummaryCard: View {
+    let summary: GroupSummaryUiModel
+
+    var body: some View {
+        SanvyaCard(padding: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(S.Groups.totalSpent).font(.subheadline).foregroundColor(.text2)
+                        Text(summary.totalSpentFormatted).font(.title).fontWeight(.bold).foregroundColor(.text)
+                    }
+                    Spacer(minLength: 0)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(S.Groups.youreOwed).font(.subheadline).foregroundColor(.text2)
+                        Text(summary.owedFormatted).font(.title3).fontWeight(.bold).foregroundColor(.positive)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(S.Groups.youOwe).font(.subheadline).foregroundColor(.text2)
+                        Text(summary.oweFormatted).font(.title3).fontWeight(.bold).foregroundColor(.negative)
+                    }
+                }
+                HStack(spacing: 8) {
+                    Text(dateRangeText).font(.subheadline).foregroundColor(.text2)
+                    Text("\u{00B7} " + S.Groups.members(count: summary.memberCount))
+                        .font(.subheadline).foregroundColor(.text2)
+                    if summary.autoSplit {
+                        Text("\u{00B7} " + S.Groups.autoSplitOn).font(.subheadline).foregroundColor(.accent)
+                    }
+                }
+            }
+        }
+    }
+
+    private var dateRangeText: String {
+        guard let start = summary.startDate else { return S.Groups.noDates }
+        guard let end = summary.endDate else { return start }
+        return "\(start) \u{2013} \(end)"
+    }
+}
+
+/**
+ Rename, re-date, and the auto-split toggle — web's edit modal.
+
+ The toggle is DISABLED without both dates, and the repository forces the flag
+ off in that case regardless. A trip with no range has nothing to match a
+ transaction's date against, so an auto-split flag on one is a setting that
+ silently never fires — worse than an absent one, because the user believes it
+ is working.
+ */
+private struct EditGroupSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let group: SplitGroup
+    let viewModel: GroupDetailViewModel
+
+    @State private var name: String
+    // Web's two `<input type="date">`s can be empty; a SwiftUI DatePicker
+    // cannot. `hasDates` is that empty state, made explicit -- the alternative
+    // is a sheet that can set a range but never clear one.
+    @State private var hasDates: Bool
+    @State private var start: Date
+    @State private var end: Date
+    @State private var auto: Bool
+    @State private var error: String?
+    @State private var saving = false
+
+    init(group: SplitGroup, viewModel: GroupDetailViewModel) {
+        self.group = group
+        self.viewModel = viewModel
+        let s = group.startDate.flatMap(IsoDay.date(from:))
+        let e = group.endDate.flatMap(IsoDay.date(from:))
+        _name = State(initialValue: group.name)
+        _hasDates = State(initialValue: s != nil && e != nil)
+        _start = State(initialValue: s ?? Date())
+        _end = State(initialValue: e ?? s ?? Date())
+        _auto = State(initialValue: group.autoSplit)
+    }
+
+    private var startIso: String { hasDates ? IsoDay.string(from: start) : "" }
+    private var endIso: String { hasDates ? IsoDay.string(from: end) : "" }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField(S.Groups.namePlaceholder, text: $name)
+                }
+                Section(header: Text(S.Groups.datesOptional)) {
+                    Toggle(S.Groups.datesOptional, isOn: $hasDates)
+                    if hasDates {
+                        DatePicker(S.Statements.fromDate, selection: $start, displayedComponents: .date)
+                        // `in: start...` is web's `min={start}`: an inverted
+                        // range matches no transaction at all.
+                        DatePicker(S.Statements.toDate, selection: $end, in: start..., displayedComponents: .date)
+                    }
+                }
+                Section {
+                    Toggle(isOn: Binding(get: { auto && hasDates }, set: { auto = $0 })) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(S.Groups.autoSplitLabel).foregroundColor(.text)
+                            Text(S.Groups.autoSplitDesc(
+                                start: hasDates ? startIso : "\u{2014}",
+                                end: hasDates ? endIso : "\u{2014}",
+                                kind: group.kind
+                            ))
+                            .font(.caption).foregroundColor(.text2)
+                        }
+                    }
+                    .disabled(!hasDates)
+                }
+                if let error { Text(error).foregroundColor(.negative).font(.caption) }
+                Section {
+                    Button(action: save) {
+                        Text(saving ? S.Translation.commonSaving : S.Translation.commonSave)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || saving)
+                    .listRowBackground(Color.accent)
+                    .foregroundColor(.white)
+                }
+            }
+            .navigationTitle(S.Groups.edit)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(S.Groups.cancel) { dismiss() }.foregroundColor(.text2)
+                }
+            }
+        }
+    }
+
+    private func save() {
+        saving = true
+        Task {
+            let err = await viewModel.updateGroup(name: name, startDate: startIso, endDate: endIso, autoSplit: auto)
+            saving = false
+            error = err
+            if err == nil { dismiss() }
+        }
+    }
 }

@@ -765,6 +765,54 @@ public final class SplitsRepository: @unchecked Sendable {
 
     /// Create a group/trip. Adds [userId] as owner; other members added directly.
     @discardableResult
+    /**
+     Rename a group, change its dates, or turn auto-split on and off.
+
+     Web's `saveEdit()` writes all four in one `updateRow`, including the rule
+     that makes the fourth follow the other two: **auto-split is forced OFF
+     unless BOTH dates are set.** A trip with no range has nothing to match a
+     transaction's date against, so an auto-split flag on one would be a setting
+     that silently never fires.
+
+     Mirrors Android's SplitsRepository.updateGroup().
+     */
+    public func updateGroup(
+        groupId: String,
+        name: String,
+        startDate: String?,
+        endDate: String?,
+        autoSplit: Bool
+    ) async throws {
+        let start = (startDate?.isEmpty ?? true) ? nil : startDate
+        let end = (endDate?.isEmpty ?? true) ? nil : endDate
+        try await updateRow(
+            db: db,
+            table: "split_groups",
+            id: groupId,
+            values: [
+                "name": name.trimmingCharacters(in: .whitespacesAndNewlines),
+                "start_date": start,
+                "end_date": end,
+                "auto_split": (start != nil && end != nil && autoSplit) ? Int64(1) : Int64(0),
+            ]
+        )
+    }
+
+    /**
+     Soft-delete a group.
+
+     NO CASCADE, matching web's `softDelete("split_groups", id)` exactly. The
+     expenses and settlements inside it keep their `deleted_at` null and stay in
+     the ledger, which is deliberate: the money really moved, and the balances
+     those rows produce are still true. What disappears is the container, not
+     the history.
+
+     Mirrors Android's SplitsRepository.deleteGroup().
+     */
+    public func deleteGroup(groupId: String) async throws {
+        try await softDelete(db: db, table: "split_groups", id: groupId)
+    }
+
     public func createGroup(
         userId: String, name: String, kind: String, currency: String,
         startDate: String? = nil, endDate: String? = nil, autoSplit: Bool = false,

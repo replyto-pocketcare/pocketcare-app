@@ -41,9 +41,7 @@ struct EditLoanView: View {
         _emiTouched = State(initialValue: !model.rawEmiMajor.isEmpty)
         _dueDayText = State(initialValue: model.rawDueDay)
         _alertTime = State(initialValue: model.rawAlertTimeLocal)
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM-dd"
-        _startDate = State(initialValue: model.rawStartDate.isEmpty ? Date() : (fmt.date(from: String(model.rawStartDate.prefix(10))) ?? Date()))
+        _startDate = State(initialValue: model.rawStartDate.isEmpty ? Date() : (IsoDay.date(from: String(model.rawStartDate.prefix(10))) ?? Date()))
     }
 
     private var principalMinor: Int64 { fromMajor(Double(principalText) ?? 0, model.currency).amount }
@@ -136,12 +134,10 @@ struct EditLoanView: View {
         saving = true
         errorText = nil
         Task {
-            let isoFormatter = DateFormatter()
-            isoFormatter.dateFormat = "yyyy-MM-dd"
             let err = await viewModel.update(
                 lender: lender, principalMajorText: principalText,
                 emiMajorText: rateType == "variable" ? "" : emiFieldBinding.wrappedValue,
-                interestRateText: rateText, tenureText: tenureText, startDate: isoFormatter.string(from: startDate),
+                interestRateText: rateText, tenureText: tenureText, startDate: IsoDay.string(from: startDate),
                 dueDayText: dueDayText, rateType: rateType, alertTimeUtc: localToUtcTime(alertTime)
             )
             saving = false

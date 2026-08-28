@@ -143,8 +143,6 @@ struct CreateBudgetView: View {
         saving = true
         errorText = nil
         Task {
-            let isoFormatter = DateFormatter()
-            isoFormatter.dateFormat = "yyyy-MM-dd"
             let err = await viewModel.create(
                 name: name,
                 limitMajorText: limitText,
@@ -155,8 +153,8 @@ struct CreateBudgetView: View {
                 labelNames: selectedLabels,
                 isCustomDated: isCustomDated,
                 period: period,
-                startDate: isCustomDated ? isoFormatter.string(from: startDate) : nil,
-                endDate: isCustomDated ? isoFormatter.string(from: endDate) : nil
+                startDate: isCustomDated ? IsoDay.string(from: startDate) : nil,
+                endDate: isCustomDated ? IsoDay.string(from: endDate) : nil
             )
             saving = false
             if let err {

@@ -317,12 +317,40 @@ class SplitsViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    fun createGroup(name: String, kind: String, currency: String, memberIds: List<String>, onDone: (String?) -> Unit) {
+    /**
+     * Create a group or trip. Mirrors web's `NewGroupModal.create()`.
+     *
+     * `autoSplit` is forced off unless BOTH dates are set: the flag is only ever
+     * read by `autoSplitGroupFor`, which matches a transaction's date against the
+     * range. Set on a group with no range it can never fire, so storing it true
+     * would tell the user a rule is active that nothing will apply.
+     */
+    fun createGroup(
+        name: String,
+        kind: String,
+        currency: String,
+        memberIds: List<String>,
+        startDate: String = "",
+        endDate: String = "",
+        autoSplit: Boolean = false,
+        onDone: (String?) -> Unit,
+    ) {
         val uid = userId ?: return
         if (name.isBlank()) { onDone(null); return }
+        val start = startDate.trim().ifBlank { null }
+        val end = endDate.trim().ifBlank { null }
         viewModelScope.launch {
             try {
-                val id = splitsRepository.createGroup(userId = uid, name = name, kind = kind, currency = currency, memberUserIds = memberIds)
+                val id = splitsRepository.createGroup(
+                    userId = uid,
+                    name = name,
+                    kind = kind,
+                    currency = currency,
+                    startDate = start,
+                    endDate = end,
+                    autoSplit = autoSplit && start != null && end != null,
+                    memberUserIds = memberIds,
+                )
                 onDone(id)
             } catch (e: Exception) {
                 _error.value = e.message

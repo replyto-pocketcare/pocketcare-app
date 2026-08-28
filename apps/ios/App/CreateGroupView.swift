@@ -12,8 +12,18 @@ struct CreateGroupView: View {
     @State private var kind: String = "group"
     @State private var currency: String = FormOptions.defaultCurrency
     @State private var selectedMembers: Set<String> = []
+    // Web's two `<input type="date">`s can be empty; a SwiftUI DatePicker
+    // cannot. `hasDates` is that empty state, made explicit.
+    @State private var hasDates = false
+    @State private var start = Date()
+    @State private var end = Date()
+    @State private var auto = false
     @State private var error: String?
     @State private var saving = false
+
+    private var startIso: String { hasDates ? IsoDay.string(from: start) : "" }
+    private var endIso: String { hasDates ? IsoDay.string(from: end) : "" }
+    private var kindLabel: String { kind == "trip" ? S.Groups.kindTrip : S.Groups.kindGroup }
 
     var body: some View {
         NavigationStack {
@@ -32,6 +42,24 @@ struct CreateGroupView: View {
                         // Was a hand-written three-item list — the only picker
                         // in the app that offered fewer than the other nine.
                         ForEach(FormOptions.currencies, id: \.self) { Text($0).tag($0) }
+                    }
+                }
+
+                // Web's date range and its auto-split checkbox. Without them a
+                // trip created on mobile could never auto-split: the flag is
+                // only settable against a range, and the range was only
+                // settable from the edit sheet, which most users never open.
+                Section(header: Text(S.Groups.datesOptional)) {
+                    Toggle(S.Groups.datesOptional, isOn: $hasDates)
+                    if hasDates {
+                        DatePicker(S.Statements.fromDate, selection: $start, displayedComponents: .date)
+                        // `in: start...` is web's `min={start}`: an inverted
+                        // range matches no transaction at all.
+                        DatePicker(S.Statements.toDate, selection: $end, in: start..., displayedComponents: .date)
+                        Toggle(isOn: $auto) {
+                            Text(S.Groups.autoSplitCreate(kind: kindLabel))
+                                .font(.caption).foregroundColor(.text2)
+                        }
                     }
                 }
 
@@ -82,7 +110,15 @@ struct CreateGroupView: View {
     private func create() {
         saving = true
         Task {
-            let id = await viewModel.createGroup(name: name.trimmingCharacters(in: .whitespaces), kind: kind, currency: currency, memberIds: Array(selectedMembers))
+            let id = await viewModel.createGroup(
+                name: name.trimmingCharacters(in: .whitespaces),
+                kind: kind,
+                currency: currency,
+                memberIds: Array(selectedMembers),
+                startDate: startIso,
+                endDate: endIso,
+                autoSplit: auto
+            )
             saving = false
             if let id {
                 onCreated(id)

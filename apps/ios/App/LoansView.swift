@@ -422,9 +422,7 @@ struct MarkPaidSheetView: View {
                 }
                 Section {
                     Button(accountId.isEmpty ? S.Loans.markPaid : S.Loans.markPaidRecord) {
-                        let fmt = DateFormatter()
-                        fmt.dateFormat = "yyyy-MM-dd"
-                        onConfirm(fmt.string(from: paidOn), accountId.isEmpty ? nil : accountId)
+                        onConfirm(IsoDay.string(from: paidOn), accountId.isEmpty ? nil : accountId)
                         dismiss()
                     }
                     .fontWeight(.bold)

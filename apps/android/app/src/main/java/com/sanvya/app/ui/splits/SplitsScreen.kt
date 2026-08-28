@@ -24,6 +24,7 @@ import com.sanvya.app.ui.FormOptions
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.DateField
 import com.sanvya.app.ui.components.SanvyaPage
 import com.sanvya.app.ui.components.SanvyaModal
 import com.sanvya.app.ui.dayMonthLabel
@@ -197,8 +198,12 @@ private fun CreateGroupSheet(viewModel: SplitsViewModel, onDismiss: () -> Unit, 
     var kind by remember { mutableStateOf("group") }
     var currency by remember { mutableStateOf(FormOptions.DEFAULT_CURRENCY) }
     var selected by remember { mutableStateOf(setOf<String>()) }
+    var start by remember { mutableStateOf("") }
+    var end by remember { mutableStateOf("") }
+    var auto by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
+    val canAuto = start.isNotBlank() && end.isNotBlank()
 
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = colors.surface) {
         Column(Modifier.padding(20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -236,12 +241,33 @@ private fun CreateGroupSheet(viewModel: SplitsViewModel, onDismiss: () -> Unit, 
                 }
             }
 
+            // Web's date range and its auto-split checkbox. Without them a trip
+            // created on mobile could never auto-split -- the flag is only
+            // settable against a range, and the range was only settable from
+            // the edit sheet, which most users never open.
+            Text(S.Groups.datesOptional(sRes()), fontSize = 12.sp, color = colors.text2)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Web clamps the end date up when a later start is picked;
+                // an inverted range matches no transaction at all.
+                DateField(value = start, onValueChange = { start = it; if (end.isNotBlank() && it > end) end = it }, modifier = Modifier.weight(1f))
+                DateField(value = end, onValueChange = { end = it }, modifier = Modifier.weight(1f))
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Checkbox(checked = canAuto && auto, onCheckedChange = { auto = it }, enabled = canAuto)
+                Text(
+                    S.Groups.autoSplitCreate(sRes(), if (kind == "trip") S.Splits.kindTrip(sRes()) else S.Splits.kindGroup(sRes())),
+                    fontSize = 14.sp,
+                    color = if (canAuto) colors.text else colors.text2,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+
             error?.let { Text(it, fontSize = 12.sp, color = colors.negative) }
 
             Button(
                 onClick = {
                     saving = true
-                    viewModel.createGroup(name.trim(), kind, currency, selected.toList()) { id ->
+                    viewModel.createGroup(name.trim(), kind, currency, selected.toList(), start, end, auto) { id ->
                         saving = false
                         if (id != null) onCreated(id) else error = "Couldn't create the group."
                     }

@@ -584,6 +584,48 @@ class SplitsRepository(
     }
 
     /** Create a group/trip. Adds [userId] as owner; other members added directly. */
+    /**
+     * Rename a group, change its dates, or turn auto-split on and off.
+     *
+     * Web's `saveEdit()` writes all four in one `updateRow`, including the rule
+     * that makes the fourth follow the other two: **auto-split is forced OFF
+     * unless BOTH dates are set.** A trip with no range has nothing to match a
+     * transaction's date against, so an auto-split flag on one would be a
+     * setting that silently never fires.
+     */
+    suspend fun updateGroup(
+        groupId: String,
+        name: String,
+        startDate: String?,
+        endDate: String?,
+        autoSplit: Boolean,
+    ) {
+        updateRow(
+            db = db,
+            table = "split_groups",
+            id = groupId,
+            values = mapOf(
+                "name" to name.trim(),
+                "start_date" to startDate?.ifBlank { null },
+                "end_date" to endDate?.ifBlank { null },
+                "auto_split" to if (!startDate.isNullOrBlank() && !endDate.isNullOrBlank() && autoSplit) 1L else 0L,
+            ),
+        )
+    }
+
+    /**
+     * Soft-delete a group.
+     *
+     * NO CASCADE, matching web's `softDelete("split_groups", id)` exactly. The
+     * expenses and settlements inside it keep their `deleted_at` null and stay
+     * in the ledger, which is deliberate: the money really moved, and the
+     * balances those rows produce are still true. What disappears is the
+     * container, not the history.
+     */
+    suspend fun deleteGroup(groupId: String) {
+        softDelete(db, "split_groups", groupId)
+    }
+
     suspend fun createGroup(
         userId: String,
         name: String,

@@ -356,7 +356,11 @@ private func periodWindow(period: String, startDate: String?, endDate: String?) 
     cal.timeZone = TimeZone(secondsFromGMT: 0)!
     let now = Date()
     let todayComps = cal.dateComponents([.year, .month, .day], from: now)
+    // Deliberately NOT `IsoDay`: this one is UTC, matching the Gregorian/UTC
+    // calendar above it. `en_US_POSIX` for the same reason IsoDay pins it --
+    // without it a device on a non-Gregorian calendar formats `yyyy` in that era.
     let isoDayFmt = DateFormatter()
+    isoDayFmt.locale = Locale(identifier: "en_US_POSIX")
     isoDayFmt.dateFormat = "yyyy-MM-dd"
     isoDayFmt.timeZone = TimeZone(secondsFromGMT: 0)
 

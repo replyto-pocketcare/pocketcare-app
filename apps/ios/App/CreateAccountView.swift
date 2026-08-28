@@ -298,13 +298,7 @@ private func digits2(_ v: String) -> String {
 ///
 /// Local, not UTC: the cycle question is "which calendar day is it for the
 /// person holding the card", and an ISO8601 instant answers a different one.
-/// Built per call — DateFormatter is not Sendable.
-private func todayIso() -> String {
-    let fmt = DateFormatter()
-    fmt.locale = Locale(identifier: "en_US_POSIX")
-    fmt.dateFormat = "yyyy-MM-dd"
-    return fmt.string(from: Date())
-}
+private func todayIso() -> String { IsoDay.today() }
 
 /// `yyyy-MM-dd` in the device's own short date format.
 ///
@@ -312,10 +306,7 @@ private func todayIso() -> String {
 /// `.dateStyle = .short` with the default locale is the same promise on iOS:
 /// the user's format, not ours.
 private func formatCardDay(_ iso: String) -> String {
-    let parse = DateFormatter()
-    parse.locale = Locale(identifier: "en_US_POSIX")
-    parse.dateFormat = "yyyy-MM-dd"
-    guard let date = parse.date(from: iso) else { return iso }
+    guard let date = IsoDay.date(from: iso) else { return iso }
     let out = DateFormatter()
     out.dateStyle = .short
     out.timeStyle = .none

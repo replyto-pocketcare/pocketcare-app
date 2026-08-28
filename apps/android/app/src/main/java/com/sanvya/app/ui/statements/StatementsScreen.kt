@@ -24,10 +24,9 @@ import com.sanvya.app.i18n.sRes
 import com.sanvya.app.theme.LocalSanvyaColors
 import com.sanvya.app.theme.SanvyaShape
 import com.sanvya.app.theme.SanvyaType
-import com.sanvya.app.ui.components.Eyebrow
+import com.sanvya.app.ui.components.DateField
 import com.sanvya.app.ui.components.SanvyaButton
 import com.sanvya.app.ui.components.SanvyaCard
-import com.sanvya.app.ui.components.SanvyaInput
 import com.sanvya.app.ui.components.SanvyaPage
 import com.sanvya.app.ui.components.SanvyaText
 
@@ -154,34 +153,6 @@ fun StatementsScreen(
                 }
             }
         }
-    }
-}
-
-/**
- * A plain ISO text field, not a date picker.
- *
- * Web renders `<input type="date">`, which the browser turns into a native
- * picker. Compose has no equivalent primitive, and Material 3's `DatePicker` is
- * a dialog with its own state and its own visual language — adopting it here
- * would be the first non-web control in the app. Left as text for now and
- * tracked, rather than half-adopted.
- */
-@Composable
-private fun DateField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier) {
-        Eyebrow(label)
-        Spacer(Modifier.height(4.dp))
-        SanvyaInput(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = "YYYY-MM-DD",
-            modifier = Modifier.fillMaxWidth(),
-        )
     }
 }
 

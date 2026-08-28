@@ -16,6 +16,8 @@ public struct ExpenseUiModel: Identifiable, Equatable {
     public let id: String
     public let description: String
     public let amountFormatted: String
+    /// Kept alongside the formatted string so the summary can total the group.
+    public let amountMinor: Int64
     public let date: String
 }
 public struct SettlementUiModel: Identifiable, Equatable {
@@ -65,6 +67,25 @@ public final class GroupDetailViewModel {
     @Injected(\.invitesRepository) private var invitesRepository
 
     public var group: SplitGroup?
+
+    /// The group's headline figures — total spent, what you are owed, what you
+    /// owe — in the group's own currency.
+    ///
+    /// Web's summary card. Without it the screen listed rows and left the user
+    /// to add them up: you could not tell what a trip cost in total, or which
+    /// way your own side of it leaned, without doing arithmetic by hand.
+    public var summary: GroupSummaryUiModel? {
+        guard let g = group else { return nil }
+        return GroupSummaryUiModel(
+            totalSpentFormatted: formatMoney(expenses.reduce(Int64(0)) { $0 + $1.amountMinor }, g.currency),
+            owedFormatted: formatMoney(members.reduce(Int64(0)) { $0 + max(0, $1.net) }, g.currency),
+            oweFormatted: formatMoney(members.reduce(Int64(0)) { $0 + max(0, -$1.net) }, g.currency),
+            memberCount: members.count,
+            startDate: g.startDate,
+            endDate: g.endDate,
+            autoSplit: g.autoSplit
+        )
+    }
     public var members: [MemberUiModel] = []
     public var expenses: [ExpenseUiModel] = []
     public var settlements: [SettlementUiModel] = []
@@ -218,7 +239,13 @@ public final class GroupDetailViewModel {
             do {
                 for try await list in try self.splitsRepository.watchGroupExpenses(groupId: groupId) {
                     self.expenses = list.map { e in
-                        ExpenseUiModel(id: e.id, description: (e.description?.isEmpty == false) ? e.description! : S.Groups.expenseFallback, amountFormatted: formatMoney(e.amount, e.currency), date: String(e.occurredAt.prefix(10)))
+                        ExpenseUiModel(
+                            id: e.id,
+                            description: (e.description?.isEmpty == false) ? e.description! : S.Groups.expenseFallback,
+                            amountFormatted: formatMoney(e.amount, e.currency),
+                            amountMinor: e.amount,
+                            date: String(e.occurredAt.prefix(10))
+                        )
                     }
                 }
             } catch { self.errorMessage = error.localizedDescription }
@@ -304,6 +331,30 @@ public final class GroupDetailViewModel {
         }
     }
 
+    /// Rename, re-date, or toggle auto-split. Matches web's `saveEdit()`.
+    public func updateGroup(name: String, startDate: String, endDate: String, autoSplit: Bool) async -> String? {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return "Enter a name." }
+        do {
+            try await splitsRepository.updateGroup(
+                groupId: groupId, name: name, startDate: startDate, endDate: endDate, autoSplit: autoSplit
+            )
+            group = try await splitsRepository.getGroup(groupId: groupId)
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    /// Soft-delete the group. Its expenses stay in the ledger — see the repo.
+    public func deleteGroup() async -> String? {
+        do {
+            try await splitsRepository.deleteGroup(groupId: groupId)
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
     /// Manual "mark settled" -- no UPI, matches web's confirmSettle("confirmed").
     public func settleManually(otherUserId: String, amountMajorText: String, direction: String, accountId: String?) async -> String? {
         guard let uid = userId, let g = group else { return "Couldn't determine the current user." }
@@ -354,4 +405,15 @@ public final class GroupDetailViewModel {
         tasks.forEach { $0.cancel() }
         tasks.removeAll()
     }
+}
+
+/// Web's summary card, as one value.
+public struct GroupSummaryUiModel: Equatable {
+    public let totalSpentFormatted: String
+    public let owedFormatted: String
+    public let oweFormatted: String
+    public let memberCount: Int
+    public let startDate: String?
+    public let endDate: String?
+    public let autoSplit: Bool
 }
