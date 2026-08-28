@@ -22608,6 +22608,75 @@
         }
       }
     },
+    "receipts:errors.pdfNoText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That PDF has no readable text — try photographing the receipt instead."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस PDF में पढ़ने योग्य टेक्स्ट नहीं है — इसके बजाय रसीद की फ़ोटो लें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze pdf bevat geen leesbare tekst — fotografeer de bon liever."
+          }
+        }
+      }
+    },
+    "receipts:errors.pdfUnreadable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read that PDF."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह PDF पढ़ी नहीं जा सकी।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kon die pdf niet lezen."
+          }
+        }
+      }
+    },
+    "receipts:errors.unsupportedFile": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That file type is not supported. Use a JPEG, PNG or PDF."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह फ़ाइल प्रकार समर्थित नहीं है। JPEG, PNG या PDF का उपयोग करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dat bestandstype wordt niet ondersteund. Gebruik JPEG, PNG of pdf."
+          }
+        }
+      }
+    },
     "receipts:kind.discount": {
       "extractionState": "manual",
       "localizations": {
@@ -22834,6 +22903,75 @@
           "stringUnit": {
             "state": "translated",
             "value": "Op aantal"
+          }
+        }
+      }
+    },
+    "receipts:premium.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading a bill and turning it into an itemised transaction runs on AI, so it's part of the Lite and Pro plans. You can still add transactions by hand on any plan."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बिल पढ़कर उसे मद-वार लेन-देन में बदलना AI पर चलता है, इसलिए यह Lite और Pro प्लान का हिस्सा है। किसी भी प्लान पर आप हाथ से लेन-देन जोड़ सकते हैं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een bon lezen en omzetten in een transactie per regel draait op AI en hoort daarom bij de Lite- en Pro-abonnementen. Handmatig transacties toevoegen kan op elk abonnement."
+          }
+        }
+      }
+    },
+    "receipts:premium.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See plans"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्लान देखें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekijk abonnementen"
+          }
+        }
+      }
+    },
+    "receipts:premium.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Lite or Pro feature"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lite या Pro सुविधा"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een Lite- of Pro-functie"
           }
         }
       }

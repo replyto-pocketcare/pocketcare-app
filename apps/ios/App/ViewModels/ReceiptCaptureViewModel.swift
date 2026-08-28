@@ -14,7 +14,19 @@ public enum CaptureStage: Equatable {
     /// Couldn't read this cleanly -- mirrors `describeMismatch` in
     /// apps/web/app/receipts/new/page.tsx.
     case mismatch(reason: String)
+    /// An encrypted PDF, waiting on a password.
+    ///
+    /// A separate case rather than an error because it is not a failure: web
+    /// keeps the file and shows a password form, and re-running with the
+    /// password is the SAME scan, not a retake.
+    case needsPassword
     case error(String)
+}
+
+/// Where the file came from. Stored on the scan row, exactly as web does.
+public enum ScanSource {
+    public static let camera = "camera"
+    public static let upload = "upload"
 }
 
 /// Real port of apps/web/app/receipts/new/page.tsx's camera path (task
@@ -29,17 +41,68 @@ public enum CaptureStage: Equatable {
 @MainActor
 public final class ReceiptCaptureViewModel {
     @ObservationIgnored @Injected(\.receiptsRepository) private var receiptsRepository
+    @ObservationIgnored @Injected(\.prefsRepository) private var prefsRepository
     private var pendingDraft: ReceiptDraft?
+    private var source = ScanSource.camera
+    @ObservationIgnored private var entitlementTask: Task<Void, Never>?
 
     public var stage: CaptureStage = .idle
+
+    /// Whether receipt scanning is available — Lite, Pro, or an active trial.
+    ///
+    /// Same derivation as the shell's own `canScan`, and web gates this screen
+    /// on exactly the same value. It is a COURTESY gate: the receipt-scan edge
+    /// function enforces the rule server-side regardless. Without it a free
+    /// user met a server rejection where web shows them a plan card, which
+    /// reads as the app being broken rather than the feature being paid.
+    ///
+    /// Starts closed and stays closed if the entitlement cannot be read. A gate
+    /// that fails open is not a gate.
+    public var canScan = false
     /// Set once a scan is saved -- the view navigates to review on this
     /// becoming non-nil.
     public var savedScanId: String?
 
     public init() {}
 
+    public func watchEntitlement() {
+        entitlementTask?.cancel()
+        entitlementTask = Task { [weak self] in
+            do {
+                for try await row in try prefsRepository.watchEntitlement() {
+                    self?.canScan = isPaid(
+                        tier: row?.tier,
+                        premiumTrialStartDate: row?.premiumTrialStartDate,
+                        compTier: row?.compTier,
+                        compUntil: row?.compUntil,
+                        now: Date()
+                    )
+                }
+            } catch {
+                // Offline — keep the last known tier.
+            }
+        }
+    }
+
+    public func stopWatching() {
+        entitlementTask?.cancel()
+        entitlementTask = nil
+    }
+
     public func onCaptureStarted() {
+        source = ScanSource.camera
         stage = .preparing
+    }
+
+    /// A file was chosen from the picker — an image or a PDF.
+    public func onUploadStarted() {
+        source = ScanSource.upload
+        stage = .preparing
+    }
+
+    /// The chosen PDF is encrypted; web keeps the file and asks.
+    public func onPasswordRequired() {
+        stage = .needsPassword
     }
 
     public func onReadingStarted() {
@@ -48,10 +111,29 @@ public final class ReceiptCaptureViewModel {
 
     /// Called once Vision hands back recognized text. Text-only path -- see
     /// receipt-scan.md scope note #3 (no per-word bounding boxes).
-    public func onTextRecognized(_ rawText: String) {
+    public func onTextRecognized(_ rawText: String) { ingest(rawText, engine: "tesseract") }
+
+    /// A PDF's text layer, already flattened to lines.
+    ///
+    /// Web's PDF branch skips OCR entirely and calls `parseReceiptText` on the
+    /// joined rows — an emailed bill is the single most accurate input this
+    /// feature accepts, which is why it is worth the separate path. The engine
+    /// is recorded as "pdf" rather than an OCR engine that never ran.
+    public func onPdfText(_ text: String) {
+        // Web's own floor: below this there is no text layer worth parsing, and
+        // rasterising a scan to OCR it reads worse than photographing the paper
+        // — which is what the message says, in web's own words.
+        if text.trimmingCharacters(in: .whitespacesAndNewlines).count < pdfTextFloor {
+            stage = .error(S.Receipts.errorsPdfNoText)
+            return
+        }
+        ingest(text, engine: "pdf")
+    }
+
+    private func ingest(_ rawText: String, engine: String) {
         stage = .understanding
         let today = ISO8601DateFormatter().string(from: Date()).prefix(10)
-        let draft = parseReceiptText(rawText, ParseOptions(currency: baseCurrencyNow(), today: String(today), engine: "tesseract"))
+        let draft = parseReceiptText(rawText, ParseOptions(currency: baseCurrencyNow(), today: String(today), engine: engine))
         pendingDraft = draft
         let rec = reconcile(draft)
         if rec.ok {
@@ -91,7 +173,7 @@ public final class ReceiptCaptureViewModel {
             do {
                 let s = subtotals(draft.lines)
                 let id = try await receiptsRepository.saveScan(SaveScanInput(
-                    source: "camera",
+                    source: source,
                     engine: draft.engine,
                     merchant: draft.merchant,
                     occurredAt: draft.occurredAt,
@@ -103,7 +185,10 @@ public final class ReceiptCaptureViewModel {
                     discount: s.discount,
                     total: draft.total,
                     confidence: Int64(draft.confidence),
-                    rawText: draft.rawText,
+                    // Web caps the stored dump: a long grocery bill's OCR
+                    // output is not worth syncing in full, and it is only ever
+                    // used for re-parsing and debugging.
+                    rawText: draft.rawText.map { String($0.prefix(rawTextCap)) },
                     parsedJson: ReceiptDraftJson.encode(draft)
                 ))
                 savedScanId = id
@@ -113,3 +198,12 @@ public final class ReceiptCaptureViewModel {
         }
     }
 }
+
+/// Web's `raw_text: draft.rawText.slice(0, 8000)`.
+private let rawTextCap = 8000
+
+/// Below this many characters, a PDF has no text layer worth parsing.
+///
+/// Web's own floor. It could rasterise and OCR the page instead, but a photo of
+/// the paper beats a photo of a scan, so it says so rather than trying.
+private let pdfTextFloor = 20

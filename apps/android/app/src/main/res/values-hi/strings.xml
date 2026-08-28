@@ -1054,6 +1054,9 @@
     <string name="receipts_capture_unlock">अनलॉक करें</string>
     <string name="receipts_capture_upload">फ़ाइल अपलोड करें</string>
     <string name="receipts_errors_pdf_locked">यह PDF पासवर्ड से सुरक्षित है।</string>
+    <string name="receipts_errors_pdf_no_text">इस PDF में पढ़ने योग्य टेक्स्ट नहीं है — इसके बजाय रसीद की फ़ोटो लें।</string>
+    <string name="receipts_errors_pdf_unreadable">यह PDF पढ़ी नहीं जा सकी।</string>
+    <string name="receipts_errors_unsupported_file">यह फ़ाइल प्रकार समर्थित नहीं है। JPEG, PNG या PDF का उपयोग करें।</string>
     <string name="receipts_kind_discount">छूट</string>
     <string name="receipts_kind_item">वस्तु</string>
     <string name="receipts_kind_service_charge">सेवा शुल्क</string>
@@ -1064,6 +1067,9 @@
     <string name="receipts_mode_percent">प्रतिशत से</string>
     <string name="receipts_mode_proportional">अनुपात में</string>
     <string name="receipts_mode_quantity">मात्रा के अनुसार</string>
+    <string name="receipts_premium_body">बिल पढ़कर उसे मद-वार लेन-देन में बदलना AI पर चलता है, इसलिए यह Lite और Pro प्लान का हिस्सा है। किसी भी प्लान पर आप हाथ से लेन-देन जोड़ सकते हैं।</string>
+    <string name="receipts_premium_cta">प्लान देखें</string>
+    <string name="receipts_premium_title">Lite या Pro सुविधा</string>
     <string name="receipts_review_account">किससे भुगतान</string>
     <string name="receipts_review_add_charge">शुल्क जोड़ें</string>
     <string name="receipts_review_add_difference">%1$s को एक पंक्ति के रूप में जोड़ें</string>

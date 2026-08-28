@@ -1054,6 +1054,9 @@
     <string name="receipts_capture_unlock">Ontgrendelen</string>
     <string name="receipts_capture_upload">Bestand uploaden</string>
     <string name="receipts_errors_pdf_locked">Deze PDF is met een wachtwoord beveiligd.</string>
+    <string name="receipts_errors_pdf_no_text">Deze pdf bevat geen leesbare tekst — fotografeer de bon liever.</string>
+    <string name="receipts_errors_pdf_unreadable">Kon die pdf niet lezen.</string>
+    <string name="receipts_errors_unsupported_file">Dat bestandstype wordt niet ondersteund. Gebruik JPEG, PNG of pdf.</string>
     <string name="receipts_kind_discount">Korting</string>
     <string name="receipts_kind_item">Artikel</string>
     <string name="receipts_kind_service_charge">Servicekosten</string>
@@ -1064,6 +1067,9 @@
     <string name="receipts_mode_percent">Op percentage</string>
     <string name="receipts_mode_proportional">Naar verhouding</string>
     <string name="receipts_mode_quantity">Op aantal</string>
+    <string name="receipts_premium_body">Een bon lezen en omzetten in een transactie per regel draait op AI en hoort daarom bij de Lite- en Pro-abonnementen. Handmatig transacties toevoegen kan op elk abonnement.</string>
+    <string name="receipts_premium_cta">Bekijk abonnementen</string>
+    <string name="receipts_premium_title">Een Lite- of Pro-functie</string>
     <string name="receipts_review_account">Betaald van</string>
     <string name="receipts_review_add_charge">Kosten toevoegen</string>
     <string name="receipts_review_add_difference">%1$s als regel toevoegen</string>

@@ -1,23 +1,9 @@
 {
-  "kind": {
-    "item": "Artikel",
-    "tax": "Btw",
-    "service_charge": "Servicekosten",
-    "tip": "Fooi",
-    "discount": "Korting"
-  },
-  "mode": {
-    "equal": "Gelijk",
-    "quantity": "Op aantal",
-    "percent": "Op percentage",
-    "exact": "Op bedrag",
-    "proportional": "Naar verhouding"
-  },
-  "stage": {
-    "preparing": "Foto voorbereiden…",
-    "reading": "Bon lezen…",
-    "understanding": "Gegevens verwerken…",
-    "done": "Klaar"
+  "breakdown": {
+    "show": "Artikelen tonen",
+    "hide": "Artikelen verbergen",
+    "everyone": "Iedereen",
+    "personTotal": "{{name}} moet betalen"
   },
   "capture": {
     "title": "Bon of rekening scannen",
@@ -45,7 +31,29 @@
     "seePlans": "Bekijk abonnementen"
   },
   "errors": {
-    "pdfLocked": "Deze PDF is met een wachtwoord beveiligd."
+    "pdfLocked": "Deze PDF is met een wachtwoord beveiligd.",
+    "pdfNoText": "Deze pdf bevat geen leesbare tekst — fotografeer de bon liever.",
+    "pdfUnreadable": "Kon die pdf niet lezen.",
+    "unsupportedFile": "Dat bestandstype wordt niet ondersteund. Gebruik JPEG, PNG of pdf."
+  },
+  "kind": {
+    "item": "Artikel",
+    "tax": "Btw",
+    "service_charge": "Servicekosten",
+    "tip": "Fooi",
+    "discount": "Korting"
+  },
+  "mode": {
+    "equal": "Gelijk",
+    "quantity": "Op aantal",
+    "percent": "Op percentage",
+    "exact": "Op bedrag",
+    "proportional": "Naar verhouding"
+  },
+  "premium": {
+    "body": "Een bon lezen en omzetten in een transactie per regel draait op AI en hoort daarom bij de Lite- en Pro-abonnementen. Handmatig transacties toevoegen kan op elk abonnement.",
+    "cta": "Bekijk abonnementen",
+    "title": "Een Lite- of Pro-functie"
   },
   "review": {
     "title": "Controleer de gegevens",
@@ -107,10 +115,10 @@
     "notFound": "Deze scan is niet meer beschikbaar.",
     "corrupt": "We konden deze scan niet openen."
   },
-  "breakdown": {
-    "show": "Artikelen tonen",
-    "hide": "Artikelen verbergen",
-    "everyone": "Iedereen",
-    "personTotal": "{{name}} moet betalen"
+  "stage": {
+    "preparing": "Foto voorbereiden…",
+    "reading": "Bon lezen…",
+    "understanding": "Gegevens verwerken…",
+    "done": "Klaar"
   }
 }

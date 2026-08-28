@@ -199,6 +199,8 @@ fun SanvyaNavHost(inviteToken: String? = null) {
             com.sanvya.app.ui.receipts.ReceiptCaptureScreen(
                 onBack = { navController.popBackStack() },
                 onScanned = { scanId -> navController.navigate("receipts/review/$scanId") { popUpTo("receipts/new") { inclusive = true } } },
+                // Web's premium card links to /settings, where the plans live.
+                onSeePlans = { navController.navigate("settings") },
             )
         }
         composable(

@@ -1329,6 +1329,9 @@ public enum S {
         public static var captureUnlock: String { String(localized: "receipts:capture.unlock", table: "Localizable") }
         public static var captureUpload: String { String(localized: "receipts:capture.upload", table: "Localizable") }
         public static var errorsPdfLocked: String { String(localized: "receipts:errors.pdfLocked", table: "Localizable") }
+        public static var errorsPdfNoText: String { String(localized: "receipts:errors.pdfNoText", table: "Localizable") }
+        public static var errorsPdfUnreadable: String { String(localized: "receipts:errors.pdfUnreadable", table: "Localizable") }
+        public static var errorsUnsupportedFile: String { String(localized: "receipts:errors.unsupportedFile", table: "Localizable") }
         public static var kindDiscount: String { String(localized: "receipts:kind.discount", table: "Localizable") }
         public static var kindItem: String { String(localized: "receipts:kind.item", table: "Localizable") }
         public static var kindServiceCharge: String { String(localized: "receipts:kind.service_charge", table: "Localizable") }
@@ -1339,6 +1342,9 @@ public enum S {
         public static var modePercent: String { String(localized: "receipts:mode.percent", table: "Localizable") }
         public static var modeProportional: String { String(localized: "receipts:mode.proportional", table: "Localizable") }
         public static var modeQuantity: String { String(localized: "receipts:mode.quantity", table: "Localizable") }
+        public static var premiumBody: String { String(localized: "receipts:premium.body", table: "Localizable") }
+        public static var premiumCta: String { String(localized: "receipts:premium.cta", table: "Localizable") }
+        public static var premiumTitle: String { String(localized: "receipts:premium.title", table: "Localizable") }
         public static var reviewAccount: String { String(localized: "receipts:review.account", table: "Localizable") }
         public static var reviewAddCharge: String { String(localized: "receipts:review.addCharge", table: "Localizable") }
         public static func reviewAddDifference(amount: String) -> String {

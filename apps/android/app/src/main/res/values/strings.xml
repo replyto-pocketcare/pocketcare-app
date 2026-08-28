@@ -1054,6 +1054,9 @@
     <string name="receipts_capture_unlock">Unlock</string>
     <string name="receipts_capture_upload">Upload a file</string>
     <string name="receipts_errors_pdf_locked">This PDF is password protected.</string>
+    <string name="receipts_errors_pdf_no_text">That PDF has no readable text — try photographing the receipt instead.</string>
+    <string name="receipts_errors_pdf_unreadable">Couldn\'t read that PDF.</string>
+    <string name="receipts_errors_unsupported_file">That file type is not supported. Use a JPEG, PNG or PDF.</string>
     <string name="receipts_kind_discount">Discount</string>
     <string name="receipts_kind_item">Item</string>
     <string name="receipts_kind_service_charge">Service charge</string>
@@ -1064,6 +1067,9 @@
     <string name="receipts_mode_percent">By percent</string>
     <string name="receipts_mode_proportional">Proportionally</string>
     <string name="receipts_mode_quantity">By quantity</string>
+    <string name="receipts_premium_body">Reading a bill and turning it into an itemised transaction runs on AI, so it\'s part of the Lite and Pro plans. You can still add transactions by hand on any plan.</string>
+    <string name="receipts_premium_cta">See plans</string>
+    <string name="receipts_premium_title">A Lite or Pro feature</string>
     <string name="receipts_review_account">Paid from</string>
     <string name="receipts_review_add_charge">Add charge</string>
     <string name="receipts_review_add_difference">Add %1$s as a line</string>

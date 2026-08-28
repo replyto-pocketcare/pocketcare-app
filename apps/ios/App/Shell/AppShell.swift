@@ -145,7 +145,12 @@ struct AppShell<Content: View>: View {
                     showingReceiptCapture = false
                     reviewingScanId = scanId
                 },
-                onCancel: { showingReceiptCapture = false }
+                onCancel: { showingReceiptCapture = false },
+                // Web's premium card links to /settings, where the plans live.
+                onSeePlans: {
+                    showingReceiptCapture = false
+                    select(.settings)
+                }
             )
         }
         .fullScreenCover(item: Binding(

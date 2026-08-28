@@ -1,23 +1,9 @@
 {
-  "kind": {
-    "item": "Item",
-    "tax": "Tax",
-    "service_charge": "Service charge",
-    "tip": "Tip",
-    "discount": "Discount"
-  },
-  "mode": {
-    "equal": "Equally",
-    "quantity": "By quantity",
-    "percent": "By percent",
-    "exact": "By amount",
-    "proportional": "Proportionally"
-  },
-  "stage": {
-    "preparing": "Preparing the photo…",
-    "reading": "Reading the receipt…",
-    "understanding": "Making sense of it…",
-    "done": "Done"
+  "breakdown": {
+    "show": "View items",
+    "hide": "Hide items",
+    "everyone": "Everyone",
+    "personTotal": "{{name}} owes"
   },
   "capture": {
     "title": "Scan a bill or receipt",
@@ -45,7 +31,29 @@
     "seePlans": "See plans"
   },
   "errors": {
-    "pdfLocked": "This PDF is password protected."
+    "pdfLocked": "This PDF is password protected.",
+    "pdfNoText": "That PDF has no readable text — try photographing the receipt instead.",
+    "pdfUnreadable": "Couldn't read that PDF.",
+    "unsupportedFile": "That file type is not supported. Use a JPEG, PNG or PDF."
+  },
+  "kind": {
+    "item": "Item",
+    "tax": "Tax",
+    "service_charge": "Service charge",
+    "tip": "Tip",
+    "discount": "Discount"
+  },
+  "mode": {
+    "equal": "Equally",
+    "quantity": "By quantity",
+    "percent": "By percent",
+    "exact": "By amount",
+    "proportional": "Proportionally"
+  },
+  "premium": {
+    "body": "Reading a bill and turning it into an itemised transaction runs on AI, so it's part of the Lite and Pro plans. You can still add transactions by hand on any plan.",
+    "cta": "See plans",
+    "title": "A Lite or Pro feature"
   },
   "review": {
     "title": "Check the details",
@@ -107,10 +115,10 @@
     "notFound": "That scan is no longer available.",
     "corrupt": "We couldn't reopen this scan."
   },
-  "breakdown": {
-    "show": "View items",
-    "hide": "Hide items",
-    "everyone": "Everyone",
-    "personTotal": "{{name}} owes"
+  "stage": {
+    "preparing": "Preparing the photo…",
+    "reading": "Reading the receipt…",
+    "understanding": "Making sense of it…",
+    "done": "Done"
   }
 }
