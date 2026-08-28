@@ -540,7 +540,26 @@
     <string name="groups_group_name_placeholder">समूह का नाम</string>
     <string name="groups_group_not_found">समूह नहीं मिला। </string>
     <string name="groups_invite">आमंत्रित करें</string>
+    <string name="groups_invite_add_email">%1$s को न्योता दें</string>
     <string name="groups_invite_body">किसी मित्र का ईमेल दर्ज करें। यदि वे Sanvya पर हैं तो तुरंत जुड़ जाते हैं; अन्यथा हम आपको साझा करने के लिए एक लिंक देंगे।</string>
+    <plurals name="groups_invite_count">
+        <item quantity="one">%1$d को न्योता दें</item>
+        <item quantity="other">%1$d को न्योता दें</item>
+    </plurals>
+    <plurals name="groups_invited_added">
+        <item quantity="one">%1$d जोड़ा गया</item>
+        <item quantity="other">%1$d जोड़े गए</item>
+    </plurals>
+    <string name="groups_invited_failed">असफल: %1$s</string>
+    <plurals name="groups_invited_links">
+        <item quantity="one">%1$d न्योता लिंक बना</item>
+        <item quantity="other">%1$d न्योता लिंक बने</item>
+    </plurals>
+    <plurals name="groups_invite_narrow">
+        <item quantity="one">%1$d और — छाँटने के लिए लिखते रहें</item>
+        <item quantity="other">%1$d और — छाँटने के लिए लिखते रहें</item>
+    </plurals>
+    <string name="groups_invite_placeholder">लोगों को खोजें या ईमेल लिखें</string>
     <string name="groups_invite_to">%1$s में आमंत्रित करें</string>
     <string name="groups_kind_group">समूह</string>
     <string name="groups_kind_trip">यात्रा</string>
@@ -560,6 +579,7 @@
     <string name="groups_no_groups_title">अभी कोई समूह या यात्रा नहीं</string>
     <string name="groups_or_share_link">या एक साझा करने योग्य लिंक बनाएं</string>
     <string name="groups_owes_you_amt">आपको %1$s देना है</string>
+    <string name="groups_remove">हटाएँ</string>
     <string name="groups_save">सहेजें</string>
     <string name="groups_settled_between">%1$s ने %2$s को भुगतान किया</string>
     <string name="groups_settled_paid_you">%1$s ने आपको भुगतान किया</string>

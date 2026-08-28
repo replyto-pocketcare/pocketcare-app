@@ -64,5 +64,17 @@
   "settledYouPaid": "आपने {{name}} को भुगतान किया",
   "settledPaidYou": "{{name}} ने आपको भुगतान किया",
   "settledBetween": "{{from}} ने {{to}} को भुगतान किया",
-  "settledPending": "पुष्टि की प्रतीक्षा है"
+  "settledPending": "पुष्टि की प्रतीक्षा है",
+  "remove": "हटाएँ",
+  "invitePlaceholder": "लोगों को खोजें या ईमेल लिखें",
+  "inviteAddEmail": "{{email}} को न्योता दें",
+  "inviteNarrow_one": "{{count}} और — छाँटने के लिए लिखते रहें",
+  "inviteNarrow_other": "{{count}} और — छाँटने के लिए लिखते रहें",
+  "inviteCount_one": "{{count}} को न्योता दें",
+  "inviteCount_other": "{{count}} को न्योता दें",
+  "invitedAdded_one": "{{count}} जोड़ा गया",
+  "invitedAdded_other": "{{count}} जोड़े गए",
+  "invitedLinks_one": "{{count}} न्योता लिंक बना",
+  "invitedLinks_other": "{{count}} न्योता लिंक बने",
+  "invitedFailed": "असफल: {{names}}"
 }

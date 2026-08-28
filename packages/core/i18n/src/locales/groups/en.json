@@ -64,5 +64,17 @@
   "settledYouPaid": "You paid {{name}}",
   "settledPaidYou": "{{name}} paid you",
   "settledBetween": "{{from}} paid {{to}}",
-  "settledPending": "Waiting to be confirmed"
+  "settledPending": "Waiting to be confirmed",
+  "remove": "Remove",
+  "invitePlaceholder": "Search people or type an email",
+  "inviteAddEmail": "Invite {{email}}",
+  "inviteNarrow_one": "{{count}} more — keep typing to narrow",
+  "inviteNarrow_other": "{{count}} more — keep typing to narrow",
+  "inviteCount_one": "Invite {{count}}",
+  "inviteCount_other": "Invite {{count}}",
+  "invitedAdded_one": "{{count}} added",
+  "invitedAdded_other": "{{count}} added",
+  "invitedLinks_one": "{{count}} invite link created",
+  "invitedLinks_other": "{{count}} invite links created",
+  "invitedFailed": "Failed: {{names}}"
 }

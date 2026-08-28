@@ -1,0 +1,939 @@
+[
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": ""
+    },
+    "expected": {
+      "suggestions": [
+        "u1",
+        "u2",
+        "u3",
+        "u4",
+        "u5",
+        "u6"
+      ],
+      "moreMatches": 2,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": "ra"
+    },
+    "expected": {
+      "suggestions": [
+        "u1",
+        "u4",
+        "u6"
+      ],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": "RAVI"
+    },
+    "expected": {
+      "suggestions": [
+        "u1"
+      ],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": "priya@x"
+    },
+    "expected": {
+      "suggestions": [
+        "u2"
+      ],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": "   meera   "
+    },
+    "expected": {
+      "suggestions": [
+        "u4"
+      ],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": ""
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": ""
+    },
+    "expected": {
+      "suggestions": [
+        "u2"
+      ],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [
+        "u1",
+        "u2"
+      ],
+      "selected": [],
+      "query": ""
+    },
+    "expected": {
+      "suggestions": [
+        "u3",
+        "u4",
+        "u5",
+        "u6",
+        "u7",
+        "u8"
+      ],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        }
+      ],
+      "query": ""
+    },
+    "expected": {
+      "suggestions": [
+        "u2",
+        "u3",
+        "u4",
+        "u5",
+        "u6",
+        "u7"
+      ],
+      "moreMatches": 1,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [
+        {
+          "id": null,
+          "name": "",
+          "email": "RAVI@X.COM"
+        }
+      ],
+      "query": "ravi@x.com"
+    },
+    "expected": {
+      "suggestions": [
+        "u1"
+      ],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": "new.person@example.com"
+    },
+    "expected": {
+      "suggestions": [],
+      "moreMatches": 0,
+      "canAddTypedEmail": true
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": "ravi@x.com"
+    },
+    "expected": {
+      "suggestions": [
+        "u1"
+      ],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [
+        {
+          "id": null,
+          "name": "",
+          "email": "new@example.com"
+        }
+      ],
+      "query": "new@example.com"
+    },
+    "expected": {
+      "suggestions": [],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": "not an email"
+    },
+    "expected": {
+      "suggestions": [],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [
+        {
+          "id": "u1",
+          "name": "Ravi",
+          "email": "ravi@x.com"
+        },
+        {
+          "id": "u2",
+          "name": "Priya",
+          "email": "priya@x.com"
+        },
+        {
+          "id": "u3",
+          "name": "Arjun",
+          "email": "arjun@x.com"
+        },
+        {
+          "id": "u4",
+          "name": "Meera",
+          "email": "meera@x.com"
+        },
+        {
+          "id": "u5",
+          "name": "Kabir",
+          "email": "kabir@x.com"
+        },
+        {
+          "id": "u6",
+          "name": "Sara",
+          "email": "sara@x.com"
+        },
+        {
+          "id": "u7",
+          "name": "Neel",
+          "email": "neel@x.com"
+        },
+        {
+          "id": "u8",
+          "name": "Diya",
+          "email": "diya@x.com"
+        }
+      ],
+      "memberIds": [],
+      "selected": [],
+      "query": "missing@dot"
+    },
+    "expected": {
+      "suggestions": [],
+      "moreMatches": 0,
+      "canAddTypedEmail": false
+    }
+  },
+  {
+    "fn": "inviteSuggestions",
+    "input": {
+      "connections": [],
+      "memberIds": [],
+      "selected": [],
+      "query": "solo@example.com"
+    },
+    "expected": {
+      "suggestions": [],
+      "moreMatches": 0,
+      "canAddTypedEmail": true
+    }
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": "a@b.co"
+    },
+    "expected": true
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": " a@b.co "
+    },
+    "expected": true
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": "a@b"
+    },
+    "expected": false
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": "a b@c.co"
+    },
+    "expected": false
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": "@b.co"
+    },
+    "expected": false
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": "a@.co"
+    },
+    "expected": false
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": "a@b."
+    },
+    "expected": false
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": ""
+    },
+    "expected": false
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": "a@b.co.uk"
+    },
+    "expected": true
+  },
+  {
+    "fn": "looksLikeEmail",
+    "input": {
+      "text": "a+tag@b.co"
+    },
+    "expected": true
+  },
+  {
+    "fn": "inviteeKey",
+    "input": {
+      "invitee": {
+        "id": "u1",
+        "name": "Ravi",
+        "email": "ravi@x.com"
+      }
+    },
+    "expected": "u1"
+  },
+  {
+    "fn": "inviteeKey",
+    "input": {
+      "invitee": {
+        "id": null,
+        "name": "",
+        "email": "Ravi@X.com"
+      }
+    },
+    "expected": "ravi@x.com"
+  },
+  {
+    "fn": "inviteeKey",
+    "input": {
+      "invitee": {
+        "id": null,
+        "name": "Typed",
+        "email": "a@b.co"
+      }
+    },
+    "expected": "a@b.co"
+  },
+  {
+    "fn": "inviteeLabel",
+    "input": {
+      "invitee": {
+        "id": "u1",
+        "name": "Ravi",
+        "email": "ravi@x.com"
+      }
+    },
+    "expected": "Ravi"
+  },
+  {
+    "fn": "inviteeLabel",
+    "input": {
+      "invitee": {
+        "id": null,
+        "name": "",
+        "email": "a@b.co"
+      }
+    },
+    "expected": "a@b.co"
+  }
+]

@@ -119,6 +119,12 @@ final class VectorRunnerTests: XCTestCase {
         registerAssistantVectors()
         try runDomain("assistant")
     }
+    func testSplitsInvite() throws {
+        // Invite.swift — who the invite box offers, and what makes two invitees
+        // the same person. A SPEC; see InviteVectors.
+        registerInviteVectors()
+        try runDomain("splits-invite")
+    }
     func testFeedback() throws {
         // Feedback.swift — the generated area/severity vocabulary and the key
         // derivation that turns a STORED value into an i18n key.

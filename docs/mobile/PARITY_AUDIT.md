@@ -226,7 +226,7 @@ Ranked by whether a native-only user can complete the job at all, not by size.
 
 | # | Gap | Platforms | Size | Why it is first |
 |---|---|---|---|---|
-| 1 | **Group invites** — connection search, typed-email chips, share link | both | L | Neither platform can add anyone to a group who is not already a connection. A native user creates a group and then cannot fill it |
+| ~~1~~ | ~~**Group invites**~~ | both | L | ✅ **2026-08-27.** Connection search, typed-email chips, one call per chip, and the share link. The selection rules are Domain's under 30 vectors; the link is the SERVER's, because a phone has no origin to build one from |
 | 2 | **Split expense on New transaction** — group picker, equal/exact/percent, per-share inputs, multi-payer | both | L | The largest single block of web behaviour absent from both ports. It cascades: no "paid for someone else", no auto-split trips, no `?split=` entry, and Edit's SplitBanner has nothing to explain |
 | 3 | **Android: Add-expense in a group is unreachable** | Android | S | The sheet is fully implemented; nothing sets `showAddExpense`, and the page action is an empty lambda. A group is read-only on Android |
 | 4 | **Credit-card branch on New account** — limit, statement day, due day, cycle-aware `pending_due` | both | L | A card created natively silently drops every field the Cards screen and its reminders are built on |
@@ -501,6 +501,18 @@ user base they are invisible today, which is exactly why they have survived.
     `SEVERITIES`, which are written into `bug_reports` and read by whoever works
     the queue) are generated from web's source by `generate-feedback.mjs`. The
     keys are there for web to adopt.
+
+14. **Seven invite strings are missing from the catalogue.** `groups/[id]/page.tsx`
+    calls `t("invitePlaceholder", "Search people or type an email")` and six more
+    with inline `defaultValue` fallbacks — so English is perfect and Hindi and
+    Dutch quietly render English. This is the exact failure mode
+    `audit-i18n-usage.mjs` was written to report, and it reported these.
+
+    Added to `packages/core/i18n/src/locales/groups/` in all three locales while
+    porting the invite modal: `remove`, `invitePlaceholder`, `inviteAddEmail`,
+    `inviteNarrow`, `inviteCount`, `invitedAdded`, `invitedLinks`, `invitedFailed`
+    — four of them as plurals, which the inline defaults were not. Web keeps
+    working unchanged and picks them up the moment anyone drops the fallbacks.
 
 ### iOS was formatting numbers as pointers — twelve call sites, 2026-08-27
 

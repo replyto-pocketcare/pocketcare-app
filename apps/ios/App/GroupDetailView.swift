@@ -12,6 +12,7 @@ struct GroupDetailView: View {
 
     @State private var viewModel = GroupDetailViewModel()
     @State private var showingAddExpense = false
+    @State private var showingInvite = false
     @State private var settleTarget: MemberUiModel?
 
     var body: some View {
@@ -24,6 +25,7 @@ struct GroupDetailView: View {
                         HStack {
                             Text(viewModel.group?.name ?? S.Groups.kindGroup).font(.title2).fontWeight(.bold).foregroundColor(.text)
                             Spacer()
+                            SanvyaChip(S.Groups.invite, isActive: false) { showingInvite = true }
                             PrimaryButton(S.Splits.addExpense) { showingAddExpense = true }
                                 .frame(width: 140)
                         }
@@ -78,6 +80,13 @@ struct GroupDetailView: View {
             }
         }
         .task(id: groupId) { await viewModel.select(groupId) }
+        .sanvyaModal(isPresented: $showingInvite, label: S.Groups.invite) {
+            InviteSheet(
+                groupName: viewModel.group?.name ?? "",
+                viewModel: viewModel,
+                onClose: { showingInvite = false }
+            )
+        }
         .sanvyaFormPresentation(isPresented: $showingAddExpense) {
             AddExpenseView(viewModel: viewModel, members: viewModel.members)
         }

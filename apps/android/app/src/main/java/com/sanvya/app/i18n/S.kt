@@ -605,7 +605,20 @@ object S {
         fun groupNamePlaceholder(res: Resources): String = res.getString(R.string.groups_group_name_placeholder)
         fun groupNotFound(res: Resources): String = res.getString(R.string.groups_group_not_found)
         fun invite(res: Resources): String = res.getString(R.string.groups_invite)
+        fun inviteAddEmail(res: Resources, email: Any): String =
+            res.getString(R.string.groups_invite_add_email, email)
         fun inviteBody(res: Resources): String = res.getString(R.string.groups_invite_body)
+        fun inviteCount(res: Resources, count: Int): String =
+            res.getQuantityString(R.plurals.groups_invite_count, count, count)
+        fun invitedAdded(res: Resources, count: Int): String =
+            res.getQuantityString(R.plurals.groups_invited_added, count, count)
+        fun invitedFailed(res: Resources, names: Any): String =
+            res.getString(R.string.groups_invited_failed, names)
+        fun invitedLinks(res: Resources, count: Int): String =
+            res.getQuantityString(R.plurals.groups_invited_links, count, count)
+        fun inviteNarrow(res: Resources, count: Int): String =
+            res.getQuantityString(R.plurals.groups_invite_narrow, count, count)
+        fun invitePlaceholder(res: Resources): String = res.getString(R.string.groups_invite_placeholder)
         fun inviteTo(res: Resources, name: Any): String =
             res.getString(R.string.groups_invite_to, name)
         fun kindGroup(res: Resources): String = res.getString(R.string.groups_kind_group)
@@ -626,6 +639,7 @@ object S {
         fun orShareLink(res: Resources): String = res.getString(R.string.groups_or_share_link)
         fun owesYouAmt(res: Resources, amount: Any): String =
             res.getString(R.string.groups_owes_you_amt, amount)
+        fun remove(res: Resources): String = res.getString(R.string.groups_remove)
         fun save(res: Resources): String = res.getString(R.string.groups_save)
         fun settledBetween(res: Resources, from: Any, to: Any): String =
             res.getString(R.string.groups_settled_between, from, to)

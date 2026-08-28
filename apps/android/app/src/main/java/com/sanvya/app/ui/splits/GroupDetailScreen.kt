@@ -45,6 +45,7 @@ fun GroupDetailScreen(
     val settlements by viewModel.settlements.collectAsState()
     val loaded by viewModel.loaded.collectAsState()
     var showAddExpense by remember { mutableStateOf(false) }
+    var showInvite by remember { mutableStateOf(false) }
     var settleTarget by remember { mutableStateOf<MemberUiModel?>(null) }
 
     SanvyaPage(
@@ -54,6 +55,11 @@ fun GroupDetailScreen(
         // was read-only on Android while iOS could add to one. Web puts the
         // same button in the same place (`groups/[id]/page.tsx`).
         action = {
+            SanvyaChip(
+                S.Groups.invite(sRes()),
+                active = false,
+                onClick = { showInvite = true },
+            )
             SanvyaChip(
                 S.Splits.addExpense(sRes()),
                 active = false,
@@ -103,6 +109,13 @@ fun GroupDetailScreen(
             item { Spacer(Modifier.height(72.dp)) }
         }
     }
+
+    InviteSheet(
+        open = showInvite,
+        groupName = group?.name.orEmpty(),
+        viewModel = viewModel,
+        onClose = { showInvite = false },
+    )
 
     if (showAddExpense) {
         AddExpenseSheet(viewModel = viewModel, members = members, onDismiss = { showAddExpense = false })

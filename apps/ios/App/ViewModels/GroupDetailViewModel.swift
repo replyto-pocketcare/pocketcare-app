@@ -61,6 +61,8 @@ public final class GroupDetailViewModel {
     @Injected(\.upiRepository) private var upiRepository
     @ObservationIgnored
     @Injected(\.authRepository) private var authRepository
+    @ObservationIgnored
+    @Injected(\.invitesRepository) private var invitesRepository
 
     public var group: SplitGroup?
     public var members: [MemberUiModel] = []
@@ -70,6 +72,107 @@ public final class GroupDetailViewModel {
     public var loaded = false
     public var errorMessage: String?
     public var upiStage: UpiStage = .idle
+
+    // MARK: - invites
+
+    /// Everyone this user is connected to, as the invite box's candidates.
+    public var connections: [Invitee] = []
+    public var selected: [Invitee] = []
+    public var inviteQuery = ""
+    public var inviting = false
+    /// The last run's counts, for the summary line. Nil before the first.
+    public var inviteOutcome: InviteOutcome?
+    /// A share link, once one has been created.
+    public var inviteLink: String?
+    /// A failure worth showing, already worded by the repository.
+    public var inviteError: String?
+
+    /// What the box should offer right now. Computed by Domain, not here.
+    public var suggestions: InviteSuggestions {
+        inviteSuggestions(
+            connections: connections,
+            memberIds: members.map(\.userId),
+            selected: selected,
+            query: inviteQuery
+        )
+    }
+
+    public func addInvitee(_ invitee: Invitee) {
+        selected.append(invitee)
+        inviteQuery = ""
+    }
+
+    public func removeInvitee(key: String) {
+        selected.removeAll { inviteeKey($0) == key }
+    }
+
+    /// Web resets the whole panel every time the modal opens.
+    public func resetInvite() {
+        selected = []
+        inviteQuery = ""
+        inviteOutcome = nil
+        inviteLink = nil
+        inviteError = nil
+    }
+
+    /**
+     Invite everyone in the chips.
+
+     One call per invitee, as web does — the Edge Function takes a single
+     address, and batching would need a server change. A failure is counted and
+     the loop continues: inviting four people and having one address bounce
+     should still add the other three.
+     */
+    public func inviteSelected() {
+        let picked = selected
+        guard !picked.isEmpty, !inviting else { return }
+        inviting = true
+        inviteOutcome = nil
+        inviteLink = nil
+        inviteError = nil
+        Task { [weak self] in
+            guard let self else { return }
+            var added = 0
+            var links = 0
+            var failed: [String] = []
+            for invitee in picked {
+                do {
+                    let result = try await self.invitesRepository.createInvite(
+                        groupId: self.groupId,
+                        email: invitee.email.isEmpty ? nil : invitee.email
+                    )
+                    if result.added { added += 1 } else { links += 1 }
+                } catch {
+                    failed.append(inviteeLabel(invitee))
+                }
+            }
+            self.selected = []
+            self.inviteQuery = ""
+            self.inviting = false
+            self.inviteOutcome = InviteOutcome(added: added, links: links, failed: failed)
+        }
+    }
+
+    /// A share link with no particular recipient. Web's `shareLink()`.
+    public func createShareLink() {
+        guard !inviting else { return }
+        inviting = true
+        inviteOutcome = nil
+        inviteLink = nil
+        inviteError = nil
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let result = try await self.invitesRepository.createInvite(groupId: self.groupId)
+                self.inviteLink = result.link
+            } catch let error as InviteError {
+                self.inviteError = error.message
+            } catch {
+                self.inviteError = error.localizedDescription
+            }
+            self.inviting = false
+        }
+    }
 
     private var groupId: String = ""
     private var userId: String?
@@ -93,6 +196,10 @@ public final class GroupDetailViewModel {
         self.group = try? await splitsRepository.getGroup(groupId: groupId)
         let conns = (try? await firstConnections(uid)) ?? []
         namesById = Dictionary(uniqueKeysWithValues: conns.map { ($0.id, $0.name) })
+        // The invite box's candidates. A connection with no email cannot be
+        // invited by this route; Domain drops those rather than the query, so
+        // the empty string travels and the rule stays in one place.
+        connections = conns.map { Invitee(id: $0.id, name: $0.name, email: $0.email ?? "") }
         if let uid { namesById[uid] = S.Receipts.splitYou }
         loaded = true
 

@@ -540,7 +540,26 @@
     <string name="groups_group_name_placeholder">Groepsnaam</string>
     <string name="groups_group_not_found">Groep niet gevonden. </string>
     <string name="groups_invite">Uitnodigen</string>
+    <string name="groups_invite_add_email">%1$s uitnodigen</string>
     <string name="groups_invite_body">Voer het e-mailadres van een vriend in. Als ze op Sanvya zitten, worden ze meteen toegevoegd; anders geven we je een link om te delen.</string>
+    <plurals name="groups_invite_count">
+        <item quantity="one">%1$d uitnodigen</item>
+        <item quantity="other">%1$d uitnodigen</item>
+    </plurals>
+    <plurals name="groups_invited_added">
+        <item quantity="one">%1$d toegevoegd</item>
+        <item quantity="other">%1$d toegevoegd</item>
+    </plurals>
+    <string name="groups_invited_failed">Mislukt: %1$s</string>
+    <plurals name="groups_invited_links">
+        <item quantity="one">%1$d uitnodigingslink gemaakt</item>
+        <item quantity="other">%1$d uitnodigingslinks gemaakt</item>
+    </plurals>
+    <plurals name="groups_invite_narrow">
+        <item quantity="one">Nog %1$d — typ verder om te filteren</item>
+        <item quantity="other">Nog %1$d — typ verder om te filteren</item>
+    </plurals>
+    <string name="groups_invite_placeholder">Zoek mensen of typ een e-mailadres</string>
     <string name="groups_invite_to">Uitnodigen voor %1$s</string>
     <string name="groups_kind_group">groep</string>
     <string name="groups_kind_trip">reis</string>
@@ -560,6 +579,7 @@
     <string name="groups_no_groups_title">Nog geen groepen of reizen</string>
     <string name="groups_or_share_link">Of maak een deelbare link</string>
     <string name="groups_owes_you_amt">is jou %1$s verschuldigd</string>
+    <string name="groups_remove">Verwijderen</string>
     <string name="groups_save">Opslaan</string>
     <string name="groups_settled_between">%1$s betaalde %2$s</string>
     <string name="groups_settled_paid_you">%1$s betaalde jou</string>

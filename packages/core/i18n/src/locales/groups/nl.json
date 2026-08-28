@@ -64,5 +64,17 @@
   "settledYouPaid": "Jij betaalde {{name}}",
   "settledPaidYou": "{{name}} betaalde jou",
   "settledBetween": "{{from}} betaalde {{to}}",
-  "settledPending": "Wacht op bevestiging"
+  "settledPending": "Wacht op bevestiging",
+  "remove": "Verwijderen",
+  "invitePlaceholder": "Zoek mensen of typ een e-mailadres",
+  "inviteAddEmail": "{{email}} uitnodigen",
+  "inviteNarrow_one": "Nog {{count}} — typ verder om te filteren",
+  "inviteNarrow_other": "Nog {{count}} — typ verder om te filteren",
+  "inviteCount_one": "{{count}} uitnodigen",
+  "inviteCount_other": "{{count}} uitnodigen",
+  "invitedAdded_one": "{{count}} toegevoegd",
+  "invitedAdded_other": "{{count}} toegevoegd",
+  "invitedLinks_one": "{{count}} uitnodigingslink gemaakt",
+  "invitedLinks_other": "{{count}} uitnodigingslinks gemaakt",
+  "invitedFailed": "Mislukt: {{names}}"
 }

@@ -7,18 +7,27 @@ import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.ParticipantInput
 import com.sanvya.app.data.repository.PayerInput
 import com.sanvya.app.data.repository.SplitExpenseInput
+import com.sanvya.app.data.repository.InvitesRepository
 import com.sanvya.app.data.repository.SplitGroup
 import com.sanvya.app.data.repository.SplitsRepository
 import com.sanvya.app.data.repository.UpiHandleError
 import com.sanvya.app.data.repository.UpiRepository
 import com.sanvya.app.domain.money.money
+import com.sanvya.app.domain.splits.Invitee
+import com.sanvya.app.domain.splits.InviteOutcome
+import com.sanvya.app.domain.splits.InviteSuggestions
+import com.sanvya.app.domain.splits.inviteSuggestions
+import com.sanvya.app.domain.splits.inviteeKey
+import com.sanvya.app.domain.splits.inviteeLabel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -61,6 +70,7 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
     private val splitsRepository: SplitsRepository by inject()
     private val ledgerRepository: LedgerRepository by inject()
     private val upiRepository: UpiRepository by inject()
+    private val invitesRepository: InvitesRepository by inject()
     private val authRepository: AuthRepository by inject()
 
     private val userId: String? get() = authRepository.currentUserId.value
@@ -78,6 +88,118 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
 
     private val _settlements = MutableStateFlow<List<SettlementUiModel>>(emptyList())
     val settlements: StateFlow<List<SettlementUiModel>> = _settlements
+
+    // ---- invites ----
+
+    /** Everyone this user is connected to, as the invite box's candidates. */
+    private val _connections = MutableStateFlow<List<Invitee>>(emptyList())
+    val connections: StateFlow<List<Invitee>> = _connections
+
+    private val _selected = MutableStateFlow<List<Invitee>>(emptyList())
+    val selected: StateFlow<List<Invitee>> = _selected
+
+    private val _inviteQuery = MutableStateFlow("")
+    val inviteQuery: StateFlow<String> = _inviteQuery
+
+    private val _inviting = MutableStateFlow(false)
+    val inviting: StateFlow<Boolean> = _inviting
+
+    /** The last run's counts, for the summary line. Null before the first. */
+    private val _inviteOutcome = MutableStateFlow<InviteOutcome?>(null)
+    val inviteOutcome: StateFlow<InviteOutcome?> = _inviteOutcome
+
+    /** A share link, once one has been created. */
+    private val _inviteLink = MutableStateFlow<String?>(null)
+    val inviteLink: StateFlow<String?> = _inviteLink
+
+    /** A failure worth showing, already worded by the repository. */
+    private val _inviteError = MutableStateFlow<String?>(null)
+    val inviteError: StateFlow<String?> = _inviteError
+
+    /** What the box should offer right now. Recomputed by Domain, not here. */
+    val suggestions: StateFlow<InviteSuggestions> =
+        combine(_connections, _members, _selected, _inviteQuery) { conns, members, picked, query ->
+            inviteSuggestions(
+                connections = conns,
+                memberIds = members.map { it.userId },
+                selected = picked,
+                query = query,
+            )
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            InviteSuggestions(emptyList(), 0, false),
+        )
+
+    fun setInviteQuery(v: String) { _inviteQuery.value = v }
+
+    fun addInvitee(invitee: Invitee) {
+        _selected.value = _selected.value + invitee
+        _inviteQuery.value = ""
+    }
+
+    fun removeInvitee(key: String) {
+        _selected.value = _selected.value.filterNot { inviteeKey(it) == key }
+    }
+
+    /** Web resets the whole panel every time the modal opens. */
+    fun resetInvite() {
+        _selected.value = emptyList()
+        _inviteQuery.value = ""
+        _inviteOutcome.value = null
+        _inviteLink.value = null
+        _inviteError.value = null
+    }
+
+    /**
+     * Invite everyone in the chips.
+     *
+     * One call per invitee, as web does -- the Edge Function takes a single
+     * address, and batching would need a server change. A failure is counted
+     * and the loop continues: inviting four people and having one address
+     * bounce should still add the other three.
+     */
+    fun inviteSelected() {
+        val picked = _selected.value
+        if (picked.isEmpty() || _inviting.value) return
+        _inviting.value = true
+        _inviteOutcome.value = null
+        _inviteLink.value = null
+        _inviteError.value = null
+        viewModelScope.launch {
+            var added = 0
+            var links = 0
+            val failed = mutableListOf<String>()
+            for (invitee in picked) {
+                runCatching {
+                    invitesRepository.createInvite(groupId, invitee.email.ifEmpty { null })
+                }.onSuccess { result ->
+                    if (result.added) added++ else links++
+                }.onFailure {
+                    failed.add(inviteeLabel(invitee))
+                }
+            }
+            _selected.value = emptyList()
+            _inviteQuery.value = ""
+            _inviting.value = false
+            _inviteOutcome.value = InviteOutcome(added, links, failed)
+        }
+    }
+
+    /** A share link with no particular recipient. Web's `shareLink()`. */
+    fun createShareLink() {
+        if (_inviting.value) return
+        _inviting.value = true
+        _inviteOutcome.value = null
+        _inviteLink.value = null
+        _inviteError.value = null
+        viewModelScope.launch {
+            runCatching { invitesRepository.createInvite(groupId, null) }
+                .onSuccess { _inviteLink.value = it.link }
+                .onFailure { _inviteError.value = it.message }
+            _inviting.value = false
+        }
+    }
 
     private val _accounts = MutableStateFlow<List<AccountOption>>(emptyList())
     val accounts: StateFlow<List<AccountOption>> = _accounts
@@ -107,6 +229,10 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
             _group.value = splitsRepository.getGroup(groupId)
             val conns = if (uid != null) splitsRepository.watchConnections(uid).first() else emptyList()
             namesById = conns.associate { it.id to it.name } + (uid?.let { mapOf(it to "You") } ?: emptyMap())
+            // The invite box's candidates. A connection with no email cannot be
+            // invited by this route; Domain drops those rather than the query,
+            // so the empty string travels and the rule stays in one place.
+            _connections.value = conns.map { Invitee(id = it.id, name = it.name, email = it.email.orEmpty()) }
             _loaded.value = true
 
             if (uid != null) {

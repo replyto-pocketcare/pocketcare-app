@@ -540,7 +540,26 @@
     <string name="groups_group_name_placeholder">Group name</string>
     <string name="groups_group_not_found">Group not found. </string>
     <string name="groups_invite">Invite</string>
+    <string name="groups_invite_add_email">Invite %1$s</string>
     <string name="groups_invite_body">Enter a friend\'s email. If they\'re on Sanvya they\'re added right away; otherwise we\'ll give you a link to share.</string>
+    <plurals name="groups_invite_count">
+        <item quantity="one">Invite %1$d</item>
+        <item quantity="other">Invite %1$d</item>
+    </plurals>
+    <plurals name="groups_invited_added">
+        <item quantity="one">%1$d added</item>
+        <item quantity="other">%1$d added</item>
+    </plurals>
+    <string name="groups_invited_failed">Failed: %1$s</string>
+    <plurals name="groups_invited_links">
+        <item quantity="one">%1$d invite link created</item>
+        <item quantity="other">%1$d invite links created</item>
+    </plurals>
+    <plurals name="groups_invite_narrow">
+        <item quantity="one">%1$d more — keep typing to narrow</item>
+        <item quantity="other">%1$d more — keep typing to narrow</item>
+    </plurals>
+    <string name="groups_invite_placeholder">Search people or type an email</string>
     <string name="groups_invite_to">Invite to %1$s</string>
     <string name="groups_kind_group">group</string>
     <string name="groups_kind_trip">trip</string>
@@ -560,6 +579,7 @@
     <string name="groups_no_groups_title">No groups or trips yet</string>
     <string name="groups_or_share_link">Or create a shareable link</string>
     <string name="groups_owes_you_amt">owes you %1$s</string>
+    <string name="groups_remove">Remove</string>
     <string name="groups_save">Save</string>
     <string name="groups_settled_between">%1$s paid %2$s</string>
     <string name="groups_settled_paid_you">%1$s paid you</string>

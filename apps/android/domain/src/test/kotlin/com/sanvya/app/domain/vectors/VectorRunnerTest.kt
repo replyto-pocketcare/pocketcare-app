@@ -145,6 +145,13 @@ class VectorRunnerTest {
         runDomain("assistant")
     }
     @Test
+    fun `splits-invite`() {
+        // Invite.kt -- who the invite box offers, and what makes two invitees
+        // the same person. A SPEC; see InviteVectors.kt.
+        com.sanvya.app.domain.splits.registerInviteVectors()
+        runDomain("splits-invite")
+    }
+    @Test
     fun feedback() {
         // Feedback.kt -- the generated area/severity vocabulary and the key
         // derivation that turns a STORED value into an i18n key.

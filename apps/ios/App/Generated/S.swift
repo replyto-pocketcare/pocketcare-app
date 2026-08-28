@@ -685,7 +685,26 @@ public enum S {
         public static var groupNamePlaceholder: String { String(localized: "groups:groupNamePlaceholder", table: "Localizable") }
         public static var groupNotFound: String { String(localized: "groups:groupNotFound", table: "Localizable") }
         public static var invite: String { String(localized: "groups:invite", table: "Localizable") }
+        public static func inviteAddEmail(email: String) -> String {
+            String(format: String(localized: "groups:inviteAddEmail", table: "Localizable"), email)
+        }
         public static var inviteBody: String { String(localized: "groups:inviteBody", table: "Localizable") }
+        public static func inviteCount(count: Int) -> String {
+            String(format: String(localized: "groups:inviteCount", defaultValue: "", table: "Localizable"), count)
+        }
+        public static func invitedAdded(count: Int) -> String {
+            String(format: String(localized: "groups:invitedAdded", defaultValue: "", table: "Localizable"), count)
+        }
+        public static func invitedFailed(names: String) -> String {
+            String(format: String(localized: "groups:invitedFailed", table: "Localizable"), names)
+        }
+        public static func invitedLinks(count: Int) -> String {
+            String(format: String(localized: "groups:invitedLinks", defaultValue: "", table: "Localizable"), count)
+        }
+        public static func inviteNarrow(count: Int) -> String {
+            String(format: String(localized: "groups:inviteNarrow", defaultValue: "", table: "Localizable"), count)
+        }
+        public static var invitePlaceholder: String { String(localized: "groups:invitePlaceholder", table: "Localizable") }
         public static func inviteTo(name: String) -> String {
             String(format: String(localized: "groups:inviteTo", table: "Localizable"), name)
         }
@@ -710,6 +729,7 @@ public enum S {
         public static func owesYouAmt(amount: String) -> String {
             String(format: String(localized: "groups:owesYouAmt", table: "Localizable"), amount)
         }
+        public static var remove: String { String(localized: "groups:remove", table: "Localizable") }
         public static var save: String { String(localized: "groups:save", table: "Localizable") }
         public static func settledBetween(from: String, to: String) -> String {
             String(format: String(localized: "groups:settledBetween", table: "Localizable"), from, to)
