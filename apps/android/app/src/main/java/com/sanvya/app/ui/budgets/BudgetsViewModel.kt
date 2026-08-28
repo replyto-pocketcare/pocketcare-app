@@ -24,6 +24,7 @@ import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 import com.sanvya.app.ui.formatMoneyAware
+import com.sanvya.app.ui.formatMajorPlain
 
 enum class ProgressColor { POSITIVE, WARNING, NEGATIVE }
 

@@ -23,6 +23,8 @@ import kotlin.math.min
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.domain.money.toMajor
 import com.sanvya.app.domain.money.money
+import com.sanvya.app.domain.money.fromMajor
+import com.sanvya.app.ui.formatMajorPlain
 
 data class GoalUiModel(
     val id: String,

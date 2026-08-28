@@ -27,6 +27,7 @@ import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.components.SanvyaPage
+import com.sanvya.app.ui.formatMajorPlain
 
 /**
  * Ported from apps/web/app/loans/[id]/page.tsx's `EditLoan` inline form per

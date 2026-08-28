@@ -28,6 +28,7 @@ import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.components.SanvyaPage
+import com.sanvya.app.ui.formatMajorPlain
 
 /**
  * Ported from apps/web/app/loans/page.tsx's `AddLoan` inline modal per

@@ -21,6 +21,7 @@ import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.formatMoneyAware
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.ui.FormOptions
+import com.sanvya.app.ui.majorScale
 
 /**
  * Net-worth hero content — mirrors apps/web/app/page.tsx's NetWorthHero

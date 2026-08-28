@@ -2915,6 +2915,33 @@ The pattern is worth naming: the check matches USES, and every time it misses,
 it is because Kotlin has another syntax for using something. Verified the new
 rule by running it against the broken file before fixing it.
 
+## The guard that ran clean while CI failed — 2026-08-28
+
+`check-kotlin-imports.mjs` reported 0 hits on the ×100 sweep. Android then failed
+CI with **26 unresolved references across 13 files**, every one of them a missing
+import for `money`, `fromMajor`, `toMajor`, `majorScale` or `formatMajorPlain`.
+
+The script was not wrong; its LIST was. It resolves a **curated** set of symbols,
+and the money vocabulary was half-watched — `formatMoney`, `formatMoneyAware`
+and `baseCurrencyNow` were on it, `money`, `fromMajor` and `toMajor` were not.
+The sweep spread those three across fifteen files that had never named them.
+
+Two generalisations were tried before accepting the curated list:
+
+| Approach | Result |
+|---|---|
+| Watch **every** top-level declaration in the module | 358 false positives. A top-level `fun split` and a local `val rows` are indistinguishable without real scoping, and this is deliberately not a type checker. |
+| Watch every declaration in the shared **packages** (`domain.money`, `ui`, `ui.components`, `theme`) | 111. `fun Modifier.foo()` reads as a declaration of `Modifier`; and the `^\s*` in the declaration regex turns out to be load-bearing — it is what lets a file declaring its OWN private `formatMoney` off the hook. |
+
+So the list stays hand-fed, the six money symbols are on it, and the rule is
+written into the script: **when a symbol starts appearing in files that never
+named it, it belongs on the list the same day.** The guard found all 13 files in
+one run once it could see them, and named the exact import for each.
+
+Worth stating plainly: a guard with an allowlist can pass while the compiler
+fails, and a green guard set is not a build. The other six say what they cover
+in their own output for that reason.
+
 ## Re-measured 2026-08-28 — 64 gaps, itemised
 
 The 91-gap count of 2026-08-27 was by slice. Four fresh parallel passes read each

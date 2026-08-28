@@ -57,6 +57,7 @@ import kotlin.math.pow
 import kotlin.math.roundToLong
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.ui.majorScale
 
 
 /**

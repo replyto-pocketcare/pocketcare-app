@@ -27,6 +27,8 @@ import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.components.SanvyaChip
 import com.sanvya.app.ui.components.SanvyaInput
 import com.sanvya.app.ui.components.SanvyaPage
+import com.sanvya.app.domain.money.money
+import com.sanvya.app.domain.money.toMajor
 
 private val LINE_KINDS = listOf("item", "tax", "service_charge", "tip", "discount")
 

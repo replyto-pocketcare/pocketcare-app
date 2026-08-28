@@ -54,6 +54,24 @@ const WATCHED = [
   "transactionListItem", "TransactionRowCard", "merchantTitle", "avatarColor",
   "splitInfoByTransaction", "collapseSplitRowIds", "SplitInfo",
   "searchTransactions", "activeFilterCount", "categoryTree", "timeAgo", "filterHelp",
+  // Added 2026-08-28 by the x100 sweep, which is exactly the case a CURATED
+  // list gets wrong: the money vocabulary was half-watched. `formatMoney` and
+  // `baseCurrencyNow` were on the list, `money` / `fromMajor` / `toMajor` were
+  // not, and the sweep spread those three across fifteen files. The guard ran
+  // clean and Android still failed CI with twenty unresolved references.
+  //
+  // The lesson is about the LIST, not the script, and two generalisations were
+  // tried before settling on that. Watching EVERY top-level declaration in the
+  // module gives 358 false positives -- a top-level `fun split` and a local
+  // `val rows` are indistinguishable without real scoping, and this is
+  // deliberately not a type checker. Watching every declaration in the shared
+  // PACKAGES gives 111, because `fun Modifier.foo()` reads as a declaration of
+  // `Modifier`, and because the `^\s*` in DECL below is load-bearing: it is what
+  // lets a file declaring its OWN private `formatMoney` off the hook.
+  //
+  // So the list is fed by hand, and the rule is: when a symbol starts appearing
+  // in files that never named it, it belongs here the same day.
+  "money", "fromMajor", "toMajor", "minorUnits", "majorScale", "formatMajorPlain",
 ];
 
 /**

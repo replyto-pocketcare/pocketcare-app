@@ -34,6 +34,7 @@ import org.koin.core.component.inject
 import java.time.Instant
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.domain.money.fromMajor
 
 /**
  * `netFormatted` alongside `net` for the same reason `ExpenseUiModel` and

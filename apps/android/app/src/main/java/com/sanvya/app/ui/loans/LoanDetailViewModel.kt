@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.ui.formatMajorPlain
 
 enum class EmiRowState { PAID, AUTO_MARKED, DUE }
 

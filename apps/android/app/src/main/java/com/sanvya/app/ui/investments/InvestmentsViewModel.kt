@@ -29,6 +29,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.ui.formatMajorPlain
 
 
 private val DEMAT_TYPES = setOf("demat", "stocks", "mutual_funds")
