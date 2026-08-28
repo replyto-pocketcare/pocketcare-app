@@ -2886,3 +2886,20 @@ The pattern is worth naming: the check matches USES, and every time it misses,
 it is because Kotlin has another syntax for using something. Verified the new
 rule by running it against the broken file before fixing it.
 
+## CI round 2026-08-28 — two mechanical breaks, two new guards
+
+Both of these are the same class of mistake: something the compiler would have
+caught in a second, discovered twenty minutes into CI, because there is no
+Gradle and no Xcode locally and CI is the compiler of record.
+
+| Error | Cause | Guard added |
+| --- | --- | --- |
+| 7 × `missing argument label 'name:'` / `'sum:total:'` / `'pct:'` / `'amount:'` in `SplitEditorView.swift` | The generated Swift accessors take LABELLED arguments (`sharesMatch(sum:total:)`); the new file called them positionally, mirroring Kotlin's shape. Third time an S-accessor signature has cost a round trip — the first was `%@` given an `Int` | **`tools/parity/check-i18n-args.mjs`**, now in the parity job. It reads `S.swift` and `S.kt` as the source of truth, then checks every `S.<Ns>.<fn>(` call site: labels and order on Swift, argument count on Kotlin. 999 call sites, and it splits arguments on TOP-LEVEL commas only — nested calls and string interpolations contain commas that are not separators, which is the very bug it exists to catch |
+| 30 × `Unresolved reference 'FunctionRegistry'` / `'kotlinx'` in `CardCycleVectors.kt` | The file landed in `domain/src/main`. `FunctionRegistry` and kotlinx-serialization are TEST-only on Android, so it did not merely fail to register — it failed the whole module build | **`tools/parity/check-vector-registration.mjs`**, now in the parity job. Registration files must live in a test source set on both platforms; every corpus file must have a `runDomain` on BOTH runners; and every `runDomain` must have a corpus file. The last two matter because the runners deliberately SKIP an unregistered function rather than fail, so a typo'd domain name reads as a passing test |
+
+Both were verified the usual way: break it deliberately, watch the guard name
+the file and the line and exit 1, restore, watch it go clean.
+
+`mobile-schema.json` is the one named exception in the second guard. It lives in
+`vectors/` because it is generated from web and versioned the same way, but it
+is consumed by `gen-mobile-schema.mjs` rather than by a runner.

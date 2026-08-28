@@ -151,6 +151,12 @@ jobs:
       # last line -- see the script's header.
       - name: Nested block comments
         run: node tools/parity/check-nested-comments.mjs 2>&1 | tee -a parity.log
+      # CI is the compiler of record here, so a mistake this mechanical costs a
+      # full round trip. These two have each already cost one.
+      - name: i18n accessor arguments
+        run: node tools/parity/check-i18n-args.mjs 2>&1 | tee -a parity.log
+      - name: Golden-vector registration
+        run: node tools/parity/check-vector-registration.mjs 2>&1 | tee -a parity.log
       - name: Fail if generated output drifted
         run: |
           if ! git diff --exit-code | tee -a parity.log; then

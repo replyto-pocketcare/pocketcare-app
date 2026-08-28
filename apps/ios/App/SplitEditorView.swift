@@ -122,7 +122,7 @@ struct SplitEditorView: View {
         if let auto = groups.first(where: { $0.id == splitGroupId && $0.autoSplit }) {
             // Web explains WHY the trip was chosen for you, and how to decline
             // it -- a preselection with no explanation reads as a bug.
-            Text(S.Transactions.autoSplitWith(auto.name))
+            Text(S.Transactions.autoSplitWith(name: auto.name))
                 .sanvyaStyle(SanvyaType.body.resized(12))
                 .foregroundStyle(Color.accent)
         }
@@ -198,15 +198,15 @@ struct SplitEditorView: View {
             let sum = formatMoney(plan.sharesSum, currency)
             let total = formatMoney(totalMinor, currency)
             return plan.sharesSum == totalMinor
-                ? S.Transactions.sharesMatch(sum, total)
-                : S.Transactions.sharesMismatch(sum, total)
+                ? S.Transactions.sharesMatch(sum: sum, total: total)
+                : S.Transactions.sharesMismatch(sum: sum, total: total)
         }
         // `jsRound` on the SUM, matching Domain's own acceptance test -- three
         // people at 33.33 read as 100 here and are accepted there.
         let pct = String(Int(jsRound(plan.percentSum)))
         return Int(jsRound(plan.percentSum)) == 100
-            ? S.Transactions.percentMatch(pct)
-            : S.Transactions.percentMismatch(pct)
+            ? S.Transactions.percentMatch(pct: pct)
+            : S.Transactions.percentMismatch(pct: pct)
     }
 
     // MARK: - payers
@@ -222,7 +222,7 @@ struct SplitEditorView: View {
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(splitMembers, id: \.self) { uid in
                     AmountRow(
-                        label: S.Transactions.memberPaid(memberName(uid)),
+                        label: S.Transactions.memberPaid(name: memberName(uid)),
                         text: key($paidText, uid),
                         placeholder: currency,
                         trailing: nil
@@ -231,8 +231,8 @@ struct SplitEditorView: View {
                 let sum = formatMoney(plan.paidSum, currency)
                 let total = formatMoney(totalMinor, currency)
                 Text(plan.paidSum == totalMinor
-                     ? S.Transactions.paidMatch(sum, total)
-                     : S.Transactions.paidMismatch(sum, total))
+                     ? S.Transactions.paidMatch(sum: sum, total: total)
+                     : S.Transactions.paidMismatch(sum: sum, total: total))
                     .sanvyaStyle(SanvyaType.body.resized(12))
                     .foregroundStyle(Color.text2)
                 // Only one leg of a multi-payer split touches an account of
@@ -276,12 +276,12 @@ struct SplitEditorView: View {
                             .foregroundStyle(Color.text2)
                     }
                     if net > 0 {
-                        Text(S.Transactions.othersOweYou(formatMoney(net, currency)))
+                        Text(S.Transactions.othersOweYou(amount: formatMoney(net, currency)))
                             .sanvyaStyle(SanvyaType.body.resized(13))
                             .foregroundStyle(Color.positive)
                     }
                     if net < 0 {
-                        Text(S.Transactions.youllOwe(formatMoney(-net, currency)))
+                        Text(S.Transactions.youllOwe(amount: formatMoney(-net, currency)))
                             .sanvyaStyle(SanvyaType.body.resized(13))
                             .foregroundStyle(Color.negative)
                     }
