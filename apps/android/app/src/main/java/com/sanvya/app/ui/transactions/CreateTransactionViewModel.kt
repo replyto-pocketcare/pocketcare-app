@@ -441,6 +441,21 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
     fun totalMinor(currency: String): Long =
         ui.value.items.sumOf { fromMajor(jsParseFloat(it.value) ?: 0.0, currency).amount }
 
+    /**
+     * Web's `canSave`, including the two SPLIT guards that were missing.
+     *
+     * Without them an exact- or percent-mode split whose shares do not add up
+     * left Save enabled, `save()` found `plan.valid == false`, fell past the
+     * split branch and booked the whole amount as an ordinary personal expense.
+     * No split, no warning, no error -- the worst shape a bug can take, because
+     * it looks like it worked. Domain computed `valid` correctly the whole
+     * time under 35 vectors; the button simply never asked.
+     *
+     * The `forOther` guard has web's exact shape, including its two escape
+     * hatches: it does not apply to a non-expense, and it does not apply while
+     * the split toggle is on -- because the card is hidden then, and a hidden
+     * control must not be able to block Save.
+     */
     fun canSave(): Boolean {
         val state = ui.value
         val acct = account.value ?: return false
@@ -449,6 +464,10 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
         if (state.type == "transfer") {
             val to = toAccount.value ?: return false
             if (to.id == acct.id) return false
+        }
+        if (splitActive.value && !splitPlan.value.valid) return false
+        if (state.forOtherOn && state.type == "expense" && !state.splitOn && state.forOtherUserId.isEmpty()) {
+            return false
         }
         return true
     }

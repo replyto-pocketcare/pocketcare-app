@@ -116,9 +116,27 @@ struct CreateTransactionView: View {
     }
     private var totalMoney: Money { money(totalMinor, currency) }
 
+    /// Web's `canSave`, including the two SPLIT guards that were missing.
+    ///
+    /// Without them an exact- or percent-mode split whose shares do not add up
+    /// left Save enabled, `save()` found `plan.valid == false`, fell past the
+    /// split branch and booked the whole amount as an ordinary personal
+    /// expense. No split, no warning, no error — the worst shape a bug can
+    /// take, because it looks like it worked. Domain computed `valid`
+    /// correctly the whole time under 35 vectors; the button simply never
+    /// asked.
+    ///
+    /// The `forOther` guard has web's exact shape, including its two escape
+    /// hatches: it does not apply to a non-expense, and it does not apply
+    /// while the split toggle is on — because the card is hidden then, and a
+    /// hidden control must not be able to block Save.
     private var canSave: Bool {
         guard account != nil, totalMinor > 0, !saving else { return false }
-        if type == "transfer" { return toAccount != nil && toAccount!.id != account!.id }
+        if type == "transfer" {
+            guard let toAccount, let account, toAccount.id != account.id else { return false }
+        }
+        if splitIsActive && !plan.valid { return false }
+        if forOtherOn && type == "expense" && !splitOn && forOtherUserId.isEmpty { return false }
         return true
     }
 

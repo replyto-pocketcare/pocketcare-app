@@ -232,7 +232,7 @@ Ranked by whether a native-only user can complete the job at all, not by size.
 | 4 | **Credit-card branch on New account** — limit, statement day, due day, cycle-aware `pending_due` | both | L | ✅ **Done 2026-08-28.** `CardCycle.{kt,swift}` (`cardDueDate`, `clampCardDay`) under 27 vectors, the four fields + live cycle preview on both screens, the negative opening balance, `upsertDetails` + `setCycleDetails`, and web's route-by-type after save — which needed a new `selectTab` environment hook on iOS. Demat copy and the three `allowNeg` strings were hardcoded English on Android and are now wired |
 | 5 | **Receipt capture is camera-only** — no file upload, no PDF, no AI escalation, no entitlement gate | both | L | ✅ **Done 2026-08-28.** Entitlement gate (the plan card, same `isPaid` the shell uses), file upload (`OpenDocument` / `.fileImporter`, images + PDF), and the PDF text-layer path (existing `PdfTextExtractor` → `groupPdfGlyphs` → `pdfRowsToText` → `parseReceiptText`, engine left null so `parseReceiptText` defaults it to `pdf_text`, the value web writes), plus the password form for an encrypted bill. Both platforms also gained the `source` column ("camera"/"upload") and web's 8000-char `raw_text` cap, neither of which was being written. AI escalation followed in the same session — see #5a |
 | 5a | **AI escalation on receipt capture** — "Improve with AI", the credits counter, the out-of-credits branch | both | M | ✅ **Done 2026-08-28.** `AiReceipt.{kt,swift}` in Domain under 18 vectors (the reply mapping, which decides money from untrusted input), `aiParseReceipt` on both `ReceiptsRepository`s (the edge-function call and the `quota_exceeded` unwrap), and the button + credits count + out-of-credits upgrade line on both mismatch cards. The ORIGINAL photo bytes are kept in memory and sent as-is — no re-encode — and still never touch disk or `image_path` |
-| 6 | **Pending settlements** — confirm / dispute | both | M | Both repositories already have `confirmSettlement`/`disputeSettlement`. With no UI, a UPI settlement raised natively is stuck pending until the payee opens the browser |
+| 6 | **Pending settlements** — confirm / dispute | both | M | ✅ **Done 2026-08-28.** `watchPendingSettlements` on both repositories (`to_user = me AND created_by <> me` — confirming your own claim would be theatre), `PendingSettlementsCard.{kt,swift}` above everything else on the Splits hub, one account picker for the card as web has it, and the UPI reference line that ties the payment to a bank-statement row |
 | 7 | **Live market quotes** | both | L | Without LTP and day-change every portfolio figure on native is whatever was last typed in. Investments is a manual ledger where web is a live portfolio |
 
 #### Dead or lying controls — the cheapest and the most damaging
@@ -2914,6 +2914,39 @@ was failing**, each time in a different disguise — first a bare `(`-less call
 The pattern is worth naming: the check matches USES, and every time it misses,
 it is because Kotlin has another syntax for using something. Verified the new
 rule by running it against the broken file before fixing it.
+
+## Re-measured 2026-08-28 — 64 gaps, itemised
+
+The 91-gap count of 2026-08-27 was by slice. Four fresh parallel passes read each
+web page against both ports again and produced the ITEM-LEVEL list, which is
+published as an artifact and summarised here.
+
+| Slice | Gaps | L | M | S |
+|---|---|---|---|---|
+| Transactions · accounts · receipts | 14 | 1 | 4 | 9 |
+| Splits · groups · friends · payments | 14 | 2 | 5 | 7 |
+| Budgets · goals · loans · investments · recurring | 15 | 3 | 6 | 6 |
+| Shell · settings · dashboard · insights · statements | 21 | 3 | 9 | 9 |
+| **Total** | **64** | **9** | **24** | **31** |
+
+**The pass found a regression in this session's own work**, and it is the worst
+shape a bug can take because it looks like it worked: `canSave` on both ports
+omitted web's `(!splitActive || splitPlan.valid)` and `(!forOtherOn || ...)`
+guards. An exact- or percent-mode split whose shares did not add up left Save
+enabled, `save()` found `plan.valid == false`, fell past the split branch, and
+booked the whole amount as an ordinary personal expense — no split, no warning,
+no error. Domain computed `valid` correctly the whole time under 35 vectors; the
+button never asked. Fixed in the same commit that found it.
+
+Three other findings worth naming, all of them "already written, never called":
+
+- `personLedger()` and `friendInsights()` exist in both repositories with zero
+  callers, so the Friends screen shows a balance with no way to see why.
+- The Friends list reads `ov.direct` only; web aggregates each person across
+  groups AND direct, so somebody who owes you from a trip is invisible outside
+  that group.
+- Deleting an investment holding never stops its linked SIP — the recurring row
+  survives and keeps debiting a real account.
 
 ## The ×100 sweep — done 2026-08-28
 

@@ -69,6 +69,12 @@ fun SplitsScreen(
                 }
             }
 
+            // Web renders this ABOVE the tabs on /friends: a payment waiting on
+            // your confirmation is not a groups-or-friends question, it is a
+            // thing to answer before anything else on the screen means what it
+            // says. It draws nothing when there is nothing pending.
+            PendingSettlementsCard(viewModel)
+
             TabRow(selectedTabIndex = tab, containerColor = colors.bg, contentColor = colors.accent) {
                 Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(S.Splits.groupsAndTrips(sRes())) })
                 Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(S.Splits.sectionsFriends(sRes())) })

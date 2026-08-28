@@ -26,6 +26,9 @@ public final class SplitsViewModel {
     @ObservationIgnored
     @Injected(\.authRepository) private var authRepository
 
+    @ObservationIgnored
+    @Injected(\.ledgerRepository) private var ledgerRepository
+
     public struct SplitGroupUiModel: Identifiable, Equatable {
         public let id: String
         public let name: String
@@ -59,6 +62,23 @@ public final class SplitsViewModel {
     public var loaded = false
     public var errorMessage: String?
 
+    // ---- pending settlements ----
+
+    /// Payments someone says they made to you, waiting on your confirmation.
+    ///
+    /// Web renders this above the Friends list on /friends. It is the payee's
+    /// half of settle-up and it had no native UI at all — both repositories
+    /// have had `confirmSettlement` and `disputeSettlement` since P2.5 with
+    /// zero callers, so a UPI settlement raised on a phone stayed pending
+    /// until somebody opened the browser.
+    public var pending: [PendingSettlement] = []
+
+    /// Real accounts the deposit could land in — web's own picker query.
+    public var accounts: [Account] = []
+
+    /// The settlement currently being confirmed or disputed, by id.
+    public var busySettlementId: String?
+
     private var namesById: [String: String] = [:]
     private var userId: String?
     private var tasks: [Task<Void, Never>] = []
@@ -88,6 +108,24 @@ public final class SplitsViewModel {
 
         tasks.append(Task {
             do {
+                for try await list in try self.splitsRepository.watchPendingSettlements(userId: userId) {
+                    self.pending = list
+                }
+            } catch { self.pending = [] }
+        })
+
+        tasks.append(Task {
+            do {
+                // Web's picker query: real, unarchived, non-investment. A
+                // deposit cannot land in a demat account.
+                for try await list in try self.ledgerRepository.watchAccounts(includeArchived: false) {
+                    self.accounts = list.filter { !FormOptions.isInvestmentAccount($0.type) }
+                }
+            } catch { self.accounts = [] }
+        })
+
+        tasks.append(Task {
+            do {
                 let stream = try splitsRepository.watchGroups(includeDirect: false)
                 for try await _ in stream {
                     await self.refreshOverviewSafely(userId: userId)
@@ -98,6 +136,40 @@ public final class SplitsViewModel {
                 self.loaded = true
             }
         })
+    }
+
+    public func nameOfUser(_ id: String) -> String { namesById[id] ?? S.Payments.someone }
+
+    /// "Yes, it arrived" / "Didn't arrive".
+    ///
+    /// Note what dispute does NOT do: it does not unwind the payer's ledger
+    /// entry. The ledger is append-only and if their money really left, that is
+    /// still true. What changes is that the settlement stops counting toward
+    /// the balance between you — web's own comment, and the reason the two
+    /// actions are not symmetric.
+    public func confirmArrived(_ settlement: PendingSettlement, accountId: String?) {
+        act(settlement.id) { uid in
+            try await self.splitsRepository.confirmSettlement(userId: uid, settlement: settlement, accountId: accountId)
+        }
+    }
+
+    public func markDidNotArrive(_ settlement: PendingSettlement) {
+        act(settlement.id) { uid in
+            try await self.splitsRepository.disputeSettlement(userId: uid, settlementId: settlement.id)
+        }
+    }
+
+    private func act(_ settlementId: String, _ block: @escaping (String) async throws -> Void) {
+        guard let uid = userId, busySettlementId == nil else { return }
+        busySettlementId = settlementId
+        Task {
+            do {
+                try await block(uid)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            busySettlementId = nil
+        }
     }
 
     private func refreshOverviewSafely(userId: String) async {

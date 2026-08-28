@@ -13,6 +13,12 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
+import com.sanvya.app.i18n.S
+import com.sanvya.app.data.repository.PendingSettlement
+import com.sanvya.app.data.repository.LedgerRepository
+import com.sanvya.app.data.repository.Account
+import com.sanvya.app.ui.FormOptions
+import kotlinx.coroutines.flow.catch
 
 /** Real port of apps/web/app/friends/page.tsx's hub (task #30). See
  * docs/mobile/screen-specs/splits.md. Replaces the previous version's
@@ -48,6 +54,7 @@ data class SplitOverviewUiModel(
 class SplitsViewModel : ViewModel(), KoinComponent {
     private val splitsRepository: SplitsRepository by inject()
     private val authRepository: AuthRepository by inject()
+    private val ledgerRepository: LedgerRepository by inject()
 
     private val userId: String?
         get() = authRepository.currentUserId.value
@@ -73,11 +80,80 @@ class SplitsViewModel : ViewModel(), KoinComponent {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    // ---- pending settlements ----
+
+    /**
+     * Payments someone says they made to you, waiting on your confirmation.
+     *
+     * Web renders this above the Friends list on /friends. It is the payee's
+     * half of settle-up and it had no native UI at all -- both repositories
+     * have had `confirmSettlement` and `disputeSettlement` since P2.5 with
+     * zero callers, so a UPI settlement raised on a phone stayed pending until
+     * somebody opened the browser.
+     */
+    private val _pending = MutableStateFlow<List<PendingSettlement>>(emptyList())
+    val pending: StateFlow<List<PendingSettlement>> = _pending
+
+    /** Real accounts the deposit could land in -- web's own picker query. */
+    private val _accounts = MutableStateFlow<List<Account>>(emptyList())
+    val accounts: StateFlow<List<Account>> = _accounts
+
+    /** The settlement currently being confirmed or disputed, by id. */
+    private val _busySettlementId = MutableStateFlow<String?>(null)
+    val busySettlementId: StateFlow<String?> = _busySettlementId
+
+    fun nameOfUser(userId: String, res: android.content.res.Resources): String =
+        namesById[userId] ?: S.Payments.someone(res)
+
+    /**
+     * "Yes, it arrived" / "Didn't arrive".
+     *
+     * Note what dispute does NOT do: it does not unwind the payer's ledger
+     * entry. The ledger is append-only and if their money really left, that is
+     * still true. What changes is that the settlement stops counting toward
+     * the balance between you -- web's own comment, and the reason the two
+     * actions are not symmetric.
+     */
+    fun confirmArrived(settlement: PendingSettlement, accountId: String?) {
+        act(settlement.id) { uid -> splitsRepository.confirmSettlement(uid, settlement, accountId) }
+    }
+
+    fun markDidNotArrive(settlement: PendingSettlement) {
+        act(settlement.id) { uid -> splitsRepository.disputeSettlement(uid, settlement.id) }
+    }
+
+    private fun act(settlementId: String, block: suspend (String) -> Unit) {
+        val uid = userId ?: return
+        if (_busySettlementId.value != null) return
+        _busySettlementId.value = settlementId
+        viewModelScope.launch {
+            try {
+                block(uid)
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _busySettlementId.value = null
+            }
+        }
+    }
+
     private var namesById: Map<String, String> = emptyMap()
 
     init {
         viewModelScope.launch {
             val uid = userId ?: return@launch
+            launch {
+                splitsRepository.watchPendingSettlements(uid)
+                    .catch { _pending.value = emptyList() }
+                    .collect { _pending.value = it }
+            }
+            launch {
+                // Web's picker query: real, unarchived, non-investment. A
+                // deposit cannot land in a demat account.
+                ledgerRepository.watchAccounts(includeArchived = false)
+                    .catch { _accounts.value = emptyList() }
+                    .collect { list -> _accounts.value = list.filter { !FormOptions.isInvestmentAccount(it.type) } }
+            }
             try {
                 val conns = splitsRepository.watchConnections(uid).first()
                 _connections.value = conns

@@ -388,6 +388,44 @@ public final class SplitsRepository: @unchecked Sendable {
         )
     }
 
+    /**
+     Payments other people say they have made to YOU, awaiting confirmation.
+
+     This exists because UPI Intent gives no callback: the payer told their
+     bank, not us. Only the payee can see the money land, so only the payee can
+     close the loop.
+
+     Both halves of the WHERE matter. `to_user = me` is who may confirm;
+     `created_by <> me` is why — a settlement I raised myself is my own claim,
+     and confirming my own claim would be theatre.
+
+     Mirrors Android's SplitsRepository.watchPendingSettlements().
+     */
+    public func watchPendingSettlements(userId: String) throws -> AsyncThrowingStream<[PendingSettlement], Error> {
+        try db.watch(
+            sql: """
+                SELECT id, from_user, to_user, amount, currency, group_id, status, upi_ref, created_at
+                FROM settlements
+                WHERE status = 'pending' AND deleted_at IS NULL AND to_user = ? AND created_by <> ?
+                ORDER BY created_at DESC
+                """,
+            parameters: [userId, userId],
+            mapper: { cursor in
+                PendingSettlement(
+                    id: try cursor.getString(name: "id"),
+                    fromUser: try cursor.getString(name: "from_user"),
+                    toUser: try cursor.getString(name: "to_user"),
+                    amount: try cursor.getInt64(name: "amount"),
+                    currency: try cursor.getString(name: "currency"),
+                    groupId: try cursor.getString(name: "group_id"),
+                    status: try cursor.getString(name: "status"),
+                    upiRef: try cursor.getStringOptional(name: "upi_ref"),
+                    createdAt: try cursor.getString(name: "created_at")
+                )
+            }
+        )
+    }
+
     /// Users connected to [userId] (accepted invites / shared groups).
     public func watchConnections(userId: String) throws -> AsyncThrowingStream<[UserProfile], Error> {
         try db.watch(

@@ -287,6 +287,38 @@ class SplitsRepository(
         mapper = ::settlementMapper,
     )
 
+    /**
+     * Payments other people say they have made to YOU, awaiting confirmation.
+     *
+     * This exists because UPI Intent gives no callback: the payer told their
+     * bank, not us. Only the payee can see the money land, so only the payee
+     * can close the loop.
+     *
+     * Both halves of the WHERE matter. `to_user = me` is who may confirm;
+     * `created_by <> me` is why -- a settlement I raised myself is my own claim
+     * and confirming my own claim would be theatre.
+     */
+    fun watchPendingSettlements(userId: String): Flow<List<PendingSettlement>> = db.watch(
+        sql = """SELECT id, from_user, to_user, amount, currency, group_id, status, upi_ref, created_at
+            FROM settlements
+            WHERE status = 'pending' AND deleted_at IS NULL AND to_user = ? AND created_by <> ?
+            ORDER BY created_at DESC""",
+        parameters = listOf(userId, userId),
+        mapper = { cursor ->
+            PendingSettlement(
+                id = cursor.getString("id"),
+                fromUser = cursor.getString("from_user"),
+                toUser = cursor.getString("to_user"),
+                amount = cursor.getLong("amount"),
+                currency = cursor.getString("currency"),
+                groupId = cursor.getString("group_id"),
+                status = cursor.getString("status"),
+                upiRef = cursor.getStringOptional("upi_ref"),
+                createdAt = cursor.getString("created_at"),
+            )
+        },
+    )
+
     /** Users connected to [userId] (accepted invites / shared groups). */
     fun watchConnections(userId: String): Flow<List<UserProfile>> = db.watch(
         sql = """SELECT p.id AS id, p.display_name AS display_name, p.email AS email

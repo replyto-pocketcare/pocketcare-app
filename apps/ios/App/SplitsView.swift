@@ -58,6 +58,13 @@ struct SplitsView: View {
     @ViewBuilder
     private var hub: some View {
         VStack(spacing: 14) {
+            // Web renders this ABOVE everything else on /friends: a payment
+            // waiting on your confirmation is not a groups-or-friends
+            // question, it is a thing to answer before anything else on the
+            // screen means what it says. It draws nothing when there is
+            // nothing pending.
+            PendingSettlementsCard(viewModel: viewModel)
+
             if let ov = viewModel.overview {
                 PocketCard {
                     VStack(spacing: 8) {
