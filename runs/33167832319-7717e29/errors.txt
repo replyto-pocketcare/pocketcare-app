@@ -1,0 +1,420 @@
+287:> Task :app:compileDebugKotlin FAILED
+288:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/transactions/SplitEditor.kt:327:65 Unresolved reference 'totalMinor'.
+293:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/transactions/SplitEditor.kt:327:65 Unresolved reference 'totalMinor'.
+297:> Task :app:compileReleaseKotlin FAILED
+343:FAILURE: Build completed with 2 failures.
+350:   > Compilation error. See log for more details
+507:Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+548:   > Compilation error. See log for more details
+711:Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+750:BUILD FAILED in 4m 5s
+966: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+971:260 |             ) { cursor in try cursor.getString(name: "id") } {
+979: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+990: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+995:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1003: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1014: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1019:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1027: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1038: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1043:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1051: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1062: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1067:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1075: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1086: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1091:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1099: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1110: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1115:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1123: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1134: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1139:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1147: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1158: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1163:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1171: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1182: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1187:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1195: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1206: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1211:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1219: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1227:320 |                         .in("id", value: chunk)
+1229:    |                          `- note: use 'in(_:values:)' instead
+1236:206 |                         try await rel.delete().in("id", value: ids).execute()
+1238:    |                                                `- note: use 'in(_:values:)' instead
+1250:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1254:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1258:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1259:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+1263:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+1265:   |                    `- note: add '@available' attribute to enclosing class
+1272:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1277:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1278:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1282:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1284:   |                    `- note: add '@available' attribute to enclosing class
+1293:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1300:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1301:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+1305:   |                    `- note: add '@available' attribute to enclosing class
+1314:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1320:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1321:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1325:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1327:   |                    `- note: add '@available' attribute to enclosing class
+1336:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1343:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1347:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1349:   |                    `- note: add '@available' attribute to enclosing class
+1370:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1382:320 |                         .in("id", value: chunk)
+1384:    |                          `- note: use 'in(_:values:)' instead
+1391:206 |                         try await rel.delete().in("id", value: ids).execute()
+1393:    |                                                `- note: use 'in(_:values:)' instead
+1405:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1409:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1413:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1414:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+1418:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+1420:   |                    `- note: add '@available' attribute to enclosing class
+1427:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1432:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1433:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1437:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1439:   |                    `- note: add '@available' attribute to enclosing class
+1448:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1455:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1456:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+1460:   |                    `- note: add '@available' attribute to enclosing class
+1469:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1475:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1476:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1480:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1482:   |                    `- note: add '@available' attribute to enclosing class
+1491:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1498:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1502:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1504:   |                    `- note: add '@available' attribute to enclosing class
+1525:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1537:320 |                         .in("id", value: chunk)
+1539:    |                          `- note: use 'in(_:values:)' instead
+1546:206 |                         try await rel.delete().in("id", value: ids).execute()
+1548:    |                                                `- note: use 'in(_:values:)' instead
+1560:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1564:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1568:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1569:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+1573:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+1575:   |                    `- note: add '@available' attribute to enclosing class
+1582:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1587:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1588:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1592:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1594:   |                    `- note: add '@available' attribute to enclosing class
+1603:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1610:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1611:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+1615:   |                    `- note: add '@available' attribute to enclosing class
+1624:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1630:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1631:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1635:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1637:   |                    `- note: add '@available' attribute to enclosing class
+1646:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1653:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1657:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1659:   |                    `- note: add '@available' attribute to enclosing class
+1680:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1692:320 |                         .in("id", value: chunk)
+1694:    |                          `- note: use 'in(_:values:)' instead
+1701:206 |                         try await rel.delete().in("id", value: ids).execute()
+1703:    |                                                `- note: use 'in(_:values:)' instead
+1715:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1719:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1723:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1724:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+1728:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+1730:   |                    `- note: add '@available' attribute to enclosing class
+1737:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1742:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1743:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1747:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1749:   |                    `- note: add '@available' attribute to enclosing class
+1758:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1765:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1766:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+1770:   |                    `- note: add '@available' attribute to enclosing class
+1779:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1785:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1786:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1790:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1792:   |                    `- note: add '@available' attribute to enclosing class
+1801:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1808:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1812:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1814:   |                    `- note: add '@available' attribute to enclosing class
+1835:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1847:320 |                         .in("id", value: chunk)
+1849:    |                          `- note: use 'in(_:values:)' instead
+1856:206 |                         try await rel.delete().in("id", value: ids).execute()
+1858:    |                                                `- note: use 'in(_:values:)' instead
+1870:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1874:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1878:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1879:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+1883:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+1885:   |                    `- note: add '@available' attribute to enclosing class
+1892:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+1897:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1898:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1902:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1904:   |                    `- note: add '@available' attribute to enclosing class
+1913:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1920:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1921:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+1925:   |                    `- note: add '@available' attribute to enclosing class
+1934:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+1940:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1941:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+1945:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+1947:   |                    `- note: add '@available' attribute to enclosing class
+1956:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+1963:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+1967:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+1969:   |                    `- note: add '@available' attribute to enclosing class
+1990:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2002:320 |                         .in("id", value: chunk)
+2004:    |                          `- note: use 'in(_:values:)' instead
+2011:206 |                         try await rel.delete().in("id", value: ids).execute()
+2013:    |                                                `- note: use 'in(_:values:)' instead
+2025:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2029:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2033:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2034:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+2038:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+2040:   |                    `- note: add '@available' attribute to enclosing class
+2047:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2052:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2053:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2057:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2059:   |                    `- note: add '@available' attribute to enclosing class
+2068:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2075:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2076:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+2080:   |                    `- note: add '@available' attribute to enclosing class
+2089:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2095:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2096:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2100:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2102:   |                    `- note: add '@available' attribute to enclosing class
+2111:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2118:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2122:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2124:   |                    `- note: add '@available' attribute to enclosing class
+2145:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2157:320 |                         .in("id", value: chunk)
+2159:    |                          `- note: use 'in(_:values:)' instead
+2166:206 |                         try await rel.delete().in("id", value: ids).execute()
+2168:    |                                                `- note: use 'in(_:values:)' instead
+2180:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2184:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2188:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2189:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+2193:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+2195:   |                    `- note: add '@available' attribute to enclosing class
+2202:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2207:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2208:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2212:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2214:   |                    `- note: add '@available' attribute to enclosing class
+2223:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2230:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2231:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+2235:   |                    `- note: add '@available' attribute to enclosing class
+2244:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2250:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2251:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2255:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2257:   |                    `- note: add '@available' attribute to enclosing class
+2266:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2273:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2277:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2279:   |                    `- note: add '@available' attribute to enclosing class
+2300:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2312:320 |                         .in("id", value: chunk)
+2314:    |                          `- note: use 'in(_:values:)' instead
+2321:206 |                         try await rel.delete().in("id", value: ids).execute()
+2323:    |                                                `- note: use 'in(_:values:)' instead
+2335:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2339:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2343:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2344:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+2348:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+2350:   |                    `- note: add '@available' attribute to enclosing class
+2357:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2362:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2363:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2367:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2369:   |                    `- note: add '@available' attribute to enclosing class
+2378:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2385:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2386:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+2390:   |                    `- note: add '@available' attribute to enclosing class
+2399:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2405:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2406:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2410:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2412:   |                    `- note: add '@available' attribute to enclosing class
+2421:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2428:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2432:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2434:   |                    `- note: add '@available' attribute to enclosing class
+2455:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2467:320 |                         .in("id", value: chunk)
+2469:    |                          `- note: use 'in(_:values:)' instead
+2476:206 |                         try await rel.delete().in("id", value: ids).execute()
+2478:    |                                                `- note: use 'in(_:values:)' instead
+2490:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2494:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2498:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2499:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+2503:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+2505:   |                    `- note: add '@available' attribute to enclosing class
+2512:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2517:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2518:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2522:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2524:   |                    `- note: add '@available' attribute to enclosing class
+2533:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2540:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2541:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+2545:   |                    `- note: add '@available' attribute to enclosing class
+2554:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2560:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2561:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2565:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2567:   |                    `- note: add '@available' attribute to enclosing class
+2576:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2583:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2587:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2589:   |                    `- note: add '@available' attribute to enclosing class
+2610:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2622:320 |                         .in("id", value: chunk)
+2624:    |                          `- note: use 'in(_:values:)' instead
+2631:206 |                         try await rel.delete().in("id", value: ids).execute()
+2633:    |                                                `- note: use 'in(_:values:)' instead
+2645:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2649:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2653:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2654:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+2658:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+2660:   |                    `- note: add '@available' attribute to enclosing class
+2667:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2672:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2673:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2677:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2679:   |                    `- note: add '@available' attribute to enclosing class
+2688:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2695:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2696:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+2700:   |                    `- note: add '@available' attribute to enclosing class
+2709:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2715:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2716:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2720:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2722:   |                    `- note: add '@available' attribute to enclosing class
+2731:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2738:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2742:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2744:   |                    `- note: add '@available' attribute to enclosing class
+2765:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2773:error: emit-module command failed with exit code 1 (use -v to see invocation)
+2855:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2859:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2863:macro expansion @Observable:1:2: error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2864:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:5: note: expanded code originates here
+2868:   | `- note: in expansion of macro 'Observable' on property 'inFlight' here
+2870:   |                    `- note: add '@available' attribute to enclosing class
+2877:   |  |  `- error: 'ObservationTracked()' is only available in macOS 14.0 or newer
+2882:macro expansion @Observable:1:2: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2883:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2887:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2889:   |                    `- note: add '@available' attribute to enclosing class
+2898:   |   |  `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2905:macro expansion @ObservationTracked:3:6: error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2906:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:29:41: note: expanded code originates here
+2910:   |                    `- note: add '@available' attribute to enclosing class
+2919:   |  |      `- error: 'ObservationIgnored()' is only available in macOS 14.0 or newer
+2925:macro expansion @Observable:1:70: error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2926:`- /Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:41:1: note: expanded code originates here
+2930:   | `- note: in expansion of macro 'Observable' on class 'WriteActivity' here
+2932:   |                    `- note: add '@available' attribute to enclosing class
+2941:   |   |                                                                      `- error: 'ObservationRegistrar' is only available in macOS 14.0 or newer
+2948:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/WriteActivity.swift:24:2: error: 'Observable()' is only available in macOS 14.0 or newer
+2952:   |  `- error: 'Observable()' is only available in macOS 14.0 or newer
+2954:   |                    `- note: add '@available' attribute to enclosing class
+3059:  Supabase: https://github.com/supabase/supabase-swift.git @ 2.54.1
+3060:  CSQLite: https://github.com/powersync-ja/CSQLite.git @ 3.51.2
+3061:  PowerSyncSQLiteCore: https://github.com/powersync-ja/powersync-sqlite-core-swift.git @ 0.4.13
+3083:note: Building targets in dependency order
+3084:note: Target dependency graph (47 targets)
+3289:Build description signature: baeb865eff8c97c7ecf99e213e98f6fd
+4516:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+4555:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+4678:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+5034:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+9200:            ) { cursor in try cursor.getString(name: "id") } {
+9216:            return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+9296:                        .in("id", value: chunk)
+9298:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/RepairRepository.swift:320:26: note: use 'in(_:values:)' instead
+9299:                        .in("id", value: chunk)
+9319:                        try await rel.delete().in("id", value: ids).execute()
+9321:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SupabaseConnector.swift:206:48: note: use 'in(_:values:)' instead
+9322:                        try await rel.delete().in("id", value: ids).execute()
+9533:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/nl.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+9538:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/nl.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+9543:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/hi.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+9548:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/hi.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+9553:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/en.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+9558:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/en.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+9709:note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Products/Debug-iphonesimulator/Sanvya.app/AppIcon76x76@2x~ipad.png (in target 'Sanvya' from project 'Sanvya')
+9710:note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Products/Debug-iphonesimulator/Sanvya.app/AppIcon60x60@2x.png (in target 'Sanvya' from project 'Sanvya')
+9711:note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Products/Debug-iphonesimulator/Sanvya.app/Assets.car (in target 'Sanvya' from project 'Sanvya')
+9818:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/UIKit.framework/Headers/UIDevice.h:61:52: note: property declared here
+9824:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/UIKit.framework/Headers/UIDevice.h:37:49: note: class property declared here
+9844:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9858:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9872:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9886:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9900:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9914:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9928:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9942:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9956:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9970:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9984:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9998:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10012:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10026:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10040:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10054:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10068:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10082:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10096:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10110:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10124:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10138:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10152:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+10433:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitEditorView.swift:125:47: error: missing argument label 'name:' in call
+10436:                                              name: 
+10437:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitEditorView.swift:201:45: error: missing argument labels 'sum:total:' in call
+10441:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitEditorView.swift:202:48: error: missing argument labels 'sum:total:' in call
+10445:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitEditorView.swift:208:43: error: missing argument label 'pct:' in call
+10449:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitEditorView.swift:209:46: error: missing argument label 'pct:' in call
+10453:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitEditorView.swift:225:58: error: missing argument label 'name:' in call
+10456:                                                         name: 
+10457:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/App/SplitEditorView.swift:279:58: error: missing argument label 'amount:' in call
+10705:** TEST FAILED **
