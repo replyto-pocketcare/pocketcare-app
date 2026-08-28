@@ -145,6 +145,14 @@ class VectorRunnerTest {
         runDomain("assistant")
     }
     @Test
+    fun `split-plan`() {
+        // SplitPlan.kt -- the Add-transaction split editor's arithmetic. A SPEC,
+        // and the ONE domain with a fixture that deliberately disagrees with
+        // web; see SplitPlanVectors.kt.
+        com.sanvya.app.domain.splits.registerSplitPlanVectors()
+        runDomain("split-plan")
+    }
+    @Test
     fun `splits-invite`() {
         // Invite.kt -- who the invite box offers, and what makes two invitees
         // the same person. A SPEC; see InviteVectors.kt.

@@ -85,6 +85,50 @@ public func jsParseFloat(_ s: String) -> Double? {
 }
 
 /**
+ `Number(string)` — the COERCION, which is not `parseFloat`.
+
+ The difference decides real inputs. `Number("12abc")` is NaN where
+ `parseFloat("12abc")` is 12, and web's split editor reads its amount fields
+ with `Number(v) || 0` — so a share typed as "12abc" contributes ZERO there and
+ would contribute twelve to a `parseFloat` port. That is a silent arithmetic
+ difference in a screen whose whole job is arithmetic.
+
+ Scope, stated rather than implied: the decimal, hex, binary and octal literal
+ forms plus `Infinity`, which is everything a string typed into a number field
+ can be. The exotic remainder of the spec's `StringNumericLiteral` grammar
+ (legacy octal, other whitespace classes) is not reachable from a keyboard and
+ is not implemented.
+
+ Returns NaN for anything unparseable — web's own `|| 0` fallback stays at the
+ call site, because zero is not always the right default and this function
+ should not decide that.
+ */
+public func jsNumber(_ s: String) -> Double {
+    let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+    if t.isEmpty { return 0 }
+    if t == "Infinity" || t == "+Infinity" { return .infinity }
+    if t == "-Infinity" { return -.infinity }
+    if let v = radixValue(t, "0x", "0X", 16) { return v }
+    if let v = radixValue(t, "0o", "0O", 8) { return v }
+    if let v = radixValue(t, "0b", "0B", 2) { return v }
+    // The WHOLE string must be a decimal literal — that is exactly what makes
+    // this Number() and not parseFloat().
+    guard t.range(
+        of: "^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$",
+        options: .regularExpression
+    ) != nil else { return .nan }
+    return Double(t) ?? .nan
+}
+
+private func radixValue(_ t: String, _ lower: String, _ upper: String, _ radix: Int) -> Double? {
+    guard t.hasPrefix(lower) || t.hasPrefix(upper) else { return nil }
+    let digits = String(t.dropFirst(2))
+    if digits.isEmpty { return Double.nan }
+    guard let v = UInt64(digits, radix: radix) else { return Double.nan }
+    return Double(v)
+}
+
+/**
  `JSON.stringify` on a number — ECMA-262's `Number::toString`, in full.
 
  **This replaced a narrower function that was wrong.** The first version assumed

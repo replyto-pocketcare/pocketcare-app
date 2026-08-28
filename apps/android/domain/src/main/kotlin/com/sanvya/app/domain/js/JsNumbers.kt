@@ -62,6 +62,49 @@ fun jsParseFloat(s: String): Double? {
 }
 
 /**
+ * `Number(string)` — the COERCION, which is not `parseFloat`.
+ *
+ * The difference decides real inputs. `Number("12abc")` is NaN where
+ * `parseFloat("12abc")` is 12, and web's split editor reads its amount fields
+ * with `Number(v) || 0` — so a share typed as "12abc" contributes ZERO there
+ * and would contribute twelve to a `parseFloat` port. That is a silent
+ * arithmetic difference in a screen whose whole job is arithmetic.
+ *
+ * Scope, stated rather than implied: the decimal, hex, binary and octal literal
+ * forms plus `Infinity`, which is everything a string typed into a number field
+ * can be. The exotic remainder of the spec's `StringNumericLiteral` grammar
+ * (legacy octal, other whitespace classes) is not reachable from a keyboard and
+ * is not implemented.
+ *
+ * Returns NaN for anything unparseable — web's own `|| 0` fallback stays at the
+ * call site, because zero is not always the right default and this function
+ * should not decide that.
+ */
+fun jsNumber(s: String): Double {
+    val t = s.trim()
+    if (t.isEmpty()) return 0.0
+    if (t == "Infinity" || t == "+Infinity") return Double.POSITIVE_INFINITY
+    if (t == "-Infinity") return Double.NEGATIVE_INFINITY
+    radixValue(t, "0x", "0X", 16)?.let { return it }
+    radixValue(t, "0o", "0O", 8)?.let { return it }
+    radixValue(t, "0b", "0B", 2)?.let { return it }
+    // The WHOLE string must be a decimal literal -- that is exactly what makes
+    // this Number() and not parseFloat().
+    if (!DECIMAL_LITERAL.matches(t)) return Double.NaN
+    return t.toDoubleOrNull() ?: Double.NaN
+}
+
+private val DECIMAL_LITERAL =
+    Regex("^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$")
+
+private fun radixValue(t: String, lower: String, upper: String, radix: Int): Double? {
+    if (!t.startsWith(lower) && !t.startsWith(upper)) return null
+    val digits = t.substring(2)
+    if (digits.isEmpty()) return Double.NaN
+    return digits.toLongOrNull(radix)?.toDouble() ?: Double.NaN
+}
+
+/**
  * `JSON.stringify` on a number — ECMA-262's `Number::toString`, in full.
  *
  * **This replaced a narrower function that was wrong.** The first version

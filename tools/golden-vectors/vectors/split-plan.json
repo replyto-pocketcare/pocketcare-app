@@ -1,0 +1,1072 @@
+[
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "equal",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "50000",
+        "50000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 0.0,
+      "paidSum": "100000",
+      "valid": true,
+      "participants": [
+        {
+          "userId": "me"
+        },
+        {
+          "userId": "u2"
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "equal",
+      "memberIds": [
+        "me",
+        "u2",
+        "u3"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "33334",
+        "33333",
+        "33333"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 0.0,
+      "paidSum": "100000",
+      "valid": true,
+      "participants": [
+        {
+          "userId": "me"
+        },
+        {
+          "userId": "u2"
+        },
+        {
+          "userId": "u3"
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "exact",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {
+        "me": "600",
+        "u2": "400"
+      },
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "60000",
+        "40000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 1000.0,
+      "paidSum": "100000",
+      "valid": true,
+      "participants": [
+        {
+          "userId": "me",
+          "value": 60000.0
+        },
+        {
+          "userId": "u2",
+          "value": 40000.0
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "exact",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {
+        "me": "600",
+        "u2": "300"
+      },
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "60000",
+        "30000"
+      ],
+      "sharesSum": "90000",
+      "percentSum": 900.0,
+      "paidSum": "100000",
+      "valid": false,
+      "participants": [
+        {
+          "userId": "me",
+          "value": 60000.0
+        },
+        {
+          "userId": "u2",
+          "value": 30000.0
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "percent",
+      "memberIds": [
+        "me",
+        "u2",
+        "u3"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {
+        "me": "33.33",
+        "u2": "33.33",
+        "u3": "33.33"
+      },
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "33334",
+        "33333",
+        "33333"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 99.99,
+      "paidSum": "100000",
+      "valid": true,
+      "participants": [
+        {
+          "userId": "me",
+          "value": 33.33
+        },
+        {
+          "userId": "u2",
+          "value": 33.33
+        },
+        {
+          "userId": "u3",
+          "value": 33.33
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "percent",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {
+        "me": "60",
+        "u2": "30"
+      },
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "66667",
+        "33333"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 90.0,
+      "paidSum": "100000",
+      "valid": false,
+      "participants": [
+        {
+          "userId": "me",
+          "value": 60.0
+        },
+        {
+          "userId": "u2",
+          "value": 30.0
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "exact",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {
+        "me": "12abc",
+        "u2": "1000"
+      },
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "0",
+        "100000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 1000.0,
+      "paidSum": "100000",
+      "valid": true,
+      "participants": [
+        {
+          "userId": "me",
+          "value": 0.0
+        },
+        {
+          "userId": "u2",
+          "value": 100000.0
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "exact",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "3000",
+      "currency": "JPY",
+      "shareText": {
+        "me": "2000",
+        "u2": "1000"
+      },
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "2000",
+        "1000"
+      ],
+      "sharesSum": "3000",
+      "percentSum": 3000.0,
+      "paidSum": "3000",
+      "valid": true,
+      "participants": [
+        {
+          "userId": "me",
+          "value": 2000.0
+        },
+        {
+          "userId": "u2",
+          "value": 1000.0
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "3000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "exact",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "3000",
+      "currency": "KWD",
+      "shareText": {
+        "me": "2",
+        "u2": "1"
+      },
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "2000",
+        "1000"
+      ],
+      "sharesSum": "3000",
+      "percentSum": 3.0,
+      "paidSum": "3000",
+      "valid": true,
+      "participants": [
+        {
+          "userId": "me",
+          "value": 2000.0
+        },
+        {
+          "userId": "u2",
+          "value": 1000.0
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "3000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "equal",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": true,
+      "paidText": {
+        "me": "600",
+        "u2": "400"
+      },
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "50000",
+        "50000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 0.0,
+      "paidSum": "100000",
+      "valid": true,
+      "participants": [
+        {
+          "userId": "me"
+        },
+        {
+          "userId": "u2"
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "60000",
+          "isMe": true
+        },
+        {
+          "userId": "u2",
+          "paidMinor": "40000",
+          "isMe": false
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "equal",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": true,
+      "paidText": {
+        "me": "600",
+        "u2": "300"
+      },
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "50000",
+        "50000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 0.0,
+      "paidSum": "90000",
+      "valid": false,
+      "participants": [
+        {
+          "userId": "me"
+        },
+        {
+          "userId": "u2"
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "60000",
+          "isMe": true
+        },
+        {
+          "userId": "u2",
+          "paidMinor": "30000",
+          "isMe": false
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "equal",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": true,
+      "paidText": {
+        "me": "0",
+        "u2": "1000"
+      },
+      "hasAccount": false
+    },
+    "expected": {
+      "shares": [
+        "50000",
+        "50000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 0.0,
+      "paidSum": "100000",
+      "valid": true,
+      "participants": [
+        {
+          "userId": "me"
+        },
+        {
+          "userId": "u2"
+        }
+      ],
+      "payers": [
+        {
+          "userId": "u2",
+          "paidMinor": "100000",
+          "isMe": false
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "equal",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": true,
+      "paidText": {
+        "me": "1000",
+        "u2": "0"
+      },
+      "hasAccount": false
+    },
+    "expected": {
+      "shares": [
+        "50000",
+        "50000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 0.0,
+      "paidSum": "100000",
+      "valid": false,
+      "participants": [
+        {
+          "userId": "me"
+        },
+        {
+          "userId": "u2"
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "equal",
+      "memberIds": [
+        "me"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "100000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 0.0,
+      "paidSum": "100000",
+      "valid": false,
+      "participants": [
+        {
+          "userId": "me"
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "equal",
+      "memberIds": [
+        "u2",
+        "u3"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "50000",
+        "50000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 0.0,
+      "paidSum": "100000",
+      "valid": false,
+      "participants": [
+        {
+          "userId": "u2"
+        },
+        {
+          "userId": "u3"
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "g1",
+      "mode": "equal",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "0",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "0",
+        "0"
+      ],
+      "sharesSum": "0",
+      "percentSum": 0.0,
+      "paidSum": "0",
+      "valid": false,
+      "participants": [
+        {
+          "userId": "me"
+        },
+        {
+          "userId": "u2"
+        }
+      ],
+      "payers": []
+    }
+  },
+  {
+    "fn": "splitPlan",
+    "input": {
+      "groupId": "",
+      "mode": "equal",
+      "memberIds": [
+        "me",
+        "u2"
+      ],
+      "me": "me",
+      "totalMinor": "100000",
+      "currency": "INR",
+      "shareText": {},
+      "multiPayer": false,
+      "paidText": {},
+      "hasAccount": true
+    },
+    "expected": {
+      "shares": [
+        "50000",
+        "50000"
+      ],
+      "sharesSum": "100000",
+      "percentSum": 0.0,
+      "paidSum": "100000",
+      "valid": false,
+      "participants": [
+        {
+          "userId": "me"
+        },
+        {
+          "userId": "u2"
+        }
+      ],
+      "payers": [
+        {
+          "userId": "me",
+          "paidMinor": "100000",
+          "isMe": true
+        }
+      ]
+    }
+  },
+  {
+    "fn": "forOtherActive",
+    "input": {
+      "type": "expense",
+      "splitOn": false,
+      "forOtherOn": true,
+      "otherUserId": "u2",
+      "totalMinor": "100000"
+    },
+    "expected": true
+  },
+  {
+    "fn": "forOtherActive",
+    "input": {
+      "type": "expense",
+      "splitOn": true,
+      "forOtherOn": true,
+      "otherUserId": "u2",
+      "totalMinor": "100000"
+    },
+    "expected": false
+  },
+  {
+    "fn": "forOtherActive",
+    "input": {
+      "type": "income",
+      "splitOn": false,
+      "forOtherOn": true,
+      "otherUserId": "u2",
+      "totalMinor": "100000"
+    },
+    "expected": false
+  },
+  {
+    "fn": "forOtherActive",
+    "input": {
+      "type": "expense",
+      "splitOn": false,
+      "forOtherOn": false,
+      "otherUserId": "u2",
+      "totalMinor": "100000"
+    },
+    "expected": false
+  },
+  {
+    "fn": "forOtherActive",
+    "input": {
+      "type": "expense",
+      "splitOn": false,
+      "forOtherOn": true,
+      "otherUserId": "",
+      "totalMinor": "100000"
+    },
+    "expected": false
+  },
+  {
+    "fn": "forOtherActive",
+    "input": {
+      "type": "expense",
+      "splitOn": false,
+      "forOtherOn": true,
+      "otherUserId": "u2",
+      "totalMinor": "0"
+    },
+    "expected": false
+  },
+  {
+    "fn": "splitActive",
+    "input": {
+      "type": "expense",
+      "splitOn": true,
+      "groupId": "g1",
+      "memberCount": 2
+    },
+    "expected": true
+  },
+  {
+    "fn": "splitActive",
+    "input": {
+      "type": "expense",
+      "splitOn": true,
+      "groupId": "g1",
+      "memberCount": 1
+    },
+    "expected": false
+  },
+  {
+    "fn": "splitActive",
+    "input": {
+      "type": "expense",
+      "splitOn": true,
+      "groupId": "",
+      "memberCount": 2
+    },
+    "expected": false
+  },
+  {
+    "fn": "splitActive",
+    "input": {
+      "type": "expense",
+      "splitOn": false,
+      "groupId": "g1",
+      "memberCount": 2
+    },
+    "expected": false
+  },
+  {
+    "fn": "splitActive",
+    "input": {
+      "type": "income",
+      "splitOn": true,
+      "groupId": "g1",
+      "memberCount": 2
+    },
+    "expected": false
+  },
+  {
+    "fn": "autoSplitGroupFor",
+    "input": {
+      "groups": [
+        {
+          "id": "g1",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-10",
+          "autoSplit": true
+        },
+        {
+          "id": "g2",
+          "startDate": "2026-08-05",
+          "endDate": null,
+          "autoSplit": true
+        },
+        {
+          "id": "g3",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-31",
+          "autoSplit": false
+        }
+      ],
+      "dateIso": "2026-08-03"
+    },
+    "expected": "g1"
+  },
+  {
+    "fn": "autoSplitGroupFor",
+    "input": {
+      "groups": [
+        {
+          "id": "g1",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-10",
+          "autoSplit": true
+        },
+        {
+          "id": "g2",
+          "startDate": "2026-08-05",
+          "endDate": null,
+          "autoSplit": true
+        },
+        {
+          "id": "g3",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-31",
+          "autoSplit": false
+        }
+      ],
+      "dateIso": "2026-08-03T10:00:00Z"
+    },
+    "expected": "g1"
+  },
+  {
+    "fn": "autoSplitGroupFor",
+    "input": {
+      "groups": [
+        {
+          "id": "g1",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-10",
+          "autoSplit": true
+        },
+        {
+          "id": "g2",
+          "startDate": "2026-08-05",
+          "endDate": null,
+          "autoSplit": true
+        },
+        {
+          "id": "g3",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-31",
+          "autoSplit": false
+        }
+      ],
+      "dateIso": "2026-08-20"
+    },
+    "expected": "g2"
+  },
+  {
+    "fn": "autoSplitGroupFor",
+    "input": {
+      "groups": [
+        {
+          "id": "g1",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-10",
+          "autoSplit": true
+        },
+        {
+          "id": "g2",
+          "startDate": "2026-08-05",
+          "endDate": null,
+          "autoSplit": true
+        },
+        {
+          "id": "g3",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-31",
+          "autoSplit": false
+        }
+      ],
+      "dateIso": "2026-07-31"
+    },
+    "expected": null
+  },
+  {
+    "fn": "autoSplitGroupFor",
+    "input": {
+      "groups": [
+        {
+          "id": "g1",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-10",
+          "autoSplit": true
+        },
+        {
+          "id": "g2",
+          "startDate": "2026-08-05",
+          "endDate": null,
+          "autoSplit": true
+        },
+        {
+          "id": "g3",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-31",
+          "autoSplit": false
+        }
+      ],
+      "dateIso": "2026-08-07"
+    },
+    "expected": "g1"
+  },
+  {
+    "fn": "autoSplitGroupFor",
+    "input": {
+      "groups": [
+        {
+          "id": "g2",
+          "startDate": "2026-08-05",
+          "endDate": null,
+          "autoSplit": true
+        }
+      ],
+      "dateIso": "3000-01-01"
+    },
+    "expected": "g2"
+  },
+  {
+    "fn": "autoSplitGroupFor",
+    "input": {
+      "groups": [
+        {
+          "id": "g3",
+          "startDate": "2026-08-01",
+          "endDate": "2026-08-31",
+          "autoSplit": false
+        }
+      ],
+      "dateIso": "2026-08-03"
+    },
+    "expected": null
+  }
+]

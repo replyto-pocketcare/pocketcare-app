@@ -119,6 +119,13 @@ final class VectorRunnerTests: XCTestCase {
         registerAssistantVectors()
         try runDomain("assistant")
     }
+    func testSplitPlan() throws {
+        // SplitPlan.swift — the Add-transaction split editor's arithmetic. A
+        // SPEC, and the ONE domain with a fixture that deliberately disagrees
+        // with web; see SplitPlanVectors.
+        registerSplitPlanVectors()
+        try runDomain("split-plan")
+    }
     func testSplitsInvite() throws {
         // Invite.swift — who the invite box offers, and what makes two invitees
         // the same person. A SPEC; see InviteVectors.

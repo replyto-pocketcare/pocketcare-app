@@ -250,6 +250,18 @@ func registerAssistantVectors() {
         ] as [String: Any]
     }
 
+    // `Number(string)`, the coercion. NaN and the infinities cannot survive a
+    // JSON fixture, so the expectation travels as a NAME — the same convention
+    // jsonNumber's inputs already use, in the other direction.
+    FunctionRegistry.register(domain: domain, fn: "jsNumber") { input in
+        let d = input as! [String: Any]
+        let v = jsNumber(d["s"] as! String)
+        if v.isNaN { return ["special": "NaN"] as [String: Any] }
+        if v == .infinity { return ["special": "Infinity"] as [String: Any] }
+        if v == -.infinity { return ["special": "-Infinity"] as [String: Any] }
+        return v
+    }
+
     FunctionRegistry.register(domain: domain, fn: "mergeDictation") { input in
         let d = input as! [String: Any]
         return mergeDictation(base: d["base"] as! String, spoken: d["spoken"] as! String)

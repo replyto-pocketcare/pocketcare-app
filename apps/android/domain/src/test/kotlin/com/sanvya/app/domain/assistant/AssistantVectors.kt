@@ -1,5 +1,6 @@
 package com.sanvya.app.domain.assistant
 
+import com.sanvya.app.domain.js.jsNumber
 import com.sanvya.app.domain.js.jsonNumber
 import com.sanvya.app.domain.vectors.FunctionRegistry
 import kotlinx.serialization.json.Json
@@ -281,6 +282,19 @@ fun registerAssistantVectors() {
                 "confirmQueue" to JsonArray(plan.confirmQueue.map { JsonPrimitive(it.id) }),
             ),
         )
+    }
+
+    // `Number(string)`, the coercion. NaN and the infinities cannot survive a
+    // JSON fixture, so the expectation travels as a NAME -- the same convention
+    // jsonNumber's inputs already use, in the other direction.
+    FunctionRegistry.register(DOMAIN, "jsNumber") { input ->
+        val v = jsNumber(input.jsonObject.getValue("s").jsonPrimitive.content)
+        when {
+            v.isNaN() -> JsonObject(mapOf("special" to JsonPrimitive("NaN")))
+            v == Double.POSITIVE_INFINITY -> JsonObject(mapOf("special" to JsonPrimitive("Infinity")))
+            v == Double.NEGATIVE_INFINITY -> JsonObject(mapOf("special" to JsonPrimitive("-Infinity")))
+            else -> JsonPrimitive(v)
+        }
     }
 
     FunctionRegistry.register(DOMAIN, "mergeDictation") { input ->

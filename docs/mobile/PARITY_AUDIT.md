@@ -227,7 +227,7 @@ Ranked by whether a native-only user can complete the job at all, not by size.
 | # | Gap | Platforms | Size | Why it is first |
 |---|---|---|---|---|
 | ~~1~~ | ~~**Group invites**~~ | both | L | ✅ **2026-08-27.** Connection search, typed-email chips, one call per chip, and the share link. The selection rules are Domain's under 30 vectors; the link is the SERVER's, because a phone has no origin to build one from |
-| 2 | **Split expense on New transaction** — group picker, equal/exact/percent, per-share inputs, multi-payer | both | L | The largest single block of web behaviour absent from both ports. It cascades: no "paid for someone else", no auto-split trips, no `?split=` entry, and Edit's SplitBanner has nothing to explain |
+| 2 | **Split expense on New transaction** | both | L | 🔶 **Domain landed 2026-08-27** — `splitPlan`, `splitActive`, `forOtherActive` and `autoSplitGroupFor` under 35 vectors, plus `jsNumber` (the `Number(string)` coercion web reads its amount fields with). The EDITOR is next; the arithmetic it will drive is now pinned, including the JPY case where this port deliberately disagrees with web |
 | 3 | **Android: Add-expense in a group is unreachable** | Android | S | The sheet is fully implemented; nothing sets `showAddExpense`, and the page action is an empty lambda. A group is read-only on Android |
 | 4 | **Credit-card branch on New account** — limit, statement day, due day, cycle-aware `pending_due` | both | L | A card created natively silently drops every field the Cards screen and its reminders are built on |
 | 5 | **Receipt capture is camera-only** — no file upload, no PDF, no AI escalation, no entitlement gate | both | L | The emailed PDF bill is the feature's main input. Free-tier users meet a server rejection instead of the paywall card |
@@ -513,6 +513,19 @@ user base they are invisible today, which is exactly why they have survived.
     `inviteNarrow`, `inviteCount`, `invitedAdded`, `invitedLinks`, `invitedFailed`
     — four of them as plurals, which the inline defaults were not. Web keeps
     working unchanged and picks them up the moment anyone drops the fallbacks.
+
+15. **The split editor's `toMinor` is the ×100 again — and here it BLOCKS the
+    save.** `apps/web/app/transactions/new/page.tsx`'s `splitPlan` reads every
+    typed share with `Math.round(Number(v) * 100)`. In exact mode the plan is only
+    valid when the shares sum to the total, so for a zero-decimal currency the
+    sum comes out a hundred times too large, never balances, and the Save button
+    stays disabled: a JPY user cannot record an exact-mode split **at all**.
+
+    Every earlier site of this constant mis-*displays* or mis-*stores* an amount.
+    This one removes a feature. Both ports use `fromMajor(major, currency)`; the
+    `split-plan.json` fixtures for JPY and KWD are the only vectors in the corpus
+    that deliberately disagree with what a browser would produce, and they are
+    annotated in place so the disagreement stays deliberate.
 
 ### iOS was formatting numbers as pointers — twelve call sites, 2026-08-27
 

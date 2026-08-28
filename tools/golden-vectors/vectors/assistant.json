@@ -3727,5 +3727,191 @@
       "status": "TRANSCRIBING"
     },
     "expected": false
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": ""
+    },
+    "expected": 0.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "  "
+    },
+    "expected": 0.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "12"
+    },
+    "expected": 12.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": " 12 "
+    },
+    "expected": 12.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "12.5"
+    },
+    "expected": 12.5
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": ".5"
+    },
+    "expected": 0.5
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "5."
+    },
+    "expected": 5.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "+7"
+    },
+    "expected": 7.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "-7"
+    },
+    "expected": -7.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "1e3"
+    },
+    "expected": 1000.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "1E-2"
+    },
+    "expected": 0.01
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "0x10"
+    },
+    "expected": 16.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "0X1f"
+    },
+    "expected": 31.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "0b101"
+    },
+    "expected": 5.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "0o17"
+    },
+    "expected": 15.0
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "Infinity"
+    },
+    "expected": {
+      "special": "Infinity"
+    }
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "-Infinity"
+    },
+    "expected": {
+      "special": "-Infinity"
+    }
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "12abc"
+    },
+    "expected": {
+      "special": "NaN"
+    }
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "abc"
+    },
+    "expected": {
+      "special": "NaN"
+    }
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "1,234"
+    },
+    "expected": {
+      "special": "NaN"
+    }
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "1 2"
+    },
+    "expected": {
+      "special": "NaN"
+    }
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "0x"
+    },
+    "expected": {
+      "special": "NaN"
+    }
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "--5"
+    },
+    "expected": {
+      "special": "NaN"
+    }
+  },
+  {
+    "fn": "jsNumber",
+    "input": {
+      "s": "1.2.3"
+    },
+    "expected": {
+      "special": "NaN"
+    }
   }
 ]
