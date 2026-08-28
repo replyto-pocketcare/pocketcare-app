@@ -1339,6 +1339,8 @@
         <item quantity="one">%1$d लेनदेन देखें</item>
         <item quantity="other">%1$d लेनदेन देखें</item>
     </plurals>
+    <string name="splits_view_lines_one">%1$s लेन-देन देखें</string>
+    <string name="splits_view_lines_other">%1$s लेन-देन देखें</string>
     <string name="splits_you_owe_inline">आपको देना है</string>
     <string name="splits_you_pay_them_back">आप %1$s को वापस देंगे।</string>
     <string name="splits_your_balance">आपका बैलेंस</string>

@@ -1,0 +1,520 @@
+[
+  {
+    "fn": "friendNets",
+    "input": {
+      "groupPerUser": [
+        [
+          {
+            "userId": "bo",
+            "net": "25000"
+          }
+        ]
+      ],
+      "direct": []
+    },
+    "expected": [
+      {
+        "userId": "bo",
+        "net": "25000"
+      }
+    ]
+  },
+  {
+    "fn": "owedToYou",
+    "input": {
+      "nets": [
+        {
+          "userId": "bo",
+          "net": "25000"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "userId": "bo",
+        "net": "25000"
+      }
+    ]
+  },
+  {
+    "fn": "youOwe",
+    "input": {
+      "nets": [
+        {
+          "userId": "bo",
+          "net": "25000"
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "friendNets",
+    "input": {
+      "groupPerUser": [
+        [
+          {
+            "userId": "bo",
+            "net": "25000"
+          }
+        ]
+      ],
+      "direct": [
+        {
+          "userId": "bo",
+          "net": "-10000"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "userId": "bo",
+        "net": "15000"
+      }
+    ]
+  },
+  {
+    "fn": "owedToYou",
+    "input": {
+      "nets": [
+        {
+          "userId": "bo",
+          "net": "15000"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "userId": "bo",
+        "net": "15000"
+      }
+    ]
+  },
+  {
+    "fn": "youOwe",
+    "input": {
+      "nets": [
+        {
+          "userId": "bo",
+          "net": "15000"
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "friendNets",
+    "input": {
+      "groupPerUser": [
+        [
+          {
+            "userId": "bo",
+            "net": "25000"
+          }
+        ]
+      ],
+      "direct": [
+        {
+          "userId": "bo",
+          "net": "-25000"
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "owedToYou",
+    "input": {
+      "nets": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "youOwe",
+    "input": {
+      "nets": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "friendNets",
+    "input": {
+      "groupPerUser": [
+        [
+          {
+            "userId": "cy",
+            "net": "500"
+          },
+          {
+            "userId": "bo",
+            "net": "100"
+          }
+        ],
+        [
+          {
+            "userId": "al",
+            "net": "700"
+          },
+          {
+            "userId": "bo",
+            "net": "-50"
+          }
+        ]
+      ],
+      "direct": [
+        {
+          "userId": "dee",
+          "net": "900"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "userId": "cy",
+        "net": "500"
+      },
+      {
+        "userId": "bo",
+        "net": "50"
+      },
+      {
+        "userId": "al",
+        "net": "700"
+      },
+      {
+        "userId": "dee",
+        "net": "900"
+      }
+    ]
+  },
+  {
+    "fn": "owedToYou",
+    "input": {
+      "nets": [
+        {
+          "userId": "cy",
+          "net": "500"
+        },
+        {
+          "userId": "bo",
+          "net": "50"
+        },
+        {
+          "userId": "al",
+          "net": "700"
+        },
+        {
+          "userId": "dee",
+          "net": "900"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "userId": "dee",
+        "net": "900"
+      },
+      {
+        "userId": "al",
+        "net": "700"
+      },
+      {
+        "userId": "cy",
+        "net": "500"
+      },
+      {
+        "userId": "bo",
+        "net": "50"
+      }
+    ]
+  },
+  {
+    "fn": "youOwe",
+    "input": {
+      "nets": [
+        {
+          "userId": "cy",
+          "net": "500"
+        },
+        {
+          "userId": "bo",
+          "net": "50"
+        },
+        {
+          "userId": "al",
+          "net": "700"
+        },
+        {
+          "userId": "dee",
+          "net": "900"
+        }
+      ]
+    },
+    "expected": []
+  },
+  {
+    "fn": "friendNets",
+    "input": {
+      "groupPerUser": [],
+      "direct": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "owedToYou",
+    "input": {
+      "nets": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "youOwe",
+    "input": {
+      "nets": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "friendNets",
+    "input": {
+      "groupPerUser": [],
+      "direct": [
+        {
+          "userId": "al",
+          "net": "-1200"
+        },
+        {
+          "userId": "bo",
+          "net": "300"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "userId": "al",
+        "net": "-1200"
+      },
+      {
+        "userId": "bo",
+        "net": "300"
+      }
+    ]
+  },
+  {
+    "fn": "owedToYou",
+    "input": {
+      "nets": [
+        {
+          "userId": "al",
+          "net": "-1200"
+        },
+        {
+          "userId": "bo",
+          "net": "300"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "userId": "bo",
+        "net": "300"
+      }
+    ]
+  },
+  {
+    "fn": "youOwe",
+    "input": {
+      "nets": [
+        {
+          "userId": "al",
+          "net": "-1200"
+        },
+        {
+          "userId": "bo",
+          "net": "300"
+        }
+      ]
+    },
+    "expected": [
+      {
+        "userId": "al",
+        "net": "-1200"
+      }
+    ]
+  },
+  {
+    "fn": "friendNets",
+    "input": {
+      "groupPerUser": [
+        [
+          {
+            "userId": "al",
+            "net": "0"
+          }
+        ]
+      ],
+      "direct": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "owedToYou",
+    "input": {
+      "nets": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "youOwe",
+    "input": {
+      "nets": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "everyoneYouShareWith",
+    "input": {
+      "groupMemberIds": [
+        [
+          "bo",
+          "cy"
+        ],
+        [
+          "al",
+          "bo"
+        ]
+      ],
+      "direct": [
+        {
+          "userId": "dee",
+          "net": "900"
+        }
+      ],
+      "nets": [
+        {
+          "userId": "bo",
+          "net": "25000"
+        },
+        {
+          "userId": "al",
+          "net": "-700"
+        },
+        {
+          "userId": "dee",
+          "net": "900"
+        }
+      ],
+      "names": {
+        "al": "Aisha",
+        "bo": "Bo",
+        "cy": "Cy",
+        "dee": "Dee"
+      }
+    },
+    "expected": [
+      {
+        "userId": "bo",
+        "net": "25000"
+      },
+      {
+        "userId": "dee",
+        "net": "900"
+      },
+      {
+        "userId": "al",
+        "net": "-700"
+      },
+      {
+        "userId": "cy",
+        "net": "0"
+      }
+    ]
+  },
+  {
+    "fn": "everyoneYouShareWith",
+    "input": {
+      "groupMemberIds": [
+        [
+          "zeta",
+          "alpha"
+        ]
+      ],
+      "direct": [],
+      "nets": [],
+      "names": {
+        "zeta": "Ana",
+        "alpha": "Zoe"
+      }
+    },
+    "expected": [
+      {
+        "userId": "zeta",
+        "net": "0"
+      },
+      {
+        "userId": "alpha",
+        "net": "0"
+      }
+    ]
+  },
+  {
+    "fn": "everyoneYouShareWith",
+    "input": {
+      "groupMemberIds": [
+        [
+          "zzz",
+          "aaa"
+        ]
+      ],
+      "direct": [],
+      "nets": [],
+      "names": {}
+    },
+    "expected": [
+      {
+        "userId": "aaa",
+        "net": "0"
+      },
+      {
+        "userId": "zzz",
+        "net": "0"
+      }
+    ]
+  },
+  {
+    "fn": "everyoneYouShareWith",
+    "input": {
+      "groupMemberIds": [
+        [
+          "x",
+          "y"
+        ]
+      ],
+      "direct": [],
+      "nets": [
+        {
+          "userId": "x",
+          "net": "500"
+        },
+        {
+          "userId": "y",
+          "net": "-500"
+        }
+      ],
+      "names": {
+        "x": "Bo",
+        "y": "Al"
+      }
+    },
+    "expected": [
+      {
+        "userId": "y",
+        "net": "-500"
+      },
+      {
+        "userId": "x",
+        "net": "500"
+      }
+    ]
+  }
+]

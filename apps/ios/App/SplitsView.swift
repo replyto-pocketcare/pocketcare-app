@@ -16,6 +16,7 @@ struct SplitsView: View {
     @State private var viewModel = SplitsViewModel()
     @State private var showingCreateSheet = false
     @State private var selectedGroupId: String?
+    @State private var person: SplitsViewModel.FriendEdgeUiModel?
 
     init(openGroupId: Binding<String?> = .constant(nil)) {
         self._openGroupId = openGroupId
@@ -39,6 +40,21 @@ struct SplitsView: View {
             // (the invite is accepted on a cover, above the shell), `onChange`
             // catches one that arrives while the Splits tab is already open.
             .task { consumeOpenGroup() }
+        .sanvyaFormPresentation(item: $person) { p in
+            PersonSheet(
+                person: p,
+                viewModel: viewModel,
+                onSettleUp: {
+                    person = nil
+                    Task {
+                        if let id = await viewModel.openOrCreateDirectGroup(otherUserId: p.id, currency: baseCurrencyNow()) {
+                            selectedGroupId = id
+                        }
+                    }
+                },
+                onDismiss: { person = nil; viewModel.clearPersonLedger() }
+            )
+        }
             .onChange(of: openGroupId) { _, _ in consumeOpenGroup() }
             .sanvyaFormPresentation(isPresented: $showingCreateSheet) {
                 CreateGroupView(viewModel: viewModel, onCreated: { id in
@@ -116,13 +132,14 @@ struct SplitsView: View {
                                 RowTile(
                                     title: friend.name,
                                     subtitle: friend.isOwed ? S.Splits.sectionsOwesYou : S.Splits.sectionsYouOwe,
-                                    action: {
-                                        Task {
-                                            if let id = await viewModel.openOrCreateDirectGroup(otherUserId: friend.id, currency: baseCurrencyNow()) {
-                                                selectedGroupId = id
-                                            }
-                                        }
-                                    },
+                                    // Web opens a PERSON sheet here, not the
+                                    // direct group. The balance is a
+                                    // cross-group figure, so the group is the
+                                    // wrong container for it — and jumping
+                                    // straight into one group hid every other
+                                    // group's share of the same debt, which is
+                                    // the bug this replaces.
+                                    action: { person = friend },
                                     trailing: {
                                         Text(friend.balanceFormatted)
                                             .font(.subheadline).fontWeight(.bold)
@@ -168,4 +185,110 @@ struct SplitsView: View {
 
 #Preview {
     SplitsView()
+}
+
+/**
+ One person's balance with you, and the transactions behind it.
+
+ Ported from the person Modal in `apps/web/app/friends/page.tsx`. Two things
+ about its shape are deliberate and were copied rather than improved on:
+
+ The total is at the TOP and large. The sheet's job is "how much, and settle it"
+ — everything else is supporting evidence.
+
+ The itemised lines are BEHIND A BUTTON, not shown by default. Web's own comment
+ says why: a wall of line items pushed the two actions below the fold and made
+ the sheet read as a statement. They are one tap away when you want to check,
+ which is exactly how often you want them.
+
+ The lines come from `personLedger()`, which existed on both repositories with
+ no caller — so until now the app could tell you THAT you owed someone and not
+ one line of WHY.
+
+ Mirrors Android's PersonSheet in SplitsScreen.kt.
+ */
+private struct PersonSheet: View {
+    let person: SplitsViewModel.FriendEdgeUiModel
+    let viewModel: SplitsViewModel
+    let onSettleUp: () -> Void
+    let onDismiss: () -> Void
+
+    @State private var showAllLines = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(person.name).font(.title2).fontWeight(.bold).foregroundStyle(Color.text)
+                        if person.net != 0 {
+                            Text(person.net > 0 ? S.Splits.owesYouInline : S.Splits.youOweInline)
+                                .font(.subheadline)
+                                .foregroundStyle(person.net > 0 ? Color.positive : Color.negative)
+                        }
+                    }
+
+                    HStack(alignment: .lastTextBaseline) {
+                        Text(person.net > 0 ? S.Splits.totalOwedToYou : S.Splits.totalYouOwe)
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(Color.text2)
+                        Spacer(minLength: 10)
+                        Text(person.balanceFormatted)
+                            .font(.system(size: 30, weight: .bold))
+                            .foregroundStyle(person.net > 0 ? Color.positive : Color.negative)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.surface2)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                    if !viewModel.personLines.isEmpty && !showAllLines {
+                        Button(S.Splits.viewLines(count: viewModel.personLines.count)) { showAllLines = true }
+                            .buttonStyle(.bordered)
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    if !viewModel.personLines.isEmpty && showAllLines {
+                        VStack(spacing: 8) {
+                            ForEach(viewModel.personLines, id: \.id) { line in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(line.description).font(.subheadline).lineLimit(1)
+                                        if !line.date.isEmpty {
+                                            Text(dayMonthLabel(line.date)
+                                                 + (line.kind == "settlement" ? " · \(S.Splits.settlementTag)" : ""))
+                                                .font(.system(size: 11.5))
+                                                .foregroundStyle(Color.text2)
+                                        }
+                                    }
+                                    Spacer(minLength: 10)
+                                    Text((line.net > 0 ? "+" : "−") + formatMoney(abs(line.net), baseCurrencyNow()))
+                                        .font(.subheadline).fontWeight(.semibold)
+                                        .foregroundStyle(line.net > 0 ? Color.positive : Color.negative)
+                                }
+                            }
+                            Button(S.Splits.hideLines) { showAllLines = false }
+                                .font(.caption)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+
+                    Button(S.Splits.settleUp, action: onSettleUp)
+                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
+                }
+                .padding(16)
+            }
+            .background(Color.bg.ignoresSafeArea())
+            .navigationTitle(person.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(S.Translation.commonClose, action: onDismiss).foregroundColor(Color.text2)
+                }
+            }
+        }
+        .task { viewModel.loadPersonLedger(person.id) }
+    }
 }

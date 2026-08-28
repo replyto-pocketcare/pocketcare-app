@@ -183,6 +183,14 @@ class VectorRunnerTest {
         runDomain("receipts-ai")
     }
     @Test
+    fun `splits-rollup`() {
+        // FriendsRollup.kt -- who owes whom across the WHOLE ledger, not per
+        // group. A SPEC; the fixtures pin the case both ports got wrong, where
+        // a balance exists only inside a group. See FriendsRollupVectors.kt.
+        com.sanvya.app.domain.splits.registerFriendsRollupVectors()
+        runDomain("splits-rollup")
+    }
+    @Test
     fun applink() {
         // AppLink.kt -- web paths to native destinations. A SPEC, not a
         // capture: web has no such function, only a router. See AppLinkVectors.kt.

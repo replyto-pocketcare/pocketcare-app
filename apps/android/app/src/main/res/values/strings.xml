@@ -1339,6 +1339,8 @@
         <item quantity="one">View %1$d transaction</item>
         <item quantity="other">View %1$d transactions</item>
     </plurals>
+    <string name="splits_view_lines_one">View %1$s transaction</string>
+    <string name="splits_view_lines_other">View %1$s transactions</string>
     <string name="splits_you_owe_inline">you owe</string>
     <string name="splits_you_pay_them_back">You pay %1$s back.</string>
     <string name="splits_your_balance">Your balance</string>

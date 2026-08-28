@@ -28636,6 +28636,52 @@
         }
       }
     },
+    "splits:viewLines.one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View %1$@ transaction"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ लेन-देन देखें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekijk %1$@ transactie"
+          }
+        }
+      }
+    },
+    "splits:viewLines.other": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View %1$@ transactions"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ लेन-देन देखें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekijk %1$@ transacties"
+          }
+        }
+      }
+    },
     "splits:youOweInline": {
       "extractionState": "manual",
       "localizations": {

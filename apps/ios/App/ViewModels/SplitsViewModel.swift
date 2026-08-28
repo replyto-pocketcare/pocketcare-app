@@ -62,6 +62,35 @@ public final class SplitsViewModel {
     public var loaded = false
     public var errorMessage: String?
 
+    // ---- person detail ----
+
+    /// The itemised ledger behind one person's balance, across every group.
+    ///
+    /// `personLedger()` has been on both repositories since P2.5 with zero
+    /// callers, so the Friends screen could tell you THAT you owed someone and
+    /// not one line of WHY — unless the whole balance happened to sit in a
+    /// single group you could open.
+    public var personLines: [PersonLine] = []
+    public var personLinesFor: String?
+
+    public func loadPersonLedger(_ otherUserId: String) {
+        guard let uid = userId, personLinesFor != otherUserId else { return }
+        personLinesFor = otherUserId
+        personLines = []
+        Task {
+            do {
+                personLines = try await splitsRepository.personLedger(userId: uid, otherId: otherUserId).lines
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    public func clearPersonLedger() {
+        personLinesFor = nil
+        personLines = []
+    }
+
     // ---- pending settlements ----
 
     /// Payments someone says they made to you, waiting on your confirmation.
@@ -203,10 +232,37 @@ public final class SplitsViewModel {
             return SplitGroupUiModel(id: g.group.id, name: g.group.name, kind: g.group.kind, memberCount: g.peopleCount, dateRange: g.group.startDate, net: g.net, netBalanceFormatted: text, isOwed: isOwed)
         }
 
-        self.friends = ov.direct.map { bal in
-            let isOwed = bal.net > 0
-            return FriendEdgeUiModel(id: bal.userId, name: nameOf(bal.userId), net: bal.net, balanceFormatted: formatMoney(abs(bal.net), base), isOwed: isOwed)
-        }.sorted { abs($0.net) > abs($1.net) }
+        // Across the WHOLE ledger, not `ov.direct` alone.
+        //
+        // `direct` holds only the 1:1 groups. Every balance that lives inside a
+        // real group — a trip, a flat, anything with a name — is in
+        // `GroupOverview.perUser`, which was computed, returned, and never
+        // read. Somebody who owed you from a trip did not appear in Friends at
+        // all, so the debt was invisible outside that one group's screen.
+        //
+        // The rollup itself is Domain's under 25 vectors, including the
+        // first-appearance ordering web gets from spreading a JS Map.
+        let directNets = ov.direct.map { PersonNet(userId: $0.userId, net: $0.net) }
+        let nets = friendNets(
+            groupPerUser: ov.groups.map { g in g.perUser.map { PersonNet(userId: $0.userId, net: $0.net) } },
+            direct: directNets
+        )
+        // Everyone you share a group with, INCLUDING the people you are square
+        // with — a Friends directory that lists only debts is a debt list.
+        self.friends = everyoneYouShareWith(
+            groupMemberIds: ov.groups.map(\.memberIds),
+            direct: directNets,
+            nets: nets,
+            names: namesById
+        ).map { person in
+            FriendEdgeUiModel(
+                id: person.userId,
+                name: nameOf(person.userId),
+                net: person.net,
+                balanceFormatted: formatMoney(abs(person.net), base),
+                isOwed: person.net > 0
+            )
+        }
     }
 
     /// The signed-in user id, resolving it if this is the first call.

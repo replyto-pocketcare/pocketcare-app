@@ -134,6 +134,13 @@ final class VectorRunnerTests: XCTestCase {
         registerAiReceiptVectors()
         try runDomain("receipts-ai")
     }
+    func testSplitsRollup() throws {
+        // FriendsRollup.swift — who owes whom across the WHOLE ledger, not per
+        // group. A SPEC; the fixtures pin the case both ports got wrong, where
+        // a balance exists only inside a group. See FriendsRollupVectors.
+        registerFriendsRollupVectors()
+        try runDomain("splits-rollup")
+    }
     func testSplitPlan() throws {
         // SplitPlan.swift — the Add-transaction split editor's arithmetic. A
         // SPEC, and the ONE domain with a fixture that deliberately disagrees

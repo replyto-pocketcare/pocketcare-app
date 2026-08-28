@@ -25,6 +25,9 @@ import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.components.SanvyaPage
+import com.sanvya.app.ui.components.SanvyaModal
+import com.sanvya.app.ui.dayMonthLabel
+import com.sanvya.app.ui.formatMoney
 
 /**
  * Real port of apps/web/app/friends/page.tsx's hub (task #30) -- replaces
@@ -44,6 +47,7 @@ fun SplitsScreen(
     val loaded by viewModel.loaded.collectAsState()
     var tab by remember { mutableStateOf(0) }
     var showCreate by remember { mutableStateOf(false) }
+    var person by remember { mutableStateOf<FriendEdgeUiModel?>(null) }
 
     SanvyaPage(
         title = S.Splits.eyebrow(sRes()),
@@ -91,9 +95,12 @@ fun SplitsScreen(
                 }
                 else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(friends, key = { it.id }) { f ->
-                        FriendRow(f, colors) {
-                            viewModel.openOrCreateDirectGroup(f.id, baseCurrencyNow()) { id -> id?.let(onOpenGroup) }
-                        }
+                        // Web opens a PERSON sheet here, not the direct group.
+                        // The balance is a cross-group figure, so the group is
+                        // the wrong container for it -- and jumping straight
+                        // into one group hid every other group's share of the
+                        // same debt, which is the bug this replaces.
+                        FriendRow(f, colors) { person = f }
                     }
                 }
             }
@@ -102,6 +109,18 @@ fun SplitsScreen(
 
     if (showCreate) {
         CreateGroupSheet(viewModel = viewModel, onDismiss = { showCreate = false }, onCreated = { id -> showCreate = false; onOpenGroup(id) })
+    }
+
+    person?.let { p ->
+        PersonSheet(
+            person = p,
+            viewModel = viewModel,
+            onSettleUp = {
+                person = null
+                viewModel.openOrCreateDirectGroup(p.id, baseCurrencyNow()) { id -> id?.let(onOpenGroup) }
+            },
+            onDismiss = { person = null; viewModel.clearPersonLedger() },
+        )
     }
 }
 
@@ -227,6 +246,123 @@ private fun CreateGroupSheet(viewModel: SplitsViewModel, onDismiss: () -> Unit, 
                 enabled = name.isNotBlank() && !saving,
                 modifier = Modifier.fillMaxWidth(),
             ) { Text(if (saving) S.Groups.creating(sRes()) else "Create group") }
+        }
+    }
+}
+
+/**
+ * One person's balance with you, and the transactions behind it.
+ *
+ * Ported from the person Modal in `apps/web/app/friends/page.tsx`. Two things
+ * about its shape are deliberate and were copied rather than improved on:
+ *
+ * The total is at the TOP and large. The sheet's job is "how much, and settle
+ * it" -- everything else is supporting evidence.
+ *
+ * The itemised lines are BEHIND A BUTTON, not shown by default. Web's own
+ * comment says why: a wall of line items pushed the two actions below the fold
+ * and made the sheet read as a statement. They are one tap away when you want
+ * to check, which is exactly how often you want them.
+ *
+ * The lines come from `personLedger()`, which existed on both repositories with
+ * no caller -- so until now the app could tell you THAT you owed someone and
+ * not one line of WHY.
+ *
+ * Mirrors iOS's PersonSheet in SplitsView.swift.
+ */
+@Composable
+private fun PersonSheet(
+    person: FriendEdgeUiModel,
+    viewModel: SplitsViewModel,
+    onSettleUp: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val res = sRes()
+    val colors = LocalSanvyaColors.current
+    val lines by viewModel.personLines.collectAsState()
+    var showAllLines by remember { mutableStateOf(false) }
+
+    LaunchedEffect(person.id) { viewModel.loadPersonLedger(person.id) }
+
+    SanvyaModal(open = true, onClose = onDismiss, label = person.name) {
+        Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(person.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                if (person.net != 0L) {
+                    Text(
+                        if (person.net > 0) S.Splits.owesYouInline(res) else S.Splits.youOweInline(res),
+                        fontSize = 14.sp,
+                        color = if (person.net > 0) colors.positive else colors.negative,
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(colors.surface2)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Text(
+                    if (person.net > 0) S.Splits.totalOwedToYou(res) else S.Splits.totalYouOwe(res),
+                    fontSize = 12.5.sp,
+                    color = colors.text2,
+                )
+                Text(
+                    person.balanceFormatted,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (person.net > 0) colors.positive else colors.negative,
+                )
+            }
+
+            if (lines.isNotEmpty() && !showAllLines) {
+                OutlinedButton(
+                    onClick = { showAllLines = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(S.Splits.viewLines(res, lines.size))
+                }
+            }
+
+            if (lines.isNotEmpty() && showAllLines) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    lines.forEach { line ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(line.description, fontSize = 14.sp, color = colors.text, maxLines = 1)
+                                if (line.date.isNotEmpty()) {
+                                    Text(
+                                        dayMonthLabel(line.date) +
+                                            if (line.kind == "settlement") " · " + S.Splits.settlementTag(res) else "",
+                                        fontSize = 11.5.sp,
+                                        color = colors.text2,
+                                    )
+                                }
+                            }
+                            Text(
+                                (if (line.net > 0) "+" else "−") +
+                                    formatMoney(kotlin.math.abs(line.net), baseCurrencyNow()),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (line.net > 0) colors.positive else colors.negative,
+                            )
+                        }
+                    }
+                    TextButton(onClick = { showAllLines = false }) { Text(S.Splits.hideLines(res)) }
+                }
+            }
+
+            Button(onClick = onSettleUp, modifier = Modifier.fillMaxWidth()) {
+                Text(S.Splits.settleUp(res))
+            }
         }
     }
 }

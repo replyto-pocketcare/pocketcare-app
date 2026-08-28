@@ -1481,6 +1481,10 @@ object S {
         fun totalYouOwe(res: Resources): String = res.getString(R.string.splits_total_you_owe)
         fun viewLines(res: Resources, count: Int): String =
             res.getQuantityString(R.plurals.splits_view_lines, count, count)
+        fun viewLinesOne(res: Resources, count: Any): String =
+            res.getString(R.string.splits_view_lines_one, count)
+        fun viewLinesOther(res: Resources, count: Any): String =
+            res.getString(R.string.splits_view_lines_other, count)
         fun youOweInline(res: Resources): String = res.getString(R.string.splits_you_owe_inline)
         fun youPayThemBack(res: Resources, name: Any): String =
             res.getString(R.string.splits_you_pay_them_back, name)

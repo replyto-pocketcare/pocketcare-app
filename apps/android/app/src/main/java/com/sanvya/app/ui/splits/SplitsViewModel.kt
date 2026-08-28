@@ -19,6 +19,10 @@ import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.Account
 import com.sanvya.app.ui.FormOptions
 import kotlinx.coroutines.flow.catch
+import com.sanvya.app.domain.splits.PersonNet
+import com.sanvya.app.domain.splits.friendNets
+import com.sanvya.app.domain.splits.everyoneYouShareWith
+import com.sanvya.app.data.repository.PersonLine
 
 /** Real port of apps/web/app/friends/page.tsx's hub (task #30). See
  * docs/mobile/screen-specs/splits.md. Replaces the previous version's
@@ -79,6 +83,41 @@ class SplitsViewModel : ViewModel(), KoinComponent {
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+
+    // ---- person detail ----
+
+    /**
+     * The itemised ledger behind one person's balance, across every group.
+     *
+     * `personLedger()` has been on both repositories since P2.5 with zero
+     * callers, so the Friends screen could tell you THAT you owed someone and
+     * not one line of WHY -- unless the whole balance happened to sit in a
+     * single group you could open.
+     */
+    private val _personLines = MutableStateFlow<List<PersonLine>>(emptyList())
+    val personLines: StateFlow<List<PersonLine>> = _personLines
+
+    private val _personLinesFor = MutableStateFlow<String?>(null)
+    val personLinesFor: StateFlow<String?> = _personLinesFor
+
+    fun loadPersonLedger(otherUserId: String) {
+        val uid = userId ?: return
+        if (_personLinesFor.value == otherUserId) return
+        _personLinesFor.value = otherUserId
+        _personLines.value = emptyList()
+        viewModelScope.launch {
+            try {
+                _personLines.value = splitsRepository.personLedger(uid, otherUserId).first
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun clearPersonLedger() {
+        _personLinesFor.value = null
+        _personLines.value = emptyList()
+    }
 
     // ---- pending settlements ----
 
@@ -201,16 +240,36 @@ class SplitsViewModel : ViewModel(), KoinComponent {
             )
         }
 
-        _friends.value = ov.direct.map { bal ->
-            val isOwed = bal.net > 0
+        // Across the WHOLE ledger, not `ov.direct` alone.
+        //
+        // `direct` holds only the 1:1 groups. Every balance that lives inside a
+        // real group -- a trip, a flat, anything with a name -- is in
+        // `GroupOverview.perUser`, which was computed, returned, and never
+        // read. Somebody who owed you from a trip did not appear in Friends at
+        // all, so the debt was invisible outside that one group's screen.
+        //
+        // The rollup itself is Domain's under 25 vectors, including the
+        // first-appearance ordering web gets from spreading a JS Map.
+        val nets = friendNets(
+            groupPerUser = ov.groups.map { g -> g.perUser.map { PersonNet(it.userId, it.net) } },
+            direct = ov.direct.map { PersonNet(it.userId, it.net) },
+        )
+        // Everyone you share a group with, INCLUDING the people you are square
+        // with -- a Friends directory that lists only debts is a debt list.
+        _friends.value = everyoneYouShareWith(
+            groupMemberIds = ov.groups.map { it.memberIds },
+            direct = ov.direct.map { PersonNet(it.userId, it.net) },
+            nets = nets,
+            names = namesById,
+        ).map { person ->
             FriendEdgeUiModel(
-                id = bal.userId,
-                name = nameOf(bal.userId),
-                net = bal.net,
-                balanceFormatted = formatMoney(kotlin.math.abs(bal.net), base),
-                isOwed = isOwed,
+                id = person.userId,
+                name = nameOf(person.userId),
+                net = person.net,
+                balanceFormatted = formatMoney(kotlin.math.abs(person.net), base),
+                isOwed = person.net > 0,
             )
-        }.sortedByDescending { kotlin.math.abs(it.net) }
+        }
     }
 
     /** Everyone the caller shares a group with, settled or not -- matches

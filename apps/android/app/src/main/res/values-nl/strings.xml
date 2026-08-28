@@ -1339,6 +1339,8 @@
         <item quantity="one">Bekijk %1$d transactie</item>
         <item quantity="other">Bekijk %1$d transacties</item>
     </plurals>
+    <string name="splits_view_lines_one">Bekijk %1$s transactie</string>
+    <string name="splits_view_lines_other">Bekijk %1$s transacties</string>
     <string name="splits_you_owe_inline">jij bent verschuldigd</string>
     <string name="splits_you_pay_them_back">Jij betaalt %1$s terug.</string>
     <string name="splits_your_balance">Je saldo</string>

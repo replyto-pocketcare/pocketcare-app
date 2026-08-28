@@ -1654,6 +1654,12 @@ public enum S {
         public static func viewLines(count: Int) -> String {
             String(format: String(localized: "splits:viewLines", defaultValue: "", table: "Localizable"), count)
         }
+        public static func viewLinesOne(count: String) -> String {
+            String(format: String(localized: "splits:viewLines.one", table: "Localizable"), count)
+        }
+        public static func viewLinesOther(count: String) -> String {
+            String(format: String(localized: "splits:viewLines.other", table: "Localizable"), count)
+        }
         public static var youOweInline: String { String(localized: "splits:youOweInline", table: "Localizable") }
         public static func youPayThemBack(name: String) -> String {
             String(format: String(localized: "splits:youPayThemBack", table: "Localizable"), name)

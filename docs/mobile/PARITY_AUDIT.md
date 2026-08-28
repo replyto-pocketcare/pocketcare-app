@@ -2942,6 +2942,28 @@ Worth stating plainly: a guard with an allowlist can pass while the compiler
 fails, and a green guard set is not a build. The other six say what they cover
 in their own output for that reason.
 
+## Tranche 2 — Friends stops hiding what it already computes (2026-08-28)
+
+Three of the 64 gaps, and all three were the same failure: **the repository
+already returned the answer and nothing read it.**
+
+| Gap | What was actually wrong |
+|---|---|
+| Friends list read `overview.direct` alone | `direct` holds only the 1:1 groups. Every balance inside a real group — a trip, a flat — is in `GroupOverview.perUser`, which was computed, returned and never read. Somebody who owed you from a trip **did not appear in Friends at all** |
+| No cross-group person ledger | `personLedger()` has been on both repositories since P2.5 with zero callers. The app could tell you THAT you owed someone and not one line of WHY |
+| Tapping a friend opened their direct GROUP | The balance is a cross-group figure, so a group is the wrong container for it — and opening one hid every other group's share of the same debt |
+
+`FriendsRollup.{kt,swift}` in Domain under **25 vectors** carries the arithmetic:
+`friendNets`, `owedToYou`, `youOwe`, `everyoneYouShareWith`. Two things about it
+are asserted rather than incidental —
+
+- `friendNets` returns **first-appearance order**, because web spreads a JS Map
+  and a JS Map iterates in insertion order. Swift's Dictionary does not, so the
+  Swift port walks a separate key array to keep the two platforms identical.
+- `everyoneYouShareWith` lists the people you are **square with** too. The
+  owes/owed lists drop them by construction, and a "Friends" directory that
+  lists only debts is a debt list — web's own comment.
+
 ## Re-measured 2026-08-28 — 64 gaps, itemised
 
 The 91-gap count of 2026-08-27 was by slice. Four fresh parallel passes read each
