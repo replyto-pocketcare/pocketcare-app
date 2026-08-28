@@ -62,6 +62,18 @@ public final class SplitsViewModel {
     public var loaded = false
     public var errorMessage: String?
 
+    // ---- friend insights ----
+
+    /// Behavioural patterns across the groups you share — who covers the most,
+    /// who always ends up owing, who settles fastest.
+    ///
+    /// `friendInsights()` has been on both repositories since P2.5 with zero
+    /// callers: the ranking was computed, thresholded, returned and thrown
+    /// away. `pickFriendInsights` in Domain does the actual choosing under its
+    /// own vectors, including the evidence thresholds that stop it asserting a
+    /// pattern from one dinner.
+    public var insights: [FriendInsight] = []
+
     // ---- person detail ----
 
     /// The itemised ledger behind one person's balance, across every group.
@@ -203,6 +215,7 @@ public final class SplitsViewModel {
 
     private func refreshOverviewSafely(userId: String) async {
         do { try await refreshOverview(userId: userId) } catch { errorMessage = error.localizedDescription }
+        insights = (try? await splitsRepository.friendInsights(userId: userId).insights) ?? []
     }
 
     private func nameOf(_ id: String) -> String { namesById[id] ?? S.Groups.someone }

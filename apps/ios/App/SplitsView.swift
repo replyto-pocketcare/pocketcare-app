@@ -128,6 +128,7 @@ struct SplitsView: View {
                         emptyState(title: "No balances yet", body: "Once you split an expense with someone, they'll show up here.")
                     } else {
                         VStack(spacing: 12) {
+                            FriendInsightsSection(viewModel: viewModel)
                             ForEach(viewModel.friends) { friend in
                                 RowTile(
                                     title: friend.name,
@@ -290,5 +291,91 @@ private struct PersonSheet: View {
             }
         }
         .task { viewModel.loadPersonLedger(person.id) }
+    }
+}
+
+/**
+ Behavioural patterns across the groups you share.
+
+ Ported from `FriendInsights` in `apps/web/app/friends/page.tsx`. The ranking and
+ its evidence thresholds are Domain's `pickFriendInsights`; the repository has
+ returned them since P2.5 and nothing read them, so this is a render of work
+ that was already being done and thrown away.
+
+ Renders nothing when there is nothing to say — which is most of the time early
+ on, and deliberately so. The footnote explains why: a pattern asserted from one
+ dinner is not a pattern, and the thresholds enforce that.
+
+ Mirrors Android's FriendInsightsSection in SplitsScreen.kt.
+ */
+private struct FriendInsightsSection: View {
+    let viewModel: SplitsViewModel
+
+    var body: some View {
+        if !viewModel.insights.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(S.Splits.sectionsInsights)
+                    .font(.caption).fontWeight(.bold)
+                    .foregroundStyle(Color.text2)
+                ForEach(viewModel.insights, id: \.key) { insight in
+                    SanvyaCard {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(label(insight.key).uppercased())
+                                .font(.system(size: 11.5, weight: .bold))
+                                .foregroundStyle(Color.text2)
+                            Text(viewModel.friends.first { $0.id == insight.friendId }?.name
+                                 ?? String(insight.friendId.prefix(8)))
+                                .font(.system(size: 15, weight: .bold))
+                                .lineLimit(1)
+                            Text(value(insight))
+                                .font(.system(size: 13))
+                                .foregroundStyle(tone(insight.key))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                Text(S.Splits.insightsFootnote)
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Color.text2)
+            }
+        }
+    }
+
+    private func label(_ key: String) -> String {
+        switch key {
+        case "biggest_lender": return S.Splits.insightsBiggestLender
+        case "owes_you_most": return S.Splits.insightsOwesYouMost
+        case "you_owe_most": return S.Splits.insightsYouOweMost
+        case "always_owes": return S.Splits.insightsAlwaysOwes
+        case "always_owed": return S.Splits.insightsAlwaysOwed
+        case "fastest_settler": return S.Splits.insightsFastestSettler
+        default: return S.Splits.insightsSlowestSettler
+        }
+    }
+
+    /// The value line, whose UNIT depends on the key.
+    ///
+    /// Three different things share this slot on web: a number of days, a
+    /// number of groups, and an amount of money. Formatting all three as money
+    /// — which is what a naive port does, since every other number on this
+    /// screen is money — would read "Settles up quickest: ₹3.00".
+    private func value(_ insight: FriendInsight) -> String {
+        switch insight.key {
+        case "fastest_settler", "slowest_settler":
+            return S.Splits.insightsDays(count: Int(jsRound(insight.value)))
+        case "always_owes", "always_owed":
+            return S.Splits.insightsGroups(count: Int(insight.value))
+        default:
+            return formatMoney(Int64(insight.value), baseCurrencyNow())
+        }
+    }
+
+    private func tone(_ key: String) -> Color {
+        switch key {
+        case "biggest_lender", "owes_you_most", "fastest_settler": return .positive
+        case "you_owe_most": return .negative
+        case "slowest_settler": return .warning
+        default: return .text
+        }
     }
 }

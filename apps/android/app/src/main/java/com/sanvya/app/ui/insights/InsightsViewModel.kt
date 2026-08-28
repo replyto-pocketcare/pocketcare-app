@@ -338,7 +338,11 @@ class InsightsViewModel : ViewModel(), KoinComponent {
             val divRows = g2.divs.map { DivRow(it.symbol, it.exchange, it.exDate, it.payDate, it.amount, it.currency) }
             val events: List<DivEvent> = computeDividendEvents(lite, divRows, g3.rates, baseCurrencyNow())
             val summary = dividendSummary(events)
-            val buckets = bucketize(events, DividendPeriod.MONTH).map { SeriesPoint(it.label, it.value.roundToLong() / majorScale(baseCurrencyNow())) }
+            // No `roundToLong` here, unlike the three series above: a dividend
+            // bucket's value is ALREADY Long minor units, so web's
+            // `major = (minor) => Math.round(minor) / 100` has nothing to round.
+            // iOS reads the same field and writes `Double($0.value) / scale`.
+            val buckets = bucketize(events, DividendPeriod.MONTH).map { SeriesPoint(it.label, it.value / majorScale(baseCurrencyNow())) }
             dividends = DividendAgg(g2.holdings.size, summary.trailing12, summary.upcoming12, summary.total, buckets)
 
             val qKey = { s: String, e: String? -> "${s.uppercase()}|${(e ?: "").uppercase()}" }

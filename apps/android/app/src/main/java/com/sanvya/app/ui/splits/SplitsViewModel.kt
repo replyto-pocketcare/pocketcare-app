@@ -23,6 +23,7 @@ import com.sanvya.app.domain.splits.PersonNet
 import com.sanvya.app.domain.splits.friendNets
 import com.sanvya.app.domain.splits.everyoneYouShareWith
 import com.sanvya.app.data.repository.PersonLine
+import com.sanvya.app.domain.splitsinsights.FriendInsight
 
 /** Real port of apps/web/app/friends/page.tsx's hub (task #30). See
  * docs/mobile/screen-specs/splits.md. Replaces the previous version's
@@ -83,6 +84,21 @@ class SplitsViewModel : ViewModel(), KoinComponent {
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+
+    // ---- friend insights ----
+
+    /**
+     * Behavioural patterns across the groups you share -- who covers the most,
+     * who always ends up owing, who settles fastest.
+     *
+     * `friendInsights()` has been on both repositories since P2.5 with zero
+     * callers: the ranking was computed, thresholded, returned and thrown away.
+     * `pickFriendInsights` in Domain does the actual choosing under its own
+     * vectors, including the evidence thresholds that stop it asserting a
+     * pattern from one dinner.
+     */
+    private val _insights = MutableStateFlow<List<FriendInsight>>(emptyList())
+    val insights: StateFlow<List<FriendInsight>> = _insights
 
     // ---- person detail ----
 
@@ -199,8 +215,10 @@ class SplitsViewModel : ViewModel(), KoinComponent {
                 namesById = conns.associate { it.id to it.name }
 
                 refreshOverview(uid)
+                refreshInsights(uid)
                 splitsRepository.watchGroups().collect {
                     refreshOverview(uid)
+                    refreshInsights(uid)
                 }
             } catch (e: Exception) {
                 _error.value = e.message
@@ -211,6 +229,10 @@ class SplitsViewModel : ViewModel(), KoinComponent {
     }
 
     private fun nameOf(id: String): String = namesById[id] ?: "Someone"
+
+    private suspend fun refreshInsights(uid: String) {
+        _insights.value = runCatching { splitsRepository.friendInsights(uid).second }.getOrDefault(emptyList())
+    }
 
     private suspend fun refreshOverview(uid: String) {
         val ov = splitsRepository.splitOverview(uid)

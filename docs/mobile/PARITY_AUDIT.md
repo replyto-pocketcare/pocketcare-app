@@ -2952,6 +2952,7 @@ already returned the answer and nothing read it.**
 | Friends list read `overview.direct` alone | `direct` holds only the 1:1 groups. Every balance inside a real group — a trip, a flat — is in `GroupOverview.perUser`, which was computed, returned and never read. Somebody who owed you from a trip **did not appear in Friends at all** |
 | No cross-group person ledger | `personLedger()` has been on both repositories since P2.5 with zero callers. The app could tell you THAT you owed someone and not one line of WHY |
 | Tapping a friend opened their direct GROUP | The balance is a cross-group figure, so a group is the wrong container for it — and opening one hid every other group's share of the same debt |
+| Friend insights never rendered | `friendInsights()` — same story, zero callers since P2.5. The ranking and its evidence thresholds were computed by Domain's `pickFriendInsights`, returned, and thrown away |
 
 `FriendsRollup.{kt,swift}` in Domain under **25 vectors** carries the arithmetic:
 `friendNets`, `owedToYou`, `youOwe`, `everyoneYouShareWith`. Two things about it
@@ -2963,6 +2964,12 @@ are asserted rather than incidental —
 - `everyoneYouShareWith` lists the people you are **square with** too. The
   owes/owed lists drop them by construction, and a "Friends" directory that
   lists only debts is a debt list — web's own comment.
+
+The insights row has a trap worth naming: **three different units share one
+slot.** `fastest_settler` is a number of DAYS, `always_owes` is a number of
+GROUPS, and the rest are MONEY. Formatting all three as money — the obvious port,
+since every other number on that screen is money — renders "Settles up quickest:
+₹3.00". Both platforms branch on the key.
 
 ## Re-measured 2026-08-28 — 64 gaps, itemised
 

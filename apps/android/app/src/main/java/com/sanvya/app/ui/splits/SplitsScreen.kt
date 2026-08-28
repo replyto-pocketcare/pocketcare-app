@@ -28,6 +28,8 @@ import com.sanvya.app.ui.components.SanvyaPage
 import com.sanvya.app.ui.components.SanvyaModal
 import com.sanvya.app.ui.dayMonthLabel
 import com.sanvya.app.ui.formatMoney
+import com.sanvya.app.domain.js.jsRound
+import com.sanvya.app.domain.splitsinsights.FriendInsight
 
 /**
  * Real port of apps/web/app/friends/page.tsx's hub (task #30) -- replaces
@@ -94,6 +96,7 @@ fun SplitsScreen(
                     }
                 }
                 else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    item { FriendInsightsSection(viewModel) }
                     items(friends, key = { it.id }) { f ->
                         // Web opens a PERSON sheet here, not the direct group.
                         // The balance is a cross-group figure, so the group is
@@ -365,4 +368,92 @@ private fun PersonSheet(
             }
         }
     }
+}
+
+/**
+ * Behavioural patterns across the groups you share.
+ *
+ * Ported from `FriendInsights` in `apps/web/app/friends/page.tsx`. The ranking
+ * and its evidence thresholds are Domain's `pickFriendInsights`; the repository
+ * has returned them since P2.5 and nothing read them, so this is a render of
+ * work that was already being done and thrown away.
+ *
+ * Renders nothing when there is nothing to say -- which is most of the time
+ * early on, and deliberately so. The footnote explains why: a pattern asserted
+ * from one dinner is not a pattern, and the thresholds enforce that.
+ *
+ * Mirrors iOS's FriendInsightsSection in SplitsView.swift.
+ */
+@Composable
+private fun FriendInsightsSection(viewModel: SplitsViewModel) {
+    val res = sRes()
+    val colors = LocalSanvyaColors.current
+    val insights by viewModel.insights.collectAsState()
+    val friends by viewModel.friends.collectAsState()
+    if (insights.isEmpty()) return
+
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(
+            S.Splits.sectionsInsights(res),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.text2,
+        )
+        insights.forEach { insight ->
+            val tone = insightTone(insight.key, colors)
+            Card(colors = CardDefaults.cardColors(containerColor = colors.surface)) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        insightLabel(res, insight.key).uppercase(),
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.text2,
+                    )
+                    Text(
+                        friends.find { it.id == insight.friendId }?.name ?: insight.friendId.take(8),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.text,
+                        maxLines = 1,
+                    )
+                    Text(insightValue(res, insight), fontSize = 13.sp, color = tone)
+                }
+            }
+        }
+        Text(S.Splits.insightsFootnote(res), fontSize = 11.5.sp, color = colors.text2)
+    }
+}
+
+private fun insightLabel(res: android.content.res.Resources, key: String): String = when (key) {
+    "biggest_lender" -> S.Splits.insightsBiggestLender(res)
+    "owes_you_most" -> S.Splits.insightsOwesYouMost(res)
+    "you_owe_most" -> S.Splits.insightsYouOweMost(res)
+    "always_owes" -> S.Splits.insightsAlwaysOwes(res)
+    "always_owed" -> S.Splits.insightsAlwaysOwed(res)
+    "fastest_settler" -> S.Splits.insightsFastestSettler(res)
+    else -> S.Splits.insightsSlowestSettler(res)
+}
+
+/**
+ * The value line, whose UNIT depends on the key.
+ *
+ * Three different things share this slot on web: a number of days, a number of
+ * groups, and an amount of money. Formatting all three as money -- which is
+ * what a naive port does, since every other number on this screen is money --
+ * would read "Settles up quickest: ₹3.00".
+ */
+private fun insightValue(res: android.content.res.Resources, insight: FriendInsight): String = when (insight.key) {
+    "fastest_settler", "slowest_settler" -> S.Splits.insightsDays(res, jsRound(insight.value).toInt())
+    "always_owes", "always_owed" -> S.Splits.insightsGroups(res, insight.value.toInt())
+    else -> formatMoney(insight.value.toLong(), baseCurrencyNow())
+}
+
+private fun insightTone(key: String, colors: com.sanvya.app.theme.SanvyaColors) = when (key) {
+    "biggest_lender", "owes_you_most", "fastest_settler" -> colors.positive
+    "you_owe_most" -> colors.negative
+    "slowest_settler" -> colors.warning
+    else -> colors.text
 }
