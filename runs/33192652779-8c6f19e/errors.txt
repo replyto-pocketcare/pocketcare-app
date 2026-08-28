@@ -1,0 +1,149 @@
+298:> Task :app:compileReleaseKotlin FAILED
+299:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/insights/InsightsViewModel.kt:341:104 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+305:e: file:///home/runner/work/pocketcare-app/pocketcare-app/apps/android/app/src/main/java/com/sanvya/app/ui/insights/InsightsViewModel.kt:341:104 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+310:> Task :app:compileDebugKotlin FAILED
+355:FAILURE: Build completed with 2 failures.
+362:   > Compilation error. See log for more details
+519:Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+560:   > Compilation error. See log for more details
+723:Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+762:BUILD FAILED in 5m 1s
+975: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+980:260 |             ) { cursor in try cursor.getString(name: "id") } {
+988: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+999: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1004:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1012: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1023: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1028:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1036: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1047: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1052:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1060: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1071: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1076:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1084: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1095: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1100:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1108: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1119: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1124:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1132: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1143: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1148:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1156: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1167: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1172:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1180: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1191: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1196:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1204: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1215: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1220:260 |             ) { cursor in try cursor.getString(name: "id") } {
+1228: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1317:320 |                         .in("id", value: chunk)
+1319:    |                          `- note: use 'in(_:values:)' instead
+1326:206 |                         try await rel.delete().in("id", value: ids).execute()
+1328:    |                                                `- note: use 'in(_:values:)' instead
+1357:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1369:320 |                         .in("id", value: chunk)
+1371:    |                          `- note: use 'in(_:values:)' instead
+1378:206 |                         try await rel.delete().in("id", value: ids).execute()
+1380:    |                                                `- note: use 'in(_:values:)' instead
+1409:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1421:320 |                         .in("id", value: chunk)
+1423:    |                          `- note: use 'in(_:values:)' instead
+1430:206 |                         try await rel.delete().in("id", value: ids).execute()
+1432:    |                                                `- note: use 'in(_:values:)' instead
+1461:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1473:320 |                         .in("id", value: chunk)
+1475:    |                          `- note: use 'in(_:values:)' instead
+1482:206 |                         try await rel.delete().in("id", value: ids).execute()
+1484:    |                                                `- note: use 'in(_:values:)' instead
+1513:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1525:320 |                         .in("id", value: chunk)
+1527:    |                          `- note: use 'in(_:values:)' instead
+1534:206 |                         try await rel.delete().in("id", value: ids).execute()
+1536:    |                                                `- note: use 'in(_:values:)' instead
+1565:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1577:320 |                         .in("id", value: chunk)
+1579:    |                          `- note: use 'in(_:values:)' instead
+1586:206 |                         try await rel.delete().in("id", value: ids).execute()
+1588:    |                                                `- note: use 'in(_:values:)' instead
+1617:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1629:320 |                         .in("id", value: chunk)
+1631:    |                          `- note: use 'in(_:values:)' instead
+1638:206 |                         try await rel.delete().in("id", value: ids).execute()
+1640:    |                                                `- note: use 'in(_:values:)' instead
+1669:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1681:320 |                         .in("id", value: chunk)
+1683:    |                          `- note: use 'in(_:values:)' instead
+1690:206 |                         try await rel.delete().in("id", value: ids).execute()
+1692:    |                                                `- note: use 'in(_:values:)' instead
+1721:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1733:320 |                         .in("id", value: chunk)
+1735:    |                          `- note: use 'in(_:values:)' instead
+1742:206 |                         try await rel.delete().in("id", value: ids).execute()
+1744:    |                                                `- note: use 'in(_:values:)' instead
+1773:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1785:320 |                         .in("id", value: chunk)
+1787:    |                          `- note: use 'in(_:values:)' instead
+1794:206 |                         try await rel.delete().in("id", value: ids).execute()
+1796:    |                                                `- note: use 'in(_:values:)' instead
+1825:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1929:  Supabase: https://github.com/supabase/supabase-swift.git @ 2.54.1
+1934:  PowerSyncSQLiteCore: https://github.com/powersync-ja/powersync-sqlite-core-swift.git @ 0.4.13
+1940:  CSQLite: https://github.com/powersync-ja/CSQLite.git @ 3.51.2
+1960:note: Building targets in dependency order
+1961:note: Target dependency graph (47 targets)
+2166:Build description signature: 194d09ec71486fbe9f9a2b930f1aa725
+3395:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3440:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3558:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+3945:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+8144:                        .in("id", value: chunk)
+8146:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/RepairRepository.swift:320:26: note: use 'in(_:values:)' instead
+8147:                        .in("id", value: chunk)
+8167:                        try await rel.delete().in("id", value: ids).execute()
+8169:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SupabaseConnector.swift:206:48: note: use 'in(_:values:)' instead
+8170:                        try await rel.delete().in("id", value: ids).execute()
+8233:            ) { cursor in try cursor.getString(name: "id") } {
+8249:            return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+8432:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/nl.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+8437:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/nl.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+8442:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/hi.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+8447:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/hi.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+8452:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/en.lproj/Localizable.stringsdict:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+8457:/Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/Sanvya.build/Debug-iphonesimulator/Sanvya.build/en.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Sanvya' from project 'Sanvya')
+8903:note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Products/Debug-iphonesimulator/Sanvya.app/Assets.car (in target 'Sanvya' from project 'Sanvya')
+8904:note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Products/Debug-iphonesimulator/Sanvya.app/AppIcon76x76@2x~ipad.png (in target 'Sanvya' from project 'Sanvya')
+8905:note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Products/Debug-iphonesimulator/Sanvya.app/AppIcon60x60@2x.png (in target 'Sanvya' from project 'Sanvya')
+9004:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/UIKit.framework/Headers/UIDevice.h:61:52: note: property declared here
+9010:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/UIKit.framework/Headers/UIDevice.h:37:49: note: class property declared here
+9252:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9266:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9280:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9294:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9308:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9322:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9336:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9350:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9364:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9378:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9392:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9406:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9420:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9434:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9448:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9462:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9476:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9490:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9504:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9518:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9532:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9546:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9560:/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/Vision.framework/Headers/VNRecognizeTextRequest.h:31:12: note: class 'VNRecognizeTextRequest' does not conform to the 'Sendable' protocol
+9748:note: Using stub executor library with Swift entry point. (in target 'Sanvya' from project 'Sanvya')
+9830:2026-08-28 17:09:41.813950+0000 Sanvya[17949:59142] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+9831:2026-08-28 17:09:41.906392+0000 Sanvya[17949:59135] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+69:money-scale: 482 files, 72 percentage/calendar line(s) skipped, 5 allowed site(s), 0 hit(s)
