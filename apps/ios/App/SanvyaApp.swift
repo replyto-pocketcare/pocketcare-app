@@ -29,6 +29,17 @@ struct SanvyaApp: App {
             // to take two closures for this; one was empty and the other
             // created a guest that LoginView had already created.
             gated
+                // Connect PowerSync to the server, and keep that connection
+                // matched to whoever is signed in. Web does this in
+                // `initSystem()`; until this existed the app never called
+                // `connect(connector:)` at all and was a purely local database
+                // -- see SyncBootstrap.swift for the full story.
+                //
+                // `.task` rather than `.onAppear`: it gives an async context
+                // without a detached Task, and it is cancelled with the scene.
+                // The bootstrap itself is a singleton and `start()` is
+                // idempotent, so a scene rebuild does not reconnect.
+                .task { await Container.shared.syncBootstrap().start() }
                 .onOpenURL { url in
                     guard let token = inviteTokenFromURL(url) else { return }
                     // Stash BEFORE showing anything: if there is no session the

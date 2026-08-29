@@ -3608,3 +3608,98 @@ state moved up to the dashboard.
 | 51 | The same query filters `credit_card_details` on `deleted_at`, which that table does not have. Two independent reasons the same feature is dead |
 | 52 | `AppShell.tsx`'s sync strip and `TrialNotice` render raw English literals in a file that otherwise uses `t(...)`; `TrialNotice`'s `LOSE_ON_FREE` is a hardcoded English array |
 | 53 | Web shows the offline message twice when offline — the sticky banner and the in-flow strip, in different words |
+
+## BLOCKER #0 — neither app had ever synced (found and fixed 2026-08-29)
+
+This is bigger than every parity gap in this document put together, so it goes
+at the top of the blocker list and renumbers nothing else.
+
+**Neither native app ever called `PowerSyncDatabase.connect(connector)`.**
+`SupabaseConnector` was constructed in DI on both platforms and then handed to
+nothing. Grep both trees before and after if you want to see it: there is no
+`db.connect(` anywhere in `apps/android` or `apps/ios` prior to this commit,
+while `apps/web/src/powersync.ts` calls it in three places.
+
+The consequence is not a missing feature. **Both apps were purely local
+databases.** Nothing written on a phone ever reached Supabase, and nothing
+written on web ever arrived on a phone. Every screen worked. Every write
+succeeded. Every read returned the right rows. The data never left the device.
+
+### How it hid for this long
+
+Because PowerSync's local-first design means a disconnected database behaves
+exactly like a connected one that has nothing to pull. There is no error state,
+no exception, no log line. And the symptoms it *did* produce all looked like
+separate, smaller problems, each of which got its own explanation along the way:
+
+| Symptom | The explanation it got | The actual cause |
+|---|---|---|
+| `hasSynced` never flips | "first sync is slow on a cold install" | never connected |
+| The first-sync gate always runs to its ten-second deadline | "the deadline is a safety net for offline first runs" | never connected |
+| `connected` is permanently false | "the status field is not wired up yet" | never connected |
+| `lastSyncedAt` is permanently null | as above | never connected |
+| The sync strip's warning branch never fires | "nothing has gone wrong yet" | never connected |
+| Force Sync could not be ported | "it would be the app's only connect call" | it would have been the app's only connect call |
+
+That last row is the one worth sitting with. The shell agent declined to wire
+Force Sync **because** it noticed that wiring it would make a status strip the
+only place the app ever connects — and that instinct is what surfaced this. A
+Force Sync button that silently turned out to be the entire sync bootstrap would
+have been the worst possible place to discover the problem, and it would have
+"worked", which is worse still.
+
+### The fix
+
+`SyncBootstrap` in `:data` on both platforms, mirroring `initSystem()` and its
+`onAuthStateChange` handler — the only two places web connects. Four rules, in
+web's own order:
+
+1. **Connect only when a session already exists.** No auto-created guest; a
+   brand-new install stays unauthenticated and goes to onboarding to choose.
+2. **In the background, never blocking first paint.** Local SQLite already has
+   the answer, and a spinner over readable data is strictly worse than stale
+   data.
+3. **Re-key when the signed-in identity CHANGES** — disconnect, clear the
+   previous identity's rows, reconnect under the new JWT. Without it, signing in
+   after booting as a guest never downloads the account.
+4. **A same-id transition does NOT clear.** Guest → registered via `updateUser`
+   keeps the user id, and clearing there discards local writes that have not
+   been uploaded. Keying on *change* rather than on the sign-in event is what
+   gets this right.
+
+Started from `SanvyaApplication.onCreate` and from the root scene's `.task`,
+not from a screen: a sync connection that exists only while one screen is
+mounted is a sync connection that stops when the user changes tab.
+
+Android serialises with a `Mutex`; iOS is an `actor`. Same reason on both:
+connect, disconnect and clear are not reentrant and they race invisibly — a
+sign-out arriving mid-`connect` can leave the database connected under a JWT for
+someone who is no longer signed in, which uploads their writes to the wrong
+account.
+
+On a `connect` failure `connectedUserId` is deliberately **left set**. PowerSync
+retries internally, and clearing it would make the next auth emission look like
+a fresh sign-in and wipe the user's local data.
+
+### What this unblocks, and what must now be re-measured
+
+`forceSync()` exists on both bootstraps, so **the sync strip's Force Sync button
+is now a small, real item** rather than a refusal. Beyond that, several decisions
+recorded in this document were made in a world where sync never ran, and are now
+worth re-reading rather than trusting:
+
+- The ten-second first-sync deadline was written as a floor for an offline first
+  run. It was in fact firing on *every* launch for *every* user. Keep it, but
+  re-measure what a real first sync costs before assuming ten seconds is
+  generous.
+- The sync-status strip has never been seen in its TROUBLE state by anybody.
+- Every "does this write reach the server" question anywhere in this document
+  was, until now, answered no.
+
+### Testing this is not optional and cannot be done here
+
+There is no test Supabase or PowerSync project available to this workstream — it
+is one of the standing blockers. This change is the one thing in the whole port
+that **must** be exercised against a real backend before release: two devices,
+one account, a write on each, and confirm both arrive. Then a guest → sign-in
+transition, and confirm the account downloads and the guest's rows are gone.

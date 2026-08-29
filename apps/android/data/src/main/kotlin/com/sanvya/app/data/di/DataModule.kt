@@ -105,6 +105,10 @@ val dataModule = module {
     // on a single poll loop. Replaces four independent 400 ms pollers and the
     // shell's private connectivity callback -- see SyncStatusRepository.kt.
     single { com.sanvya.app.data.sync.SyncStatusRepository(androidContext(), get()) }
+    // The thing that actually connects PowerSync to the server. Until this
+    // existed, `SupabaseConnector` was built here and handed to nothing --
+    // see SyncBootstrap.kt.
+    single { com.sanvya.app.data.sync.SyncBootstrap(get(), get(), get()) }
     // The shell's bell badge and the notifications inbox.
     single { com.sanvya.app.data.repository.NotificationsRepository(get()) }
     single {
