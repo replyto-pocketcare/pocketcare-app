@@ -74,10 +74,22 @@ import com.sanvya.app.ui.shortDateLabel
  * What is NOT here, and why:
  *
  *  * **The credit-pack purchase.** Web's out-of-quota card offers three
- *    Razorpay top-ups. There is no in-app purchase flow anywhere in this app
- *    yet (Settings' own "Upgrade" button is a no-op for the same reason), so
+ *    Razorpay top-ups. `buyCredits()` loads Razorpay's *web* Checkout script
+ *    into the page and opens it; a phone cannot run that, and the native
+ *    Razorpay SDKs are not a substitute -- AI credits are digital content, so
+ *    Play Billing and StoreKit are mandatory, and the server has no receipt
+ *    verification for either. There is no in-app purchase flow anywhere in this
+ *    app (Settings' own "Upgrade" button is a no-op for the same reason), so
  *    the card states the situation and stops rather than showing three buttons
  *    that cannot charge anyone. In ABSENT-BY-DECISION.
+ *
+ *    **`outPaidRest` goes with the buttons, and that is deliberate.** Web's
+ *    paid branch reads "You've used all your AI prompts for this cycle." in
+ *    bold, then "Buy a credit top-up to keep going -- credits never expire."
+ *    The second sentence describes the three buttons. Rendering it without them
+ *    would be the dead control in prose: copy telling the user to do something
+ *    this app gives them no way to do. The bold half is true on its own and is
+ *    what ships; the landing screen already says when the quota resets.
  *  * **Voice input.** `speech.ts` + `MicButton.tsx` are a separate port with
  *    its own permission story. Also in ABSENT-BY-DECISION.
  *
@@ -428,6 +440,11 @@ private fun AssistantChat(
                             // uses, so the free copy below is unreachable there
                             // too -- kept because the branch is web's and the day
                             // the gate loosens, the right words are already here.
+                            //
+                            // The paid branch is the bold half of web's sentence
+                            // only. `outPaidRest` ("Buy a credit top-up to keep
+                            // going") is the caption for three buttons this app
+                            // cannot build -- see the file header.
                             if (isPaid) {
                                 SanvyaText(S.Assistant.outPaidBold(res), SanvyaType.body.copy(fontWeight = FontWeight.Bold))
                             } else {

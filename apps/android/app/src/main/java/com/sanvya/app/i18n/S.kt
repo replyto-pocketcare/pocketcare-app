@@ -1328,6 +1328,7 @@ object S {
         fun settingsIntro(res: Resources): String = res.getString(R.string.payments_settings_intro)
         fun settingsInvalid(res: Resources): String = res.getString(R.string.payments_settings_invalid)
         fun settingsLabel(res: Resources): String = res.getString(R.string.payments_settings_label)
+        fun settingsPlaceholder(res: Resources): String = res.getString(R.string.payments_settings_placeholder)
         fun settingsPrivacy(res: Resources): String = res.getString(R.string.payments_settings_privacy)
         fun settingsRemove(res: Resources): String = res.getString(R.string.payments_settings_remove)
         fun settingsReplace(res: Resources): String = res.getString(R.string.payments_settings_replace)

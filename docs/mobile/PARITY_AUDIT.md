@@ -311,7 +311,8 @@ approximation per screen (iOS's old credit-card face).
 | `TrialNotice`, `UpgradeModal`, `Billing` | `src/ui/*` | ❌ | ❌ |
 | `BugReport`, `InstallGuide`, `ErrorBoundary` | `src/ui/*` | ❌ | ❌ |
 | `ProblemsPanel`, `RepairPanel`, `DiagnosticsPanel` | `src/sync/*`, `src/diagnostics/*` | 🔶 inside Settings | 🔶 inside Settings |
-| `PayViaUpi`, `PayAnyone`, `PendingSettlements`, `PaymentHandlePanel` | `src/payments/*` | 🔶 dialog only | 🔶 sheet only |
+| `PayViaUpi`, `PendingSettlements` | `src/payments/*` | 🔶 dialog only | 🔶 sheet only |
+| `PaymentHandlePanel` | `src/payments/PaymentHandlePanel.tsx` | ✅ `ui/payments/PaymentHandlePanel.kt` | ✅ `PaymentHandleSectionView.swift` |
 
 ## 6. Cross-cutting gaps
 
@@ -3810,3 +3811,82 @@ grant chips behind a flag until a key exists.
 
 **Also still true: the transfer branch drops the note on both phones** where web
 writes it (`new/page.tsx:312`). Pre-existing mobile bug, outside this slice.
+
+## Tranche 9 — the payment-handle panel (2026-08-29)
+
+Two of the last six gaps, and a refusal on a third.
+
+**"Your UPI ID" + the Settings panel — done, both platforms.**
+`payment_handle_disclosures` was already in the native schema and `UpiRepository`
+already existed on both platforms, but only for the *counterparty* fetch. The
+owner half is now there: read your own handle, save it, forget it, and the
+who-fetched-it disclosure log. The log joins `public_profiles ∪ profiles` in one
+SQL statement where web resolves it through a separate hook, so PowerSync
+re-emits when either table changes.
+
+The masked hint cache moved from an in-memory field to `SharedPreferences` /
+`UserDefaults` under web's own `pc_upi_hint` key. In-memory on a phone is close
+to no cache at all: every background kill put the panel back to "add a UPI ID".
+
+One deliberate divergence: web starts `loading = true`, but its `useSession()`
+hydrates from a localStorage cache so it never flashes the guest refusal. Native
+has no such cache, so the session read folds into the same loading flag —
+otherwise every Settings open shows "Create an account to add a UPI ID" to an
+account holder for a frame.
+
+### A latent crash found on the way
+
+`UpiRepository.kt` contained:
+
+```kotlin
+fun isValidVpa(vpa: String): Boolean = isValidVpa(vpa)
+```
+
+A member function shadows a top-level import **inside its own class**, so this
+called itself. `StackOverflowError` the instant anything used it — and nothing
+ever had, which is the only reason it had never crashed. iOS's twin already
+spelled it `Domain.isValidVpa(...)`. Both are now fully qualified, and a sweep
+found no other member shadowing a Domain free function it meant to call.
+
+### The credit-pack buttons — refused, with the reason
+
+`buyCredits()` → the `razorpay-credits` edge function for an order id →
+`loadRazorpay()` injects `checkout.razorpay.com/v1/checkout.js` **into the page**
+and opens the web Checkout modal. There is no page on a phone.
+
+The native Razorpay SDKs are not the fix either. AI credits are digital content
+consumed in-app, so **App Store 3.1.1 and Play's payments policy both mandate
+StoreKit / Play Billing**, and `razorpay-webhook` is the only thing that grants
+credits server-side — there is no receipt-verification path for either store.
+Closing this is Play Billing plus StoreKit plus a new server grant path. It is a
+project, not a control.
+
+What did change: both screens were already dropping `outPaidRest` ("Buy a credit
+top-up to keep going — credits never expire.") without saying why. The omission
+is correct — it is the caption for buttons that do not exist, which is this
+project's dead-control failure mode in prose — but it was undocumented. Now
+stated in both file headers and in `ABSENT-BY-DECISION.md`.
+
+### New web defects
+
+| # | Defect |
+|---|---|
+| 58 | `PaymentHandlePanel.tsx:21` — on a cold load with an empty session cache, `useSession()` returns null on first paint and the panel tells a signed-in user "Create an account to add a UPI ID" before correcting itself. A one-frame lie about account state |
+| 59 | **`billing.ts:82` and `billing/plans.ts` hold plan and credit-pack prices as hardcoded MAJOR-unit integers** (`monthly: 49`, `price: 29`) rendered as `` `₹${c.price}` `` with a literal rupee sign in three places. That breaks this repo's own integer-minor-units rule and is unlocalisable. Nothing native depends on it today — but **if a purchase flow is ever built, this table must move to minor units and `formatMoney` first**, or the first non-INR market ships wrong prices |
+
+### Worth scheduling
+
+**The disclosure log cannot prove what it claims.** The panel's honesty copy
+("our server can read this") is good, and the log is the only thing that makes it
+verifiable — but it is a *synced* table with no server-side completeness proof. A
+user shown "Who's seen this (0)" while offline, or before the first sync, is
+being told something the app cannot actually know. Web has the same hole. All
+three clients want an "as of last sync" qualifier, and it should land on all
+three at once rather than putting the phone and the browser out of step.
+
+**`sanvya_prefs` now has writers in two Gradle modules.** `ShellViewModel.swift`
+states the house rule outright — "`Data` cannot see `Prefs`… would create a
+second source of truth for a user-visible setting" — and `pc_upi_hint` is not a
+user-visible setting, so this is not a violation. But it is drift unless it is a
+decision. The clean form is a small `HintStore` interface injected from the app
+layer, so `:data` keeps not knowing what a preference file is.

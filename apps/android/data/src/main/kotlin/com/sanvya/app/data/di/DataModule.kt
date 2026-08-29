@@ -81,7 +81,19 @@ val dataModule = module {
     // bypassed it would post rows the app itself would refuse.
     single { RecurringRepository(db = get(), ledger = get(), splits = get()) }
     single { LoanAutoPostRepository(db = get(), ledger = get()) }
-    single { com.sanvya.app.data.repository.UpiRepository(get()) }
+    // Takes the database (the disclosure audit trail is synced and read from
+    // local SQLite) and the Context (the masked hint is a device pref, exactly
+    // as web keeps it in localStorage) alongside the client the Edge Function
+    // calls go through.
+    single {
+        val auth: AuthRepository = get()
+        com.sanvya.app.data.repository.UpiRepository(
+            client = get(),
+            db = get(),
+            context = androidContext(),
+            getUserId = { auth.currentUserId.value },
+        )
+    }
     single { com.sanvya.app.data.repository.InvitesRepository(get()) }
     single { com.sanvya.app.data.repository.FeedbackRepository(get()) }
     single {

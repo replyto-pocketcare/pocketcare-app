@@ -40,6 +40,7 @@ import com.sanvya.app.data.repository.StrandedRow
 import com.sanvya.app.theme.*
 import com.sanvya.app.ui.components.ConfirmDialog
 import com.sanvya.app.ui.onboarding.OnboardingDeckScreen
+import com.sanvya.app.ui.payments.PaymentHandlePanelBody
 import com.sanvya.app.ui.shell.LocalShellNavigate
 import com.sanvya.app.ui.security.SecurityPanelBody
 import com.sanvya.app.ui.shell.SettingsSection
@@ -453,6 +454,20 @@ fun SettingsScreen(
                 OutlinedButton(onClick = onImportExport) {
                     Text(S.Data.exportBtn(sRes()))
                 }
+            }
+
+            // ---- Your UPI ID ----
+            //
+            // Web renders <PaymentHandlePanel /> immediately after the `#data`
+            // section and before the sync panels, and the position is the point:
+            // it is a thing you set up once, not a thing that goes wrong. The
+            // heading and the intro are this card's title and subtitle, exactly
+            // as web's <strong> + muted <p> open its <section>.
+            SettingsCard(
+                title = S.Payments.settingsTitle(res),
+                subtitle = S.Payments.settingsIntro(res),
+            ) {
+                PaymentHandlePanelBody()
             }
 
             // ---- Plan & billing ----

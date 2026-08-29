@@ -1484,6 +1484,7 @@ public enum S {
         public static var settingsIntro: String { String(localized: "payments:settings.intro", table: "Localizable") }
         public static var settingsInvalid: String { String(localized: "payments:settings.invalid", table: "Localizable") }
         public static var settingsLabel: String { String(localized: "payments:settings.label", table: "Localizable") }
+        public static var settingsPlaceholder: String { String(localized: "payments:settings.placeholder", table: "Localizable") }
         public static var settingsPrivacy: String { String(localized: "payments:settings.privacy", table: "Localizable") }
         public static var settingsRemove: String { String(localized: "payments:settings.remove", table: "Localizable") }
         public static var settingsReplace: String { String(localized: "payments:settings.replace", table: "Localizable") }

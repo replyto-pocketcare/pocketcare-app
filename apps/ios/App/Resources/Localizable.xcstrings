@@ -25670,6 +25670,29 @@
         }
       }
     },
+    "payments:settings.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "name@bank"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "name@bank"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "naam@bank"
+          }
+        }
+      }
+    },
     "payments:settings.privacy": {
       "extractionState": "manual",
       "localizations": {

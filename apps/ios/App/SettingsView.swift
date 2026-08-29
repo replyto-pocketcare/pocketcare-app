@@ -261,6 +261,14 @@ struct SettingsView: View {
                         NavigationLink(S.Data.exportBtn) { DataView() }
                     }
 
+                    // MARK: Your UPI ID
+                    //
+                    // Web renders <PaymentHandlePanel /> immediately after the
+                    // `#data` section and before the sync panels, and the
+                    // position is the point: it is a thing you set up once, not
+                    // a thing that goes wrong.
+                    PaymentHandleSection()
+
                     // MARK: Plan & billing
                     Section(header: Text("Plan & Billing")) {
                         Text("You're on the \(viewModel.entitlement.tier.capitalized) plan.")

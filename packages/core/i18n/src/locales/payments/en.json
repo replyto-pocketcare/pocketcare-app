@@ -35,6 +35,7 @@
     "intro": "Add your UPI ID so friends can pay you back from inside Sanvya. Money goes straight to your bank — we never hold it.",
     "guestBlocked": "Create an account to add a UPI ID. Guest sessions can't save payment details.",
     "label": "UPI ID",
+    "placeholder": "name@bank",
     "current": "Your UPI ID",
     "replace": "Replace with a different UPI ID",
     "invalid": "That doesn't look right — a UPI ID looks like name@bank.",

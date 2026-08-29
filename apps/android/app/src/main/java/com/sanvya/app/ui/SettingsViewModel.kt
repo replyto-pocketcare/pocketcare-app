@@ -33,13 +33,16 @@ import org.koin.core.component.inject
  * Settings screen state + actions (task #47).
  *
  * Ports the functional pieces of apps/web/app/settings/page.tsx that have a
- * real mobile counterpart. Deliberately excludes (see settings.md spec for
- * the full reasoning): Security & encryption (E2E crypto, its own future
- * task), UPI Payment Handle (bundles with Splits #30 where it's actually
- * used), Categories/Labels/Import-Export (no mobile screens exist yet to
- * link to -- queued as their own tasks), Language (no i18n on mobile), and
- * Fault Injection (dev-only per the web source's own gating comment -- a
- * shipped build with this visible would be a way to break a real user's sync).
+ * real mobile counterpart. Deliberately excludes: Language (Android follows the
+ * system locale -- there is no in-app picker to hold state for) and Fault
+ * Injection (dev-only per the web source's own gating comment -- a shipped
+ * build with this visible would be a way to break a real user's sync).
+ *
+ * Security & encryption, Categories/Labels/Import-Export and "Your UPI ID" were
+ * all on that exclusion list and are all built now; each keeps its own view
+ * model beside its panel (SecurityViewModel, PaymentHandleViewModel) rather
+ * than growing this one, which is why they are gone from here and not moved
+ * into here.
  */
 
 data class SessionInfo(

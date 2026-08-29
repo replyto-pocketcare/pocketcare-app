@@ -35,6 +35,7 @@
     "intro": "Voeg je UPI-ID toe zodat vrienden je vanuit Sanvya kunnen terugbetalen. Het geld gaat rechtstreeks naar je bank — wij houden het nooit vast.",
     "guestBlocked": "Maak een account aan om een UPI-ID toe te voegen. In een gastsessie kunnen geen betaalgegevens worden opgeslagen.",
     "label": "UPI-ID",
+    "placeholder": "naam@bank",
     "current": "Jouw UPI-ID",
     "replace": "Vervangen door een andere UPI-ID",
     "invalid": "Dat ziet er niet goed uit — een UPI-ID ziet eruit als naam@bank.",

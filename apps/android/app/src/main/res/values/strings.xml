@@ -1188,6 +1188,7 @@
     <string name="payments_settings_intro">Add your UPI ID so friends can pay you back from inside Sanvya. Money goes straight to your bank — we never hold it.</string>
     <string name="payments_settings_invalid">That doesn\'t look right — a UPI ID looks like name@bank.</string>
     <string name="payments_settings_label">UPI ID</string>
+    <string name="payments_settings_placeholder">name@bank</string>
     <string name="payments_settings_privacy">Shared only with people you\'re in a group with and have a balance with — and only when they go to pay you. Unlike your passphrase-protected data, our server can read this, because it has to hand it to the payer.</string>
     <string name="payments_settings_remove">Remove</string>
     <string name="payments_settings_replace">Replace with a different UPI ID</string>

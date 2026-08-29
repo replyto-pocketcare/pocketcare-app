@@ -1188,6 +1188,7 @@
     <string name="payments_settings_intro">Voeg je UPI-ID toe zodat vrienden je vanuit Sanvya kunnen terugbetalen. Het geld gaat rechtstreeks naar je bank — wij houden het nooit vast.</string>
     <string name="payments_settings_invalid">Dat ziet er niet goed uit — een UPI-ID ziet eruit als naam@bank.</string>
     <string name="payments_settings_label">UPI-ID</string>
+    <string name="payments_settings_placeholder">naam@bank</string>
     <string name="payments_settings_privacy">Wordt alleen gedeeld met mensen met wie je in een groep zit én een openstaand saldo hebt — en alleen wanneer zij je gaan betalen. Anders dan je met een wachtwoordzin beschermde gegevens kan onze server dit lezen, omdat hij het aan de betaler moet doorgeven.</string>
     <string name="payments_settings_remove">Verwijderen</string>
     <string name="payments_settings_replace">Vervangen door een andere UPI-ID</string>

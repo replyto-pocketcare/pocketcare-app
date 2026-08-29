@@ -1188,6 +1188,7 @@
     <string name="payments_settings_intro">अपनी UPI ID जोड़ें ताकि दोस्त Sanvya से ही आपको पैसे लौटा सकें। पैसा सीधे आपके बैंक में जाता है — हम उसे कभी नहीं रखते।</string>
     <string name="payments_settings_invalid">यह सही नहीं लगता — UPI ID ऐसी होती है: name@bank।</string>
     <string name="payments_settings_label">UPI ID</string>
+    <string name="payments_settings_placeholder">name@bank</string>
     <string name="payments_settings_privacy">यह सिर्फ़ उन्हीं लोगों से साझा होती है जिनके साथ आप किसी समूह में हैं और जिनसे लेन-देन बकाया है — और तभी जब वे आपको भुगतान करने जाएँ। आपके पासफ़्रेज़-सुरक्षित डेटा के विपरीत, हमारा सर्वर इसे पढ़ सकता है, क्योंकि उसे यह भुगतानकर्ता को देनी होती है।</string>
     <string name="payments_settings_remove">हटाएँ</string>
     <string name="payments_settings_replace">किसी दूसरी UPI ID से बदलें</string>

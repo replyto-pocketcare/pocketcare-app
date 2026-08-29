@@ -108,8 +108,19 @@ public extension Container {
         }.singleton
     }
 
+    // Takes the database (the disclosure audit trail is synced and read from
+    // local SQLite) and UserDefaults (the masked hint is a device pref, exactly
+    // as web keeps it in localStorage) alongside the client the Edge Function
+    // calls go through.
     var upiRepository: Factory<UpiRepository> {
-        self { UpiRepository(client: self.supabaseClient()) }.singleton
+        self {
+            let auth = self.authRepository()
+            return UpiRepository(
+                client: self.supabaseClient(),
+                db: self.powerSyncDatabase(),
+                getUserId: { auth.currentUserId }
+            )
+        }.singleton
     }
 
     var invitesRepository: Factory<InvitesRepository> {
