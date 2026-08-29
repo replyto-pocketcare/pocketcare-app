@@ -127,6 +127,26 @@ const EXTERNAL = {
   longOrNull: { pkg: "kotlinx.serialization.json", property: true },
 };
 
+/**
+ * Imports that must NOT be written, because the name is a member of a SCOPE
+ * rather than a top-level declaration.
+ *
+ * The inverse of everything else in this file, and it earns its place for the
+ * same reason: `import androidx.compose.material3.ExposedDropdownMenu` reads
+ * exactly like the two imports either side of it (`ExposedDropdownMenuBox` and
+ * `ExposedDropdownMenuDefaults` ARE top-level), and Kotlin's error is
+ * "Unresolved reference 'ExposedDropdownMenu'" pointing at the IMPORT line --
+ * which invites you to check the spelling of a name that is spelled correctly.
+ *
+ * The call site needs no import at all: the composable arrives with the scope
+ * of the Box it is nested inside. The three files in this repo that already use
+ * the control take the `material3.*` wildcard and so never met the trap.
+ */
+const FORBIDDEN_IMPORTS = {
+  "androidx.compose.material3.ExposedDropdownMenu":
+    "a member of ExposedDropdownMenuBoxScope, not a top-level composable — delete the import; the call site gets it from the enclosing ExposedDropdownMenuBox",
+};
+
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
     if (entry === "build" || entry === ".gradle") continue;
@@ -228,6 +248,15 @@ for (const file of files) {
 
   const imports = src.split("\n").filter((l) => l.startsWith("import "))
     .map((l) => l.slice("import ".length).trim());
+
+  for (const [bad, why] of Object.entries(FORBIDDEN_IMPORTS)) {
+    if (!imports.includes(bad)) continue;
+    hits++;
+    console.log(
+      `${path.relative(REPO_ROOT, file)}: imports \`${bad}\`, which does not resolve.\n` +
+      `    → ${why}`,
+    );
+  }
   const explicit = new Set(imports.filter((i) => !i.endsWith("*")).map((i) => i.split(" as ")[0]));
   const wildcards = new Set(imports.filter((i) => i.endsWith("*")).map((i) => i.slice(0, -2)));
 

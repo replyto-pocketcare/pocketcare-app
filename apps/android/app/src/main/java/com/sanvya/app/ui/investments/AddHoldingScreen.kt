@@ -17,7 +17,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
+// NO `import ...material3.ExposedDropdownMenu`. It is a member of
+// `ExposedDropdownMenuBoxScope`, not a top-level composable, so importing the
+// name does not resolve -- it arrives with the scope of the Box below. The
+// three files that already use this control take the wildcard and never hit it.
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
