@@ -1,0 +1,69 @@
+globals.css: 19 colours, 3 radii, 3 shadows; 50/50 spec assertions match.
+Wrote:
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Color.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Shape.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Type.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Elevation.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Motion.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Metrics.kt
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Theme.kt
+ - apps/ios/App/Theme/Colors.swift
+ - apps/ios/App/Theme/Shape.swift
+ - apps/ios/App/Theme/Typography.swift
+ - apps/ios/App/Theme/Elevation.swift
+ - apps/ios/App/Theme/Motion.swift
+ - apps/ios/App/Theme/Metrics.swift
+i18n: 32 namespaces, 1515 entries (23 plural), 3 locales — key sets aligned.
+Wrote:
+ - apps/android/app/src/main/res/values/strings.xml
+ - apps/android/app/src/main/res/values-hi/strings.xml
+ - apps/android/app/src/main/res/values-nl/strings.xml
+ - apps/android/app/src/main/java/com/sanvya/app/i18n/S.kt
+ - apps/ios/App/Resources/Localizable.xcstrings
+ - apps/ios/App/Generated/S.swift
+icons: 58 names parsed from MaterialIcon.tsx
+Wrote:
+ - apps/android/app/src/main/java/com/sanvya/app/theme/Icons.kt
+ - apps/ios/App/Theme/Icons.swift
+money-format: 161 currency locales parsed
+Wrote:
+ - apps/ios/Domain/Sources/Domain/MoneyFormat.swift
+ - apps/android/domain/src/main/kotlin/com/sanvya/app/domain/money/MoneyFormat.kt
+catalog: 9 currencies, 4 periods, 7 account types (3 investment), 18 colours, 8+8 chart colours, 5 genders, 17 countries, 2 plans.
+Wrote:
+ - apps/android/app/src/main/java/com/sanvya/app/ui/FormOptions.kt
+ - apps/ios/App/FormOptions.swift
+tiles: 14 tiles (5 premium), 3 on by default, widths sm=1/md=2/lg=4
+Wrote:
+ - apps/android/app/src/main/java/com/sanvya/app/ui/dashboard/TileCatalog.kt
+ - apps/ios/App/TileCatalog.swift
+help: 11 sections, 33 question/answer pairs
+Wrote:
+ - apps/android/domain/src/main/kotlin/com/sanvya/app/domain/help/HelpContent.kt
+ - apps/ios/Domain/Sources/Domain/HelpContent.swift
+onboarding-slides: 7 slides
+ - apps/android/app/src/main/java/com/sanvya/app/ui/onboarding/OnboardingSlides.kt
+ - apps/ios/App/OnboardingSlides.swift
+category-seeds: 186 keywords over 17 categories, 13 stop words, 121 noise tokens
+ - apps/android/domain/src/main/kotlin/com/sanvya/app/domain/categorize/CategorySeeds.kt
+ - apps/ios/Domain/Sources/Domain/CategorySeeds.swift
+assistant-tools: 7 tools, 6 requiring confirmation -> apps/android/domain/src/main/kotlin/com/sanvya/app/domain/assistant/AssistantTools.kt, apps/ios/Domain/Sources/Domain/AssistantTools.swift
+assistant-persona: 41 lines, 8662 chars -> apps/android/domain/src/main/kotlin/com/sanvya/app/domain/assistant/AssistantPersona.kt, apps/ios/Domain/Sources/Domain/AssistantPersona.swift
+feedback: 14 area(s), 4 severities, log cap 20000, ua cap 300, version 0.1.0
+Wrote:
+ - apps/android/domain/src/main/kotlin/com/sanvya/app/domain/feedback/Feedback.kt
+ - apps/ios/Domain/Sources/Domain/Feedback.swift
+
+i18n keys expected in packages/core/i18n/src/locales/feedback/:
+  areaDashboard, areaTransactions, areaAccountsCards, areaBudgets, areaGoals, areaInvestments, areaFriendsSplits, areaSubscriptions, areaLoans, areaAskSanvya, areaInsights, areaSettingsBilling, areaSyncOffline, areaOther
+Wrote 64 tables to tools/golden-vectors/vectors/mobile-schema.json
+Wrote 64 tables to:
+  apps/android/domain/src/main/kotlin/com/sanvya/app/domain/db/PocketCareSchema.kt
+  apps/ios/Domain/Sources/Domain/PocketCareSchema.swift
+swift-traps: 278 files, 3 line rules + bindable + escaping-content + shadowed-symbol + missing-import + static-non-Sendable scans, 0 hit(s)
+kotlin-imports: 293 files, 62 symbols, 0 hit(s)
+trailing-lambda: 155 files, 11 component(s) whose last parameter is not a lambda, 0 hit(s)
+nested-comments: 581 files, 0 hit(s)
+i18n-args: 143 swift + 154 kotlin files, 1513 swift + 1514 kotlin accessors, 1171 call site(s) checked, 0 skipped, 0 hit(s)
+vector-registration: 39 domain(s), 39 wired on Android, 39 on iOS, 0 hit(s)
+money-scale: 489 files, 72 percentage/calendar line(s) skipped, 5 allowed site(s), 0 hit(s)
