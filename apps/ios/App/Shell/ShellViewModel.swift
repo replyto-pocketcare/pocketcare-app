@@ -3,6 +3,7 @@ import Observation
 import Factory
 import Data
 import Domain
+import Supabase
 
 /**
  The state the app shell needs on every screen: the bell badge, the two banners,
@@ -18,6 +19,8 @@ final class ShellViewModel {
     @ObservationIgnored @Injected(\.repairRepository) private var repairRepository
     @ObservationIgnored @Injected(\.prefsRepository) private var prefsRepository
     @ObservationIgnored @Injected(\.authRepository) private var authRepository
+    /// Only for the signed-in email — see `refreshGuest()`.
+    @ObservationIgnored @Injected(\.supabaseClient) private var client
     @ObservationIgnored @Injected(\.recurringRepository) private var recurringRepository
     @ObservationIgnored @Injected(\.loanAutoPostRepository) private var loanAutoPostRepository
 
@@ -30,6 +33,18 @@ final class ShellViewModel {
     /// Gates the lock badge on the default add menu's second item, matching
     /// web's own `canScan` in AppShell.tsx.
     var canScan: Bool = false
+
+    /// On the 14-day trial, and how much of it is left — what ``TrialNotice``
+    /// needs. Derived from the same `watchEntitlement()` stream `canScan`
+    /// already consumes, because `entitlementState()` answers both questions in
+    /// one pass and a second watch on one table for one boolean is how the sync
+    /// status ended up in four places.
+    var isTrial: Bool = false
+    var trialDaysLeft: Int = 0
+
+    /// The signed-in email, which is what web keys the one-time trial welcome
+    /// dialog on (`sanvya:trial-welcome:<email>`). Nil while unknown.
+    var sessionEmail: String?
 
     private var tasks: [Task<Void, Never>] = []
 
@@ -75,6 +90,18 @@ final class ShellViewModel {
                         compUntil: row?.compUntil,
                         now: Date()
                     )
+                    // `entitlementState` takes epoch MILLIS, unlike `isPaid`
+                    // right above it, which takes a Date. That inconsistency is
+                    // the existing Domain signature's, not this call's.
+                    let state = entitlementState(
+                        tier: row?.tier,
+                        premiumTrialStartDate: row?.premiumTrialStartDate,
+                        compTier: row?.compTier,
+                        compUntil: row?.compUntil,
+                        nowMillis: Int64(Date().timeIntervalSince1970 * 1000)
+                    )
+                    self.isTrial = state.isTrial
+                    self.trialDaysLeft = state.trialDaysLeft
                 }
             } catch {
                 /* offline — keep the last known tier */
@@ -163,6 +190,10 @@ final class ShellViewModel {
     private func refreshGuest() async {
         let guest = await authRepository.isGuest()
         isGuest = guest
+        // Read off the same local `currentUser` the two properties below use, so
+        // this costs no round trip. `TrialNotice` needs it to key its one-time
+        // welcome dialog the way web does.
+        sessionEmail = client.auth.currentUser?.email
         guard guest, let createdAt = authRepository.currentUserCreatedAt else {
             guestDaysLeft = nil
             return

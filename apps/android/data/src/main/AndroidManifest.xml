@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      Read by SyncStatusRepository's ConnectivityManager callback, which is the
+      app's ONE source of "is this device online" (the shell used to hold a
+      private copy of the same callback).
+
+      Declared HERE rather than in :app on purpose: the module that makes the
+      call is the module that should ask for the permission, so moving the
+      status object again cannot leave the permission behind. It merges into the
+      app manifest at build time.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+</manifest>

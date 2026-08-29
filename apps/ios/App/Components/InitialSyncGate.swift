@@ -1,4 +1,7 @@
+import Combine
+import Factory
 import Foundation
+import Data
 import PowerSync
 
 /**
@@ -10,44 +13,39 @@ import PowerSync
  first sync is not merely unhelpful but wrong: it tells a returning user their
  money is gone.
 
- Shared rather than repeated because more than one list needs it, and because
- the two screens that need it must agree — Transactions and Accounts showing
- different answers to "has the data arrived?" is worse than either answer.
+ **This file no longer polls.** It used to run its own 400 ms loop over
+ `db.currentStatus.hasSynced`, once per caller — three view models, plus a fourth
+ hand-rolled copy in `WalkthroughGate`. Four loops asking one field the same
+ question, free to disagree with each other mid-flight.
 
- TWO deliberate differences from web, both recorded here rather than in the call
- sites:
+ All of it now reads one app-level ``SyncStatusStore`` (`Data`), which follows
+ the SDK's own `SyncStatus.asFlow()` — a real change stream, so there is no poll
+ left on this platform at all — and owns connectivity as well. That is what let
+ the gate adopt web's actual rule, `online && !hasSynced`, instead of the
+ deadline it used as a stand-in for connectivity. The deadline is still there,
+ but as a floor rather than a substitute; the reason is on
+ `SyncStatusStore.initialSyncPending` and it is not a pretty one.
 
- * It POLLS. `hasSynced` has no change stream on either SDK, so this reads the
-   same status object the diagnostics panel does — exactly as `WalkthroughGate`
-   already does, and for the same reason. It settles once and then never changes
-   for the life of the process, so the loop ends for good the moment it flips.
-   This is not a background poller.
- * There is no `online &&`, but there IS a deadline. Web can cheaply ask
-   `navigator.onLine`; the equivalent here is the shell's `NWPathMonitor`, which
-   is not reachable from a view model. Without a substitute the gate would wait
-   FOREVER on a brand-new install with no network — the user would get a
-   shimmering placeholder and no way to read what it means. So the wait is
-   bounded: after `syncWaitTimeoutMilliseconds` we give up and let the empty
-   state show, which at that point is the honest answer. A returning user never
-   reaches the deadline — PowerSync persists `hasSynced` with the local
-   database, so they answer "already synced" offline on the first frame.
+ - Parameter db: ignored. Kept so the three call sites that pass their injected
+   database keep compiling; `hasSynced` is read by the shared store now, not per
+   caller. The parameter is vestigial and those callers should drop it the next
+   time one of their files is opened for its own reasons.
  */
 @MainActor
 func awaitInitialSync(_ db: any PowerSyncDatabaseProtocol) async {
-    var waited = 0
-    while !Task.isCancelled && waited < syncWaitTimeoutMilliseconds {
-        if db.currentStatus.hasSynced == true { return }
-        try? await Task.sleep(for: .milliseconds(syncPollMilliseconds))
-        waited += syncPollMilliseconds
-    }
+    _ = db
+    await awaitInitialSync()
 }
 
-/// `WalkthroughGate`'s own interval, so the two gates settle together.
-private let syncPollMilliseconds = 400
-
-/// How long a placeholder is allowed to stand in for an answer.
-///
-/// Ten seconds is well past a healthy first sync and well short of the point
-/// where a person decides the app is broken. Past it the empty state is not a
-/// guess any more — it is what we actually know.
-private let syncWaitTimeoutMilliseconds = 10_000
+@MainActor
+func awaitInitialSync() async {
+    let store = Container.shared.syncStatusStore()
+    store.start()
+    // Checked before subscribing: a returning user's `hasSynced` is persisted
+    // with the local database, so they are already settled on the first frame
+    // and must not wait for an event that will never come.
+    if !store.initialSyncPending { return }
+    for await pending in store.initialSyncPendingPublisher.values {
+        if !pending { return }
+    }
+}

@@ -408,6 +408,21 @@ class VectorRunnerTest {
         runDomain("upi")
     }
     @Test
+    fun suggestions() {
+        // Suggestions.kt -- the "Worth a look" ranking. The corpus is generated
+        // by running web's own @sanvya/suggestions, so the thresholds are
+        // pinned to ground truth rather than to a transcription of it.
+        com.sanvya.app.domain.suggestions.registerSuggestionsVectors()
+        runDomain("suggestions")
+    }
+    @Test
+    fun `sync-status`() {
+        // SyncNotice.kt -- web's syncMessage() minus its English copy. What is
+        // pinned is which errors are swallowed as a network wobble.
+        com.sanvya.app.domain.syncstatus.registerSyncStatusVectors()
+        runDomain("sync-status")
+    }
+    @Test
     fun `transaction-audit`() {
         // AuditSummary.kt. Web's version is a React component reading a module
         // object literal, so the vectors record a transcription of it -- see

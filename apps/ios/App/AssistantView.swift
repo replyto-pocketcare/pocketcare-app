@@ -35,7 +35,20 @@ struct AssistantView: View {
     /// Filters an action deep-linked to, handed on to `SearchView`.
     @Binding var searchPrefill: SearchPrefill?
 
+    /// A question this view was opened WITH, sent as its first turn.
+    ///
+    /// Web's `AssistantChat` takes exactly the same `initialPrompt`, for exactly
+    /// the same caller: the dashboard's "Ask Sanvya" card is a launcher, and
+    /// whatever you type or tap on it has to become the chat's opening question
+    /// rather than being dropped on the way in. Defaulted and declared last, so
+    /// every existing `AssistantView(currentTab:openGroupId:searchPrefill:)` call
+    /// site is untouched.
+    var initialPrompt: String?
+
     @State private var viewModel = AssistantViewModel()
+    /// One-shot latch for ``initialPrompt`` — a tab switch back to this view
+    /// must not re-ask the question.
+    @State private var askedInitialPrompt = false
     @State private var input = ""
     @State private var payloadOpen = false
     @State private var confirmDeleteId: String?
@@ -64,7 +77,12 @@ struct AssistantView: View {
         .task {
             viewModel.start()
             disclaimerOpen = !AiDisclaimer.read()
+            sendInitialPromptIfReady()
         }
+        // The entitlement arrives from a watch, so on a cold open it is not
+        // known yet when `.task` runs. Sending before it settles would fire the
+        // question into the premium gate, where it would be invisible.
+        .onChange(of: viewModel.entitlementKnown) { _, _ in sendInitialPromptIfReady() }
         .onDisappear { viewModel.cancel() }
     }
 
@@ -471,6 +489,16 @@ struct AssistantView: View {
      vector-pinned and the wording stays in the catalogue — neither of which a
      Domain module that formatted the sentence itself could manage.
      */
+    /// Sends ``initialPrompt`` once, and only once the entitlement says the chat
+    /// is reachable at all. A free user sees the gate, exactly as on web.
+    private func sendInitialPromptIfReady() {
+        guard let initialPrompt, !initialPrompt.isEmpty else { return }
+        guard !askedInitialPrompt, viewModel.entitlementKnown, viewModel.isPaid else { return }
+        askedInitialPrompt = true
+        viewModel.newChat(greeting: S.Assistant.greeting)
+        viewModel.send(initialPrompt, errorText: errorText)
+    }
+
     private func errorText(_ key: String, _ raw: String) -> String {
         switch key {
         case "errNotConfigured": return S.Assistant.errNotConfigured

@@ -140,8 +140,20 @@ fun SanvyaNavHost(inviteToken: String? = null) {
         onNavigate = { route ->
             if (route != currentRoute) {
                 navController.navigate(route) {
-                    popUpTo("dashboard") { inclusive = false }
+                    // saveState/restoreState is this platform's per-route scroll
+                    // restoration -- web hand-rolls the same thing in
+                    // AppShell.tsx (`pc_scroll:<path>` in sessionStorage,
+                    // retried while async content grows the page) because a
+                    // browser does not offer it. Compose does: every
+                    // `rememberScrollState` / `rememberLazyListState` is
+                    // saveable, so the destination's scroll position, its open
+                    // filter chips and its half-typed search all come back with
+                    // it. Without these two lines the state was DISCARDED on
+                    // every bottom-bar tap, which is why leaving Transactions
+                    // and returning always landed back at the top.
+                    popUpTo("dashboard") { inclusive = false; saveState = true }
                     launchSingleTop = true
+                    restoreState = true
                 }
             }
         },

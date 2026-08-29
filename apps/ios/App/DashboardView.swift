@@ -41,6 +41,17 @@ struct DashboardView: View {
     /// cover for its guest chips, but the walkthrough is presented FROM this
     /// view, so it has to be the one to present what comes after it.
     @State private var showingLogin = false
+    /// The docked assistant panel's state, held HERE rather than inside
+    /// `AssistantWidget`. `.overlay` sizes itself to the view it is attached
+    /// to, and the widget is a 360pt card in the hero row -- presenting from
+    /// there would clip the panel to that card instead of docking it to the
+    /// window edge, which is the whole point of the docked layout.
+    @State private var assistantOpen = false
+    @State private var assistantPrompt: String?
+
+    /// The shell publishes this; the dashboard reads it to decide whether there
+    /// is room for the KPI strip and the assistant beside the hero.
+    @Environment(\.sanvyaWindowClass) private var windowClass
 
     var body: some View {
         NavigationStack {
@@ -77,16 +88,50 @@ struct DashboardView: View {
                                 onNotifications: { currentTab = .notifications }
                             )
 
+                            // The wide-window layout, and the two things that
+                            // were missing from it. Web gates both on
+                            // `useIsDesktop()` (its own 1024px media query); the
+                            // port gates on the window class the shell already
+                            // publishes, because that is what every other iPad
+                            // app switches at and a CSS pixel width is not a
+                            // number an iPad is measured in.
+                            //
                             // Net-worth hero -- ported from apps/web/app/page.tsx's
                             // NetWorthHero per docs/mobile/screen-specs/dashboard.md.
-                            // Replaces this file's previous flat Color.accent card
-                            // with an invented "Assets/Liabilities" split that never
-                            // existed in the web source (found + fixed 2026-08-05,
-                            // see AUDIT_HISTORY.md).
-                            NetWorthHeroView(
-                                state: viewModel.hero,
-                                hidden: prefs.amountsHidden,
-                                onToggle: { viewModel.toggleShowAvailable() }
+                            if windowClass == .expanded {
+                                StatRow(stats: viewModel.stats, hidden: prefs.amountsHidden)
+                                // Web's `.dash-hero-row`: the headline card and
+                                // the assistant share a row, which is the
+                                // "headline + right rail" shape of a
+                                // conventional dashboard.
+                                HStack(alignment: .top, spacing: 20) {
+                                    NetWorthHeroView(
+                                        state: viewModel.hero,
+                                        hidden: prefs.amountsHidden,
+                                        onToggle: { viewModel.toggleShowAvailable() }
+                                    )
+                                    AssistantWidget(
+                                        currentTab: $currentTab,
+                                        panelOpen: $assistantOpen,
+                                        openingPrompt: $assistantPrompt
+                                    )
+                                    .frame(width: 360)
+                                }
+                            } else {
+                                NetWorthHeroView(
+                                    state: viewModel.hero,
+                                    hidden: prefs.amountsHidden,
+                                    onToggle: { viewModel.toggleShowAvailable() }
+                                )
+                            }
+
+                            // "Worth a look". Renders nothing until there is
+                            // enough history for a suggestion to be an
+                            // observation rather than a pitch, so a brand-new
+                            // user sees the walkthrough and nothing here.
+                            SuggestionsStrip(
+                                isPaid: shellViewModel.canScan,
+                                onOpen: { tab in currentTab = tab }
                             )
 
                             // Accounts Section
@@ -186,6 +231,21 @@ struct DashboardView: View {
             // reason Android skipped it: account creation is one tap away from
             // the strip's own Add tile.
             .toolbar(.hidden, for: .navigationBar)
+        }
+        // Docked to the window edge, so the dashboard stays visible beside it --
+        // web docks it right, and an assistant that covers the numbers you are
+        // asking about is answering the wrong way round.
+        .overlay {
+            if assistantOpen {
+                AssistantPanel(
+                    currentTab: $currentTab,
+                    openingPrompt: assistantPrompt,
+                    onClose: {
+                        assistantOpen = false
+                        assistantPrompt = nil
+                    }
+                )
+            }
         }
         .sanvyaFormPresentation(isPresented: $showingCreateAccountSheet) {
             CreateAccountView()
@@ -340,7 +400,13 @@ private struct AddAccountTile: View {
                     .font(.system(size: 12, weight: .semibold))
             }
             .foregroundStyle(Color.text2)
-            .frame(width: 112, minHeight: 58)
+            // Two calls, not one. SwiftUI has a FIXED frame
+            // (`width:height:alignment:`) and a FLEXIBLE one
+            // (`minWidth:...maxHeight:alignment:`) and no overload mixing the
+            // two -- `frame(width:minHeight:)` does not exist. Fixed width,
+            // then a floor on height.
+            .frame(width: 112)
+            .frame(minHeight: 58)
             .padding(.horizontal, 11)
             .padding(.vertical, 9)
             .overlay(

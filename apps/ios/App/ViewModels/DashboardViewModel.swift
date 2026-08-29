@@ -18,6 +18,22 @@ public struct NetWorthHeroState: Sendable {
     public var sparkline: [Float] = []
 }
 
+/// The four figures the wide-window KPI strip shows, all in MINOR units.
+///
+/// Derived here rather than in ``StatRow`` because the monthly income/expense
+/// fold this screen already does for the hero's sparkline is the same fold web's
+/// StatRow runs a second query for — one pass over the ledger, two consumers.
+///
+/// Mirrors Android's `DashboardStats` (DashboardViewModel.kt).
+public struct DashboardStats: Sendable {
+    public var netMinor: Int64 = 0
+    public var currentIncomeMinor: Int64 = 0
+    public var currentExpenseMinor: Int64 = 0
+    public var previousIncomeMinor: Int64 = 0
+    public var previousExpenseMinor: Int64 = 0
+    public var base: String = FormOptions.defaultCurrency
+}
+
 @Observable
 @MainActor
 public final class DashboardViewModel {
@@ -33,6 +49,9 @@ public final class DashboardViewModel {
 
     public var accounts: [AccountWithBalance] = []
     public var hero: NetWorthHeroState = NetWorthHeroState()
+
+    /// Only read at `.expanded` — see StatRow.swift for why iPhones skip the strip.
+    public var stats: DashboardStats = DashboardStats()
 
     /// Who the greeting is addressed to -- page.tsx's
     /// `session?.username || session.email.split("@")[0]`. Empty when neither is
@@ -166,11 +185,26 @@ public final class DashboardViewModel {
                 return acc
             }
 
+            // The KPI strip's four figures, off the SAME fold as the
+            // sparkline. Web's StatRow re-runs the identical GROUP BY in its own
+            // component; the one thing the port does differently is not paying
+            // for it twice.
+            let current = months.last?.1 ?? (inc: 0, exp: 0)
+            let previous = months.count >= 2 ? months[months.count - 2].1 : (inc: 0, exp: 0)
+
             self.hero.net = self.hero.showAvailable ? nw.available : nw.total
             self.hero.base = nw.base
             self.hero.deltaMinor = deltaMinor
             self.hero.hasTrend = !months.isEmpty
             self.hero.sparkline = sparkline
+            self.stats = DashboardStats(
+                netMinor: self.hero.net.amount,
+                currentIncomeMinor: current.inc,
+                currentExpenseMinor: current.exp,
+                previousIncomeMinor: previous.inc,
+                previousExpenseMinor: previous.exp,
+                base: nw.base
+            )
             // Set LAST, after every field it gates, so a half-built hero is
             // never shown as a finished one.
             self.accountsLoaded = true

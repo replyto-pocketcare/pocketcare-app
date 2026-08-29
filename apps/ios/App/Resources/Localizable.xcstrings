@@ -7515,6 +7515,282 @@
         }
       }
     },
+    "dashboard:askCollapseA11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse assistant"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहायक छोटा करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assistent inklappen"
+          }
+        }
+      }
+    },
+    "dashboard:askExpandA11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand assistant"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहायक बड़ा करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assistent uitklappen"
+          }
+        }
+      }
+    },
+    "dashboard:askPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask me anything…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुछ भी पूछिए…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vraag me van alles…"
+          }
+        }
+      }
+    },
+    "dashboard:askQuick.budgetLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Am I on budget?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "क्या मैं बजट में हूँ?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zit ik op budget?"
+          }
+        }
+      }
+    },
+    "dashboard:askQuick.budgetPrompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Am I on track with my budgets this month?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "क्या इस महीने मैं अपने बजट के भीतर चल रहा हूँ?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lig ik deze maand op schema met mijn budgetten?"
+          }
+        }
+      }
+    },
+    "dashboard:askQuick.findLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find a payment"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "भुगतान खोजें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek een betaling"
+          }
+        }
+      }
+    },
+    "dashboard:askQuick.findPrompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help me find a payment I made recently."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हाल में किया गया एक भुगतान खोजने में मेरी मदद करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help me een betaling te vinden die ik onlangs heb gedaan."
+          }
+        }
+      }
+    },
+    "dashboard:askQuick.goalLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan a goal"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लक्ष्य की योजना बनाएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan een doel"
+          }
+        }
+      }
+    },
+    "dashboard:askQuick.goalPrompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help me plan a realistic savings goal."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक व्यावहारिक बचत लक्ष्य की योजना बनाने में मेरी मदद करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help me een realistisch spaardoel te plannen."
+          }
+        }
+      }
+    },
+    "dashboard:askQuick.whereLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where did it go?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पैसा कहाँ गया?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waar ging het heen?"
+          }
+        }
+      }
+    },
+    "dashboard:askQuick.wherePrompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where did my money go this month?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस महीने मेरा पैसा कहाँ गया?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waar is mijn geld deze maand heen gegaan?"
+          }
+        }
+      }
+    },
+    "dashboard:askSendA11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "भेजें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versturen"
+          }
+        }
+      }
+    },
     "dashboard:customize": {
       "extractionState": "manual",
       "localizations": {
@@ -8274,6 +8550,144 @@
         }
       }
     },
+    "dashboard:statHidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amounts hidden"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "राशियाँ छिपी हैं"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedragen verborgen"
+          }
+        }
+      }
+    },
+    "dashboard:statIncome": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Income"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आय"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inkomsten"
+          }
+        }
+      }
+    },
+    "dashboard:statNetWorth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Net worth"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुल संपत्ति"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vermogen"
+          }
+        }
+      }
+    },
+    "dashboard:statSaved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बचत"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespaard"
+          }
+        }
+      }
+    },
+    "dashboard:statSpending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spending"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ख़र्च"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uitgaven"
+          }
+        }
+      }
+    },
+    "dashboard:statVsLastMonth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vs. %1$@ last month"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछले महीने %1$@ की तुलना में"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "t.o.v. %1$@ vorige maand"
+          }
+        }
+      }
+    },
     "dashboard:subsCount": {
       "extractionState": "manual",
       "localizations": {
@@ -8411,6 +8825,696 @@
           "stringUnit": {
             "state": "translated",
             "value": "De uitgaven tot nu toe zijn geschat op basis van de prijs van elk abonnement en hoe lang het al loopt. De werkelijke kosten kunnen afwijken."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.budgets.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick a monthly cap for eating out or shopping and watch it as you spend."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बाहर खाने या ख़रीदारी के लिए मासिक सीमा तय करें और ख़र्च के साथ देखते रहें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies een maandlimiet voor uit eten of shoppen en volg die terwijl je uitgeeft."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.budgets.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a budget"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बजट बनाएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Budget maken"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.budgets.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set a budget"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बजट बनाएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stel een budget in"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.creditCards.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a statement day and see what's due before the bill arrives."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्टेटमेंट का दिन जोड़ें और बिल आने से पहले ही देखें कि कितना देना है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voeg een afschriftdag toe en zie wat er openstaat vóór de rekening komt."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.creditCards.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set it up"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेट करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instellen"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.creditCards.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Track your card cycle"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कार्ड का चक्र ट्रैक करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volg je kaartcyclus"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.goals.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set a target and a date, and track how close you actually are."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक लक्ष्य और तारीख़ तय करें, और देखें कि आप वाक़ई कितने क़रीब हैं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stel een doel en een datum in en zie hoe dichtbij je echt bent."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.goals.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a goal"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लक्ष्य जोड़ें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doel toevoegen"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.goals.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save towards something"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "किसी लक्ष्य के लिए बचत करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaar voor iets"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.investments.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add holdings to see them counted in your net worth."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "होल्डिंग्स जोड़ें ताकि वे आपकी कुल संपत्ति में गिनी जाएँ।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voeg posities toe zodat ze meetellen in je vermogen."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.investments.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a holding"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "होल्डिंग जोड़ें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Positie toevoegen"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.investments.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Track investments"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "निवेश ट्रैक करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beleggingen bijhouden"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.loans.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a loan once and see the schedule, what's paid, and what's left."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ऋण एक बार जोड़ें और शेड्यूल, चुकाया गया और बचा हुआ हिस्सा देखें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voeg een lening één keer toe en zie het schema, wat betaald is en wat rest."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.loans.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a loan"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ऋण जोड़ें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lening toevoegen"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.loans.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow your EMIs"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपनी ईएमआई पर नज़र रखें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volg je aflossingen"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.receipts.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photograph a bill and it fills in the amount, date and line items."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बिल की तस्वीर लें और राशि, तारीख़ व मदें अपने आप भर जाएँगी।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotografeer een bon en het bedrag, de datum en de regels worden ingevuld."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.receipts.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try scanning"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्कैन आज़माएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scannen proberen"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.receipts.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan a receipt"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रसीद स्कैन करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan een bon"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.recurring.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rent, salary, EMI — enter them once and they post themselves each month."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "किराया, वेतन, ईएमआई — एक बार डालें और हर महीने अपने आप दर्ज हो जाएँगी।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huur, salaris, aflossing — voer ze één keer in en ze boeken zichzelf elke maand."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.recurring.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेट करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instellen"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.recurring.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automate repeat entries"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दोहराई जाने वाली प्रविष्टियाँ स्वचालित करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatiseer terugkerende posten"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.splits.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share a dinner or a trip, track who owes what, and settle over UPI."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिनर या यात्रा साझा करें, हिसाब रखें कि किसे कितना देना है, और यूपीआई से निपटाएँ।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deel een diner of een reis, houd bij wie wat schuldig is en reken af via UPI."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.splits.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a group"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "समूह बनाएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groep starten"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.splits.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Split with friends"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दोस्तों के साथ बाँटें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deel met vrienden"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.subscriptions.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netflix, gym, insurance — see what they quietly cost you each year."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नेटफ्लिक्स, जिम, बीमा — देखें कि ये चुपचाप हर साल कितना ले जाते हैं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netflix, sportschool, verzekering — zie wat ze je stilletjes per jaar kosten."
+          }
+        }
+      }
+    },
+    "dashboard:suggest.subscriptions.cta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add one"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक जोड़ें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voeg er een toe"
+          }
+        }
+      }
+    },
+    "dashboard:suggest.subscriptions.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Track subscriptions"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सदस्यताएँ ट्रैक करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnementen bijhouden"
+          }
+        }
+      }
+    },
+    "dashboard:suggestDismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ हटाएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ sluiten"
+          }
+        }
+      }
+    },
+    "dashboard:suggestSubtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Things you haven't tried yet"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जो आपने अब तक आज़माया नहीं"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dingen die je nog niet hebt geprobeerd"
+          }
+        }
+      }
+    },
+    "dashboard:suggestTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worth a look"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "देखने लायक"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De moeite waard"
           }
         }
       }
@@ -8848,6 +9952,364 @@
           "stringUnit": {
             "state": "translated",
             "value": "Laatste 3 dagen"
+          }
+        }
+      }
+    },
+    "dashboard:trialBannerBody": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When it ends you'll lose Ask Sanvya, Insights, Statements & more unless you upgrade."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ख़त्म होने पर Ask Sanvya, इनसाइट्स, स्टेटमेंट और बहुत कुछ चला जाएगा — जब तक आप अपग्रेड न करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als die afloopt verlies je Ask Sanvya, Inzichten, Overzichten en meer, tenzij je upgradet."
+          }
+        }
+      }
+    },
+    "dashboard:trialBannerTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free trial · %1$@ left."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मुफ़्त ट्रायल · %1$@ बाक़ी।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gratis proefperiode · nog %1$@."
+          }
+        }
+      }
+    },
+    "dashboard:trialDays": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld days"
+                }
+              }
+            }
+          }
+        },
+        "hi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld दिन"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld दिन"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld dag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld dagen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "dashboard:trialLater": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maybe later"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शायद बाद में"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Misschien later"
+          }
+        }
+      }
+    },
+    "dashboard:trialLoseAssistant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask Sanvya — the AI assistant"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask Sanvya — एआई सहायक"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask Sanvya — de AI-assistent"
+          }
+        }
+      }
+    },
+    "dashboard:trialLoseAutomation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-categorisation, upcoming bills & daily stock sync"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वतः श्रेणीकरण, आने वाले बिल और रोज़ाना स्टॉक सिंक"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch categoriseren, aankomende rekeningen & dagelijkse koersen"
+          }
+        }
+      }
+    },
+    "dashboard:trialLoseCsv": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV import"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सीएसवी आयात"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV-import"
+          }
+        }
+      }
+    },
+    "dashboard:trialLoseInsights": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detailed Insights & Statements"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "विस्तृत इनसाइट्स और स्टेटमेंट"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uitgebreide Inzichten & Overzichten"
+          }
+        }
+      }
+    },
+    "dashboard:trialSeePlans": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See plans"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्लान देखें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekijk abonnementen"
+          }
+        }
+      }
+    },
+    "dashboard:trialUpgrade": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upgrade"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपग्रेड करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upgraden"
+          }
+        }
+      }
+    },
+    "dashboard:trialWelcomeFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After %1$@, you'll move to the Free plan (all your money tracking stays free) unless you upgrade to Lite or Pro."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ बाद आप मुफ़्त प्लान पर आ जाएँगे (पैसे का पूरा हिसाब मुफ़्त ही रहेगा), जब तक आप Lite या Pro में अपग्रेड न करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na %1$@ ga je over naar het gratis plan (al je geldbeheer blijft gratis), tenzij je upgradet naar Lite of Pro."
+          }
+        }
+      }
+    },
+    "dashboard:trialWelcomeIntro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've got everything unlocked while you explore Sanvya — including the features that are paid-only after the trial:"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sanvya को आज़माते समय आपके लिए सब कुछ खुला है — वे सुविधाएँ भी जो ट्रायल के बाद सिर्फ़ भुगतान पर मिलती हैं:"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles staat open terwijl je Sanvya verkent — ook de functies die na de proefperiode alleen betaald zijn:"
+          }
+        }
+      }
+    },
+    "dashboard:trialWelcomeSubtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ left · full access, no card needed."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ बाक़ी · पूरी सुविधा, कार्ड की ज़रूरत नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog %1$@ · volledige toegang, geen kaart nodig."
+          }
+        }
+      }
+    },
+    "dashboard:trialWelcomeTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your 14-day free trial is live"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका 14-दिन का मुफ़्त ट्रायल चालू है"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je gratis proefperiode van 14 dagen loopt"
           }
         }
       }
@@ -32831,6 +34293,75 @@
           "stringUnit": {
             "state": "translated",
             "value": "Waar het naartoe ging"
+          }
+        }
+      }
+    },
+    "sync:offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're offline. Your changes are saved on this device and will sync automatically when you're back online."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप ऑफ़लाइन हैं। आपके बदलाव इसी डिवाइस पर सहेजे गए हैं और ऑनलाइन होते ही अपने आप सिंक हो जाएँगे।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je bent offline. Je wijzigingen zijn op dit apparaat opgeslagen en synchroniseren automatisch zodra je weer online bent."
+          }
+        }
+      }
+    },
+    "sync:reportIssue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report Issue"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "समस्या बताएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probleem melden"
+          }
+        }
+      }
+    },
+    "sync:trouble": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We're having trouble syncing right now. Your data is safe on this device."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी सिंक करने में दिक़्क़त आ रही है। आपका डेटा इस डिवाइस पर सुरक्षित है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het synchroniseren lukt op dit moment niet. Je gegevens staan veilig op dit apparaat."
           }
         }
       }

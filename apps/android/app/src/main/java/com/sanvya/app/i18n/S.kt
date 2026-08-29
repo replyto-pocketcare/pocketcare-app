@@ -405,6 +405,18 @@ object S {
         fun addWidget(res: Resources): String = res.getString(R.string.dashboard_add_widget)
         fun addWidgetIntro(res: Resources): String = res.getString(R.string.dashboard_add_widget_intro)
         fun allAdded(res: Resources): String = res.getString(R.string.dashboard_all_added)
+        fun askCollapseA11y(res: Resources): String = res.getString(R.string.dashboard_ask_collapse_a11y)
+        fun askExpandA11y(res: Resources): String = res.getString(R.string.dashboard_ask_expand_a11y)
+        fun askPlaceholder(res: Resources): String = res.getString(R.string.dashboard_ask_placeholder)
+        fun askQuickBudgetLabel(res: Resources): String = res.getString(R.string.dashboard_ask_quick_budget_label)
+        fun askQuickBudgetPrompt(res: Resources): String = res.getString(R.string.dashboard_ask_quick_budget_prompt)
+        fun askQuickFindLabel(res: Resources): String = res.getString(R.string.dashboard_ask_quick_find_label)
+        fun askQuickFindPrompt(res: Resources): String = res.getString(R.string.dashboard_ask_quick_find_prompt)
+        fun askQuickGoalLabel(res: Resources): String = res.getString(R.string.dashboard_ask_quick_goal_label)
+        fun askQuickGoalPrompt(res: Resources): String = res.getString(R.string.dashboard_ask_quick_goal_prompt)
+        fun askQuickWhereLabel(res: Resources): String = res.getString(R.string.dashboard_ask_quick_where_label)
+        fun askQuickWherePrompt(res: Resources): String = res.getString(R.string.dashboard_ask_quick_where_prompt)
+        fun askSendA11y(res: Resources): String = res.getString(R.string.dashboard_ask_send_a11y)
         fun customize(res: Resources): String = res.getString(R.string.dashboard_customize)
         fun efShort(res: Resources): String = res.getString(R.string.dashboard_ef_short)
         fun emptyBody(res: Resources): String = res.getString(R.string.dashboard_empty_body)
@@ -442,11 +454,49 @@ object S {
             res.getString(R.string.dashboard_single_currency, base)
         fun spent(res: Resources, amount: Any): String =
             res.getString(R.string.dashboard_spent, amount)
+        fun statHidden(res: Resources): String = res.getString(R.string.dashboard_stat_hidden)
+        fun statIncome(res: Resources): String = res.getString(R.string.dashboard_stat_income)
+        fun statNetWorth(res: Resources): String = res.getString(R.string.dashboard_stat_net_worth)
+        fun statSaved(res: Resources): String = res.getString(R.string.dashboard_stat_saved)
+        fun statSpending(res: Resources): String = res.getString(R.string.dashboard_stat_spending)
+        fun statVsLastMonth(res: Resources, amount: Any): String =
+            res.getString(R.string.dashboard_stat_vs_last_month, amount)
         fun subsCount(res: Resources, count: Int): String =
             res.getQuantityString(R.plurals.dashboard_subs_count, count, count)
         fun subsCountSpent(res: Resources, count: Int, amount: Any): String =
             res.getQuantityString(R.plurals.dashboard_subs_count_spent, count, count, amount)
         fun subsSpentNote(res: Resources): String = res.getString(R.string.dashboard_subs_spent_note)
+        fun suggestBudgetsBody(res: Resources): String = res.getString(R.string.dashboard_suggest_budgets_body)
+        fun suggestBudgetsCta(res: Resources): String = res.getString(R.string.dashboard_suggest_budgets_cta)
+        fun suggestBudgetsTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_budgets_title)
+        fun suggestCreditCardsBody(res: Resources): String = res.getString(R.string.dashboard_suggest_credit_cards_body)
+        fun suggestCreditCardsCta(res: Resources): String = res.getString(R.string.dashboard_suggest_credit_cards_cta)
+        fun suggestCreditCardsTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_credit_cards_title)
+        fun suggestGoalsBody(res: Resources): String = res.getString(R.string.dashboard_suggest_goals_body)
+        fun suggestGoalsCta(res: Resources): String = res.getString(R.string.dashboard_suggest_goals_cta)
+        fun suggestGoalsTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_goals_title)
+        fun suggestInvestmentsBody(res: Resources): String = res.getString(R.string.dashboard_suggest_investments_body)
+        fun suggestInvestmentsCta(res: Resources): String = res.getString(R.string.dashboard_suggest_investments_cta)
+        fun suggestInvestmentsTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_investments_title)
+        fun suggestLoansBody(res: Resources): String = res.getString(R.string.dashboard_suggest_loans_body)
+        fun suggestLoansCta(res: Resources): String = res.getString(R.string.dashboard_suggest_loans_cta)
+        fun suggestLoansTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_loans_title)
+        fun suggestReceiptsBody(res: Resources): String = res.getString(R.string.dashboard_suggest_receipts_body)
+        fun suggestReceiptsCta(res: Resources): String = res.getString(R.string.dashboard_suggest_receipts_cta)
+        fun suggestReceiptsTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_receipts_title)
+        fun suggestRecurringBody(res: Resources): String = res.getString(R.string.dashboard_suggest_recurring_body)
+        fun suggestRecurringCta(res: Resources): String = res.getString(R.string.dashboard_suggest_recurring_cta)
+        fun suggestRecurringTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_recurring_title)
+        fun suggestSplitsBody(res: Resources): String = res.getString(R.string.dashboard_suggest_splits_body)
+        fun suggestSplitsCta(res: Resources): String = res.getString(R.string.dashboard_suggest_splits_cta)
+        fun suggestSplitsTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_splits_title)
+        fun suggestSubscriptionsBody(res: Resources): String = res.getString(R.string.dashboard_suggest_subscriptions_body)
+        fun suggestSubscriptionsCta(res: Resources): String = res.getString(R.string.dashboard_suggest_subscriptions_cta)
+        fun suggestSubscriptionsTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_subscriptions_title)
+        fun suggestDismiss(res: Resources, title: Any): String =
+            res.getString(R.string.dashboard_suggest_dismiss, title)
+        fun suggestSubtitle(res: Resources): String = res.getString(R.string.dashboard_suggest_subtitle)
+        fun suggestTitle(res: Resources): String = res.getString(R.string.dashboard_suggest_title)
         fun thisMonth(res: Resources): String = res.getString(R.string.dashboard_this_month)
         fun tileBudgets(res: Resources): String = res.getString(R.string.dashboard_tile_budgets)
         fun tileByCategory(res: Resources): String = res.getString(R.string.dashboard_tile_by_category)
@@ -466,6 +516,24 @@ object S {
         fun trendLast1w(res: Resources): String = res.getString(R.string.dashboard_trend_last1w)
         fun trendLast1y(res: Resources): String = res.getString(R.string.dashboard_trend_last1y)
         fun trendLast3d(res: Resources): String = res.getString(R.string.dashboard_trend_last3d)
+        fun trialBannerBody(res: Resources): String = res.getString(R.string.dashboard_trial_banner_body)
+        fun trialBannerTitle(res: Resources, days: Any): String =
+            res.getString(R.string.dashboard_trial_banner_title, days)
+        fun trialDays(res: Resources, count: Int): String =
+            res.getQuantityString(R.plurals.dashboard_trial_days, count, count)
+        fun trialLater(res: Resources): String = res.getString(R.string.dashboard_trial_later)
+        fun trialLoseAssistant(res: Resources): String = res.getString(R.string.dashboard_trial_lose_assistant)
+        fun trialLoseAutomation(res: Resources): String = res.getString(R.string.dashboard_trial_lose_automation)
+        fun trialLoseCsv(res: Resources): String = res.getString(R.string.dashboard_trial_lose_csv)
+        fun trialLoseInsights(res: Resources): String = res.getString(R.string.dashboard_trial_lose_insights)
+        fun trialSeePlans(res: Resources): String = res.getString(R.string.dashboard_trial_see_plans)
+        fun trialUpgrade(res: Resources): String = res.getString(R.string.dashboard_trial_upgrade)
+        fun trialWelcomeFooter(res: Resources, days: Any): String =
+            res.getString(R.string.dashboard_trial_welcome_footer, days)
+        fun trialWelcomeIntro(res: Resources): String = res.getString(R.string.dashboard_trial_welcome_intro)
+        fun trialWelcomeSubtitle(res: Resources, days: Any): String =
+            res.getString(R.string.dashboard_trial_welcome_subtitle, days)
+        fun trialWelcomeTitle(res: Resources): String = res.getString(R.string.dashboard_trial_welcome_title)
         fun viewAll(res: Resources): String = res.getString(R.string.dashboard_view_all)
         fun viewAllCount(res: Resources, n: Any): String =
             res.getString(R.string.dashboard_view_all_count, n)
@@ -1688,6 +1756,12 @@ object S {
         fun transactionsTitle(res: Resources, count: Any): String =
             res.getString(R.string.statements_analyze_transactions_title, count)
         fun whereItWent(res: Resources): String = res.getString(R.string.statements_analyze_where_it_went)
+    }
+
+    object Sync {
+        fun offline(res: Resources): String = res.getString(R.string.sync_offline)
+        fun reportIssue(res: Resources): String = res.getString(R.string.sync_report_issue)
+        fun trouble(res: Resources): String = res.getString(R.string.sync_trouble)
     }
 
     object Templates {

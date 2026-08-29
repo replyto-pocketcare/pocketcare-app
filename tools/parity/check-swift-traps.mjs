@@ -26,6 +26,29 @@ const roots = [
 
 const RULES = [
   {
+    name: "`.frame()` mixing a fixed dimension with a flexible one",
+    // SwiftUI has TWO frame modifiers and no overload spanning them: the fixed
+    // `frame(width:height:alignment:)` and the flexible
+    // `frame(minWidth:idealWidth:maxWidth:minHeight:idealHeight:maxHeight:alignment:)`.
+    // `frame(width: 112, minHeight: 58)` reads perfectly and does not exist.
+    //
+    // Worth a rule because of what the compiler says: "extra argument
+    // 'minHeight' in call", which sounds like one argument too many rather
+    // than "you have combined two different modifiers", so the obvious fix --
+    // deleting the argument -- silently drops the constraint you wanted.
+    //
+    // The fix is two chained calls. They compose: the inner one sizes, the
+    // outer one constrains.
+    test: (line) => {
+      const call = line.match(/\.frame\(([^)]*)\)/);
+      if (!call) return false;
+      const args = call[1];
+      return /(^|[\s,])(width|height):/.test(args)
+        && /(^|[\s,])(minWidth|idealWidth|maxWidth|minHeight|idealHeight|maxHeight):/.test(args);
+    },
+    fix: "Split it: `.frame(width: 112).frame(minHeight: 58)`.",
+  },
+  {
     name: "await inside ??",
     // `??`'s right-hand side is an @autoclosure, which is not async. The
     // compiler blames the `??`, not the `await`, so the message reads

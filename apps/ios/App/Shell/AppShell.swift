@@ -1,5 +1,7 @@
 import SwiftUI
 import Domain
+import Data
+import Factory
 
 /// Matches web's `APP_VERSION` in AppShell.tsx.
 private let appVersion = "0.1.0"
@@ -18,7 +20,12 @@ private let appVersion = "0.1.0"
  */
 struct AppShell<Content: View>: View {
     @State private var viewModel = ShellViewModel()
-    @StateObject private var connectivity = ConnectivityMonitor()
+    /// ONE sync status for the whole app — see `Data/SyncStatusStore.swift`.
+    /// This was a private `ConnectivityMonitor` on this view, which meant the
+    /// single most useful fact about syncing was reachable only by the shell:
+    /// the gate that decides whether a list shows skeletons could not ask
+    /// whether the device had a network, and substituted a ten-second timer.
+    @StateObject private var sync = Container.shared.syncStatusStore()
     @StateObject private var navPrefs = NavPrefs.shared
 
     /// Survives backgrounding and process death — the tab you were on is part
@@ -132,7 +139,7 @@ struct AppShell<Content: View>: View {
         .sanvyaModal(isPresented: $feedbackOpen, label: S.Feedback.title) {
             FeedbackSheet(
                 route: currentTab.rawValue,
-                online: !connectivity.isOffline,
+                online: sync.status.online,
                 onClose: { feedbackOpen = false }
             )
         }
@@ -165,6 +172,10 @@ struct AppShell<Content: View>: View {
         }
         .task {
             viewModel.start()
+            // Idempotent, and started here rather than lazily by the first gate
+            // that asks: the offline banner and the sync strip are shell chrome,
+            // so the status has to be live before any screen needs it.
+            sync.start()
             // Post anything that fell due while the app was closed. The view
             // model holds the once-per-session latch, so this is safe to
             // re-run on every appearance.
@@ -207,7 +218,7 @@ struct AppShell<Content: View>: View {
                 SettingsSectionRequest.shared.request(.problems)
                 select(.settings)
             }
-            OfflineBanner(offline: connectivity.isOffline)
+            OfflineBanner(offline: !sync.status.online)
 
             HStack(spacing: 0) {
                 SideNav(
@@ -230,6 +241,22 @@ struct AppShell<Content: View>: View {
                             onNotifications: { select(.notifications) }
                         )
                     }
+                    // Web's order inside <main>, exactly: the utility row,
+                    // then the sync strip, then TrialNotice, then the page. Both
+                    // are IN FLOW and on every tab (web puts them outside its
+                    // `!isDashboard` guard), so they scroll away with the content
+                    // rather than sitting on top of it.
+                    SyncStatusStrip(
+                        notice: syncNotice(online: sync.status.online, error: sync.status.error),
+                        onReportIssue: { feedbackOpen = true }
+                    )
+                    TrialNotice(
+                        onTrial: viewModel.isTrial && !viewModel.isGuest,
+                        daysLeft: viewModel.trialDaysLeft,
+                        email: viewModel.sessionEmail,
+                        // Web links to /settings, which is where the plans are.
+                        onSeePlans: { select(.settings) }
+                    )
                     content(tabBinding)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -276,7 +303,7 @@ struct AppShell<Content: View>: View {
                     SettingsSectionRequest.shared.request(.problems)
                     select(.settings)
                 }
-                OfflineBanner(offline: connectivity.isOffline)
+                OfflineBanner(offline: !sync.status.online)
 
                 VStack(spacing: 0) {
                     // The dashboard places its own greeting and bell as the very
@@ -289,6 +316,22 @@ struct AppShell<Content: View>: View {
                             onNotifications: { select(.notifications) }
                         )
                     }
+                    // Web's order inside <main>, exactly: the utility row,
+                    // then the sync strip, then TrialNotice, then the page. Both
+                    // are IN FLOW and on every tab (web puts them outside its
+                    // `!isDashboard` guard), so they scroll away with the content
+                    // rather than sitting on top of it.
+                    SyncStatusStrip(
+                        notice: syncNotice(online: sync.status.online, error: sync.status.error),
+                        onReportIssue: { feedbackOpen = true }
+                    )
+                    TrialNotice(
+                        onTrial: viewModel.isTrial && !viewModel.isGuest,
+                        daysLeft: viewModel.trialDaysLeft,
+                        email: viewModel.sessionEmail,
+                        // Web links to /settings, which is where the plans are.
+                        onSeePlans: { select(.settings) }
+                    )
                     content(tabBinding)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }

@@ -3,7 +3,6 @@ import Observation
 import Factory
 import Domain
 import Data
-import PowerSync
 
 /// Whether the first-run walkthrough is showing, and the two flags that close it.
 ///
@@ -25,7 +24,6 @@ import PowerSync
 public final class WalkthroughGate {
     @ObservationIgnored @Injected(\.ledgerRepository) private var ledgerRepository
     @ObservationIgnored @Injected(\.authRepository) private var authRepository
-    @ObservationIgnored @Injected(\.powerSyncDatabase) private var db
 
     /// Matches web's `sanvya:walkthroughDone` localStorage key exactly, so the
     /// two clients mean the same thing by it even though the stores differ.
@@ -88,18 +86,17 @@ public final class WalkthroughGate {
             }
         })
 
-        // `hasSynced` has no change stream on either SDK, so this polls the
-        // same status object the diagnostics panel reads. It settles once and
-        // then never changes for the life of the process, so the loop exits
-        // for good the moment it flips — this is not a background poller.
+        // The SHARED gate, not a private copy of the poll. This object used to
+        // run a fourth 400 ms loop over the same `hasSynced` field the three
+        // `awaitInitialSync` callers were already polling; worse, it read the
+        // raw flag while they read `online && !hasSynced`, so on a device with
+        // no network the walkthrough and the dashboard's own skeleton
+        // disagreed about whether the data had arrived. Web has always had ONE
+        // `useInitialSyncPending()` and useWalkthrough.ts calls exactly that.
         tasks.append(Task { [weak self] in
-            while let self, !Task.isCancelled {
-                if self.db.currentStatus.hasSynced == true {
-                    self.syncPending = false
-                    return
-                }
-                try? await Task.sleep(for: .milliseconds(400))
-            }
+            await awaitInitialSync()
+            guard let self, !Task.isCancelled else { return }
+            self.syncPending = false
         })
     }
 

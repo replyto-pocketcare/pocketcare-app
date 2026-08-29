@@ -352,6 +352,18 @@
     <string name="dashboard_add_widget">Widget toevoegen</string>
     <string name="dashboard_add_widget_intro">Kies een tegel om aan je dashboard toe te voegen. Grootte en volgorde pas je direct op de pagina aan.</string>
     <string name="dashboard_all_added">Elke widget staat al op je dashboard.</string>
+    <string name="dashboard_ask_collapse_a11y">Assistent inklappen</string>
+    <string name="dashboard_ask_expand_a11y">Assistent uitklappen</string>
+    <string name="dashboard_ask_placeholder">Vraag me van alles…</string>
+    <string name="dashboard_ask_quick_budget_label">Zit ik op budget?</string>
+    <string name="dashboard_ask_quick_budget_prompt">Lig ik deze maand op schema met mijn budgetten?</string>
+    <string name="dashboard_ask_quick_find_label">Zoek een betaling</string>
+    <string name="dashboard_ask_quick_find_prompt">Help me een betaling te vinden die ik onlangs heb gedaan.</string>
+    <string name="dashboard_ask_quick_goal_label">Plan een doel</string>
+    <string name="dashboard_ask_quick_goal_prompt">Help me een realistisch spaardoel te plannen.</string>
+    <string name="dashboard_ask_quick_where_label">Waar ging het heen?</string>
+    <string name="dashboard_ask_quick_where_prompt">Waar is mijn geld deze maand heen gegaan?</string>
+    <string name="dashboard_ask_send_a11y">Versturen</string>
     <string name="dashboard_customize">Aanpassen</string>
     <string name="dashboard_ef_short">Noodfonds</string>
     <string name="dashboard_empty_body">Voeg een widget toe om je geld in één oogopslag te zien.</string>
@@ -385,6 +397,12 @@
     <string name="dashboard_show_amounts_a11y">Bedragen tonen</string>
     <string name="dashboard_single_currency">Al je geld staat in %1$s. Voeg een rekening in een andere valuta toe om de verdeling te zien.</string>
     <string name="dashboard_spent">%1$s uitgegeven</string>
+    <string name="dashboard_stat_hidden">Bedragen verborgen</string>
+    <string name="dashboard_stat_income">Inkomsten</string>
+    <string name="dashboard_stat_net_worth">Vermogen</string>
+    <string name="dashboard_stat_saved">Gespaard</string>
+    <string name="dashboard_stat_spending">Uitgaven</string>
+    <string name="dashboard_stat_vs_last_month">t.o.v. %1$s vorige maand</string>
     <plurals name="dashboard_subs_count">
         <item quantity="one">%1$d actief abonnement</item>
         <item quantity="other">%1$d actieve abonnementen</item>
@@ -394,6 +412,36 @@
         <item quantity="other">%1$d actieve abonnementen · ~%2$s tot nu toe</item>
     </plurals>
     <string name="dashboard_subs_spent_note">De uitgaven tot nu toe zijn geschat op basis van de prijs van elk abonnement en hoe lang het al loopt. De werkelijke kosten kunnen afwijken.</string>
+    <string name="dashboard_suggest_budgets_body">Kies een maandlimiet voor uit eten of shoppen en volg die terwijl je uitgeeft.</string>
+    <string name="dashboard_suggest_budgets_cta">Budget maken</string>
+    <string name="dashboard_suggest_budgets_title">Stel een budget in</string>
+    <string name="dashboard_suggest_credit_cards_body">Voeg een afschriftdag toe en zie wat er openstaat vóór de rekening komt.</string>
+    <string name="dashboard_suggest_credit_cards_cta">Instellen</string>
+    <string name="dashboard_suggest_credit_cards_title">Volg je kaartcyclus</string>
+    <string name="dashboard_suggest_goals_body">Stel een doel en een datum in en zie hoe dichtbij je echt bent.</string>
+    <string name="dashboard_suggest_goals_cta">Doel toevoegen</string>
+    <string name="dashboard_suggest_goals_title">Spaar voor iets</string>
+    <string name="dashboard_suggest_investments_body">Voeg posities toe zodat ze meetellen in je vermogen.</string>
+    <string name="dashboard_suggest_investments_cta">Positie toevoegen</string>
+    <string name="dashboard_suggest_investments_title">Beleggingen bijhouden</string>
+    <string name="dashboard_suggest_loans_body">Voeg een lening één keer toe en zie het schema, wat betaald is en wat rest.</string>
+    <string name="dashboard_suggest_loans_cta">Lening toevoegen</string>
+    <string name="dashboard_suggest_loans_title">Volg je aflossingen</string>
+    <string name="dashboard_suggest_receipts_body">Fotografeer een bon en het bedrag, de datum en de regels worden ingevuld.</string>
+    <string name="dashboard_suggest_receipts_cta">Scannen proberen</string>
+    <string name="dashboard_suggest_receipts_title">Scan een bon</string>
+    <string name="dashboard_suggest_recurring_body">Huur, salaris, aflossing — voer ze één keer in en ze boeken zichzelf elke maand.</string>
+    <string name="dashboard_suggest_recurring_cta">Instellen</string>
+    <string name="dashboard_suggest_recurring_title">Automatiseer terugkerende posten</string>
+    <string name="dashboard_suggest_splits_body">Deel een diner of een reis, houd bij wie wat schuldig is en reken af via UPI.</string>
+    <string name="dashboard_suggest_splits_cta">Groep starten</string>
+    <string name="dashboard_suggest_splits_title">Deel met vrienden</string>
+    <string name="dashboard_suggest_subscriptions_body">Netflix, sportschool, verzekering — zie wat ze je stilletjes per jaar kosten.</string>
+    <string name="dashboard_suggest_subscriptions_cta">Voeg er een toe</string>
+    <string name="dashboard_suggest_subscriptions_title">Abonnementen bijhouden</string>
+    <string name="dashboard_suggest_dismiss">%1$s sluiten</string>
+    <string name="dashboard_suggest_subtitle">Dingen die je nog niet hebt geprobeerd</string>
+    <string name="dashboard_suggest_title">De moeite waard</string>
     <string name="dashboard_this_month">Deze maand</string>
     <string name="dashboard_tile_budgets">Budgetten</string>
     <string name="dashboard_tile_by_category">Uitgaven per categorie</string>
@@ -413,6 +461,23 @@
     <string name="dashboard_trend_last1w">Vorige week</string>
     <string name="dashboard_trend_last1y">Vorig jaar</string>
     <string name="dashboard_trend_last3d">Laatste 3 dagen</string>
+    <string name="dashboard_trial_banner_body">Als die afloopt verlies je Ask Sanvya, Inzichten, Overzichten en meer, tenzij je upgradet.</string>
+    <string name="dashboard_trial_banner_title">Gratis proefperiode · nog %1$s.</string>
+    <plurals name="dashboard_trial_days">
+        <item quantity="one">%1$d dag</item>
+        <item quantity="other">%1$d dagen</item>
+    </plurals>
+    <string name="dashboard_trial_later">Misschien later</string>
+    <string name="dashboard_trial_lose_assistant">Ask Sanvya — de AI-assistent</string>
+    <string name="dashboard_trial_lose_automation">Automatisch categoriseren, aankomende rekeningen &amp; dagelijkse koersen</string>
+    <string name="dashboard_trial_lose_csv">CSV-import</string>
+    <string name="dashboard_trial_lose_insights">Uitgebreide Inzichten &amp; Overzichten</string>
+    <string name="dashboard_trial_see_plans">Bekijk abonnementen</string>
+    <string name="dashboard_trial_upgrade">Upgraden</string>
+    <string name="dashboard_trial_welcome_footer">Na %1$s ga je over naar het gratis plan (al je geldbeheer blijft gratis), tenzij je upgradet naar Lite of Pro.</string>
+    <string name="dashboard_trial_welcome_intro">Alles staat open terwijl je Sanvya verkent — ook de functies die na de proefperiode alleen betaald zijn:</string>
+    <string name="dashboard_trial_welcome_subtitle">Nog %1$s · volledige toegang, geen kaart nodig.</string>
+    <string name="dashboard_trial_welcome_title">Je gratis proefperiode van 14 dagen loopt</string>
     <string name="dashboard_view_all">Alles bekijken</string>
     <string name="dashboard_view_all_count">Alles bekijken (%1$s)</string>
     <string name="dashboard_width">Breedte</string>
@@ -1527,6 +1592,11 @@
     <string name="statements_analyze_transactions">%1$s transacties</string>
     <string name="statements_analyze_transactions_title">Transacties (%1$s)</string>
     <string name="statements_analyze_where_it_went">Waar het naartoe ging</string>
+
+    <!-- sync -->
+    <string name="sync_offline">Je bent offline. Je wijzigingen zijn op dit apparaat opgeslagen en synchroniseren automatisch zodra je weer online bent.</string>
+    <string name="sync_report_issue">Probleem melden</string>
+    <string name="sync_trouble">Het synchroniseren lukt op dit moment niet. Je gegevens staan veilig op dit apparaat.</string>
 
     <!-- templates -->
     <string name="templates_account">Rekening</string>

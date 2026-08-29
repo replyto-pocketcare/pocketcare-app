@@ -44,6 +44,8 @@ import com.sanvya.app.ui.components.Skeleton
 import com.sanvya.app.ui.components.press
 import com.sanvya.app.ui.onboarding.WalkthroughHost
 import com.sanvya.app.ui.shell.LocalShellNavigate
+import com.sanvya.app.ui.shell.LocalWindowClass
+import com.sanvya.app.ui.shell.SanvyaWindowClass
 import com.sanvya.app.ui.shell.NotifBell
 import com.sanvya.app.data.repository.AccountWithBalance
 import com.sanvya.app.theme.LocalSanvyaColors
@@ -111,6 +113,7 @@ fun DashboardScreen(
     // count has to be read here too.
     val unreadCount by shellViewModel.unreadCount.collectAsState()
     val navigate = LocalShellNavigate.current
+    val windowClass = LocalWindowClass.current
     var editing by rememberSaveable { mutableStateOf(false) }
     var addOpen by rememberSaveable { mutableStateOf(false) }
 
@@ -151,11 +154,51 @@ fun DashboardScreen(
                     onNotifications = { navigate("notifications") },
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
-                NetWorthHero(
-                    state = uiState.hero,
-                    hidden = amountsHidden,
-                    onToggle = { viewModel.toggleShowAvailable() },
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                // The wide-window layout, and the two things that were missing
+                // from it. Web gates both on `useIsDesktop()` (its own 1024px
+                // media query); the port gates on the window class the shell
+                // already publishes, because that is what every other Android
+                // app on the device switches at and a CSS pixel width is not a
+                // number a tablet is measured in.
+                if (windowClass == SanvyaWindowClass.EXPANDED) {
+                    StatRow(
+                        stats = uiState.stats,
+                        hidden = amountsHidden,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                    // Web's `.dash-hero-row`: the headline card and the
+                    // assistant share a row, which is the "headline + right
+                    // rail" shape of a conventional dashboard.
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    ) {
+                        NetWorthHero(
+                            state = uiState.hero,
+                            hidden = amountsHidden,
+                            onToggle = { viewModel.toggleShowAvailable() },
+                            modifier = Modifier.weight(1f),
+                        )
+                        AssistantWidget(modifier = Modifier.width(360.dp))
+                    }
+                } else {
+                    NetWorthHero(
+                        state = uiState.hero,
+                        hidden = amountsHidden,
+                        onToggle = { viewModel.toggleShowAvailable() },
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
+                // "Worth a look". Renders nothing until there is enough history
+                // for a suggestion to be an observation rather than a pitch, so
+                // a brand-new user sees the walkthrough and nothing here.
+                //
+                // NOT padded horizontally: the rail bleeds to the screen edge on
+                // purpose (its own contentPadding insets the cards), so a
+                // half-visible card signals that it scrolls.
+                SuggestionsStrip(
+                    isPaid = isPaid,
+                    onOpen = { route -> navigate(route) },
                 )
                 AccountsCard(
                     accounts = uiState.accounts,

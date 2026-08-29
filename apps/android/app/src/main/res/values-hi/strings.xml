@@ -352,6 +352,18 @@
     <string name="dashboard_add_widget">विजेट जोड़ें</string>
     <string name="dashboard_add_widget_intro">अपने डैशबोर्ड में जोड़ने के लिए एक टाइल चुनें। आकार और क्रम पेज पर ही बदलें।</string>
     <string name="dashboard_all_added">हर विजेट पहले से आपके डैशबोर्ड पर है।</string>
+    <string name="dashboard_ask_collapse_a11y">सहायक छोटा करें</string>
+    <string name="dashboard_ask_expand_a11y">सहायक बड़ा करें</string>
+    <string name="dashboard_ask_placeholder">कुछ भी पूछिए…</string>
+    <string name="dashboard_ask_quick_budget_label">क्या मैं बजट में हूँ?</string>
+    <string name="dashboard_ask_quick_budget_prompt">क्या इस महीने मैं अपने बजट के भीतर चल रहा हूँ?</string>
+    <string name="dashboard_ask_quick_find_label">भुगतान खोजें</string>
+    <string name="dashboard_ask_quick_find_prompt">हाल में किया गया एक भुगतान खोजने में मेरी मदद करें।</string>
+    <string name="dashboard_ask_quick_goal_label">लक्ष्य की योजना बनाएँ</string>
+    <string name="dashboard_ask_quick_goal_prompt">एक व्यावहारिक बचत लक्ष्य की योजना बनाने में मेरी मदद करें।</string>
+    <string name="dashboard_ask_quick_where_label">पैसा कहाँ गया?</string>
+    <string name="dashboard_ask_quick_where_prompt">इस महीने मेरा पैसा कहाँ गया?</string>
+    <string name="dashboard_ask_send_a11y">भेजें</string>
     <string name="dashboard_customize">अनुकूलित करें</string>
     <string name="dashboard_ef_short">आपातकालीन</string>
     <string name="dashboard_empty_body">एक नज़र में अपना पैसा देखने के लिए विजेट जोड़ें।</string>
@@ -385,6 +397,12 @@
     <string name="dashboard_show_amounts_a11y">राशियाँ दिखाएँ</string>
     <string name="dashboard_single_currency">आपका सारा पैसा %1$s में है। बँटवारा देखने के लिए किसी दूसरी मुद्रा का खाता जोड़ें।</string>
     <string name="dashboard_spent">%1$s खर्च</string>
+    <string name="dashboard_stat_hidden">राशियाँ छिपी हैं</string>
+    <string name="dashboard_stat_income">आय</string>
+    <string name="dashboard_stat_net_worth">कुल संपत्ति</string>
+    <string name="dashboard_stat_saved">बचत</string>
+    <string name="dashboard_stat_spending">ख़र्च</string>
+    <string name="dashboard_stat_vs_last_month">पिछले महीने %1$s की तुलना में</string>
     <plurals name="dashboard_subs_count">
         <item quantity="one">%1$d सक्रिय सदस्यता</item>
         <item quantity="other">%1$d सक्रिय सदस्यताएँ</item>
@@ -394,6 +412,36 @@
         <item quantity="other">%1$d सक्रिय सदस्यताएँ · अब तक ~%2$s</item>
     </plurals>
     <string name="dashboard_subs_spent_note">अब तक का खर्च हर सदस्यता की कीमत और वह कब से चल रही है, इससे अनुमानित है। वास्तविक शुल्क अलग हो सकते हैं।</string>
+    <string name="dashboard_suggest_budgets_body">बाहर खाने या ख़रीदारी के लिए मासिक सीमा तय करें और ख़र्च के साथ देखते रहें।</string>
+    <string name="dashboard_suggest_budgets_cta">बजट बनाएँ</string>
+    <string name="dashboard_suggest_budgets_title">बजट बनाएँ</string>
+    <string name="dashboard_suggest_credit_cards_body">स्टेटमेंट का दिन जोड़ें और बिल आने से पहले ही देखें कि कितना देना है।</string>
+    <string name="dashboard_suggest_credit_cards_cta">सेट करें</string>
+    <string name="dashboard_suggest_credit_cards_title">कार्ड का चक्र ट्रैक करें</string>
+    <string name="dashboard_suggest_goals_body">एक लक्ष्य और तारीख़ तय करें, और देखें कि आप वाक़ई कितने क़रीब हैं।</string>
+    <string name="dashboard_suggest_goals_cta">लक्ष्य जोड़ें</string>
+    <string name="dashboard_suggest_goals_title">किसी लक्ष्य के लिए बचत करें</string>
+    <string name="dashboard_suggest_investments_body">होल्डिंग्स जोड़ें ताकि वे आपकी कुल संपत्ति में गिनी जाएँ।</string>
+    <string name="dashboard_suggest_investments_cta">होल्डिंग जोड़ें</string>
+    <string name="dashboard_suggest_investments_title">निवेश ट्रैक करें</string>
+    <string name="dashboard_suggest_loans_body">ऋण एक बार जोड़ें और शेड्यूल, चुकाया गया और बचा हुआ हिस्सा देखें।</string>
+    <string name="dashboard_suggest_loans_cta">ऋण जोड़ें</string>
+    <string name="dashboard_suggest_loans_title">अपनी ईएमआई पर नज़र रखें</string>
+    <string name="dashboard_suggest_receipts_body">बिल की तस्वीर लें और राशि, तारीख़ व मदें अपने आप भर जाएँगी।</string>
+    <string name="dashboard_suggest_receipts_cta">स्कैन आज़माएँ</string>
+    <string name="dashboard_suggest_receipts_title">रसीद स्कैन करें</string>
+    <string name="dashboard_suggest_recurring_body">किराया, वेतन, ईएमआई — एक बार डालें और हर महीने अपने आप दर्ज हो जाएँगी।</string>
+    <string name="dashboard_suggest_recurring_cta">सेट करें</string>
+    <string name="dashboard_suggest_recurring_title">दोहराई जाने वाली प्रविष्टियाँ स्वचालित करें</string>
+    <string name="dashboard_suggest_splits_body">डिनर या यात्रा साझा करें, हिसाब रखें कि किसे कितना देना है, और यूपीआई से निपटाएँ।</string>
+    <string name="dashboard_suggest_splits_cta">समूह बनाएँ</string>
+    <string name="dashboard_suggest_splits_title">दोस्तों के साथ बाँटें</string>
+    <string name="dashboard_suggest_subscriptions_body">नेटफ्लिक्स, जिम, बीमा — देखें कि ये चुपचाप हर साल कितना ले जाते हैं।</string>
+    <string name="dashboard_suggest_subscriptions_cta">एक जोड़ें</string>
+    <string name="dashboard_suggest_subscriptions_title">सदस्यताएँ ट्रैक करें</string>
+    <string name="dashboard_suggest_dismiss">%1$s हटाएँ</string>
+    <string name="dashboard_suggest_subtitle">जो आपने अब तक आज़माया नहीं</string>
+    <string name="dashboard_suggest_title">देखने लायक</string>
     <string name="dashboard_this_month">इस महीने</string>
     <string name="dashboard_tile_budgets">बजट</string>
     <string name="dashboard_tile_by_category">श्रेणी अनुसार खर्च</string>
@@ -413,6 +461,23 @@
     <string name="dashboard_trend_last1w">पिछला सप्ताह</string>
     <string name="dashboard_trend_last1y">पिछला वर्ष</string>
     <string name="dashboard_trend_last3d">पिछले 3 दिन</string>
+    <string name="dashboard_trial_banner_body">ख़त्म होने पर Ask Sanvya, इनसाइट्स, स्टेटमेंट और बहुत कुछ चला जाएगा — जब तक आप अपग्रेड न करें।</string>
+    <string name="dashboard_trial_banner_title">मुफ़्त ट्रायल · %1$s बाक़ी।</string>
+    <plurals name="dashboard_trial_days">
+        <item quantity="one">%1$d दिन</item>
+        <item quantity="other">%1$d दिन</item>
+    </plurals>
+    <string name="dashboard_trial_later">शायद बाद में</string>
+    <string name="dashboard_trial_lose_assistant">Ask Sanvya — एआई सहायक</string>
+    <string name="dashboard_trial_lose_automation">स्वतः श्रेणीकरण, आने वाले बिल और रोज़ाना स्टॉक सिंक</string>
+    <string name="dashboard_trial_lose_csv">सीएसवी आयात</string>
+    <string name="dashboard_trial_lose_insights">विस्तृत इनसाइट्स और स्टेटमेंट</string>
+    <string name="dashboard_trial_see_plans">प्लान देखें</string>
+    <string name="dashboard_trial_upgrade">अपग्रेड करें</string>
+    <string name="dashboard_trial_welcome_footer">%1$s बाद आप मुफ़्त प्लान पर आ जाएँगे (पैसे का पूरा हिसाब मुफ़्त ही रहेगा), जब तक आप Lite या Pro में अपग्रेड न करें।</string>
+    <string name="dashboard_trial_welcome_intro">Sanvya को आज़माते समय आपके लिए सब कुछ खुला है — वे सुविधाएँ भी जो ट्रायल के बाद सिर्फ़ भुगतान पर मिलती हैं:</string>
+    <string name="dashboard_trial_welcome_subtitle">%1$s बाक़ी · पूरी सुविधा, कार्ड की ज़रूरत नहीं।</string>
+    <string name="dashboard_trial_welcome_title">आपका 14-दिन का मुफ़्त ट्रायल चालू है</string>
     <string name="dashboard_view_all">सभी देखें</string>
     <string name="dashboard_view_all_count">सभी देखें (%1$s)</string>
     <string name="dashboard_width">चौड़ाई</string>
@@ -1527,6 +1592,11 @@
     <string name="statements_analyze_transactions">%1$s लेनदेन</string>
     <string name="statements_analyze_transactions_title">लेनदेन (%1$s)</string>
     <string name="statements_analyze_where_it_went">यह कहाँ गया</string>
+
+    <!-- sync -->
+    <string name="sync_offline">आप ऑफ़लाइन हैं। आपके बदलाव इसी डिवाइस पर सहेजे गए हैं और ऑनलाइन होते ही अपने आप सिंक हो जाएँगे।</string>
+    <string name="sync_report_issue">समस्या बताएँ</string>
+    <string name="sync_trouble">अभी सिंक करने में दिक़्क़त आ रही है। आपका डेटा इस डिवाइस पर सुरक्षित है।</string>
 
     <!-- templates -->
     <string name="templates_account">खाता</string>

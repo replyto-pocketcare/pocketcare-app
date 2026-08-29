@@ -465,6 +465,18 @@ public enum S {
         public static var addWidget: String { String(localized: "dashboard:addWidget", table: "Localizable") }
         public static var addWidgetIntro: String { String(localized: "dashboard:addWidgetIntro", table: "Localizable") }
         public static var allAdded: String { String(localized: "dashboard:allAdded", table: "Localizable") }
+        public static var askCollapseA11y: String { String(localized: "dashboard:askCollapseA11y", table: "Localizable") }
+        public static var askExpandA11y: String { String(localized: "dashboard:askExpandA11y", table: "Localizable") }
+        public static var askPlaceholder: String { String(localized: "dashboard:askPlaceholder", table: "Localizable") }
+        public static var askQuickBudgetLabel: String { String(localized: "dashboard:askQuick.budgetLabel", table: "Localizable") }
+        public static var askQuickBudgetPrompt: String { String(localized: "dashboard:askQuick.budgetPrompt", table: "Localizable") }
+        public static var askQuickFindLabel: String { String(localized: "dashboard:askQuick.findLabel", table: "Localizable") }
+        public static var askQuickFindPrompt: String { String(localized: "dashboard:askQuick.findPrompt", table: "Localizable") }
+        public static var askQuickGoalLabel: String { String(localized: "dashboard:askQuick.goalLabel", table: "Localizable") }
+        public static var askQuickGoalPrompt: String { String(localized: "dashboard:askQuick.goalPrompt", table: "Localizable") }
+        public static var askQuickWhereLabel: String { String(localized: "dashboard:askQuick.whereLabel", table: "Localizable") }
+        public static var askQuickWherePrompt: String { String(localized: "dashboard:askQuick.wherePrompt", table: "Localizable") }
+        public static var askSendA11y: String { String(localized: "dashboard:askSendA11y", table: "Localizable") }
         public static var customize: String { String(localized: "dashboard:customize", table: "Localizable") }
         public static var efShort: String { String(localized: "dashboard:efShort", table: "Localizable") }
         public static var emptyBody: String { String(localized: "dashboard:emptyBody", table: "Localizable") }
@@ -506,6 +518,14 @@ public enum S {
         public static func spent(amount: String) -> String {
             String(format: String(localized: "dashboard:spent", table: "Localizable"), amount)
         }
+        public static var statHidden: String { String(localized: "dashboard:statHidden", table: "Localizable") }
+        public static var statIncome: String { String(localized: "dashboard:statIncome", table: "Localizable") }
+        public static var statNetWorth: String { String(localized: "dashboard:statNetWorth", table: "Localizable") }
+        public static var statSaved: String { String(localized: "dashboard:statSaved", table: "Localizable") }
+        public static var statSpending: String { String(localized: "dashboard:statSpending", table: "Localizable") }
+        public static func statVsLastMonth(amount: String) -> String {
+            String(format: String(localized: "dashboard:statVsLastMonth", table: "Localizable"), amount)
+        }
         public static func subsCount(count: Int) -> String {
             String(format: String(localized: "dashboard:subsCount", defaultValue: "", table: "Localizable"), count)
         }
@@ -513,6 +533,38 @@ public enum S {
             String(format: String(localized: "dashboard:subsCountSpent", defaultValue: "", table: "Localizable"), count, amount)
         }
         public static var subsSpentNote: String { String(localized: "dashboard:subsSpentNote", table: "Localizable") }
+        public static var suggestBudgetsBody: String { String(localized: "dashboard:suggest.budgets.body", table: "Localizable") }
+        public static var suggestBudgetsCta: String { String(localized: "dashboard:suggest.budgets.cta", table: "Localizable") }
+        public static var suggestBudgetsTitle: String { String(localized: "dashboard:suggest.budgets.title", table: "Localizable") }
+        public static var suggestCreditCardsBody: String { String(localized: "dashboard:suggest.creditCards.body", table: "Localizable") }
+        public static var suggestCreditCardsCta: String { String(localized: "dashboard:suggest.creditCards.cta", table: "Localizable") }
+        public static var suggestCreditCardsTitle: String { String(localized: "dashboard:suggest.creditCards.title", table: "Localizable") }
+        public static var suggestGoalsBody: String { String(localized: "dashboard:suggest.goals.body", table: "Localizable") }
+        public static var suggestGoalsCta: String { String(localized: "dashboard:suggest.goals.cta", table: "Localizable") }
+        public static var suggestGoalsTitle: String { String(localized: "dashboard:suggest.goals.title", table: "Localizable") }
+        public static var suggestInvestmentsBody: String { String(localized: "dashboard:suggest.investments.body", table: "Localizable") }
+        public static var suggestInvestmentsCta: String { String(localized: "dashboard:suggest.investments.cta", table: "Localizable") }
+        public static var suggestInvestmentsTitle: String { String(localized: "dashboard:suggest.investments.title", table: "Localizable") }
+        public static var suggestLoansBody: String { String(localized: "dashboard:suggest.loans.body", table: "Localizable") }
+        public static var suggestLoansCta: String { String(localized: "dashboard:suggest.loans.cta", table: "Localizable") }
+        public static var suggestLoansTitle: String { String(localized: "dashboard:suggest.loans.title", table: "Localizable") }
+        public static var suggestReceiptsBody: String { String(localized: "dashboard:suggest.receipts.body", table: "Localizable") }
+        public static var suggestReceiptsCta: String { String(localized: "dashboard:suggest.receipts.cta", table: "Localizable") }
+        public static var suggestReceiptsTitle: String { String(localized: "dashboard:suggest.receipts.title", table: "Localizable") }
+        public static var suggestRecurringBody: String { String(localized: "dashboard:suggest.recurring.body", table: "Localizable") }
+        public static var suggestRecurringCta: String { String(localized: "dashboard:suggest.recurring.cta", table: "Localizable") }
+        public static var suggestRecurringTitle: String { String(localized: "dashboard:suggest.recurring.title", table: "Localizable") }
+        public static var suggestSplitsBody: String { String(localized: "dashboard:suggest.splits.body", table: "Localizable") }
+        public static var suggestSplitsCta: String { String(localized: "dashboard:suggest.splits.cta", table: "Localizable") }
+        public static var suggestSplitsTitle: String { String(localized: "dashboard:suggest.splits.title", table: "Localizable") }
+        public static var suggestSubscriptionsBody: String { String(localized: "dashboard:suggest.subscriptions.body", table: "Localizable") }
+        public static var suggestSubscriptionsCta: String { String(localized: "dashboard:suggest.subscriptions.cta", table: "Localizable") }
+        public static var suggestSubscriptionsTitle: String { String(localized: "dashboard:suggest.subscriptions.title", table: "Localizable") }
+        public static func suggestDismiss(title: String) -> String {
+            String(format: String(localized: "dashboard:suggestDismiss", table: "Localizable"), title)
+        }
+        public static var suggestSubtitle: String { String(localized: "dashboard:suggestSubtitle", table: "Localizable") }
+        public static var suggestTitle: String { String(localized: "dashboard:suggestTitle", table: "Localizable") }
         public static var thisMonth: String { String(localized: "dashboard:thisMonth", table: "Localizable") }
         public static var tileBudgets: String { String(localized: "dashboard:tile.budgets", table: "Localizable") }
         public static var tileByCategory: String { String(localized: "dashboard:tile.byCategory", table: "Localizable") }
@@ -532,6 +584,28 @@ public enum S {
         public static var trendLast1w: String { String(localized: "dashboard:trendLast1w", table: "Localizable") }
         public static var trendLast1y: String { String(localized: "dashboard:trendLast1y", table: "Localizable") }
         public static var trendLast3d: String { String(localized: "dashboard:trendLast3d", table: "Localizable") }
+        public static var trialBannerBody: String { String(localized: "dashboard:trialBannerBody", table: "Localizable") }
+        public static func trialBannerTitle(days: String) -> String {
+            String(format: String(localized: "dashboard:trialBannerTitle", table: "Localizable"), days)
+        }
+        public static func trialDays(count: Int) -> String {
+            String(format: String(localized: "dashboard:trialDays", defaultValue: "", table: "Localizable"), count)
+        }
+        public static var trialLater: String { String(localized: "dashboard:trialLater", table: "Localizable") }
+        public static var trialLoseAssistant: String { String(localized: "dashboard:trialLoseAssistant", table: "Localizable") }
+        public static var trialLoseAutomation: String { String(localized: "dashboard:trialLoseAutomation", table: "Localizable") }
+        public static var trialLoseCsv: String { String(localized: "dashboard:trialLoseCsv", table: "Localizable") }
+        public static var trialLoseInsights: String { String(localized: "dashboard:trialLoseInsights", table: "Localizable") }
+        public static var trialSeePlans: String { String(localized: "dashboard:trialSeePlans", table: "Localizable") }
+        public static var trialUpgrade: String { String(localized: "dashboard:trialUpgrade", table: "Localizable") }
+        public static func trialWelcomeFooter(days: String) -> String {
+            String(format: String(localized: "dashboard:trialWelcomeFooter", table: "Localizable"), days)
+        }
+        public static var trialWelcomeIntro: String { String(localized: "dashboard:trialWelcomeIntro", table: "Localizable") }
+        public static func trialWelcomeSubtitle(days: String) -> String {
+            String(format: String(localized: "dashboard:trialWelcomeSubtitle", table: "Localizable"), days)
+        }
+        public static var trialWelcomeTitle: String { String(localized: "dashboard:trialWelcomeTitle", table: "Localizable") }
         public static var viewAll: String { String(localized: "dashboard:viewAll", table: "Localizable") }
         public static func viewAllCount(n: String) -> String {
             String(format: String(localized: "dashboard:viewAllCount", table: "Localizable"), n)
@@ -1881,6 +1955,12 @@ public enum S {
             String(format: String(localized: "statementsAnalyze:transactionsTitle", table: "Localizable"), count)
         }
         public static var whereItWent: String { String(localized: "statementsAnalyze:whereItWent", table: "Localizable") }
+    }
+
+    public enum Sync {
+        public static var offline: String { String(localized: "sync:offline", table: "Localizable") }
+        public static var reportIssue: String { String(localized: "sync:reportIssue", table: "Localizable") }
+        public static var trouble: String { String(localized: "sync:trouble", table: "Localizable") }
     }
 
     public enum Templates {

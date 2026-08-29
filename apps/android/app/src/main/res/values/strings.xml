@@ -352,6 +352,18 @@
     <string name="dashboard_add_widget">Add a widget</string>
     <string name="dashboard_add_widget_intro">Pick a tile to add to your dashboard. Resize and reorder it right on the page.</string>
     <string name="dashboard_all_added">Every widget is already on your dashboard.</string>
+    <string name="dashboard_ask_collapse_a11y">Collapse assistant</string>
+    <string name="dashboard_ask_expand_a11y">Expand assistant</string>
+    <string name="dashboard_ask_placeholder">Ask me anything…</string>
+    <string name="dashboard_ask_quick_budget_label">Am I on budget?</string>
+    <string name="dashboard_ask_quick_budget_prompt">Am I on track with my budgets this month?</string>
+    <string name="dashboard_ask_quick_find_label">Find a payment</string>
+    <string name="dashboard_ask_quick_find_prompt">Help me find a payment I made recently.</string>
+    <string name="dashboard_ask_quick_goal_label">Plan a goal</string>
+    <string name="dashboard_ask_quick_goal_prompt">Help me plan a realistic savings goal.</string>
+    <string name="dashboard_ask_quick_where_label">Where did it go?</string>
+    <string name="dashboard_ask_quick_where_prompt">Where did my money go this month?</string>
+    <string name="dashboard_ask_send_a11y">Send</string>
     <string name="dashboard_customize">Customize</string>
     <string name="dashboard_ef_short">EF</string>
     <string name="dashboard_empty_body">Add a widget to see your money at a glance.</string>
@@ -385,6 +397,12 @@
     <string name="dashboard_show_amounts_a11y">Show amounts</string>
     <string name="dashboard_single_currency">All your money is in %1$s. Add an account in another currency to see the split.</string>
     <string name="dashboard_spent">Spent %1$s</string>
+    <string name="dashboard_stat_hidden">Amounts hidden</string>
+    <string name="dashboard_stat_income">Income</string>
+    <string name="dashboard_stat_net_worth">Net worth</string>
+    <string name="dashboard_stat_saved">Saved</string>
+    <string name="dashboard_stat_spending">Spending</string>
+    <string name="dashboard_stat_vs_last_month">vs. %1$s last month</string>
     <plurals name="dashboard_subs_count">
         <item quantity="one">%1$d active subscription</item>
         <item quantity="other">%1$d active subscriptions</item>
@@ -394,6 +412,36 @@
         <item quantity="other">%1$d active subscriptions · ~%2$s so far</item>
     </plurals>
     <string name="dashboard_subs_spent_note">Spend so far is estimated from each subscription\'s price and how long it\'s been running. Actual charges may differ.</string>
+    <string name="dashboard_suggest_budgets_body">Pick a monthly cap for eating out or shopping and watch it as you spend.</string>
+    <string name="dashboard_suggest_budgets_cta">Create a budget</string>
+    <string name="dashboard_suggest_budgets_title">Set a budget</string>
+    <string name="dashboard_suggest_credit_cards_body">Add a statement day and see what\'s due before the bill arrives.</string>
+    <string name="dashboard_suggest_credit_cards_cta">Set it up</string>
+    <string name="dashboard_suggest_credit_cards_title">Track your card cycle</string>
+    <string name="dashboard_suggest_goals_body">Set a target and a date, and track how close you actually are.</string>
+    <string name="dashboard_suggest_goals_cta">Add a goal</string>
+    <string name="dashboard_suggest_goals_title">Save towards something</string>
+    <string name="dashboard_suggest_investments_body">Add holdings to see them counted in your net worth.</string>
+    <string name="dashboard_suggest_investments_cta">Add a holding</string>
+    <string name="dashboard_suggest_investments_title">Track investments</string>
+    <string name="dashboard_suggest_loans_body">Add a loan once and see the schedule, what\'s paid, and what\'s left.</string>
+    <string name="dashboard_suggest_loans_cta">Add a loan</string>
+    <string name="dashboard_suggest_loans_title">Follow your EMIs</string>
+    <string name="dashboard_suggest_receipts_body">Photograph a bill and it fills in the amount, date and line items.</string>
+    <string name="dashboard_suggest_receipts_cta">Try scanning</string>
+    <string name="dashboard_suggest_receipts_title">Scan a receipt</string>
+    <string name="dashboard_suggest_recurring_body">Rent, salary, EMI — enter them once and they post themselves each month.</string>
+    <string name="dashboard_suggest_recurring_cta">Set up</string>
+    <string name="dashboard_suggest_recurring_title">Automate repeat entries</string>
+    <string name="dashboard_suggest_splits_body">Share a dinner or a trip, track who owes what, and settle over UPI.</string>
+    <string name="dashboard_suggest_splits_cta">Start a group</string>
+    <string name="dashboard_suggest_splits_title">Split with friends</string>
+    <string name="dashboard_suggest_subscriptions_body">Netflix, gym, insurance — see what they quietly cost you each year.</string>
+    <string name="dashboard_suggest_subscriptions_cta">Add one</string>
+    <string name="dashboard_suggest_subscriptions_title">Track subscriptions</string>
+    <string name="dashboard_suggest_dismiss">Dismiss %1$s</string>
+    <string name="dashboard_suggest_subtitle">Things you haven\'t tried yet</string>
+    <string name="dashboard_suggest_title">Worth a look</string>
     <string name="dashboard_this_month">This month</string>
     <string name="dashboard_tile_budgets">Budgets</string>
     <string name="dashboard_tile_by_category">Spending by category</string>
@@ -413,6 +461,23 @@
     <string name="dashboard_trend_last1w">Last week</string>
     <string name="dashboard_trend_last1y">Last year</string>
     <string name="dashboard_trend_last3d">Last 3 days</string>
+    <string name="dashboard_trial_banner_body">When it ends you\'ll lose Ask Sanvya, Insights, Statements &amp; more unless you upgrade.</string>
+    <string name="dashboard_trial_banner_title">Free trial · %1$s left.</string>
+    <plurals name="dashboard_trial_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <string name="dashboard_trial_later">Maybe later</string>
+    <string name="dashboard_trial_lose_assistant">Ask Sanvya — the AI assistant</string>
+    <string name="dashboard_trial_lose_automation">Auto-categorisation, upcoming bills &amp; daily stock sync</string>
+    <string name="dashboard_trial_lose_csv">CSV import</string>
+    <string name="dashboard_trial_lose_insights">Detailed Insights &amp; Statements</string>
+    <string name="dashboard_trial_see_plans">See plans</string>
+    <string name="dashboard_trial_upgrade">Upgrade</string>
+    <string name="dashboard_trial_welcome_footer">After %1$s, you\'ll move to the Free plan (all your money tracking stays free) unless you upgrade to Lite or Pro.</string>
+    <string name="dashboard_trial_welcome_intro">You\'ve got everything unlocked while you explore Sanvya — including the features that are paid-only after the trial:</string>
+    <string name="dashboard_trial_welcome_subtitle">%1$s left · full access, no card needed.</string>
+    <string name="dashboard_trial_welcome_title">Your 14-day free trial is live</string>
     <string name="dashboard_view_all">View all</string>
     <string name="dashboard_view_all_count">View all (%1$s)</string>
     <string name="dashboard_width">Width</string>
@@ -1527,6 +1592,11 @@
     <string name="statements_analyze_transactions">%1$s transactions</string>
     <string name="statements_analyze_transactions_title">Transactions (%1$s)</string>
     <string name="statements_analyze_where_it_went">Where it went</string>
+
+    <!-- sync -->
+    <string name="sync_offline">You\'re offline. Your changes are saved on this device and will sync automatically when you\'re back online.</string>
+    <string name="sync_report_issue">Report Issue</string>
+    <string name="sync_trouble">We\'re having trouble syncing right now. Your data is safe on this device.</string>
 
     <!-- templates -->
     <string name="templates_account">Account</string>

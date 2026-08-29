@@ -1,0 +1,893 @@
+[
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 0,
+        "transactions": 0,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": []
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 0,
+        "transactions": 0,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": []
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 1,
+        "transactions": 1,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": []
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 1,
+        "transactions": 4,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": []
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 1,
+        "transactions": 5,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 1,
+        "transactions": 9,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 1,
+        "transactions": 10,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "loans",
+      "goals",
+      "splits"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 1,
+        "transactions": 14,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "loans",
+      "goals",
+      "splits"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 1,
+        "transactions": 15,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 1,
+        "transactions": 20,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 0,
+        "transactions": 20,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": true,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": true,
+      "max": 99
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals",
+      "splits",
+      "receipts",
+      "investments"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 99
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals",
+      "splits",
+      "investments"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 0
+    },
+    "expected": []
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 1
+    },
+    "expected": [
+      "subscriptions"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 3
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 1,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "budgets",
+      "recurring",
+      "loans",
+      "goals",
+      "splits"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 1,
+        "loans": 0,
+        "budgets": 1,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "recurring",
+      "loans",
+      "goals",
+      "splits",
+      "investments"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [
+        "subscriptions"
+      ],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "budgets",
+      "recurring",
+      "loans",
+      "goals",
+      "splits"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [
+        "subscriptions",
+        "budgets"
+      ],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "recurring",
+      "loans",
+      "goals",
+      "splits",
+      "investments"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [
+        "subscriptions",
+        "loans",
+        "budgets",
+        "goals",
+        "splits",
+        "receipts",
+        "recurring",
+        "investments",
+        "creditCards"
+      ],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": []
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [
+        "not-a-feature"
+      ],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 1
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "creditCards",
+      "loans"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 1,
+        "creditCardAccounts": 1
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 200,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 99
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals",
+      "splits",
+      "investments"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 2,
+        "transactions": 200,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": true,
+      "max": 99
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals",
+      "splits",
+      "receipts",
+      "investments"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 3,
+        "transactions": 500,
+        "subscriptions": 1,
+        "loans": 1,
+        "budgets": 1,
+        "goals": 1,
+        "splitGroups": 1,
+        "receipts": 1,
+        "recurring": 1,
+        "holdings": 1,
+        "creditCards": 1,
+        "creditCardAccounts": 1
+      },
+      "dismissed": [],
+      "isPaid": true,
+      "max": 99
+    },
+    "expected": []
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 3,
+        "transactions": 500,
+        "subscriptions": 1,
+        "loans": 1,
+        "budgets": 1,
+        "goals": 1,
+        "splitGroups": 1,
+        "receipts": 1,
+        "recurring": 1,
+        "holdings": 1,
+        "creditCards": 1,
+        "creditCardAccounts": 1
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 5
+    },
+    "expected": []
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 1,
+        "transactions": 40,
+        "subscriptions": 0,
+        "loans": 0,
+        "budgets": 0,
+        "goals": 0,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": true,
+      "max": 99
+    },
+    "expected": [
+      "subscriptions",
+      "budgets",
+      "recurring",
+      "loans",
+      "goals",
+      "splits",
+      "receipts",
+      "investments"
+    ]
+  },
+  {
+    "fn": "pickSuggestions",
+    "input": {
+      "usage": {
+        "accounts": 5,
+        "transactions": 12,
+        "subscriptions": 0,
+        "loans": 2,
+        "budgets": 0,
+        "goals": 1,
+        "splitGroups": 0,
+        "receipts": 0,
+        "recurring": 0,
+        "holdings": 0,
+        "creditCards": 0,
+        "creditCardAccounts": 0
+      },
+      "dismissed": [],
+      "isPaid": false,
+      "max": 99
+    },
+    "expected": [
+      "subscriptions",
+      "splits"
+    ]
+  }
+]

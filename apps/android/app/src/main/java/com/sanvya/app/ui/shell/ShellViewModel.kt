@@ -9,6 +9,9 @@ import com.sanvya.app.data.repository.NotificationsRepository
 import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.data.repository.RepairRepository
 import com.sanvya.app.data.repository.SettingsRepository
+import com.sanvya.app.data.sync.SyncStatus
+import com.sanvya.app.data.sync.SyncStatusRepository
+import com.sanvya.app.domain.entitlements.entitlementState
 import com.sanvya.app.domain.entitlements.isPaid
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +36,7 @@ class ShellViewModel : ViewModel(), KoinComponent {
     private val repairRepository: RepairRepository by inject()
     private val settingsRepository: SettingsRepository by inject()
     private val prefsRepository: PrefsRepository by inject()
+    private val syncStatusRepository: SyncStatusRepository by inject()
     private val recurringRepository: com.sanvya.app.data.repository.RecurringRepository by inject()
     private val loanAutoPostRepository: com.sanvya.app.data.repository.LoanAutoPostRepository by inject()
 
@@ -45,6 +49,16 @@ class ShellViewModel : ViewModel(), KoinComponent {
      * description lookup for EMIs).
      */
     private var catchUpStarted = false
+
+    /**
+     * The app's ONE sync status -- online, connected, hasSynced, lastSyncedAt.
+     *
+     * Handed straight through rather than copied into fields of this class: the
+     * whole point of `SyncStatusRepository` is that there is a single object
+     * everything reads, and a shell-shaped copy of it would be the fifth place
+     * this app kept sync state.
+     */
+    val syncStatus: StateFlow<SyncStatus> = syncStatusRepository.status
 
     private val _unreadCount = MutableStateFlow(0)
     val unreadCount: StateFlow<Int> = _unreadCount.asStateFlow()
@@ -66,6 +80,28 @@ class ShellViewModel : ViewModel(), KoinComponent {
     private val _canScan = MutableStateFlow(false)
     val canScan: StateFlow<Boolean> = _canScan.asStateFlow()
 
+    /**
+     * On the 14-day trial, and how much of it is left -- what `TrialNotice`
+     * needs.
+     *
+     * Derived from the same `watchEntitlement()` stream `canScan` already
+     * consumes, because `entitlementState()` answers both questions in one pass
+     * and a second watch on one table for one boolean is how the sync status
+     * ended up in four places.
+     */
+    private val _isTrial = MutableStateFlow(false)
+    val isTrial: StateFlow<Boolean> = _isTrial.asStateFlow()
+
+    private val _trialDaysLeft = MutableStateFlow(0)
+    val trialDaysLeft: StateFlow<Int> = _trialDaysLeft.asStateFlow()
+
+    /**
+     * The signed-in email, which is what web keys the one-time trial welcome
+     * dialog on (`sanvya:trial-welcome:<email>`). Null while unknown.
+     */
+    private val _sessionEmail = MutableStateFlow<String?>(null)
+    val sessionEmail: StateFlow<String?> = _sessionEmail.asStateFlow()
+
     init {
         viewModelScope.launch {
             authRepository.currentUserId.collectLatest { userId ->
@@ -83,13 +119,23 @@ class ShellViewModel : ViewModel(), KoinComponent {
             prefsRepository.watchEntitlement()
                 .catch { /* offline — keep the last known tier */ }
                 .collectLatest { row ->
+                    val now = System.currentTimeMillis()
                     _canScan.value = isPaid(
                         row?.tier,
                         row?.premiumTrialStartDate,
                         row?.compTier,
                         row?.compUntil,
-                        System.currentTimeMillis(),
+                        now,
                     )
+                    val state = entitlementState(
+                        tier = row?.tier,
+                        premiumTrialStartDate = row?.premiumTrialStartDate,
+                        compTier = row?.compTier,
+                        compUntil = row?.compUntil,
+                        nowMillis = now,
+                    )
+                    _isTrial.value = state.isTrial
+                    _trialDaysLeft.value = state.trialDaysLeft
                 }
         }
 
@@ -102,6 +148,7 @@ class ShellViewModel : ViewModel(), KoinComponent {
             try {
                 val session = settingsRepository.currentSession() ?: return@launch
                 _isGuest.value = session.isGuest
+                _sessionEmail.value = session.email
                 val createdAtMs = session.createdAtMs
                 _guestDaysLeft.value = if (session.isGuest && createdAtMs != null) {
                     val remainingMs = createdAtMs + 3L * 86_400_000L - System.currentTimeMillis()

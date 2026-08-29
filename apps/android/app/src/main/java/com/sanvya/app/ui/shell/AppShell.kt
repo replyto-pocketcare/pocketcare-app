@@ -1,10 +1,6 @@
 package com.sanvya.app.ui.shell
 
 import com.sanvya.app.ui.baseCurrencyNow
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -27,7 +23,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +33,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sanvya.app.theme.LocalSanvyaColors
@@ -53,6 +47,7 @@ import com.sanvya.app.ui.components.SanvyaText
 import com.sanvya.app.theme.LocalSanvyaShadows
 import kotlinx.coroutines.delay
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.domain.syncstatus.syncNotice
 import com.sanvya.app.ui.components.sanvyaShadow
 
 /** Matches web's `APP_VERSION` in AppShell.tsx. */
@@ -94,12 +89,22 @@ fun AppShell(
 ) {
     val colors = LocalSanvyaColors.current
     val windowClass = LocalWindowClass.current
-    val offline = rememberIsOffline()
+    // ONE sync status for the whole app -- see :data's SyncStatusRepository.
+    // `offline` used to come from a private `rememberIsOffline()` in this file,
+    // which meant the single most useful fact about syncing was reachable only
+    // by the shell's own composables: the gate that decides whether a list shows
+    // skeletons could not ask whether the device had a network, and substituted
+    // a ten-second timer instead.
+    val sync by viewModel.syncStatus.collectAsState()
+    val offline = !sync.online
     val unreadCount by viewModel.unreadCount.collectAsState()
     val failedWrites by viewModel.failedWriteCount.collectAsState()
     val isGuest by viewModel.isGuest.collectAsState()
     val guestDaysLeft by viewModel.guestDaysLeft.collectAsState()
     val canScan by viewModel.canScan.collectAsState()
+    val isTrial by viewModel.isTrial.collectAsState()
+    val trialDaysLeft by viewModel.trialDaysLeft.collectAsState()
+    val sessionEmail by viewModel.sessionEmail.collectAsState()
     val navIds by NavPrefs.ids.collectAsState()
 
     var moreOpen by remember { mutableStateOf(false) }
@@ -172,6 +177,21 @@ fun AppShell(
                 onNotifications = { onNavigate("notifications") },
             )
         }
+        // Web's order inside <main>, exactly: the utility row, then the sync
+        // strip, then TrialNotice, then the page. Both of these are IN FLOW and
+        // on every route (web puts them outside its `!isDashboard` guard), so
+        // they scroll away with the content rather than sitting on top of it.
+        SyncStatusStrip(
+            notice = syncNotice(online = sync.online, error = sync.error),
+            onReportIssue = { feedbackOpen = true },
+        )
+        TrialNotice(
+            onTrial = isTrial && !isGuest,
+            daysLeft = trialDaysLeft,
+            email = sessionEmail,
+            // Web links to /settings, which is where the plans are.
+            onSeePlans = { onNavigate("settings") },
+        )
         ProvideShellLocals(onSetPageAction, onNavigate) { content() }
     }
 
@@ -318,40 +338,6 @@ private fun ProvideShellLocals(
         LocalShellNavigate provides navigate,
         content = content,
     )
-}
-
-/**
- * Live connectivity, for the offline banner.
- *
- * A `NetworkCallback` rather than a poll: connectivity genuinely is an event
- * stream here, unlike `failed_writes`, and the banner has to appear the moment
- * signal drops rather than up to 30 seconds later.
- */
-@Composable
-private fun rememberIsOffline(): Boolean {
-    val context = LocalContext.current
-    var offline by remember { mutableStateOf(false) }
-
-    DisposableEffect(context) {
-        val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-        if (manager == null) {
-            onDispose { }
-        } else {
-            fun hasInternet(): Boolean {
-                val caps = manager.getNetworkCapabilities(manager.activeNetwork)
-                return caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
-            }
-            offline = !hasInternet()
-
-            val callback = object : ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: Network) { offline = false }
-                override fun onLost(network: Network) { offline = !hasInternet() }
-            }
-            manager.registerDefaultNetworkCallback(callback)
-            onDispose { manager.unregisterNetworkCallback(callback) }
-        }
-    }
-    return offline
 }
 
 /**

@@ -1,6 +1,7 @@
 package com.sanvya.app.ui.shell
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,9 @@ import com.sanvya.app.theme.SanvyaMetrics
 import com.sanvya.app.theme.SanvyaShape
 import com.sanvya.app.theme.SanvyaType
 import com.sanvya.app.ui.components.SanvyaText
+import com.sanvya.app.domain.syncstatus.SyncNotice
+import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.sRes
 
 /**
  * The app-wide banners, in web's z-order: sync problems above offline, both
@@ -99,20 +103,54 @@ fun SyncProblemsBanner(count: Int, onReview: () -> Unit) {
 }
 
 /**
- * The in-flow sync status strip — not sticky, unlike the two above, because it
- * is informational rather than a problem to act on.
+ * The in-flow sync status strip -- web's `AppShell.tsx` block just above
+ * `<TrialNotice />`.
+ *
+ * Not sticky, unlike the two banners above: it is a sentence about the state of
+ * the app, not a problem sitting on top of the page. It scrolls away with the
+ * content, exactly as web's does.
+ *
+ * **It renders for the first time here.** The composable existed and had zero
+ * call sites -- dead code rather than a dead control, so nothing lied, but the
+ * one place web explains an unreachable server said nothing on either port.
+ *
+ * The decision is [SyncNotice] from Domain (`syncNotice`), vector-pinned, and
+ * the words come from the `sync` namespace. Web's own copy is two English
+ * literals inline, which is why the port could not simply reuse it.
+ *
+ * **Force Sync is deliberately absent**, and this is the one thing the strip is
+ * short of web's. Web's button is `disconnect()` then `connect(connector)`;
+ * neither native app calls `connect()` ANYWHERE, so wiring it here would make a
+ * status strip the app's only sync-connection call and quietly paper over a
+ * bootstrap bug that should be fixed where the database is created. Report
+ * Issue is here because it is real: it opens the Feedback sheet the shell
+ * already owns, which is the app's actual support channel.
+ *
+ * **The OFFLINE branch never renders on mobile, deliberately.** Web shows the
+ * offline message TWICE when you are offline -- once in the sticky
+ * `OfflineBanner` and again, in different words, in this in-flow strip. On a
+ * browser that is redundant; on a phone it is two of the six visible rows
+ * saying the same thing on every screen. The banner is the better of the two
+ * (it is pinned, so it survives scrolling), so the strip keeps only TROUBLE --
+ * the state the banner has nothing to say about. Recorded as a web defect
+ * rather than reproduced.
  */
 @Composable
-fun SyncStatusStrip(message: String?, warn: Boolean, onForceSync: (() -> Unit)?) {
-    if (message == null) return
+fun SyncStatusStrip(notice: SyncNotice, onReportIssue: (() -> Unit)? = null) {
+    if (notice != SyncNotice.TROUBLE) return
+    val res = sRes()
     val colors = LocalSanvyaColors.current
+    val warn = true
+    val message = S.Sync.trouble(res)
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 16.dp)
             .clip(SanvyaShape.row)
             .background(if (warn) colors.accentGhost else colors.surface2)
-            .padding(horizontal = 14.dp, vertical = 9.dp),
+            .border(1.dp, if (warn) colors.warning else colors.border, SanvyaShape.row)
+            .padding(horizontal = 14.dp, vertical = 9.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -128,16 +166,18 @@ fun SyncStatusStrip(message: String?, warn: Boolean, onForceSync: (() -> Unit)?)
             color = if (warn) colors.text else colors.text2,
             modifier = Modifier.weight(1f),
         )
-        if (onForceSync != null) {
+        // Only on the warn branch, matching web: the offline note is
+        // informational and has nothing to act on.
+        if (warn && onReportIssue != null) {
             val interaction = remember { MutableInteractionSource() }
             SanvyaText(
-                text = "Force Sync",
+                text = S.Sync.reportIssue(res),
                 style = SanvyaType.statLabel,
                 color = colors.accent,
                 modifier = Modifier.clickable(
                     interactionSource = interaction,
                     indication = null,
-                    onClick = onForceSync,
+                    onClick = onReportIssue,
                 ),
             )
         }

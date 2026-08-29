@@ -20,6 +20,20 @@
   "addWidget": "Widget toevoegen",
   "addWidgetIntro": "Kies een tegel om aan je dashboard toe te voegen. Grootte en volgorde pas je direct op de pagina aan.",
   "allAdded": "Elke widget staat al op je dashboard.",
+  "askCollapseA11y": "Assistent inklappen",
+  "askExpandA11y": "Assistent uitklappen",
+  "askPlaceholder": "Vraag me van alles…",
+  "askQuick": {
+    "whereLabel": "Waar ging het heen?",
+    "wherePrompt": "Waar is mijn geld deze maand heen gegaan?",
+    "budgetLabel": "Zit ik op budget?",
+    "budgetPrompt": "Lig ik deze maand op schema met mijn budgetten?",
+    "goalLabel": "Plan een doel",
+    "goalPrompt": "Help me een realistisch spaardoel te plannen.",
+    "findLabel": "Zoek een betaling",
+    "findPrompt": "Help me een betaling te vinden die ik onlangs heb gedaan."
+  },
+  "askSendA11y": "Versturen",
   "customize": "Aanpassen",
   "efShort": "Noodfonds",
   "emptyBody": "Voeg een widget toe om je geld in één oogopslag te zien.",
@@ -53,16 +67,87 @@
   "showAmountsA11y": "Bedragen tonen",
   "singleCurrency": "Al je geld staat in {{base}}. Voeg een rekening in een andere valuta toe om de verdeling te zien.",
   "spent": "{{amount}} uitgegeven",
+  "statHidden": "Bedragen verborgen",
+  "statIncome": "Inkomsten",
+  "statNetWorth": "Vermogen",
+  "statSaved": "Gespaard",
+  "statSpending": "Uitgaven",
+  "statVsLastMonth": "t.o.v. {{amount}} vorige maand",
   "subsCountSpent_one": "{{count}} actief abonnement · ~{{amount}} tot nu toe",
   "subsCountSpent_other": "{{count}} actieve abonnementen · ~{{amount}} tot nu toe",
   "subsCount_one": "{{count}} actief abonnement",
   "subsCount_other": "{{count}} actieve abonnementen",
   "subsSpentNote": "De uitgaven tot nu toe zijn geschat op basis van de prijs van elk abonnement en hoe lang het al loopt. De werkelijke kosten kunnen afwijken.",
+  "suggest": {
+    "subscriptions": {
+      "title": "Abonnementen bijhouden",
+      "body": "Netflix, sportschool, verzekering — zie wat ze je stilletjes per jaar kosten.",
+      "cta": "Voeg er een toe"
+    },
+    "budgets": {
+      "title": "Stel een budget in",
+      "body": "Kies een maandlimiet voor uit eten of shoppen en volg die terwijl je uitgeeft.",
+      "cta": "Budget maken"
+    },
+    "recurring": {
+      "title": "Automatiseer terugkerende posten",
+      "body": "Huur, salaris, aflossing — voer ze één keer in en ze boeken zichzelf elke maand.",
+      "cta": "Instellen"
+    },
+    "creditCards": {
+      "title": "Volg je kaartcyclus",
+      "body": "Voeg een afschriftdag toe en zie wat er openstaat vóór de rekening komt.",
+      "cta": "Instellen"
+    },
+    "loans": {
+      "title": "Volg je aflossingen",
+      "body": "Voeg een lening één keer toe en zie het schema, wat betaald is en wat rest.",
+      "cta": "Lening toevoegen"
+    },
+    "goals": {
+      "title": "Spaar voor iets",
+      "body": "Stel een doel en een datum in en zie hoe dichtbij je echt bent.",
+      "cta": "Doel toevoegen"
+    },
+    "splits": {
+      "title": "Deel met vrienden",
+      "body": "Deel een diner of een reis, houd bij wie wat schuldig is en reken af via UPI.",
+      "cta": "Groep starten"
+    },
+    "receipts": {
+      "title": "Scan een bon",
+      "body": "Fotografeer een bon en het bedrag, de datum en de regels worden ingevuld.",
+      "cta": "Scannen proberen"
+    },
+    "investments": {
+      "title": "Beleggingen bijhouden",
+      "body": "Voeg posities toe zodat ze meetellen in je vermogen.",
+      "cta": "Positie toevoegen"
+    }
+  },
+  "suggestDismiss": "{{title}} sluiten",
+  "suggestSubtitle": "Dingen die je nog niet hebt geprobeerd",
+  "suggestTitle": "De moeite waard",
   "thisMonth": "Deze maand",
   "trendLast1m": "Vorige maand",
   "trendLast1w": "Vorige week",
   "trendLast1y": "Vorig jaar",
   "trendLast3d": "Laatste 3 dagen",
+  "trialBannerBody": "Als die afloopt verlies je Ask Sanvya, Inzichten, Overzichten en meer, tenzij je upgradet.",
+  "trialBannerTitle": "Gratis proefperiode · nog {{days}}.",
+  "trialDays_one": "{{count}} dag",
+  "trialDays_other": "{{count}} dagen",
+  "trialLater": "Misschien later",
+  "trialLoseAssistant": "Ask Sanvya — de AI-assistent",
+  "trialLoseAutomation": "Automatisch categoriseren, aankomende rekeningen & dagelijkse koersen",
+  "trialLoseCsv": "CSV-import",
+  "trialLoseInsights": "Uitgebreide Inzichten & Overzichten",
+  "trialSeePlans": "Bekijk abonnementen",
+  "trialUpgrade": "Upgraden",
+  "trialWelcomeFooter": "Na {{days}} ga je over naar het gratis plan (al je geldbeheer blijft gratis), tenzij je upgradet naar Lite of Pro.",
+  "trialWelcomeIntro": "Alles staat open terwijl je Sanvya verkent — ook de functies die na de proefperiode alleen betaald zijn:",
+  "trialWelcomeSubtitle": "Nog {{days}} · volledige toegang, geen kaart nodig.",
+  "trialWelcomeTitle": "Je gratis proefperiode van 14 dagen loopt",
   "viewAll": "Alles bekijken",
   "viewAllCount": "Alles bekijken ({{n}})",
   "width": "Breedte",

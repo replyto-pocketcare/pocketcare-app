@@ -1,73 +1,58 @@
 package com.sanvya.app.ui.components
 
 import com.sanvya.app.data.repository.SettingsRepository
-import kotlinx.coroutines.delay
+import com.sanvya.app.data.sync.SyncStatusRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * The native `useInitialSyncPending()` (apps/web/src/sync.ts).
  *
- * True while the FIRST sync from the server has not finished — i.e. the local
+ * True while the FIRST sync from the server has not finished -- i.e. the local
  * database may still be empty because the data is on its way. Lists use it to
  * show skeletons instead of a "you have nothing yet" empty state, which during
  * a first sync is not merely unhelpful but wrong: it tells a returning user
  * their money is gone.
  *
- * Shared rather than repeated because more than one list needs it, and because
- * the two screens that need it must agree — Transactions and Accounts showing
- * different answers to "has the data arrived?" is worse than either answer.
+ * **This file no longer polls.** It used to run its own 400 ms loop over
+ * `SettingsRepository.hasSynced()`, and because the flow was cold, EVERY
+ * collector got its own -- three view models, plus a fourth hand-rolled copy in
+ * `WalkthroughGateViewModel`. Four loops asking one field the same question,
+ * free to disagree with each other mid-flight.
  *
- * TWO deliberate differences from web, both recorded here rather than in the
- * call sites:
- *
- *  * It POLLS. `hasSynced` has no change stream on either SDK, so this reads
- *    the same status object the diagnostics panel does — exactly as
- *    `WalkthroughGateViewModel` already does, and for the same reason. It
- *    settles once and then never changes for the life of the process, so the
- *    loop ends for good the moment it flips. This is not a background poller.
- *  * There is no `online &&`, but there IS a deadline. Web can cheaply ask
- *    `navigator.onLine`; the equivalent here lives in the shell's connectivity
- *    callback, which is not reachable from a repository. Without a substitute
- *    the gate would wait FOREVER on a brand-new install with no network -- the
- *    user would get a shimmering placeholder and no way to read what it means.
- *    So the wait is bounded: past `SYNC_WAIT_TIMEOUT_MS` we give up and show
- *    the empty state, which by then is the honest answer. A returning user
- *    never reaches the deadline -- PowerSync persists `hasSynced` with the
- *    local database, so they answer "already synced" offline on the first
- *    frame.
+ * All of it now reads one app-level [SyncStatusRepository] (`:data`), which is
+ * also where connectivity finally lives. That is what let the gate adopt web's
+ * actual rule -- `online && !hasSynced` -- instead of the deadline it used as a
+ * stand-in for connectivity. The deadline is still there, but as a floor rather
+ * than a substitute; the reason is on `SyncStatusRepository.initialSyncPending`
+ * and it is not a pretty one.
  */
-fun initialSyncPending(settingsRepository: SettingsRepository): Flow<Boolean> = flow {
-    if (hasSyncedOrFalse(settingsRepository)) {
-        emit(false)
-        return@flow
-    }
-    emit(true)
-    var waited = 0L
-    while (!hasSyncedOrFalse(settingsRepository) && waited < SYNC_WAIT_TIMEOUT_MS) {
-        delay(SYNC_POLL_MS)
-        waited += SYNC_POLL_MS
-    }
-    emit(false)
+fun initialSyncPending(): Flow<Boolean> = SyncStatusHolder.repository.initialSyncPending
+
+/**
+ * The pre-consolidation signature, kept so the call sites that pass a
+ * [SettingsRepository] keep compiling.
+ *
+ * The argument is ignored: `hasSynced` is read by the shared status object now,
+ * not per caller. It is an overload rather than an edit at each call site
+ * because those files belong to other screens and this change is meant to be
+ * invisible to them -- but the parameter is vestigial and the two remaining
+ * callers (`TransactionsViewModel`, `AccountsViewModel`) should drop it the next
+ * time either file is opened for its own reasons.
+ */
+@Suppress("UNUSED_PARAMETER")
+fun initialSyncPending(settingsRepository: SettingsRepository): Flow<Boolean> = initialSyncPending()
+
+/**
+ * Koin lookup for a top-level function.
+ *
+ * The gate is called from `combine(...)` inside view-model property
+ * initialisers, which have no injector of their own, and threading the
+ * repository through every one of them would have meant editing four files to
+ * change one. `KoinComponent` on a private object is the smallest thing that
+ * resolves a singleton from module-level code.
+ */
+private object SyncStatusHolder : KoinComponent {
+    val repository: SyncStatusRepository by inject()
 }
-
-/**
- * An unreadable status is "not yet", never "done".
- *
- * Erring the other way would flash the empty state — the exact failure this
- * gate exists to remove.
- */
-private fun hasSyncedOrFalse(settingsRepository: SettingsRepository): Boolean =
-    runCatching { settingsRepository.hasSynced() }.getOrDefault(false)
-
-/** `WalkthroughGateViewModel`'s own interval, so the two gates settle together. */
-private const val SYNC_POLL_MS = 400L
-
-/**
- * How long a placeholder is allowed to stand in for an answer.
- *
- * Ten seconds is well past a healthy first sync and well short of the point
- * where a person decides the app is broken. Past it the empty state is not a
- * guess any more -- it is what we actually know.
- */
-private const val SYNC_WAIT_TIMEOUT_MS = 10_000L

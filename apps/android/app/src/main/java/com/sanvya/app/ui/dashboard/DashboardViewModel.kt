@@ -66,6 +66,22 @@ data class NetWorthHeroState(
     val sparkline: List<Float> = emptyList(),
 )
 
+/**
+ * The four figures the wide-window KPI strip shows, all in MINOR units.
+ *
+ * Derived here rather than in `StatRow` because the monthly income/expense fold
+ * this screen already does for the hero's sparkline is the same fold web's
+ * StatRow runs a second query for -- one pass over the ledger, two consumers.
+ */
+data class DashboardStats(
+    val netMinor: Long = 0,
+    val currentIncomeMinor: Long = 0,
+    val currentExpenseMinor: Long = 0,
+    val previousIncomeMinor: Long = 0,
+    val previousExpenseMinor: Long = 0,
+    val base: String = FormOptions.DEFAULT_CURRENCY,
+)
+
 data class DashboardUiState(
     val netWorthFormatted: String = formatMoney(0, FormOptions.DEFAULT_CURRENCY),
     val assetsFormatted: String = formatMoney(0, FormOptions.DEFAULT_CURRENCY),
@@ -73,6 +89,8 @@ data class DashboardUiState(
     val accounts: List<AccountWithBalance> = emptyList(),
     val recentTransactions: List<DashboardTxnRow> = emptyList(),
     val hero: NetWorthHeroState = NetWorthHeroState(),
+    /** Only read at EXPANDED -- see StatRow.kt for why phones skip the strip. */
+    val stats: DashboardStats = DashboardStats(),
     /**
      * Who the greeting is addressed to -- page.tsx's
      * `session?.username || session.email.split("@")[0]`. Empty when neither is
@@ -192,6 +210,12 @@ class DashboardViewModel : ViewModel(), KoinComponent {
         val sparkScale = majorScale(baseCurrencyNow()).toFloat()
         val sparkline = months.map { (_, v) -> acc += (v.first - v.second) / sparkScale; acc }
 
+        // The KPI strip's four figures, off the SAME fold as the sparkline.
+        // Web's StatRow re-runs the identical GROUP BY in its own component; the
+        // one thing the port does differently is not paying for it twice.
+        val current = months.lastOrNull()?.value ?: (0L to 0L)
+        val previous = if (months.size >= 2) months[months.size - 2].value else (0L to 0L)
+
         val net = if (showAvail) netWorth.available else netWorth.total
 
         DashboardUiState(
@@ -200,6 +224,14 @@ class DashboardViewModel : ViewModel(), KoinComponent {
             liabilitiesFormatted = formatMoney(kotlin.math.abs(liabilities), netWorth.base),
             accounts = accounts,
             recentTransactions = recentUiTxns,
+            stats = DashboardStats(
+                netMinor = net.amount,
+                currentIncomeMinor = current.first,
+                currentExpenseMinor = current.second,
+                previousIncomeMinor = previous.first,
+                previousExpenseMinor = previous.second,
+                base = netWorth.base,
+            ),
             hero = NetWorthHeroState(
                 net = net,
                 base = netWorth.base,
@@ -226,7 +258,9 @@ class DashboardViewModel : ViewModel(), KoinComponent {
     val uiState: StateFlow<DashboardUiState> = combine(
         core,
         displayName,
-        initialSyncPending(settingsRepository),
+        // The app's ONE gate now (`SyncStatusRepository`), where this used to
+        // start a 400 ms poll of its own. See ui/components/InitialSyncGate.kt.
+        initialSyncPending(),
     ) { state, name, syncPending ->
         state.copy(displayName = name, syncPending = syncPending)
     }.stateIn(

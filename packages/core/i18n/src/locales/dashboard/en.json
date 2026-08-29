@@ -20,6 +20,20 @@
   "addWidget": "Add a widget",
   "addWidgetIntro": "Pick a tile to add to your dashboard. Resize and reorder it right on the page.",
   "allAdded": "Every widget is already on your dashboard.",
+  "askCollapseA11y": "Collapse assistant",
+  "askExpandA11y": "Expand assistant",
+  "askPlaceholder": "Ask me anything…",
+  "askQuick": {
+    "whereLabel": "Where did it go?",
+    "wherePrompt": "Where did my money go this month?",
+    "budgetLabel": "Am I on budget?",
+    "budgetPrompt": "Am I on track with my budgets this month?",
+    "goalLabel": "Plan a goal",
+    "goalPrompt": "Help me plan a realistic savings goal.",
+    "findLabel": "Find a payment",
+    "findPrompt": "Help me find a payment I made recently."
+  },
+  "askSendA11y": "Send",
   "customize": "Customize",
   "efShort": "EF",
   "emptyBody": "Add a widget to see your money at a glance.",
@@ -53,16 +67,87 @@
   "showAmountsA11y": "Show amounts",
   "singleCurrency": "All your money is in {{base}}. Add an account in another currency to see the split.",
   "spent": "Spent {{amount}}",
+  "statHidden": "Amounts hidden",
+  "statIncome": "Income",
+  "statNetWorth": "Net worth",
+  "statSaved": "Saved",
+  "statSpending": "Spending",
+  "statVsLastMonth": "vs. {{amount}} last month",
   "subsCountSpent_one": "{{count}} active subscription · ~{{amount}} so far",
   "subsCountSpent_other": "{{count}} active subscriptions · ~{{amount}} so far",
   "subsCount_one": "{{count}} active subscription",
   "subsCount_other": "{{count}} active subscriptions",
   "subsSpentNote": "Spend so far is estimated from each subscription's price and how long it's been running. Actual charges may differ.",
+  "suggest": {
+    "subscriptions": {
+      "title": "Track subscriptions",
+      "body": "Netflix, gym, insurance — see what they quietly cost you each year.",
+      "cta": "Add one"
+    },
+    "budgets": {
+      "title": "Set a budget",
+      "body": "Pick a monthly cap for eating out or shopping and watch it as you spend.",
+      "cta": "Create a budget"
+    },
+    "recurring": {
+      "title": "Automate repeat entries",
+      "body": "Rent, salary, EMI — enter them once and they post themselves each month.",
+      "cta": "Set up"
+    },
+    "creditCards": {
+      "title": "Track your card cycle",
+      "body": "Add a statement day and see what's due before the bill arrives.",
+      "cta": "Set it up"
+    },
+    "loans": {
+      "title": "Follow your EMIs",
+      "body": "Add a loan once and see the schedule, what's paid, and what's left.",
+      "cta": "Add a loan"
+    },
+    "goals": {
+      "title": "Save towards something",
+      "body": "Set a target and a date, and track how close you actually are.",
+      "cta": "Add a goal"
+    },
+    "splits": {
+      "title": "Split with friends",
+      "body": "Share a dinner or a trip, track who owes what, and settle over UPI.",
+      "cta": "Start a group"
+    },
+    "receipts": {
+      "title": "Scan a receipt",
+      "body": "Photograph a bill and it fills in the amount, date and line items.",
+      "cta": "Try scanning"
+    },
+    "investments": {
+      "title": "Track investments",
+      "body": "Add holdings to see them counted in your net worth.",
+      "cta": "Add a holding"
+    }
+  },
+  "suggestDismiss": "Dismiss {{title}}",
+  "suggestSubtitle": "Things you haven't tried yet",
+  "suggestTitle": "Worth a look",
   "thisMonth": "This month",
   "trendLast1m": "Last month",
   "trendLast1w": "Last week",
   "trendLast1y": "Last year",
   "trendLast3d": "Last 3 days",
+  "trialBannerBody": "When it ends you'll lose Ask Sanvya, Insights, Statements & more unless you upgrade.",
+  "trialBannerTitle": "Free trial · {{days}} left.",
+  "trialDays_one": "{{count}} day",
+  "trialDays_other": "{{count}} days",
+  "trialLater": "Maybe later",
+  "trialLoseAssistant": "Ask Sanvya — the AI assistant",
+  "trialLoseAutomation": "Auto-categorisation, upcoming bills & daily stock sync",
+  "trialLoseCsv": "CSV import",
+  "trialLoseInsights": "Detailed Insights & Statements",
+  "trialSeePlans": "See plans",
+  "trialUpgrade": "Upgrade",
+  "trialWelcomeFooter": "After {{days}}, you'll move to the Free plan (all your money tracking stays free) unless you upgrade to Lite or Pro.",
+  "trialWelcomeIntro": "You've got everything unlocked while you explore Sanvya — including the features that are paid-only after the trial:",
+  "trialWelcomeSubtitle": "{{days}} left · full access, no card needed.",
+  "trialWelcomeTitle": "Your 14-day free trial is live",
   "viewAll": "View all",
   "viewAllCount": "View all ({{n}})",
   "width": "Width",

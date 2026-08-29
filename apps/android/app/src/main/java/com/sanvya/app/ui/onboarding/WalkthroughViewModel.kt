@@ -6,15 +6,14 @@ import com.sanvya.app.data.auth.AuthRepository
 import com.sanvya.app.data.auth.AuthState
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.PrefsRepository
-import com.sanvya.app.data.repository.SettingsRepository
 import com.sanvya.app.data.repository.nowIso
 import com.sanvya.app.domain.entitlements.entitlementState
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.onboarding.shouldShowWalkthrough
 import com.sanvya.app.ui.FormOptions
+import com.sanvya.app.ui.components.initialSyncPending
 import com.sanvya.app.ui.Prefs
 import com.sanvya.app.ui.baseCurrencyNow
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -49,10 +48,8 @@ import org.koin.core.component.inject
 class WalkthroughGateViewModel : ViewModel(), KoinComponent {
     private val ledgerRepository: LedgerRepository by inject()
     private val authRepository: AuthRepository by inject()
-    private val settingsRepository: SettingsRepository by inject()
 
     private val skipped = MutableStateFlow(false)
-    private val syncPending = MutableStateFlow(true)
 
     /**
      * Null until the count has actually been read once. A count we could not
@@ -64,7 +61,14 @@ class WalkthroughGateViewModel : ViewModel(), KoinComponent {
     val isOpen: StateFlow<Boolean> = combine(
         Prefs.walkthroughDone,
         skipped,
-        syncPending,
+        // The SHARED gate, not a private copy of the poll. This view model used
+        // to run a fourth 400 ms loop over the same `hasSynced` field the three
+        // InitialSyncGate callers were already polling; worse, it read the raw
+        // flag while they read `online && !hasSynced`, so on a device with no
+        // network the walkthrough and the dashboard's own skeleton disagreed
+        // about whether the data had arrived. Web has always had ONE
+        // `useInitialSyncPending()` and useWalkthrough.ts calls exactly that.
+        initialSyncPending(),
         realAccountCount,
         authRepository.authState,
     ) { done, isSkipped, pending, count, authState ->
@@ -84,19 +88,6 @@ class WalkthroughGateViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             ledgerRepository.watchRealAccountCount().collect { realAccountCount.value = it }
         }
-        // `hasSynced` has no change stream on either SDK, so this polls the same
-        // status object the diagnostics panel reads. It settles once and then
-        // never changes for the life of the process, so the loop exits for good
-        // the moment it flips — this is not a background poller.
-        viewModelScope.launch {
-            while (true) {
-                if (settingsRepository.hasSynced()) {
-                    syncPending.value = false
-                    return@launch
-                }
-                delay(POLL_MS)
-            }
-        }
     }
 
     /** Close for this launch only; it returns next time while there is still no account. */
@@ -105,9 +96,6 @@ class WalkthroughGateViewModel : ViewModel(), KoinComponent {
     /** Close for good. */
     fun finish() = Prefs.setWalkthroughDone()
 
-    private companion object {
-        const val POLL_MS = 400L
-    }
 }
 
 /**

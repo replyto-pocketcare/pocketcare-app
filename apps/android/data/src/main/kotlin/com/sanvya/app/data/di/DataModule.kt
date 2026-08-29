@@ -99,6 +99,12 @@ val dataModule = module {
     single { com.sanvya.app.data.repository.PrefsRepository(get()) }
     // Settings' own data access — keeps SupabaseClient/PowerSyncDatabase out of :app.
     single { com.sanvya.app.data.repository.SettingsRepository(get(), get()) }
+    // The dashboard's "Worth a look" strip -- one row of counts, one query.
+    single { com.sanvya.app.data.repository.SuggestionsRepository(get()) }
+    // The app's ONE sync status: online + connected + hasSynced + lastSyncedAt,
+    // on a single poll loop. Replaces four independent 400 ms pollers and the
+    // shell's private connectivity callback -- see SyncStatusRepository.kt.
+    single { com.sanvya.app.data.sync.SyncStatusRepository(androidContext(), get()) }
     // The shell's bell badge and the notifications inbox.
     single { com.sanvya.app.data.repository.NotificationsRepository(get()) }
     single {
