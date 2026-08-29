@@ -148,9 +148,50 @@ function walk(dir, out = []) {
  */
 const files = walk(ROOT);
 
+/**
+ * Every top-level TYPE declared in `:data` or `:domain` is watched automatically.
+ *
+ * Added 2026-08-29, after `GroupDetailScreen.kt` used `SplitGroup` with no
+ * import and this guard said 0 hits -- the fourth time the CURATED list was the
+ * thing that was wrong, and the second time in two days.
+ *
+ * Hand-feeding the list has now failed often enough to be the finding. But the
+ * two earlier generalisations both drowned in false positives (358 and 111,
+ * recorded above), and the reason is instructive: both watched FUNCTIONS.
+ * A top-level `fun split` and a local `val split` are indistinguishable without
+ * real scoping, and `fun Modifier.foo()` reads as a declaration of `Modifier`.
+ *
+ * TYPES have neither problem. A class name is capitalised, is never a local
+ * binding, and -- crucially -- a type declared in another Gradle module can
+ * ONLY be reached through an import. There is no wildcard on `:app` that
+ * covers `com.sanvya.app.data.repository`, and no way to use `SplitGroup`
+ * without naming it. So the rule is exact rather than heuristic, which is why
+ * it can be automatic where the function list cannot.
+ *
+ * Scoped to the two shared modules on purpose: types declared inside `:app`
+ * are frequently file-private UI models, and several files legitimately
+ * declare their own `ExpenseUiModel`-shaped type.
+ */
+const SHARED_MODULE_DIRS = [
+  path.join(ROOT, "data/src/main"),
+  path.join(ROOT, "domain/src/main"),
+];
+//
+// Anchored at COLUMN ZERO, no `\s*`. That is the whole difference between a
+// top-level declaration and a nested one, and it matters: `AssistantCard` is a
+// sealed hierarchy whose members are called `Text`, `Table` and `Result`. Those
+// are reachable as `AssistantCard.Text` and need no import of their own, but as
+// bare names they collide with Compose's `Text` and Kotlin's `Result` -- an
+// indented match produced 47 false positives naming exactly those three.
+const TYPE_DECL = /^(?:@\w+(?:\([^)]*\))?\s*)*(?:public |internal )?(?:data |sealed |value |abstract |open )?(?:class|object|interface|enum class)\s+([A-Z][A-Za-z0-9_]*)/gm;
+
 /** symbol -> the package(s) it is declared in, read from the source. */
 const declaredIn = new Map();
+/** The subset of the above that must be matched in TYPE position, not as a call. */
+const typeOnly = new Set();
 const packageOf = new Map();
+/** file -> the names that file declares itself, which it never needs to import. */
+const declaresLocally = new Map();
 const DECL = /^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:public |internal |private )?(?:const )?(?:fun|val|var|class|object|interface|enum class|data class|sealed class|sealed interface)\s+(?:<[^>]*>\s+)?([A-Za-z_][A-Za-z0-9_]*)/gm;
 
 for (const file of files) {
@@ -158,11 +199,24 @@ for (const file of files) {
   const pkg = src.match(/^package\s+([\w.]+)/m)?.[1];
   if (!pkg) continue;
   packageOf.set(file, pkg);
+  const local = new Set();
+  for (const m of src.matchAll(DECL)) local.add(m[1]);
+  declaresLocally.set(file, local);
+
   for (const m of src.matchAll(DECL)) {
     const name = m[1];
     if (!WATCHED.includes(name)) continue;
     if (!declaredIn.has(name)) declaredIn.set(name, new Set());
     declaredIn.get(name).add(pkg);
+  }
+
+  if (SHARED_MODULE_DIRS.some((d) => file.startsWith(d + path.sep))) {
+    for (const m of src.matchAll(TYPE_DECL)) {
+      const name = m[1];
+      if (!declaredIn.has(name)) declaredIn.set(name, new Set());
+      declaredIn.get(name).add(pkg);
+      typeOnly.add(name);
+    }
   }
 }
 
@@ -218,7 +272,13 @@ for (const file of files) {
     );
   };
 
-  for (const [name, pkgs] of declaredIn) check(name, [...pkgs]);
+  const localNames = declaresLocally.get(file) ?? new Set();
+  for (const [name, pkgs] of declaredIn) {
+    // A file that declares the name itself never needs to import it, whatever
+    // else in the repo happens to share the name.
+    if (localNames.has(name)) continue;
+    check(name, [...pkgs], false, typeOnly.has(name));
+  }
   for (const [name, spec] of Object.entries(EXTERNAL)) {
     const pkg2 = typeof spec === "string" ? spec : spec.pkg;
     const isExtension = typeof spec === "object" && spec.extension === true;
@@ -228,7 +288,7 @@ for (const file of files) {
   }
 }
 
-console.log(`kotlin-imports: ${files.length} files, ${WATCHED.length + Object.keys(EXTERNAL).length} symbols, ${hits} hit(s)`);
+console.log(`kotlin-imports: ${files.length} files, ${WATCHED.length + Object.keys(EXTERNAL).length} curated + ${typeOnly.size} shared-module types, ${hits} hit(s)`);
 if (hits > 0) {
   console.log("::error::Kotlin symbols used without an import. Kotlin's own error for this names an unrelated class -- see the header of this script.");
   process.exit(1);
