@@ -83,7 +83,8 @@ public final class LoansViewModel {
 
     private func rebuild(_ dbLoans: [Loan]) async {
         let balances = (try? await ledgerRepository.accountBalances()) ?? []
-        let rates = (try? await ledgerRepository.rates()) ?? { _, _ in 1.0 }
+        // `@Sendable` on the fallback is load-bearing -- see InvestmentsViewModel.
+        let rates = (try? await ledgerRepository.rates()) ?? { @Sendable _, _ in 1.0 }
 
         fundingAccounts = balances
             .filter { !NON_INVESTMENT_TYPES.contains($0.account.type) }

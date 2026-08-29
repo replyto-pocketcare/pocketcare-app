@@ -26,6 +26,25 @@ const roots = [
 
 const RULES = [
   {
+    name: "a `??` fallback closure that is not `@Sendable`",
+    // Every function-typed alias in Domain is `@Sendable` (`RateLookup` says so
+    // in its own doc comment), and a bare closure literal is not. Swift 6
+    // rejects the conversion with "converting non-Sendable function value to
+    // '@Sendable ...' may introduce data races" -- a message that names the
+    // TYPE and not the two characters that are missing.
+    //
+    // It has bitten three view models now, always in the same shape:
+    // `(try? await repo.rates()) ?? { _, _ in 1.0 }`. Two of the three were
+    // written after the first one was fixed AND documented, which is what
+    // makes it a rule rather than a note.
+    //
+    // Zero false positives on the current tree: every `??` fallback in the app
+    // that is a closure literal is a function-typed one, and all of them want
+    // `@Sendable`.
+    test: (line) => /\?\?\s*\{/.test(line) && !line.includes("@Sendable"),
+    fix: "Spell it: `?? { @Sendable _, _ in ... }`.",
+  },
+  {
     name: "`.frame()` mixing a fixed dimension with a flexible one",
     // SwiftUI has TWO frame modifiers and no overload spanning them: the fixed
     // `frame(width:height:alignment:)` and the flexible

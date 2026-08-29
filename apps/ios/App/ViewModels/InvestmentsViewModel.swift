@@ -283,7 +283,11 @@ public final class InvestmentsViewModel {
     /// just-posted transaction immediately.
     private func rebuild(holdings: [Holding]) async {
         let balances = (try? await ledgerRepository.accountBalances()) ?? []
-        let rates = (try? await ledgerRepository.rates()) ?? { _, _ in 1.0 }
+        // `@Sendable` on the fallback is load-bearing: `RateLookup` is a
+        // `@Sendable` typealias, and a bare closure literal is not -- Swift 6
+        // rejects the conversion with "may introduce data races". Same trap
+        // `InsightsViewModel` documents at its own `noRates`.
+        let rates = (try? await ledgerRepository.rates()) ?? { @Sendable _, _ in 1.0 }
         let dividends = (try? await investmentsRepository.dividendsOnce()) ?? []
         let base = baseCurrencyNow()
 

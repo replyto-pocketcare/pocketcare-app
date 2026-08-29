@@ -254,7 +254,7 @@ private struct InsightCardView: View {
                         }
                     }
 
-                    if let cta = card.cta, ROUTABLE_CTAS.contains(cta.target) {
+                    if let cta = card.cta, ROUTABLE_CTAS[cta.target] != nil {
                         Button(cta.label) { onCta(cta.target) }
                             .font(.subheadline)
                             .foregroundColor(accent)
