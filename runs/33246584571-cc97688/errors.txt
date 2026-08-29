@@ -1,0 +1,911 @@
+1017: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1022:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1030: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1041: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1046:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1054: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1065: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1070:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1078: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1089: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1094:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1102: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1113: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1118:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1126: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1137: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1142:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1150: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1161: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1166:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1174: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1185: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1190:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1198: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1209: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1214:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1222: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1233: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1238:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1246: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1257: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1262:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1270: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1281: 59 |                     let authState = await authCurrentAuthState(client: client, isOnline: true) // Assuming online for now, could be integrated with NWPathMonitor
+1286:337 |             ) { cursor in try cursor.getString(name: "id") } {
+1294: 53 |             return try! PowerSyncDatabase(schema: schema, dbFilename: "pocketcare.db")
+1318:320 |                         .in("id", value: chunk)
+1320:    |                          `- note: use 'in(_:values:)' instead
+1337:320 |                         .in("id", value: chunk)
+1339:    |                          `- note: use 'in(_:values:)' instead
+1356:320 |                         .in("id", value: chunk)
+1358:    |                          `- note: use 'in(_:values:)' instead
+1375:320 |                         .in("id", value: chunk)
+1377:    |                          `- note: use 'in(_:values:)' instead
+1394:320 |                         .in("id", value: chunk)
+1396:    |                          `- note: use 'in(_:values:)' instead
+1413:320 |                         .in("id", value: chunk)
+1415:    |                          `- note: use 'in(_:values:)' instead
+1432:320 |                         .in("id", value: chunk)
+1434:    |                          `- note: use 'in(_:values:)' instead
+1451:320 |                         .in("id", value: chunk)
+1453:    |                          `- note: use 'in(_:values:)' instead
+1470:320 |                         .in("id", value: chunk)
+1472:    |                          `- note: use 'in(_:values:)' instead
+1489:320 |                         .in("id", value: chunk)
+1491:    |                          `- note: use 'in(_:values:)' instead
+1508:320 |                         .in("id", value: chunk)
+1510:    |                          `- note: use 'in(_:values:)' instead
+1527:320 |                         .in("id", value: chunk)
+1529:    |                          `- note: use 'in(_:values:)' instead
+1535:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1539:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1543:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1546:  |           `- note: 'lock()' declared here
+1549:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1553:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1557:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1560:  |           `- note: 'unlock()' declared here
+1563:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1567:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1571:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1574:  |           `- note: 'lock()' declared here
+1577:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1581:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1585:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1588:  |           `- note: 'unlock()' declared here
+1591:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1595:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1599:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1602:  |           `- note: 'lock()' declared here
+1605:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1609:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1613:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1616:  |           `- note: 'unlock()' declared here
+1619:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1623:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1627:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1630:  |           `- note: 'lock()' declared here
+1633:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1637:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1641:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1644:  |           `- note: 'unlock()' declared here
+1647:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1651:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1655:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1658:  |           `- note: 'lock()' declared here
+1661:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1665:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1669:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1672:  |           `- note: 'unlock()' declared here
+1675:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1679:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1683:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1686:  |           `- note: 'lock()' declared here
+1689:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1693:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1697:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1700:  |           `- note: 'unlock()' declared here
+1703:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1707:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1711:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1714:  |           `- note: 'lock()' declared here
+1717:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1721:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1725:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1728:  |           `- note: 'unlock()' declared here
+1731:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1735:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1739:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1742:  |           `- note: 'lock()' declared here
+1745:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1749:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1753:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1756:  |           `- note: 'unlock()' declared here
+1770:206 |                         try await rel.delete().in("id", value: ids).execute()
+1772:    |                                                `- note: use 'in(_:values:)' instead
+1801:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+1810:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1814:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1818:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1821:  |           `- note: 'lock()' declared here
+1824:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1828:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1832:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1835:  |           `- note: 'unlock()' declared here
+1838:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1842:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1846:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1849:  |           `- note: 'lock()' declared here
+1852:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1856:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1860:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1863:  |           `- note: 'unlock()' declared here
+1866:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1870:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1874:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1877:  |           `- note: 'lock()' declared here
+1880:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1884:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1888:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1891:  |           `- note: 'unlock()' declared here
+1894:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1898:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1902:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1905:  |           `- note: 'lock()' declared here
+1908:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1912:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1916:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1919:  |           `- note: 'unlock()' declared here
+1922:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1926:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1930:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1933:  |           `- note: 'lock()' declared here
+1936:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1940:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1944:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1947:  |           `- note: 'unlock()' declared here
+1950:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1954:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1958:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1961:  |           `- note: 'lock()' declared here
+1964:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1968:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1972:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+1975:  |           `- note: 'unlock()' declared here
+1978:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1982:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1986:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+1989:  |           `- note: 'lock()' declared here
+1992:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+1996:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2000:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2003:  |           `- note: 'unlock()' declared here
+2006:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2010:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2014:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2017:  |           `- note: 'lock()' declared here
+2020:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2024:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2028:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2031:  |           `- note: 'unlock()' declared here
+2045:206 |                         try await rel.delete().in("id", value: ids).execute()
+2047:    |                                                `- note: use 'in(_:values:)' instead
+2076:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2085:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2089:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2093:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2096:  |           `- note: 'lock()' declared here
+2099:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2103:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2107:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2110:  |           `- note: 'unlock()' declared here
+2113:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2117:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2121:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2124:  |           `- note: 'lock()' declared here
+2127:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2131:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2135:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2138:  |           `- note: 'unlock()' declared here
+2141:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2145:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2149:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2152:  |           `- note: 'lock()' declared here
+2155:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2159:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2163:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2166:  |           `- note: 'unlock()' declared here
+2169:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2173:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2177:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2180:  |           `- note: 'lock()' declared here
+2183:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2187:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2191:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2194:  |           `- note: 'unlock()' declared here
+2197:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2201:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2205:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2208:  |           `- note: 'lock()' declared here
+2211:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2215:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2219:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2222:  |           `- note: 'unlock()' declared here
+2225:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2229:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2233:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2236:  |           `- note: 'lock()' declared here
+2239:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2243:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2247:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2250:  |           `- note: 'unlock()' declared here
+2253:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2257:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2261:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2264:  |           `- note: 'lock()' declared here
+2267:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2271:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2275:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2278:  |           `- note: 'unlock()' declared here
+2281:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2285:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2289:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2292:  |           `- note: 'lock()' declared here
+2295:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2299:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2303:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2306:  |           `- note: 'unlock()' declared here
+2320:206 |                         try await rel.delete().in("id", value: ids).execute()
+2322:    |                                                `- note: use 'in(_:values:)' instead
+2351:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2360:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2364:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2368:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2371:  |           `- note: 'lock()' declared here
+2374:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2378:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2382:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2385:  |           `- note: 'unlock()' declared here
+2388:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2392:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2396:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2399:  |           `- note: 'lock()' declared here
+2402:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2406:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2410:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2413:  |           `- note: 'unlock()' declared here
+2416:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2420:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2424:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2427:  |           `- note: 'lock()' declared here
+2430:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2434:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2438:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2441:  |           `- note: 'unlock()' declared here
+2444:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2448:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2452:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2455:  |           `- note: 'lock()' declared here
+2458:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2462:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2466:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2469:  |           `- note: 'unlock()' declared here
+2472:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2476:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2480:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2483:  |           `- note: 'lock()' declared here
+2486:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2490:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2494:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2497:  |           `- note: 'unlock()' declared here
+2500:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2504:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2508:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2511:  |           `- note: 'lock()' declared here
+2514:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2518:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2522:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2525:  |           `- note: 'unlock()' declared here
+2528:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2532:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2536:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2539:  |           `- note: 'lock()' declared here
+2542:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2546:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2550:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2553:  |           `- note: 'unlock()' declared here
+2556:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2560:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2564:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2567:  |           `- note: 'lock()' declared here
+2570:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2574:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2578:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2581:  |           `- note: 'unlock()' declared here
+2595:206 |                         try await rel.delete().in("id", value: ids).execute()
+2597:    |                                                `- note: use 'in(_:values:)' instead
+2626:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2635:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2639:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2643:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2646:  |           `- note: 'lock()' declared here
+2649:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2653:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2657:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2660:  |           `- note: 'unlock()' declared here
+2663:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2667:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2671:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2674:  |           `- note: 'lock()' declared here
+2677:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2681:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2685:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2688:  |           `- note: 'unlock()' declared here
+2691:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2695:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2699:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2702:  |           `- note: 'lock()' declared here
+2705:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2709:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2713:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2716:  |           `- note: 'unlock()' declared here
+2719:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2723:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2727:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2730:  |           `- note: 'lock()' declared here
+2733:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2737:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2741:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2744:  |           `- note: 'unlock()' declared here
+2747:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2751:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2755:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2758:  |           `- note: 'lock()' declared here
+2761:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2765:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2769:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2772:  |           `- note: 'unlock()' declared here
+2775:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2779:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2783:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2786:  |           `- note: 'lock()' declared here
+2789:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2793:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2797:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2800:  |           `- note: 'unlock()' declared here
+2803:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2807:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2811:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2814:  |           `- note: 'lock()' declared here
+2817:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2821:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2825:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2828:  |           `- note: 'unlock()' declared here
+2831:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2835:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2839:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2842:  |           `- note: 'lock()' declared here
+2845:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2849:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2853:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2856:  |           `- note: 'unlock()' declared here
+2870:206 |                         try await rel.delete().in("id", value: ids).execute()
+2872:    |                                                `- note: use 'in(_:values:)' instead
+2901:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+2910:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2914:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2918:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2921:  |           `- note: 'lock()' declared here
+2924:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2928:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2932:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2935:  |           `- note: 'unlock()' declared here
+2938:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2942:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2946:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2949:  |           `- note: 'lock()' declared here
+2952:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2956:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2960:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2963:  |           `- note: 'unlock()' declared here
+2966:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2970:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2974:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+2977:  |           `- note: 'lock()' declared here
+2980:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2984:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2988:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+2991:  |           `- note: 'unlock()' declared here
+2994:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+2998:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3002:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3005:  |           `- note: 'lock()' declared here
+3008:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3012:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3016:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3019:  |           `- note: 'unlock()' declared here
+3022:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3026:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3030:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3033:  |           `- note: 'lock()' declared here
+3036:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3040:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3044:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3047:  |           `- note: 'unlock()' declared here
+3050:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3054:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3058:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3061:  |           `- note: 'lock()' declared here
+3064:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3068:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3072:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3075:  |           `- note: 'unlock()' declared here
+3078:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3082:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3086:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3089:  |           `- note: 'lock()' declared here
+3092:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3096:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3100:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3103:  |           `- note: 'unlock()' declared here
+3106:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3110:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3114:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3117:  |           `- note: 'lock()' declared here
+3120:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3124:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3128:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3131:  |           `- note: 'unlock()' declared here
+3145:206 |                         try await rel.delete().in("id", value: ids).execute()
+3147:    |                                                `- note: use 'in(_:values:)' instead
+3176:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+3185:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3189:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3193:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3196:  |           `- note: 'lock()' declared here
+3199:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3203:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3207:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3210:  |           `- note: 'unlock()' declared here
+3213:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3217:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3221:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3224:  |           `- note: 'lock()' declared here
+3227:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3231:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3235:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3238:  |           `- note: 'unlock()' declared here
+3241:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3245:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3249:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3252:  |           `- note: 'lock()' declared here
+3255:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3259:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3263:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3266:  |           `- note: 'unlock()' declared here
+3269:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3273:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3277:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3280:  |           `- note: 'lock()' declared here
+3283:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3287:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3291:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3294:  |           `- note: 'unlock()' declared here
+3297:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3301:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3305:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3308:  |           `- note: 'lock()' declared here
+3311:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3315:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3319:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3322:  |           `- note: 'unlock()' declared here
+3325:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3329:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3333:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3336:  |           `- note: 'lock()' declared here
+3339:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3343:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3347:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3350:  |           `- note: 'unlock()' declared here
+3353:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3357:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3361:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3364:  |           `- note: 'lock()' declared here
+3367:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3371:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3375:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3378:  |           `- note: 'unlock()' declared here
+3381:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3385:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3389:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3392:  |           `- note: 'lock()' declared here
+3395:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3399:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3403:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3406:  |           `- note: 'unlock()' declared here
+3420:206 |                         try await rel.delete().in("id", value: ids).execute()
+3422:    |                                                `- note: use 'in(_:values:)' instead
+3451:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+3460:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3464:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3468:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3471:  |           `- note: 'lock()' declared here
+3474:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3478:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3482:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3485:  |           `- note: 'unlock()' declared here
+3488:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3492:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3496:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3499:  |           `- note: 'lock()' declared here
+3502:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3506:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3510:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3513:  |           `- note: 'unlock()' declared here
+3516:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3520:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3524:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3527:  |           `- note: 'lock()' declared here
+3530:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3534:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3538:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3541:  |           `- note: 'unlock()' declared here
+3544:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3548:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3552:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3555:  |           `- note: 'lock()' declared here
+3558:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3562:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3566:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3569:  |           `- note: 'unlock()' declared here
+3572:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3576:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3580:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3583:  |           `- note: 'lock()' declared here
+3586:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3590:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3594:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3597:  |           `- note: 'unlock()' declared here
+3600:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3604:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3608:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3611:  |           `- note: 'lock()' declared here
+3614:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3618:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3622:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3625:  |           `- note: 'unlock()' declared here
+3628:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3632:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3636:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3639:  |           `- note: 'lock()' declared here
+3642:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3646:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3650:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3653:  |           `- note: 'unlock()' declared here
+3656:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3660:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3664:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3667:  |           `- note: 'lock()' declared here
+3670:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3674:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3678:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3681:  |           `- note: 'unlock()' declared here
+3695:206 |                         try await rel.delete().in("id", value: ids).execute()
+3697:    |                                                `- note: use 'in(_:values:)' instead
+3726:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+3735:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3739:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3743:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3746:  |           `- note: 'lock()' declared here
+3749:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3753:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3757:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3760:  |           `- note: 'unlock()' declared here
+3763:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3767:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3771:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3774:  |           `- note: 'lock()' declared here
+3777:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3781:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3785:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3788:  |           `- note: 'unlock()' declared here
+3791:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3795:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3799:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3802:  |           `- note: 'lock()' declared here
+3805:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3809:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3813:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3816:  |           `- note: 'unlock()' declared here
+3819:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3823:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3827:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3830:  |           `- note: 'lock()' declared here
+3833:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3837:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3841:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3844:  |           `- note: 'unlock()' declared here
+3847:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3851:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3855:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3858:  |           `- note: 'lock()' declared here
+3861:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3865:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3869:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3872:  |           `- note: 'unlock()' declared here
+3875:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3879:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3883:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3886:  |           `- note: 'lock()' declared here
+3889:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3893:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3897:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3900:  |           `- note: 'unlock()' declared here
+3903:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3907:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3911:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3914:  |           `- note: 'lock()' declared here
+3917:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3921:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3925:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3928:  |           `- note: 'unlock()' declared here
+3931:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3935:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3939:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+3942:  |           `- note: 'lock()' declared here
+3945:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3949:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+3953:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+3956:  |           `- note: 'unlock()' declared here
+3970:206 |                         try await rel.delete().in("id", value: ids).execute()
+3972:    |                                                `- note: use 'in(_:values:)' instead
+4001:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+4010:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4014:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4018:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4021:  |           `- note: 'lock()' declared here
+4024:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4028:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4032:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4035:  |           `- note: 'unlock()' declared here
+4038:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4042:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4046:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4049:  |           `- note: 'lock()' declared here
+4052:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4056:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4060:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4063:  |           `- note: 'unlock()' declared here
+4066:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4070:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4074:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4077:  |           `- note: 'lock()' declared here
+4080:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4084:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4088:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4091:  |           `- note: 'unlock()' declared here
+4094:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4098:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4102:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4105:  |           `- note: 'lock()' declared here
+4108:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4112:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4116:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4119:  |           `- note: 'unlock()' declared here
+4122:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4126:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4130:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4133:  |           `- note: 'lock()' declared here
+4136:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4140:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4144:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4147:  |           `- note: 'unlock()' declared here
+4150:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4154:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4158:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4161:  |           `- note: 'lock()' declared here
+4164:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4168:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4172:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4175:  |           `- note: 'unlock()' declared here
+4178:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4182:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4186:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4189:  |           `- note: 'lock()' declared here
+4192:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4196:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4200:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4203:  |           `- note: 'unlock()' declared here
+4206:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4210:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4214:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4217:  |           `- note: 'lock()' declared here
+4220:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4224:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4228:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4231:  |           `- note: 'unlock()' declared here
+4245:206 |                         try await rel.delete().in("id", value: ids).execute()
+4247:    |                                                `- note: use 'in(_:values:)' instead
+4276:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+4285:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4289:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4293:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4296:  |           `- note: 'lock()' declared here
+4299:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4303:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4307:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4310:  |           `- note: 'unlock()' declared here
+4313:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4317:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4321:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4324:  |           `- note: 'lock()' declared here
+4327:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4331:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4335:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4338:  |           `- note: 'unlock()' declared here
+4341:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4345:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4349:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4352:  |           `- note: 'lock()' declared here
+4355:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4359:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4363:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4366:  |           `- note: 'unlock()' declared here
+4369:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4373:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4377:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4380:  |           `- note: 'lock()' declared here
+4383:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4387:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4391:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4394:  |           `- note: 'unlock()' declared here
+4397:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4401:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4405:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4408:  |           `- note: 'lock()' declared here
+4411:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4415:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4419:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4422:  |           `- note: 'unlock()' declared here
+4425:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4429:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4433:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4436:  |           `- note: 'lock()' declared here
+4439:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4443:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4447:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4450:  |           `- note: 'unlock()' declared here
+4453:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4457:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4461:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4464:  |           `- note: 'lock()' declared here
+4467:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4471:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4475:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4478:  |           `- note: 'unlock()' declared here
+4481:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4485:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4489:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4492:  |           `- note: 'lock()' declared here
+4495:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4499:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4503:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4506:  |           `- note: 'unlock()' declared here
+4520:206 |                         try await rel.delete().in("id", value: ids).execute()
+4522:    |                                                `- note: use 'in(_:values:)' instead
+4551:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+4560:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4564:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4568:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4571:  |           `- note: 'lock()' declared here
+4574:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4578:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4582:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4585:  |           `- note: 'unlock()' declared here
+4588:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4592:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4596:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4599:  |           `- note: 'lock()' declared here
+4602:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4606:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4610:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4613:  |           `- note: 'unlock()' declared here
+4616:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4620:    |                  `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4624:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4627:  |           `- note: 'lock()' declared here
+4630:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4634:    |                  `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4638:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4641:  |           `- note: 'unlock()' declared here
+4644:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4648:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4652:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4655:  |           `- note: 'lock()' declared here
+4658:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4662:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4666:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4669:  |           `- note: 'unlock()' declared here
+4672:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4676:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4680:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4683:  |           `- note: 'lock()' declared here
+4686:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4690:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4694:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4697:  |           `- note: 'unlock()' declared here
+4700:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4704:    |                      `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4708:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4711:  |           `- note: 'lock()' declared here
+4714:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4718:    |                      `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4722:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4725:  |           `- note: 'unlock()' declared here
+4728:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4732:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4736:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4739:  |           `- note: 'lock()' declared here
+4742:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4746:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4750:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4753:  |           `- note: 'unlock()' declared here
+4756:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4760:    |              `- error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4764:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+4767:  |           `- note: 'lock()' declared here
+4770:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4774:    |              `- error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+4778:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+4781:  |           `- note: 'unlock()' declared here
+4795:206 |                         try await rel.delete().in("id", value: ids).execute()
+4797:    |                                                `- note: use 'in(_:values:)' instead
+4826:83 | public func softDelete(db: PowerSyncDatabaseProtocol, table: String, id: String) async throws {
+4931:  PowerSyncSQLiteCore: https://github.com/powersync-ja/powersync-sqlite-core-swift.git @ 0.4.13
+4934:  Supabase: https://github.com/supabase/supabase-swift.git @ 2.54.1
+4941:  CSQLite: https://github.com/powersync-ja/CSQLite.git @ 3.51.2
+4960:note: Building targets in dependency order
+4961:note: Target dependency graph (47 targets)
+5166:Build description signature: b1259081d4f76678efb3992e91c5a5c0
+6349:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+6400:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/PowerSync.build/Debug-iphonesimulator/PowerSyncCoreShim.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+6407:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+6628:    Using response file: /Users/runner/Library/Developer/Xcode/DerivedData/Sanvya-bwihhsrkmjvgkfalnfskjfhhbvju/Build/Intermediates.noindex/CSQLite.build/Debug-iphonesimulator/CSQLite.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+11206:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:198:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11209:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+11212:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:207:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11215:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+11218:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:213:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11221:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+11224:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:217:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11227:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+11230:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:259:18: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11233:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+11236:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:261:18: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11239:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+11242:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:266:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11245:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+11248:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:268:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11251:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+11254:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:272:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11257:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+11260:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:274:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11263:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+11266:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:396:22: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11269:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+11272:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:398:22: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11275:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+11278:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:415:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11281:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+11284:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:417:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11287:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+11290:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:622:14: error: instance method 'lock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11293:Foundation.NSLock.lock:2:11: note: 'lock()' declared here
+11296:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SecurityRepository.swift:624:14: error: instance method 'unlock' is unavailable from asynchronous contexts; Use async-safe scoped locking instead
+11299:Foundation.NSLock.unlock:2:11: note: 'unlock()' declared here
+11327:                        try await rel.delete().in("id", value: ids).execute()
+11329:/Users/runner/work/pocketcare-app/pocketcare-app/apps/ios/Data/Sources/Data/SupabaseConnector.swift:206:48: note: use 'in(_:values:)' instead
+11330:                        try await rel.delete().in("id", value: ids).execute()
+11449:** TEST FAILED **
+69:money-scale: 548 files, 79 percentage/calendar line(s) skipped, 5 allowed site(s), 0 hit(s)
