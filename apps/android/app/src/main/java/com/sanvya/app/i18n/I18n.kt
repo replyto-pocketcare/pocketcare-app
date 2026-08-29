@@ -33,5 +33,12 @@ import androidx.compose.ui.platform.LocalContext
 @ReadOnlyComposable
 fun sRes(): Resources {
     LocalConfiguration.current
-    return LocalContext.current.resources
+    val context = LocalContext.current
+    // The in-app language override, if the user has set one. This is the ONE
+    // seam the whole feature needs: every translated string in the app arrives
+    // through this function, so overriding what it returns overrides the entire
+    // catalogue -- no appcompat dependency, no manifest entry, and no API-33
+    // floor. See AppLocale.kt for why the platform answers were not used.
+    val code = LocalAppLocale.current
+    return if (code.isNullOrBlank()) context.resources else localizedResources(context, code)
 }

@@ -1491,6 +1491,7 @@
     <string name="settings_import_export_btn">Gegevens importeren / exporteren</string>
     <string name="settings_import_export_desc">Maak een back-up van je transacties naar CSV, of haal gegevens binnen uit een CSV (incl. Wallet by BudgetBakers — bèta).</string>
     <string name="settings_language">Taal</string>
+    <string name="settings_language_system">Systeem</string>
     <string name="settings_light">Licht</string>
     <string name="settings_manage_categories">Categorieën beheren</string>
     <string name="settings_manage_labels">Labels beheren</string>

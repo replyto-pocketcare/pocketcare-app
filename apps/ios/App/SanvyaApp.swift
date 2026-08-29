@@ -21,6 +21,21 @@ struct SanvyaApp: App {
     /// does the same thing by redirecting to `/join` once a session exists.
     @State private var inviteToken: String? = PendingInvite.read()
 
+    /// The chosen language. Read here so the root can be KEYED on it.
+    ///
+    /// Every string in the app is read eagerly through `S`, so there is nothing
+    /// to re-evaluate in place when the language changes -- the tree has to be
+    /// rebuilt. `.id(code)` does exactly that, and it is the same thing Android
+    /// gets for free from a configuration change. State loss is the cost, and it
+    /// is the right cost: this happens once, deliberately, at the user's hand.
+    /// `@State`, not a computed property returning the singleton. Observation
+    /// only fires for reads inside a TRACKED body evaluation, and a
+    /// `WindowGroup` content closure reached through a plain computed property
+    /// is not reliably one -- the picker would highlight the new language while
+    /// the rest of the app stayed in the old one. `@State` is the documented
+    /// pairing for App-owned `@Observable` state.
+    @State private var localePrefs = LocalePrefs.shared
+
     var body: some Scene {
         WindowGroup {
             // The auth gate. `authState` is driven by the repository's stream
@@ -29,6 +44,7 @@ struct SanvyaApp: App {
             // to take two closures for this; one was empty and the other
             // created a guest that LoginView had already created.
             gated
+                .id(localePrefs.code ?? "")
                 // Connect PowerSync to the server, and keep that connection
                 // matched to whoever is signed in. Web does this in
                 // `initSystem()`; until this existed the app never called

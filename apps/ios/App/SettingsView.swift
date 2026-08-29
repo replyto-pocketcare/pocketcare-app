@@ -49,6 +49,10 @@ private let genders: [(String, String)] = FormOptions.genders.map { ($0.value, $
 private let countries = FormOptions.countries
 
 struct SettingsView: View {
+    /// The language choice. `@Bindable` is not needed -- nothing here binds to
+    /// it, the section only reads `code` and calls `select`.
+    private var localePrefs: LocalePrefs { LocalePrefs.shared }
+
     @Environment(\.dismiss) private var dismiss
     @StateObject private var prefs = Prefs.shared
 
@@ -236,6 +240,37 @@ struct SettingsView: View {
                                     Button(c) { prefs.baseCurrency = c }
                                         .buttonStyle(.bordered)
                                         .tint(c == prefs.baseCurrency ? Color.accent : Color.text2)
+                                }
+                            }
+                        }
+                    }
+
+                    // MARK: Language
+                    //
+                    // Web's `#language` section, in the same slot. The labels are
+                    // ENDONYMS and generated from `packages/core/i18n` -- naming a
+                    // language in the language you are trying to leave makes the
+                    // picker useless, and a hand-written list would offer a
+                    // language with no strings behind it the day someone adds a
+                    // locale. "System" is the default: a user who has never
+                    // touched this follows the phone.
+                    Section(header: Text(S.Settings.language)) {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                Button(S.Settings.languageSystem) { localePrefs.select(nil) }
+                                    .buttonStyle(.bordered)
+                                    .tint(localePrefs.code == nil ? Color.accent : Color.text2)
+                                // Cross-checked against what the BUNDLE
+                                // actually carries. `supportedLanguages` says
+                                // what the catalogue has; `available` says what
+                                // shipped. When they disagree the build is
+                                // misconfigured, and offering a language that
+                                // renders as English is worse than not offering
+                                // it -- the user would think they had switched.
+                                ForEach(supportedLanguages.filter { localePrefs.available.contains($0.code) }) { lang in
+                                    Button(lang.label) { localePrefs.select(lang.code) }
+                                        .buttonStyle(.bordered)
+                                        .tint(lang.code == localePrefs.code ? Color.accent : Color.text2)
                                 }
                             }
                         }

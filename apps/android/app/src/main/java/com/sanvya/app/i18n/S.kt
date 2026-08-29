@@ -1647,6 +1647,7 @@ object S {
         fun importExportBtn(res: Resources): String = res.getString(R.string.settings_import_export_btn)
         fun importExportDesc(res: Resources): String = res.getString(R.string.settings_import_export_desc)
         fun language(res: Resources): String = res.getString(R.string.settings_language)
+        fun languageSystem(res: Resources): String = res.getString(R.string.settings_language_system)
         fun light(res: Resources): String = res.getString(R.string.settings_light)
         fun manageCategories(res: Resources): String = res.getString(R.string.settings_manage_categories)
         fun manageLabels(res: Resources): String = res.getString(R.string.settings_manage_labels)

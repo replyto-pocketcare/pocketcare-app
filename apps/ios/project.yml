@@ -5,6 +5,25 @@
 name: Sanvya
 options:
   bundleIdPrefix: care.pocket
+  # The languages the app SHIPS. Both lines are load-bearing for the in-app
+  # language picker, and neither is optional.
+  #
+  # XcodeGen derives `knownRegions` from variant groups, and
+  # `Localizable.xcstrings` is a single file rather than a variant group -- so
+  # without this the generated project carries `knownRegions = (en, Base)`, the
+  # build may emit no `hi.lproj` / `nl.lproj`, and `SanvyaLocale` finds no
+  # bundle to switch to. The failure is SILENT: the picker stores a choice,
+  # rebuilds the whole tree, and renders exactly the same English.
+  #
+  # See also `CFBundleLocalizations` in the target's `info.properties` below,
+  # which is what the loader actually reads, and the `assertionFailure` in
+  # `SanvyaLocale.resolve` which makes the failure loud in debug if this ever
+  # regresses.
+  developmentLanguage: en
+  knownRegions:
+    - en
+    - hi
+    - nl
   deploymentTarget:
     iOS: "17.0"
   # PLACEHOLDER — confirm the real minimum iOS version before shipping
@@ -61,6 +80,15 @@ targets:
       path: Generated/Sanvya-Info.plist
       properties:
         CFBundleDisplayName: Sanvya
+        # Declared, not inferred. This is what the bundle loader reads when
+        # resolving a localization, and it is how the in-app language picker
+        # finds `hi.lproj` / `nl.lproj` at runtime. Kept in step with
+        # `knownRegions` above and with SUPPORTED_LANGUAGES in
+        # packages/core/i18n -- if a language is added there, it goes in both.
+        CFBundleLocalizations:
+          - en
+          - hi
+          - nl
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false

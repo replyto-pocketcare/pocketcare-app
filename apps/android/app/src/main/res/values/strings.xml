@@ -1491,6 +1491,7 @@
     <string name="settings_import_export_btn">Import / export data</string>
     <string name="settings_import_export_desc">Back up your transactions to CSV, or bring data in from a CSV (incl. Wallet by BudgetBakers — beta).</string>
     <string name="settings_language">Language</string>
+    <string name="settings_language_system">System</string>
     <string name="settings_light">Light</string>
     <string name="settings_manage_categories">Manage categories</string>
     <string name="settings_manage_labels">Manage labels</string>

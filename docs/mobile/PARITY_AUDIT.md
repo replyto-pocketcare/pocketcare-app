@@ -3947,3 +3947,88 @@ sync — `logDiagnostic` is called from async contexts all over the tree and tha
 is fine precisely because the lock never appears in an async body. The day
 somebody makes one of those three `async`, all three break the same way. The
 guard now catches that on the same commit rather than on the next CI run.
+
+## Tranche 10 — the in-app language selector (2026-08-29)
+
+The last parity gap that was not blocked on procurement. Three times in this
+document it was written up as impossible at screen level, and that was right —
+which is why the fix is in the **generator**, not in a Settings row.
+
+### The seam, on each platform
+
+**iOS.** `String(localized:table:)` resolves against
+`Bundle.main.preferredLocalizations` — the system language, full stop, with no
+seam in it. So `settings.language` was a key in the catalogue with nothing
+behind it: any picker would have changed a stored value and left all ~1,750
+accessors reading the system language. Every accessor now passes
+`bundle: SanvyaLocale.bundle` **and** `locale: SanvyaLocale.locale`, so
+overriding the bundle overrides the whole catalogue at once and no call site has
+to know. Xcode compiles `Localizable.xcstrings` into one `.lproj` per language,
+so `Bundle(path:)` at `hi.lproj` is a bundle carrying only the Hindi strings. No
+swizzling, no private API.
+
+**Android.** The platform answer is `AppCompatDelegate.setApplicationLocales`,
+which needs `androidx.appcompat` — a dependency this all-Compose app does not
+have. The framework's `LocaleManager` is API 33+ against a `minSdk` of 26, so on
+most devices in this market it would be a setting that silently does nothing.
+Neither was necessary, because of a decision made much earlier: **`S.kt`
+accessors take a `Resources` explicitly**, and every translated string arrives
+through `sRes()`. Overriding what that one function returns overrides the entire
+catalogue — no dependency, no manifest entry, no API floor.
+
+Same shape on both platforms: the seam was already there, as an argument the
+generator emits. iOS needed a new one; Android's had been there all along.
+
+### The language list is generated, not retyped
+
+`SupportedLanguages.{kt,swift}` are parsed out of `packages/core/i18n`'s
+`SUPPORTED_LANGUAGES`. The labels are **endonyms** — "हिन्दी", not "Hindi" — and
+so are deliberately not translated strings: a picker that names languages in the
+language you are trying to leave is a picker you cannot use.
+
+`--check` now validates the list both ways: a language with no locale directory
+fails (the picker would offer strings that do not exist), and a locale directory
+missing from the list fails (no picker would ever offer it).
+
+### Caught in review — the one that would have shipped dead
+
+**XcodeGen derives `knownRegions` from variant groups, and
+`Localizable.xcstrings` is a single file, not a variant group.** Without an
+explicit declaration the generated project carries `knownRegions = (en, Base)`,
+the build may emit no `hi.lproj`, and `SanvyaLocale.resolve` falls back to
+`.main` — so the picker stores a choice, rebuilds the entire view tree, and
+renders **exactly the same English**. No error, no log, nothing to notice.
+
+Three defences now: `knownRegions` and `developmentLanguage` in `project.yml`,
+`CFBundleLocalizations` in the target's Info plist (which is what the loader
+actually reads), and an `assertionFailure` in `resolve` so a regression is loud
+in debug. The picker also filters `supportedLanguages` against
+`Bundle.main.localizations`, so a language the build did not ship is not offered
+at all — offering one that renders as English is worse than not offering it,
+because the user believes they switched.
+
+Also fixed before commit: `OSAllocatedUnfairLock`'s checked API is constrained
+`where State: Sendable` and the state holds a `Bundle?`, whose audit varies by
+SDK — the unchecked form is used, with the safety argument being the lock itself
+rather than the constraint. The scene root reads the prefs through `@State`
+rather than a computed property, because observation only fires inside a tracked
+body evaluation and the picker would otherwise have highlighted the new language
+while the rest of the app stayed in the old one. And `localizedResources` is
+memoised, keyed on the base configuration as well as the code: `sRes()` is
+`@ReadOnlyComposable` and so cannot `remember`, and `TileViews.kt` alone calls it
+fifty-two times per recomposition.
+
+### What is left in the register
+
+Two items, and neither is code we can write:
+
+- **Live market quotes** — needs a quote provider chosen and paid for.
+- **Import from broker** and the 63k-row instrument catalog — one sub-project:
+  an HTTP client, a non-PowerSync local store, an ETag day-timer and a progress
+  UI, on two platforms. `searchInstruments` already takes its candidate list as
+  a parameter, so wiring a downloaded list in is a new caller rather than a
+  rewrite.
+
+Two more are decided rather than open: **Pay anyone** is being removed from web,
+and **credit packs** cannot be a button (StoreKit and Play Billing are mandatory
+for in-app digital content, and no server-side receipt path exists).

@@ -16,8 +16,12 @@ import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.domain.notifications.shouldRegisterAtLaunch
 import com.sanvya.app.ui.notifications.LocalNotificationPermissionRequester
 import com.sanvya.app.ui.notifications.PushController
+import com.sanvya.app.i18n.LanguagePrefs
+import com.sanvya.app.i18n.LocalAppLocale
+import com.sanvya.app.i18n.LocalLanguageSetter
 import com.sanvya.app.theme.SanvyaTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.MutableState
@@ -136,6 +140,22 @@ class MainActivity : ComponentActivity() {
         reRegisterIfAlreadyOptedIn()
         
         setContent {
+            // The in-app language, provided ABOVE everything so a change reaches
+            // every screen at once. Held here rather than in a view model
+            // because `sRes()` is read from composables that have no view model
+            // of their own -- the design system's components among them.
+            var languageCode by rememberSaveable { mutableStateOf(LanguagePrefs.read(this)) }
+            CompositionLocalProvider(
+                LocalAppLocale provides languageCode,
+                // `remember`ed so the lambda identity is stable: a fresh one
+                // each recomposition invalidates every reader of this local.
+                LocalLanguageSetter provides remember {
+                    { code: String? ->
+                        LanguagePrefs.write(this, code)
+                        languageCode = code
+                    }
+                },
+            ) {
             SanvyaTheme {
                 // Publishes the window class and device type, and applies the
                 // orientation policy (phones portrait; tablets and foldables
@@ -188,6 +208,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 }
+            }
             }
         }
     }

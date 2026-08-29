@@ -53,5 +53,6 @@
   "deleteBody": "This permanently deletes your account and all your data — accounts, transactions, budgets, goals, planned cashflow and more. Your email will be freed so you can register again from scratch. This cannot be undone.",
   "deleteErrDefault": "Couldn't delete your account. Please try again.",
   "deleting": "Deleting…",
-  "deleteEverything": "Delete everything"
+  "deleteEverything": "Delete everything",
+  "languageSystem": "System"
 }

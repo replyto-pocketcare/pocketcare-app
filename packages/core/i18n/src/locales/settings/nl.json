@@ -53,5 +53,6 @@
   "deleteBody": "Dit verwijdert je account en al je gegevens permanent — rekeningen, transacties, budgetten, doelen, geplande cashflow en meer. Je e-mailadres komt vrij zodat je je opnieuw kunt registreren. Dit kan niet ongedaan worden gemaakt.",
   "deleteErrDefault": "Kon je account niet verwijderen. Probeer het opnieuw.",
   "deleting": "Verwijderen…",
-  "deleteEverything": "Alles verwijderen"
+  "deleteEverything": "Alles verwijderen",
+  "languageSystem": "Systeem"
 }

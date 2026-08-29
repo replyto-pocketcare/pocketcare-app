@@ -247,11 +247,72 @@ for (const e of entries) {
   }
 }
 
+/* ------------------------------------------------------------------
+ * The language list, read from packages/core/i18n rather than retyped.
+ *
+ * The labels are ENDONYMS -- "हिन्दी", not "Hindi" -- so they are deliberately
+ * not translated strings. A language picker that names languages in the
+ * language you are trying to leave is a picker you cannot use, which is why
+ * every OS does it this way and why these are constants rather than keys.
+ *
+ * Generated on both platforms for the same reason everything else here is: a
+ * hand-written copy would offer a language the app has no strings for the
+ * moment somebody adds a locale and regenerates, and the failure would be
+ * silent -- raw keys, or a fallback to English, with the picker still claiming
+ * the switch worked.
+ * ------------------------------------------------------------------ */
+function supportedLanguages() {
+  const src = readFileSync(path.join(REPO_ROOT, "packages/core/i18n/src/index.ts"), "utf8");
+  const block = src.match(/SUPPORTED_LANGUAGES:\s*readonly\s*Language\[\]\s*=\s*\[([\s\S]*?)\]/);
+  if (!block) throw new Error("Could not find SUPPORTED_LANGUAGES in packages/core/i18n/src/index.ts");
+  const out = [];
+  for (const m of block[1].matchAll(/\{\s*code:\s*"([^"]+)"\s*,\s*label:\s*"([^"]+)"\s*,\s*dir:\s*"([^"]+)"\s*\}/g)) {
+    out.push({ code: m[1], label: m[2], dir: m[3] });
+  }
+  if (!out.length) throw new Error("SUPPORTED_LANGUAGES parsed to nothing");
+  return out;
+}
+
 if (problems.length) {
   console.error(`i18n source problems (${problems.length}):\n` + problems.map((p) => "  " + p).join("\n"));
   process.exit(1);
 }
 console.log(`i18n: ${namespaces.length} namespaces, ${entries.length} entries (${entries.filter((e) => e.plural).length} plural), ${LOCALES.length} locales — key sets aligned.`);
+
+// `--check` validates the LANGUAGE LIST too, and does it here rather than in
+// the emitters below, which it never reaches.
+//
+// The list is parsed out of `packages/core/i18n/src/index.ts` with a regex, so
+// the failure mode worth catching is somebody reformatting that file and the
+// parse quietly returning nothing. `supportedLanguages()` throws on an empty
+// result; calling it here is what turns that into a `--check` failure instead
+// of a silently emptied picker.
+//
+// It also asserts that every language in the list actually has a locale
+// directory. A language offered with no strings behind it renders as English
+// and tells the user the switch worked.
+{
+  const langs = supportedLanguages();
+  const missing = langs.map((l) => l.code).filter((c) => !LOCALES.includes(c));
+  if (missing.length) {
+    console.error(
+      `i18n: SUPPORTED_LANGUAGES names ${missing.join(", ")}, which has no locale directory under ` +
+      `packages/core/i18n/src/locales. The picker would offer a language with no strings behind it.`,
+    );
+    process.exit(1);
+  }
+  const unlisted = LOCALES.filter((c) => !langs.some((l) => l.code === c));
+  if (unlisted.length) {
+    console.error(
+      `i18n: locale director${unlisted.length === 1 ? "y" : "ies"} ${unlisted.join(", ")} exist${unlisted.length === 1 ? "s" : ""} ` +
+      `but ${unlisted.length === 1 ? "is" : "are"} not in SUPPORTED_LANGUAGES, so no picker will ever offer ` +
+      `${unlisted.length === 1 ? "it" : "them"}.`,
+    );
+    process.exit(1);
+  }
+  console.log(`i18n: ${langs.length} languages — ${langs.map((l) => l.code).join(", ")} — list and locale directories agree.`);
+}
+
 if (CHECK_ONLY) process.exit(0);
 
 // ---------------------------------------------------------------------------
@@ -514,16 +575,16 @@ function iosAccessorsSwift() {
         // as `%lld`); every other argument is a `%@` and takes a String.
         const params = e.args.map((a) => (a === "count" ? "count: Int" : `${swiftIdent(a)}: String`)).join(", "); // plural only
         const fmtArgs = e.args.map((a) => (a === "count" ? "count" : swiftIdent(a))).join(", ");
-        return `        public static func ${name}(${params}) -> String {\n            String(format: String(localized: "${id}", defaultValue: "", table: "Localizable"), ${fmtArgs})\n        }`;
+        return `        public static func ${name}(${params}) -> String {\n            String(format: String(localized: "${id}", defaultValue: "", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale), ${fmtArgs})\n        }`;
       }
       if (e.list) {
         const items = e.values[SOURCE_LOCALE]
-          .map((_, i) => `                String(localized: "${id}.${i + 1}", table: "Localizable"),`)
+          .map((_, i) => `                String(localized: "${id}.${i + 1}", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale),`)
           .join("\n");
         return `        public static var ${name}: [String] {\n            [\n${items}\n            ]\n        }`;
       }
       if (e.args.length === 0) {
-        return `        public static var ${name}: String { String(localized: "${id}", table: "Localizable") }`;
+        return `        public static var ${name}: String { String(localized: "${id}", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale) }`;
       }
       // `String`, not `CVarArg`. A non-plural argument is emitted as `%@`,
       // which `String(format:)` reads as an OBJECT POINTER — passing an Int
@@ -534,7 +595,7 @@ function iosAccessorsSwift() {
       // toString, so there is nothing to protect against there.)
       const params = e.args.map((a) => `${swiftIdent(a)}: String`).join(", ");
       const fmtArgs = e.args.map((a) => swiftIdent(a)).join(", ");
-      return `        public static func ${name}(${params}) -> String {\n            String(format: String(localized: "${id}", table: "Localizable"), ${fmtArgs})\n        }`;
+      return `        public static func ${name}(${params}) -> String {\n            String(format: String(localized: "${id}", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale), ${fmtArgs})\n        }`;
     });
     blocks.push(`    public enum ${pascal(ns)} {\n${fns.join("\n")}\n    }`);
   }
@@ -575,12 +636,62 @@ function emit(file, body) {
   written.push(path.relative(REPO_ROOT, file));
 }
 
+const LANGS = supportedLanguages();
+
+const languagesKt = `package com.sanvya.app.i18n
+
+// GENERATED FILE — do not hand-edit.
+// Source: packages/core/i18n/src/index.ts (SUPPORTED_LANGUAGES)
+// Regenerate with: node tools/parity/generate-i18n.mjs
+
+/**
+ * One language the app ships strings for.
+ *
+ * [label] is the ENDONYM and is deliberately not translated: a picker that
+ * names languages in the language you are trying to leave is a picker you
+ * cannot use.
+ */
+data class SupportedLanguage(val code: String, val label: String, val rtl: Boolean)
+
+/** Every language this build carries, source locale first. */
+val SUPPORTED_LANGUAGES: List<SupportedLanguage> = listOf(
+${LANGS.map((l) => `    SupportedLanguage("${l.code}", "${l.label}", rtl = ${l.dir === "rtl"}),`).join("\n")}
+)
+`;
+
+const languagesSwift = `import Foundation
+
+// GENERATED FILE — do not hand-edit.
+// Source: packages/core/i18n/src/index.ts (SUPPORTED_LANGUAGES)
+// Regenerate with: node tools/parity/generate-i18n.mjs
+
+/**
+ One language the app ships strings for.
+
+ \`label\` is the ENDONYM and is deliberately not translated: a picker that names
+ languages in the language you are trying to leave is a picker you cannot use.
+ */
+public struct SupportedLanguage: Sendable, Identifiable, Equatable {
+    public let code: String
+    public let label: String
+    public let rtl: Bool
+    public var id: String { code }
+}
+
+/// Every language this build carries, source locale first.
+public let supportedLanguages: [SupportedLanguage] = [
+${LANGS.map((l) => `    SupportedLanguage(code: "${l.code}", label: "${l.label}", rtl: ${l.dir === "rtl"}),`).join("\n")}
+]
+`;
+
 emit(path.join(ANDROID_RES, "values", "strings.xml"), androidStringsXml("en"));
 emit(path.join(ANDROID_RES, "values-hi", "strings.xml"), androidStringsXml("hi"));
 emit(path.join(ANDROID_RES, "values-nl", "strings.xml"), androidStringsXml("nl"));
 emit(path.join(ANDROID_I18N_DIR, "S.kt"), androidAccessorsKt());
 emit(path.join(IOS_RESOURCES, "Localizable.xcstrings"), xcstrings());
 emit(path.join(IOS_GENERATED, "S.swift"), iosAccessorsSwift());
+emit(path.join(ANDROID_I18N_DIR, "SupportedLanguages.kt"), languagesKt);
+emit(path.join(IOS_GENERATED, "SupportedLanguages.swift"), languagesSwift);
 
 console.log("Wrote:");
 for (const f of written) console.log(" -", f);

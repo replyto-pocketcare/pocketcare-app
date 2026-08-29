@@ -47,6 +47,9 @@ import com.sanvya.app.ui.shell.SettingsSection
 import com.sanvya.app.ui.shell.SettingsSectionRequest
 import kotlin.math.roundToInt
 import com.sanvya.app.i18n.S
+import com.sanvya.app.i18n.SUPPORTED_LANGUAGES
+import com.sanvya.app.i18n.LocalLanguageSetter
+import com.sanvya.app.i18n.LocalAppLocale
 import com.sanvya.app.i18n.sRes
 
 private val CURRENCIES = FormOptions.currencies
@@ -423,6 +426,35 @@ fun SettingsScreen(
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     CURRENCIES.forEach { c ->
                         FilterChip(selected = c == baseCurrency, onClick = { viewModel.setBaseCurrency(c) }, label = { Text(c) })
+                    }
+                }
+            }
+
+            // ---- Language ----
+            //
+            // Web's `#language` section, in the same slot. The labels are
+            // ENDONYMS and generated from `packages/core/i18n` -- naming a
+            // language in the language you are trying to leave makes the picker
+            // useless, and a hand-written list would offer a language with no
+            // strings behind it the day someone adds a locale.
+            //
+            // "System" is first and is the default: a user who has never touched
+            // this follows the phone, which is what every other app does.
+            SettingsCard(title = S.Settings.language(sRes())) {
+                val setLanguage = LocalLanguageSetter.current
+                val current = LocalAppLocale.current
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(
+                        selected = current == null,
+                        onClick = { setLanguage(null) },
+                        label = { Text(S.Settings.languageSystem(sRes())) },
+                    )
+                    SUPPORTED_LANGUAGES.forEach { lang ->
+                        FilterChip(
+                            selected = current == lang.code,
+                            onClick = { setLanguage(lang.code) },
+                            label = { Text(lang.label) },
+                        )
                     }
                 }
             }

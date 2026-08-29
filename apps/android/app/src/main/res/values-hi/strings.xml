@@ -1491,6 +1491,7 @@
     <string name="settings_import_export_btn">डेटा आयात / निर्यात</string>
     <string name="settings_import_export_desc">अपने लेनदेन का CSV में बैकअप लें, या किसी CSV से डेटा लाएँ (Wallet by BudgetBakers सहित — बीटा)।</string>
     <string name="settings_language">भाषा</string>
+    <string name="settings_language_system">सिस्टम</string>
     <string name="settings_light">हल्का</string>
     <string name="settings_manage_categories">श्रेणियाँ प्रबंधित करें</string>
     <string name="settings_manage_labels">लेबल प्रबंधित करें</string>
