@@ -401,7 +401,79 @@ for (const file of swiftFiles) {
   }
 }
 
-console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} line rules + bindable + escaping-content + shadowed-symbol + missing-import + static-non-Sendable scans, ${failures.length} hit(s)`);
+/* ------------------------------------------------------------------
+ * A lock taken inside an `async` function.
+ *
+ * `NSLock.lock()` / `.unlock()`, `NSCondition.wait()` and
+ * `DispatchSemaphore.wait()` are all `@available(*, noasync)` under Swift 6:
+ * a task can suspend while holding the lock and resume on a different thread,
+ * which is how you deadlock a cooperative pool.
+ *
+ * This is a CROSS-LINE rule, which is why it is a scan rather than a line
+ * rule. The lock call reads perfectly on its own; what makes it illegal is the
+ * `async` on a `func` line that may be forty lines above it. And the way it
+ * arrives is worse than writing it by hand: `SecurityRepository.swift` had
+ * twelve legal `lock()` calls until a review asked for Keychain I/O to move
+ * off the main thread. Making four functions `async` turned sixteen of those
+ * calls into errors at once, in code nobody had touched.
+ *
+ * The fix is never to remove the lock. Pull the critical section into a
+ * private SYNCHRONOUS method and call that from the async one — a sync
+ * function that locks internally is legal from anywhere, and it turns a span
+ * between two lines into a named thing.
+ *
+ * Brace counting is deliberately naive: it tracks depth from each `func` line
+ * and only attributes a lock call to the nearest enclosing one. Nested types
+ * and closures inside a function body stay attributed to that function, which
+ * is the conservative direction — a closure inside an async func is exactly
+ * where this bites too.
+ * ------------------------------------------------------------------ */
+// Matches the METHOD call -- `lock.lock()`, `sem.wait()`. The leading dot is
+// required: an earlier version used a negative lookbehind for `.`, which
+// excluded every real call site and made the whole scan silently find nothing.
+const LOCK_CALLS = /\.(?:lock|unlock|wait)\s*\(\s*\)/;
+const FUNC_LINE = /^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:(?:public|internal|private|fileprivate|open)\s+)?(?:static\s+|class\s+|final\s+|override\s+|nonisolated\s+|mutating\s+)*func\s+\w+/;
+
+for (const file of swiftFiles) {
+  const lines = readFileSync(file, "utf8").split("\n");
+  // Stack of { isAsync, depth } for functions we are currently inside.
+  let depth = 0;
+  const funcs = [];
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const line = raw.replace(/\/\/.*$/, "").replace(/"(?:[^"\\]|\\.)*"/g, '""');
+
+    if (FUNC_LINE.test(line)) {
+      // The signature can wrap; look ahead until the opening brace.
+      let sig = line;
+      for (let j = i + 1; j < Math.min(i + 8, lines.length) && !sig.includes("{"); j++) {
+        sig += " " + lines[j].replace(/\/\/.*$/, "");
+      }
+      funcs.push({ isAsync: /\basync\b/.test(sig), depth, line: i + 1 });
+    }
+
+    if (LOCK_CALLS.test(line) && !/\bfunc\b/.test(line)) {
+      const enclosing = funcs[funcs.length - 1];
+      if (enclosing?.isAsync) {
+        failures.push(
+          `${path.relative(repoRoot, file)}:${i + 1}  lock taken inside an \`async\` function (declared line ${enclosing.line})\n` +
+          `    ${raw.trim()}\n` +
+          `    → Pull the critical section into a private SYNCHRONOUS method and call that. Never drop the lock.`,
+        );
+      }
+    }
+
+    for (const ch of line) {
+      if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        while (funcs.length && funcs[funcs.length - 1].depth >= depth) funcs.pop();
+      }
+    }
+  }
+}
+
+console.log(`swift-traps: ${swiftFiles.length} files, ${RULES.length} line rules + bindable + escaping-content + shadowed-symbol + missing-import + static-non-Sendable + async-lock scans, ${failures.length} hit(s)`);
 if (failures.length) {
   console.error("\n" + failures.join("\n\n"));
   console.error(`\n::error::${failures.length} known Swift trap(s). Each of these has broken CI before.`);

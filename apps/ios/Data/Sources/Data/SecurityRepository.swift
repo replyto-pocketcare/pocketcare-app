@@ -195,26 +195,14 @@ public final class SecurityRepository: @unchecked Sendable {
      */
     public func ensureRestored() async {
         guard let uid = getUserId() else { return }
-        lock.lock()
-        if let existing = currentUserId, existing != uid {
-            // A different account on the same device. The old DEK cannot open
-            // this user's rows and must not linger in memory.
-            forgetLocked()
-            restoreAttemptedFor = nil
-        }
-        currentUserId = uid
-        let alreadyDone = dekBytes != nil || restoreAttemptedFor == uid
-        lock.unlock()
-        if alreadyDone { return }
-
+        guard beginRestore(for: uid) else { return }
         let storedDek = store.get(dekEntry(uid))
         let storedSigning = store.get(signingEntry(uid))
-
-        lock.lock()
-        restoreAttemptedFor = uid
-        dekBytes = storedDek
-        signingPrivateJwk = storedSigning.flatMap { String(data: $0, encoding: .utf8) }
-        lock.unlock()
+        finishRestore(
+            userId: uid,
+            dek: storedDek,
+            signingPrivateJwk: storedSigning.flatMap { String(data: $0, encoding: .utf8) }
+        )
     }
 
     /**
@@ -256,22 +244,15 @@ public final class SecurityRepository: @unchecked Sendable {
         // be argued about with a compiler nobody here can run.
         let localRow = try await readKeyRow(userId: userId)
         if localRow != nil {
-            lock.lock()
-            hasKeys = true
-            lock.unlock()
+            setHasKeys(true)
             return
         }
         // Already answered definitively this session; the local read above is
         // what keeps watching for a row that arrives by sync afterwards.
-        lock.lock()
-        let answered = hasKeys != nil
-        lock.unlock()
-        if answered { return }
+        if storedHasKeys() != nil { return }
 
         let confirmed = await serverHasKeyRow(userId: userId)
-        lock.lock()
-        hasKeys = confirmed
-        lock.unlock()
+        setHasKeys(confirmed)
     }
 
     /**
@@ -393,9 +374,7 @@ public final class SecurityRepository: @unchecked Sendable {
             // the other. Re-probing rather than parsing the PostgREST error
             // body keeps this independent of how the driver surfaces a 23505.
             if await serverHasKeyRow(userId: userId) == true {
-                lock.lock()
-                hasKeys = true
-                lock.unlock()
+                setHasKeys(true)
                 logDiagnostic(
                     level: "warn",
                     scope: "security",
@@ -412,9 +391,7 @@ public final class SecurityRepository: @unchecked Sendable {
         }
 
         retain(userId: userId, dek: freshDek, privateJwk: signing.privateJwkJson)
-        lock.lock()
-        hasKeys = true
-        lock.unlock()
+        setHasKeys(true)
         return recoveryCode
     }
 
@@ -503,6 +480,87 @@ public final class SecurityRepository: @unchecked Sendable {
     private func forgetLocked() {
         dekBytes = nil
         signingPrivateJwk = nil
+    }
+
+    // MARK: - Locked accessors
+    //
+    // Every critical section an ASYNC method needs lives behind one of these
+    // synchronous helpers, and that is a compiler requirement before it is a
+    // style: `NSLock.lock()` and `.unlock()` are `@available(*, noasync)` under
+    // Swift 6, so a bare pair inside an `async` body does not compile ("Use
+    // async-safe scoped locking instead"). A synchronous function that takes
+    // the lock is perfectly legal to CALL from an async one -- it cannot
+    // suspend between acquire and release, which is the hazard the annotation
+    // exists to prevent.
+    //
+    // Keeping them together also does something the old inline spans could
+    // not: it makes the whole set of places that can observe or change a
+    // half-swapped DEK a list you can read in one go. Nothing outside this
+    // section touches `dekBytes`, `signingPrivateJwk`, `currentUserId`,
+    // `restoreAttemptedFor` or `hasKeys` without holding the lock.
+
+    /**
+     Claim `userId` as the current session and report whether the Keychain
+     still has to be read.
+
+     Returns false when this user's entries have already been looked for (hit
+     or miss) or a key is already in memory, so `ensureRestored` reads the
+     Keychain at most once per user per process.
+     */
+    private func beginRestore(for userId: String) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        if let existing = currentUserId, existing != userId {
+            // A different account on the same device. The old DEK cannot open
+            // this user's rows and must not linger in memory.
+            forgetLocked()
+            restoreAttemptedFor = nil
+        }
+        currentUserId = userId
+        return dekBytes == nil && restoreAttemptedFor != userId
+    }
+
+    /**
+     Publish what the Keychain returned.
+
+     Both guards close a race the old inline version had, and splitting the
+     critical section in two is what made it visible: the Keychain read happens
+     with the lock released, so an unlock or a sign-out can land in the middle
+     of it. If the user changed, this result belongs to nobody and is dropped.
+     If a key arrived by some other route (a real unlock completing first),
+     that one is newer than anything on disk and is kept. Without the second
+     guard, a `lockSession()` racing a restore would be silently undone.
+     */
+    private func finishRestore(userId: String, dek: Data?, signingPrivateJwk: String?) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard currentUserId == userId else { return }
+        restoreAttemptedFor = userId
+        guard dekBytes == nil else { return }
+        dekBytes = dek
+        self.signingPrivateJwk = signingPrivateJwk
+    }
+
+    /// Nil means "not looked for yet" — see `refreshKeyState`, where the
+    /// difference between that and `false` is the difference between showing
+    /// "Checking…" and offering to overwrite somebody's keys.
+    private func storedHasKeys() -> Bool? {
+        lock.lock()
+        defer { lock.unlock() }
+        return hasKeys
+    }
+
+    private func setHasKeys(_ value: Bool?) {
+        lock.lock()
+        defer { lock.unlock() }
+        hasKeys = value
+    }
+
+    /// The consent-signing private JWK, if this session holds one.
+    private func storedSigningPrivateJwk() -> String? {
+        lock.lock()
+        defer { lock.unlock() }
+        return signingPrivateJwk
     }
 
     // MARK: - Field encryption
@@ -619,9 +677,7 @@ public final class SecurityRepository: @unchecked Sendable {
                     : SecurityMessageKey.unlockToAuthorize
             )
         }
-        lock.lock()
-        let privateJwk = signingPrivateJwk
-        lock.unlock()
+        let privateJwk = storedSigningPrivateJwk()
         guard let privateJwk, let d = jwkField(privateJwk, "d") else {
             throw SecurityActionError(SecurityMessageKey.unlockToAuthorize)
         }

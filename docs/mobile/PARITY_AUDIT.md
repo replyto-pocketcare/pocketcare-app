@@ -3890,3 +3890,60 @@ second source of truth for a user-visible setting" — and `pc_upi_hint` is not 
 user-visible setting, so this is not a violation. But it is drift unless it is a
 decision. The clean form is a small `HintStore` interface injected from the app
 layer, so `:data` keeps not knowing what a preference file is.
+
+## The eighth guard — a lock taken inside an `async` function (2026-08-29)
+
+CI rejected `77d8749` with 22 errors, all one message:
+
+> `instance method 'lock' is unavailable from asynchronous contexts; Use
+> async-safe scoped locking instead`
+
+`NSLock.lock()` / `.unlock()`, `NSCondition.wait()` and `DispatchSemaphore.wait()`
+are `@available(*, noasync)` under Swift 6, because a task can suspend while
+holding the lock and resume on a different thread.
+
+**What makes this one worth a guard is how it arrived.** Nobody wrote an illegal
+line. `SecurityRepository.swift` had twelve perfectly legal `lock()` calls, and
+then a review — mine — asked for Keychain I/O to move off the main thread. Making
+four functions `async` turned sixteen of those calls into errors at once, in code
+nobody had touched. A guard that only reads the line you are writing cannot see
+that; this one is a **cross-line scan** that tracks brace depth from each `func`
+declaration and attributes every lock call to its nearest enclosing function.
+
+Verified the way every rule here should be: run against the exact commit CI
+rejected it reports **16 hits**, and against the fix, **zero**.
+
+One detail cost a rebuild of the rule and is worth recording. The first version
+matched with a negative lookbehind for `.`, meaning it excluded `lock.lock()` —
+every real call site — and reported nothing. **A guard that silently finds
+nothing looks exactly like a guard that passes.** Both new rules this week were
+proved by planting the failure and watching them fire, and that step is now
+non-negotiable: a rule is not added until it has been seen to catch the thing it
+was written for.
+
+The fix is never to remove the lock. Pull the critical section into a private
+**synchronous** method and call that from the async one — a sync function that
+locks internally is legal from anywhere, and it turns a span between two lines
+into a named thing.
+
+### A real race the split exposed
+
+Naming the two halves of `ensureRestored` made visible that the Keychain read
+happens **with the lock released**, so an unlock or a sign-out can land in the
+middle of it. The old inline version then wrote `dekBytes = storedDek`
+unconditionally — meaning a `lockSession()` racing a restore was **silently
+undone, and the DEK came back after the user had locked it**. `finishRestore` now
+drops the result if the user changed underneath, and keeps an in-memory key that
+arrived by another route rather than overwriting it from disk.
+
+That is the second time this month that extracting a span into a named function
+has revealed a bug that was invisible while it was a span.
+
+### The remaining exposure, named
+
+`DiagnosticsLog.swift` has three lock sites, and all three functions are
+synchronous, so it compiles today. It is safe **because** those entry points are
+sync — `logDiagnostic` is called from async contexts all over the tree and that
+is fine precisely because the lock never appears in an async body. The day
+somebody makes one of those three `async`, all three break the same way. The
+guard now catches that on the same commit rather than on the next CI run.
