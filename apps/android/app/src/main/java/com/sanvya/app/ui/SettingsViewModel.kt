@@ -13,6 +13,7 @@ import com.sanvya.app.data.repository.NotificationPrefs
 import com.sanvya.app.data.repository.PrefsRepository
 import com.sanvya.app.data.repository.RepairRepository
 import com.sanvya.app.data.repository.RepairScanResult
+import com.sanvya.app.data.repository.SecurityRepository
 import com.sanvya.app.data.repository.SettingsRepository
 import com.sanvya.app.data.repository.StrandedRow
 import com.sanvya.app.domain.diagnostics.LogEntry
@@ -59,6 +60,7 @@ class SettingsViewModel : ViewModel(), KoinComponent {
     private val authRepository: AuthRepository by inject()
     private val repairRepository: RepairRepository by inject()
     private val settingsRepository: SettingsRepository by inject()
+    private val securityRepository: SecurityRepository by inject()
 
     // ---- Notifications (existing, unchanged) ----
     private val _notifPrefs = MutableStateFlow<NotificationPrefs?>(null)
@@ -304,6 +306,17 @@ class SettingsViewModel : ViewModel(), KoinComponent {
     fun signOut() {
         viewModelScope.launch {
             try {
+                // Drop the encryption keys BEFORE the session goes.
+                //
+                // SECURITY_ENCRYPTION_PLAN.md phase 3: "unlock at login, lock
+                // on sign-out". Web gets this for free -- its DEK is a module
+                // variable and the navigation that follows sign-out reloads the
+                // page. This app keeps the unlock in the Keystore so it
+                // survives process death, so leaving it behind would leave a
+                // signed-out account's DEK on a phone somebody else may now be
+                // holding. Ordered first deliberately: if sign-out throws, the
+                // keys are still gone.
+                securityRepository.lock()
                 authRepository.signOut()
             } catch (_: Exception) {
                 /* best effort */
@@ -506,6 +519,9 @@ class SettingsViewModel : ViewModel(), KoinComponent {
                 } catch (_: Exception) {
                     /* best-effort local clear; sign-out proceeds regardless */
                 }
+                // Same reasoning as signOut(): the account is gone, so its
+                // key material has no business outliving it on this device.
+                securityRepository.lock()
                 authRepository.signOut()
             } catch (e: Exception) {
                 _deleteError.value = e.message ?: "Something went wrong. Please try again."

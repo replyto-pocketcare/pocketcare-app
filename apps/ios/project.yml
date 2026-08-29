@@ -115,6 +115,7 @@ targets:
         SanvyaPowerSyncHost: $(SANVYA_POWERSYNC_HOST)
         SanvyaAuthRedirectScheme: $(SANVYA_AUTH_REDIRECT_SCHEME)
         SanvyaAuthRedirectHost: $(SANVYA_AUTH_REDIRECT_HOST)
+        SanvyaSupportPublicJwk: $(SANVYA_SUPPORT_PUBLIC_JWK)
         # Claims the OAuth callback scheme with the OS. Without this entry the
         # provider redirect goes nowhere and the sign-in silently never
         # completes -- ASWebAuthenticationSession matches the callback against

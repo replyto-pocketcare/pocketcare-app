@@ -115,6 +115,21 @@ val dataModule = module {
         val auth: AuthRepository = get()
         ReceiptsRepository(db = get(), getUserId = { auth.currentUserId.value ?: "" }, client = get())
     }
+    // Zero-trust field encryption: the key lifecycle, the support grants, and
+    // the Keystore that holds an unlock across process death. The support
+    // public key is passed in rather than injected so the repository never
+    // learns what SanvyaConfig is.
+    single { com.sanvya.app.data.security.SecureKeyStore(androidContext()) }
+    single {
+        val auth: AuthRepository = get()
+        com.sanvya.app.data.repository.SecurityRepository(
+            db = get(),
+            client = get(),
+            store = get(),
+            getUserId = { auth.currentUserId.value },
+            supportPublicJwk = get<SanvyaConfig>().supportPublicJwk,
+        )
+    }
     single<com.sanvya.app.domain.repository.PushRepository> { com.sanvya.app.data.repository.SupabasePushRepository(get()) }
     single {
         val auth: AuthRepository = get()

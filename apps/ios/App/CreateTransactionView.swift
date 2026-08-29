@@ -35,6 +35,7 @@ struct CreateTransactionView: View {
     @Injected(\.authRepository) private var authRepository
     @Injected(\.prefsRepository) private var prefsRepository
     @Injected(\.splitsRepository) private var splitsRepository
+    @Injected(\.securityRepository) private var securityRepository
 
     @State private var accounts: [Account] = []
     @State private var categories: [CategoryRow] = []
@@ -668,7 +669,17 @@ struct CreateTransactionView: View {
                         .joined(separator: ", ")
                     return joined.isEmpty ? nil : joined
                 }()
-                let trimmedNote = note.trimmingCharacters(in: .whitespaces)
+                // Web: `const encNote = await encryptForWrite(note.trim() || null)`
+                // at apps/web/app/transactions/new/page.tsx:262, hoisted once
+                // there and reused by all four write paths. Same here, and for
+                // the same reason: the four paths must not disagree about
+                // whether a note is protected. Passes through unchanged when
+                // the encryption session is locked or was never set up.
+                // Parenthesised: `await x() ?? y` puts the `await` in front of
+                // the whole `??` expression, which is not what is meant.
+                let trimmedNote = (await securityRepository.encryptForWrite(
+                    note.trimmingCharacters(in: .whitespaces)
+                )) ?? ""
 
                 // Paid entirely for someone else: a 1:1 split where they carry
                 // the whole share and you carry none. `mode = "exact"` with your
@@ -764,7 +775,7 @@ struct CreateTransactionView: View {
                         userId: userId, accountId: acct.id, type: type,
                         amount: totalMoney, occurredAt: occurredIso,
                         categoryId: categoryId, labels: selectedLabels.isEmpty ? nil : selectedLabels,
-                        note: note.trimmingCharacters(in: .whitespaces).isEmpty ? nil : note.trimmingCharacters(in: .whitespaces),
+                        note: trimmedNote.isEmpty ? nil : trimmedNote,
                         description: combinedDescription.isEmpty ? nil : combinedDescription,
                         paymentMethod: paymentMethod.isEmpty ? nil : paymentMethod,
                         items: itemPayload

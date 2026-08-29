@@ -162,6 +162,27 @@ public extension Container {
         }.singleton
     }
 
+    // Zero-trust field encryption: the key lifecycle, the support grants, and
+    // the Keychain that holds an unlock across app termination. The support
+    // public key is passed in rather than injected so the repository never
+    // learns what SanvyaConfig is.
+    var secureKeyStore: Factory<SecureKeyStore> {
+        self { SecureKeyStore() }.singleton
+    }
+
+    var securityRepository: Factory<SecurityRepository> {
+        self {
+            let auth = self.authRepository()
+            return SecurityRepository(
+                db: self.powerSyncDatabase(),
+                client: self.supabaseClient(),
+                store: self.secureKeyStore(),
+                getUserId: { auth.currentUserId },
+                supportPublicJwk: self.sanvyaConfig().supportPublicJwk
+            )
+        }.singleton
+    }
+
     var pushRepository: Factory<PushRepository> {
         self { SupabasePushRepository(client: self.supabaseClient()) }.singleton
     }

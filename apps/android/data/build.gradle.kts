@@ -24,6 +24,23 @@ fun sanvyaConfig(key: String): String =
     findProperty("sanvya.$key") as String?
         ?: error("Missing configuration 'sanvya.$key'. Add it to gradle.properties, local.properties, or pass -Psanvya.$key=…")
 
+// The same lookup for a key whose ABSENCE is a supported state rather than a
+// misconfiguration. Only `supportPublicJwk` is like this: a build with no
+// support keypair simply refuses content grants, which is exactly what web
+// does without NEXT_PUBLIC_SUPPORT_PUBLIC_JWK. Using the strict reader above
+// for it would make every developer build fail over a feature they are not
+// using.
+//
+// The value is also ESCAPED for embedding in generated Java source, which the
+// strict reader above never needed: every value it reads is a URL or a token,
+// and this one is a JWK -- a JSON document full of double quotes. Unescaped,
+// the first `"` would end the generated string literal and BuildConfig.java
+// would not compile, with an error pointing at generated code.
+fun sanvyaConfigOrEmpty(key: String): String =
+    (findProperty("sanvya.$key") as String?).orEmpty()
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+
 android {
     namespace = "com.sanvya.app.data"
     compileSdk = 36
@@ -40,6 +57,10 @@ android {
         buildConfigField("String", "POWERSYNC_URL", "\"${sanvyaConfig("powerSyncUrl")}\"")
         buildConfigField("String", "AUTH_REDIRECT_SCHEME", "\"${sanvyaConfig("authRedirectScheme")}\"")
         buildConfigField("String", "AUTH_REDIRECT_HOST", "\"${sanvyaConfig("authRedirectHost")}\"")
+        // The SUPPORT public key. Empty on a build with no support keypair --
+        // SanvyaConfig turns that into null, and SecurityRepository into web's
+        // own "Support access is not configured for this deployment."
+        buildConfigField("String", "SUPPORT_PUBLIC_JWK", "\"${sanvyaConfigOrEmpty("supportPublicJwk")}\"")
     }
 
     buildFeatures {

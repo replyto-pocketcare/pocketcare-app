@@ -9,6 +9,7 @@ import com.sanvya.app.data.repository.LabelRow
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.PaymentMethodRow
 import com.sanvya.app.data.repository.PrefsRepository
+import com.sanvya.app.data.repository.SecurityRepository
 import com.sanvya.app.data.repository.TransactionItemInput
 import com.sanvya.app.domain.categorize.CategoryData
 import com.sanvya.app.domain.entitlements.isPaid as domainIsPaid
@@ -136,6 +137,7 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
     private val splitsRepository: SplitsRepository by inject()
     private val authRepository: AuthRepository by inject()
     private val prefsRepository: PrefsRepository by inject()
+    private val securityRepository: SecurityRepository by inject()
 
     private val ui = MutableStateFlow(CreateTransactionUiState())
 
@@ -493,6 +495,23 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
         ui.value = ui.value.copy(categoryId = v, manualCategory = true, autoApplied = false)
     }
     fun setPaymentMethod(v: String) { ui.value = ui.value.copy(paymentMethod = v) }
+    /**
+     * The note as it goes into the row: encrypted when the encryption session
+     * is unlocked, and byte-for-byte what the user typed when it is not.
+     *
+     * Web's `const encNote = await encryptForWrite(note.trim() || null)` at
+     * `apps/web/app/transactions/new/page.tsx:262`, hoisted once there and
+     * reused by all four write paths. Same here, and for the same reason: the
+     * four paths must not disagree about whether a note is protected.
+     *
+     * Suspending, like web's `await`: the first call in a process may have to
+     * restore the DEK from the Keystore, which runs a cipher against a key the
+     * OS holds and is not something to do on the main thread. The encryption
+     * itself is microseconds of AES over a sentence.
+     */
+    private suspend fun encryptedNote(state: CreateTransactionUiState): String? =
+        securityRepository.encryptForWrite(state.note.trim().ifEmpty { null })
+
     fun setNote(v: String) { ui.value = ui.value.copy(note = v) }
     fun setToValue(v: String) { ui.value = ui.value.copy(toValue = v) }
     fun setOccurredAt(v: LocalDateTime) { ui.value = ui.value.copy(occurredAt = v) }
@@ -610,7 +629,7 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
                             payers = listOf(PayerInput(userId, total, acct.id)),
                             categoryId = state.categoryId,
                             description = splitDescription,
-                            note = state.note.trim().ifEmpty { null },
+                            note = encryptedNote(state),
                             occurredAt = occurredAt,
                         ),
                     )
@@ -644,7 +663,7 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
                             },
                             categoryId = state.categoryId,
                             description = splitDescription,
-                            note = state.note.trim().ifEmpty { null },
+                            note = encryptedNote(state),
                             occurredAt = occurredAt,
                         ),
                     )
@@ -678,7 +697,7 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
                         userId = userId, accountId = acct.id, type = state.type,
                         amount = money(total, acct.currency), occurredAt = occurredAt,
                         categoryId = state.categoryId, labels = state.selectedLabels.ifEmpty { null },
-                        note = state.note.trim().ifEmpty { null }, description = combinedDescription,
+                        note = encryptedNote(state), description = combinedDescription,
                         paymentMethod = state.paymentMethod.ifEmpty { null }, items = itemPayload,
                     )
                 }

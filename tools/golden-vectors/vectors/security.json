@@ -1,0 +1,433 @@
+[
+  {
+    "fn": "isEncryptedEnvelope",
+    "input": {
+      "value": "v1.aaa.bbb"
+    },
+    "expected": true
+  },
+  {
+    "fn": "isEncryptedEnvelope",
+    "input": {
+      "value": "v1."
+    },
+    "expected": true
+  },
+  {
+    "fn": "isEncryptedEnvelope",
+    "input": {
+      "value": "v2.aaa.bbb"
+    },
+    "expected": false
+  },
+  {
+    "fn": "isEncryptedEnvelope",
+    "input": {
+      "value": "plain note"
+    },
+    "expected": false
+  },
+  {
+    "fn": "isEncryptedEnvelope",
+    "input": {
+      "value": ""
+    },
+    "expected": false
+  },
+  {
+    "fn": "isEncryptedEnvelope",
+    "input": {
+      "value": "v1"
+    },
+    "expected": false
+  },
+  {
+    "fn": "formatSecurityEnvelope",
+    "input": {
+      "ivBase64": "CwwNDg8QERITFBWm",
+      "ctBase64": "3q2+7w=="
+    },
+    "expected": "v1.CwwNDg8QERITFBWm.3q2+7w=="
+  },
+  {
+    "fn": "parseSecurityEnvelope",
+    "input": {
+      "envelope": "v1.CwwNDg8QERITFBWm.3q2+7w=="
+    },
+    "expected": {
+      "ivBase64": "CwwNDg8QERITFBWm",
+      "ctBase64": "3q2+7w=="
+    }
+  },
+  {
+    "fn": "parseSecurityEnvelope",
+    "input": {
+      "envelope": "v2.CwwNDg8QERITFBWm.3q2+7w=="
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseSecurityEnvelope",
+    "input": {
+      "envelope": "v1.only-two-parts"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseSecurityEnvelope",
+    "input": {
+      "envelope": "v1.a.b.c"
+    },
+    "expected": null
+  },
+  {
+    "fn": "parseSecurityEnvelope",
+    "input": {
+      "envelope": "note text"
+    },
+    "expected": null
+  },
+  {
+    "fn": "recoveryCodeFromBytes",
+    "input": {
+      "bytesHex": "000102030405060708090a0b0c0d0e0f10111213"
+    },
+    "expected": "ABCD-EFGH-JKMN-PQRS-TUVW"
+  },
+  {
+    "fn": "recoveryCodeFromBytes",
+    "input": {
+      "bytesHex": "fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0efeeedec"
+    },
+    "expected": "HGFE-DCBA-9876-5432-ZYXW"
+  },
+  {
+    "fn": "recoveryCodeFromBytes",
+    "input": {
+      "bytesHex": "1e1f202122232425262728292a2b2c2d2e2f3031"
+    },
+    "expected": "9ABC-DEFG-HJKM-NPQR-STUV"
+  },
+  {
+    "fn": "normalizeRecoveryCode",
+    "input": {
+      "input": "  abcd-efgh-jkmn-pqrs-tuvw \n"
+    },
+    "expected": "ABCD-EFGH-JKMN-PQRS-TUVW"
+  },
+  {
+    "fn": "normalizeRecoveryCode",
+    "input": {
+      "input": "ABCD-EFGH"
+    },
+    "expected": "ABCD-EFGH"
+  },
+  {
+    "fn": "securityStatus",
+    "input": {
+      "hasKeys": null,
+      "unlocked": false
+    },
+    "expected": "loading"
+  },
+  {
+    "fn": "securityStatus",
+    "input": {
+      "hasKeys": null,
+      "unlocked": true
+    },
+    "expected": "loading"
+  },
+  {
+    "fn": "securityStatus",
+    "input": {
+      "hasKeys": false,
+      "unlocked": false
+    },
+    "expected": "unset"
+  },
+  {
+    "fn": "securityStatus",
+    "input": {
+      "hasKeys": false,
+      "unlocked": true
+    },
+    "expected": "unset"
+  },
+  {
+    "fn": "securityStatus",
+    "input": {
+      "hasKeys": true,
+      "unlocked": false
+    },
+    "expected": "locked"
+  },
+  {
+    "fn": "securityStatus",
+    "input": {
+      "hasKeys": true,
+      "unlocked": true
+    },
+    "expected": "unlocked"
+  },
+  {
+    "fn": "passphraseSetupErrorKey",
+    "input": {
+      "passphrase": "short",
+      "confirm": "short"
+    },
+    "expected": "setupTooShort"
+  },
+  {
+    "fn": "passphraseSetupErrorKey",
+    "input": {
+      "passphrase": "12345678",
+      "confirm": "12345679"
+    },
+    "expected": "setupMismatch"
+  },
+  {
+    "fn": "passphraseSetupErrorKey",
+    "input": {
+      "passphrase": "12345678",
+      "confirm": "12345678"
+    },
+    "expected": null
+  },
+  {
+    "fn": "passphraseSetupErrorKey",
+    "input": {
+      "passphrase": "",
+      "confirm": ""
+    },
+    "expected": "setupTooShort"
+  },
+  {
+    "fn": "canonicalGrantJson",
+    "input": {
+      "userId": "11111111-2222-3333-4444-555555555555",
+      "grantId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "exp": 1767225600000,
+      "scope": "content"
+    },
+    "expected": "{\"exp\":1767225600000,\"grantId\":\"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\",\"scope\":\"content\",\"userId\":\"11111111-2222-3333-4444-555555555555\"}"
+  },
+  {
+    "fn": "canonicalGrantJson",
+    "input": {
+      "userId": "u",
+      "grantId": "g",
+      "exp": 0,
+      "scope": "structural"
+    },
+    "expected": "{\"exp\":0,\"grantId\":\"g\",\"scope\":\"structural\",\"userId\":\"u\"}"
+  },
+  {
+    "fn": "grantExpiryMillis",
+    "input": {
+      "nowMs": 1767225600000,
+      "ttlHours": 2
+    },
+    "expected": 1767232800000
+  },
+  {
+    "fn": "deriveKekHex",
+    "input": {
+      "passphrase": "correct horse battery",
+      "saltBase64": "AQIDBAUGBwgJCgsMDQ4PEA==",
+      "iterations": 210000
+    },
+    "expected": "05b85a76533aaf1c9f31f602b525a1fc8a39dae9cf226c62a5896fec72f7b50b"
+  },
+  {
+    "fn": "deriveKekHex",
+    "input": {
+      "passphrase": "pässwörd-नमस्ते-😀",
+      "saltBase64": "AQIDBAUGBwgJCgsMDQ4PEA==",
+      "iterations": 210000
+    },
+    "expected": "0f4adfb5f421ed22c529467573acbed8d926cec2c11198ec5ac311f1b816cc49"
+  },
+  {
+    "fn": "deriveKekHex",
+    "input": {
+      "passphrase": "correct horse battery",
+      "saltBase64": "AQIDBAUGBwgJCgsMDQ4PEA==",
+      "iterations": 1000
+    },
+    "expected": "3998aca8996855643fc45f1c839bc9a06aa9f3a7cf1f939bdc5f1c64b3e1f19b"
+  },
+  {
+    "fn": "pbkdf2HmacSha256",
+    "input": {
+      "passwordUtf8": "correct horse battery",
+      "saltBase64": "AQIDBAUGBwgJCgsMDQ4PEA==",
+      "iterations": 1,
+      "keyLengthBytes": 32
+    },
+    "expected": "f41eb430bfd87aa0e2d2451dd6a985e8530b82e7fdbc0dd3227d42b29259a406"
+  },
+  {
+    "fn": "pbkdf2HmacSha256",
+    "input": {
+      "passwordUtf8": "correct horse battery",
+      "saltBase64": "AQIDBAUGBwgJCgsMDQ4PEA==",
+      "iterations": 1,
+      "keyLengthBytes": 64
+    },
+    "expected": "f41eb430bfd87aa0e2d2451dd6a985e8530b82e7fdbc0dd3227d42b29259a4063e1bee847202ba73efa440780f94bc1f57fb443a1501469f8607d690af2e6bdc"
+  },
+  {
+    "fn": "pbkdf2HmacSha256",
+    "input": {
+      "passwordUtf8": "correct horse battery",
+      "saltBase64": "AQIDBAUGBwgJCgsMDQ4PEA==",
+      "iterations": 4096,
+      "keyLengthBytes": 64
+    },
+    "expected": "7c98b446fe374af62c85711637978ba976eebee6cab86a82509b7af40b0dc719b8400729f55b6ba341fcd8e1f0d3f55a771a2e0890cd182b951a30c4c1448a93"
+  },
+  {
+    "fn": "pbkdf2HmacSha256",
+    "input": {
+      "passwordUtf8": "correct horse battery",
+      "saltBase64": "AQIDBAUGBwgJCgsMDQ4PEA==",
+      "iterations": 4096,
+      "keyLengthBytes": 20
+    },
+    "expected": "7c98b446fe374af62c85711637978ba976eebee6"
+  },
+  {
+    "fn": "pbkdf2HmacSha256",
+    "input": {
+      "passwordUtf8": "correct horse battery",
+      "saltBase64": "AQIDBAUGBwgJCgsMDQ4PEA==",
+      "iterations": 4096,
+      "keyLengthBytes": 100
+    },
+    "expected": "7c98b446fe374af62c85711637978ba976eebee6cab86a82509b7af40b0dc719b8400729f55b6ba341fcd8e1f0d3f55a771a2e0890cd182b951a30c4c1448a9379d3ee3f7a4ffe986fc9abf13ccf8f87f35d64ca969212d0f41bcf38f57c8ffc53dbe0f8"
+  },
+  {
+    "fn": "pbkdf2HmacSha256",
+    "input": {
+      "passwordUtf8": "pässwörd-नमस्ते-😀",
+      "saltBase64": "AQIDBAUGBwgJCgsMDQ4PEA==",
+      "iterations": 4096,
+      "keyLengthBytes": 64
+    },
+    "expected": "309e2670ed4d9e4a446217bbfb59e01025afedf433b68791668b3b9fc071cb0104de8d470135ad09cdf99a83d0086ee4f9af73c0ae670b903abe83bf19ae5c77"
+  },
+  {
+    "fn": "decryptFieldWithDekHex",
+    "input": {
+      "envelope": "v1.CwwNDg8QERITFBWm.jL9SNZ4Dfk6OX+PpIjIOIn2wUpe19by1k9ygqrWhr36zlts1wIErcGmmYyIVPzJT2no=",
+      "dekHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+    },
+    "expected": "Dinner with Priya — split 3 ways"
+  },
+  {
+    "fn": "decryptFieldWithDekHex",
+    "input": {
+      "envelope": "v1.obLD1OX2BxgpOktc.+FepQ27k/ivJHADZsIuglA==",
+      "dekHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+    },
+    "expected": ""
+  },
+  {
+    "fn": "unwrapDekHex",
+    "input": {
+      "wrapped": "v1.CwwNDg8QERITFBWm.K2KK/inOfpM6BNSosgro3Gbsrr3jLnqOB1RLBg9l7uBDT/VQgjBbY3WUkP/EbC0W",
+      "kekHex": "05b85a76533aaf1c9f31f602b525a1fc8a39dae9cf226c62a5896fec72f7b50b"
+    },
+    "expected": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+  },
+  {
+    "fn": "decryptFieldWithDekHex",
+    "input": {
+      "envelope": "v1.CwwNDg8QERITFBWm.AL9SNZ4Dfk6OX+PpIjIOIn2wUpe19by1k9ygqrWhr36zlts1wIErcGmmYyIVPzJT2no=",
+      "dekHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+    },
+    "throws": {
+      "name": "Error",
+      "message": "bad envelope"
+    }
+  },
+  {
+    "fn": "decryptFieldWithDekHex",
+    "input": {
+      "envelope": "not an envelope",
+      "dekHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+    },
+    "throws": {
+      "name": "Error",
+      "message": "bad envelope"
+    }
+  },
+  {
+    "fn": "fieldRoundTrip",
+    "input": {
+      "plaintext": "Dinner with Priya — split 3 ways",
+      "dekHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+    },
+    "expected": "Dinner with Priya — split 3 ways"
+  },
+  {
+    "fn": "fieldRoundTrip",
+    "input": {
+      "plaintext": "नमस्ते 😀   edge",
+      "dekHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+    },
+    "expected": "नमस्ते 😀   edge"
+  },
+  {
+    "fn": "ecdsaDerToRawSignatureHex",
+    "input": {
+      "derHex": "302502010102207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    "expected": "00000000000000000000000000000000000000000000000000000000000000017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  {
+    "fn": "ecdsaDerToRawSignatureHex",
+    "input": {
+      "derHex": "3046022100d47ce4c025c35ec440bc81d99834a624875840214d8f1b71dd6b7e5f4b0c8e1f0221008a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9"
+    },
+    "expected": "d47ce4c025c35ec440bc81d99834a624875840214d8f1b71dd6b7e5f4b0c8e1f8a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9"
+  },
+  {
+    "fn": "rsaPublicKeyDerHexFromJwk",
+    "input": {
+      "n": "vk6kvdDtCMA4gKtrhACcGahyk7XoCXByAml8UVAswlbN4kQ0Pws7D9VSN_w-YJqRMDLSZP5YY_BeRm54iV2Zv3zUl0lXhq6n14VLbMwKI6xj7nyDBPAtmWPwM4XPg3ooXOi0fAumvbckJirxMN2e_wnX358wdcSdWpNtij-hfl-scv-PbIn0JJMoQV2qB5O5KB2qcgB0Ku_be5I_zoJXfXvxAQncbcsWuUaVzIyLzy2zKOEgdthzUdcPITMw5_O5hA0cxK6jKN5TzPAEsEHjBcj-qpfj8LD5jBrhBujYVsgrBa_Nm3ECCV5S3q2DeLtZYnHubiWgFKYhWA4dGKlSBbxPsCMBoyKe1ds39vxPZGb5vYiheP_z2hs7TMK-9mkK0oidIIx3vTtN288ysAL4v_Pmsg7UCs5oaulnmI5-wsayQcHzarnLLLC--zX-qO2QxDSQH8dboWiP3sd5uxUVOg-7YTUBKQkwJYfvhIslhtTf2DbXLUMT6Dad7fnRIti9",
+      "e": "AQAB"
+    },
+    "expected": "3082018a0282018100be4ea4bdd0ed08c03880ab6b84009c19a87293b5e809707202697c51502cc256cde244343f0b3b0fd55237fc3e609a913032d264fe5863f05e466e78895d99bf7cd497495786aea7d7854b6ccc0a23ac63ee7c8304f02d9963f03385cf837a285ce8b47c0ba6bdb724262af130dd9eff09d7df9f3075c49d5a936d8a3fa17e5fac72ff8f6c89f4249328415daa0793b9281daa7200742aefdb7b923fce82577d7bf10109dc6dcb16b94695cc8c8bcf2db328e12076d87351d70f213330e7f3b9840d1cc4aea328de53ccf004b041e305c8feaa97e3f0b0f98c1ae106e8d856c82b05afcd9b7102095e52dead8378bb596271ee6e25a014a621580e1d18a95205bc4fb02301a3229ed5db37f6fc4f6466f9bd88a178fff3da1b3b4cc2bef6690ad2889d208c77bd3b4ddbcf32b002f8bff3e6b20ed40ace686ae967988e7ec2c6b241c1f36ab9cb2cb0befb35fea8ed90c434901fc75ba1688fdec779bb15153a0fbb6135012909302587ef848b2586d4dfd836d72d4313e8369dedf9d122d8bd0203010001"
+  },
+  {
+    "fn": "rsaPublicKeyDerHexFromJwk",
+    "input": {
+      "n": "AQAB",
+      "e": "AQAB"
+    },
+    "expected": "300a02030100010203010001"
+  },
+  {
+    "fn": "base64UrlToBase64",
+    "input": {
+      "input": "q-_A"
+    },
+    "expected": "q+/A"
+  },
+  {
+    "fn": "base64UrlToBase64",
+    "input": {
+      "input": "AQAB"
+    },
+    "expected": "AQAB"
+  },
+  {
+    "fn": "base64ToBase64Url",
+    "input": {
+      "input": "q+/A=="
+    },
+    "expected": "q-_A"
+  }
+]

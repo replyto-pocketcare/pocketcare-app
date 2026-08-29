@@ -41,6 +41,7 @@ import com.sanvya.app.theme.*
 import com.sanvya.app.ui.components.ConfirmDialog
 import com.sanvya.app.ui.onboarding.OnboardingDeckScreen
 import com.sanvya.app.ui.shell.LocalShellNavigate
+import com.sanvya.app.ui.security.SecurityPanelBody
 import com.sanvya.app.ui.shell.SettingsSection
 import com.sanvya.app.ui.shell.SettingsSectionRequest
 import kotlin.math.roundToInt
@@ -399,6 +400,21 @@ fun SettingsScreen(
                         hint = "When someone adds an expense to split",
                     ) { v -> viewModel.updatePref { it.copy(group_expense = if (v) 1 else 0) } }
                 }
+            }
+
+            // ---- Security & encryption ----
+            //
+            // Web renders <SecurityPanel /> here, between NotificationPanel and
+            // the base-currency section, and the order is the order: this card
+            // is about the same thing the notification card is (what leaves
+            // this device), and burying it below Diagnostics would hide the
+            // one control that makes notes unreadable to us.
+            //
+            // The heading and the intro paragraph are this card's title and
+            // subtitle, which is exactly the <h2> + muted <p> web opens its
+            // <section> with; the body is the four-state machine.
+            SettingsCard(title = S.Security.title(res), subtitle = S.Security.intro(res)) {
+                SecurityPanelBody()
             }
 
             // ---- Base currency ----

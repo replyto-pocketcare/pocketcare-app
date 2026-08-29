@@ -24,9 +24,23 @@ public protocol SanvyaConfig: Sendable {
     /// exact URI under Authentication → URL Configuration → Redirect URLs.
     var authRedirectScheme: String { get }
     var authRedirectHost: String { get }
+
+    /// The SUPPORT public key (a JWK document), or nil on a deployment that
+    /// has no support keypair.
+    ///
+    /// Web reads the same value from `NEXT_PUBLIC_SUPPORT_PUBLIC_JWK` and,
+    /// when it is absent, refuses a content grant with "Support access is not
+    /// configured for this deployment." Optional rather than required for
+    /// exactly that reason: a build without it is a supported state, not a
+    /// misconfiguration, so this is the one key that must NOT trap at launch
+    /// the way the five above do.
+    var supportPublicJwk: String? { get }
 }
 
 public extension SanvyaConfig {
+    /// Absent unless a conformance says otherwise.
+    var supportPublicJwk: String? { nil }
+
     /// The full redirect URI, assembled once so no caller concatenates it.
     var authRedirectURL: URL {
         // Force-unwrap is safe and deliberate: the components come from build
@@ -43,6 +57,7 @@ public struct BundleSanvyaConfig: SanvyaConfig {
     public let powerSyncURL: String
     public let authRedirectScheme: String
     public let authRedirectHost: String
+    public let supportPublicJwk: String?
 
     public init(bundle: Bundle = .main) {
         // Hosts, not URLs. xcconfig treats `//` as a comment start anywhere on
@@ -60,6 +75,23 @@ public struct BundleSanvyaConfig: SanvyaConfig {
         self.supabaseAnonKey = Self.require(bundle, "SanvyaSupabaseAnonKey")
         self.authRedirectScheme = Self.require(bundle, "SanvyaAuthRedirectScheme")
         self.authRedirectHost = Self.require(bundle, "SanvyaAuthRedirectHost")
+        self.supportPublicJwk = Self.optional(bundle, "SanvyaSupportPublicJwk")
+    }
+
+    /// `require`'s counterpart for a key whose absence is a supported state.
+    ///
+    /// Same three rejections -- missing, empty, and an unresolved `$(...)`
+    /// build setting reaching Info.plist verbatim -- but they yield nil rather
+    /// than a crash, because a build with no support keypair is a build that
+    /// simply cannot issue content grants, which is exactly where web is
+    /// without its env var.
+    private static func optional(_ bundle: Bundle, _ key: String) -> String? {
+        guard let value = bundle.object(forInfoDictionaryKey: key) as? String,
+              !value.isEmpty,
+              !value.hasPrefix("$(") else {
+            return nil
+        }
+        return value
     }
 
     /// Missing configuration traps at launch rather than defaulting to "".

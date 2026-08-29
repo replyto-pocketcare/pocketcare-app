@@ -21,6 +21,7 @@ struct EditTransactionView: View {
     @Injected(\.ledgerRepository) private var ledgerRepository
     @Injected(\.authRepository) private var authRepository
     @Injected(\.prefsRepository) private var prefsRepository
+    @Injected(\.securityRepository) private var securityRepository
 
     @State private var loaded = false
     @State private var accounts: [Account] = []
@@ -36,6 +37,17 @@ struct EditTransactionView: View {
     @State private var selectedLabels: [String] = []
     @State private var paymentMethod = ""
     @State private var note = ""
+    /**
+     The stored note is an envelope this session cannot open, so the field is
+     read-only.
+
+     Web renders the raw `v1.…` into an editable input. Showing it is web parity
+     and is kept; letting it be TYPED INTO is not parity, it is a data-loss bug
+     — one keystroke and the mangled string is saved back (it still starts with
+     `v1.`, so `encryptForWrite` passes it through unchanged) and the note is
+     gone with no error and no undo.
+     */
+    @State private var noteLocked = false
     @State private var intent: String?
     @State private var currency = FormOptions.defaultCurrency
     @State private var occurredAt = Date()
@@ -132,7 +144,17 @@ struct EditTransactionView: View {
                                 }
                             }
 
-                            TextField(S.Transactions.note, text: $note).textFieldStyle(.roundedBorder)
+                            // See `noteLocked`: an envelope this session cannot
+                            // open is shown (web parity) but must not be
+                            // editable, because editing it destroys the note.
+                            TextField(S.Transactions.note, text: $note)
+                                .textFieldStyle(.roundedBorder)
+                                .disabled(noteLocked)
+                            if noteLocked {
+                                Text(S.Security.lockedNoteHint)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color.text2)
+                            }
 
                             DatePicker(S.Transactions.date, selection: $occurredAt, displayedComponents: [.date, .hourAndMinute])
 
@@ -365,7 +387,17 @@ struct EditTransactionView: View {
                 originalCategoryId = txn.categoryId
                 selectedLabels = labelNames
                 paymentMethod = txn.paymentMethod ?? ""
-                note = txn.note ?? ""
+                // Web: `isEncrypted(rawNote) && getDek()` -> decrypt, else
+                // show the stored value AS-IS. That "as-is" is literal and is
+                // why a locked session shows `v1.…` in this box rather than a
+                // mask -- `fields.ts` has a masking helper and web's edit page
+                // does not call it. Copied rather than improved: the phone and
+                // the browser must not disagree about what a note says.
+                // Parenthesised: `await x() ?? y` puts the `await` in front of
+                // the whole `??` expression, which is not what is meant and
+                // draws a warning about no async operation inside it.
+                note = (await securityRepository.decryptForRead(txn.note)) ?? ""
+                noteLocked = await securityRepository.isLockedEnvelope(txn.note)
                 intent = txn.intent
                 currency = txn.currency
                 occurredAt = parseOccurredAt(txn.occurredAt) ?? Date()
@@ -388,11 +420,21 @@ struct EditTransactionView: View {
         Task {
             do {
                 let userId = try await authRepository.ensureUser()
+                // Web: `note: await encryptForWrite(note.trim() || null)`.
+                // Re-encrypting on every save is deliberate -- it is what
+                // migrates a note written while locked, or before encryption
+                // was ever turned on. Hoisted out of the literal below because
+                // it now awaits (the first call in a process may restore the
+                // key from the Keychain).
+                let trimmedNote = note.trimmingCharacters(in: .whitespaces)
+                let storedNote = await securityRepository.encryptForWrite(
+                    trimmedNote.isEmpty ? nil : trimmedNote
+                )
                 var patch: [String: Sendable?] = [
                     "type": type,
                     "account_id": accountId,
                     "payment_method": paymentMethod.isEmpty ? nil : paymentMethod,
-                    "note": note.trimmingCharacters(in: .whitespaces).isEmpty ? nil : note.trimmingCharacters(in: .whitespaces),
+                    "note": storedNote,
                     "occurred_at": ISO8601DateFormatter().string(from: occurredAt),
                 ]
                 if type == "transfer" {

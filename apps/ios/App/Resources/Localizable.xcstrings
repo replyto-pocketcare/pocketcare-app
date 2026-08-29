@@ -29931,6 +29931,1432 @@
         }
       }
     },
+    "security:allowDataAccess": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow data access (2h)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डेटा एक्सेस की अनुमति दें (2घं)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gegevenstoegang toestaan (2u)"
+          }
+        }
+      }
+    },
+    "security:allowSyncCheck": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow sync check (2h)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सिंक जाँच की अनुमति दें (2घं)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synccontrole toestaan (2u)"
+          }
+        }
+      }
+    },
+    "security:alreadySetUp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encryption is already set up on this account. Unlock it instead — setting it up again would make your existing notes unreadable."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस खाते पर एन्क्रिप्शन पहले से सेट अप है। इसे फिर से सेट करने के बजाय अनलॉक करें — दोबारा सेट करने से आपके मौजूदा नोट पढ़े नहीं जा सकेंगे।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versleuteling is al ingesteld voor dit account. Ontgrendel die in plaats daarvan — opnieuw instellen maakt je bestaande notities onleesbaar."
+          }
+        }
+      }
+    },
+    "security:checking": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जाँच हो रही है…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezig met controleren…"
+          }
+        }
+      }
+    },
+    "security:codeCopied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कॉपी हो गया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gekopieerd"
+          }
+        }
+      }
+    },
+    "security:confirmPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm passphrase"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पासफ़्रेज़ की पुष्टि करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bevestig wachtwoordzin"
+          }
+        }
+      }
+    },
+    "security:copyCode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy code"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोड कॉपी करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code kopiëren"
+          }
+        }
+      }
+    },
+    "security:grantedUntil": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Granted %1$@ access until %2$@."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ एक्सेस %2$@ तक दिया गया।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ toegang verleend tot %2$@."
+          }
+        }
+      }
+    },
+    "security:grantExpires": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · expires %2$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · समाप्ति %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · verloopt %2$@"
+          }
+        }
+      }
+    },
+    "security:grantFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't create grant."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ग्रांट नहीं बनाया जा सका।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kon geen toestemming aanmaken."
+          }
+        }
+      }
+    },
+    "security:grantRowContent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data access"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डेटा एक्सेस"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gegevenstoegang"
+          }
+        }
+      }
+    },
+    "security:grantRowStructural": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync check"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सिंक जाँच"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synccontrole"
+          }
+        }
+      }
+    },
+    "security:intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End-to-end encrypt sensitive fields (notes, names) with a passphrase only you know. We store only the encrypted form — support can never read it without your explicit, time-limited consent."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "संवेदनशील फ़ील्ड (नोट, नाम) को केवल आपके ही ज्ञात पासफ़्रेज़ से एंड-टू-एंड एन्क्रिप्ट करें। हम केवल एन्क्रिप्टेड रूप ही संग्रहीत करते हैं — आपकी स्पष्ट, समय-सीमित सहमति के बिना सपोर्ट इसे कभी नहीं पढ़ सकता।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versleutel gevoelige velden (notities, namen) end-to-end met een wachtwoordzin die alleen jij kent. Wij bewaren uitsluitend de versleutelde vorm — support kan die nooit lezen zonder jouw uitdrukkelijke, in tijd begrensde toestemming."
+          }
+        }
+      }
+    },
+    "security:invalidRecovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid recovery code."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अमान्य रिकवरी कोड।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongeldige herstelcode."
+          }
+        }
+      }
+    },
+    "security:lock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lock"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लॉक करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vergrendelen"
+          }
+        }
+      }
+    },
+    "security:lockedNoteHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock encryption to read or edit this note."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस नोट को पढ़ने या संपादित करने के लिए एन्क्रिप्शन अनलॉक करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel de versleuteling om deze notitie te lezen of te bewerken."
+          }
+        }
+      }
+    },
+    "security:noRecoveryKey": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recovery key on file."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फ़ाइल में कोई रिकवरी कुंजी नहीं है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen herstelsleutel bekend."
+          }
+        }
+      }
+    },
+    "security:notSetUp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encryption is not set up on this account."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस खाते पर एन्क्रिप्शन सेट अप नहीं है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versleuteling is niet ingesteld voor dit account."
+          }
+        }
+      }
+    },
+    "security:notSignedIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not signed in."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साइन इन नहीं किया गया।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet aangemeld."
+          }
+        }
+      }
+    },
+    "security:passphraseLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passphrase"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पासफ़्रेज़"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wachtwoordzin"
+          }
+        }
+      }
+    },
+    "security:passphrasePlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a passphrase (8+ chars)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पासफ़्रेज़ बनाएँ (8+ अक्षर)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak een wachtwoordzin (8+ tekens)"
+          }
+        }
+      }
+    },
+    "security:recoveryAck": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I understand — I've saved it"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "समझ गया — मैंने इसे सहेज लिया है"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begrepen — ik heb hem opgeslagen"
+          }
+        }
+      }
+    },
+    "security:recoveryCodeLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery code"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रिकवरी कोड"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herstelcode"
+          }
+        }
+      }
+    },
+    "security:recoveryHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store it somewhere safe — a password manager or written down offline. We can't show it again."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इसे कहीं सुरक्षित रखें — किसी पासवर्ड मैनेजर में या ऑफ़लाइन लिखकर। हम इसे दोबारा नहीं दिखा पाएँगे।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewaar hem op een veilige plek — in een wachtwoordmanager of offline op papier. We kunnen hem niet nogmaals tonen."
+          }
+        }
+      }
+    },
+    "security:recoveryTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save your recovery code"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपना रिकवरी कोड सहेजें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewaar je herstelcode"
+          }
+        }
+      }
+    },
+    "security:recoveryWarnFive": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ". We never see your passphrase or your keys, so there is nothing we can reset or restore. Please save the code before continuing."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "। हम आपका पासफ़्रेज़ या आपकी चाबियाँ कभी नहीं देखते, इसलिए रीसेट या बहाल करने के लिए हमारे पास कुछ भी नहीं होता। आगे बढ़ने से पहले कृपया कोड सहेज लें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ". Wij zien je wachtwoordzin en je sleutels nooit, dus er is niets dat wij kunnen resetten of terugzetten. Sla de code op voordat je verdergaat."
+          }
+        }
+      }
+    },
+    "security:recoveryWarnForget": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "forget the passphrase AND lose this code"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पासफ़्रेज़ भूल गए और यह कोड भी खो दिया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "de wachtwoordzin vergeet ÉN deze code kwijtraakt"
+          }
+        }
+      }
+    },
+    "security:recoveryWarnFour": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " — not by you, and "
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " हो जाएगा — न आपके लिए, और "
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " — niet door jou, en "
+          }
+        }
+      }
+    },
+    "security:recoveryWarnKeys": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "only two keys"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एकमात्र दो चाबियाँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "enige twee sleutels"
+          }
+        }
+      }
+    },
+    "security:recoveryWarnOne": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your passphrase and this recovery code are the "
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका पासफ़्रेज़ और यह रिकवरी कोड ही आपके एन्क्रिप्टेड फ़ील्ड की "
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je wachtwoordzin en deze herstelcode zijn de "
+          }
+        }
+      }
+    },
+    "security:recoveryWarnSupport": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not by our support team"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "न हमारी सपोर्ट टीम के लिए"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "niet door ons supportteam"
+          }
+        }
+      }
+    },
+    "security:recoveryWarnThree": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", that data is "
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", तो वह डेटा "
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", zijn die gegevens "
+          }
+        }
+      }
+    },
+    "security:recoveryWarnTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠︎ There is no other way back in"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠︎ अंदर लौटने का और कोई रास्ता नहीं है"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠︎ Er is geen andere weg terug"
+          }
+        }
+      }
+    },
+    "security:recoveryWarnTwo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " to your encrypted fields. If you "
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " हैं। अगर आप "
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " tot je versleutelde velden. Als je "
+          }
+        }
+      }
+    },
+    "security:recoveryWarnUnrecoverable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "permanently unrecoverable"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हमेशा के लिए अप्राप्य"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "permanent onherstelbaar"
+          }
+        }
+      }
+    },
+    "security:revoke": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revoke"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रद्द करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intrekken"
+          }
+        }
+      }
+    },
+    "security:scopeContent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "content"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कंटेंट"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inhoudelijke"
+          }
+        }
+      }
+    },
+    "security:scopeStructural": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "structural"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्ट्रक्चरल"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Structurele"
+          }
+        }
+      }
+    },
+    "security:setupBusy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setting up…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटअप हो रहा है…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezig met instellen…"
+          }
+        }
+      }
+    },
+    "security:setupCta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on encryption"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एन्क्रिप्शन चालू करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versleuteling inschakelen"
+          }
+        }
+      }
+    },
+    "security:setupFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup failed."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटअप विफल रहा।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instellen mislukt."
+          }
+        }
+      }
+    },
+    "security:setupMismatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passphrases don't match."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पासफ़्रेज़ मेल नहीं खाते।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wachtwoordzinnen komen niet overeen."
+          }
+        }
+      }
+    },
+    "security:setupNoteBold": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a passphrase you won't forget."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ऐसा पासफ़्रेज़ चुनें जिसे आप भूलें नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies een wachtwoordzin die je niet vergeet."
+          }
+        }
+      }
+    },
+    "security:setupNoteBoth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "both"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दोनों"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "allebei"
+          }
+        }
+      }
+    },
+    "security:setupNoteEnd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", your encrypted data can't be recovered by anyone, including support."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " खो दिए, तो आपका एन्क्रिप्टेड डेटा कोई भी वापस नहीं ला सकता, सपोर्ट भी नहीं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " kwijtraakt, kan niemand je versleutelde gegevens nog herstellen, ook support niet."
+          }
+        }
+      }
+    },
+    "security:setupNoteMid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " It never leaves your device, so we can't reset or recover it. You'll get a one-time recovery code as backup — if you lose "
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " यह आपके डिवाइस से कभी बाहर नहीं जाता, इसलिए हम इसे रीसेट या रिकवर नहीं कर सकते। बैकअप के रूप में आपको एक बार दिखने वाला रिकवरी कोड मिलेगा — अगर आपने "
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Die verlaat je apparaat nooit, dus we kunnen hem niet resetten of herstellen. Je krijgt eenmalig een herstelcode als reserve — als je "
+          }
+        }
+      }
+    },
+    "security:setupTooShort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use at least 8 characters."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कम से कम 8 अक्षर उपयोग करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gebruik minstens 8 tekens."
+          }
+        }
+      }
+    },
+    "security:supportBodyHours": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 hours"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 घंटे"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 uur"
+          }
+        }
+      }
+    },
+    "security:supportBodyOne": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lets our support team help you for "
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हमारी सपोर्ट टीम को "
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laat ons supportteam je "
+          }
+        }
+      }
+    },
+    "security:supportBodyTwo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", then it expires automatically. Structural access only checks for sync problems (no data is read). Content access lets support decrypt your fields to debug — every access is logged."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " तक आपकी मदद करने देता है, उसके बाद यह अपने आप समाप्त हो जाता है। स्ट्रक्चरल एक्सेस केवल सिंक की समस्याएँ जाँचता है (कोई डेटा नहीं पढ़ा जाता)। कंटेंट एक्सेस से सपोर्ट डिबग करने के लिए आपके फ़ील्ड डिक्रिप्ट कर सकता है — हर एक्सेस लॉग होता है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " helpen; daarna verloopt het automatisch. Structurele toegang controleert alleen op synchronisatieproblemen (er worden geen gegevens gelezen). Inhoudstoegang laat support je velden ontsleutelen om te debuggen — elke toegang wordt gelogd."
+          }
+        }
+      }
+    },
+    "security:supportNotConfigured": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support access is not configured for this deployment."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस परिनियोजन के लिए सपोर्ट एक्सेस कॉन्फ़िगर नहीं है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supporttoegang is niet geconfigureerd voor deze omgeving."
+          }
+        }
+      }
+    },
+    "security:supportTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grant temporary support access"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अस्थायी सपोर्ट एक्सेस दें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tijdelijke supporttoegang verlenen"
+          }
+        }
+      }
+    },
+    "security:title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security & encryption"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सुरक्षा और एन्क्रिप्शन"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beveiliging & versleuteling"
+          }
+        }
+      }
+    },
+    "security:unlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अनलॉक करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendelen"
+          }
+        }
+      }
+    },
+    "security:unlockBusy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlocking…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अनलॉक हो रहा है…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezig met ontgrendelen…"
+          }
+        }
+      }
+    },
+    "security:unlockedStatus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "● Unlocked — protected fields are readable on this device."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "● अनलॉक — इस डिवाइस पर सुरक्षित फ़ील्ड पढ़े जा सकते हैं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "● Ontgrendeld — beveiligde velden zijn leesbaar op dit apparaat."
+          }
+        }
+      }
+    },
+    "security:unlockForContent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock encryption first to share content access."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कंटेंट एक्सेस साझा करने के लिए पहले एन्क्रिप्शन अनलॉक करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel eerst de versleuteling om inhoudstoegang te delen."
+          }
+        }
+      }
+    },
+    "security:unlockIntro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encryption is on. Unlock to read and write protected fields on this device."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एन्क्रिप्शन चालू है। इस डिवाइस पर सुरक्षित फ़ील्ड पढ़ने और लिखने के लिए अनलॉक करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versleuteling staat aan. Ontgrendel om beveiligde velden op dit apparaat te lezen en te schrijven."
+          }
+        }
+      }
+    },
+    "security:unlockToAuthorize": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock encryption to authorize support access."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सपोर्ट एक्सेस अधिकृत करने के लिए एन्क्रिप्शन अनलॉक करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel de versleuteling om supporttoegang te autoriseren."
+          }
+        }
+      }
+    },
+    "security:usePassphrase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use passphrase"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पासफ़्रेज़ उपयोग करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wachtwoordzin gebruiken"
+          }
+        }
+      }
+    },
+    "security:useRecovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use recovery code"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रिकवरी कोड उपयोग करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herstelcode gebruiken"
+          }
+        }
+      }
+    },
+    "security:wrongPassphrase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wrong passphrase."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गलत पासफ़्रेज़।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onjuiste wachtwoordzin."
+          }
+        }
+      }
+    },
     "settings:account": {
       "extractionState": "manual",
       "localizations": {

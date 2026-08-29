@@ -395,6 +395,16 @@ class VectorRunnerTest {
         runDomain("splits-math")
     }
     @Test
+    fun security() {
+        // Security.kt -- the zero-trust envelope scheme. Unlike every other
+        // corpus here, this one was produced by RUNNING web's WebCrypto and
+        // capturing its output, because what has to be true is not "the port
+        // agrees with itself" but "the port opens a ciphertext a browser
+        // wrote". See SecurityVectors.kt.
+        com.sanvya.app.domain.security.registerSecurityVectors()
+        runDomain("security")
+    }
+    @Test
     fun `sync-policy`() {
         // P1.6a: registers SyncPolicy.kt's port before running
         // sync-policy.json's vectors.

@@ -36,6 +36,19 @@ interface SanvyaConfig {
     val authRedirectScheme: String
     val authRedirectHost: String
 
+    /**
+     * The SUPPORT public key (a JWK document), or null on a deployment that
+     * has no support keypair.
+     *
+     * Web reads the same value from `NEXT_PUBLIC_SUPPORT_PUBLIC_JWK` and, when
+     * it is absent, refuses a content grant with "Support access is not
+     * configured for this deployment." Nullable rather than required for
+     * exactly that reason: a build without it is a supported state, not a
+     * misconfiguration, so this is the one key that must NOT hard-fail the way
+     * the four above do.
+     */
+    val supportPublicJwk: String? get() = null
+
     /** The full redirect URI, assembled once so no caller concatenates it. */
     val authRedirectUri: String get() = "$authRedirectScheme://$authRedirectHost"
 }
@@ -47,6 +60,7 @@ internal object BuildConfigSanvyaConfig : SanvyaConfig {
     override val powerSyncUrl: String = BuildConfig.POWERSYNC_URL
     override val authRedirectScheme: String = BuildConfig.AUTH_REDIRECT_SCHEME
     override val authRedirectHost: String = BuildConfig.AUTH_REDIRECT_HOST
+    override val supportPublicJwk: String? = BuildConfig.SUPPORT_PUBLIC_JWK.takeIf { it.isNotBlank() }
 }
 
 /** Factory, so `:app`'s DI wiring never names the implementation. */

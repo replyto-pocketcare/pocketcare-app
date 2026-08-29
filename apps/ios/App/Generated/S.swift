@@ -1721,6 +1721,75 @@ public enum S {
         public static var typeTransfer: String { String(localized: "search:type.transfer", table: "Localizable") }
     }
 
+    public enum Security {
+        public static var allowDataAccess: String { String(localized: "security:allowDataAccess", table: "Localizable") }
+        public static var allowSyncCheck: String { String(localized: "security:allowSyncCheck", table: "Localizable") }
+        public static var alreadySetUp: String { String(localized: "security:alreadySetUp", table: "Localizable") }
+        public static var checking: String { String(localized: "security:checking", table: "Localizable") }
+        public static var codeCopied: String { String(localized: "security:codeCopied", table: "Localizable") }
+        public static var confirmPlaceholder: String { String(localized: "security:confirmPlaceholder", table: "Localizable") }
+        public static var copyCode: String { String(localized: "security:copyCode", table: "Localizable") }
+        public static func grantedUntil(scope: String, time: String) -> String {
+            String(format: String(localized: "security:grantedUntil", table: "Localizable"), scope, time)
+        }
+        public static func grantExpires(label: String, time: String) -> String {
+            String(format: String(localized: "security:grantExpires", table: "Localizable"), label, time)
+        }
+        public static var grantFailed: String { String(localized: "security:grantFailed", table: "Localizable") }
+        public static var grantRowContent: String { String(localized: "security:grantRowContent", table: "Localizable") }
+        public static var grantRowStructural: String { String(localized: "security:grantRowStructural", table: "Localizable") }
+        public static var intro: String { String(localized: "security:intro", table: "Localizable") }
+        public static var invalidRecovery: String { String(localized: "security:invalidRecovery", table: "Localizable") }
+        public static var lock: String { String(localized: "security:lock", table: "Localizable") }
+        public static var lockedNoteHint: String { String(localized: "security:lockedNoteHint", table: "Localizable") }
+        public static var noRecoveryKey: String { String(localized: "security:noRecoveryKey", table: "Localizable") }
+        public static var notSetUp: String { String(localized: "security:notSetUp", table: "Localizable") }
+        public static var notSignedIn: String { String(localized: "security:notSignedIn", table: "Localizable") }
+        public static var passphraseLabel: String { String(localized: "security:passphraseLabel", table: "Localizable") }
+        public static var passphrasePlaceholder: String { String(localized: "security:passphrasePlaceholder", table: "Localizable") }
+        public static var recoveryAck: String { String(localized: "security:recoveryAck", table: "Localizable") }
+        public static var recoveryCodeLabel: String { String(localized: "security:recoveryCodeLabel", table: "Localizable") }
+        public static var recoveryHint: String { String(localized: "security:recoveryHint", table: "Localizable") }
+        public static var recoveryTitle: String { String(localized: "security:recoveryTitle", table: "Localizable") }
+        public static var recoveryWarnFive: String { String(localized: "security:recoveryWarnFive", table: "Localizable") }
+        public static var recoveryWarnForget: String { String(localized: "security:recoveryWarnForget", table: "Localizable") }
+        public static var recoveryWarnFour: String { String(localized: "security:recoveryWarnFour", table: "Localizable") }
+        public static var recoveryWarnKeys: String { String(localized: "security:recoveryWarnKeys", table: "Localizable") }
+        public static var recoveryWarnOne: String { String(localized: "security:recoveryWarnOne", table: "Localizable") }
+        public static var recoveryWarnSupport: String { String(localized: "security:recoveryWarnSupport", table: "Localizable") }
+        public static var recoveryWarnThree: String { String(localized: "security:recoveryWarnThree", table: "Localizable") }
+        public static var recoveryWarnTitle: String { String(localized: "security:recoveryWarnTitle", table: "Localizable") }
+        public static var recoveryWarnTwo: String { String(localized: "security:recoveryWarnTwo", table: "Localizable") }
+        public static var recoveryWarnUnrecoverable: String { String(localized: "security:recoveryWarnUnrecoverable", table: "Localizable") }
+        public static var revoke: String { String(localized: "security:revoke", table: "Localizable") }
+        public static var scopeContent: String { String(localized: "security:scopeContent", table: "Localizable") }
+        public static var scopeStructural: String { String(localized: "security:scopeStructural", table: "Localizable") }
+        public static var setupBusy: String { String(localized: "security:setupBusy", table: "Localizable") }
+        public static var setupCta: String { String(localized: "security:setupCta", table: "Localizable") }
+        public static var setupFailed: String { String(localized: "security:setupFailed", table: "Localizable") }
+        public static var setupMismatch: String { String(localized: "security:setupMismatch", table: "Localizable") }
+        public static var setupNoteBold: String { String(localized: "security:setupNoteBold", table: "Localizable") }
+        public static var setupNoteBoth: String { String(localized: "security:setupNoteBoth", table: "Localizable") }
+        public static var setupNoteEnd: String { String(localized: "security:setupNoteEnd", table: "Localizable") }
+        public static var setupNoteMid: String { String(localized: "security:setupNoteMid", table: "Localizable") }
+        public static var setupTooShort: String { String(localized: "security:setupTooShort", table: "Localizable") }
+        public static var supportBodyHours: String { String(localized: "security:supportBodyHours", table: "Localizable") }
+        public static var supportBodyOne: String { String(localized: "security:supportBodyOne", table: "Localizable") }
+        public static var supportBodyTwo: String { String(localized: "security:supportBodyTwo", table: "Localizable") }
+        public static var supportNotConfigured: String { String(localized: "security:supportNotConfigured", table: "Localizable") }
+        public static var supportTitle: String { String(localized: "security:supportTitle", table: "Localizable") }
+        public static var title: String { String(localized: "security:title", table: "Localizable") }
+        public static var unlock: String { String(localized: "security:unlock", table: "Localizable") }
+        public static var unlockBusy: String { String(localized: "security:unlockBusy", table: "Localizable") }
+        public static var unlockedStatus: String { String(localized: "security:unlockedStatus", table: "Localizable") }
+        public static var unlockForContent: String { String(localized: "security:unlockForContent", table: "Localizable") }
+        public static var unlockIntro: String { String(localized: "security:unlockIntro", table: "Localizable") }
+        public static var unlockToAuthorize: String { String(localized: "security:unlockToAuthorize", table: "Localizable") }
+        public static var usePassphrase: String { String(localized: "security:usePassphrase", table: "Localizable") }
+        public static var useRecovery: String { String(localized: "security:useRecovery", table: "Localizable") }
+        public static var wrongPassphrase: String { String(localized: "security:wrongPassphrase", table: "Localizable") }
+    }
+
     public enum Settings {
         public static var account: String { String(localized: "settings:account", table: "Localizable") }
         public static var allSynced: String { String(localized: "settings:allSynced", table: "Localizable") }

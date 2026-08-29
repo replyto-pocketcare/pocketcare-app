@@ -41,6 +41,8 @@ class SettingsViewModel {
     @Injected(\.supabaseClient) private var client
     @ObservationIgnored
     @Injected(\.powerSyncDatabase) private var db
+    @ObservationIgnored
+    @Injected(\.securityRepository) private var securityRepo
 
     // Notifications (existing)
     var notifPrefs: NotificationPrefs?
@@ -277,6 +279,16 @@ class SettingsViewModel {
     func clearUsernameSaved() { usernameSaved = false }
 
     func signOut() {
+        // Drop the encryption keys BEFORE the session goes.
+        //
+        // SECURITY_ENCRYPTION_PLAN.md phase 3: "unlock at login, lock on
+        // sign-out". Web gets this for free -- its DEK is a module variable and
+        // the navigation that follows sign-out reloads the page. This app keeps
+        // the unlock in the Keychain so it survives termination, so leaving it
+        // behind would leave a signed-out account's DEK on a phone somebody
+        // else may now be holding. Ordered first deliberately: if sign-out
+        // throws, the keys are still gone.
+        securityRepo.lockSession()
         Task { try? await authRepo.signOut() }
     }
 
@@ -465,6 +477,9 @@ class SettingsViewModel {
                 } catch {
                     // best-effort local clear; sign-out proceeds regardless
                 }
+                // Same reasoning as signOut(): the account is gone, so its
+                // key material has no business outliving it on this device.
+                securityRepo.lockSession()
                 try await authRepo.signOut()
             } catch {
                 deleteError = error.localizedDescription

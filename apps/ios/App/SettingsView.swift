@@ -218,6 +218,16 @@ struct SettingsView: View {
                         }
                     }
 
+                    // MARK: Security & encryption
+                    //
+                    // Web renders <SecurityPanel /> here, between
+                    // NotificationPanel and the base-currency section, and the
+                    // order is the order: this section is about the same thing
+                    // the notification one is (what leaves this device), and
+                    // burying it below Diagnostics would hide the one control
+                    // that makes notes unreadable to us.
+                    SecurityPanelSection()
+
                     // MARK: Base currency
                     Section(header: Text(S.Settings.baseCurrency), footer: Text("Used as the default across new accounts and reports.")) {
                         ScrollView(.horizontal, showsIndicators: false) {

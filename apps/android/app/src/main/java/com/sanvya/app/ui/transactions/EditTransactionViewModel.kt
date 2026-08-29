@@ -10,6 +10,7 @@ import com.sanvya.app.data.repository.LabelRow
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.PaymentMethodRow
 import com.sanvya.app.data.repository.PrefsRepository
+import com.sanvya.app.data.repository.SecurityRepository
 import com.sanvya.app.data.repository.TransactionAudit
 import com.sanvya.app.data.repository.TransactionItemInput
 import com.sanvya.app.data.repository.TransactionSplit
@@ -44,6 +45,17 @@ data class EditTransactionUiState(
     val selectedLabels: List<String> = emptyList(),
     val paymentMethod: String = "",
     val note: String = "",
+    /**
+     * The stored note is an envelope this session cannot open, so the field is
+     * read-only.
+     *
+     * Web renders the raw `v1.…` into an editable input. Showing it is web
+     * parity and is kept; letting it be TYPED INTO is not parity, it is a
+     * data-loss bug -- one keystroke and the mangled string is saved back
+     * (it still starts with `v1.`, so `encryptForWrite` passes it through
+     * unchanged) and the note is gone with no error and no undo.
+     */
+    val noteLocked: Boolean = false,
     val intent: String? = null,
     val currency: String = FormOptions.DEFAULT_CURRENCY,
     val occurredAt: LocalDateTime = LocalDateTime.now(),
@@ -69,6 +81,7 @@ class EditTransactionViewModel(
     private val ledgerRepository: LedgerRepository by inject()
     private val authRepository: AuthRepository by inject()
     private val prefsRepository: PrefsRepository by inject()
+    private val securityRepository: SecurityRepository by inject()
 
     private val transactionId: String = checkNotNull(savedStateHandle["transactionId"]) { "EditTransactionViewModel needs a transactionId nav arg" }
 
@@ -183,7 +196,15 @@ class EditTransactionViewModel(
                         categoryId = txn.categoryId,
                         selectedLabels = labelNames,
                         paymentMethod = txn.paymentMethod ?: "",
-                        note = txn.note ?: "",
+                        // Web: `isEncrypted(rawNote) && getDek()` -> decrypt,
+                        // else show the stored value AS-IS. That "as-is" is
+                        // literal and is why a locked session shows `v1.…` in
+                        // this box rather than a mask -- `fields.ts` has a
+                        // masking helper and web's edit page does not call it.
+                        // Copied rather than improved: the phone and the
+                        // browser must not disagree about what a note says.
+                        note = securityRepository.decryptForRead(txn.note) ?: "",
+                        noteLocked = securityRepository.isLockedEnvelope(txn.note),
                         intent = txn.intent,
                         currency = txn.currency,
                         occurredAt = try {
@@ -234,7 +255,11 @@ class EditTransactionViewModel(
                     "type" to state.type,
                     "account_id" to state.accountId,
                     "payment_method" to state.paymentMethod.ifEmpty { null },
-                    "note" to state.note.trim().ifEmpty { null },
+                    // Web: `note: await encryptForWrite(note.trim() || null)`.
+                    // Re-encrypting on every save is deliberate -- it is what
+                    // migrates a note that was written while locked, or before
+                    // encryption was ever turned on.
+                    "note" to securityRepository.encryptForWrite(state.note.trim().ifEmpty { null }),
                     "occurred_at" to state.occurredAt.atZone(ZoneId.systemDefault()).toInstant().toString(),
                 )
                 if (state.type == "transfer") {

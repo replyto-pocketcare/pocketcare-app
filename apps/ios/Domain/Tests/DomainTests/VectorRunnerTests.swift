@@ -336,6 +336,15 @@ final class VectorRunnerTests: XCTestCase {
         registerSplitsMathVectors()
         try runDomain("splits-math")
     }
+    func testSecurity() throws {
+        // Security.swift -- the zero-trust envelope scheme. Unlike every other
+        // corpus here, this one was produced by RUNNING web's WebCrypto and
+        // capturing its output, because what has to be true is not "the port
+        // agrees with itself" but "the port opens a ciphertext a browser
+        // wrote". See SecurityVectors.swift.
+        registerSecurityVectors()
+        try runDomain("security")
+    }
     func testSyncPolicy() throws {
         // P1.6b: registers SyncPolicy.swift's port before running
         // sync-policy.json's vectors.

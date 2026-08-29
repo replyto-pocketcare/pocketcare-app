@@ -39,4 +39,18 @@ SANVYA_POWERSYNC_HOST = 6a464d1c68bc6e1f7cad8804.powersync.journeyapps.com
 SANVYA_AUTH_REDIRECT_SCHEME = com.sanvya.app
 SANVYA_AUTH_REDIRECT_HOST = auth-callback
 
+// The SUPPORT public key (a JWK document) that a "content" support grant
+// re-wraps the user's DEK for. Empty here on purpose: this repo has no support
+// keypair committed, and web is in the same state (its
+// NEXT_PUBLIC_SUPPORT_PUBLIC_JWK is a deployment env var, not a source value).
+// Empty means the Security panel refuses a data-access grant with "Support
+// access is not configured for this deployment." — web's own wording, from
+// web's own branch.
+//
+// Safe to paste a JWK here despite the comment warning at the top of this
+// file: base64url uses `-` and `_`, never `/`, so a JWK document contains no
+// `//` for xcconfig to read as a comment. Put the single-line public JWK
+// printed by scripts/gen-support-key.ts into Sanvya.local.xcconfig.
+SANVYA_SUPPORT_PUBLIC_JWK =
+
 #include? "Sanvya.local.xcconfig"

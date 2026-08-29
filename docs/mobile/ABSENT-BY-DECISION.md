@@ -183,3 +183,53 @@ goes.
 Recorded here rather than simply deleted from the register so that a later pass
 does not "discover the gap again" and helpfully port it back. Removing it from
 web is tracked as web item **R1** in `PARITY_AUDIT.md`.
+
+## Decision record: the unlock is PERSISTED on mobile, 2026-08-29
+
+**This one needs the product owner's sign-off. It is recorded here rather than
+buried in a doc comment because it changes the threat model the feature is sold
+on, and no code review will surface that.**
+
+### What web does
+
+The DEK lives in memory only. A page reload re-locks. `SECURITY_ENCRYPTION_PLAN.md`
+calls this "hybrid zero-trust", and on a browser the claim is close to honest:
+a tab is long-lived, closing it is deliberate, and re-entering a passphrase once
+a day is tolerable.
+
+### What both phones do
+
+The DEK is written to the platform secure store — Android Keystore-wrapped, iOS
+Keychain with `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` — and survives
+process death and reboot. `setUserAuthenticationRequired` is deliberately NOT
+set, so no biometric or device-credential prompt gates it.
+
+### Why
+
+A phone kills backgrounded processes silently and constantly. A memory-only DEK
+would demand a twenty-character passphrase several times a day, at
+unpredictable moments, to read a note the user wrote themselves. That is not a
+security control anybody keeps switched on; it is a feature people disable, and
+a disabled encryption feature protects nothing.
+
+### What it actually costs
+
+**Anyone holding the unlocked phone can read every encrypted note, indefinitely,
+and `Lock` is the only thing that revokes it.** On web, walking away from a
+closed laptop eventually re-locks. On mobile it never does. If the threat model
+includes "someone picks up the unlocked device", this deviation defeats the
+feature for that case.
+
+### The alternatives, if the answer is no
+
+1. **Require device authentication to unwrap** — `setUserAuthenticationRequired(true)`
+   on Android, `.userPresence` / `.biometryCurrentSet` on the Keychain item.
+   Keeps persistence, adds a Face ID / fingerprint prompt on first use after each
+   device unlock. This is the option I would pick if persistence has to be
+   defended.
+2. **A timed lock** — persist, but discard after N minutes of inactivity or on
+   backgrounding beyond a threshold. A middle ground with real code behind it.
+3. **Match web exactly** — memory-only, and accept the passphrase prompts.
+
+The code today implements neither 1 nor 2. Changing to either is a contained
+change in `SecureKeyStore` on both platforms.

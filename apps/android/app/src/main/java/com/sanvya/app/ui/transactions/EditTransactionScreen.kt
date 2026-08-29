@@ -231,6 +231,15 @@ fun EditTransactionScreen(
                 value = uiState.note,
                 onValueChange = viewModel::setNote,
                 label = { Text(S.Transactions.note(sRes())) },
+                // See EditTransactionUiState.noteLocked: an envelope this
+                // session cannot open is shown (web parity) but must not be
+                // editable, because editing it destroys the note silently.
+                readOnly = uiState.noteLocked,
+                supportingText = if (uiState.noteLocked) {
+                    { Text(S.Security.lockedNoteHint(sRes()), fontSize = 12.sp) }
+                } else {
+                    null
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
 
