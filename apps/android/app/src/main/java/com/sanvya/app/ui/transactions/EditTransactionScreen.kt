@@ -20,13 +20,14 @@ import com.sanvya.app.ui.accounts.ChipRow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.ui.components.SanvyaCard
+import com.sanvya.app.ui.components.SanvyaChip
 import com.sanvya.app.ui.components.SanvyaPage
 import com.sanvya.app.ui.formatMoneyUnmasked
 
 /**
  * Edit transaction — ported from transactions/[id]/edit/page.tsx per
- * docs/mobile/screen-specs/transactions.md. Edit-history and the split
- * SplitBanner are explicitly deferred (see spec's Scope section).
+ * docs/mobile/screen-specs/transactions.md. The edit-history sheet and the
+ * split-expense banner, deferred by the first port, are both here now.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +35,9 @@ fun EditTransactionScreen(
     onBack: () -> Unit = {},
     onSaved: () -> Unit = {},
     onDeleted: () -> Unit = {},
+    /** The group-detail route, opened from the split banner -- web's link out
+     * to /groups/[id] from the same card. */
+    onOpenGroup: (String) -> Unit = {},
     viewModel: EditTransactionViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -43,6 +47,11 @@ fun EditTransactionScreen(
     val relevantPaymentMethods by viewModel.relevantPaymentMethods.collectAsState()
     val labelOptions by viewModel.labels.collectAsState()
     val total by viewModel.total.collectAsState()
+    val categories by viewModel.categories.collectAsState()
+    val paymentMethods by viewModel.paymentMethods.collectAsState()
+    val split by viewModel.split.collectAsState()
+    val history by viewModel.history.collectAsState()
+    val myUserId by viewModel.myUserId.collectAsState()
     val colors = LocalSanvyaColors.current
 
     LaunchedEffect(uiState.saved) { if (uiState.saved) onSaved() }
@@ -51,7 +60,19 @@ fun EditTransactionScreen(
     SanvyaPage(
         title = S.Transactions.editTitle(sRes()),
         action = {
-
+            // Web hides this behind a kebab with exactly one item. A chip is
+            // the native equivalent and the convention this app already
+            // settled on (see GroupDetailScreen, where the same kebab became a
+            // chip row) -- a one-item overflow menu is a tap nobody needs.
+            // Hidden entirely when nothing has been recorded yet, matching
+            // web's `{audit.length > 0 && ...}`.
+            if (history.isNotEmpty()) {
+                SanvyaChip(
+                    label = S.Transactions.viewHistory(sRes()),
+                    active = false,
+                    onClick = { viewModel.setShowHistory(true) },
+                )
+            }
         },
     ) {
         if (!uiState.loaded) {
@@ -67,6 +88,8 @@ fun EditTransactionScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            SplitBanner(split = split, myUserId = myUserId, onOpenGroup = onOpenGroup)
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("expense", "income", "transfer").forEach { tp ->
                     FilterChip(
@@ -228,6 +251,16 @@ fun EditTransactionScreen(
                 }
             }
         }
+
+        EditHistorySheet(
+            open = uiState.showHistory,
+            onClose = { viewModel.setShowHistory(false) },
+            entries = history,
+            currency = uiState.currency,
+            categories = categories,
+            accounts = accounts,
+            paymentMethods = paymentMethods,
+        )
 
         if (uiState.confirmDelete) {
             AlertDialog(

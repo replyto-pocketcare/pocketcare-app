@@ -2761,6 +2761,203 @@
         }
       }
     },
+    "budgets:breakdownEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing has been counted against this budget yet in this period."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस अवधि में अभी तक इस बजट में कुछ भी नहीं गिना गया है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is in deze periode nog niets aan dit budget toegerekend."
+          }
+        }
+      }
+    },
+    "budgets:breakdownFallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expense"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खर्च"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uitgave"
+          }
+        }
+      }
+    },
+    "budgets:breakdownLoading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लोड हो रहा है…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laden…"
+          }
+        }
+      }
+    },
+    "budgets:breakdownMismatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This differs from the %1$@ on the card — the budget's scope changed while loading. Reopen to refresh."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह कार्ड पर दिखाए गए %1$@ से अलग है — लोड होते समय बजट का दायरा बदल गया। ताज़ा करने के लिए फिर से खोलें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit wijkt af van de %1$@ op de kaart — het bereik van het budget veranderde tijdens het laden. Open opnieuw om te verversen."
+          }
+        }
+      }
+    },
+    "budgets:breakdownSummary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld transaction · %2$@ spent"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld transactions · %2$@ spent"
+                }
+              }
+            }
+          }
+        },
+        "hi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld लेनदेन · %2$@ खर्च"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld लेनदेन · %2$@ खर्च"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld transactie · %2$@ uitgegeven"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld transacties · %2$@ uitgegeven"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "budgets:breakdownTitleAria": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — spending"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — खर्च"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — uitgaven"
+          }
+        }
+      }
+    },
+    "budgets:breakdownTotal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुल"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Totaal"
+          }
+        }
+      }
+    },
     "budgets:cancel": {
       "extractionState": "manual",
       "localizations": {
@@ -3428,6 +3625,52 @@
         }
       }
     },
+    "budgets:spendChartAria": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumulative spending against the limit"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सीमा के मुकाबले संचयी खर्च"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumulatieve uitgaven ten opzichte van de limiet"
+          }
+        }
+      }
+    },
+    "budgets:spendChartLimit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सीमा %1$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limiet %1$@"
+          }
+        }
+      }
+    },
     "budgets:spent": {
       "extractionState": "manual",
       "localizations": {
@@ -3493,6 +3736,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Budgetten"
+          }
+        }
+      }
+    },
+    "budgets:viewSpentAria": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View the transactions behind this figure"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस राशि के पीछे के लेनदेन देखें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekijk de transacties achter dit bedrag"
           }
         }
       }
@@ -10465,6 +10731,29 @@
         }
       }
     },
+    "goals:achieved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal achieved"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लक्ष्य पूरा हुआ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doel bereikt"
+          }
+        }
+      }
+    },
     "goals:add": {
       "extractionState": "manual",
       "localizations": {
@@ -10645,6 +10934,213 @@
           "stringUnit": {
             "state": "translated",
             "value": "Annuleren"
+          }
+        }
+      }
+    },
+    "goals:celebrationAria": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal achieved: %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लक्ष्य पूरा हुआ: %1$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doel bereikt: %1$@"
+          }
+        }
+      }
+    },
+    "goals:celebrationBody": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You fully funded it. Nicely done."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपने इसे पूरी तरह फंड कर दिया। शाबाश।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hebt het volledig gefinancierd. Netjes gedaan."
+          }
+        }
+      }
+    },
+    "goals:celebrationHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap anywhere to continue"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जारी रखने के लिए कहीं भी टैप करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tik ergens om door te gaan"
+          }
+        }
+      }
+    },
+    "goals:celebrationHintDrag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag the cake to spin it · tap outside to close"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "केक घुमाने के लिए खींचें · बंद करने के लिए बाहर टैप करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep de taart om te draaien · tik buiten om te sluiten"
+          }
+        }
+      }
+    },
+    "goals:celebrationName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 🎉"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 🎉"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 🎉"
+          }
+        }
+      }
+    },
+    "goals:celebrationTileFunded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funded"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फंडेड"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gefinancierd"
+          }
+        }
+      }
+    },
+    "goals:celebrationTilePct": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100%"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100%"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100%"
+          }
+        }
+      }
+    },
+    "goals:celebrationTileTag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GOAL"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लक्ष्य"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DOEL"
+          }
+        }
+      }
+    },
+    "goals:createFirst": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create your first goal"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपना पहला लक्ष्य बनाएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak je eerste doel"
           }
         }
       }
@@ -13359,6 +13855,29 @@
         }
       }
     },
+    "investments:allExchanges": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All exchanges"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सभी एक्सचेंज"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle beurzen"
+          }
+        }
+      }
+    },
     "investments:allInvestments": {
       "extractionState": "manual",
       "localizations": {
@@ -13401,6 +13920,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verdeling"
+          }
+        }
+      }
+    },
+    "investments:allocationEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add investments to see your allocation"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपना आवंटन देखने के लिए निवेश जोड़ें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voeg beleggingen toe om je verdeling te zien"
+          }
+        }
+      }
+    },
+    "investments:allTime": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All-time"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अब तक कुल"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sinds het begin"
           }
         }
       }
@@ -13474,6 +14039,167 @@
         }
       }
     },
+    "investments:assetClass.crypto": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crypto"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "क्रिप्टो"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crypto"
+          }
+        }
+      }
+    },
+    "investments:assetClass.fd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixed deposit"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सावधि जमा"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deposito"
+          }
+        }
+      }
+    },
+    "investments:assetClass.mf": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mutual fund"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "म्यूचुअल फंड"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beleggingsfonds"
+          }
+        }
+      }
+    },
+    "investments:assetClass.other": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other scheme"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अन्य योजना"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere regeling"
+          }
+        }
+      }
+    },
+    "investments:assetClass.sip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIP"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एसआईपी"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIP"
+          }
+        }
+      }
+    },
+    "investments:assetClass.stock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stock"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शेयर"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aandeel"
+          }
+        }
+      }
+    },
+    "investments:assumedGrowth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assumed annual growth"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मानी गई वार्षिक वृद्धि"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aangenomen jaarlijkse groei"
+          }
+        }
+      }
+    },
     "investments:avgCost": {
       "extractionState": "manual",
       "localizations": {
@@ -13539,6 +14265,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Annuleren"
+          }
+        }
+      }
+    },
+    "investments:catalogSeedNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is our built-in list of widely held stocks and ETFs. Can't find yours? Choose “Not listed” and type its name."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह व्यापक रूप से धारित शेयरों और ईटीएफ की हमारी अंतर्निहित सूची है। आपका नहीं मिला? “सूचीबद्ध नहीं” चुनें और उसका नाम लिखें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit is onze ingebouwde lijst met veelgehouden aandelen en ETF's. Staat die van jou er niet bij? Kies “Niet genoteerd” en typ de naam."
           }
         }
       }
@@ -13681,6 +14430,52 @@
         }
       }
     },
+    "investments:dividendFootnote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimated from your current share counts × declared dividend history. Amber bars are upcoming (scheduled ex-dates)."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी मौजूदा शेयर संख्या × घोषित लाभांश इतिहास से अनुमानित। अंबर रंग की पट्टियाँ आगामी (निर्धारित एक्स-तिथि) हैं।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschat op basis van je huidige aantallen × de aangekondigde dividendhistorie. Amberkleurige staven zijn nog komend (geplande ex-datums)."
+          }
+        }
+      }
+    },
+    "investments:dividendIncome": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dividend income"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लाभांश आय"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dividendinkomsten"
+          }
+        }
+      }
+    },
     "investments:dividendsEarned": {
       "extractionState": "manual",
       "localizations": {
@@ -13723,6 +14518,121 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geschat op basis van aangehouden aantallen × aangekondigd dividend dit boekjaar (apr–mrt)."
+          }
+        }
+      }
+    },
+    "investments:divPeriod.all": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सभी"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles"
+          }
+        }
+      }
+    },
+    "investments:divPeriod.month": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Month"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "माह"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maand"
+          }
+        }
+      }
+    },
+    "investments:divPeriod.quarter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quarter"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "तिमाही"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kwartaal"
+          }
+        }
+      }
+    },
+    "investments:divPeriod.week": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Week"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सप्ताह"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Week"
+          }
+        }
+      }
+    },
+    "investments:divPeriod.year": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Year"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वर्ष"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jaar"
           }
         }
       }
@@ -13773,6 +14683,282 @@
         }
       }
     },
+    "investments:errAddFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't add the investment. Nothing was saved."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "निवेश नहीं जोड़ा जा सका। कुछ भी सहेजा नहीं गया।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De belegging kon niet worden toegevoegd. Er is niets opgeslagen."
+          }
+        }
+      }
+    },
+    "investments:errFundingAccount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an account to fund this from."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इसके लिए धन देने वाला खाता चुनें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies een rekening om dit vanaf te financieren."
+          }
+        }
+      }
+    },
+    "investments:errHoldingNotFound": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That investment is no longer here."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह निवेश अब यहाँ नहीं है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die belegging bestaat hier niet meer."
+          }
+        }
+      }
+    },
+    "investments:errInstrument": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick an instrument from the list."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सूची से एक साधन चुनें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies een instrument uit de lijst."
+          }
+        }
+      }
+    },
+    "investments:errInvalidQuantity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid quantity."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक मान्य मात्रा दर्ज करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voer een geldig aantal in."
+          }
+        }
+      }
+    },
+    "investments:errName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a name."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक नाम दर्ज करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voer een naam in."
+          }
+        }
+      }
+    },
+    "investments:errNoUser": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't work out who is signed in. Try again."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पता नहीं चला कि कौन साइन इन है। फिर से प्रयास करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kon niet vaststellen wie is ingelogd. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "investments:errQuantity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a quantity greater than 0."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0 से अधिक मात्रा दर्ज करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voer een aantal groter dan 0 in."
+          }
+        }
+      }
+    },
+    "investments:errSaveFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save your changes."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपके बदलाव सहेजे नहीं जा सके।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je wijzigingen konden niet worden opgeslagen."
+          }
+        }
+      }
+    },
+    "investments:errSipAmount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the amount to invest each time."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हर बार निवेश की जाने वाली राशि दर्ज करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voer het bedrag in dat je elke keer inlegt."
+          }
+        }
+      }
+    },
+    "investments:errSipSource": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the account each instalment is debited from."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वह खाता चुनें जिससे हर किस्त डेबिट होगी।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies de rekening waarvan elke termijn wordt afgeschreven."
+          }
+        }
+      }
+    },
+    "investments:exchangeLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exchange"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक्सचेंज"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beurs"
+          }
+        }
+      }
+    },
     "investments:existingNote": {
       "extractionState": "manual",
       "localizations": {
@@ -13796,6 +14982,29 @@
         }
       }
     },
+    "investments:fyLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FY %1$@–%2$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वित्त वर्ष %1$@–%2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boekjaar %1$@–%2$@"
+          }
+        }
+      }
+    },
     "investments:gainLossByGroup": {
       "extractionState": "manual",
       "localizations": {
@@ -13815,6 +15024,236 @@
           "stringUnit": {
             "state": "translated",
             "value": "Winst / verlies per groep"
+          }
+        }
+      }
+    },
+    "investments:gainsEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No gains to show yet"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी दिखाने के लिए कोई लाभ नहीं"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen winst om te tonen"
+          }
+        }
+      }
+    },
+    "investments:groupTitle.crypto": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crypto"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "क्रिप्टो"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crypto"
+          }
+        }
+      }
+    },
+    "investments:groupTitle.fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Investments"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "निवेश"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beleggingen"
+          }
+        }
+      }
+    },
+    "investments:groupTitle.fd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixed Deposits"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सावधि जमा"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deposito's"
+          }
+        }
+      }
+    },
+    "investments:groupTitle.mf": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mutual Funds"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "म्यूचुअल फंड"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beleggingsfondsen"
+          }
+        }
+      }
+    },
+    "investments:groupTitle.other": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other Schemes"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अन्य योजनाएँ"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere regelingen"
+          }
+        }
+      }
+    },
+    "investments:groupTitle.sip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIPs"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एसआईपी"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIP's"
+          }
+        }
+      }
+    },
+    "investments:groupTitle.stock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stocks"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शेयर"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aandelen"
+          }
+        }
+      }
+    },
+    "investments:groupTitle.stocksOther": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stocks (other)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शेयर (अन्य)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aandelen (overig)"
+          }
+        }
+      }
+    },
+    "investments:growthPlusDividends": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Growth + dividends"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वृद्धि + लाभांश"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groei + dividend"
           }
         }
       }
@@ -13878,6 +15317,29 @@
         }
       }
     },
+    "investments:horizon": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizon"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अवधि"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizon"
+          }
+        }
+      }
+    },
     "investments:inOurList": {
       "extractionState": "manual",
       "localizations": {
@@ -13920,6 +15382,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inzichten"
+          }
+        }
+      }
+    },
+    "investments:instrumentSearch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search a stock or ETF"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शेयर या ईटीएफ खोजें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek een aandeel of ETF"
+          }
+        }
+      }
+    },
+    "investments:instrumentSource": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instrument"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साधन"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instrument"
           }
         }
       }
@@ -14016,6 +15524,52 @@
         }
       }
     },
+    "investments:inYears": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in %1$@ years"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ वर्षों में"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "over %1$@ jaar"
+          }
+        }
+      }
+    },
+    "investments:last12Months": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 12 months"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछले 12 महीने"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laatste 12 maanden"
+          }
+        }
+      }
+    },
     "investments:ltpLabel": {
       "extractionState": "manual",
       "localizations": {
@@ -14081,6 +15635,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vervaldatum"
+          }
+        }
+      }
+    },
+    "investments:monthlyContribution": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly contribution (%1$@)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मासिक योगदान (%1$@)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maandelijkse inleg (%1$@)"
           }
         }
       }
@@ -14200,6 +15777,29 @@
         }
       }
     },
+    "investments:next12Months": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next 12 months (est.)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अगले 12 महीने (अनुमानित)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Komende 12 maanden (schatting)"
+          }
+        }
+      }
+    },
     "investments:nextSipDate": {
       "extractionState": "manual",
       "localizations": {
@@ -14223,6 +15823,29 @@
         }
       }
     },
+    "investments:noDividendData": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No dividend data yet. Once the daily market sync fetches dividend history for your holdings, income by period will appear here."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी कोई लाभांश डेटा नहीं। जब दैनिक बाज़ार सिंक आपकी होल्डिंग्स का लाभांश इतिहास लाएगा, तब अवधि अनुसार आय यहाँ दिखेगी।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen dividendgegevens. Zodra de dagelijkse marktsync de dividendhistorie van je posities ophaalt, verschijnen de inkomsten per periode hier."
+          }
+        }
+      }
+    },
     "investments:noFundAccount": {
       "extractionState": "manual",
       "localizations": {
@@ -14242,6 +15865,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geen spaar-/bankrekening om vanaf te financieren — voeg er eerst een toe, of volg het als bestaand."
+          }
+        }
+      }
+    },
+    "investments:noInstrumentMatches": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matches. Type a ticker or company name."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोई मेल नहीं। टिकर या कंपनी का नाम लिखें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen resultaten. Typ een ticker of bedrijfsnaam."
           }
         }
       }
@@ -14407,6 +16053,75 @@
         }
       }
     },
+    "investments:projectedValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projected value"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अनुमानित मूल्य"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwachte waarde"
+          }
+        }
+      }
+    },
+    "investments:projectedWealth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projected wealth"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अनुमानित संपत्ति"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwacht vermogen"
+          }
+        }
+      }
+    },
+    "investments:projectionFootnote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A projection using your assumptions, not a forecast or advice. Growth is hypothetical; actual returns vary and can be negative."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह आपकी मान्यताओं पर आधारित अनुमान है, न कि पूर्वानुमान या सलाह। वृद्धि काल्पनिक है; वास्तविक रिटर्न अलग हो सकता है और ऋणात्मक भी।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een projectie op basis van jouw aannames, geen voorspelling of advies. De groei is hypothetisch; werkelijke rendementen variëren en kunnen negatief zijn."
+          }
+        }
+      }
+    },
     "investments:qty": {
       "extractionState": "manual",
       "localizations": {
@@ -14449,6 +16164,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aantal"
+          }
+        }
+      }
+    },
+    "investments:reinvestDividends": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinvest dividends"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लाभांश पुनर्निवेश करें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dividend herbeleggen"
+          }
+        }
+      }
+    },
+    "investments:reinvestYield": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~%1$@%% yield"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~%1$@%% प्रतिफल"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~%1$@%% rendement"
           }
         }
       }
@@ -14591,6 +16352,52 @@
         }
       }
     },
+    "investments:sipDebitDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debit day"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डेबिट दिन"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afschrijfdag"
+          }
+        }
+      }
+    },
+    "investments:sipDebitDayHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1–28"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1–28"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1–28"
+          }
+        }
+      }
+    },
     "investments:sipFreq.monthly": {
       "extractionState": "manual",
       "localizations": {
@@ -14660,6 +16467,29 @@
         }
       }
     },
+    "investments:sipFrequency": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frequency"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आवृत्ति"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frequentie"
+          }
+        }
+      }
+    },
     "investments:sipLine": {
       "extractionState": "manual",
       "localizations": {
@@ -14702,6 +16532,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Op elke SIP-datum leggen we een overboeking van %1$@ van die rekening naar %2$@ vast — het verschijnt ook onder Terugkerend & Geplande cashflow."
+          }
+        }
+      }
+    },
+    "investments:sipStartDate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start date"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रारंभ तिथि"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startdatum"
+          }
+        }
+      }
+    },
+    "investments:startTypingInstrument": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start typing a ticker or company name."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टिकर या कंपनी का नाम लिखना शुरू करें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begin met typen: een ticker of bedrijfsnaam."
           }
         }
       }
@@ -14936,6 +16812,75 @@
         }
       }
     },
+    "investments:unitWord.coins": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "coins"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सिक्के"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "munten"
+          }
+        }
+      }
+    },
+    "investments:unitWord.shares": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "shares"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शेयर"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aandelen"
+          }
+        }
+      }
+    },
+    "investments:unitWord.units": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "units"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यूनिट"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "eenheden"
+          }
+        }
+      }
+    },
     "investments:untracked": {
       "extractionState": "manual",
       "localizations": {
@@ -14978,6 +16923,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "waarde"
+          }
+        }
+      }
+    },
+    "investments:youPutIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You put in"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपने लगाया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zelf ingelegd"
           }
         }
       }
@@ -31948,6 +33916,52 @@
         }
       }
     },
+    "transactions:auditAction.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हटाया गया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderd"
+          }
+        }
+      }
+    },
+    "transactions:auditAction.update": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updated"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपडेट किया गया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bijgewerkt"
+          }
+        }
+      }
+    },
     "transactions:autoCategorised": {
       "extractionState": "manual",
       "localizations": {
@@ -33577,6 +35591,259 @@
           "stringUnit": {
             "state": "translated",
             "value": "Iemand"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.footnote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is your private ledger entry for the split. To change the split itself, open the group."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह इस साझा खर्च के लिए आपकी निजी बही की प्रविष्टि है। बँटवारा बदलने के लिए समूह खोलें।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit is jouw persoonlijke boekingsregel voor deze gedeelde uitgave. Open de groep om de verdeling zelf te wijzigen."
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.openGroup": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open group"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "समूह खोलें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groep openen"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.openNamed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ खोलें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ openen"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.owedToYou": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owed to you"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपको मिलने हैं"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aan jou verschuldigd"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.participantLine": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "share %1$@ · paid %2$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हिस्सा %1$@ · चुकाया %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aandeel %1$@ · betaald %2$@"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.participants": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participants"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रतिभागी"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deelnemers"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Split expense"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साझा खर्च"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gedeelde uitgave"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.totalBill": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total bill"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुल बिल"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Totaalbedrag"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.youOwe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You owe"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप पर बकाया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jij bent verschuldigd"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.youPaid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You paid"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपने चुकाया"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jij betaalde"
+          }
+        }
+      }
+    },
+    "transactions:splitBanner.yourShare": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your share"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका हिस्सा"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jouw aandeel"
           }
         }
       }

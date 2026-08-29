@@ -116,5 +116,22 @@
   "paidForSomeone": "Ik heb dit voor iemand anders betaald",
   "paidForSomeoneHint": "Het hele bedrag moeten zij terugbetalen — het telt niet als jouw uitgave.",
   "paidForSomeoneNoOne": "Je hebt eerst iemand nodig — voeg een persoon toe via Gedeeld & openstaand.",
-  "paidForSomeonePick": "Voor wie was het?"
+  "paidForSomeonePick": "Voor wie was het?",
+  "auditAction": {
+    "update": "Bijgewerkt",
+    "delete": "Verwijderd"
+  },
+  "splitBanner": {
+    "title": "Gedeelde uitgave",
+    "openGroup": "Groep openen",
+    "openNamed": "{{name}} openen",
+    "totalBill": "Totaalbedrag",
+    "yourShare": "Jouw aandeel",
+    "youPaid": "Jij betaalde",
+    "owedToYou": "Aan jou verschuldigd",
+    "youOwe": "Jij bent verschuldigd",
+    "participants": "Deelnemers",
+    "participantLine": "aandeel {{share}} · betaald {{paid}}",
+    "footnote": "Dit is jouw persoonlijke boekingsregel voor deze gedeelde uitgave. Open de groep om de verdeling zelf te wijzigen."
+  }
 }

@@ -65,6 +65,23 @@ public final class GoalsViewModel {
 
     public var goals: [GoalUiModel] = []
     public var savingsAccounts: [SavingsAccountOption] = []
+
+    /**
+     The NAME of a goal that just crossed into fully funded, or nil.
+
+     A name rather than a formatted sentence: the celebration's words are
+     `S.Goals.*` and belong in the view, next to the rest of them.
+     */
+    public var celebrating: String?
+
+    /**
+     The last funded state seen per goal, seeded (not fired) on first sight —
+     web's `prevFunded` ref, one per card. Held here rather than per row because
+     a SwiftUI row struct is recreated on every render and a `@State` inside one
+     would re-seed itself, which is a celebration that never fires.
+     */
+    @ObservationIgnored
+    private var fundedSeen: [String: Bool] = [:]
     public var hasEmergencyFund: Bool { goals.contains(where: \.isEmergencyFund) }
 
     private var goalsTask: Task<Void, Never>?
@@ -142,11 +159,23 @@ public final class GoalsViewModel {
         let ef = dbGoals.first(where: \.isEmergencyFund)
         let efFunded = ef.map { saved($0.id) >= $0.targetAmount } ?? true
 
+        // The celebration decision runs over the WHOLE list in one pass,
+        // reading and rewriting the persisted set once. Doing it per row would
+        // read stale state for every goal after the first in a batch where two
+        // crossed at the same moment.
+        var celebrated = GoalCelebrationStore.celebrated()
+        let before = celebrated
+        var justReached: String?
+
         goals = dbGoals.map { g in
             let savedAmount = saved(g.id)
             let pct = g.targetAmount > 0 ? min(1.0, Double(savedAmount) / Double(g.targetAmount)) : 0
             let funded = g.targetAmount > 0 && savedAmount >= g.targetAmount
             let remaining = max(0, g.targetAmount - savedAmount)
+            let decision = goalCelebration(goalId: g.id, wasFunded: fundedSeen[g.id], funded: funded, celebrated: celebrated)
+            fundedSeen[g.id] = funded
+            celebrated = decision.celebrated
+            if decision.celebrate { justReached = g.name }
             return GoalUiModel(
                 id: g.id,
                 name: g.name,
@@ -163,6 +192,21 @@ public final class GoalsViewModel {
                 alertTimeLocal: utcToLocalTime(g.alertTimeUtc)
             )
         }
+
+        if celebrated != before { GoalCelebrationStore.save(celebrated) }
+        // Only ever RAISED here. A celebration already on screen is not
+        // replaced by a second goal crossing behind it -- dismissing the first
+        // is what lets the next one through, and the persisted set means the
+        // one that lost the race is not lost, it simply never fires. Web has
+        // the same single-slot behaviour (`celebrate` is one string of state
+        // on the page).
+        if let justReached { celebrating = justReached }
+    }
+
+    /// Closes the celebration overlay. The goal stays in the persisted set, so
+    /// it is not shown again unless the goal drops below its target.
+    public func dismissCelebration() {
+        celebrating = nil
     }
 
     /// Matches web's addGoal(): validation, priority = current goal count.

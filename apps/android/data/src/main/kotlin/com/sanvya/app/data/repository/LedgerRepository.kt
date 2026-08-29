@@ -149,6 +149,40 @@ data class TransactionAudit(
     val createdAt: String,
 )
 
+/** One person on a split expense, as the edit screen's split banner shows them. */
+data class SplitParticipant(
+    val userId: String,
+    /** Null when no profile row is visible -- the VIEW supplies the fallback name. */
+    val name: String?,
+    val paidAmount: Long,
+    val shareAmount: Long,
+)
+
+/** The split expense one ledger row belongs to -- web's `SplitBanner` data. */
+data class TransactionSplit(
+    val expenseId: String,
+    val groupId: String?,
+    val groupName: String?,
+    val currency: String,
+    /** The whole bill, in minor units -- not this leg of it. */
+    val total: Long,
+    val participants: List<SplitParticipant>,
+)
+
+/** One joined row from watchSplitForTransaction's query, before folding. */
+private data class SplitBannerRow(
+    val expenseId: String,
+    val groupId: String?,
+    val groupName: String?,
+    val currency: String,
+    val total: Long,
+    val participantId: String?,
+    val displayName: String?,
+    val email: String?,
+    val paidAmount: Long,
+    val shareAmount: Long,
+)
+
 data class AccountWithBalance(val account: Account, val balance: Money)
 
 data class NetWorth(val total: Money, val available: Money, val base: String)
@@ -221,6 +255,51 @@ private fun itemMapper(cursor: com.powersync.db.SqlCursor): TransactionItem = Tr
     description = cursor.getString("description"),
     amount = cursor.getLong("amount"),
 )
+
+private fun splitBannerRowMapper(cursor: com.powersync.db.SqlCursor): SplitBannerRow = SplitBannerRow(
+    expenseId = cursor.getString("expense_id"),
+    groupId = cursor.getStringOptional("group_id"),
+    groupName = cursor.getStringOptional("group_name"),
+    currency = cursor.getString("currency"),
+    total = cursor.getLongOptional("total") ?: 0L,
+    // Nullable: the LEFT JOIN keeps the expense header even when it has no
+    // participant rows yet, and the banner still has a total to show.
+    participantId = cursor.getStringOptional("participant_id"),
+    displayName = cursor.getStringOptional("display_name"),
+    email = cursor.getStringOptional("email"),
+    paidAmount = cursor.getLongOptional("paid_amount") ?: 0L,
+    shareAmount = cursor.getLongOptional("share_amount") ?: 0L,
+)
+
+/**
+ * The joined rows collapsed back into one expense with its participants.
+ *
+ * The header columns repeat on every row (one statement, one expense), so the
+ * first row carries them.
+ */
+private fun foldSplitBannerRows(rows: List<SplitBannerRow>): TransactionSplit? {
+    val head = rows.firstOrNull() ?: return null
+    return TransactionSplit(
+        expenseId = head.expenseId,
+        groupId = head.groupId,
+        groupName = head.groupName,
+        currency = head.currency,
+        total = head.total,
+        participants = rows.mapNotNull { row ->
+            val id = row.participantId ?: return@mapNotNull null
+            SplitParticipant(
+                userId = id,
+                // Web's `useUserProfiles`: display name, else the email
+                // local-part, else nothing -- and "nothing" stays null here so
+                // the view can translate it.
+                name = row.displayName?.takeIf { it.isNotEmpty() }
+                    ?: row.email?.takeIf { it.isNotEmpty() }?.substringBefore("@"),
+                paidAmount = row.paidAmount,
+                shareAmount = row.shareAmount,
+            )
+        },
+    )
+}
 
 private fun auditMapper(cursor: com.powersync.db.SqlCursor): TransactionAudit = TransactionAudit(
     id = cursor.getString("id"),
@@ -558,6 +637,61 @@ class LedgerRepository(private val db: PowerSyncDatabase) {
                 groupId = cursor.getStringOptional("gid"),
             )
         },
+    )
+
+    /**
+     * The split expense this ledger row belongs to, if any -- the data behind
+     * web's `SplitBanner` on transactions/[id]/edit/page.tsx.
+     *
+     * Web runs five `useQuery` hooks side by side (posting, expense, group,
+     * participants, profiles) and joins them in the component. One statement
+     * does the same joins in SQLite and re-emits when ANY of those tables
+     * changes, which is what PowerSync's `watch` already gives us -- five
+     * separate flows would only have to be recombined by hand.
+     *
+     * Returns every participant, not just the viewer: the caller knows which id
+     * is "me" and the banner shows the whole breakdown. Emits null when this
+     * transaction is an ordinary row, which is the banner's "render nothing".
+     *
+     * The profile join is web's `useUserProfiles` union -- `public_profiles`
+     * for co-members you can see, `profiles` for yourself. `display_name` wins,
+     * the email local-part is the fallback, and a participant with NEITHER
+     * comes back with a null name so the VIEW can name them in the user's
+     * language instead of this layer hardcoding "Someone".
+     */
+    fun watchSplitForTransaction(transactionId: String): Flow<TransactionSplit?> = db.watch(
+        """
+        SELECT e.id AS expense_id, e.group_id AS group_id, e.amount AS total,
+               e.currency AS currency, g.name AS group_name,
+               p.user_id AS participant_id, p.paid_amount AS paid_amount,
+               p.share_amount AS share_amount,
+               COALESCE(pub.display_name, own.display_name) AS display_name,
+               COALESCE(pub.email, own.email) AS email
+          FROM expense_postings po
+          JOIN expenses e ON e.id = po.expense_id AND e.deleted_at IS NULL
+          LEFT JOIN split_groups g ON g.id = e.group_id
+          LEFT JOIN expense_participants p ON p.expense_id = e.id AND p.deleted_at IS NULL
+          LEFT JOIN public_profiles pub ON pub.id = p.user_id
+          LEFT JOIN profiles own ON own.id = p.user_id
+         WHERE po.transaction_id = ? AND po.expense_id IS NOT NULL AND po.deleted_at IS NULL
+         ORDER BY p.created_at
+        """.trimIndent(),
+        parameters = listOf(transactionId),
+        mapper = ::splitBannerRowMapper,
+    ).map { rows -> foldSplitBannerRows(rows) }
+
+    /**
+     * Every audit record for one transaction, newest first (reactive).
+     *
+     * The one-shot [history] below matches the real repository's method exactly
+     * and is kept for anything that wants a snapshot; the edit screen's history
+     * sheet wants what web's `useQuery` gives it -- a list that grows when this
+     * transaction is saved again while the sheet is open.
+     */
+    fun watchHistory(transactionId: String): Flow<List<TransactionAudit>> = db.watch(
+        "SELECT id, transaction_id, action, changes, created_at FROM transaction_audit WHERE transaction_id = ? ORDER BY created_at DESC",
+        parameters = listOf(transactionId),
+        mapper = ::auditMapper,
     )
 
     /**

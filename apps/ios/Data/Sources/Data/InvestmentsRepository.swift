@@ -76,6 +76,32 @@ public enum HoldingFunding: Sendable {
     case new(sourceAccountId: String)
 }
 
+/// A SIP the user is setting up alongside the holding -- web's
+/// `AddHoldingInput.sip`, mirroring Android's `SipSetup`.
+///
+/// `firstDue` is the date the recurring engine posts the first instalment and
+/// `startDate` is when the plan began; web sends the same value for both from
+/// one date field, and they are kept separate here because the COLUMNS are
+/// separate (`recurring_items.next_due` moves every time the engine posts,
+/// `holdings.sip_start_date` never does).
+///
+/// `day` is the day-of-month, already clamped to 1-28 by Domain's
+/// `clampSipDay` -- the repository does not re-clamp, so there is exactly one
+/// place the rule lives.
+public struct SipSetup: Sendable {
+    public let amount: Int64
+    public let frequency: String
+    public let firstDue: String
+    public let sourceAccountId: String
+    public let startDate: String
+    public let day: Int
+
+    public init(amount: Int64, frequency: String, firstDue: String, sourceAccountId: String, startDate: String, day: Int) {
+        self.amount = amount; self.frequency = frequency; self.firstDue = firstDue
+        self.sourceAccountId = sourceAccountId; self.startDate = startDate; self.day = day
+    }
+}
+
 public struct AddHoldingInput: Sendable {
     public let investmentAccountId: String
     public let assetClass: String
@@ -91,12 +117,15 @@ public struct AddHoldingInput: Sendable {
     public let offList: Bool
     public let autoFetch: Bool
     public let funding: HoldingFunding
+    /// Present only when the user is starting a SIP. See `SipSetup`.
+    public let sip: SipSetup?
 
-    public init(investmentAccountId: String, assetClass: String, symbol: String, exchange: String?, name: String, quantity: Double, avgCost: Int64?, currency: String, currentValue: Int64?, annualRate: Double?, maturityDate: String?, offList: Bool, autoFetch: Bool, funding: HoldingFunding) {
+    public init(investmentAccountId: String, assetClass: String, symbol: String, exchange: String?, name: String, quantity: Double, avgCost: Int64?, currency: String, currentValue: Int64?, annualRate: Double?, maturityDate: String?, offList: Bool, autoFetch: Bool, funding: HoldingFunding, sip: SipSetup? = nil) {
         self.investmentAccountId = investmentAccountId; self.assetClass = assetClass; self.symbol = symbol
         self.exchange = exchange; self.name = name; self.quantity = quantity; self.avgCost = avgCost
         self.currency = currency; self.currentValue = currentValue; self.annualRate = annualRate
-        self.maturityDate = maturityDate; self.offList = offList; self.autoFetch = autoFetch; self.funding = funding
+        self.maturityDate = maturityDate; self.offList = offList; self.autoFetch = autoFetch
+        self.funding = funding; self.sip = sip
     }
 }
 
@@ -159,6 +188,27 @@ public actor InvestmentsRepository {
         }
     }
 
+    /// The same rows as `watchDividends`, read once.
+    ///
+    /// The Investments view model rebuilds on the holdings stream and pulls
+    /// balances and rates one-shot at that moment (see its `rebuild`); a
+    /// second live stream would put it on two clocks, and the dividend table
+    /// is refreshed by a once-a-day market sync, so there is nothing to watch
+    /// between rebuilds. Mirrors LedgerRepository's `accountBalances()`.
+    public func dividendsOnce() async throws -> [DividendRow] {
+        try await db.getAll(
+            sql: "SELECT symbol, exchange, ex_date, pay_date, amount, currency FROM market_dividends",
+            parameters: [],
+            mapper: { cursor in
+                DividendRow(
+                    symbol: try cursor.getString(name: "symbol"), exchange: try cursor.getStringOptional(name: "exchange"),
+                    exDate: try cursor.getString(name: "ex_date"), payDate: try cursor.getStringOptional(name: "pay_date"),
+                    amount: try cursor.getInt64(name: "amount"), currency: try cursor.getString(name: "currency")
+                )
+            }
+        )
+    }
+
     public func watchQuotes() throws -> AsyncThrowingStream<[QuoteRow], Error> {
         try db.watch(
             sql: "SELECT symbol, exchange, price, currency FROM market_quotes",
@@ -171,12 +221,17 @@ public actor InvestmentsRepository {
         }
     }
 
-    /// Adds a holding -- matches write.ts's addHolding() exactly: funds
-    /// the invested pool first (transfer from a source account, or an
-    /// adjustment on the investment account itself for an already-owned
-    /// holding), then inserts the `holdings` row. SIP recurring-transfer
-    /// setup and the live-catalog instrument picker are deferred (see
-    /// screen spec) so there is no `sip` parameter here, unlike web's.
+    /// Adds a holding -- matches write.ts's addHolding() exactly: funds the
+    /// invested pool first (transfer from a source account, or an adjustment
+    /// on the investment account itself for an already-owned holding),
+    /// creates the SIP's recurring transfer if there is one, then inserts the
+    /// `holdings` row.
+    ///
+    /// The SIP half was missing until now, and its absence was not cosmetic:
+    /// `planned_id` was hardcoded null and `sip_amount`/`sip_day` were never
+    /// written, so a SIP could not be created on a phone AT ALL and the Stop
+    /// SIP control could only ever appear for a holding created on web
+    /// (PARITY_AUDIT 2026-08-28, item 9).
     @discardableResult
     public func addHolding(userId: String, input: AddHoldingInput) async throws -> String {
         let costTotal = Int64((Double(input.avgCost ?? 0) * input.quantity).rounded())
@@ -214,21 +269,81 @@ public actor InvestmentsRepository {
             }
         }
 
+        // The SIP is a recurring `saving` transfer: source account -> this
+        // investment account, auto-posting on its own schedule.
+        //
+        // This is the ONLY place a recurring saving item is created on either
+        // platform, exactly as on web. Recurring savings are not browsable
+        // under Recurring, so a SIP belongs to the holding that funds it and
+        // is created and stopped there (see stopSipForHolding). It still posts
+        // through the shared engine and still shows in the "Due now" strip.
+        //
+        // One row, not a template + rule pair: `recurring_items` carries both
+        // the schedule and the transaction detail (migration 0064).
+        // Written through `insertRow`, not the hand-rolled SQL the rest of this
+        // function still uses: it is the documented convention (WriteHelpers),
+        // it fills id/user_id/timestamps, and it routes through `withLoading`
+        // so the sync indicator sees the write.
+        var plannedId: String? = nil
+        if let sip = input.sip, sip.amount > 0, !sip.sourceAccountId.isEmpty {
+            plannedId = try await insertRow(
+                db: db, table: "recurring_items", userId: userId,
+                // The columns web sends as an explicit null (category_id, note,
+                // labels, split_*, last_generated, source_*) are simply not
+                // listed: an omitted column on an INSERT is NULL, and a
+                // heterogeneous Swift dictionary literal cannot carry a bare
+                // `nil` without a contextual type. Same rows result.
+                //
+                // Int64, not Int: this schema's integers bind as Int64
+                // everywhere else in :data (see RecurringRepository.Input.row),
+                // and a bare literal would infer Int.
+                values: [
+                    "direction": "saving",
+                    "name": input.name.isEmpty ? (input.symbol.isEmpty ? "SIP" : input.symbol) : input.name,
+                    "amount": sip.amount,
+                    "currency": input.currency,
+                    "frequency": sip.frequency,
+                    // Web hardcodes 1 here too -- every interval the UI offers
+                    // is "every 1 <frequency>".
+                    "interval_count": Int64(1),
+                    "next_due": sip.firstDue,
+                    "account_id": sip.sourceAccountId,
+                    "to_account_id": input.investmentAccountId,
+                    "auto_post": Int64(1),
+                    "active": Int64(1),
+                    "description": "SIP",
+                ]
+            )
+        }
+
         let id = newId()
-        let sourceAccountId: String? = { if case .new(let s) = input.funding { return s }; return nil }()
+        // A SIP's money movement IS the recurring transfer, so its source
+        // account is the debit account, not a one-off funding account -- web
+        // resolves it in the same order.
+        let fundingSourceId: String? = { if case .new(let s) = input.funding { return s }; return nil }()
+        let sourceAccountId: String? = input.sip?.sourceAccountId ?? fundingSourceId
         let instrumentType: String? = input.assetClass == "mf" ? "mf" : (input.assetClass == "stock" ? "stock" : nil)
+        // Amount-based SIP fields (migration 0061). Written together with
+        // `planned_id`: the UI reads a live SIP as
+        // `planned_id != nil && sip_amount > 0`, and half of that pair is what
+        // made every mobile-created holding look SIP-less.
+        let sipAmount: Int64? = plannedId == nil ? nil : input.sip?.amount
+        let sipStartDate: String? = plannedId == nil ? nil : input.sip?.startDate
+        let sipDay: Int64? = plannedId == nil ? nil : input.sip.map { Int64($0.day) }
         try await db.execute(
             sql: """
                 INSERT INTO holdings
                  (id,user_id,account_id,symbol,exchange,name,quantity,avg_cost,currency,asset_class,instrument_type,
-                  current_value,annual_rate,maturity_date,source_account_id,planned_id,off_list,auto_fetch,created_at,updated_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                  current_value,annual_rate,maturity_date,source_account_id,planned_id,off_list,auto_fetch,
+                  sip_amount,sip_start_date,sip_day,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
             parameters: [
                 id, userId, input.investmentAccountId, input.symbol, input.exchange,
                 input.name.isEmpty ? nil : input.name, input.quantity, input.avgCost, input.currency,
                 input.assetClass, instrumentType, input.currentValue, input.annualRate, input.maturityDate,
-                sourceAccountId, nil, input.offList ? 1 : 0, input.autoFetch ? 1 : 0, ts, ts,
+                sourceAccountId, plannedId, input.offList ? 1 : 0, input.autoFetch ? 1 : 0,
+                sipAmount, sipStartDate, sipDay, ts, ts,
             ]
         )
         return id

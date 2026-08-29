@@ -43,6 +43,51 @@ data class BudgetLike(
 private fun isoMidnight(date: LocalDate): String =
     "${date}T00:00:00.000Z"
 
+/**
+ * One expense counted against a budget, joined for display -- web's `BudgetTxn`
+ * (packages/data/src/index.ts).
+ */
+data class BudgetTxn(
+    val id: String,
+    val occurredAt: String,
+    val amount: Long,
+    val currency: String,
+    val description: String?,
+    val note: String?,
+    val categoryName: String?,
+    val accountName: String?,
+)
+
+/** Per-day expense totals for a budget's window, plus the window itself. */
+data class DailySpend(
+    /** `YYYY-MM-DD` to minor units. Days with no spend are absent. */
+    val totals: Map<String, Long>,
+    val startIso: String,
+    /** INCLUSIVE last day of the window. */
+    val endIso: String,
+)
+
+/** The shared WHERE clause plus its bound parameters and the window it covers. */
+private data class ScopedQuery(
+    val where: String,
+    val params: List<Any?>,
+    val startIso: String,
+    val endIso: String,
+)
+
+/**
+ * SQL predicate excluding money you FRONTED for other people from your own
+ * spending -- web's `notFrontedForOthers("t")`, verbatim.
+ *
+ * A top-level constant rather than three copies inline: the whole point of
+ * web's version is that the same string backs every aggregate, so they cannot
+ * drift apart -- which is precisely how a budget total and its drill-down would
+ * come to disagree.
+ */
+private const val NOT_FRONTED_FOR_OTHERS =
+    "t.id NOT IN (SELECT transaction_id FROM expense_postings " +
+        "WHERE role = 'lend' AND transaction_id IS NOT NULL AND deleted_at IS NULL)"
+
 class BudgetRepository(private val db: PowerSyncDatabase) {
 
     private val budgetMapper: (com.powersync.db.SqlCursor) -> BudgetLike = { cursor ->
@@ -215,11 +260,21 @@ class BudgetRepository(private val db: PowerSyncDatabase) {
         return ids
     }
 
-    /** Sum of expenses in the budget's window, honoring its category/label
-     * scope. [asOf] is a calendar day (already UTC-truncated by the caller,
-     * matching this port's established periodBounds() convention -- see
-     * Budget.kt's own header comment). */
-    suspend fun spentThisPeriod(budget: BudgetLike, asOf: LocalDate = LocalDate.now(ZoneOffset.UTC)): Money {
+    /**
+     * The WHERE clause every "what counts against this budget" read shares.
+     *
+     * Mirrors packages/data/src/powersync-repositories.ts's private
+     * `scopeClause` exactly, and exists for the reason its own comment gives:
+     * a second hand-written query for the drill-down list or the chart would
+     * be a standing invitation for the two to disagree, and a list that does
+     * not add up to the figure above it is worse than no list at all -- it
+     * makes the user doubt the number rather than the screen.
+     *
+     * [asOf] is a calendar day (already UTC-truncated by the caller, matching
+     * this port's established periodBounds() convention -- see Budget.kt's own
+     * header comment).
+     */
+    private suspend fun scopeClause(budget: BudgetLike, asOf: LocalDate): ScopedQuery {
         val start: LocalDate
         val endExclusive: LocalDate
         if (budget.startDate != null && budget.endDate != null) {
@@ -232,7 +287,22 @@ class BudgetRepository(private val db: PowerSyncDatabase) {
             endExclusive = window.endExclusive
         }
 
-        val where = mutableListOf("t.type = 'expense'", "t.deleted_at IS NULL", "t.occurred_at >= ?", "t.occurred_at < ?", "t.currency = ?")
+        val where = mutableListOf(
+            "t.type = 'expense'",
+            "t.deleted_at IS NULL",
+            // Money FRONTED for other people is not your spending. A split
+            // books the part you covered for others as an ordinary expense on
+            // your account, which is right for the ledger and wrong for every
+            // "what did I spend" aggregate -- buying a friend a phone on your
+            // card would blow the month's budget. Web excludes it here
+            // (packages/data's `notFrontedForOthers`); this port did not, so
+            // the same budget read differently in the browser and on the
+            // phone. Same SQL LedgerRepository's own expense aggregates use.
+            NOT_FRONTED_FOR_OTHERS,
+            "t.occurred_at >= ?",
+            "t.occurred_at < ?",
+            "t.currency = ?",
+        )
         val params = mutableListOf<Any?>(isoMidnight(start), isoMidnight(endExclusive), budget.currency)
 
         val catIds = db.getAll(
@@ -265,13 +335,101 @@ class BudgetRepository(private val db: PowerSyncDatabase) {
             ors += "EXISTS (SELECT 1 FROM transaction_labels tl WHERE tl.transaction_id = t.id AND tl.label_id IN (${labelIds.joinToString(",") { "?" }}))"
             params.addAll(labelIds)
         }
+        // No categories/labels selected -> overall (all expenses in the window).
         if (ors.isNotEmpty()) where += "(${ors.joinToString(" OR ")})"
 
+        return ScopedQuery(
+            where = where.joinToString(" AND "),
+            params = params,
+            startIso = start.toString(),
+            // INCLUSIVE, for the chart's axis: the query boundary is exclusive
+            // because SQLite compares timestamps, but a chart draws days.
+            endIso = endExclusive.minusDays(1).toString(),
+        )
+    }
+
+    /** Sum of expenses in the budget's window, honoring its category/label
+     * scope. */
+    suspend fun spentThisPeriod(budget: BudgetLike, asOf: LocalDate = LocalDate.now(ZoneOffset.UTC)): Money {
+        val scope = scopeClause(budget, asOf)
         val total = db.get(
-            sql = "SELECT COALESCE(SUM(t.amount), 0) AS total FROM transactions t WHERE ${where.joinToString(" AND ")}",
-            parameters = params,
+            sql = "SELECT COALESCE(SUM(t.amount), 0) AS total FROM transactions t WHERE ${scope.where}",
+            parameters = scope.params,
             mapper = { cursor -> cursor.getLong("total") },
         )
         return money(total, budget.currency)
+    }
+
+    /**
+     * The individual expenses behind [spentThisPeriod], newest first -- same
+     * scope, same window, so the rows always sum to the total.
+     *
+     * Mirrors web's `transactionsThisPeriod`, which backs apps/web/src/budgets/
+     * SpentBreakdown.tsx. Added here 2026-08-29: tapping the "spent" figure
+     * opened nothing on either native app.
+     */
+    suspend fun transactionsThisPeriod(
+        budget: BudgetLike,
+        asOf: LocalDate = LocalDate.now(ZoneOffset.UTC),
+    ): List<BudgetTxn> {
+        val scope = scopeClause(budget, asOf)
+        return db.getAll(
+            sql = """
+                SELECT t.id AS id, t.occurred_at AS occurred_at, t.amount AS amount, t.currency AS currency,
+                       t.description AS description, t.note AS note,
+                       c.name AS category_name, a.name AS account_name
+                  FROM transactions t
+                  LEFT JOIN categories c ON c.id = t.category_id
+                  LEFT JOIN accounts a ON a.id = t.account_id
+                 WHERE ${scope.where}
+                 ORDER BY t.occurred_at DESC, t.created_at DESC
+                """.trimIndent(),
+            parameters = scope.params,
+            mapper = { cursor ->
+                BudgetTxn(
+                    id = cursor.getString("id"),
+                    occurredAt = cursor.getString("occurred_at"),
+                    amount = cursor.getLong("amount"),
+                    currency = cursor.getString("currency"),
+                    description = cursor.getStringOptional("description"),
+                    note = cursor.getStringOptional("note"),
+                    categoryName = cursor.getStringOptional("category_name"),
+                    accountName = cursor.getStringOptional("account_name"),
+                )
+            },
+        )
+    }
+
+    /**
+     * Per-day totals for the budget's window, keyed `YYYY-MM-DD` -- the input
+     * to domain's `cumulativeSpendSeries`, which draws the spend-vs-limit
+     * curve.
+     *
+     * Deliberately the SAME scope clause as [spentThisPeriod], where web's own
+     * chart runs a looser hand-written query of its own (no currency filter, no
+     * fronted-for-others exclusion, scope re-implemented in JS over the rows).
+     * Web's chart can therefore finish above the "spent" figure printed
+     * directly beneath it. That is a defect, not a design, and reproducing it
+     * would mean shipping a chart that visibly contradicts its own card.
+     *
+     * Also returns the window it used, so the caller never has to re-derive the
+     * axis from a second copy of the period arithmetic.
+     */
+    suspend fun dailySpendThisPeriod(
+        budget: BudgetLike,
+        asOf: LocalDate = LocalDate.now(ZoneOffset.UTC),
+    ): DailySpend {
+        val scope = scopeClause(budget, asOf)
+        val rows = db.getAll(
+            sql = """
+                SELECT date(t.occurred_at) AS d, COALESCE(SUM(t.amount), 0) AS total
+                  FROM transactions t
+                 WHERE ${scope.where}
+                 GROUP BY date(t.occurred_at)
+                """.trimIndent(),
+            parameters = scope.params,
+            mapper = { cursor -> cursor.getString("d") to cursor.getLong("total") },
+        )
+        return DailySpend(totals = rows.toMap(), startIso = scope.startIso, endIso = scope.endIso)
     }
 }

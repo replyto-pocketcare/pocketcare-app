@@ -77,6 +77,18 @@ final class VectorRunnerTests: XCTestCase {
         registerBudgetVectors()
         try runDomain("budget")
     }
+    func testBudgetSpendSeries() throws {
+        // SpendSeries.swift's cumulativeSpendSeries(). Vectors as SPEC --
+        // web's version is inlined in a React component that reads the clock.
+        registerSpendSeriesVectors()
+        try runDomain("budget-spend-series")
+    }
+    func testGoalCelebration() throws {
+        // GoalCelebration.swift's goalCelebration(). Vectors as SPEC again --
+        // web's version is a useEffect over a ref and localStorage.
+        registerGoalCelebrationVectors()
+        try runDomain("goal-celebration")
+    }
     func testDiagnostics() throws {
         // P1.6b: registers Diagnostics.swift's port before running
         // diagnostics.json's vectors.
@@ -234,6 +246,20 @@ final class VectorRunnerTests: XCTestCase {
         registerSplitsItemBreakdownVectors()
         try runDomain("splits-item-breakdown")
     }
+    func testInvestmentsPortfolio() throws {
+        // Portfolio.swift -- the allocation donut, the gain/loss bars, the
+        // financial-year dividend card and the projection curve. A SPEC:
+        // every one of them lives inside a React component on web.
+        registerPortfolioVectors()
+        try runDomain("investments-portfolio")
+    }
+    func testInstrumentCatalog() throws {
+        // InstrumentCatalog.swift -- the Add-investment picker's ranking, and
+        // the seed table itself, which is the one thing here transcribed by
+        // hand on two platforms and so the one thing that can drift silently.
+        registerInstrumentCatalogVectors()
+        try runDomain("instrument-catalog")
+    }
     func testDashboardGrid() throws {
         // TileGrid.swift's packRows(). Unusually, these vectors are the SPEC:
         // there is no web function to record, because the browser packs the
@@ -320,6 +346,13 @@ final class VectorRunnerTests: XCTestCase {
         // P1.6b: registers Upi.swift's port before running upi.json's vectors.
         registerUpiVectors()
         try runDomain("upi")
+    }
+    func testTransactionAudit() throws {
+        // AuditSummary.swift. Web's version is a React component reading a
+        // module object literal, so the vectors record a transcription of it —
+        // see AuditSummaryVectors for the one divergence they pin.
+        registerTransactionAuditVectors()
+        try runDomain("transaction-audit")
     }
 }
 

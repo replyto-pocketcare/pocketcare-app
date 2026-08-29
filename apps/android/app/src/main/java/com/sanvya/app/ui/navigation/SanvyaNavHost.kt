@@ -462,6 +462,9 @@ fun SanvyaNavHost(inviteToken: String? = null) {
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
                 onDeleted = { navController.popBackStack("transactions", inclusive = true) },
+                // The split banner's way into the group -- web's link to
+                // /groups/[id], which is this graph's "splits/{groupId}".
+                onOpenGroup = { id -> navController.navigate("splits/$id") },
             )
         }
         composable("budgets") {
@@ -469,6 +472,9 @@ fun SanvyaNavHost(inviteToken: String? = null) {
                 onBack = { navController.popBackStack() },
                 onAddBudget = { navController.navigate("budgets/new") },
                 onEditBudget = { id -> navController.navigate("budgets/$id/edit") },
+                // The spent breakdown's rows are web's links to
+                // /transactions/[id]; this graph's equivalent is the edit route.
+                onOpenTransaction = { id -> navController.navigate("transactions/$id/edit") },
             )
         }
         formDestination("budgets/new", windowClass) {

@@ -10,10 +10,10 @@ private struct DraftItem: Identifiable {
 }
 
 /// Edit transaction — ported from transactions/[id]/edit/page.tsx per
-/// docs/mobile/screen-specs/transactions.md. New this session — iOS had no
-/// edit screen for transactions at all before this (only a fake New form
-/// and a non-interactive list row). Edit-history and the split SplitBanner
-/// are explicitly deferred (see spec's Scope section).
+/// docs/mobile/screen-specs/transactions.md. iOS had no edit screen for
+/// transactions at all before this (only a fake New form and a
+/// non-interactive list row). The edit-history sheet and the split-expense
+/// banner, deferred by that first port, are both here now.
 struct EditTransactionView: View {
     let transactionId: String
 
@@ -39,6 +39,14 @@ struct EditTransactionView: View {
     @State private var intent: String?
     @State private var currency = FormOptions.defaultCurrency
     @State private var occurredAt = Date()
+
+    /// The split expense this row belongs to, or nil for an ordinary one.
+    @State private var split: TransactionSplit?
+    /// Every recorded change to this transaction, newest first.
+    @State private var history: [TransactionAudit] = []
+    @State private var showHistory = false
+    /// The group the split banner was asked to open, presented over this form.
+    @State private var openGroupId: String?
 
     @State private var saving = false
     @State private var confirmDelete = false
@@ -73,6 +81,12 @@ struct EditTransactionView: View {
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 14) {
+                            SplitBannerView(
+                                split: split,
+                                myUserId: authRepository.currentUserId,
+                                onOpenGroup: { openGroupId = $0 }
+                            )
+
                             Picker(S.Transactions.auditType, selection: $type) {
                                 // `type.*`, not `filter.*`: the form's three
                                 // chips come from web's `t(`type.${tp}`)`, and
@@ -143,6 +157,53 @@ struct EditTransactionView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(S.Translation.commonClose) { dismiss() }.foregroundColor(Color.text2)
+                }
+                // Web hides this behind a kebab with exactly one item; a plain
+                // toolbar button is the native equivalent, and the same call
+                // GroupDetailView made when it turned web's kebab into chips.
+                // Hidden entirely when nothing has been recorded yet, matching
+                // web's `{audit.length > 0 && ...}`.
+                if !history.isEmpty {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(S.Transactions.viewHistory) { showHistory = true }
+                            .foregroundColor(Color.accent)
+                    }
+                }
+            }
+            .sanvyaModal(isPresented: $showHistory, label: S.Transactions.editHistory) {
+                EditHistorySheet(
+                    entries: history,
+                    currency: currency,
+                    categories: categories,
+                    accounts: accounts,
+                    paymentMethods: paymentMethods,
+                    onClose: { showHistory = false }
+                )
+            }
+            // Web's banner links to /groups/[id] and navigates away from the
+            // form. This shell has no detail routing above a sheet (see
+            // AppDestinations' note on why), so the group is presented OVER the
+            // form instead — which also means dismissing it returns to the edit
+            // in progress rather than discarding it.
+            //
+            // The `NavigationStack` with a Close item is not decoration:
+            // `GroupDetailView` is documented as embedded content whose back
+            // button lives in its PARENT's toolbar, and inside a sheet the app
+            // shell's `registerBack` is not there to supply one.
+            .sheet(item: Binding(
+                get: { openGroupId.map(OpenGroup.init(id:)) },
+                set: { openGroupId = $0?.id }
+            )) { target in
+                NavigationStack {
+                    GroupDetailView(groupId: target.id, onBack: { openGroupId = nil })
+                        .padding(16)
+                        .background(Color.bg.ignoresSafeArea())
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button(S.Translation.commonClose) { openGroupId = nil }
+                                    .foregroundColor(Color.text2)
+                            }
+                        }
                 }
             }
             .confirmationDialog(S.Transactions.deleteConfirmTitle, isPresented: $confirmDelete, titleVisibility: .visible) {
@@ -247,7 +308,17 @@ struct EditTransactionView: View {
         async let p: () = watchPaymentMethodsLoop()
         async let t: () = watchTransactionLoop()
         async let e: () = watchEntitlement()
-        _ = await (a, c, l, p, t, e)
+        async let s: () = watchSplitLoop()
+        async let h: () = watchHistoryLoop()
+        _ = await (a, c, l, p, t, e, s, h)
+    }
+    private func watchSplitLoop() async {
+        do { for try await found in try ledgerRepository.watchSplitForTransaction(transactionId: transactionId) { split = found } }
+        catch { print("Failed to watch split for \(transactionId): \(error)") }
+    }
+    private func watchHistoryLoop() async {
+        do { for try await rows in try ledgerRepository.watchHistory(transactionId: transactionId) { history = rows } }
+        catch { print("Failed to watch history for \(transactionId): \(error)") }
     }
     private func watchAccountsLoop() async {
         do { for try await list in try ledgerRepository.watchAccounts(includeArchived: true) { accounts = list } }
@@ -432,6 +503,13 @@ struct EditTransactionView: View {
             }
         }
     }
+}
+
+/// A group id, made `Identifiable` so `.sheet(item:)` can drive off it. A bare
+/// `String` cannot: `Identifiable` needs an `id`, and conforming `String` to it
+/// app-wide would make every string a sheet subject.
+private struct OpenGroup: Identifiable {
+    let id: String
 }
 
 #Preview {

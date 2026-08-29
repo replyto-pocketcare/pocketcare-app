@@ -9,7 +9,6 @@ import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.domain.budget.budgetProgress
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.domain.money.money
-import com.sanvya.app.domain.money.toMajor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,20 +22,51 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import com.sanvya.app.ui.formatMoneyAware
 import com.sanvya.app.ui.formatMajorPlain
+import com.sanvya.app.ui.shortDateLabel
+import com.sanvya.app.data.repository.BudgetTxn
+import com.sanvya.app.domain.budget.SpendPoint
+import com.sanvya.app.domain.budget.cumulativeSpendSeries
+import com.sanvya.app.domain.money.Money
 
 enum class ProgressColor { POSITIVE, WARNING, NEGATIVE }
 
 data class BudgetUiModel(
     val id: String,
+    /**
+     * The budget's own name, or its scope read back as a list. BLANK when it
+     * has neither -- the screen substitutes `S.Budgets.allSpending` there,
+     * because a ViewModel outside composition has no `Resources` and a
+     * hardcoded "All spending" is exactly the English that leaked into two
+     * translated apps the last time this was composed here.
+     */
     val title: String,
-    val timeframeText: String,
+    /** `1 Aug – 31 Aug`. The period word in front of it is the screen's, for
+     * the same reason [title]'s fallback is. */
+    val winLabel: String,
     val scopeLabel: String,
-    val spentFormatted: String,
-    val remainingOrOverText: String,
+    /** Just the money. The "{{amount}} spent" sentence around it is the
+     * screen's -- see [title]. */
+    val spentAmountFormatted: String,
+    /** Minor units, so the drill-down can say when its rows disagree. */
+    val spentMinor: Long,
+    /** Either what is left or what is over, depending on [overLimit]. */
+    val remainderAmountFormatted: String,
+    val overLimit: Boolean,
     val progress: Double,
+    /**
+     * The rounded percentage, or null when the limit is zero and the ratio is
+     * infinite -- web prints an em dash there rather than "Infinity%".
+     */
+    val pctRounded: Int?,
     val progressColor: ProgressColor,
+    /** Cumulative spend across the active window, for the card's chart. */
+    val spendSeries: List<SpendPoint>,
+    /** The limit in MINOR units, for the chart's reference line -- minor so
+     * the chart converts once, with `majorScale`, instead of converting back. */
+    val limitMinor: Long,
     // Edit-form prefill -- raw, unformatted.
     val rawName: String,
     val limitMajor: String,
@@ -52,6 +82,48 @@ data class BudgetUiModel(
 )
 
 data class CategoryOption(val id: String, val name: String)
+
+/**
+ * One expense behind a budget's "spent" figure, formatted for the drill-down.
+ *
+ * The pieces stay separate rather than pre-joined into a sentence: the title
+ * falls back through description -> note -> category -> a translated "Expense",
+ * and that last step needs the `Resources` only the screen has.
+ */
+data class BudgetTxnUiModel(
+    val id: String,
+    val description: String?,
+    val note: String?,
+    val categoryName: String?,
+    val accountName: String?,
+    val dateLabel: String,
+    val amountFormatted: String,
+)
+
+/**
+ * The open "what is this figure made of" drill-down -- web's
+ * apps/web/src/budgets/SpentBreakdown.tsx.
+ *
+ * [rows] is null while the query is in flight, which is the spinner state; an
+ * empty list is the genuinely-nothing-here state. Web draws the same
+ * distinction and it matters: a budget with no spend yet and a budget still
+ * loading look identical if both are an empty list.
+ */
+data class SpentBreakdownState(
+    val budgetId: String,
+    val title: String,
+    val spentAmountFormatted: String,
+    val rows: List<BudgetTxnUiModel>?,
+    val count: Int,
+    val listedTotalFormatted: String,
+    /**
+     * The rows do not sum to the card's figure. They share a scope clause, so
+     * the only way this happens is a scope change landing mid-read -- worth
+     * saying out loud rather than quietly showing a total that contradicts the
+     * card the user just tapped.
+     */
+    val mismatch: Boolean,
+)
 
 /**
  * Ported from apps/web/app/budgets/page.tsx per
@@ -71,11 +143,25 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
     private val _budgets = MutableStateFlow<List<BudgetUiModel>>(emptyList())
     val budgets: StateFlow<List<BudgetUiModel>> = _budgets
 
+    /** The rows as the database has them, kept beside the UI models because
+     * every repository read below takes a [BudgetLike], not a view model. */
+    private val _rawBudgets = MutableStateFlow<List<BudgetLike>>(emptyList())
+
     private val _expenseCategories = MutableStateFlow<List<CategoryOption>>(emptyList())
     val expenseCategories: StateFlow<List<CategoryOption>> = _expenseCategories
 
     private val _labelNames = MutableStateFlow<List<String>>(emptyList())
     val labelNames: StateFlow<List<String>> = _labelNames
+
+    /** The open spent drill-down, or null.
+     *
+     * Declared ABOVE `init` on purpose. `viewModelScope.launch` runs on
+     * `Dispatchers.Main.immediate`, which executes a coroutine body eagerly
+     * when it is already on the main thread -- so a property `rebuild()` reads
+     * must be initialised before the init block, or the first emission finds a
+     * null field. */
+    private val _breakdown = MutableStateFlow<SpentBreakdownState?>(null)
+    val breakdown: StateFlow<SpentBreakdownState?> = _breakdown
 
     init {
         viewModelScope.launch {
@@ -107,6 +193,7 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
      * (pre-existing scope, unrelated to this fix). */
     private suspend fun rebuild(list: List<BudgetLike>) {
         try {
+            _rawBudgets.value = list
             val today = LocalDate.now(ZoneOffset.UTC)
             val uis = list.map { b ->
                 val spent = budgetRepository.spentThisPeriod(b, today)
@@ -116,29 +203,43 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
                 val labels = budgetRepository.labelNames(b.id)
                 val catNames = catIds.mapNotNull { id -> _expenseCategories.value.find { it.id == id }?.name }
                 val scopeNames = catNames + labels
-                val scopeLabel = if (scopeNames.isEmpty()) "All spending" else scopeNames.joinToString(", ")
+                val scopeLabel = scopeNames.joinToString(", ")
                 val win = periodWindow(b.period, b.startDate, b.endDate)
                 val isCustom = b.startDate != null && b.endDate != null
-                val timeframeText = if (isCustom) win.label else "${periodLabel(b.period)} · ${win.label}"
                 val color = when {
                     progress.overLimit -> ProgressColor.NEGATIVE
                     progress.atOrOverThreshold -> ProgressColor.WARNING
                     else -> ProgressColor.POSITIVE
                 }
-                val remainingOrOver = if (progress.overLimit) {
-                    "Over by ${formatMoney(money(spent.amount - limit.amount, b.currency))}"
-                } else {
-                    "${formatMoney(progress.remaining)} left"
-                }
+                // The window comes back WITH the daily totals rather than from
+                // periodWindow() above: the two agree today, and the day they
+                // stop agreeing is the day the chart's axis stops describing
+                // the rows under it. The label is display-only and can stay
+                // where web put it; the axis cannot.
+                val daily = budgetRepository.dailySpendThisPeriod(b, today)
                 BudgetUiModel(
                     id = b.id,
                     title = b.name?.takeIf { it.isNotBlank() } ?: scopeLabel,
-                    timeframeText = timeframeText,
+                    winLabel = win.label,
                     scopeLabel = scopeLabel,
-                    spentFormatted = "Spent ${formatMoney(spent)}",
-                    remainingOrOverText = remainingOrOver,
+                    spentAmountFormatted = formatMoney(spent),
+                    spentMinor = spent.amount,
+                    remainderAmountFormatted = if (progress.overLimit) {
+                        formatMoney(money(spent.amount - limit.amount, b.currency))
+                    } else {
+                        formatMoney(progress.remaining)
+                    },
+                    overLimit = progress.overLimit,
                     progress = if (progress.pct.isFinite()) progress.pct / 100 else 1.0,
+                    pctRounded = if (progress.pct.isFinite()) progress.pct.roundToInt() else null,
                     progressColor = color,
+                    spendSeries = cumulativeSpendSeries(
+                        dailyTotals = daily.totals,
+                        startIso = daily.startIso,
+                        endIso = daily.endIso,
+                        todayIso = today.toString(),
+                    ),
+                    limitMinor = b.limitAmount,
                     rawName = b.name ?: "",
                     limitMajor = formatMajorPlain(b.limitAmount, b.currency),
                     currency = b.currency,
@@ -153,9 +254,74 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
                 )
             }
             _budgets.value = uis
+            // A budget the drill-down is open on may have just changed scope.
+            // Re-reading it here is what makes the mismatch note in
+            // SpentBreakdownState a real signal rather than a stale one.
+            _breakdown.value?.let { open -> refreshBreakdown(open.budgetId) }
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    // ---- spent breakdown (web: apps/web/src/budgets/SpentBreakdown.tsx) ----
+
+    /**
+     * Opens the drill-down for [budgetId], showing the spinner immediately and
+     * filling the rows when the query lands -- web resets `rows` to null on
+     * every open for exactly this reason.
+     */
+    fun openBreakdown(budgetId: String) {
+        val budget = _budgets.value.firstOrNull { it.id == budgetId } ?: return
+        _breakdown.value = SpentBreakdownState(
+            budgetId = budgetId,
+            title = budget.title,
+            spentAmountFormatted = budget.spentAmountFormatted,
+            rows = null,
+            count = 0,
+            listedTotalFormatted = "",
+            mismatch = false,
+        )
+        viewModelScope.launch { refreshBreakdown(budgetId) }
+    }
+
+    fun closeBreakdown() {
+        _breakdown.value = null
+    }
+
+    /** Reads the rows behind [budgetId]'s figure through the repository's
+     * shared scope clause, so the list cannot disagree with the total for any
+     * reason other than a scope change landing mid-read. */
+    private suspend fun refreshBreakdown(budgetId: String) {
+        // The stored DB row, not one rebuilt from the UI model: scopeClause()
+        // reads the budget's period and dates, and a reconstructed BudgetLike
+        // is one field away from asking a different question than the card did.
+        val row = _rawBudgets.value.firstOrNull { it.id == budgetId } ?: return
+        val budget = _budgets.value.firstOrNull { it.id == budgetId } ?: return
+        val rows: List<BudgetTxn> = try {
+            budgetRepository.transactionsThisPeriod(row, LocalDate.now(ZoneOffset.UTC))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+        val listed = rows.sumOf { it.amount }
+        _breakdown.value = _breakdown.value?.takeIf { it.budgetId == budgetId }?.copy(
+            title = budget.title,
+            spentAmountFormatted = budget.spentAmountFormatted,
+            rows = rows.map { r ->
+                BudgetTxnUiModel(
+                    id = r.id,
+                    description = r.description,
+                    note = r.note,
+                    categoryName = r.categoryName,
+                    accountName = r.accountName,
+                    dateLabel = shortDateLabel(r.occurredAt),
+                    amountFormatted = formatMoney(money(r.amount, r.currency)),
+                )
+            },
+            count = rows.size,
+            listedTotalFormatted = formatMoney(money(listed, row.currency)),
+            mismatch = listed != budget.spentMinor,
+        )
     }
 
     /** Matches web's addBudget(): limit must be > 0, custom mode requires
@@ -239,15 +405,8 @@ class BudgetsViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun formatMoney(m: com.sanvya.app.domain.money.Money): String = formatMoneyAware(m)
+    private fun formatMoney(m: Money): String = formatMoneyAware(m)
 
-}
-
-private fun periodLabel(period: String): String = when (period) {
-    "daily" -> "Daily"
-    "weekly" -> "Weekly"
-    "yearly" -> "Yearly"
-    else -> "Monthly"
 }
 
 private data class Window(val start: String, val end: String, val label: String)

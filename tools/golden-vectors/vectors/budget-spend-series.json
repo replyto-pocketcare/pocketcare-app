@@ -1,0 +1,539 @@
+[
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2026-08-01": 12500,
+        "2026-08-03": 4000,
+        "2026-08-08": 999,
+        "2026-08-09": 500000
+      },
+      "startIso": "2026-08-01",
+      "endIso": "2026-08-31",
+      "todayIso": "2026-08-08"
+    },
+    "expected": [
+      {
+        "dayIso": "2026-08-01",
+        "cumulativeMinor": 12500
+      },
+      {
+        "dayIso": "2026-08-02",
+        "cumulativeMinor": 12500
+      },
+      {
+        "dayIso": "2026-08-03",
+        "cumulativeMinor": 16500
+      },
+      {
+        "dayIso": "2026-08-04",
+        "cumulativeMinor": 16500
+      },
+      {
+        "dayIso": "2026-08-05",
+        "cumulativeMinor": 16500
+      },
+      {
+        "dayIso": "2026-08-06",
+        "cumulativeMinor": 16500
+      },
+      {
+        "dayIso": "2026-08-07",
+        "cumulativeMinor": 16500
+      },
+      {
+        "dayIso": "2026-08-08",
+        "cumulativeMinor": 17499
+      }
+    ]
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {},
+      "startIso": "2026-08-01",
+      "endIso": "2026-08-31",
+      "todayIso": "2026-08-05"
+    },
+    "expected": [
+      {
+        "dayIso": "2026-08-01",
+        "cumulativeMinor": 0
+      },
+      {
+        "dayIso": "2026-08-02",
+        "cumulativeMinor": 0
+      },
+      {
+        "dayIso": "2026-08-03",
+        "cumulativeMinor": 0
+      },
+      {
+        "dayIso": "2026-08-04",
+        "cumulativeMinor": 0
+      },
+      {
+        "dayIso": "2026-08-05",
+        "cumulativeMinor": 0
+      }
+    ]
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2026-06-02": 7500,
+        "2026-06-05": 2500
+      },
+      "startIso": "2026-06-01",
+      "endIso": "2026-06-07",
+      "todayIso": "2026-08-08"
+    },
+    "expected": [
+      {
+        "dayIso": "2026-06-01",
+        "cumulativeMinor": 0
+      },
+      {
+        "dayIso": "2026-06-02",
+        "cumulativeMinor": 7500
+      },
+      {
+        "dayIso": "2026-06-03",
+        "cumulativeMinor": 7500
+      },
+      {
+        "dayIso": "2026-06-04",
+        "cumulativeMinor": 7500
+      },
+      {
+        "dayIso": "2026-06-05",
+        "cumulativeMinor": 10000
+      },
+      {
+        "dayIso": "2026-06-06",
+        "cumulativeMinor": 10000
+      },
+      {
+        "dayIso": "2026-06-07",
+        "cumulativeMinor": 10000
+      }
+    ]
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2026-01-01": 100,
+        "2026-03-15": 250,
+        "2026-12-31": 900
+      },
+      "startIso": "2026-01-01",
+      "endIso": "2026-12-31",
+      "todayIso": "2026-12-31"
+    },
+    "expected": [
+      {
+        "dayIso": "2026-01-01",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-01-08",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-01-15",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-01-22",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-01-29",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-02-05",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-02-12",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-02-19",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-02-26",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-03-05",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-03-12",
+        "cumulativeMinor": 100
+      },
+      {
+        "dayIso": "2026-03-19",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-03-26",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-04-02",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-04-09",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-04-16",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-04-23",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-04-30",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-05-07",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-05-14",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-05-21",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-05-28",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-06-04",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-06-11",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-06-18",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-06-25",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-07-02",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-07-09",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-07-16",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-07-23",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-07-30",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-08-06",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-08-13",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-08-20",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-08-27",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-09-03",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-09-10",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-09-17",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-09-24",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-10-01",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-10-08",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-10-15",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-10-22",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-10-29",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-11-05",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-11-12",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-11-19",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-11-26",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-12-03",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-12-10",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-12-17",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-12-24",
+        "cumulativeMinor": 350
+      },
+      {
+        "dayIso": "2026-12-31",
+        "cumulativeMinor": 1250
+      }
+    ]
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2026-09-02": 500
+      },
+      "startIso": "2026-09-01",
+      "endIso": "2026-09-30",
+      "todayIso": "2026-08-08"
+    },
+    "expected": []
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2026-08-08": 4200
+      },
+      "startIso": "2026-08-08",
+      "endIso": "2026-08-08",
+      "todayIso": "2026-08-08"
+    },
+    "expected": [
+      {
+        "dayIso": "2026-08-08",
+        "cumulativeMinor": 4200
+      }
+    ]
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2026-08-06": 1000,
+        "2026-08-07": 1000,
+        "2026-08-08": 1000
+      },
+      "startIso": "2026-08-06",
+      "endIso": "2026-08-08",
+      "todayIso": "2026-08-08"
+    },
+    "expected": [
+      {
+        "dayIso": "2026-08-06",
+        "cumulativeMinor": 1000
+      },
+      {
+        "dayIso": "2026-08-07",
+        "cumulativeMinor": 2000
+      },
+      {
+        "dayIso": "2026-08-08",
+        "cumulativeMinor": 3000
+      }
+    ]
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2028-02-28": 300,
+        "2028-02-29": 700,
+        "2028-03-01": 1100
+      },
+      "startIso": "2028-02-27",
+      "endIso": "2028-03-02",
+      "todayIso": "2028-03-02"
+    },
+    "expected": [
+      {
+        "dayIso": "2028-02-27",
+        "cumulativeMinor": 0
+      },
+      {
+        "dayIso": "2028-02-28",
+        "cumulativeMinor": 300
+      },
+      {
+        "dayIso": "2028-02-29",
+        "cumulativeMinor": 1000
+      },
+      {
+        "dayIso": "2028-03-01",
+        "cumulativeMinor": 2100
+      },
+      {
+        "dayIso": "2028-03-02",
+        "cumulativeMinor": 2100
+      }
+    ]
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2026-08-01": 100
+      },
+      "startIso": "not-a-date",
+      "endIso": "2026-08-31",
+      "todayIso": "2026-08-08"
+    },
+    "expected": []
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2026-08-01": 100
+      },
+      "startIso": "2026-08-01",
+      "endIso": "2026-08-31",
+      "todayIso": ""
+    },
+    "expected": []
+  },
+  {
+    "fn": "cumulativeSpendSeries",
+    "input": {
+      "dailyTotals": {
+        "2026-05-01": 500,
+        "2026-08-01": 500
+      },
+      "startIso": "2026-05-01",
+      "endIso": "2026-08-01",
+      "todayIso": "2026-08-01"
+    },
+    "expected": [
+      {
+        "dayIso": "2026-05-01",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-05-08",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-05-15",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-05-22",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-05-29",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-06-05",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-06-12",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-06-19",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-06-26",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-07-03",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-07-10",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-07-17",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-07-24",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-07-31",
+        "cumulativeMinor": 500
+      },
+      {
+        "dayIso": "2026-08-01",
+        "cumulativeMinor": 1000
+      }
+    ]
+  }
+]

@@ -32,5 +32,16 @@
   "deleteMsg": "“{{title}}” will be removed. This can't be undone.",
   "spent": "{{amount}} spent",
   "over": "{{amount}} over",
-  "left": "{{amount}} left"
+  "left": "{{amount}} left",
+  "viewSpentAria": "View the transactions behind this figure",
+  "breakdownTitleAria": "{{title}} — spending",
+  "breakdownLoading": "Loading…",
+  "breakdownSummary_one": "{{count}} transaction · {{amount}} spent",
+  "breakdownSummary_other": "{{count}} transactions · {{amount}} spent",
+  "breakdownEmpty": "Nothing has been counted against this budget yet in this period.",
+  "breakdownTotal": "Total",
+  "breakdownMismatch": "This differs from the {{amount}} on the card — the budget's scope changed while loading. Reopen to refresh.",
+  "breakdownFallback": "Expense",
+  "spendChartAria": "Cumulative spending against the limit",
+  "spendChartLimit": "Limit {{amount}}"
 }

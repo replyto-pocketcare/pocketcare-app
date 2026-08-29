@@ -32,5 +32,16 @@
   "deleteMsg": "“{{title}}” wordt verwijderd. Dit kan niet ongedaan worden gemaakt.",
   "spent": "{{amount}} uitgegeven",
   "over": "{{amount}} over de limiet",
-  "left": "{{amount}} over"
+  "left": "{{amount}} over",
+  "viewSpentAria": "Bekijk de transacties achter dit bedrag",
+  "breakdownTitleAria": "{{title}} — uitgaven",
+  "breakdownLoading": "Laden…",
+  "breakdownSummary_one": "{{count}} transactie · {{amount}} uitgegeven",
+  "breakdownSummary_other": "{{count}} transacties · {{amount}} uitgegeven",
+  "breakdownEmpty": "Er is in deze periode nog niets aan dit budget toegerekend.",
+  "breakdownTotal": "Totaal",
+  "breakdownMismatch": "Dit wijkt af van de {{amount}} op de kaart — het bereik van het budget veranderde tijdens het laden. Open opnieuw om te verversen.",
+  "breakdownFallback": "Uitgave",
+  "spendChartAria": "Cumulatieve uitgaven ten opzichte van de limiet",
+  "spendChartLimit": "Limiet {{amount}}"
 }

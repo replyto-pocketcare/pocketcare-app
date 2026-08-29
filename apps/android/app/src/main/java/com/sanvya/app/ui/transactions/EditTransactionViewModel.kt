@@ -10,7 +10,9 @@ import com.sanvya.app.data.repository.LabelRow
 import com.sanvya.app.data.repository.LedgerRepository
 import com.sanvya.app.data.repository.PaymentMethodRow
 import com.sanvya.app.data.repository.PrefsRepository
+import com.sanvya.app.data.repository.TransactionAudit
 import com.sanvya.app.data.repository.TransactionItemInput
+import com.sanvya.app.data.repository.TransactionSplit
 import com.sanvya.app.domain.entitlements.isPaid as domainIsPaid
 import com.sanvya.app.domain.js.jsParseFloat
 import com.sanvya.app.domain.money.Money
@@ -48,6 +50,8 @@ data class EditTransactionUiState(
     val saving: Boolean = false,
     val saved: Boolean = false,
     val confirmDelete: Boolean = false,
+    /** The edit-history sheet, web's `showHistory`. */
+    val showHistory: Boolean = false,
     val deleting: Boolean = false,
     val deleted: Boolean = false,
     val error: String? = null,
@@ -55,8 +59,9 @@ data class EditTransactionUiState(
 
 /** Edit transaction — ported from transactions/[id]/edit/page.tsx per
  * docs/mobile/screen-specs/transactions.md. Edit-history (the audit-log
- * modal) and the split-expense SplitBanner are explicitly deferred (see
- * spec's Scope section). SavedStateHandle for the transaction id nav arg +
+ * modal) and the split-expense SplitBanner were deferred by the first port and
+ * are here now: [history] and [split] are what web's two extra `useQuery`
+ * hooks read. SavedStateHandle for the transaction id nav arg +
  * KoinComponent, matches EditAccountViewModel's established pattern. */
 class EditTransactionViewModel(
     private val savedStateHandle: SavedStateHandle,
@@ -96,7 +101,22 @@ class EditTransactionViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val labels: StateFlow<List<LabelRow>> = ledgerRepository.watchLabels()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    private val paymentMethods: StateFlow<List<PaymentMethodRow>> = ledgerRepository.watchPaymentMethods()
+    /** Every method, not just this account's -- the edit-history sheet resolves
+     * an OLD `payment_method_id`, which may belong to an account type the
+     * transaction has since been moved off. [relevantPaymentMethods] is the
+     * filtered one the form's chips use. */
+    val paymentMethods: StateFlow<List<PaymentMethodRow>> = ledgerRepository.watchPaymentMethods()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Who is looking, so the split banner can tell "You" from everyone else. */
+    val myUserId: StateFlow<String?> = authRepository.currentUserId
+
+    /** The split expense this row belongs to, or null for an ordinary one. */
+    val split: StateFlow<TransactionSplit?> = ledgerRepository.watchSplitForTransaction(transactionId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** Every recorded change to this transaction, newest first. */
+    val history: StateFlow<List<TransactionAudit>> = ledgerRepository.watchHistory(transactionId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val account: StateFlow<Account?> = combine(accounts, ui) { accts, state -> accts.find { it.id == state.accountId } }
@@ -201,6 +221,7 @@ class EditTransactionViewModel(
     fun addItem() { ui.value = ui.value.copy(items = ui.value.items + TxItemDraft(id = "new_${System.currentTimeMillis()}", description = "", value = "")) }
     fun removeItem(id: String) { ui.value = ui.value.copy(items = ui.value.items.filterNot { it.id == id }) }
     fun setConfirmDelete(v: Boolean) { ui.value = ui.value.copy(confirmDelete = v) }
+    fun setShowHistory(v: Boolean) { ui.value = ui.value.copy(showHistory = v) }
 
     /** Matches transactions/[id]/edit/page.tsx's save() exactly. */
     fun save() {

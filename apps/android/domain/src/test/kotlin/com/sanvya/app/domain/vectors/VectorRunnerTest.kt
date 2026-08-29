@@ -96,6 +96,20 @@ class VectorRunnerTest {
         runDomain("budget")
     }
     @Test
+    fun `budget-spend-series`() {
+        // SpendSeries.kt's cumulativeSpendSeries(). Vectors as SPEC -- web's
+        // version is inlined in a React component that reads the clock.
+        com.sanvya.app.domain.budget.registerSpendSeriesVectors()
+        runDomain("budget-spend-series")
+    }
+    @Test
+    fun `goal-celebration`() {
+        // Celebration.kt's goalCelebration(). Vectors as SPEC again -- web's
+        // version is a useEffect over a ref and localStorage.
+        com.sanvya.app.domain.goals.registerCelebrationVectors()
+        runDomain("goal-celebration")
+    }
+    @Test
     fun diagnostics() {
         // P1.6a: registers Diagnostics.kt's port before running
         // diagnostics.json's vectors.
@@ -277,6 +291,22 @@ class VectorRunnerTest {
         runDomain("splits-item-breakdown")
     }
     @Test
+    fun `investments-portfolio`() {
+        // Portfolio.kt -- the allocation donut, the gain/loss bars, the
+        // financial-year dividend card and the projection curve. A SPEC:
+        // every one of them lives inside a React component on web.
+        com.sanvya.app.domain.investments.registerPortfolioVectors()
+        runDomain("investments-portfolio")
+    }
+    @Test
+    fun `instrument-catalog`() {
+        // InstrumentCatalog.kt -- the Add-investment picker's ranking, and the
+        // seed table itself, which is the one thing here transcribed by hand
+        // on two platforms and so the one thing that can drift silently.
+        com.sanvya.app.domain.investments.registerInstrumentCatalogVectors()
+        runDomain("instrument-catalog")
+    }
+    @Test
     fun `dashboard-grid`() {
         // TileGrid.kt's packRows(). Unusually, these vectors are the SPEC:
         // there is no web function to record, because the browser packs the
@@ -376,5 +406,13 @@ class VectorRunnerTest {
         // P1.6a: registers Upi.kt's port before running upi.json's vectors.
         com.sanvya.app.domain.upi.registerUpiVectors()
         runDomain("upi")
+    }
+    @Test
+    fun `transaction-audit`() {
+        // AuditSummary.kt. Web's version is a React component reading a module
+        // object literal, so the vectors record a transcription of it -- see
+        // AuditSummaryVectors.kt for the one divergence they pin.
+        com.sanvya.app.domain.transactions.registerTransactionAuditVectors()
+        runDomain("transaction-audit")
     }
 }

@@ -1,0 +1,130 @@
+[
+  {
+    "fn": "goalCelebration",
+    "input": {
+      "goalId": "g1",
+      "wasFunded": null,
+      "funded": true,
+      "celebrated": []
+    },
+    "expected": {
+      "celebrate": false,
+      "celebrated": []
+    }
+  },
+  {
+    "fn": "goalCelebration",
+    "input": {
+      "goalId": "g1",
+      "wasFunded": false,
+      "funded": true,
+      "celebrated": []
+    },
+    "expected": {
+      "celebrate": true,
+      "celebrated": [
+        "g1"
+      ]
+    }
+  },
+  {
+    "fn": "goalCelebration",
+    "input": {
+      "goalId": "g1",
+      "wasFunded": false,
+      "funded": true,
+      "celebrated": [
+        "g1"
+      ]
+    },
+    "expected": {
+      "celebrate": false,
+      "celebrated": [
+        "g1"
+      ]
+    }
+  },
+  {
+    "fn": "goalCelebration",
+    "input": {
+      "goalId": "g1",
+      "wasFunded": true,
+      "funded": true,
+      "celebrated": [
+        "g1"
+      ]
+    },
+    "expected": {
+      "celebrate": false,
+      "celebrated": [
+        "g1"
+      ]
+    }
+  },
+  {
+    "fn": "goalCelebration",
+    "input": {
+      "goalId": "g1",
+      "wasFunded": true,
+      "funded": false,
+      "celebrated": [
+        "g1"
+      ]
+    },
+    "expected": {
+      "celebrate": false,
+      "celebrated": []
+    }
+  },
+  {
+    "fn": "goalCelebration",
+    "input": {
+      "goalId": "g1",
+      "wasFunded": null,
+      "funded": false,
+      "celebrated": [
+        "g1",
+        "g2"
+      ]
+    },
+    "expected": {
+      "celebrate": false,
+      "celebrated": [
+        "g2"
+      ]
+    }
+  },
+  {
+    "fn": "goalCelebration",
+    "input": {
+      "goalId": "g1",
+      "wasFunded": false,
+      "funded": false,
+      "celebrated": []
+    },
+    "expected": {
+      "celebrate": false,
+      "celebrated": []
+    }
+  },
+  {
+    "fn": "goalCelebration",
+    "input": {
+      "goalId": "g2",
+      "wasFunded": false,
+      "funded": true,
+      "celebrated": [
+        "g1",
+        "g3"
+      ]
+    },
+    "expected": {
+      "celebrate": true,
+      "celebrated": [
+        "g1",
+        "g2",
+        "g3"
+      ]
+    }
+  }
+]

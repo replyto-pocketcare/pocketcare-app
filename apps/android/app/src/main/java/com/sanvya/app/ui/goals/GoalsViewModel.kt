@@ -25,6 +25,7 @@ import com.sanvya.app.domain.money.toMajor
 import com.sanvya.app.domain.money.money
 import com.sanvya.app.domain.money.fromMajor
 import com.sanvya.app.ui.formatMajorPlain
+import com.sanvya.app.domain.goals.goalCelebration
 
 data class GoalUiModel(
     val id: String,
@@ -83,6 +84,24 @@ class GoalsViewModel : ViewModel(), KoinComponent {
     private val _savingsAccounts = MutableStateFlow<List<SavingsAccountOption>>(emptyList())
     val savingsAccounts: StateFlow<List<SavingsAccountOption>> = _savingsAccounts
 
+    /**
+     * The NAME of a goal that just crossed into fully funded, or null.
+     *
+     * A name rather than a formatted sentence: the celebration's words are
+     * `S.Goals.*` and this ViewModel is outside composition, so it has no
+     * `Resources` to build them with.
+     */
+    private val _celebrating = MutableStateFlow<String?>(null)
+    val celebrating: StateFlow<String?> = _celebrating
+
+    /**
+     * The last funded state seen per goal, seeded (not fired) on first sight --
+     * web's `prevFunded` ref, one per card. Held here rather than per row
+     * because a Compose row is recreated on any recomposition and a ref inside
+     * one would re-seed itself, which is a celebration that never fires.
+     */
+    private val fundedSeen = mutableMapOf<String, Boolean?>()
+
     val hasEmergencyFund: Boolean get() = _goals.value.any { it.isEmergencyFund }
 
     init {
@@ -106,11 +125,23 @@ class GoalsViewModel : ViewModel(), KoinComponent {
             val ef = dbGoals.firstOrNull { it.isEmergencyFund }
             val efFunded = ef?.let { saved(it.id) >= it.targetAmount } ?: true
 
+            // The celebration decision runs over the WHOLE list in one pass,
+            // reading and rewriting the persisted set once. Doing it per row
+            // would read stale state for every goal after the first in a batch
+            // where two crossed at the same moment.
+            var celebrated = GoalCelebrationStore.celebrated()
+            val before = celebrated
+            var justReached: String? = null
+
             _goals.value = dbGoals.map { g ->
                 val savedAmount = saved(g.id)
                 val pct = if (g.targetAmount > 0) min(1.0, savedAmount.toDouble() / g.targetAmount.toDouble()) else 0.0
                 val funded = g.targetAmount > 0 && savedAmount >= g.targetAmount
                 val remaining = maxOf(0L, g.targetAmount - savedAmount)
+                val decision = goalCelebration(g.id, fundedSeen[g.id], funded, celebrated)
+                fundedSeen[g.id] = funded
+                celebrated = decision.celebrated
+                if (decision.celebrate) justReached = g.name
                 GoalUiModel(
                     id = g.id,
                     name = g.name,
@@ -127,9 +158,23 @@ class GoalsViewModel : ViewModel(), KoinComponent {
                     alertTimeLocal = utcToLocalTime(g.alertTimeUtc),
                 )
             }
+            if (celebrated != before) GoalCelebrationStore.save(celebrated)
+            // Only ever RAISED here. A celebration already on screen is not
+            // replaced by a second goal crossing behind it -- dismissing the
+            // first is what lets the next one through, and the persisted set
+            // means the one that lost the race is not lost, it simply never
+            // fires. Web has the same single-slot behaviour (`celebrate` is one
+            // string of state on the page).
+            justReached?.let { _celebrating.value = it }
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    /** Closes the celebration overlay. The goal stays in the persisted set,
+     * so it is not shown again unless the goal drops below its target. */
+    fun dismissCelebration() {
+        _celebrating.value = null
     }
 
     /** Matches web's addGoal(): validation, priority = current goal count. */

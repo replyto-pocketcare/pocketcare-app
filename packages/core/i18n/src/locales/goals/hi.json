@@ -28,5 +28,15 @@
   "add": "जोड़ें",
   "block": "रोकें",
   "save": "सहेजें",
-  "cancel": "रद्द करें"
+  "cancel": "रद्द करें",
+  "createFirst": "अपना पहला लक्ष्य बनाएँ",
+  "celebrationAria": "लक्ष्य पूरा हुआ: {{name}}",
+  "achieved": "लक्ष्य पूरा हुआ",
+  "celebrationName": "{{name}} 🎉",
+  "celebrationBody": "आपने इसे पूरी तरह फंड कर दिया। शाबाश।",
+  "celebrationHint": "जारी रखने के लिए कहीं भी टैप करें",
+  "celebrationHintDrag": "केक घुमाने के लिए खींचें · बंद करने के लिए बाहर टैप करें",
+  "celebrationTileTag": "लक्ष्य",
+  "celebrationTileFunded": "फंडेड",
+  "celebrationTilePct": "100%"
 }

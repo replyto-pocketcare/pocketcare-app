@@ -155,6 +155,16 @@ object S {
         fun alertAt(res: Resources): String = res.getString(R.string.budgets_alert_at)
         fun alertMeAt(res: Resources): String = res.getString(R.string.budgets_alert_me_at)
         fun allSpending(res: Resources): String = res.getString(R.string.budgets_all_spending)
+        fun breakdownEmpty(res: Resources): String = res.getString(R.string.budgets_breakdown_empty)
+        fun breakdownFallback(res: Resources): String = res.getString(R.string.budgets_breakdown_fallback)
+        fun breakdownLoading(res: Resources): String = res.getString(R.string.budgets_breakdown_loading)
+        fun breakdownMismatch(res: Resources, amount: Any): String =
+            res.getString(R.string.budgets_breakdown_mismatch, amount)
+        fun breakdownSummary(res: Resources, count: Int, amount: Any): String =
+            res.getQuantityString(R.plurals.budgets_breakdown_summary, count, count, amount)
+        fun breakdownTitleAria(res: Resources, title: Any): String =
+            res.getString(R.string.budgets_breakdown_title_aria, title)
+        fun breakdownTotal(res: Resources): String = res.getString(R.string.budgets_breakdown_total)
         fun cancel(res: Resources): String = res.getString(R.string.budgets_cancel)
         fun categoriesEmpty(res: Resources): String = res.getString(R.string.budgets_categories_empty)
         fun categoriesOptional(res: Resources): String = res.getString(R.string.budgets_categories_optional)
@@ -188,10 +198,14 @@ object S {
         fun periodYearly(res: Resources): String = res.getString(R.string.budgets_period_yearly)
         fun recurring(res: Resources): String = res.getString(R.string.budgets_recurring)
         fun save(res: Resources): String = res.getString(R.string.budgets_save)
+        fun spendChartAria(res: Resources): String = res.getString(R.string.budgets_spend_chart_aria)
+        fun spendChartLimit(res: Resources, amount: Any): String =
+            res.getString(R.string.budgets_spend_chart_limit, amount)
         fun spent(res: Resources, amount: Any): String =
             res.getString(R.string.budgets_spent, amount)
         fun timeframe(res: Resources): String = res.getString(R.string.budgets_timeframe)
         fun title(res: Resources): String = res.getString(R.string.budgets_title)
+        fun viewSpentAria(res: Resources): String = res.getString(R.string.budgets_view_spent_aria)
     }
 
     object Cards {
@@ -546,6 +560,7 @@ object S {
     }
 
     object Goals {
+        fun achieved(res: Resources): String = res.getString(R.string.goals_achieved)
         fun add(res: Resources): String = res.getString(R.string.goals_add)
         fun addFunds(res: Resources): String = res.getString(R.string.goals_add_funds)
         fun addGoal(res: Resources): String = res.getString(R.string.goals_add_goal)
@@ -555,6 +570,17 @@ object S {
         fun block(res: Resources): String = res.getString(R.string.goals_block)
         fun blockFunds(res: Resources): String = res.getString(R.string.goals_block_funds)
         fun cancel(res: Resources): String = res.getString(R.string.goals_cancel)
+        fun celebrationAria(res: Resources, name: Any): String =
+            res.getString(R.string.goals_celebration_aria, name)
+        fun celebrationBody(res: Resources): String = res.getString(R.string.goals_celebration_body)
+        fun celebrationHint(res: Resources): String = res.getString(R.string.goals_celebration_hint)
+        fun celebrationHintDrag(res: Resources): String = res.getString(R.string.goals_celebration_hint_drag)
+        fun celebrationName(res: Resources, name: Any): String =
+            res.getString(R.string.goals_celebration_name, name)
+        fun celebrationTileFunded(res: Resources): String = res.getString(R.string.goals_celebration_tile_funded)
+        fun celebrationTilePct(res: Resources): String = res.getString(R.string.goals_celebration_tile_pct)
+        fun celebrationTileTag(res: Resources): String = res.getString(R.string.goals_celebration_tile_tag)
+        fun createFirst(res: Resources): String = res.getString(R.string.goals_create_first)
         fun delete(res: Resources): String = res.getString(R.string.goals_delete)
         fun deleteMsg(res: Resources, name: Any): String =
             res.getString(R.string.goals_delete_msg, name)
@@ -704,17 +730,28 @@ object S {
         fun addInvestment(res: Resources): String = res.getString(R.string.investments_add_investment)
         fun addTo(res: Resources, name: Any): String =
             res.getString(R.string.investments_add_to, name)
+        fun allExchanges(res: Resources): String = res.getString(R.string.investments_all_exchanges)
         fun allInvestments(res: Resources): String = res.getString(R.string.investments_all_investments)
         fun allocation(res: Resources): String = res.getString(R.string.investments_allocation)
+        fun allocationEmpty(res: Resources): String = res.getString(R.string.investments_allocation_empty)
+        fun allTime(res: Resources): String = res.getString(R.string.investments_all_time)
         fun alreadyHold(res: Resources): String = res.getString(R.string.investments_already_hold)
         fun amountInvested(res: Resources, cur: Any): String =
             res.getString(R.string.investments_amount_invested, cur)
         fun asOf(res: Resources, date: Any): String =
             res.getString(R.string.investments_as_of, date)
+        fun assetClassCrypto(res: Resources): String = res.getString(R.string.investments_asset_class_crypto)
+        fun assetClassFd(res: Resources): String = res.getString(R.string.investments_asset_class_fd)
+        fun assetClassMf(res: Resources): String = res.getString(R.string.investments_asset_class_mf)
+        fun assetClassOther(res: Resources): String = res.getString(R.string.investments_asset_class_other)
+        fun assetClassSip(res: Resources): String = res.getString(R.string.investments_asset_class_sip)
+        fun assetClassStock(res: Resources): String = res.getString(R.string.investments_asset_class_stock)
+        fun assumedGrowth(res: Resources): String = res.getString(R.string.investments_assumed_growth)
         fun avgCost(res: Resources, cur: Any): String =
             res.getString(R.string.investments_avg_cost, cur)
         fun byExchangeScheme(res: Resources): String = res.getString(R.string.investments_by_exchange_scheme)
         fun cancel(res: Resources): String = res.getString(R.string.investments_cancel)
+        fun catalogSeedNote(res: Resources): String = res.getString(R.string.investments_catalog_seed_note)
         fun currentValue(res: Resources): String = res.getString(R.string.investments_current_value)
         fun currentValueCur(res: Resources, cur: Any): String =
             res.getString(R.string.investments_current_value_cur, cur)
@@ -724,26 +761,65 @@ object S {
         fun deductFrom(res: Resources, amount: Any): String =
             res.getString(R.string.investments_deduct_from, amount)
         fun demat(res: Resources): String = res.getString(R.string.investments_demat)
+        fun dividendFootnote(res: Resources): String = res.getString(R.string.investments_dividend_footnote)
+        fun dividendIncome(res: Resources): String = res.getString(R.string.investments_dividend_income)
         fun dividendsEarned(res: Resources, fy: Any): String =
             res.getString(R.string.investments_dividends_earned, fy)
         fun dividendsNote(res: Resources): String = res.getString(R.string.investments_dividends_note)
+        fun divPeriodAll(res: Resources): String = res.getString(R.string.investments_div_period_all)
+        fun divPeriodMonth(res: Resources): String = res.getString(R.string.investments_div_period_month)
+        fun divPeriodQuarter(res: Resources): String = res.getString(R.string.investments_div_period_quarter)
+        fun divPeriodWeek(res: Resources): String = res.getString(R.string.investments_div_period_week)
+        fun divPeriodYear(res: Resources): String = res.getString(R.string.investments_div_period_year)
         fun edit(res: Resources): String = res.getString(R.string.investments_edit)
         fun eodNote(res: Resources, asOf: Any): String =
             res.getString(R.string.investments_eod_note, asOf)
+        fun errAddFailed(res: Resources): String = res.getString(R.string.investments_err_add_failed)
+        fun errFundingAccount(res: Resources): String = res.getString(R.string.investments_err_funding_account)
+        fun errHoldingNotFound(res: Resources): String = res.getString(R.string.investments_err_holding_not_found)
+        fun errInstrument(res: Resources): String = res.getString(R.string.investments_err_instrument)
+        fun errInvalidQuantity(res: Resources): String = res.getString(R.string.investments_err_invalid_quantity)
+        fun errName(res: Resources): String = res.getString(R.string.investments_err_name)
+        fun errNoUser(res: Resources): String = res.getString(R.string.investments_err_no_user)
+        fun errQuantity(res: Resources): String = res.getString(R.string.investments_err_quantity)
+        fun errSaveFailed(res: Resources): String = res.getString(R.string.investments_err_save_failed)
+        fun errSipAmount(res: Resources): String = res.getString(R.string.investments_err_sip_amount)
+        fun errSipSource(res: Resources): String = res.getString(R.string.investments_err_sip_source)
+        fun exchangeLabel(res: Resources): String = res.getString(R.string.investments_exchange_label)
         fun existingNote(res: Resources): String = res.getString(R.string.investments_existing_note)
+        fun fyLabel(res: Resources, start: Any, end: Any): String =
+            res.getString(R.string.investments_fy_label, start, end)
         fun gainLossByGroup(res: Resources): String = res.getString(R.string.investments_gain_loss_by_group)
+        fun gainsEmpty(res: Resources): String = res.getString(R.string.investments_gains_empty)
+        fun groupTitleCrypto(res: Resources): String = res.getString(R.string.investments_group_title_crypto)
+        fun groupTitleFallback(res: Resources): String = res.getString(R.string.investments_group_title_fallback)
+        fun groupTitleFd(res: Resources): String = res.getString(R.string.investments_group_title_fd)
+        fun groupTitleMf(res: Resources): String = res.getString(R.string.investments_group_title_mf)
+        fun groupTitleOther(res: Resources): String = res.getString(R.string.investments_group_title_other)
+        fun groupTitleSip(res: Resources): String = res.getString(R.string.investments_group_title_sip)
+        fun groupTitleStock(res: Resources): String = res.getString(R.string.investments_group_title_stock)
+        fun groupTitleStocksOther(res: Resources): String = res.getString(R.string.investments_group_title_stocks_other)
+        fun growthPlusDividends(res: Resources): String = res.getString(R.string.investments_growth_plus_dividends)
         fun holdingsCount(res: Resources, count: Int): String =
             res.getQuantityString(R.plurals.investments_holdings_count, count, count)
+        fun horizon(res: Resources): String = res.getString(R.string.investments_horizon)
         fun inOurList(res: Resources): String = res.getString(R.string.investments_in_our_list)
         fun insights(res: Resources): String = res.getString(R.string.investments_insights)
+        fun instrumentSearch(res: Resources): String = res.getString(R.string.investments_instrument_search)
+        fun instrumentSource(res: Resources): String = res.getString(R.string.investments_instrument_source)
         fun interestPa(res: Resources): String = res.getString(R.string.investments_interest_pa)
         fun invested(res: Resources): String = res.getString(R.string.investments_invested)
         fun investedLabel(res: Resources, amount: Any): String =
             res.getString(R.string.investments_invested_label, amount)
         fun investmentAccount(res: Resources): String = res.getString(R.string.investments_investment_account)
+        fun inYears(res: Resources, years: Any): String =
+            res.getString(R.string.investments_in_years, years)
+        fun last12Months(res: Resources): String = res.getString(R.string.investments_last12_months)
         fun ltpLabel(res: Resources): String = res.getString(R.string.investments_ltp_label)
         fun matures(res: Resources): String = res.getString(R.string.investments_matures)
         fun maturityDate(res: Resources): String = res.getString(R.string.investments_maturity_date)
+        fun monthlyContribution(res: Resources, cur: Any): String =
+            res.getString(R.string.investments_monthly_contribution, cur)
         fun nameLabel(res: Resources, type: Any): String =
             res.getString(R.string.investments_name_label, type)
         fun navAvgCost(res: Resources, cur: Any): String =
@@ -752,8 +828,11 @@ object S {
             res.getString(R.string.investments_nav_cost, cur)
         fun newFund(res: Resources): String = res.getString(R.string.investments_new_fund)
         fun newOrHold(res: Resources): String = res.getString(R.string.investments_new_or_hold)
+        fun next12Months(res: Resources): String = res.getString(R.string.investments_next12_months)
         fun nextSipDate(res: Resources): String = res.getString(R.string.investments_next_sip_date)
+        fun noDividendData(res: Resources): String = res.getString(R.string.investments_no_dividend_data)
         fun noFundAccount(res: Resources): String = res.getString(R.string.investments_no_fund_account)
+        fun noInstrumentMatches(res: Resources): String = res.getString(R.string.investments_no_instrument_matches)
         fun noInvAccountBodyPost(res: Resources): String = res.getString(R.string.investments_no_inv_account_body_post)
         fun noInvAccountBodyPre(res: Resources): String = res.getString(R.string.investments_no_inv_account_body_pre)
         fun noInvAccountTitle(res: Resources): String = res.getString(R.string.investments_no_inv_account_title)
@@ -763,8 +842,14 @@ object S {
             res.getString(R.string.investments_over_funds, account)
         fun perAnnum(res: Resources, rate: Any): String =
             res.getString(R.string.investments_per_annum, rate)
+        fun projectedValue(res: Resources): String = res.getString(R.string.investments_projected_value)
+        fun projectedWealth(res: Resources): String = res.getString(R.string.investments_projected_wealth)
+        fun projectionFootnote(res: Resources): String = res.getString(R.string.investments_projection_footnote)
         fun qty(res: Resources): String = res.getString(R.string.investments_qty)
         fun quantity(res: Resources): String = res.getString(R.string.investments_quantity)
+        fun reinvestDividends(res: Resources): String = res.getString(R.string.investments_reinvest_dividends)
+        fun reinvestYield(res: Resources, pct: Any): String =
+            res.getString(R.string.investments_reinvest_yield, pct)
         fun remove(res: Resources): String = res.getString(R.string.investments_remove)
         fun removeMsg(res: Resources, label: Any): String =
             res.getString(R.string.investments_remove_msg, label)
@@ -773,12 +858,17 @@ object S {
         fun selectAccount(res: Resources): String = res.getString(R.string.investments_select_account)
         fun sipAmount(res: Resources, cur: Any): String =
             res.getString(R.string.investments_sip_amount, cur)
+        fun sipDebitDay(res: Resources): String = res.getString(R.string.investments_sip_debit_day)
+        fun sipDebitDayHint(res: Resources): String = res.getString(R.string.investments_sip_debit_day_hint)
         fun sipFreqMonthly(res: Resources): String = res.getString(R.string.investments_sip_freq_monthly)
         fun sipFreqWeekly(res: Resources): String = res.getString(R.string.investments_sip_freq_weekly)
         fun sipFreqYearly(res: Resources): String = res.getString(R.string.investments_sip_freq_yearly)
+        fun sipFrequency(res: Resources): String = res.getString(R.string.investments_sip_frequency)
         fun sipLine(res: Resources): String = res.getString(R.string.investments_sip_line)
         fun sipNote(res: Resources, amount: Any, account: Any): String =
             res.getString(R.string.investments_sip_note, amount, account)
+        fun sipStartDate(res: Resources): String = res.getString(R.string.investments_sip_start_date)
+        fun startTypingInstrument(res: Resources): String = res.getString(R.string.investments_start_typing_instrument)
         fun stopSip(res: Resources): String = res.getString(R.string.investments_stop_sip)
         fun stopSipMsg(res: Resources): String = res.getString(R.string.investments_stop_sip_msg)
         fun stopSipTitle(res: Resources): String = res.getString(R.string.investments_stop_sip_title)
@@ -789,8 +879,12 @@ object S {
         fun total(res: Resources): String = res.getString(R.string.investments_total)
         fun totalGainLoss(res: Resources): String = res.getString(R.string.investments_total_gain_loss)
         fun units(res: Resources): String = res.getString(R.string.investments_units)
+        fun unitWordCoins(res: Resources): String = res.getString(R.string.investments_unit_word_coins)
+        fun unitWordShares(res: Resources): String = res.getString(R.string.investments_unit_word_shares)
+        fun unitWordUnits(res: Resources): String = res.getString(R.string.investments_unit_word_units)
         fun untracked(res: Resources): String = res.getString(R.string.investments_untracked)
         fun valueLabel(res: Resources): String = res.getString(R.string.investments_value_label)
+        fun youPutIn(res: Resources): String = res.getString(R.string.investments_you_put_in)
     }
 
     object Join {
@@ -1654,6 +1748,8 @@ object S {
         fun auditToAccountId(res: Resources): String = res.getString(R.string.transactions_audit_to_account_id)
         fun auditToAmount(res: Resources): String = res.getString(R.string.transactions_audit_to_amount)
         fun auditType(res: Resources): String = res.getString(R.string.transactions_audit_type)
+        fun auditActionDelete(res: Resources): String = res.getString(R.string.transactions_audit_action_delete)
+        fun auditActionUpdate(res: Resources): String = res.getString(R.string.transactions_audit_action_update)
         fun autoCategorised(res: Resources): String = res.getString(R.string.transactions_auto_categorised)
         fun autoSplitWith(res: Resources, name: Any): String =
             res.getString(R.string.transactions_auto_split_with, name)
@@ -1737,6 +1833,19 @@ object S {
         fun sharesMismatch(res: Resources, sum: Any, total: Any): String =
             res.getString(R.string.transactions_shares_mismatch, sum, total)
         fun someone(res: Resources): String = res.getString(R.string.transactions_someone)
+        fun splitBannerFootnote(res: Resources): String = res.getString(R.string.transactions_split_banner_footnote)
+        fun splitBannerOpenGroup(res: Resources): String = res.getString(R.string.transactions_split_banner_open_group)
+        fun splitBannerOpenNamed(res: Resources, name: Any): String =
+            res.getString(R.string.transactions_split_banner_open_named, name)
+        fun splitBannerOwedToYou(res: Resources): String = res.getString(R.string.transactions_split_banner_owed_to_you)
+        fun splitBannerParticipantLine(res: Resources, share: Any, paid: Any): String =
+            res.getString(R.string.transactions_split_banner_participant_line, share, paid)
+        fun splitBannerParticipants(res: Resources): String = res.getString(R.string.transactions_split_banner_participants)
+        fun splitBannerTitle(res: Resources): String = res.getString(R.string.transactions_split_banner_title)
+        fun splitBannerTotalBill(res: Resources): String = res.getString(R.string.transactions_split_banner_total_bill)
+        fun splitBannerYouOwe(res: Resources): String = res.getString(R.string.transactions_split_banner_you_owe)
+        fun splitBannerYouPaid(res: Resources): String = res.getString(R.string.transactions_split_banner_you_paid)
+        fun splitBannerYourShare(res: Resources): String = res.getString(R.string.transactions_split_banner_your_share)
         fun splitBetween(res: Resources): String = res.getString(R.string.transactions_split_between)
         fun splitChip(res: Resources): String = res.getString(R.string.transactions_split_chip)
         fun splitExpense(res: Resources): String = res.getString(R.string.transactions_split_expense)

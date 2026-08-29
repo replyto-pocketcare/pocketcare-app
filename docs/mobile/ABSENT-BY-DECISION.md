@@ -164,3 +164,22 @@ verification stays blocked, and pointless once it isn't.
 | **`"Uncategorized"` here, `"Uncategorised"` in the analyzer** | Both are web's, in two different files. Reproduced as-is; making them agree is a change to `apps/web` |
 | **`liquidSavings` counts only base-currency accounts** | Web's rule. A dollar balance summed into a rupee total would be a wrong number stated confidently, which is the worst kind for a model to reason from — but it also means a user whose savings are all in a second currency is told they have none |
 
+
+## "Pay anyone" — dropped from the product, 2026-08-29
+
+**Decision by the product owner: the feature is being removed from `apps/web`.
+It will not be ported.**
+
+What it was: `apps/web/app/friends/page.tsx:216` — a typed UPI ID or a camera QR
+scan, validated through `parseUpiTarget`, that let you pay a shop or a
+non-member. It was one of the two remaining Large gaps in the Splits slice.
+
+This is **not** the same as the "Your UPI ID" panel, which stays on the list.
+That one is about saving and disclosing your OWN handle so other members can pay
+you; `parseUpiTarget` and the `payments` namespace it uses remain live for that
+path and for in-group settle-up. Only the pay-an-arbitrary-target entry point
+goes.
+
+Recorded here rather than simply deleted from the register so that a later pass
+does not "discover the gap again" and helpfully port it back. Removing it from
+web is tracked as web item **R1** in `PARITY_AUDIT.md`.

@@ -127,6 +127,26 @@ public struct TransactionAudit: Sendable {
     public let createdAt: String
 }
 
+/// One person on a split expense, as the edit screen's split banner shows them.
+public struct SplitParticipant: Sendable {
+    public let userId: String
+    /// Nil when no profile row is visible — the VIEW supplies the fallback name.
+    public let name: String?
+    public let paidAmount: Int64
+    public let shareAmount: Int64
+}
+
+/// The split expense one ledger row belongs to — web's `SplitBanner` data.
+public struct TransactionSplit: Sendable {
+    public let expenseId: String
+    public let groupId: String?
+    public let groupName: String?
+    public let currency: String
+    /// The whole bill, in minor units — not this leg of it.
+    public let total: Int64
+    public let participants: [SplitParticipant]
+}
+
 public struct AccountWithBalance: Sendable {
     public let account: Account
     public let balance: Money
@@ -692,6 +712,132 @@ public final class LedgerRepository: @unchecked Sendable {
                 groupId: try cursor.getStringOptional(name: "gid")
             )
         }
+    }
+
+    /// The split expense this ledger row belongs to, if any — the data behind
+    /// web's `SplitBanner` on transactions/[id]/edit/page.tsx.
+    ///
+    /// Web runs five `useQuery` hooks side by side (posting, expense, group,
+    /// participants, profiles) and joins them in the component. One statement
+    /// does the same joins in SQLite and re-emits when ANY of those tables
+    /// changes, which is what PowerSync's `watch` already gives us — five
+    /// separate streams would only have to be recombined by hand.
+    ///
+    /// Yields every participant, not just the viewer: the caller knows which id
+    /// is "me" and the banner shows the whole breakdown. Yields nil when this
+    /// transaction is an ordinary row, which is the banner's "render nothing".
+    ///
+    /// The profile join is web's `useUserProfiles` union — `public_profiles`
+    /// for co-members you can see, `profiles` for yourself. `display_name`
+    /// wins, the email local-part is the fallback, and a participant with
+    /// NEITHER comes back with a nil name so the VIEW can name them in the
+    /// user's language instead of this layer hardcoding "Someone".
+    public func watchSplitForTransaction(transactionId: String) throws -> AsyncThrowingStream<TransactionSplit?, Error> {
+        /// One joined row, before folding. The header columns repeat on every
+        /// row (one statement, one expense), so the first row carries them.
+        struct Row: Sendable {
+            let expenseId: String
+            let groupId: String?
+            let groupName: String?
+            let currency: String
+            let total: Int64
+            let participantId: String?
+            let displayName: String?
+            let email: String?
+            let paidAmount: Int64
+            let shareAmount: Int64
+        }
+        let rows: AsyncThrowingStream<[Row], Error> = try db.watch(
+            sql: """
+                SELECT e.id AS expense_id, e.group_id AS group_id, e.amount AS total,
+                       e.currency AS currency, g.name AS group_name,
+                       p.user_id AS participant_id, p.paid_amount AS paid_amount,
+                       p.share_amount AS share_amount,
+                       COALESCE(pub.display_name, own.display_name) AS display_name,
+                       COALESCE(pub.email, own.email) AS email
+                  FROM expense_postings po
+                  JOIN expenses e ON e.id = po.expense_id AND e.deleted_at IS NULL
+                  LEFT JOIN split_groups g ON g.id = e.group_id
+                  LEFT JOIN expense_participants p ON p.expense_id = e.id AND p.deleted_at IS NULL
+                  LEFT JOIN public_profiles pub ON pub.id = p.user_id
+                  LEFT JOIN profiles own ON own.id = p.user_id
+                 WHERE po.transaction_id = ? AND po.expense_id IS NOT NULL AND po.deleted_at IS NULL
+                 ORDER BY p.created_at
+                """,
+            parameters: [transactionId],
+            mapper: { cursor in
+                Row(
+                    expenseId: try cursor.getString(name: "expense_id"),
+                    groupId: try cursor.getStringOptional(name: "group_id"),
+                    groupName: try cursor.getStringOptional(name: "group_name"),
+                    currency: try cursor.getString(name: "currency"),
+                    total: (try cursor.getInt64Optional(name: "total")) ?? 0,
+                    // Optional: the LEFT JOIN keeps the expense header even when
+                    // it has no participant rows yet, and the banner still has a
+                    // total to show.
+                    participantId: try cursor.getStringOptional(name: "participant_id"),
+                    displayName: try cursor.getStringOptional(name: "display_name"),
+                    email: try cursor.getStringOptional(name: "email"),
+                    paidAmount: (try cursor.getInt64Optional(name: "paid_amount")) ?? 0,
+                    shareAmount: (try cursor.getInt64Optional(name: "share_amount")) ?? 0
+                )
+            }
+        )
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await batch in rows {
+                        guard let head = batch.first else {
+                            continuation.yield(nil)
+                            continue
+                        }
+                        let participants: [SplitParticipant] = batch.compactMap { row in
+                            guard let id = row.participantId else { return nil }
+                            // Web's `useUserProfiles`: display name, else the
+                            // email local-part, else nothing — and "nothing"
+                            // stays nil here so the view can translate it.
+                            let named = (row.displayName?.isEmpty ?? true) ? nil : row.displayName
+                            var fromEmail: String?
+                            if let email = row.email, !email.isEmpty {
+                                fromEmail = String(email.prefix(while: { character in character != "@" }))
+                            }
+                            return SplitParticipant(
+                                userId: id,
+                                name: named ?? fromEmail,
+                                paidAmount: row.paidAmount,
+                                shareAmount: row.shareAmount
+                            )
+                        }
+                        continuation.yield(TransactionSplit(
+                            expenseId: head.expenseId,
+                            groupId: head.groupId,
+                            groupName: head.groupName,
+                            currency: head.currency,
+                            total: head.total,
+                            participants: participants
+                        ))
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { @Sendable _ in task.cancel() }
+        }
+    }
+
+    /// Every audit record for one transaction, newest first (reactive).
+    ///
+    /// The one-shot `history(transactionId:)` matches the real repository's
+    /// method exactly and is kept for anything that wants a snapshot; the edit
+    /// screen's history sheet wants what web's `useQuery` gives it — a list that
+    /// grows when this transaction is saved again while the sheet is open.
+    public func watchHistory(transactionId: String) throws -> AsyncThrowingStream<[TransactionAudit], Error> {
+        try db.watch(
+            sql: "SELECT id, transaction_id, action, changes, created_at FROM transaction_audit WHERE transaction_id = ? ORDER BY created_at DESC",
+            parameters: [transactionId],
+            mapper: auditMapper
+        )
     }
 
     /// Transactions inside a date range, for the Statements screen.

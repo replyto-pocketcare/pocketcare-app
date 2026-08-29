@@ -6,6 +6,11 @@ import SwiftUI
 /// no real repository calls, no EF-lock logic, no allocate/edit/delete.
 /// The Cashflow tab is removed entirely (invented UI, see the ViewModel's
 /// header comment); this is Goals-only now, matching the real web page.
+///
+/// 2026-08-29: reaching a goal now earns web's celebration
+/// (`GoalCelebrationView`), and the English literals this screen had inline --
+/// the EF banner, the locked note, "Goal reached!", "Add funds"/"Block funds",
+/// the empty state -- are the same `goals` keys web reads.
 struct GoalsView: View {
     @State private var showingCreateSheet = false
     @State private var editingGoal: GoalsViewModel.GoalUiModel?
@@ -25,7 +30,7 @@ struct GoalsView: View {
                     ScrollView {
                         VStack(spacing: 14) {
                             if let ef = viewModel.goals.first(where: { $0.isEmergencyFund }), !ef.funded {
-                                Text("Fund your emergency fund first — other goals unlock once it's fully funded.")
+                                Text(S.Goals.efFirst)
                                     .font(.subheadline)
                                     .foregroundColor(Color.text)
                                     .padding(14)
@@ -55,6 +60,20 @@ struct GoalsView: View {
             .sanvyaFormPresentation(item: $allocatingGoal) { goal in
                 AllocateGoalView(goal: goal, viewModel: viewModel)
             }
+            // Deliberately NOT attached to a row: the celebration is about the
+            // goal, not about the card, and a row that scrolls off screen
+            // mid-animation must not take the moment with it.
+            .fullScreenCover(
+                isPresented: Binding(
+                    get: { viewModel.celebrating != nil },
+                    set: { if !$0 { viewModel.dismissCelebration() } }
+                )
+            ) {
+                if let name = viewModel.celebrating {
+                    GoalCelebrationView(name: name) { viewModel.dismissCelebration() }
+                        .presentationBackground(.clear)
+                }
+            }
             .onAppear { viewModel.start() }
             .onDisappear { viewModel.cancel() }
         }
@@ -62,15 +81,14 @@ struct GoalsView: View {
 
     private var emptyState: some View {
         VStack(spacing: 10) {
-            Text("No goals yet").font(.title3).fontWeight(.bold).foregroundColor(Color.text)
-            Text("Set a savings target and start blocking funds toward it.")
+            Text(S.Goals.noGoals)
                 .font(.subheadline)
                 .foregroundColor(Color.text2)
                 .multilineTextAlignment(.center)
             Button(action: { showingCreateSheet = true }) {
                 HStack(spacing: 6) {
                     Image(systemName: "plus")
-                    Text("Create first goal").fontWeight(.semibold)
+                    Text(S.Goals.createFirst).fontWeight(.semibold)
                 }
                 .padding(.horizontal, 18)
                 .padding(.vertical, 10)
@@ -102,7 +120,9 @@ private struct GoalRowCard: View {
                                     Image(systemName: "checkmark.circle.fill").font(.caption).foregroundColor(Color.accent)
                                     Text(S.Goals.funded).font(.caption).fontWeight(.semibold).foregroundColor(Color.accent)
                                 } else if goal.isEmergencyFund {
-                                    Text("· liquid").font(.caption).foregroundColor(Color.text2)
+                                    // The separator is web's own " · " between
+                                    // the goal name and its tag.
+                                    Text("· \(S.Goals.efLiquid)").font(.caption).foregroundColor(Color.text2)
                                 }
                             }
                             Text("\(goal.savedFormatted) / \(goal.targetFormatted)")
@@ -122,17 +142,17 @@ private struct GoalRowCard: View {
                     .opacity(goal.locked ? 0.55 : 1)
 
                 if goal.locked {
-                    Text("Locked until the emergency fund is fully funded")
+                    Text(S.Goals.lockedUntil)
                         .font(.caption)
                         .foregroundColor(Color.text2)
                 } else if goal.funded {
-                    Text("Goal reached!")
+                    Text(S.Goals.goalReached)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(Color.accent)
                 } else {
                     Button(action: onAllocate) {
-                        Text("+ \(goal.isEmergencyFund ? "Add funds" : "Block funds")")
+                        Text("+ \(goal.isEmergencyFund ? S.Goals.addFunds : S.Goals.blockFunds)")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(Color.accent)

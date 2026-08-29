@@ -1,0 +1,634 @@
+[
+  {
+    "fn": "seedInstrumentKeys",
+    "input": {},
+    "expected": [
+      "0700|HKEX",
+      "500325|BSE_IN",
+      "532540|BSE_IN",
+      "7203|TSE",
+      "9984|TSE",
+      "9988|HKEX",
+      "AAPL|NASDAQ",
+      "AMD|NASDAQ",
+      "AMZN|NASDAQ",
+      "ASML|AMS",
+      "AVGO|NASDAQ",
+      "AZN|LSE",
+      "BAC|NYSE",
+      "BHARTIARTL|NSE_IN",
+      "BHP|ASX",
+      "BP|LSE",
+      "BRK.B|NYSE",
+      "CBA|ASX",
+      "COST|NASDAQ",
+      "DIS|NYSE",
+      "GOOGL|NASDAQ",
+      "HDFCBANK|NSE_IN",
+      "HINDUNILVR|NSE_IN",
+      "HSBA|LSE",
+      "ICICIBANK|NSE_IN",
+      "INFY|NSE_IN",
+      "ITC|NSE_IN",
+      "JNJ|NYSE",
+      "JPM|NYSE",
+      "KO|NYSE",
+      "LT|NSE_IN",
+      "MA|NYSE",
+      "MC|EPA",
+      "META|NASDAQ",
+      "MSFT|NASDAQ",
+      "NESN|SWX",
+      "NFLX|NASDAQ",
+      "NIFTYBEES|NSE_IN",
+      "NVDA|NASDAQ",
+      "PEP|NASDAQ",
+      "PG|NYSE",
+      "QQQ|NASDAQ",
+      "RELIANCE|NSE_IN",
+      "RY|TSX",
+      "SAP|XETRA",
+      "SBIN|NSE_IN",
+      "SHEL|LSE",
+      "SHOP|TSX",
+      "SIE|XETRA",
+      "SPY|NYSE",
+      "TCS|NSE_IN",
+      "TSLA|NASDAQ",
+      "ULVR|LSE",
+      "VOO|NYSE",
+      "VUSA|LSE",
+      "V|NYSE",
+      "WMT|NYSE",
+      "XOM|NYSE"
+    ]
+  },
+  {
+    "fn": "instrumentKey",
+    "input": {
+      "symbol": "aapl",
+      "exchange": "nasdaq"
+    },
+    "expected": "AAPL|NASDAQ"
+  },
+  {
+    "fn": "instrumentKey",
+    "input": {
+      "symbol": "BRK.B",
+      "exchange": "NYSE"
+    },
+    "expected": "BRK.B|NYSE"
+  },
+  {
+    "fn": "knownExchanges",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ]
+    },
+    "expected": [
+      "BSE_IN",
+      "NASDAQ",
+      "NSE_IN",
+      "NYSE"
+    ]
+  },
+  {
+    "fn": "knownExchanges",
+    "input": {
+      "list": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "aapl",
+      "exchange": null,
+      "limit": 30
+    },
+    "expected": [
+      "AAPL|NASDAQ"
+    ]
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "aap",
+      "exchange": null,
+      "limit": 30
+    },
+    "expected": [
+      "AAP|NYSE",
+      "AAPL|NASDAQ"
+    ]
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "app",
+      "exchange": null,
+      "limit": 30
+    },
+    "expected": [
+      "APPF|NASDAQ",
+      "AAPL|NASDAQ"
+    ]
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "reliance",
+      "exchange": null,
+      "limit": 30
+    },
+    "expected": [
+      "RELIANCE|NSE_IN",
+      "500325|BSE_IN"
+    ]
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "reliance",
+      "exchange": "BSE_IN",
+      "limit": 30
+    },
+    "expected": [
+      "500325|BSE_IN"
+    ]
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "",
+      "exchange": "NASDAQ",
+      "limit": 30
+    },
+    "expected": [
+      "AAPL|NASDAQ",
+      "APPF|NASDAQ",
+      "MSFT|NASDAQ"
+    ]
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "",
+      "exchange": null,
+      "limit": 2
+    },
+    "expected": [
+      "AAPL|NASDAQ",
+      "AAP|NYSE"
+    ]
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "  MSFT  ",
+      "exchange": null,
+      "limit": 30
+    },
+    "expected": [
+      "MSFT|NASDAQ"
+    ]
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "zzz",
+      "exchange": null,
+      "limit": 30
+    },
+    "expected": []
+  },
+  {
+    "fn": "searchInstruments",
+    "input": {
+      "list": [
+        {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "AAP",
+          "name": "Advance Auto Parts",
+          "exchange": "NYSE",
+          "currency": "USD"
+        },
+        {
+          "symbol": "APPF",
+          "name": "AppFolio Inc.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "MSFT",
+          "name": "Microsoft Corp.",
+          "exchange": "NASDAQ",
+          "currency": "USD"
+        },
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "NSE_IN",
+          "currency": "INR"
+        },
+        {
+          "symbol": "500325",
+          "name": "Reliance Industries Ltd.",
+          "exchange": "BSE_IN",
+          "currency": "INR"
+        }
+      ],
+      "query": "in",
+      "exchange": null,
+      "limit": 3
+    },
+    "expected": [
+      "500325|BSE_IN",
+      "AAPL|NASDAQ",
+      "APPF|NASDAQ"
+    ]
+  }
+]

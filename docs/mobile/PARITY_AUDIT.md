@@ -163,7 +163,7 @@ Legend: ✅ ported, no known gap · 🔶 ported with recorded gaps · ❌ not bu
 | `/accounts/[id]/edit` | (189) | `EditAccountScreen.kt` (203) | `EditAccountView.swift` (261) | 🔶 |
 | `/transactions` | (92) + `TransactionTile.tsx` (273) | `TransactionsScreen.kt` (148) | `TransactionsView.swift` (124) | 🔶 Split-row collapsing added 2026-08-26 (it was showing one dinner as three rows). Absent: the "Scanned" chip |
 | `/transactions/new` | (674) | `CreateTransactionScreen.kt` (258) + `SplitEditor.kt` (408) | `CreateTransactionView.swift` (568) + `SplitEditorView.swift` (307) | 🔶 **Split editor built 2026-08-28** (both cards, all three modes, multi-payer, auto-split). Auto-categorise is built. Remaining: templates |
-| `/transactions/[id]/edit` | (449) | `EditTransactionScreen.kt` (211) | `EditTransactionView.swift` (315) | 🔶 edit-history audit modal missing |
+| `/transactions/[id]/edit` | (449) | `EditTransactionScreen.kt` + `SplitBanner.kt` + `EditHistorySheet.kt` | `EditTransactionView.swift` + `SplitBannerView.swift` + `EditHistorySheet.swift` | ✅ Edit-history sheet and split banner both built 2026-08-29 (`transaction-audit` vectors pin the field whitelist). Web's kebab is a header chip/toolbar button on both, per GroupDetail's precedent |
 | `/cards` | (352) + `src/cards` (75) | `creditcards/CreditCardsScreen.kt` (307) | `CreditCardsView.swift` (282) | 🔶 |
 | `/friends` (shared & owed) | (493) + `src/splits/*` (1432) | `splits/SplitsScreen.kt` (226) | `SplitsView.swift` (144) | 🔶 FriendInsights/Patterns panel not rendered; 2026-08-12 tiles redesign not ported |
 | `/groups/[id]` | (364) | `splits/GroupDetailScreen.kt` (275) | `GroupDetailView.swift` (313) | 🔶 equal-split only; percent/exact/itemised and group edit/delete missing |
@@ -3358,3 +3358,165 @@ New, and worth scheduling:
    now the second one-shot inside that collector. A third will make the cards
    list visibly slow. The answer is one reactive per-card aggregate, not more
    one-shots.
+
+## Web items — removals, not fixes
+
+The numbered list above is defects: things web does wrong that mobile either
+mirrors or deliberately corrects. This list is different. These are deliberate
+product decisions to take something OUT of `apps/web`, agreed by the product
+owner. Mobile does not port them, and a later parity pass must not treat their
+absence as a gap.
+
+| # | Item | Decided | Notes |
+|---|---|---|---|
+| R1 | **Remove "Pay anyone"** — the typed-UPI-ID / camera-QR flow at `apps/web/app/friends/page.tsx:216` | 2026-08-29 | Never ported to mobile; struck from the parity register the same day. Keep `parseUpiTarget` and the `payments` namespace: the "Your UPI ID" panel and in-group settle-up both still use them. Only the pay-an-arbitrary-target entry point goes |
+
+`apps/web` is still off-limits to this workstream — this is a note for whoever
+does the web change, not a task list for it.
+
+## Tranche 6 — investments, budgets, goals, transaction edit (2026-08-29)
+
+Eleven more gaps, three slices in parallel, then the two whole-diff
+compile-sanity reviews. **84 new golden vectors** across five new corpora, which
+is the real story of this pass: almost all of it was arithmetic, and arithmetic
+is the one thing the two platforms must not be allowed to disagree about.
+
+| Slice | Closed |
+|---|---|
+| Investments | SIP actually collects and writes · instrument-catalog picker (seed) · allocation donut + gain/loss bars · "Dividends earned this FY" · DividendPanel + ProjectionPanel |
+| Budgets · goals | spent breakdown · per-budget cumulative spend-vs-limit chart · goal-reached celebration |
+| Transaction edit | SplitBanner · edit history (`transaction_audit`) |
+
+Two items on the list were **already done** and the register was stale: the
+running total on Edit, and the receipt image preview. The `saveWithTotal` label
+is correctly absent from Edit — web's edit page uses `saveChanges`, and adding
+it would have *broken* parity.
+
+### New Domain, new vectors
+
+`allocationSlices` · `gainBars` · `fyStart` · `financialYear` ·
+`inCurrentFyToDate` · `dividendsThisFy` · `dividendYieldRate` ·
+`projectPortfolio` · `clampSipDay` · `instrumentKey` · `knownExchanges` ·
+`searchInstruments` · `seedInstrumentKeys` · `cumulativeSpendSeries` ·
+`goalCelebration` · `summarizeAuditChanges`.
+
+Three of those vectors exist to pin a **cross-language trap** rather than a
+business rule, which is what a golden corpus is actually for:
+
+- The financial-year boundary is JS zero-based-month arithmetic. Mar 31 and
+  Apr 1 are both pinned, as is FY 2099 → "00".
+- `projectPortfolio` with `years = 0`: Kotlin's `1..0` is an empty range and
+  **Swift's `1...0` traps at runtime.** The vector is the only thing that would
+  have caught it.
+- `summarizeAuditChanges` orders entries by the field whitelist, not by
+  `Object.entries(parsed)`. Web's order is whatever client wrote the row, which
+  differs between web, Android and iOS — so faithfulness there would have meant
+  reproducing a nondeterminism.
+
+### Deliberate divergences, recorded
+
+**The goal celebration is decomposed, not `preserve-3d`.** Web builds one 3D
+scene with six faces; neither Compose nor SwiftUI composes 3D across siblings.
+The scene is rebuilt around web's own `boxRotX` — tile at `-(boxRotX+90)`, cake
+body at `|cos|`, candles at `tileHeight·|sin|` — which is visually equivalent
+through the whole turn and buildable without a compiler to check against. Web's
+six candles sit at three distinct x positions, so three columns is the same
+front view.
+
+**The gain/loss bars are horizontal and diverging.** The existing
+`SanvyaBarsChart` scales `value / max` from a zero baseline, so a losing group
+renders at negative height and disappears. A new `SignedBarsChart` was the
+honest fix; web's angled vertical bars do not fit phone width anyway.
+
+**The instrument catalog ships the 58-row seed only.** The 63k-row daily CSV
+download, its cache, its ETag day-timer and its progress UI are a sub-project —
+an HTTP client and a non-PowerSync local store on two platforms — and should be
+scoped as one rather than smuggled into a parity pass. `searchInstruments` takes
+its candidate list as a **parameter** (web reads a module global), so wiring a
+downloaded list in later is a new caller, not a rewrite. Until then a stock
+outside the seed goes in via "Not listed", which is web's own offline behaviour.
+**This is a real half-measure and it is on the record:** an Indian user
+searching for a mid-cap finds nothing and lands back in `off_list`.
+
+**iOS's "Open group" from the split banner is a sheet, not navigation.**
+`EditTransactionView` is itself presented as a sheet and nothing above it can
+switch tabs. Papering over that per-screen — threading `currentTab` bindings
+down through `TransactionsView` and `StatementsView` — would spread the problem
+rather than fix it. The real fix is an environment-level router, and that should
+be a deliberate decision rather than something smuggled in through a
+transaction form.
+
+### Caught in review, before commit
+
+**A certain compile break: `DividendPeriod` was not `Sendable`.** Swift does not
+infer `Sendable` for *public* types, and under Swift 6 a file-scope
+`let periods: [DividendPeriod]` is an error, not a warning. Every other public
+Domain enum in the tree already declares it; this one was the lone exception,
+and the new code was the first thing ever to place it at file scope.
+
+**An error message naming a control that is not on screen.** With the catalog
+picker open there is no name field, but submitting with nothing picked returned
+"Enter a name" — and `InvestmentFormError.INSTRUMENT` existed, was mapped to a
+string, and was never returned from anywhere. The fix is not a better message:
+**web gates the button** (`nameOk = useCatalogPicker ? !!instrument :
+!!name.trim()`, folded into `canAdd`), so both ports now do too.
+
+**A test adapter that only compiles if the solver cooperates.** `c.from ??
+NSNull()` on a `String?` in a `[String: Any]` literal resolves only if `T` binds
+to `Any` first. Every one of the six sibling adapters hedges it as
+`x as Any? ?? NSNull()`; this was the only site that did not.
+
+### New web defects
+
+| # | Defect |
+|---|---|
+| 39 | **A SIP holding is permanently worth ₹0.** `addHolding` writes `quantity: 0, avg_cost: null` for a SIP and nothing ever increments them — the recurring engine posts a transfer into the demat account but never touches the holding. Money genuinely invested through a SIP never appears in portfolio value, gain/loss, allocation or the projection. Both ports now reproduce this faithfully, which is the worst kind of parity |
+| 40 | **The budget chart runs a SECOND, looser scope implementation** (`budgets/page.tsx:357`): no currency filter, no `notFrontedForOthers`, and label matching redone in JS against `GROUP_CONCAT(l.name)` — i.e. **by name**, so same-named labels collide and foreign-currency expenses land in the curve. The curve can finish visibly above the "spent" figure printed under it — the precise failure `SpentBreakdown.tsx`'s own doc comment calls "worse than no list at all" |
+| 41 | `budgets/page.tsx:390` — `cum: cum / 100`, a hardcoded minor→major divisor in the chart. JPY draws at 1/100 height, BHD at 10× |
+| 42 | `budgets/page.tsx:334` compares `scopeLabel !== "All spending"` against an English literal, so a translated `allSpending` makes the scope append redundantly in hi and nl |
+| 43 | `DividendPanel.tsx`, `ProjectionPanel.tsx`, `SpentBreakdown.tsx`, `GoalCelebration.tsx` and `SplitBanner.tsx` are **entirely untranslated** — roughly sixty English literals across five components, in an app shipping hi and nl |
+| 44 | The audit modal prints the raw `action` column — a lowercase English verb (`update`) — and formats money as `format(money(...), "en-US")`, which is US grouping in every locale **and** bypasses `useMoneyFmt`, so amounts render unmasked when hide-amounts is on |
+| 45 | The budget chart tooltip prints `v.toLocaleString()`, bypassing `useMoneyFmt` — the same masking leak |
+| 46 | `AUDIT_LABELS`' values are dead code: the object is used only for key membership, and the rendered label comes from `t()`. Anyone adding a field will edit the English literal and wonder why nothing changes |
+| 47 | Audit field order is nondeterministic across clients — `Object.entries(parsed)` over a column written by three independent encoders |
+| 48 | `ImportDialog` is always handed `invAccounts[0]` regardless of the current group, and the "Import from broker" chip renders with zero investment accounts (`accountId` then null) |
+| 49 | `AddDialog.tsx:~90` — `costMinor`'s ternary has two identical branches; `isLump` does nothing there |
+
+### Behaviour changed outside the listed items — you should know
+
+**`notFrontedForOthers` was missing from both native budget repositories.** Money
+you fronted for friends counted against your own budgets on mobile and does not
+on web. It has been added, matching web verbatim. This **changes existing native
+budget numbers**. It is a fix, not a regression, but it is not one of the eleven
+items.
+
+### Standing problems — new entries
+
+1. **`transaction_audit.changes` has no agreed schema.** Android's
+   `changesToJson` writes `"labels": {"from": "(prev)", "to": …}` — a literal
+   string `"(prev)"` as the previous value — and every reader filters `labels`
+   out. That write is pure noise today and becomes actively misleading the
+   moment someone whitelists the field. If this column is a product surface it
+   needs a defined shape and a version, not three independent encoders.
+2. **Per-budget spend recomputes only when a `budgets` row changes, not when a
+   transaction does.** Tolerable when it was one number; with a chart on the card
+   it is now a visibly stale drawing.
+3. **`BudgetsViewModel.rebuild` is ~6 sequential queries per budget** per
+   emission. Ten budgets is roughly sixty round trips. Web gets away with the
+   same shape because PowerSync's `useQuery` caches.
+4. **The projection compounds from BOOK value, not market value**, because mobile
+   still has no quote source. Web compounds from live prices, so the same
+   portfolio projects differently on the two clients and nothing on screen says
+   why. This follows from the recorded "live quotes deferred" decision, but a
+   projection is where that starts to look like a bug rather than a
+   simplification.
+5. **`AssetClass.label` / `groupLabel()` in Domain are English string tables**,
+   and they are also the sort keys — translating them would reorder tiles per
+   language. There is now a parallel i18n lookup in the view layer, i.e. two
+   sources of truth for the same six words. The fix is Domain returning keys and
+   sorting on an explicit ordinal, which touches Insights too.
+6. **The investments screens are Material 3, not the Sanvya design system** —
+   raw `Card`/`OutlinedTextField`/`FilterChip` where every other screen uses
+   `SanvyaCard`/`SanvyaInput`/`SanvyaChip`. Pre-existing. It wants a deliberate
+   conversion pass, not a blind one with no compiler.
+7. **`GoalsViewModel` does SharedPreferences I/O on `Main.immediate`.**

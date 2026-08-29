@@ -1,0 +1,678 @@
+[
+  {
+    "fn": "allocationSlices",
+    "input": {
+      "groups": [
+        {
+          "key": "ex:NSE_IN",
+          "label": "NSE_IN",
+          "cost": 400000,
+          "value": 500000,
+          "gain": 100000
+        },
+        {
+          "key": "cls:mf",
+          "label": "Mutual Funds",
+          "cost": 300000,
+          "value": 250000,
+          "gain": -50000
+        },
+        {
+          "key": "cls:fd",
+          "label": "Fixed Deposits",
+          "cost": 250000,
+          "value": 250000,
+          "gain": 0
+        }
+      ]
+    },
+    "expected": [
+      {
+        "key": "ex:NSE_IN",
+        "label": "NSE_IN",
+        "valueBase": 500000,
+        "sharePct": 50
+      },
+      {
+        "key": "cls:fd",
+        "label": "Fixed Deposits",
+        "valueBase": 250000,
+        "sharePct": 25
+      },
+      {
+        "key": "cls:mf",
+        "label": "Mutual Funds",
+        "valueBase": 250000,
+        "sharePct": 25
+      }
+    ]
+  },
+  {
+    "fn": "allocationSlices",
+    "input": {
+      "groups": [
+        {
+          "key": "ex:NSE_IN",
+          "label": "NSE_IN",
+          "cost": 100000,
+          "value": 0,
+          "gain": -100000
+        },
+        {
+          "key": "cls:crypto",
+          "label": "Crypto",
+          "cost": 50000,
+          "value": 20000,
+          "gain": -30000
+        }
+      ]
+    },
+    "expected": [
+      {
+        "key": "cls:crypto",
+        "label": "Crypto",
+        "valueBase": 20000,
+        "sharePct": 100
+      }
+    ]
+  },
+  {
+    "fn": "allocationSlices",
+    "input": {
+      "groups": []
+    },
+    "expected": []
+  },
+  {
+    "fn": "gainBars",
+    "input": {
+      "groups": [
+        {
+          "key": "ex:NSE_IN",
+          "label": "NSE_IN",
+          "cost": 400000,
+          "value": 500000,
+          "gain": 100000
+        },
+        {
+          "key": "cls:mf",
+          "label": "Mutual Funds",
+          "cost": 300000,
+          "value": 250000,
+          "gain": -50000
+        },
+        {
+          "key": "cls:fd",
+          "label": "Fixed Deposits",
+          "cost": 250000,
+          "value": 250000,
+          "gain": 0
+        }
+      ]
+    },
+    "expected": [
+      {
+        "key": "ex:NSE_IN",
+        "label": "NSE_IN",
+        "gainBase": 100000
+      },
+      {
+        "key": "cls:mf",
+        "label": "Mutual Funds",
+        "gainBase": -50000
+      },
+      {
+        "key": "cls:fd",
+        "label": "Fixed Deposits",
+        "gainBase": 0
+      }
+    ]
+  },
+  {
+    "fn": "gainBars",
+    "input": {
+      "groups": [
+        {
+          "key": "ex:NSE_IN",
+          "label": "NSE_IN",
+          "cost": 100000,
+          "value": 0,
+          "gain": -100000
+        },
+        {
+          "key": "cls:crypto",
+          "label": "Crypto",
+          "cost": 50000,
+          "value": 20000,
+          "gain": -30000
+        }
+      ]
+    },
+    "expected": [
+      {
+        "key": "ex:NSE_IN",
+        "label": "NSE_IN",
+        "gainBase": -100000
+      },
+      {
+        "key": "cls:crypto",
+        "label": "Crypto",
+        "gainBase": -30000
+      }
+    ]
+  },
+  {
+    "fn": "fyStart",
+    "input": {
+      "today": "2026-08-29"
+    },
+    "expected": "2026-04-01"
+  },
+  {
+    "fn": "financialYear",
+    "input": {
+      "today": "2026-08-29"
+    },
+    "expected": {
+      "startYear": 2026,
+      "endYearShort": "27"
+    }
+  },
+  {
+    "fn": "fyStart",
+    "input": {
+      "today": "2026-03-31"
+    },
+    "expected": "2025-04-01"
+  },
+  {
+    "fn": "financialYear",
+    "input": {
+      "today": "2026-03-31"
+    },
+    "expected": {
+      "startYear": 2025,
+      "endYearShort": "26"
+    }
+  },
+  {
+    "fn": "fyStart",
+    "input": {
+      "today": "2026-04-01"
+    },
+    "expected": "2026-04-01"
+  },
+  {
+    "fn": "financialYear",
+    "input": {
+      "today": "2026-04-01"
+    },
+    "expected": {
+      "startYear": 2026,
+      "endYearShort": "27"
+    }
+  },
+  {
+    "fn": "fyStart",
+    "input": {
+      "today": "2026-01-01"
+    },
+    "expected": "2025-04-01"
+  },
+  {
+    "fn": "financialYear",
+    "input": {
+      "today": "2026-01-01"
+    },
+    "expected": {
+      "startYear": 2025,
+      "endYearShort": "26"
+    }
+  },
+  {
+    "fn": "fyStart",
+    "input": {
+      "today": "2026-12-31"
+    },
+    "expected": "2026-04-01"
+  },
+  {
+    "fn": "financialYear",
+    "input": {
+      "today": "2026-12-31"
+    },
+    "expected": {
+      "startYear": 2026,
+      "endYearShort": "27"
+    }
+  },
+  {
+    "fn": "financialYear",
+    "input": {
+      "today": "2099-06-01"
+    },
+    "expected": {
+      "startYear": 2099,
+      "endYearShort": "00"
+    }
+  },
+  {
+    "fn": "inCurrentFyToDate",
+    "input": {
+      "iso": "2026-05-10",
+      "today": "2026-08-29"
+    },
+    "expected": true
+  },
+  {
+    "fn": "inCurrentFyToDate",
+    "input": {
+      "iso": "2026-03-31",
+      "today": "2026-08-29"
+    },
+    "expected": false
+  },
+  {
+    "fn": "inCurrentFyToDate",
+    "input": {
+      "iso": "2026-04-01",
+      "today": "2026-08-29"
+    },
+    "expected": true
+  },
+  {
+    "fn": "inCurrentFyToDate",
+    "input": {
+      "iso": "2026-08-29",
+      "today": "2026-08-29"
+    },
+    "expected": true
+  },
+  {
+    "fn": "inCurrentFyToDate",
+    "input": {
+      "iso": "2026-09-01",
+      "today": "2026-08-29"
+    },
+    "expected": false
+  },
+  {
+    "fn": "inCurrentFyToDate",
+    "input": {
+      "iso": "not-a-date",
+      "today": "2026-08-29"
+    },
+    "expected": false
+  },
+  {
+    "fn": "inCurrentFyToDate",
+    "input": {
+      "iso": "2026-05-10T00:00:00Z",
+      "today": "2026-08-29"
+    },
+    "expected": true
+  },
+  {
+    "fn": "dividendsThisFy",
+    "input": {
+      "events": [
+        {
+          "date": "2026-02-01",
+          "base": 1000,
+          "upcoming": false
+        },
+        {
+          "date": "2026-05-01",
+          "base": 2500,
+          "upcoming": false
+        },
+        {
+          "date": "2026-06-15",
+          "base": 700,
+          "upcoming": false
+        },
+        {
+          "date": "2026-09-30",
+          "base": 9999,
+          "upcoming": true
+        },
+        {
+          "date": "2026-08-01",
+          "base": 300,
+          "upcoming": true
+        }
+      ],
+      "today": "2026-08-29"
+    },
+    "expected": 3200
+  },
+  {
+    "fn": "dividendsThisFy",
+    "input": {
+      "events": [],
+      "today": "2026-08-29"
+    },
+    "expected": 0
+  },
+  {
+    "fn": "dividendYieldRate",
+    "input": {
+      "annualDividendBase": 30000,
+      "currentValueBase": 1000000
+    },
+    "expected": 0.03
+  },
+  {
+    "fn": "dividendYieldRate",
+    "input": {
+      "annualDividendBase": 30000,
+      "currentValueBase": 0
+    },
+    "expected": 0
+  },
+  {
+    "fn": "dividendYieldRate",
+    "input": {
+      "annualDividendBase": 0,
+      "currentValueBase": 1000000
+    },
+    "expected": 0
+  },
+  {
+    "fn": "projectPortfolio",
+    "input": {
+      "currentValueBase": 100000,
+      "growthPctPerYear": 0,
+      "monthlyContributionBase": 0,
+      "years": 1,
+      "reinvestDividends": false,
+      "dividendYieldRate": 0
+    },
+    "expected": {
+      "points": [
+        {
+          "yearsOut": 0,
+          "valueBase": 100000,
+          "contributedBase": 100000
+        },
+        {
+          "yearsOut": 1,
+          "valueBase": 100000,
+          "contributedBase": 100000
+        }
+      ],
+      "endValueBase": 100000,
+      "contributedBase": 100000,
+      "growthBase": 0
+    }
+  },
+  {
+    "fn": "projectPortfolio",
+    "input": {
+      "currentValueBase": 100000,
+      "growthPctPerYear": 0,
+      "monthlyContributionBase": 10000,
+      "years": 2,
+      "reinvestDividends": false,
+      "dividendYieldRate": 0
+    },
+    "expected": {
+      "points": [
+        {
+          "yearsOut": 0,
+          "valueBase": 100000,
+          "contributedBase": 100000
+        },
+        {
+          "yearsOut": 1,
+          "valueBase": 220000,
+          "contributedBase": 220000
+        },
+        {
+          "yearsOut": 2,
+          "valueBase": 340000,
+          "contributedBase": 340000
+        }
+      ],
+      "endValueBase": 340000,
+      "contributedBase": 340000,
+      "growthBase": 0
+    }
+  },
+  {
+    "fn": "projectPortfolio",
+    "input": {
+      "currentValueBase": 100000,
+      "growthPctPerYear": 7,
+      "monthlyContributionBase": 0,
+      "years": 1,
+      "reinvestDividends": false,
+      "dividendYieldRate": 0
+    },
+    "expected": {
+      "points": [
+        {
+          "yearsOut": 0,
+          "valueBase": 100000,
+          "contributedBase": 100000
+        },
+        {
+          "yearsOut": 1,
+          "valueBase": 107000,
+          "contributedBase": 100000
+        }
+      ],
+      "endValueBase": 107000,
+      "contributedBase": 100000,
+      "growthBase": 7000
+    }
+  },
+  {
+    "fn": "projectPortfolio",
+    "input": {
+      "currentValueBase": 5000000,
+      "growthPctPerYear": 7,
+      "monthlyContributionBase": 500000,
+      "years": 15,
+      "reinvestDividends": true,
+      "dividendYieldRate": 0.02
+    },
+    "expected": {
+      "points": [
+        {
+          "yearsOut": 0,
+          "valueBase": 5000000,
+          "contributedBase": 5000000
+        },
+        {
+          "yearsOut": 1,
+          "valueBase": 11716306,
+          "contributedBase": 11000000
+        },
+        {
+          "yearsOut": 2,
+          "valueBase": 19047808,
+          "contributedBase": 17000000
+        },
+        {
+          "yearsOut": 3,
+          "valueBase": 27050855,
+          "contributedBase": 23000000
+        },
+        {
+          "yearsOut": 4,
+          "valueBase": 35786960,
+          "contributedBase": 29000000
+        },
+        {
+          "yearsOut": 5,
+          "valueBase": 45323267,
+          "contributedBase": 35000000
+        },
+        {
+          "yearsOut": 6,
+          "valueBase": 55733075,
+          "contributedBase": 41000000
+        },
+        {
+          "yearsOut": 7,
+          "valueBase": 67096392,
+          "contributedBase": 47000000
+        },
+        {
+          "yearsOut": 8,
+          "valueBase": 79500558,
+          "contributedBase": 53000000
+        },
+        {
+          "yearsOut": 9,
+          "valueBase": 93040911,
+          "contributedBase": 59000000
+        },
+        {
+          "yearsOut": 10,
+          "valueBase": 107821524,
+          "contributedBase": 65000000
+        },
+        {
+          "yearsOut": 11,
+          "valueBase": 123956000,
+          "contributedBase": 71000000
+        },
+        {
+          "yearsOut": 12,
+          "valueBase": 141568350,
+          "contributedBase": 77000000
+        },
+        {
+          "yearsOut": 13,
+          "valueBase": 160793944,
+          "contributedBase": 83000000
+        },
+        {
+          "yearsOut": 14,
+          "valueBase": 181780548,
+          "contributedBase": 89000000
+        },
+        {
+          "yearsOut": 15,
+          "valueBase": 204689469,
+          "contributedBase": 95000000
+        }
+      ],
+      "endValueBase": 204689469,
+      "contributedBase": 95000000,
+      "growthBase": 109689469
+    }
+  },
+  {
+    "fn": "projectPortfolio",
+    "input": {
+      "currentValueBase": 0,
+      "growthPctPerYear": 12,
+      "monthlyContributionBase": 100000,
+      "years": 3,
+      "reinvestDividends": false,
+      "dividendYieldRate": 0
+    },
+    "expected": {
+      "points": [
+        {
+          "yearsOut": 0,
+          "valueBase": 0,
+          "contributedBase": 0
+        },
+        {
+          "yearsOut": 1,
+          "valueBase": 1264650,
+          "contributedBase": 1200000
+        },
+        {
+          "yearsOut": 2,
+          "valueBase": 2681058,
+          "contributedBase": 2400000
+        },
+        {
+          "yearsOut": 3,
+          "valueBase": 4267434,
+          "contributedBase": 3600000
+        }
+      ],
+      "endValueBase": 4267434,
+      "contributedBase": 3600000,
+      "growthBase": 667434
+    }
+  },
+  {
+    "fn": "projectPortfolio",
+    "input": {
+      "currentValueBase": 250000,
+      "growthPctPerYear": 7,
+      "monthlyContributionBase": 0,
+      "years": 0,
+      "reinvestDividends": false,
+      "dividendYieldRate": 0
+    },
+    "expected": {
+      "points": [
+        {
+          "yearsOut": 0,
+          "valueBase": 250000,
+          "contributedBase": 250000
+        }
+      ],
+      "endValueBase": 250000,
+      "contributedBase": 250000,
+      "growthBase": 0
+    }
+  },
+  {
+    "fn": "clampSipDay",
+    "input": {
+      "day": 0
+    },
+    "expected": 1
+  },
+  {
+    "fn": "clampSipDay",
+    "input": {
+      "day": 1
+    },
+    "expected": 1
+  },
+  {
+    "fn": "clampSipDay",
+    "input": {
+      "day": 5
+    },
+    "expected": 5
+  },
+  {
+    "fn": "clampSipDay",
+    "input": {
+      "day": 28
+    },
+    "expected": 28
+  },
+  {
+    "fn": "clampSipDay",
+    "input": {
+      "day": 29
+    },
+    "expected": 28
+  },
+  {
+    "fn": "clampSipDay",
+    "input": {
+      "day": 31
+    },
+    "expected": 28
+  },
+  {
+    "fn": "clampSipDay",
+    "input": {
+      "day": -3
+    },
+    "expected": 1
+  }
+]

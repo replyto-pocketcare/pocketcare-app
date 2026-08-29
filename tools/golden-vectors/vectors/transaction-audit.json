@@ -1,0 +1,119 @@
+[
+  {
+    "fn": "summarizeAuditChanges",
+    "input": { "changes": null },
+    "expected": { "kind": "absent" }
+  },
+  {
+    "fn": "summarizeAuditChanges",
+    "input": { "changes": {} },
+    "expected": { "kind": "minorUpdate" }
+  },
+  {
+    "fn": "summarizeAuditChanges",
+    "input": {
+      "changes": {
+        "deleted": { "from": "active", "to": "removed" }
+      }
+    },
+    "expected": { "kind": "minorUpdate" }
+  },
+  {
+    "fn": "summarizeAuditChanges",
+    "input": {
+      "changes": {
+        "labels": { "from": "(prev)", "to": "coffee, work" },
+        "items": { "from": "(prev)", "to": "2 items" },
+        "updated_at": { "from": "2026-08-01T10:00:00.000Z", "to": "2026-08-02T10:00:00.000Z" }
+      }
+    },
+    "expected": { "kind": "minorUpdate" }
+  },
+  {
+    "fn": "summarizeAuditChanges",
+    "input": {
+      "changes": {
+        "amount": { "from": "1250", "to": "1499" }
+      }
+    },
+    "expected": {
+      "kind": "changes",
+      "entries": [
+        { "field": "amount", "kind": "money", "from": "1250", "to": "1499" }
+      ]
+    }
+  },
+  {
+    "fn": "summarizeAuditChanges",
+    "input": {
+      "changes": {
+        "payment_method_id": { "from": "upi", "to": "card" },
+        "note": { "from": null, "to": "split with Ravi" },
+        "amount": { "from": "1250", "to": "1499" },
+        "labels": { "from": "(prev)", "to": "coffee" }
+      }
+    },
+    "expected": {
+      "kind": "changes",
+      "entries": [
+        { "field": "amount", "kind": "money", "from": "1250", "to": "1499" },
+        { "field": "note", "kind": "text", "from": null, "to": "split with Ravi" },
+        { "field": "payment_method_id", "kind": "paymentMethod", "from": "upi", "to": "card" }
+      ]
+    }
+  },
+  {
+    "fn": "summarizeAuditChanges",
+    "input": {
+      "changes": {
+        "description": { "from": "Coffee", "to": "" },
+        "merchant": { "from": "", "to": "Blue Tokai" }
+      }
+    },
+    "expected": {
+      "kind": "changes",
+      "entries": [
+        { "field": "description", "kind": "text", "from": "Coffee", "to": null },
+        { "field": "merchant", "kind": "text", "from": null, "to": "Blue Tokai" }
+      ]
+    }
+  },
+  {
+    "fn": "summarizeAuditChanges",
+    "input": {
+      "changes": {
+        "to_amount": { "from": "500", "to": "600" },
+        "occurred_at": { "from": "2026-08-01T10:00:00.000Z", "to": "2026-08-03T18:30:00.000Z" },
+        "type": { "from": "expense", "to": "transfer" },
+        "category_id": { "from": "cat_food", "to": null },
+        "account_id": { "from": "acc_hdfc", "to": "acc_icici" },
+        "to_account_id": { "from": null, "to": "acc_sbi" }
+      }
+    },
+    "expected": {
+      "kind": "changes",
+      "entries": [
+        { "field": "to_amount", "kind": "money", "from": "500", "to": "600" },
+        { "field": "occurred_at", "kind": "date", "from": "2026-08-01T10:00:00.000Z", "to": "2026-08-03T18:30:00.000Z" },
+        { "field": "type", "kind": "type", "from": "expense", "to": "transfer" },
+        { "field": "category_id", "kind": "category", "from": "cat_food", "to": null },
+        { "field": "account_id", "kind": "account", "from": "acc_hdfc", "to": "acc_icici" },
+        { "field": "to_account_id", "kind": "account", "from": null, "to": "acc_sbi" }
+      ]
+    }
+  },
+  {
+    "fn": "summarizeAuditChanges",
+    "input": {
+      "changes": {
+        "note": { "from": null, "to": null }
+      }
+    },
+    "expected": {
+      "kind": "changes",
+      "entries": [
+        { "field": "note", "kind": "text", "from": null, "to": null }
+      ]
+    }
+  }
+]

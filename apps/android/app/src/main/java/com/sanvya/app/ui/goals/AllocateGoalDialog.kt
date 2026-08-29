@@ -14,6 +14,7 @@ import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
 import com.sanvya.app.domain.money.toMajor
 import com.sanvya.app.domain.money.money
+import com.sanvya.app.ui.formatMoney
 
 /**
  * "+ Add funds" / "+ Block funds" dialog, matching apps/web/app/goals/
@@ -40,17 +41,22 @@ fun AllocateGoalDialog(goal: GoalUiModel, viewModel: GoalsViewModel, onDismiss: 
     var saving by rememberSaveable { mutableStateOf(false) }
     var errorText by rememberSaveable { mutableStateOf<String?>(null) }
 
-    val actionLabel = if (goal.isEmergencyFund) S.Goals.add(sRes()) else S.Goals.block(sRes())
+    // Web has TWO labels here, not one: `allocLabel` titles the dialog ("Add
+    // funds" / "Block funds") and a shorter verb sits on the submit button
+    // ("Add" / "Block"). They were collapsed into one English literal.
+    val allocLabel = if (goal.isEmergencyFund) S.Goals.addFunds(sRes()) else S.Goals.blockFunds(sRes())
+    val submitLabel = if (goal.isEmergencyFund) S.Goals.add(sRes()) else S.Goals.block(sRes())
     // `toMajor`, not `/ 100.0`: the goal carries its own currency and a
     // zero-decimal one would read as a hundredth of itself.
     val remainingMajor = toMajor(money(goal.remainingMinor, goal.currency))
+    val overCap = (amountText.toDoubleOrNull() ?: 0.0) > remainingMajor
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("$actionLabel funds · ${goal.name}") },
+        title = { Text("$allocLabel · ${goal.name}") },
         text = {
             if (savingsAccounts.isEmpty()) {
-                Text("Add a savings account first.", color = colors.text2)
+                Text(S.Goals.addSavingsFirst(sRes()), color = colors.text2)
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
@@ -71,11 +77,19 @@ fun AllocateGoalDialog(goal: GoalUiModel, viewModel: GoalsViewModel, onDismiss: 
                     OutlinedTextField(
                         value = amountText,
                         onValueChange = { amountText = it },
-                        label = { Text("Amount (${goal.currency})") },
+                        label = { Text(S.Goals.amount(sRes(), goal.currency)) },
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    Text("Left to target: %.2f %s".format(remainingMajor, goal.currency), fontSize = 12.sp, color = colors.text2)
+                    // `formatMoney`, not a "%.2f CUR" literal: it is the one
+                    // formatter, it is currency-aware, and it honours
+                    // hide-amounts -- which a raw number in a dialog does not.
+                    Text(
+                        S.Goals.leftToTarget(sRes(), formatMoney(goal.remainingMinor, goal.currency)) +
+                            if (overCap) S.Goals.willCap(sRes()) else "",
+                        fontSize = 12.sp,
+                        color = colors.text2,
+                    )
                     errorText?.let { Text(it, color = colors.negative, fontSize = 12.sp) }
                 }
             }
@@ -93,7 +107,7 @@ fun AllocateGoalDialog(goal: GoalUiModel, viewModel: GoalsViewModel, onDismiss: 
                         if (err != null) errorText = err else onDismiss()
                     }
                 },
-            ) { Text(if (saving) S.Translation.commonSaving(sRes()) else actionLabel) }
+            ) { Text(if (saving) S.Translation.commonSaving(sRes()) else submitLabel) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(S.Goals.cancel(sRes())) } },
     )

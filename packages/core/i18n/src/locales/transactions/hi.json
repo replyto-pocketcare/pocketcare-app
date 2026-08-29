@@ -116,5 +116,22 @@
   "paidForSomeone": "मैंने यह किसी और के लिए चुकाया",
   "paidForSomeoneHint": "पूरी रकम उन्हें लौटानी है — यह आपके खर्च में नहीं गिनी जाएगी।",
   "paidForSomeoneNoOne": "पहले किसी को जोड़ें — 'साझा और बकाया' से किसी व्यक्ति को जोड़ें।",
-  "paidForSomeonePick": "यह किसके लिए था?"
+  "paidForSomeonePick": "यह किसके लिए था?",
+  "auditAction": {
+    "update": "अपडेट किया गया",
+    "delete": "हटाया गया"
+  },
+  "splitBanner": {
+    "title": "साझा खर्च",
+    "openGroup": "समूह खोलें",
+    "openNamed": "{{name}} खोलें",
+    "totalBill": "कुल बिल",
+    "yourShare": "आपका हिस्सा",
+    "youPaid": "आपने चुकाया",
+    "owedToYou": "आपको मिलने हैं",
+    "youOwe": "आप पर बकाया",
+    "participants": "प्रतिभागी",
+    "participantLine": "हिस्सा {{share}} · चुकाया {{paid}}",
+    "footnote": "यह इस साझा खर्च के लिए आपकी निजी बही की प्रविष्टि है। बँटवारा बदलने के लिए समूह खोलें।"
+  }
 }

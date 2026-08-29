@@ -179,6 +179,19 @@ public enum S {
         public static var alertAt: String { String(localized: "budgets:alertAt", table: "Localizable") }
         public static var alertMeAt: String { String(localized: "budgets:alertMeAt", table: "Localizable") }
         public static var allSpending: String { String(localized: "budgets:allSpending", table: "Localizable") }
+        public static var breakdownEmpty: String { String(localized: "budgets:breakdownEmpty", table: "Localizable") }
+        public static var breakdownFallback: String { String(localized: "budgets:breakdownFallback", table: "Localizable") }
+        public static var breakdownLoading: String { String(localized: "budgets:breakdownLoading", table: "Localizable") }
+        public static func breakdownMismatch(amount: String) -> String {
+            String(format: String(localized: "budgets:breakdownMismatch", table: "Localizable"), amount)
+        }
+        public static func breakdownSummary(count: Int, amount: String) -> String {
+            String(format: String(localized: "budgets:breakdownSummary", defaultValue: "", table: "Localizable"), count, amount)
+        }
+        public static func breakdownTitleAria(title: String) -> String {
+            String(format: String(localized: "budgets:breakdownTitleAria", table: "Localizable"), title)
+        }
+        public static var breakdownTotal: String { String(localized: "budgets:breakdownTotal", table: "Localizable") }
         public static var cancel: String { String(localized: "budgets:cancel", table: "Localizable") }
         public static var categoriesEmpty: String { String(localized: "budgets:categoriesEmpty", table: "Localizable") }
         public static var categoriesOptional: String { String(localized: "budgets:categoriesOptional", table: "Localizable") }
@@ -216,11 +229,16 @@ public enum S {
         public static var periodYearly: String { String(localized: "budgets:period.yearly", table: "Localizable") }
         public static var recurring: String { String(localized: "budgets:recurring", table: "Localizable") }
         public static var save: String { String(localized: "budgets:save", table: "Localizable") }
+        public static var spendChartAria: String { String(localized: "budgets:spendChartAria", table: "Localizable") }
+        public static func spendChartLimit(amount: String) -> String {
+            String(format: String(localized: "budgets:spendChartLimit", table: "Localizable"), amount)
+        }
         public static func spent(amount: String) -> String {
             String(format: String(localized: "budgets:spent", table: "Localizable"), amount)
         }
         public static var timeframe: String { String(localized: "budgets:timeframe", table: "Localizable") }
         public static var title: String { String(localized: "budgets:title", table: "Localizable") }
+        public static var viewSpentAria: String { String(localized: "budgets:viewSpentAria", table: "Localizable") }
     }
 
     public enum Cards {
@@ -616,6 +634,7 @@ public enum S {
     }
 
     public enum Goals {
+        public static var achieved: String { String(localized: "goals:achieved", table: "Localizable") }
         public static var add: String { String(localized: "goals:add", table: "Localizable") }
         public static var addFunds: String { String(localized: "goals:addFunds", table: "Localizable") }
         public static var addGoal: String { String(localized: "goals:addGoal", table: "Localizable") }
@@ -626,6 +645,19 @@ public enum S {
         public static var block: String { String(localized: "goals:block", table: "Localizable") }
         public static var blockFunds: String { String(localized: "goals:blockFunds", table: "Localizable") }
         public static var cancel: String { String(localized: "goals:cancel", table: "Localizable") }
+        public static func celebrationAria(name: String) -> String {
+            String(format: String(localized: "goals:celebrationAria", table: "Localizable"), name)
+        }
+        public static var celebrationBody: String { String(localized: "goals:celebrationBody", table: "Localizable") }
+        public static var celebrationHint: String { String(localized: "goals:celebrationHint", table: "Localizable") }
+        public static var celebrationHintDrag: String { String(localized: "goals:celebrationHintDrag", table: "Localizable") }
+        public static func celebrationName(name: String) -> String {
+            String(format: String(localized: "goals:celebrationName", table: "Localizable"), name)
+        }
+        public static var celebrationTileFunded: String { String(localized: "goals:celebrationTileFunded", table: "Localizable") }
+        public static var celebrationTilePct: String { String(localized: "goals:celebrationTilePct", table: "Localizable") }
+        public static var celebrationTileTag: String { String(localized: "goals:celebrationTileTag", table: "Localizable") }
+        public static var createFirst: String { String(localized: "goals:createFirst", table: "Localizable") }
         public static var delete: String { String(localized: "goals:delete", table: "Localizable") }
         public static func deleteMsg(name: String) -> String {
             String(format: String(localized: "goals:deleteMsg", table: "Localizable"), name)
@@ -802,8 +834,11 @@ public enum S {
         public static func addTo(name: String) -> String {
             String(format: String(localized: "investments:addTo", table: "Localizable"), name)
         }
+        public static var allExchanges: String { String(localized: "investments:allExchanges", table: "Localizable") }
         public static var allInvestments: String { String(localized: "investments:allInvestments", table: "Localizable") }
         public static var allocation: String { String(localized: "investments:allocation", table: "Localizable") }
+        public static var allocationEmpty: String { String(localized: "investments:allocationEmpty", table: "Localizable") }
+        public static var allTime: String { String(localized: "investments:allTime", table: "Localizable") }
         public static var alreadyHold: String { String(localized: "investments:alreadyHold", table: "Localizable") }
         public static func amountInvested(cur: String) -> String {
             String(format: String(localized: "investments:amountInvested", table: "Localizable"), cur)
@@ -811,11 +846,19 @@ public enum S {
         public static func asOf(date: String) -> String {
             String(format: String(localized: "investments:asOf", table: "Localizable"), date)
         }
+        public static var assetClassCrypto: String { String(localized: "investments:assetClass.crypto", table: "Localizable") }
+        public static var assetClassFd: String { String(localized: "investments:assetClass.fd", table: "Localizable") }
+        public static var assetClassMf: String { String(localized: "investments:assetClass.mf", table: "Localizable") }
+        public static var assetClassOther: String { String(localized: "investments:assetClass.other", table: "Localizable") }
+        public static var assetClassSip: String { String(localized: "investments:assetClass.sip", table: "Localizable") }
+        public static var assetClassStock: String { String(localized: "investments:assetClass.stock", table: "Localizable") }
+        public static var assumedGrowth: String { String(localized: "investments:assumedGrowth", table: "Localizable") }
         public static func avgCost(cur: String) -> String {
             String(format: String(localized: "investments:avgCost", table: "Localizable"), cur)
         }
         public static var byExchangeScheme: String { String(localized: "investments:byExchangeScheme", table: "Localizable") }
         public static var cancel: String { String(localized: "investments:cancel", table: "Localizable") }
+        public static var catalogSeedNote: String { String(localized: "investments:catalogSeedNote", table: "Localizable") }
         public static var currentValue: String { String(localized: "investments:currentValue", table: "Localizable") }
         public static func currentValueCur(cur: String) -> String {
             String(format: String(localized: "investments:currentValueCur", table: "Localizable"), cur)
@@ -828,30 +871,72 @@ public enum S {
             String(format: String(localized: "investments:deductFrom", table: "Localizable"), amount)
         }
         public static var demat: String { String(localized: "investments:demat", table: "Localizable") }
+        public static var dividendFootnote: String { String(localized: "investments:dividendFootnote", table: "Localizable") }
+        public static var dividendIncome: String { String(localized: "investments:dividendIncome", table: "Localizable") }
         public static func dividendsEarned(fy: String) -> String {
             String(format: String(localized: "investments:dividendsEarned", table: "Localizable"), fy)
         }
         public static var dividendsNote: String { String(localized: "investments:dividendsNote", table: "Localizable") }
+        public static var divPeriodAll: String { String(localized: "investments:divPeriod.all", table: "Localizable") }
+        public static var divPeriodMonth: String { String(localized: "investments:divPeriod.month", table: "Localizable") }
+        public static var divPeriodQuarter: String { String(localized: "investments:divPeriod.quarter", table: "Localizable") }
+        public static var divPeriodWeek: String { String(localized: "investments:divPeriod.week", table: "Localizable") }
+        public static var divPeriodYear: String { String(localized: "investments:divPeriod.year", table: "Localizable") }
         public static var edit: String { String(localized: "investments:edit", table: "Localizable") }
         public static func eodNote(asOf: String) -> String {
             String(format: String(localized: "investments:eodNote", table: "Localizable"), asOf)
         }
+        public static var errAddFailed: String { String(localized: "investments:errAddFailed", table: "Localizable") }
+        public static var errFundingAccount: String { String(localized: "investments:errFundingAccount", table: "Localizable") }
+        public static var errHoldingNotFound: String { String(localized: "investments:errHoldingNotFound", table: "Localizable") }
+        public static var errInstrument: String { String(localized: "investments:errInstrument", table: "Localizable") }
+        public static var errInvalidQuantity: String { String(localized: "investments:errInvalidQuantity", table: "Localizable") }
+        public static var errName: String { String(localized: "investments:errName", table: "Localizable") }
+        public static var errNoUser: String { String(localized: "investments:errNoUser", table: "Localizable") }
+        public static var errQuantity: String { String(localized: "investments:errQuantity", table: "Localizable") }
+        public static var errSaveFailed: String { String(localized: "investments:errSaveFailed", table: "Localizable") }
+        public static var errSipAmount: String { String(localized: "investments:errSipAmount", table: "Localizable") }
+        public static var errSipSource: String { String(localized: "investments:errSipSource", table: "Localizable") }
+        public static var exchangeLabel: String { String(localized: "investments:exchangeLabel", table: "Localizable") }
         public static var existingNote: String { String(localized: "investments:existingNote", table: "Localizable") }
+        public static func fyLabel(start: String, end: String) -> String {
+            String(format: String(localized: "investments:fyLabel", table: "Localizable"), start, end)
+        }
         public static var gainLossByGroup: String { String(localized: "investments:gainLossByGroup", table: "Localizable") }
+        public static var gainsEmpty: String { String(localized: "investments:gainsEmpty", table: "Localizable") }
+        public static var groupTitleCrypto: String { String(localized: "investments:groupTitle.crypto", table: "Localizable") }
+        public static var groupTitleFallback: String { String(localized: "investments:groupTitle.fallback", table: "Localizable") }
+        public static var groupTitleFd: String { String(localized: "investments:groupTitle.fd", table: "Localizable") }
+        public static var groupTitleMf: String { String(localized: "investments:groupTitle.mf", table: "Localizable") }
+        public static var groupTitleOther: String { String(localized: "investments:groupTitle.other", table: "Localizable") }
+        public static var groupTitleSip: String { String(localized: "investments:groupTitle.sip", table: "Localizable") }
+        public static var groupTitleStock: String { String(localized: "investments:groupTitle.stock", table: "Localizable") }
+        public static var groupTitleStocksOther: String { String(localized: "investments:groupTitle.stocksOther", table: "Localizable") }
+        public static var growthPlusDividends: String { String(localized: "investments:growthPlusDividends", table: "Localizable") }
         public static func holdingsCount(count: Int) -> String {
             String(format: String(localized: "investments:holdingsCount", defaultValue: "", table: "Localizable"), count)
         }
+        public static var horizon: String { String(localized: "investments:horizon", table: "Localizable") }
         public static var inOurList: String { String(localized: "investments:inOurList", table: "Localizable") }
         public static var insights: String { String(localized: "investments:insights", table: "Localizable") }
+        public static var instrumentSearch: String { String(localized: "investments:instrumentSearch", table: "Localizable") }
+        public static var instrumentSource: String { String(localized: "investments:instrumentSource", table: "Localizable") }
         public static var interestPa: String { String(localized: "investments:interestPa", table: "Localizable") }
         public static var invested: String { String(localized: "investments:invested", table: "Localizable") }
         public static func investedLabel(amount: String) -> String {
             String(format: String(localized: "investments:investedLabel", table: "Localizable"), amount)
         }
         public static var investmentAccount: String { String(localized: "investments:investmentAccount", table: "Localizable") }
+        public static func inYears(years: String) -> String {
+            String(format: String(localized: "investments:inYears", table: "Localizable"), years)
+        }
+        public static var last12Months: String { String(localized: "investments:last12Months", table: "Localizable") }
         public static var ltpLabel: String { String(localized: "investments:ltpLabel", table: "Localizable") }
         public static var matures: String { String(localized: "investments:matures", table: "Localizable") }
         public static var maturityDate: String { String(localized: "investments:maturityDate", table: "Localizable") }
+        public static func monthlyContribution(cur: String) -> String {
+            String(format: String(localized: "investments:monthlyContribution", table: "Localizable"), cur)
+        }
         public static func nameLabel(type: String) -> String {
             String(format: String(localized: "investments:nameLabel", table: "Localizable"), type)
         }
@@ -863,8 +948,11 @@ public enum S {
         }
         public static var newFund: String { String(localized: "investments:newFund", table: "Localizable") }
         public static var newOrHold: String { String(localized: "investments:newOrHold", table: "Localizable") }
+        public static var next12Months: String { String(localized: "investments:next12Months", table: "Localizable") }
         public static var nextSipDate: String { String(localized: "investments:nextSipDate", table: "Localizable") }
+        public static var noDividendData: String { String(localized: "investments:noDividendData", table: "Localizable") }
         public static var noFundAccount: String { String(localized: "investments:noFundAccount", table: "Localizable") }
+        public static var noInstrumentMatches: String { String(localized: "investments:noInstrumentMatches", table: "Localizable") }
         public static var noInvAccountBodyPost: String { String(localized: "investments:noInvAccountBodyPost", table: "Localizable") }
         public static var noInvAccountBodyPre: String { String(localized: "investments:noInvAccountBodyPre", table: "Localizable") }
         public static var noInvAccountTitle: String { String(localized: "investments:noInvAccountTitle", table: "Localizable") }
@@ -876,8 +964,15 @@ public enum S {
         public static func perAnnum(rate: String) -> String {
             String(format: String(localized: "investments:perAnnum", table: "Localizable"), rate)
         }
+        public static var projectedValue: String { String(localized: "investments:projectedValue", table: "Localizable") }
+        public static var projectedWealth: String { String(localized: "investments:projectedWealth", table: "Localizable") }
+        public static var projectionFootnote: String { String(localized: "investments:projectionFootnote", table: "Localizable") }
         public static var qty: String { String(localized: "investments:qty", table: "Localizable") }
         public static var quantity: String { String(localized: "investments:quantity", table: "Localizable") }
+        public static var reinvestDividends: String { String(localized: "investments:reinvestDividends", table: "Localizable") }
+        public static func reinvestYield(pct: String) -> String {
+            String(format: String(localized: "investments:reinvestYield", table: "Localizable"), pct)
+        }
         public static var remove: String { String(localized: "investments:remove", table: "Localizable") }
         public static func removeMsg(label: String) -> String {
             String(format: String(localized: "investments:removeMsg", table: "Localizable"), label)
@@ -888,13 +983,18 @@ public enum S {
         public static func sipAmount(cur: String) -> String {
             String(format: String(localized: "investments:sipAmount", table: "Localizable"), cur)
         }
+        public static var sipDebitDay: String { String(localized: "investments:sipDebitDay", table: "Localizable") }
+        public static var sipDebitDayHint: String { String(localized: "investments:sipDebitDayHint", table: "Localizable") }
         public static var sipFreqMonthly: String { String(localized: "investments:sipFreq.monthly", table: "Localizable") }
         public static var sipFreqWeekly: String { String(localized: "investments:sipFreq.weekly", table: "Localizable") }
         public static var sipFreqYearly: String { String(localized: "investments:sipFreq.yearly", table: "Localizable") }
+        public static var sipFrequency: String { String(localized: "investments:sipFrequency", table: "Localizable") }
         public static var sipLine: String { String(localized: "investments:sipLine", table: "Localizable") }
         public static func sipNote(amount: String, account: String) -> String {
             String(format: String(localized: "investments:sipNote", table: "Localizable"), amount, account)
         }
+        public static var sipStartDate: String { String(localized: "investments:sipStartDate", table: "Localizable") }
+        public static var startTypingInstrument: String { String(localized: "investments:startTypingInstrument", table: "Localizable") }
         public static var stopSip: String { String(localized: "investments:stopSip", table: "Localizable") }
         public static var stopSipMsg: String { String(localized: "investments:stopSipMsg", table: "Localizable") }
         public static var stopSipTitle: String { String(localized: "investments:stopSipTitle", table: "Localizable") }
@@ -905,8 +1005,12 @@ public enum S {
         public static var total: String { String(localized: "investments:total", table: "Localizable") }
         public static var totalGainLoss: String { String(localized: "investments:totalGainLoss", table: "Localizable") }
         public static var units: String { String(localized: "investments:units", table: "Localizable") }
+        public static var unitWordCoins: String { String(localized: "investments:unitWord.coins", table: "Localizable") }
+        public static var unitWordShares: String { String(localized: "investments:unitWord.shares", table: "Localizable") }
+        public static var unitWordUnits: String { String(localized: "investments:unitWord.units", table: "Localizable") }
         public static var untracked: String { String(localized: "investments:untracked", table: "Localizable") }
         public static var valueLabel: String { String(localized: "investments:valueLabel", table: "Localizable") }
+        public static var youPutIn: String { String(localized: "investments:youPutIn", table: "Localizable") }
     }
 
     public enum Join {
@@ -1844,6 +1948,8 @@ public enum S {
         public static var auditToAccountId: String { String(localized: "transactions:audit.to_account_id", table: "Localizable") }
         public static var auditToAmount: String { String(localized: "transactions:audit.to_amount", table: "Localizable") }
         public static var auditType: String { String(localized: "transactions:audit.type", table: "Localizable") }
+        public static var auditActionDelete: String { String(localized: "transactions:auditAction.delete", table: "Localizable") }
+        public static var auditActionUpdate: String { String(localized: "transactions:auditAction.update", table: "Localizable") }
         public static var autoCategorised: String { String(localized: "transactions:autoCategorised", table: "Localizable") }
         public static func autoSplitWith(name: String) -> String {
             String(format: String(localized: "transactions:autoSplitWith", table: "Localizable"), name)
@@ -1939,6 +2045,21 @@ public enum S {
             String(format: String(localized: "transactions:sharesMismatch", table: "Localizable"), sum, total)
         }
         public static var someone: String { String(localized: "transactions:someone", table: "Localizable") }
+        public static var splitBannerFootnote: String { String(localized: "transactions:splitBanner.footnote", table: "Localizable") }
+        public static var splitBannerOpenGroup: String { String(localized: "transactions:splitBanner.openGroup", table: "Localizable") }
+        public static func splitBannerOpenNamed(name: String) -> String {
+            String(format: String(localized: "transactions:splitBanner.openNamed", table: "Localizable"), name)
+        }
+        public static var splitBannerOwedToYou: String { String(localized: "transactions:splitBanner.owedToYou", table: "Localizable") }
+        public static func splitBannerParticipantLine(share: String, paid: String) -> String {
+            String(format: String(localized: "transactions:splitBanner.participantLine", table: "Localizable"), share, paid)
+        }
+        public static var splitBannerParticipants: String { String(localized: "transactions:splitBanner.participants", table: "Localizable") }
+        public static var splitBannerTitle: String { String(localized: "transactions:splitBanner.title", table: "Localizable") }
+        public static var splitBannerTotalBill: String { String(localized: "transactions:splitBanner.totalBill", table: "Localizable") }
+        public static var splitBannerYouOwe: String { String(localized: "transactions:splitBanner.youOwe", table: "Localizable") }
+        public static var splitBannerYouPaid: String { String(localized: "transactions:splitBanner.youPaid", table: "Localizable") }
+        public static var splitBannerYourShare: String { String(localized: "transactions:splitBanner.yourShare", table: "Localizable") }
         public static var splitBetween: String { String(localized: "transactions:splitBetween", table: "Localizable") }
         public static var splitChip: String { String(localized: "transactions:splitChip", table: "Localizable") }
         public static var splitExpense: String { String(localized: "transactions:splitExpense", table: "Localizable") }

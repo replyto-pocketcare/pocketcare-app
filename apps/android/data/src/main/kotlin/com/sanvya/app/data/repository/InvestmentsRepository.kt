@@ -76,6 +76,29 @@ sealed class HoldingFunding {
     data class New(val sourceAccountId: String) : HoldingFunding()
 }
 
+/**
+ * A SIP the user is setting up alongside the holding -- web's
+ * `AddHoldingInput.sip`.
+ *
+ * [firstDue] is the date the recurring engine posts the first instalment and
+ * [startDate] is when the plan began; web sends the same value for both from
+ * one date field, and they are kept separate here because the COLUMNS are
+ * separate (`recurring_items.next_due` moves every time the engine posts,
+ * `holdings.sip_start_date` never does).
+ *
+ * [day] is the day-of-month, already clamped to 1-28 by
+ * `domain.investments.clampSipDay` -- the repository does not re-clamp, so
+ * there is exactly one place the rule lives.
+ */
+data class SipSetup(
+    val amount: Long,
+    val frequency: String,
+    val firstDue: String,
+    val sourceAccountId: String,
+    val startDate: String,
+    val day: Int,
+)
+
 data class AddHoldingInput(
     val investmentAccountId: String,
     val assetClass: String,
@@ -91,6 +114,8 @@ data class AddHoldingInput(
     val offList: Boolean,
     val autoFetch: Boolean,
     val funding: HoldingFunding,
+    /** Present only when the user is starting a SIP. See [SipSetup]. */
+    val sip: SipSetup? = null,
 )
 
 class InvestmentsRepository(private val db: PowerSyncDatabase) {
@@ -152,10 +177,15 @@ class InvestmentsRepository(private val db: PowerSyncDatabase) {
     /**
      * Adds a holding -- matches write.ts's addHolding() exactly: funds the
      * invested pool first (transfer from a source account, or an adjustment
-     * on the investment account itself for an already-owned holding), then
-     * inserts the `holdings` row. SIP recurring-transfer setup and the
-     * live-catalog instrument picker are deferred (see screen spec) so
-     * there is no `sip` parameter here, unlike web's.
+     * on the investment account itself for an already-owned holding), creates
+     * the SIP's recurring transfer if there is one, then inserts the
+     * `holdings` row.
+     *
+     * The SIP half was missing until now, and its absence was not cosmetic:
+     * `planned_id` was hardcoded null and `sip_amount`/`sip_day` were never
+     * written, so a SIP could not be created on a phone AT ALL and the Stop
+     * SIP control could only ever appear for a holding created on web
+     * (PARITY_AUDIT 2026-08-28, item 9).
      */
     suspend fun addHolding(userId: String, inp: AddHoldingInput): String {
         val costTotal = Math.round((inp.avgCost ?: 0L) * inp.quantity)
@@ -189,6 +219,49 @@ class InvestmentsRepository(private val db: PowerSyncDatabase) {
             }
         }
 
+        // The SIP is a recurring `saving` transfer: source account -> this
+        // investment account, auto-posting on its own schedule.
+        //
+        // This is the ONLY place a recurring saving item is created on either
+        // platform, exactly as on web. Recurring savings are not browsable
+        // under Recurring, so a SIP belongs to the holding that funds it and
+        // is created and stopped there (see stopSipForHolding). It still posts
+        // through the shared engine and still shows in the "Due now" strip.
+        //
+        // One row, not a template + rule pair: `recurring_items` carries both
+        // the schedule and the transaction detail (migration 0064).
+        val plannedId: String? = inp.sip?.takeIf { it.amount > 0 && it.sourceAccountId.isNotBlank() }?.let { sip ->
+            insertRow(
+                db, "recurring_items", userId,
+                mapOf(
+                    "direction" to "saving",
+                    "name" to inp.name.ifBlank { inp.symbol.ifBlank { "SIP" } },
+                    "amount" to sip.amount,
+                    "currency" to inp.currency,
+                    "frequency" to sip.frequency,
+                    // Web hardcodes 1 here too -- every interval the UI offers
+                    // is "every 1 <frequency>".
+                    "interval_count" to 1L,
+                    "next_due" to sip.firstDue,
+                    "account_id" to sip.sourceAccountId,
+                    "to_account_id" to inp.investmentAccountId,
+                    "category_id" to null,
+                    "auto_post" to 1L,
+                    "active" to 1L,
+                    "alert_time_utc" to null,
+                    "description" to "SIP",
+                    "note" to null,
+                    "payment_method" to null,
+                    "labels" to null,
+                    "split_group_id" to null,
+                    "split_mode" to null,
+                    "last_generated" to null,
+                    "source_table" to null,
+                    "source_id" to null,
+                ),
+            )
+        }
+
         return insertRow(
             db, "holdings", userId,
             mapOf(
@@ -204,10 +277,25 @@ class InvestmentsRepository(private val db: PowerSyncDatabase) {
                 "current_value" to inp.currentValue,
                 "annual_rate" to inp.annualRate,
                 "maturity_date" to inp.maturityDate,
-                "source_account_id" to if (inp.funding is HoldingFunding.New) inp.funding.sourceAccountId else null,
-                "planned_id" to null,
+                // A SIP's money movement IS the recurring transfer, so its
+                // source account is the debit account, not a one-off funding
+                // account -- web resolves it in the same order.
+                "source_account_id" to when {
+                    inp.sip != null -> inp.sip.sourceAccountId
+                    inp.funding is HoldingFunding.New -> inp.funding.sourceAccountId
+                    else -> null
+                },
+                "planned_id" to plannedId,
                 "off_list" to if (inp.offList) 1L else 0L,
                 "auto_fetch" to if (inp.autoFetch) 1L else 0L,
+                // Amount-based SIP fields (migration 0061). Written together
+                // with `planned_id`: the UI reads a live SIP as
+                // `planned_id != null && sip_amount > 0`, and half of that
+                // pair is what made every mobile-created holding look
+                // SIP-less.
+                "sip_amount" to plannedId?.let { inp.sip?.amount },
+                "sip_start_date" to plannedId?.let { inp.sip?.startDate },
+                "sip_day" to plannedId?.let { inp.sip?.day?.toLong() },
             ),
         )
     }

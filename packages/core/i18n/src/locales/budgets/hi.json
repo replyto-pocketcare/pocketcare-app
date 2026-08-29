@@ -32,5 +32,16 @@
   "deleteMsg": "“{{title}}” हटा दिया जाएगा। इसे पूर्ववत नहीं किया जा सकता।",
   "spent": "{{amount}} खर्च",
   "over": "{{amount}} अधिक",
-  "left": "{{amount}} शेष"
+  "left": "{{amount}} शेष",
+  "viewSpentAria": "इस राशि के पीछे के लेनदेन देखें",
+  "breakdownTitleAria": "{{title}} — खर्च",
+  "breakdownLoading": "लोड हो रहा है…",
+  "breakdownSummary_one": "{{count}} लेनदेन · {{amount}} खर्च",
+  "breakdownSummary_other": "{{count}} लेनदेन · {{amount}} खर्च",
+  "breakdownEmpty": "इस अवधि में अभी तक इस बजट में कुछ भी नहीं गिना गया है।",
+  "breakdownTotal": "कुल",
+  "breakdownMismatch": "यह कार्ड पर दिखाए गए {{amount}} से अलग है — लोड होते समय बजट का दायरा बदल गया। ताज़ा करने के लिए फिर से खोलें।",
+  "breakdownFallback": "खर्च",
+  "spendChartAria": "सीमा के मुकाबले संचयी खर्च",
+  "spendChartLimit": "सीमा {{amount}}"
 }

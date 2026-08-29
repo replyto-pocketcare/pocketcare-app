@@ -28,5 +28,15 @@
   "add": "Add",
   "block": "Block",
   "save": "Save",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "createFirst": "Create your first goal",
+  "celebrationAria": "Goal achieved: {{name}}",
+  "achieved": "Goal achieved",
+  "celebrationName": "{{name}} 🎉",
+  "celebrationBody": "You fully funded it. Nicely done.",
+  "celebrationHint": "Tap anywhere to continue",
+  "celebrationHintDrag": "Drag the cake to spin it · tap outside to close",
+  "celebrationTileTag": "GOAL",
+  "celebrationTileFunded": "Funded",
+  "celebrationTilePct": "100%"
 }

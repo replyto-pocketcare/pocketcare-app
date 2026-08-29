@@ -1,4 +1,5 @@
 import SwiftUI
+import Domain
 
 /// "+ Add funds" / "+ Block funds" modal, matching apps/web/app/goals/
 /// page.tsx's allocate() Modal per docs/mobile/screen-specs/goals.md: a
@@ -16,14 +17,21 @@ struct AllocateGoalView: View {
     @State private var saving = false
     @State private var errorText: String?
 
-    private var actionLabel: String { goal.isEmergencyFund ? S.Goals.add : S.Goals.block }
+    // Web has TWO labels here, not one: `allocLabel` titles the modal ("Add
+    // funds" / "Block funds") and a shorter verb sits on the submit button
+    // ("Add" / "Block"). They were collapsed into one English literal.
+    private var allocLabel: String { goal.isEmergencyFund ? S.Goals.addFunds : S.Goals.blockFunds }
+    private var submitLabel: String { goal.isEmergencyFund ? S.Goals.add : S.Goals.block }
+    /// Web appends "We'll cap this at the remaining amount." once the entered
+    /// figure is past the target, so the cap is not a surprise after the fact.
+    private var overCap: Bool { (Double(amountText) ?? 0) > toMajor(money(goal.remainingMinor, goal.currency)) }
 
     var body: some View {
         NavigationStack {
             Form {
                 if viewModel.savingsAccounts.isEmpty {
                     Section {
-                        Text("Add a savings account first.").foregroundColor(Color.text2)
+                        Text(S.Goals.addSavingsFirst).foregroundColor(Color.text2)
                     }
                 } else {
                     Section(header: Text(S.Goals.fromAccount)) {
@@ -37,10 +45,10 @@ struct AllocateGoalView: View {
                         }
                     }
 
-                    Section(header: Text("Amount (\(goal.currency))")) {
+                    Section(header: Text(S.Goals.amount(currency: goal.currency))) {
                         TextField("0", text: $amountText)
                             .keyboardType(.decimalPad)
-                        Text("Left to target: \(remainingText)")
+                        Text(S.Goals.leftToTarget(amount: remainingText) + (overCap ? S.Goals.willCap : ""))
                             .font(.caption)
                             .foregroundColor(Color.text2)
                     }
@@ -54,7 +62,7 @@ struct AllocateGoalView: View {
                             if saving {
                                 ProgressView()
                             } else {
-                                Text(actionLabel)
+                                Text(submitLabel)
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .frame(maxWidth: .infinity, alignment: .center)
@@ -66,7 +74,7 @@ struct AllocateGoalView: View {
                     }
                 }
             }
-            .navigationTitle("\(actionLabel) funds · \(goal.name)")
+            .navigationTitle("\(allocLabel) · \(goal.name)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

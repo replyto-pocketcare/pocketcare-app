@@ -28,5 +28,15 @@
   "add": "Toevoegen",
   "block": "Reserveren",
   "save": "Opslaan",
-  "cancel": "Annuleren"
+  "cancel": "Annuleren",
+  "createFirst": "Maak je eerste doel",
+  "celebrationAria": "Doel bereikt: {{name}}",
+  "achieved": "Doel bereikt",
+  "celebrationName": "{{name}} 🎉",
+  "celebrationBody": "Je hebt het volledig gefinancierd. Netjes gedaan.",
+  "celebrationHint": "Tik ergens om door te gaan",
+  "celebrationHintDrag": "Sleep de taart om te draaien · tik buiten om te sluiten",
+  "celebrationTileTag": "DOEL",
+  "celebrationTileFunded": "Gefinancierd",
+  "celebrationTilePct": "100%"
 }

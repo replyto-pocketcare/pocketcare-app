@@ -71,7 +71,7 @@ public func computeDividendEvents(_ holdings: [HoldingLite], _ dividends: [DivRo
     return events.sorted { $0.date < $1.date }
 }
 
-public enum DividendPeriod { case week, month, quarter, year, all }
+public enum DividendPeriod: Sendable { case week, month, quarter, year, all }
 
 public struct DividendBucket: Sendable {
     public let label: String
