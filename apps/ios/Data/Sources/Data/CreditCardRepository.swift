@@ -38,6 +38,30 @@ public struct CreditCardDetails: Sendable {
     }
 }
 
+/// One charge behind a card's outstanding balance, for the "View
+/// transactions" list. Deliberately a narrow row rather than a full
+/// `TransactionRow`: the list shows a description, a date and an amount, and
+/// web's query (`SELECT id, description, amount, occurred_at`) selects exactly
+/// those four. Mirrors Android's `CardCharge`.
+public struct CardCharge: Identifiable, Sendable {
+    public let id: String
+    public let description: String?
+    public let amount: Int64
+    public let occurredAt: String
+
+    public init(id: String, description: String?, amount: Int64, occurredAt: String) {
+        self.id = id
+        self.description = description
+        self.amount = amount
+        self.occurredAt = occurredAt
+    }
+}
+
+/// Web caps the charges list at 200 rows (`LIMIT 200` in cards/page.tsx); the
+/// running total is the total of what is listed, so the cap has to match or the
+/// two clients would print different totals for the same card.
+public let cardChargesLimit = 200
+
 public final class CreditCardRepository: @unchecked Sendable {
     private let db: PowerSyncDatabaseProtocol
     private let transactions: LedgerRepository
@@ -126,6 +150,52 @@ public final class CreditCardRepository: @unchecked Sendable {
                 parameters: [newId(), userId, details.accountId, details.statementDay, details.dueDay, details.creditLimit, details.cardLast4, ts, ts]
             )
         }
+    }
+
+    /// The charges that add up to this card's outstanding balance, newest
+    /// first -- web's second `useQuery` in `CardPanel`.
+    ///
+    /// `type = 'expense'` only, matching web: a settlement is a TRANSFER, and
+    /// listing it here would show a payment as though it were another charge.
+    ///
+    /// One-shot rather than a live `db.watch()` for the same reason
+    /// `cycleSpend` is -- see its doc comment (same simplification, both
+    /// platforms).
+    public func charges(accountId: String, limit: Int = cardChargesLimit) async throws -> [CardCharge] {
+        try await db.getAll(
+            sql: """
+                SELECT id, description, amount, occurred_at FROM transactions
+                WHERE account_id = ? AND deleted_at IS NULL AND type = 'expense'
+                ORDER BY occurred_at DESC LIMIT ?
+                """,
+            parameters: [accountId, limit],
+            mapper: { cursor in
+                CardCharge(
+                    id: try cursor.getString(name: "id"),
+                    description: try cursor.getStringOptional(name: "description"),
+                    amount: (try cursor.getInt64Optional(name: "amount")) ?? 0,
+                    occurredAt: try cursor.getString(name: "occurred_at")
+                )
+            }
+        )
+    }
+
+    /// How many charges `charges` would return, so the screen can hide the
+    /// "View transactions" control when there are none -- web's
+    /// `cardTxns.length > 0` guard. Counting is far cheaper than fetching 200
+    /// rows per card on every rebuild.
+    public func chargeCount(accountId: String, limit: Int = cardChargesLimit) async throws -> Int {
+        let row: Int64? = try await db.getOptional(
+            sql: """
+                SELECT COUNT(*) AS n FROM (
+                    SELECT id FROM transactions
+                    WHERE account_id = ? AND deleted_at IS NULL AND type = 'expense'
+                    LIMIT ?
+                )
+                """,
+            parameters: [accountId, limit]
+        ) { cursor in (try cursor.getInt64Optional(name: "n")) ?? 0 }
+        return Int(row ?? 0)
     }
 
     /// Settle the bill = record a transfer from the chosen account to the card.

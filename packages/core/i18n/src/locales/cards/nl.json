@@ -32,5 +32,10 @@
   "emiCoveredBody_other": "Deze betaling dekt {{count}} termijnen op deze kaart. Als betaald markeren?",
   "emiNo": "Termijn #{{n}}",
   "emiCoveredSkip": "Nu niet",
-  "emiCoveredConfirm": "Markeren"
+  "emiCoveredConfirm": "Markeren",
+  "viewTransactions": "Transacties bekijken",
+  "cardTxnsTitle": "Kaarttransacties",
+  "cardTxnsTotal": "Totaal {{amount}}",
+  "noCardTxns": "Nog geen afschrijvingen op deze kaart.",
+  "uncategorised": "Transactie"
 }

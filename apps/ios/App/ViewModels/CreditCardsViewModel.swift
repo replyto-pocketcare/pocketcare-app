@@ -42,8 +42,41 @@ public struct CreditCardUiModel: Identifiable, Sendable {
     /// actually rolled forward. Mirrors Android's CreditCardUiModel.
     public let rolledToNext: Bool
     public let pendingDueFormatted: String?
+    /// Seed text for the "amount due" input, in MAJOR units and unformatted.
+    ///
+    /// Web seeds its input with `String(toMajor(money(pending_due, ccy)))`; the
+    /// same value has to reach the field here or a save that did not touch it
+    /// would write null over the user's amount. A formatted string could not
+    /// serve -- it carries a currency symbol, grouping and the privacy mask, so
+    /// it is not something the user can type back.
+    public let pendingDueMajorText: String
+    /// Seed text for the "credit limit" input -- same reasoning as
+    /// `pendingDueMajorText`.
+    public let creditLimitMajorText: String
     public let newSpend: Int64
     public let newSpendFormatted: String?
+    /// Charges behind the balance. Only the COUNT is carried here -- the rows
+    /// themselves are read on demand when the user opens the list, so the view
+    /// still knows whether to offer it.
+    public let chargeCount: Int
+}
+
+/// One row of the "View transactions" list. `description` stays optional so the
+/// view applies the localised fallback -- the same split already used for
+/// `holderName`.
+public struct CardChargeUiModel: Identifiable, Sendable {
+    public let id: String
+    public let description: String?
+    public let amountFormatted: String
+    public let occurredAtIso: String
+}
+
+/// The open "View transactions" list: the charges behind one card's balance
+/// plus their running total, which is web's `chargesTotal`.
+public struct CardChargesUiModel: Sendable {
+    public let accountId: String
+    public let rows: [CardChargeUiModel]
+    public let totalFormatted: String
 }
 
 @Observable
@@ -61,6 +94,10 @@ public final class CreditCardsViewModel {
     /// Covered EMIs from the most recent settle() -- non-empty triggers the
     /// "Mark N EMI(s) paid?" confirm sheet.
     public var coveredEmis: [CoveredEmi] = []
+    /// The open "View transactions" list, or nil when it is closed. Held on the
+    /// view model rather than in per-panel `@State` so the rows survive the
+    /// list behind the modal re-rendering.
+    public var charges: CardChargesUiModel?
     /// The signed-in user's display name, for the name printed on the card
     /// face. Web reads `session.username` and falls back to the `cardHolder`
     /// string only when it is blank, so this stays the RAW name and the view
@@ -127,6 +164,10 @@ public final class CreditCardsViewModel {
             let detail = detailsById[ab.account.id]
             let owed = abs(ab.balance.amount)
             let currency = ab.account.currency
+            // Hoisted out of the initialiser calls below: it is read on both
+            // branches, and an `await` buried in an argument list is the kind
+            // of line a reader has to parse twice.
+            let chargeCount = (try? await creditCardRepository.chargeCount(accountId: ab.account.id)) ?? 0
 
             guard let detail else {
                 newCards.append(CreditCardUiModel(
@@ -134,8 +175,11 @@ public final class CreditCardsViewModel {
                     currency: currency, last4: nil, owed: owed, owedFormatted: formatMoneyGeneric(owed, currency),
                     creditLimit: nil, creditLimitFormatted: nil, availableCreditFormatted: nil,
                     hasCycle: false, statementDay: 1, dueDay: 20, statementDateIso: nil, payByIso: nil,
-                    dueThisCycle: nil, dueThisCycleFormatted: nil, rolledToNext: false, pendingDueFormatted: nil,
-                    newSpend: 0, newSpendFormatted: nil
+                    dueThisCycle: nil, dueThisCycleFormatted: nil, rolledToNext: false,
+                    pendingDueFormatted: nil,
+                    pendingDueMajorText: "", creditLimitMajorText: "",
+                    newSpend: 0, newSpendFormatted: nil,
+                    chargeCount: chargeCount
                 ))
                 continue
             }
@@ -157,17 +201,37 @@ public final class CreditCardsViewModel {
                 dueThisCycle: dueThisCycle, dueThisCycleFormatted: dueThisCycle.map { formatMoneyGeneric($0, currency) },
                 rolledToNext: rolledToNext,
                 pendingDueFormatted: detail.pendingDue.map { formatMoneyGeneric($0, currency) },
-                newSpend: newSpend, newSpendFormatted: newSpend > 0 ? formatMoneyGeneric(newSpend, currency) : nil
+                // `formatMajorPlain`, not `formatMoney`: these two are typed
+                // back into number fields, so no symbol, no grouping and no
+                // privacy mask -- and the scale still comes from the currency,
+                // not from 100.
+                pendingDueMajorText: detail.pendingDue.map { formatMajorPlain($0, currency: currency) } ?? "",
+                creditLimitMajorText: detail.creditLimit.map { formatMajorPlain($0, currency: currency) } ?? "",
+                newSpend: newSpend, newSpendFormatted: newSpend > 0 ? formatMoneyGeneric(newSpend, currency) : nil,
+                chargeCount: chargeCount
             ))
         }
         cards = newCards
         loaded = true
     }
 
-    /// Matches web's `saveCycle()`: statement/due day clamped 1-28, limit
-    /// and typed due-amount go through `upsertDetails`/`setCycleDetails`
-    /// (the latter recomputes `due_on` from the possibly-new cycle so
-    /// "pay by" stays correct).
+    /// Matches web's `saveCycle()`: statement/due day clamped 1-28, limit and
+    /// typed due-amount go through `upsertDetails`/`setCycleDetails` (the
+    /// latter recomputes `due_on` from the possibly-new cycle so "pay by"
+    /// stays correct).
+    ///
+    /// **Every nullable column this touches is a full overwrite, not a patch.**
+    /// `upsertDetails` writes `credit_limit` and `card_last4`;
+    /// `setCycleDetails` writes `pending_due` and `due_on`. So whatever the
+    /// form holds IS the new row, and the view's contract is that the form was
+    /// seeded from the stored detail before the user ever saw it -- see
+    /// `seedFromCard()` in CreditCardsView.swift. `due_on` is the one column
+    /// that can never go nil: it is recomputed from the cycle on every save.
+    ///
+    /// A blank amount-due field therefore still means "unset this", which is
+    /// web's behaviour and the only way a user can clear a statement amount.
+    /// `existingCreditLimit` keeps web's asymmetry: the limit falls back rather
+    /// than clearing, because web's `saveCycle` does the same.
     public func saveCycle(
         accountId: String, currency: String, statementDayText: String, dueDayText: String,
         creditLimitMajorText: String, dueAmountMajorText: String, last4: String, existingCreditLimit: Int64?
@@ -212,6 +276,35 @@ public final class CreditCardsViewModel {
         } catch {
             return "Couldn't settle: \(error.localizedDescription)"
         }
+    }
+
+    /// Load the charges behind `accountId`'s balance and open the list.
+    ///
+    /// The running total is the sum of the rows actually listed, exactly as
+    /// web's `chargesTotal` is -- both are capped at `cardChargesLimit`, so a
+    /// card with more charges than that shows the same total on both clients.
+    public func openCharges(accountId: String, currency: String) {
+        Task { [weak self] in
+            guard let self else { return }
+            let rows = (try? await self.creditCardRepository.charges(accountId: accountId)) ?? []
+            let total = rows.reduce(Int64(0)) { $0 + $1.amount }
+            self.charges = CardChargesUiModel(
+                accountId: accountId,
+                rows: rows.map {
+                    CardChargeUiModel(
+                        id: $0.id,
+                        description: $0.description,
+                        amountFormatted: formatMoneyGeneric($0.amount, currency),
+                        occurredAtIso: $0.occurredAt
+                    )
+                },
+                totalFormatted: formatMoneyGeneric(total, currency)
+            )
+        }
+    }
+
+    public func closeCharges() {
+        charges = nil
     }
 
     public func confirmMarkEmisPaid() {

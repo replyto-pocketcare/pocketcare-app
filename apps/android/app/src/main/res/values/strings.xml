@@ -175,6 +175,8 @@
     <string name="cards_card_holder">Card Holder</string>
     <string name="cards_card_number">Card number (optional — last 4 shown)</string>
     <string name="cards_card_number_placeholder">•••• (optional)</string>
+    <string name="cards_card_txns_title">Card transactions</string>
+    <string name="cards_card_txns_total">Total %1$s</string>
     <string name="cards_click_to_manage">Click to manage ▾</string>
     <string name="cards_credit_limit">Credit limit</string>
     <string name="cards_due_day">Due day</string>
@@ -192,6 +194,7 @@
     <string name="cards_empty_body">Add a Credit Card account to see your wallet come to life.</string>
     <string name="cards_new_account">New account</string>
     <string name="cards_new_spend_this_cycle">+%1$s new spend since the last statement</string>
+    <string name="cards_no_card_txns">No charges on this card yet.</string>
     <string name="cards_of_limit">of %1$s limit</string>
     <string name="cards_pay_by">Pay by</string>
     <string name="cards_save">Save</string>
@@ -202,6 +205,8 @@
     <string name="cards_statement_day">Statement day</string>
     <string name="cards_subtitle">Your cards, straight from the wallet.</string>
     <string name="cards_title">Cards</string>
+    <string name="cards_uncategorised">Transaction</string>
+    <string name="cards_view_transactions">View transactions</string>
     <string name="cards_wallet">WALLET</string>
 
     <!-- cashflow -->

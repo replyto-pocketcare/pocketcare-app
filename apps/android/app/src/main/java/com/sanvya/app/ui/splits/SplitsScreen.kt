@@ -1,5 +1,6 @@
 package com.sanvya.app.ui.splits
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -155,6 +157,7 @@ private fun GroupTile(g: SplitGroupUiModel, colors: com.sanvya.app.theme.SanvyaC
 
 @Composable
 private fun FriendRow(f: FriendEdgeUiModel, colors: com.sanvya.app.theme.SanvyaColors, onClick: () -> Unit) {
+    val name = f.name ?: S.Payments.someone(sRes())
     Row(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(SanvyaRadius.radiusLg))
             .background(colors.surface).clickable(onClick = onClick).padding(14.dp),
@@ -164,9 +167,9 @@ private fun FriendRow(f: FriendEdgeUiModel, colors: com.sanvya.app.theme.SanvyaC
         Box(
             Modifier.size(38.dp).clip(RoundedCornerShape(50)).background(colors.forest),
             contentAlignment = Alignment.Center,
-        ) { Text(initials(f.name), color = colors.surface, fontWeight = FontWeight.Bold, fontSize = 14.sp) }
+        ) { Text(initials(name), color = colors.surface, fontWeight = FontWeight.Bold, fontSize = 14.sp) }
         Column(Modifier.weight(1f)) {
-            Text(f.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.text)
+            Text(name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.text)
             Text(if (f.isOwed) S.Splits.sectionsOwesYou(sRes()) else S.Splits.sectionsYouOwe(sRes()), fontSize = 12.sp, color = if (f.isOwed) colors.positive else colors.negative)
         }
         Text(f.balanceFormatted, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = if (f.isOwed) colors.positive else colors.negative)
@@ -297,6 +300,13 @@ private fun CreateGroupSheet(viewModel: SplitsViewModel, onDismiss: () -> Unit, 
  * no caller -- so until now the app could tell you THAT you owed someone and
  * not one line of WHY.
  *
+ * **Remind** is web's second button, and it is a nudge, not a notification: it
+ * hands the sentence to the system share sheet and lets the user pick who
+ * carries it. Deliberately TEXT ONLY -- there is no `FileProvider` in this
+ * app's manifest, so an `ACTION_SEND` with a stream URI would be refused by the
+ * receiving app, and the manifest is a shared file this screen has no business
+ * editing (the same call `StatementsScreen`'s share makes).
+ *
  * Mirrors iOS's PersonSheet in SplitsView.swift.
  */
 @Composable
@@ -308,15 +318,17 @@ private fun PersonSheet(
 ) {
     val res = sRes()
     val colors = LocalSanvyaColors.current
+    val context = LocalContext.current
     val lines by viewModel.personLines.collectAsState()
     var showAllLines by remember { mutableStateOf(false) }
 
     LaunchedEffect(person.id) { viewModel.loadPersonLedger(person.id) }
 
-    SanvyaModal(open = true, onClose = onDismiss, label = person.name) {
+    val personName = person.name ?: S.Payments.someone(sRes())
+    SanvyaModal(open = true, onClose = onDismiss, label = personName) {
         Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(person.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                Text(personName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
                 if (person.net != 0L) {
                     Text(
                         if (person.net > 0) S.Splits.owesYouInline(res) else S.Splits.youOweInline(res),
@@ -389,8 +401,31 @@ private fun PersonSheet(
                 }
             }
 
-            Button(onClick = onSettleUp, modifier = Modifier.fillMaxWidth()) {
-                Text(S.Splits.settleUp(res))
+            // Every string the click handler needs is read HERE, not inside
+            // it: `sRes()` is @Composable and an onClick lambda is not a
+            // composable scope, so resolving them lazily would not compile.
+            val remindLabel = S.Splits.remind(res)
+            val remindLine = if (person.net > 0) {
+                S.Splits.remindOwed(res, personName, person.balanceFormatted)
+            } else {
+                S.Splits.remindOwe(res, personName, person.balanceFormatted)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Button(onClick = onSettleUp, modifier = Modifier.weight(1f)) {
+                    Text(S.Splits.settleUp(res))
+                }
+                OutlinedButton(onClick = {
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, remindLine)
+                    }
+                    context.startActivity(Intent.createChooser(intent, remindLabel))
+                }) {
+                    Text(remindLabel)
+                }
             }
         }
     }

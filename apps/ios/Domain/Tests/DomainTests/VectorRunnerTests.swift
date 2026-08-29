@@ -228,6 +228,12 @@ final class VectorRunnerTests: XCTestCase {
         registerSplitsCollapseVectors()
         try runDomain("splits-collapse")
     }
+    func testSplitsItemBreakdown() throws {
+        // ItemBreakdown.swift. Transcribed, not recorded: web's version of this
+        // arithmetic lives inside a React component and cannot be run from node.
+        registerSplitsItemBreakdownVectors()
+        try runDomain("splits-item-breakdown")
+    }
     func testDashboardGrid() throws {
         // TileGrid.swift's packRows(). Unusually, these vectors are the SPEC:
         // there is no web function to record, because the browser packs the

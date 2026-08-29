@@ -175,6 +175,8 @@
     <string name="cards_card_holder">कार्डधारक</string>
     <string name="cards_card_number">कार्ड नंबर (वैकल्पिक — अंतिम 4 दिखाए जाते हैं)</string>
     <string name="cards_card_number_placeholder">•••• (वैकल्पिक)</string>
+    <string name="cards_card_txns_title">कार्ड लेन-देन</string>
+    <string name="cards_card_txns_total">कुल %1$s</string>
     <string name="cards_click_to_manage">प्रबंधित करने के लिए क्लिक करें ▾</string>
     <string name="cards_credit_limit">क्रेडिट सीमा</string>
     <string name="cards_due_day">देय दिन</string>
@@ -192,6 +194,7 @@
     <string name="cards_empty_body">अपने वॉलेट को जीवंत देखने के लिए एक क्रेडिट कार्ड खाता जोड़ें।</string>
     <string name="cards_new_account">नया खाता</string>
     <string name="cards_new_spend_this_cycle">पिछले स्टेटमेंट के बाद +%1$s नया खर्च</string>
+    <string name="cards_no_card_txns">इस कार्ड पर अभी तक कोई खर्च नहीं है।</string>
     <string name="cards_of_limit">%1$s सीमा में से</string>
     <string name="cards_pay_by">इस तिथि तक भुगतान करें</string>
     <string name="cards_save">सहेजें</string>
@@ -202,6 +205,8 @@
     <string name="cards_statement_day">स्टेटमेंट दिन</string>
     <string name="cards_subtitle">आपके कार्ड, सीधे वॉलेट से।</string>
     <string name="cards_title">कार्ड</string>
+    <string name="cards_uncategorised">लेन-देन</string>
+    <string name="cards_view_transactions">लेन-देन देखें</string>
     <string name="cards_wallet">वॉलेट</string>
 
     <!-- cashflow -->

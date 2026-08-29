@@ -3,6 +3,7 @@ package com.sanvya.app.ui.creditcards
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.auth.AuthRepository
+import com.sanvya.app.data.repository.CardCharge
 import com.sanvya.app.data.repository.CoveredEmi
 import com.sanvya.app.data.repository.CreditCardDetails
 import com.sanvya.app.data.repository.CreditCardRepository
@@ -19,6 +20,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.time.Instant
 import java.time.LocalDate
+import com.sanvya.app.ui.formatMajorPlain
 import com.sanvya.app.ui.formatMoney
 
 data class SettleSourceOption(val id: String, val name: String)
@@ -43,8 +45,43 @@ data class CreditCardUiModel(
     val dueThisCycleFormatted: String?,
     val rolledToNext: Boolean,
     val pendingDueFormatted: String?,
+    /**
+     * Seed text for the "amount due" input, in MAJOR units and unformatted.
+     *
+     * Web seeds its input with `String(toMajor(money(pending_due, ccy)))`; the
+     * same value has to reach the field here or a save that did not touch it
+     * would write null over the user's amount. A formatted string could not
+     * serve -- it carries a currency symbol, grouping and the privacy mask, so
+     * it is not something the user can type back.
+     */
+    val pendingDueMajorText: String,
+    /** Seed text for the "credit limit" input -- same reasoning as
+     * [pendingDueMajorText]. */
+    val creditLimitMajorText: String,
     val newSpend: Long,
     val newSpendFormatted: String?,
+    /** Charges behind the balance. Only the COUNT is carried here -- the rows
+     * themselves are read on demand when the user opens the list, so the
+     * screen still knows whether to offer it. */
+    val chargeCount: Int,
+)
+
+/** One row of the "View transactions" list. `description` stays nullable so
+ * the screen, which owns `Resources`, applies the localised fallback -- the
+ * same split already used for [CreditCardsViewModel.holderName]. */
+data class CardChargeUiModel(
+    val id: String,
+    val description: String?,
+    val amountFormatted: String,
+    val occurredAtIso: String,
+)
+
+/** The open "View transactions" list: the charges behind one card's balance
+ * plus their running total, which is web's `chargesTotal`. */
+data class CardChargesUiModel(
+    val accountId: String,
+    val rows: List<CardChargeUiModel>,
+    val totalFormatted: String,
 )
 
 /**
@@ -93,6 +130,12 @@ class CreditCardsViewModel : ViewModel(), KoinComponent {
     val coveredEmis: StateFlow<List<CoveredEmi>> = _coveredEmis
     private var settledAt: String = ""
 
+    /** The open "View transactions" list, or null when it is closed. Held on
+     * the view model rather than per-panel state so the rows survive a
+     * recomposition of the list behind the modal. */
+    private val _charges = MutableStateFlow<CardChargesUiModel?>(null)
+    val charges: StateFlow<CardChargesUiModel?> = _charges
+
     init {
         viewModelScope.launch {
             // Offline / signed-out reads throw; an empty name just falls back to
@@ -124,7 +167,10 @@ class CreditCardsViewModel : ViewModel(), KoinComponent {
                             creditLimit = null, creditLimitFormatted = null, availableCreditFormatted = null,
                             hasCycle = false, statementDay = 1, dueDay = 20, statementDateIso = null, payByIso = null,
                             dueThisCycle = null, dueThisCycleFormatted = null, rolledToNext = false,
-                            pendingDueFormatted = null, newSpend = 0L, newSpendFormatted = null,
+                            pendingDueFormatted = null,
+                            pendingDueMajorText = "", creditLimitMajorText = "",
+                            newSpend = 0L, newSpendFormatted = null,
+                            chargeCount = creditCardRepository.chargeCount(ab.account.id),
                         )
                     } else {
                         val cycle = billingCycle(detail.statementDay, detail.dueDay, today)
@@ -144,7 +190,14 @@ class CreditCardsViewModel : ViewModel(), KoinComponent {
                             dueThisCycle = dueThisCycle, dueThisCycleFormatted = dueThisCycle?.let { formatMoney(it, currency) },
                             rolledToNext = rolledToNext,
                             pendingDueFormatted = detail.pendingDue?.let { formatMoney(it, currency) },
+                            // `formatMajorPlain`, not `formatMoney`: these two
+                            // are typed back into number fields, so no symbol,
+                            // no grouping and no privacy mask -- and the scale
+                            // still comes from the currency, not from 100.
+                            pendingDueMajorText = detail.pendingDue?.let { formatMajorPlain(it, currency) } ?: "",
+                            creditLimitMajorText = detail.creditLimit?.let { formatMajorPlain(it, currency) } ?: "",
                             newSpend = newSpend, newSpendFormatted = if (newSpend > 0) formatMoney(newSpend, currency) else null,
+                            chargeCount = creditCardRepository.chargeCount(ab.account.id),
                         )
                     }
                 }
@@ -153,10 +206,25 @@ class CreditCardsViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    /** Matches web's `saveCycle()`: statement/due day clamped 1-28, limit
-     * and typed due-amount go through `upsertDetails`/`setCycleDetails`
-     * (the latter recomputes `due_on` from the possibly-new cycle so "pay
-     * by" stays correct). */
+    /**
+     * Matches web's `saveCycle()`: statement/due day clamped 1-28, limit and
+     * typed due-amount go through `upsertDetails`/`setCycleDetails` (the latter
+     * recomputes `due_on` from the possibly-new cycle so "pay by" stays
+     * correct).
+     *
+     * **Every nullable column this touches is a full overwrite, not a patch.**
+     * `upsertDetails` writes `credit_limit` and `card_last4`; `setCycleDetails`
+     * writes `pending_due` and `due_on`. So whatever the form holds IS the new
+     * row, and the screen's contract is that the form was seeded from the
+     * stored detail before the user ever saw it -- see the seeding
+     * `LaunchedEffect` in CreditCardsScreen.kt. `due_on` is the one column that
+     * can never go null: it is recomputed from the cycle on every save.
+     *
+     * A blank amount-due field therefore still means "unset this", which is
+     * web's behaviour and the only way a user can clear a statement amount.
+     * `existingCreditLimit` keeps web's asymmetry: the limit falls back rather
+     * than clearing, because web's `saveCycle` does the same.
+     */
     suspend fun saveCycle(
         accountId: String, currency: String, statementDayText: String, dueDayText: String,
         creditLimitMajorText: String, dueAmountMajorText: String, last4: String,
@@ -203,6 +271,36 @@ class CreditCardsViewModel : ViewModel(), KoinComponent {
         } catch (e: Exception) {
             "Couldn't settle: ${e.message}"
         }
+    }
+
+    /**
+     * Load the charges behind [accountId]'s balance and open the list.
+     *
+     * The running total is the sum of the rows actually listed, exactly as
+     * web's `chargesTotal` is -- both are capped at `CARD_CHARGES_LIMIT`, so a
+     * card with more charges than that shows the same total on both clients.
+     */
+    fun openCharges(accountId: String, currency: String) {
+        viewModelScope.launch {
+            val rows = runCatching { creditCardRepository.charges(accountId) }.getOrDefault(emptyList())
+            val total = rows.sumOf(CardCharge::amount)
+            _charges.value = CardChargesUiModel(
+                accountId = accountId,
+                rows = rows.map {
+                    CardChargeUiModel(
+                        id = it.id,
+                        description = it.description,
+                        amountFormatted = formatMoney(it.amount, currency),
+                        occurredAtIso = it.occurredAt,
+                    )
+                },
+                totalFormatted = formatMoney(total, currency),
+            )
+        }
+    }
+
+    fun closeCharges() {
+        _charges.value = null
     }
 
     fun confirmMarkEmisPaid() {

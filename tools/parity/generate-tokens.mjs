@@ -621,6 +621,30 @@ fun SanvyaTheme(
 // 6. iOS emitters
 // ---------------------------------------------------------------------------
 
+/**
+ * Token names that SwiftUI already declares on `Color` itself.
+ *
+ * Our tokens live in `extension Color`, so a name SwiftUI also declares there
+ * is shadowed rather than replaced. Module shadowing normally picks ours, but
+ * "normally" is not a thing to build a palette on: the two failure modes are
+ * `ambiguous use of 'teal'` and, worse, silently rendering Apple's teal instead
+ * of the brand one -- a wrong colour that compiles.
+ *
+ * So every colliding token gets a `sanvya`-prefixed twin, and call sites use
+ * that. The plain name stays: it is the web variable's name, deleting it would
+ * make the generated file stop matching `globals.css`, and files that already
+ * use it are no more broken than before.
+ *
+ * The list is SwiftUI's own `Color` statics as of iOS 17. Add to it when a new
+ * CSS variable collides -- the symptom is a colour that is right on Android and
+ * wrong on iOS, which is the hardest kind of bug to notice.
+ */
+const SWIFTUI_COLOR_STATICS = new Set([
+  "red", "orange", "yellow", "green", "mint", "teal", "cyan", "blue",
+  "indigo", "purple", "pink", "brown", "white", "gray", "black", "clear",
+  "primary", "secondary", "accentColor",
+]);
+
 const iosColorsSwift = `import SwiftUI
 
 ${swiftBanner()}
@@ -633,6 +657,15 @@ ${colorNames
         darkVars[k],
       )}\n            : ${hexToUIColor(lightVars[k])}\n    })`,
   )
+  .join("\n")}
+
+    // Unambiguous twins for the tokens SwiftUI also declares on \`Color\`.
+    // Prefer these at call sites -- see SWIFTUI_COLOR_STATICS in the generator.
+${colorNames
+  .filter(([, n]) => SWIFTUI_COLOR_STATICS.has(n))
+  .map(([, n]) => `    static let sanvya${n[0].toUpperCase()}${n.slice(1)} = Color(UIColor { tc in\n        tc.userInterfaceStyle == .dark\n            ? ${hexToUIColor(
+    darkVars[colorNames.find(([, m]) => m === n)[0]],
+  )}\n            : ${hexToUIColor(lightVars[colorNames.find(([, m]) => m === n)[0]])}\n    })`)
   .join("\n")}
 }
 `;

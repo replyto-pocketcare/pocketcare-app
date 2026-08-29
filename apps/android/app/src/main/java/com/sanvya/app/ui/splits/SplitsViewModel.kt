@@ -43,7 +43,15 @@ data class SplitGroupUiModel(
 
 data class FriendEdgeUiModel(
     val id: String,
-    val name: String,
+    /**
+     * Null when this user has no display name yet.
+     *
+     * NOT defaulted to a placeholder here: a view model cannot reach `S`
+     * without pinning a `Resources`, and pinning one caches a stale locale for
+     * the life of the view model. The screen resolves it -- the same rule
+     * `GroupDetailViewModel.nameOf(id, res)` follows.
+     */
+    val name: String?,
     val net: Long,
     val balanceFormatted: String,
     val isOwed: Boolean,
@@ -228,7 +236,6 @@ class SplitsViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun nameOf(id: String): String = namesById[id] ?: "Someone"
 
     private suspend fun refreshInsights(uid: String) {
         _insights.value = runCatching { splitsRepository.friendInsights(uid).second }.getOrDefault(emptyList())
@@ -286,7 +293,7 @@ class SplitsViewModel : ViewModel(), KoinComponent {
         ).map { person ->
             FriendEdgeUiModel(
                 id = person.userId,
-                name = nameOf(person.userId),
+                name = namesById[person.userId],
                 net = person.net,
                 balanceFormatted = formatMoney(kotlin.math.abs(person.net), base),
                 isOwed = person.net > 0,
@@ -308,7 +315,13 @@ class SplitsViewModel : ViewModel(), KoinComponent {
         val uid = userId ?: return onDone(null)
         viewModelScope.launch {
             try {
-                val id = splitsRepository.getOrCreateDirectGroup(uid, otherUserId, nameOf(otherUserId), currency)
+                // A stored COLUMN value, not UI copy, so it does not go
+                // through `S`: it is the group's row name in `split_groups`,
+                // read back by every client in every locale. Web writes the
+                // same literal.
+                val id = splitsRepository.getOrCreateDirectGroup(
+                    uid, otherUserId, namesById[otherUserId] ?: DIRECT_GROUP_FALLBACK_NAME, currency,
+                )
                 onDone(id)
             } catch (e: Exception) {
                 _error.value = e.message
@@ -360,3 +373,12 @@ class SplitsViewModel : ViewModel(), KoinComponent {
     }
 }
 
+
+/**
+ * The row name a direct group gets when the other person has no display name.
+ *
+ * A COLUMN value, not UI copy -- it is written once and read back by every
+ * client in every locale, so localising it would make the same group carry a
+ * different name depending on who created it. Web writes this same literal.
+ */
+private const val DIRECT_GROUP_FALLBACK_NAME = "Direct"

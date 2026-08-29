@@ -32,5 +32,10 @@
   "emiCoveredBody_other": "यह भुगतान इस कार्ड की {{count}} किस्तों को कवर करता है। इन्हें चुकता चिह्नित करें?",
   "emiNo": "EMI #{{n}}",
   "emiCoveredSkip": "अभी नहीं",
-  "emiCoveredConfirm": "चुकता चिह्नित करें"
+  "emiCoveredConfirm": "चुकता चिह्नित करें",
+  "viewTransactions": "लेन-देन देखें",
+  "cardTxnsTitle": "कार्ड लेन-देन",
+  "cardTxnsTotal": "कुल {{amount}}",
+  "noCardTxns": "इस कार्ड पर अभी तक कोई खर्च नहीं है।",
+  "uncategorised": "लेन-देन"
 }

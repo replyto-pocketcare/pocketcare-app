@@ -234,6 +234,10 @@ public enum S {
         public static var cardHolder: String { String(localized: "cards:cardHolder", table: "Localizable") }
         public static var cardNumber: String { String(localized: "cards:cardNumber", table: "Localizable") }
         public static var cardNumberPlaceholder: String { String(localized: "cards:cardNumberPlaceholder", table: "Localizable") }
+        public static var cardTxnsTitle: String { String(localized: "cards:cardTxnsTitle", table: "Localizable") }
+        public static func cardTxnsTotal(amount: String) -> String {
+            String(format: String(localized: "cards:cardTxnsTotal", table: "Localizable"), amount)
+        }
         public static var clickToManage: String { String(localized: "cards:clickToManage", table: "Localizable") }
         public static var creditLimit: String { String(localized: "cards:creditLimit", table: "Localizable") }
         public static var dueDay: String { String(localized: "cards:dueDay", table: "Localizable") }
@@ -256,6 +260,7 @@ public enum S {
         public static func newSpendThisCycle(amount: String) -> String {
             String(format: String(localized: "cards:newSpendThisCycle", table: "Localizable"), amount)
         }
+        public static var noCardTxns: String { String(localized: "cards:noCardTxns", table: "Localizable") }
         public static func ofLimit(limit: String) -> String {
             String(format: String(localized: "cards:ofLimit", table: "Localizable"), limit)
         }
@@ -270,6 +275,8 @@ public enum S {
         public static var statementDay: String { String(localized: "cards:statementDay", table: "Localizable") }
         public static var subtitle: String { String(localized: "cards:subtitle", table: "Localizable") }
         public static var title: String { String(localized: "cards:title", table: "Localizable") }
+        public static var uncategorised: String { String(localized: "cards:uncategorised", table: "Localizable") }
+        public static var viewTransactions: String { String(localized: "cards:viewTransactions", table: "Localizable") }
         public static var wallet: String { String(localized: "cards:wallet", table: "Localizable") }
     }
 

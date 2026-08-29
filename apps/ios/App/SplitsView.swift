@@ -206,6 +206,12 @@ struct SplitsView: View {
  no caller — so until now the app could tell you THAT you owed someone and not
  one line of WHY.
 
+ **Remind** is web's second button, and it is a nudge, not a notification: it
+ hands the sentence to the system share sheet and lets the user pick who carries
+ it. `SanvyaShareLink` wraps `ShareLink` rather than presenting a
+ `UIActivityViewController` ourselves, so the system owns the iPad popover
+ anchor — see that file's own note.
+
  Mirrors Android's PersonSheet in SplitsScreen.kt.
  */
 private struct PersonSheet: View {
@@ -215,6 +221,15 @@ private struct PersonSheet: View {
     let onDismiss: () -> Void
 
     @State private var showAllLines = false
+
+    /// Carries the person's name and the amount, because a bare "you owe me"
+    /// with neither is a message the recipient has to come back and ask about.
+    /// Which of the two lines it is depends on which way the balance leans.
+    private var remindLine: String {
+        person.net > 0
+            ? S.Splits.remindOwed(name: person.name, amount: person.balanceFormatted)
+            : S.Splits.remindOwe(name: person.name, amount: person.balanceFormatted)
+    }
 
     var body: some View {
         NavigationStack {
@@ -275,9 +290,13 @@ private struct PersonSheet: View {
                         }
                     }
 
-                    Button(S.Splits.settleUp, action: onSettleUp)
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity)
+                    HStack(spacing: 12) {
+                        Button(S.Splits.settleUp, action: onSettleUp)
+                            .buttonStyle(.borderedProminent)
+                            .frame(maxWidth: .infinity)
+                        SanvyaShareLink(label: S.Splits.remind, item: remindLine)
+                            .frame(width: 130)
+                    }
                 }
                 .padding(16)
             }

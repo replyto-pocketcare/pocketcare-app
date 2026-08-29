@@ -100,4 +100,12 @@ public extension Color {
             ? UIColor(red: 0.7961, green: 0.8392, blue: 0.7412, alpha: 1)
             : UIColor(red: 0.2431, green: 0.2902, blue: 0.2196, alpha: 1)
     })
+
+    // Unambiguous twins for the tokens SwiftUI also declares on `Color`.
+    // Prefer these at call sites -- see SWIFTUI_COLOR_STATICS in the generator.
+    static let sanvyaTeal = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(red: 0.1843, green: 0.4353, blue: 0.4157, alpha: 1)
+            : UIColor(red: 0.1843, green: 0.4353, blue: 0.4157, alpha: 1)
+    })
 }

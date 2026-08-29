@@ -3681,6 +3681,52 @@
         }
       }
     },
+    "cards:cardTxnsTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Card transactions"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कार्ड लेन-देन"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaarttransacties"
+          }
+        }
+      }
+    },
+    "cards:cardTxnsTotal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुल %1$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Totaal %1$@"
+          }
+        }
+      }
+    },
     "cards:clickToManage": {
       "extractionState": "manual",
       "localizations": {
@@ -4039,6 +4085,29 @@
         }
       }
     },
+    "cards:noCardTxns": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No charges on this card yet."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस कार्ड पर अभी तक कोई खर्च नहीं है।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen afschrijvingen op deze kaart."
+          }
+        }
+      }
+    },
     "cards:ofLimit": {
       "extractionState": "manual",
       "localizations": {
@@ -4265,6 +4334,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kaarten"
+          }
+        }
+      }
+    },
+    "cards:uncategorised": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transaction"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लेन-देन"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transactie"
+          }
+        }
+      }
+    },
+    "cards:viewTransactions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View transactions"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लेन-देन देखें"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transacties bekijken"
           }
         }
       }

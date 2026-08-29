@@ -175,6 +175,8 @@
     <string name="cards_card_holder">Kaarthouder</string>
     <string name="cards_card_number">Kaartnummer (optioneel — laatste 4 getoond)</string>
     <string name="cards_card_number_placeholder">•••• (optioneel)</string>
+    <string name="cards_card_txns_title">Kaarttransacties</string>
+    <string name="cards_card_txns_total">Totaal %1$s</string>
     <string name="cards_click_to_manage">Klik om te beheren ▾</string>
     <string name="cards_credit_limit">Kredietlimiet</string>
     <string name="cards_due_day">Vervaldag</string>
@@ -192,6 +194,7 @@
     <string name="cards_empty_body">Voeg een creditcardrekening toe om je portemonnee tot leven te zien komen.</string>
     <string name="cards_new_account">Nieuwe rekening</string>
     <string name="cards_new_spend_this_cycle">+%1$s nieuwe uitgaven sinds het laatste overzicht</string>
+    <string name="cards_no_card_txns">Nog geen afschrijvingen op deze kaart.</string>
     <string name="cards_of_limit">van %1$s limiet</string>
     <string name="cards_pay_by">Betalen vóór</string>
     <string name="cards_save">Opslaan</string>
@@ -202,6 +205,8 @@
     <string name="cards_statement_day">Afschriftdag</string>
     <string name="cards_subtitle">Je kaarten, rechtstreeks uit de portemonnee.</string>
     <string name="cards_title">Kaarten</string>
+    <string name="cards_uncategorised">Transactie</string>
+    <string name="cards_view_transactions">Transacties bekijken</string>
     <string name="cards_wallet">PORTEMONNEE</string>
 
     <!-- cashflow -->

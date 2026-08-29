@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import com.sanvya.app.data.repository.ParticipantInput
 import com.sanvya.app.data.repository.PayerInput
 import com.sanvya.app.data.repository.SplitExpenseInput
@@ -249,6 +251,42 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
     fun setPaidText(userId: String, v: String) = update { it.copy(paidText = it.paidText + (userId to v)) }
     fun setForOtherOn(v: Boolean) = update { it.copy(forOtherOn = v) }
     fun setForOtherUserId(v: String) = update { it.copy(forOtherUserId = v) }
+
+    /**
+     * Open the form with one group already chosen -- web's
+     * `/transactions/new?split=<id>`, the link a group's "Add expense" follows.
+     *
+     * It WAITS for that group's membership rows instead of calling
+     * [setSplitGroup] straight away: `groupMembers` is a `stateIn` that is still
+     * empty on the first composition, so preselecting synchronously would pick
+     * the group with nobody in it -- and a split with no participants silently
+     * books the whole amount as an ordinary personal expense.
+     *
+     * `splitTouched` is set exactly as the user's own tap sets it, so the
+     * auto-split effect cannot overwrite the deliberate choice this represents.
+     */
+    fun preselectSplitGroup(groupId: String) {
+        if (groupId.isEmpty() || ui.value.splitGroupId == groupId) return
+        viewModelScope.launch {
+            // Bounded. `first { … }` on a flow that never yields the key never
+            // resumes -- a deleted group, or a stale deep link, would leave this
+            // coroutine parked in viewModelScope for the life of the screen and
+            // silently never preselect anything. A timeout turns that into the
+            // honest outcome: no preselection, and the form still works.
+            val members = withTimeoutOrNull(PRESELECT_MEMBERS_TIMEOUT_MS) {
+                groupMembers.first { it.containsKey(groupId) }.getValue(groupId)
+            } ?: return@launch
+            update {
+                it.copy(
+                    splitOn = true,
+                    splitTouched = true,
+                    splitGroupId = groupId,
+                    splitMembers = members,
+                    splitMode = SplitModes.EQUAL,
+                )
+            }
+        }
+    }
 
     /** Choosing a group replaces the participant list with its members. */
     fun setSplitGroup(groupId: String) = update {
@@ -684,3 +722,11 @@ class CreateTransactionViewModel : ViewModel(), KoinComponent {
         const val AUTO_CATEGORIZE_DEBOUNCE_MS = 220L
     }
 }
+
+/**
+ * How long the split preselect waits for the group's membership to arrive.
+ *
+ * Five seconds is past any local read and well short of the point where a
+ * parked coroutine becomes a leak nobody can see.
+ */
+private const val PRESELECT_MEMBERS_TIMEOUT_MS = 5_000L

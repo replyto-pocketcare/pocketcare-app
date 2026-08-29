@@ -35,6 +35,7 @@ import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.i18n.S
 import com.sanvya.app.i18n.sRes
+import com.sanvya.app.ui.components.SanvyaModal
 import com.sanvya.app.ui.components.SanvyaPage
 
 /**
@@ -61,12 +62,13 @@ fun CreditCardsScreen(
     val sources by viewModel.sources.collectAsState()
     val loaded by viewModel.loaded.collectAsState()
     val coveredEmis by viewModel.coveredEmis.collectAsState()
+    val charges by viewModel.charges.collectAsState()
     val holderName by viewModel.holderName.collectAsState()
     val colors = LocalSanvyaColors.current
     val scope = rememberCoroutineScope()
 
     SanvyaPage(
-        title = "Credit Cards",
+        title = S.Cards.title(sRes()),
         action = {
  IconButton(onClick = onAddAccount) { Icon(Icons.Default.Add, contentDescription = S.Cards.addCard(sRes()), tint = colors.accent) }
         },
@@ -86,6 +88,14 @@ fun CreditCardsScreen(
                 }
             }
 
+            // The charges behind the balance, newest first, with the same
+            // running total web prints in the header. Rendered once at screen
+            // level rather than inside each panel: the list is view-model
+            // state, so it survives the panel recomposing behind the scrim.
+            charges?.let {
+                CardChargesModal(charges = it, onClose = { viewModel.closeCharges() }, colors = colors)
+            }
+
             if (coveredEmis.isNotEmpty()) {
                 CoveredEmisDialog(
                     covered = coveredEmis,
@@ -103,13 +113,14 @@ private fun EmptyCardsState(colors: SanvyaColors, onAddAccount: () -> Unit) {
     Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Icon(Icons.Default.CreditCard, contentDescription = null, tint = colors.text2, modifier = Modifier.size(30.dp))
-            Text("No credit cards yet", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
+            // Web's empty state is `emptyBody` under the page title and a
+            // `＋ newAccount` link -- no second heading, and no bespoke copy.
             Text(
-                "Add a credit-card account to track its billing cycle, dues, and settle-ups here.",
+                S.Cards.emptyBody(sRes()),
                 fontSize = 13.sp, color = colors.text2, textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(4.dp))
-            Button(onClick = onAddAccount) { Text("＋ Add account") }
+            Button(onClick = onAddAccount) { Text("＋ " + S.Cards.newAccount(sRes())) }
         }
     }
 }
@@ -128,12 +139,40 @@ private fun CreditCardPanel(
     var editing by rememberSaveable(card.accountId) { mutableStateOf(!card.hasCycle) }
     var stmt by rememberSaveable(card.accountId) { mutableStateOf(card.statementDay.toString()) }
     var due by rememberSaveable(card.accountId) { mutableStateOf(card.dueDay.toString()) }
-    var limit by rememberSaveable(card.accountId) { mutableStateOf("") }
-    var dueAmt by rememberSaveable(card.accountId) { mutableStateOf("") }
+    var limit by rememberSaveable(card.accountId) { mutableStateOf(card.creditLimitMajorText) }
+    var dueAmt by rememberSaveable(card.accountId) { mutableStateOf(card.pendingDueMajorText) }
     var last4 by rememberSaveable(card.accountId) { mutableStateOf(card.last4 ?: "") }
     var fromId by rememberSaveable(card.accountId) { mutableStateOf<String?>(null) }
     var amountText by rememberSaveable(card.accountId) { mutableStateOf("") }
     var error by rememberSaveable(card.accountId) { mutableStateOf<String?>(null) }
+
+    /**
+     * Keep the form seeded from what is actually stored, for as long as the
+     * user is not typing into it.
+     *
+     * This is the fix for a live data-loss bug: the form used to open BLANK and
+     * `saveCycle` writes whatever the fields hold, so changing only the
+     * statement day and pressing Save erased the user's `pending_due` (and
+     * would have erased the credit limit, but for a fallback in the view
+     * model). Web seeds its inputs from the loaded detail, so an unchanged save
+     * is a no-op -- this restores that, and additionally re-seeds if the detail
+     * row lands AFTER the panel first composed, which web's `useState`
+     * initialiser cannot do.
+     *
+     * Guarded on `!editing` so it can never overwrite what the user is typing.
+     */
+    LaunchedEffect(
+        card.accountId, card.statementDay, card.dueDay, card.last4,
+        card.creditLimitMajorText, card.pendingDueMajorText, editing,
+    ) {
+        if (!editing) {
+            stmt = card.statementDay.toString()
+            due = card.dueDay.toString()
+            limit = card.creditLimitMajorText
+            dueAmt = card.pendingDueMajorText
+            last4 = card.last4 ?: ""
+        }
+    }
 
     val baseColor = card.accountColorHex?.let { runCatching { Color(android.graphics.Color.parseColor(it)) }.getOrNull() }
         ?: runCatching { Color(android.graphics.Color.parseColor(FALLBACK_PALETTE[index % FALLBACK_PALETTE.size])) }.getOrElse { colors.forest }
@@ -188,7 +227,7 @@ private fun CreditCardPanel(
                     Column {
                         Text(S.Cards.spentThisCycle(sRes()), fontSize = 12.sp, color = colors.text2)
                         Text(card.owedFormatted, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = colors.negative)
-                        card.creditLimitFormatted?.let { Text("of $it limit", fontSize = 12.sp, color = colors.text2) }
+                        card.creditLimitFormatted?.let { Text(S.Cards.ofLimit(sRes(), it), fontSize = 12.sp, color = colors.text2) }
                     }
                     if (!expanded && card.hasCycle) {
                         Column(horizontalAlignment = Alignment.End) {
@@ -196,7 +235,12 @@ private fun CreditCardPanel(
                                 Text(S.Cards.dueThisCycle(sRes()), fontSize = 12.sp, color = colors.text2)
                                 Text(it, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = if (card.dueThisCycle != 0L) colors.negative else colors.positive)
                             }
-                            card.payByIso?.let { Text("Pay by ${it.toDisplayDate()}", fontSize = 11.sp, color = colors.text2) }
+                            card.payByIso?.let {
+                                // Web stacks the label above its value; two
+                                // Texts, not one concatenated string.
+                                Text(S.Cards.payBy(sRes()), fontSize = 11.sp, color = colors.text2)
+                                Text(it.toDisplayDate(), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = colors.text)
+                            }
                             // A closed statement whose due date has moved past
                             // this cycle shows "Due this cycle 0"; without this
                             // line nothing says where the balance went. Web
@@ -214,11 +258,33 @@ private fun CreditCardPanel(
             if (expanded) {
                 Column(Modifier.padding(start = 20.dp, end = 20.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (card.hasCycle) {
-                        card.availableCreditFormatted?.let { Text("Available credit: $it", fontSize = 12.sp, color = colors.positive) }
-                        card.newSpendFormatted?.let { Text("+$it new spend since the last statement", fontSize = 11.sp, color = colors.text2) }
-                        card.statementDateIso?.let { Text("Statement: ${it.toDisplayDate()}", fontSize = 11.sp, color = colors.text2) }
+                        card.availableCreditFormatted?.let { Text(S.Cards.availableCredit(sRes(), it), fontSize = 12.sp, color = colors.positive) }
+                        card.newSpendFormatted?.let { Text(S.Cards.newSpendThisCycle(sRes(), it), fontSize = 11.sp, color = colors.text2) }
+                        card.statementDateIso?.let { Text(S.Cards.statement(sRes(), it.toDisplayDate()), fontSize = 11.sp, color = colors.text2) }
                         if (!editing) {
-                            TextButton(onClick = { editing = true; limit = ""; dueAmt = "" }) { Text(S.Cards.editDetails(sRes())) }
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                // Web hides this control when the card has no
+                                // charges yet, which is why the count travels
+                                // with the model.
+                                if (card.chargeCount > 0) {
+                                    TextButton(onClick = { viewModel.openCharges(card.accountId, card.currency) }) {
+                                        Text(S.Cards.viewTransactions(sRes()))
+                                    }
+                                }
+                                // Seeds explicitly as well as via the effect
+                                // above: the effect is what keeps the fields
+                                // current, this is what guarantees the state
+                                // the user sees is the state that will be
+                                // saved, in one place a reader can find.
+                                TextButton(onClick = {
+                                    stmt = card.statementDay.toString()
+                                    due = card.dueDay.toString()
+                                    limit = card.creditLimitMajorText
+                                    dueAmt = card.pendingDueMajorText
+                                    last4 = card.last4 ?: ""
+                                    editing = true
+                                }) { Text(S.Cards.editDetails(sRes())) }
+                            }
                         }
                     }
 
@@ -227,7 +293,7 @@ private fun CreditCardPanel(
                         OutlinedTextField(due, { due = it.filter(Char::isDigit) }, label = { Text(S.Cards.dueDay(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                         OutlinedTextField(limit, { limit = it }, label = { Text(S.Cards.creditLimit(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                         OutlinedTextField(dueAmt, { dueAmt = it }, label = { Text(S.Cards.amountDue(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                        OutlinedTextField(last4, { last4 = it.filter(Char::isDigit).takeLast(4) }, label = { Text("Card number (last 4)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(last4, { last4 = it.filter(Char::isDigit).takeLast(4) }, label = { Text(S.Cards.cardNumber(sRes())) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = {
                                 scope.launch {
@@ -241,7 +307,7 @@ private fun CreditCardPanel(
 
                     HorizontalDivider(color = colors.border)
 
-                    Text("Settle from", fontSize = 12.sp, color = colors.text2)
+                    Text(S.Cards.settleFrom(sRes()), fontSize = 12.sp, color = colors.text2)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         sources.forEach { s ->
                             val active = (fromId ?: sources.firstOrNull()?.id) == s.id
@@ -277,6 +343,62 @@ private fun CreditCardPanel(
     }
 }
 
+/**
+ * The charges that add up to the amount due -- newest first, with the running
+ * total in the header. Web's `Modal` in cards/page.tsx.
+ *
+ * A plain [Column], not a LazyColumn: [SanvyaModal] already puts its content
+ * inside a vertically scrolling container, and a lazy list nested in one has
+ * unbounded height (a Compose runtime crash, not a layout glitch).
+ */
+@Composable
+private fun CardChargesModal(
+    charges: CardChargesUiModel,
+    onClose: () -> Unit,
+    colors: SanvyaColors,
+) {
+    SanvyaModal(open = true, onClose = onClose, label = S.Cards.cardTxnsTitle(sRes())) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Text(S.Cards.cardTxnsTitle(sRes()), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                Text(S.Cards.cardTxnsTotal(sRes(), charges.totalFormatted), fontSize = 13.sp, color = colors.text2)
+            }
+            if (charges.rows.isEmpty()) {
+                Text(S.Cards.noCardTxns(sRes()), fontSize = 13.sp, color = colors.text2)
+            } else {
+                Column {
+                    charges.rows.forEachIndexed { i, row ->
+                        if (i > 0) HorizontalDivider(color = colors.border)
+                        Row(
+                            Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                // Web falls back to the `uncategorised` label
+                                // for a charge with no description.
+                                Text(
+                                    row.description?.takeIf { it.isNotBlank() } ?: S.Cards.uncategorised(sRes()),
+                                    fontSize = 14.sp, color = colors.text,
+                                )
+                                Text(row.occurredAtIso.toDisplayDate(), fontSize = 11.5.sp, color = colors.text2)
+                            }
+                            Text(row.amountFormatted, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                        }
+                    }
+                }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onClose) { Text(S.Cards.cancel(sRes())) }
+            }
+        }
+    }
+}
+
 @Composable
 private fun CoveredEmisDialog(
     covered: List<com.sanvya.app.data.repository.CoveredEmi>,
@@ -290,13 +412,13 @@ private fun CoveredEmisDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "This payment covers ${covered.size} instalment(s) charged to this card. Mark them paid?",
+                    S.Cards.emiCoveredBody(sRes(), covered.size),
                     fontSize = 13.5.sp, color = colors.text2,
                 )
                 covered.forEach { c ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column {
-                            Text("EMI #${c.emiNo}" + (c.lender?.let { " · $it" } ?: ""), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.text)
+                            Text(S.Cards.emiNo(sRes(), c.emiNo) + (c.lender?.let { " · $it" } ?: ""), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.text)
                             Text(c.dueDate.toDisplayDate(), fontSize = 11.5.sp, color = colors.text2)
                         }
                         Text(formatMoney(c.amount, baseCurrencyNow()), fontWeight = FontWeight.Bold, color = colors.text)

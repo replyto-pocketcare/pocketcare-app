@@ -2,11 +2,20 @@ import SwiftUI
 import Domain
 import Data
 
-/// Real port of apps/web/app/groups/[id]/page.tsx (task #30). See
-/// docs/mobile/screen-specs/splits.md for the deliberate scope cut
-/// (equal-split "Add expense" only; invite/itemized deferred). Embedded
-/// content within SplitsView's own NavigationStack (its back button lives
-/// in the parent's toolbar), matching LoanDetailContentView's convention.
+/// Real port of apps/web/app/groups/[id]/page.tsx (task #30). Embedded content
+/// within SplitsView's own NavigationStack (its back button lives in the
+/// parent's toolbar), matching LoanDetailContentView's convention.
+///
+/// Two of the original scope cuts are now closed:
+///
+/// **Add expense** no longer opens a local equal-split sheet. Web's button is a
+/// link to the full transaction form with this group preselected, and so is
+/// this: an unequal expense added from inside a group used to be impossible on
+/// a phone while the percent/exact/itemised editor sat one sheet away.
+///
+/// **Itemised bills** can be opened in place. `expense_items` has existed since
+/// 0040 with no UI on either phone, so "who had what" — the exact question
+/// people ask when a split is argued about — had no answer outside the browser.
 struct GroupDetailView: View {
     let groupId: String
     let onBack: () -> Void
@@ -61,32 +70,21 @@ struct GroupDetailView: View {
                             sectionHeader(S.Groups.expensesTitle)
                             VStack(spacing: 4) {
                                 ForEach(viewModel.expenses) { e in
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(e.description).foregroundColor(.text).fontWeight(.medium)
-                                            Text(e.date).font(.caption2).foregroundColor(.text2)
-                                        }
-                                        Spacer()
-                                        Text(e.amountFormatted).fontWeight(.bold).foregroundColor(.text)
-                                    }
-                                    .padding(.vertical, 4)
+                                    ExpenseRow(expense: e, viewModel: viewModel)
                                 }
                             }
                         }
 
+                        // Settled up — the other half of the group's history.
+                        // Its own section rather than mixed into Expenses: a
+                        // settlement moves money between two members without
+                        // adding to what the group spent, so interleaving them
+                        // would imply it counts toward the total.
                         if !viewModel.settlements.isEmpty {
-                            sectionHeader("Settlements")
+                            sectionHeader(S.Groups.settledTitle)
                             VStack(spacing: 4) {
                                 ForEach(viewModel.settlements) { s in
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("\(s.fromName) \u{2192} \(s.toName)").font(.subheadline).fontWeight(.medium).foregroundColor(.text)
-                                            Text(s.date).font(.caption2).foregroundColor(.text2)
-                                        }
-                                        Spacer()
-                                        Text(s.amountFormatted).fontWeight(.semibold).foregroundColor(.text2)
-                                    }
-                                    .padding(.vertical, 4)
+                                    settlementRow(s)
                                 }
                             }
                         }
@@ -104,12 +102,15 @@ struct GroupDetailView: View {
             )
         }
         .sanvyaFormPresentation(isPresented: $showingAddExpense) {
-            AddExpenseView(viewModel: viewModel, members: viewModel.members)
+            // Web's "Add expense" is a link to the full transaction form with
+            // this group preselected, not a second, lesser editor.
+            CreateTransactionView(preselectSplitGroupId: groupId)
         }
         .sanvyaFormPresentation(item: $settleTarget) { target in
             SettleUpView(
                 viewModel: viewModel,
                 target: target,
+                targetName: target.name,
                 // The GROUP's currency. It is not on MemberUiModel because it
                 // is not a property of the member — every balance in a group is
                 // denominated in the group's own currency.
@@ -151,113 +152,281 @@ struct GroupDetailView: View {
         .padding(.vertical, 6)
     }
 
+    /// The group's currency, not the base one: every balance in a group is
+    /// denominated in the group's own currency, and formatting a EUR trip's
+    /// balances with a rupee symbol is a lie about what is owed.
     private func memberBalanceText(_ m: MemberUiModel) -> String {
-        if m.net == 0 { return S.Groups.settledTitle }
-        return m.net > 0 ? "Owes you \(formatMoney(m.net, baseCurrencyNow()))" : "You owe \(formatMoney(-m.net, baseCurrencyNow()))"
+        if m.net == 0 { return S.Groups.settledTag }
+        let currency = viewModel.group?.currency ?? baseCurrencyNow()
+        let amount = formatMoney(abs(m.net), currency)
+        return m.net > 0 ? S.Groups.owesYouAmt(amount: amount) : S.Groups.youOweAmt(amount: amount)
+    }
+
+    /**
+     One past settlement, with its status.
+
+     A PENDING settlement is a claim, not a fact: it came from a UPI hand-off
+     that gives no delivery callback, and only the payee can close it. Rendering
+     it identically to a confirmed one tells both people the debt is settled
+     when the money may never have arrived — which is web's "Waiting to be
+     confirmed".
+     */
+    private func settlementRow(_ s: SettlementUiModel) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(settlementLabel(s)).font(.subheadline).fontWeight(.medium).foregroundColor(.text)
+                Text(s.date).font(.caption2).foregroundColor(.text2)
+                if s.pending {
+                    Text(S.Groups.settledPending).font(.caption2).foregroundColor(.warning)
+                }
+            }
+            Spacer()
+            Text(s.amountFormatted).fontWeight(.semibold).foregroundColor(.text2)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func settlementLabel(_ s: SettlementUiModel) -> String {
+        if s.iPaid { return S.Groups.settledYouPaid(name: s.otherName) }
+        if s.paidToMe { return S.Groups.settledPaidYou(name: s.otherName) }
+        return S.Groups.settledBetween(from: s.fromName, to: s.toName)
     }
 }
 
-private struct AddExpenseView: View {
-    @Environment(\.dismiss) private var dismiss
+/**
+ One expense, expandable in place when the bill was itemised.
+
+ Web's own comment on the same row: the answer to "why do I owe this?" belongs
+ next to the number, not on another screen. The chip only exists when
+ `expenses.has_items` is set, so an ordinary expense keeps the plain row.
+ */
+private struct ExpenseRow: View {
+    let expense: ExpenseUiModel
     let viewModel: GroupDetailViewModel
-    let members: [MemberUiModel]
 
-    @State private var description = ""
-    @State private var amount = ""
-    @State private var payerId: String
-    @State private var accountId: String?
-    @State private var participantIds: Set<String>
-    @State private var error: String?
-    @State private var saving = false
+    @State private var open = false
 
-    init(viewModel: GroupDetailViewModel, members: [MemberUiModel]) {
-        self.viewModel = viewModel
-        self.members = members
-        _payerId = State(initialValue: members.first(where: { $0.isSelf })?.userId ?? members.first?.userId ?? "")
-        _participantIds = State(initialValue: Set(members.map(\.userId)))
-        _accountId = State(initialValue: nil)
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(expense.description).foregroundColor(.text).fontWeight(.medium)
+                    Text(expense.date).font(.caption2).foregroundColor(.text2)
+                }
+                Spacer()
+                if expense.hasItems {
+                    SanvyaChip(open ? S.Receipts.breakdownHide : S.Receipts.breakdownShow, isActive: open) {
+                        open.toggle()
+                        if open { viewModel.loadBreakdown(expenseId: expense.id) }
+                    }
+                }
+                Text(expense.amountFormatted).fontWeight(.bold).foregroundColor(.text)
+            }
+
+            if expense.hasItems && open {
+                if let breakdown = viewModel.breakdowns[expense.id] {
+                    ItemBreakdownPanel(
+                        breakdown: breakdown,
+                        currency: expense.currency,
+                        // A closure literal, not `viewModel.displayName`:
+                        // an unapplied reference to a @MainActor method is a
+                        // conversion the compiler has to justify, and the
+                        // literal is what every other call site here uses.
+                        nameOf: { viewModel.displayName($0) }
+                    )
+                } else {
+                    ProgressView()
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+/**
+ Who had what, and what that came to.
+
+ Read-only, exactly as web is: editing a split after the fact means rewriting
+ ledger postings, which is the edit-transaction flow's job.
+
+ The person chips filter to one member's lines. The arithmetic behind both the
+ filter and the footer total is Domain's `itemBreakdown` under its own golden
+ vectors — the two platforms cannot drift on which lines are "yours".
+ */
+private struct ItemBreakdownPanel: View {
+    let breakdown: ExpenseBreakdownUiModel
+    let currency: String
+    /// Resolved by the view model, which already holds the group's members —
+    /// an item share can only belong to a member of the group the expense is
+    /// in, so there is nothing else to look up.
+    let nameOf: (String) -> String
+
+    /// "" is web's own "everyone" value, not a placeholder — see itemBreakdown.
+    @State private var filter = ""
+
+    private var itemsById: [String: ExpenseItem] {
+        Dictionary(breakdown.items.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    }
+
+    private var breakdownView: ItemBreakdownView {
+        itemBreakdown(
+            items: breakdown.items.map { ItemBreakdownItem(id: $0.id, amount: $0.amount) },
+            shares: breakdown.shares.map { ItemBreakdownShare(itemId: $0.itemId, userId: $0.userId, shareAmount: $0.shareAmount) },
+            filterUserId: filter
+        )
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Text("Split equally among the people you select below.").font(.caption).foregroundColor(.text2)
-                    TextField(S.Receipts.reviewDescription, text: $description)
-                    TextField(S.Translation.transactionAmount, text: $amount).keyboardType(.decimalPad)
-                }
-                Section(header: Text("Paid by")) {
-                    Picker("Paid by", selection: $payerId) {
-                        ForEach(members) { m in Text(m.name).tag(m.userId) }
-                    }
-                }
-                if !viewModel.accounts.isEmpty {
-                    Section(header: Text(S.Receipts.reviewAccount)) {
-                        Picker(S.Translation.settingsAccount, selection: Binding(get: { accountId ?? viewModel.accounts.first?.id ?? "" }, set: { accountId = $0 })) {
-                            ForEach(viewModel.accounts) { a in Text(a.name).tag(a.id) }
-                        }
-                    }
-                }
-                Section(header: Text(S.Transactions.splitBetween)) {
-                    ForEach(members) { m in
-                        Button(action: { toggle(m.userId) }) {
-                            HStack {
-                                Text(m.name).foregroundColor(.text)
-                                Spacer()
-                                if participantIds.contains(m.userId) { Image(systemName: "checkmark").foregroundColor(.accent) }
-                            }
-                        }
-                    }
-                }
-                if let error { Text(error).foregroundColor(.negative).font(.caption) }
-                Section {
-                    Button(action: save) {
-                        Text(saving ? S.Translation.commonSaving : S.Splits.addExpense).frame(maxWidth: .infinity)
-                    }
-                    .disabled(amount.isEmpty || payerId.isEmpty || participantIds.isEmpty || saving)
-                    .listRowBackground(Color.accent)
-                    .foregroundColor(.white)
-                }
+        let model = breakdownView
+        let byId = itemsById
+        VStack(alignment: .leading, spacing: 10) {
+            // One person cannot be filtered against themselves — web hides the
+            // row entirely below two people, and so does this.
+            if model.everyone.count > 1 {
+                ChipRow(
+                    options: [""] + model.everyone,
+                    selected: filter,
+                    label: { id in id.isEmpty ? S.Receipts.breakdownEveryone : nameOf(id) },
+                    onSelect: { filter = $0 }
+                )
             }
-            .navigationTitle(S.Splits.addExpense)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button(S.Groups.cancel) { dismiss() }.foregroundColor(.text2) }
+
+            ForEach(model.lines, id: \.itemId) { line in
+                lineRow(line, item: byId[line.itemId])
+            }
+
+            HStack {
+                Text(filter.isEmpty ? S.Receipts.splitTotal : S.Receipts.breakdownPersonTotal(name: nameOf(filter)))
+                    .font(.system(size: 13.5, weight: .bold))
+                    .foregroundColor(.text)
+                Spacer(minLength: 8)
+                Text(formatMoney(model.total, currency))
+                    .font(.system(size: 13.5, weight: .bold))
+                    .foregroundColor(.text)
             }
         }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.surface2)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    private func toggle(_ id: String) {
-        if participantIds.contains(id) { participantIds.remove(id) } else { participantIds.insert(id) }
-    }
-
-    private func save() {
-        saving = true
-        Task {
-            let err = await viewModel.addExpense(description: description, amountMajorText: amount, payerId: payerId, payerAccountId: accountId ?? viewModel.accounts.first?.id, participantIds: Array(participantIds))
-            saving = false
-            error = err
-            if err == nil { dismiss() }
+    private func lineRow(_ line: ItemBreakdownLine, item: ExpenseItem?) -> some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(item?.description?.isEmpty == false ? item!.description! : kindLabel(item?.kind))
+                        .font(.system(size: 13.5))
+                        .foregroundColor(.text)
+                    // Plain captions, not chips: these are labels, and a chip
+                    // implies a control you can press. (Web's own note on the
+                    // same two spans.)
+                    if let item, item.kind != "item" {
+                        Text(kindLabel(item.kind).uppercased())
+                            .font(.system(size: 10.5, weight: .semibold))
+                            .foregroundColor(.text2)
+                    }
+                    if let qty = quantityLabel(item) {
+                        Text(qty).font(.system(size: 11.5)).foregroundColor(.text2)
+                    }
+                }
+                if !line.shares.isEmpty {
+                    Text(line.shares.map { "\(nameOf($0.userId)) \(formatMoney($0.amount, currency))" }.joined(separator: " \u{00B7} "))
+                        .font(.system(size: 11.5))
+                        .foregroundColor(.text2)
+                }
+            }
+            Spacer(minLength: 8)
+            Text(formatMoney(line.amount, currency))
+                .font(.system(size: 13.5))
+                .foregroundColor(.text)
         }
     }
 }
 
+/// `expense_items.kind` as a label. Unknown kinds read as a plain item, which
+/// is what web's `t("kind.<kind>", kind)` degrades to.
+private func kindLabel(_ kind: String?) -> String {
+    switch kind {
+    case "tax": return S.Receipts.kindTax
+    case "service_charge": return S.Receipts.kindServiceCharge
+    case "tip": return S.Receipts.kindTip
+    case "discount": return S.Receipts.kindDiscount
+    default: return S.Receipts.kindItem
+    }
+}
+
+/**
+ "2 kg" / "3×", or nothing at all when the line carries no quantity.
+
+ The bare "×" when there is no unit is web's, and is a symbol rather than a word
+ on purpose — it needs no translation, which is why it is not a key.
+ */
+private func quantityLabel(_ item: ExpenseItem?) -> String? {
+    guard let milli = item?.quantity else { return nil }
+    let unit = (item?.unit?.isEmpty == false) ? item!.unit! : nil
+    return S.Receipts.splitQtyLabel(qty: trimmedQty(milli), unit: unit.map { " \($0)" } ?? "\u{00D7}")
+}
+
+/**
+ Milli-units as the shortest exact decimal: 2000 → "2", 1500 → "1.5".
+ Web prints the raw JS number, which drops trailing zeros the same way.
+
+ A knowing duplicate of the same helper in `SplitReceiptView.swift`: it is
+ private there, and lifting it into a shared component is a change to a file
+ this one does not own.
+ */
+private func trimmedQty(_ milli: Int64) -> String {
+    let major = qtyToMajor(milli)
+    if major == major.rounded() { return String(Int64(major)) }
+    var text = String(format: "%.3f", locale: Locale(identifier: "en_US_POSIX"), major)
+    while text.hasSuffix("0") { text.removeLast() }
+    if text.hasSuffix(".") { text.removeLast() }
+    return text
+}
+
+/**
+ Settle up with one member — web's settle Modal on `/friends`.
+
+ Two things this used to get wrong, both of which booked money that never moved:
+
+ **There was no "None".** Every settlement picked an account, so settling a cash
+ debt in person still posted a bank transfer. Web's account `<select>` opens on
+ an empty option that means exactly "don't post anything", and the repository
+ already honours a nil account by skipping the ledger leg.
+
+ **UPI was offered unconditionally.** It is a rupee rail, so it is offered only
+ when this settlement is in INR and there is an amount to send — web's
+ `base === "INR" && Number(amount) > 0`. The currency compared here is the
+ GROUP's, because that is what the settlement is recorded in.
+ */
 private struct SettleUpView: View {
     @Environment(\.dismiss) private var dismiss
     let viewModel: GroupDetailViewModel
     let target: MemberUiModel
+    let targetName: String
     let currency: String
 
     @State private var amount: String
-    @State private var accountId: String?
+    /// "" is a real option, not a placeholder — see the doc comment above.
+    @State private var accountId = ""
     @State private var error: String?
     @State private var saving = false
 
     private var direction: String { target.net >= 0 ? "received" : "paid" }
 
-    init(viewModel: GroupDetailViewModel, target: MemberUiModel, currency: String) {
+    /// `fromMajor`, never `* 100`: the settlement carries its own currency and
+    /// a zero-decimal one would be sent a hundred times over.
+    private var amountMinor: Int64 {
+        fromMajor(Double(amount.replacingOccurrences(of: ",", with: "")) ?? 0, currency).amount
+    }
+
+    private var upiOffered: Bool { direction == "paid" && currency == "INR" && amountMinor > 0 }
+
+    init(viewModel: GroupDetailViewModel, target: MemberUiModel, targetName: String, currency: String) {
         self.viewModel = viewModel
         self.target = target
+        self.targetName = targetName
         self.currency = currency
         // `toMajor`, not `/ 100.0` and `%.2f`. Those hardcoded the same
         // assumption twice over — the scale AND the decimal count — so a
@@ -269,37 +438,43 @@ private struct SettleUpView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Settle up with \(target.name)")) {
-                    TextField(S.Translation.transactionAmount, text: $amount).keyboardType(.decimalPad)
+                Section {
+                    Text(target.net >= 0 ? S.Splits.theyPayYouBack(name: targetName) : S.Splits.youPayThemBack(name: targetName))
+                        .font(.caption).foregroundColor(.text2)
+                    TextField(S.Splits.amountLabel(currency: currency), text: $amount).keyboardType(.decimalPad)
                 }
-                if direction == "paid" {
-                    Section {
-                        Button(action: { viewModel.startUpiFetch(otherUserId: target.userId) }) {
-                            if case .fetching = viewModel.upiStage {
-                                HStack { ProgressView(); Text("Preparing the payment\u{2026}") }
-                            } else {
-                                Text(S.Payments.payButton)
-                            }
-                        }
-                        .disabled({ if case .fetching = viewModel.upiStage { return true }; return false }())
-                    }
+
+                Section(header: Text(direction == "received" ? S.Splits.receivedInto : S.Splits.paidFrom)) {
+                    ChipRow(
+                        options: [""] + viewModel.accounts.map(\.id),
+                        selected: accountId,
+                        label: { id in
+                            id.isEmpty
+                                ? S.Splits.noneMarkSettled
+                                : (viewModel.accounts.first { $0.id == id }?.name ?? "")
+                        },
+                        onSelect: { accountId = $0 }
+                    )
                 }
-                if !viewModel.accounts.isEmpty {
-                    Section(header: Text(S.Translation.settingsAccount)) {
-                        Picker(S.Translation.settingsAccount, selection: Binding(get: { accountId ?? viewModel.accounts.first?.id ?? "" }, set: { accountId = $0 })) {
-                            ForEach(viewModel.accounts) { a in Text(a.name).tag(a.id) }
-                        }
-                    }
+
+                if upiOffered {
+                    // Web renders the UPI stages INLINE inside the settle modal
+                    // rather than stacking an alert on a sheet — an alert over
+                    // a sheet on a phone hides the amount the payment is for.
+                    Section { upiSection }
                 }
+
                 if let error { Text(error).foregroundColor(.negative).font(.caption) }
                 Section {
                     Button(action: settleManually) {
-                        Text("Mark settled manually").frame(maxWidth: .infinity)
+                        Text(saving ? S.Splits.settling : S.Splits.settle).frame(maxWidth: .infinity)
                     }
-                    .disabled(amount.isEmpty || saving)
+                    .disabled(amountMinor <= 0 || saving)
+                    .listRowBackground(Color.accent)
+                    .foregroundColor(.white)
                 }
             }
-            .navigationTitle(S.Splits.settleUp)
+            .navigationTitle(S.Splits.settleWith(name: targetName))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button(S.Groups.cancel) { viewModel.resetUpiStage(); dismiss() }.foregroundColor(.text2) }
@@ -308,25 +483,22 @@ private struct SettleUpView: View {
         .sheet(isPresented: isUpiSheetPresented) {
             upiSheetContent
         }
-        .alert("Couldn't fetch payment details", isPresented: isUpiErrorPresented, actions: {
-            Button("OK") { viewModel.resetUpiStage() }
-        }, message: {
-            Text(upiErrorMessage)
-        })
     }
 
-    private var isUpiErrorPresented: Binding<Bool> {
-        Binding(
-            get: { if case .error = viewModel.upiStage { return true }; return false },
-            set: { if !$0 { viewModel.resetUpiStage() } }
-        )
-    }
-
-    private var upiErrorMessage: String {
-        if case let .error(message, code) = viewModel.upiStage {
-            return code == "no_handle" ? "\(target.name) hasn't added a UPI ID yet." : message
+    @ViewBuilder
+    private var upiSection: some View {
+        switch viewModel.upiStage {
+        case .idle, .ready:
+            Button(S.Payments.payButton) { viewModel.startUpiFetch(otherUserId: target.userId) }
+        case .fetching:
+            HStack { ProgressView(); Text(S.Payments.payPreparing).font(.caption).foregroundColor(.text2) }
+        case let .error(message, code):
+            VStack(alignment: .leading, spacing: 8) {
+                Text(code == "no_handle" ? S.Payments.payNoHandle(name: targetName) : message)
+                    .font(.caption).foregroundColor(.negative)
+                Button(S.Payments.payBack) { viewModel.resetUpiStage() }
+            }
         }
-        return ""
     }
 
     private var isUpiSheetPresented: Binding<Bool> {
@@ -343,12 +515,9 @@ private struct SettleUpView: View {
     private var upiSheetContent: some View {
         if case let .ready(vpa, displayName) = viewModel.upiStage {
             PayViaUpiSheet(
-                counterpartyName: displayName ?? target.name,
+                counterpartyName: displayName ?? targetName,
                 vpa: vpa,
-                amountMinor: fromMajor(
-                    Double(amount) ?? toMajor(money(abs(target.net), currency)),
-                    currency
-                ).amount,
+                amountMinor: amountMinor,
                 onPaid: { ref in
                     Task {
                         let err = await viewModel.recordUpiSettlement(otherUserId: target.userId, amountMajorText: amount, direction: direction, upiRef: ref)
@@ -363,7 +532,14 @@ private struct SettleUpView: View {
     private func settleManually() {
         saving = true
         Task {
-            let err = await viewModel.settleManually(otherUserId: target.userId, amountMajorText: amount, direction: direction, accountId: accountId ?? viewModel.accounts.first?.id)
+            let err = await viewModel.settleManually(
+                otherUserId: target.userId,
+                amountMajorText: amount,
+                direction: direction,
+                // nil is "None — just mark settled": the repository skips the
+                // ledger leg entirely, which is the whole point of the option.
+                accountId: accountId.isEmpty ? nil : accountId
+            )
             saving = false
             error = err
             if err == nil { dismiss() }

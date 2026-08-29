@@ -3,16 +3,14 @@ package com.sanvya.app.ui.splits
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sanvya.app.data.auth.AuthRepository
+import com.sanvya.app.data.repository.ExpenseItem
+import com.sanvya.app.data.repository.ExpenseItemShare
 import com.sanvya.app.data.repository.LedgerRepository
-import com.sanvya.app.data.repository.ParticipantInput
-import com.sanvya.app.data.repository.PayerInput
-import com.sanvya.app.data.repository.SplitExpenseInput
 import com.sanvya.app.data.repository.InvitesRepository
 import com.sanvya.app.data.repository.SplitGroup
 import com.sanvya.app.data.repository.SplitsRepository
 import com.sanvya.app.data.repository.UpiHandleError
 import com.sanvya.app.data.repository.UpiRepository
-import com.sanvya.app.domain.money.money
 import com.sanvya.app.domain.splits.Invitee
 import com.sanvya.app.domain.splits.InviteOutcome
 import com.sanvya.app.domain.splits.InviteSuggestions
@@ -31,34 +29,75 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.time.Instant
 import com.sanvya.app.ui.formatMoney
 import com.sanvya.app.ui.baseCurrencyNow
 import com.sanvya.app.domain.money.fromMajor
+import com.sanvya.app.i18n.S
 
 /**
  * `netFormatted` alongside `net` for the same reason `ExpenseUiModel` and
  * `SettlementUiModel` carry `amountFormatted`: the group's currency is known
  * here and not in the row composable, which had been calling `formatMoney`
  * without one. The raw `net` stays for the sign and the colour.
+ *
+ * The display NAME is not on any of these models. `S` is resource-backed on
+ * Android, so "You" and the "Someone" fallback need a `Resources` the view
+ * model must not hold -- it would pin the configuration the view model was
+ * created under and go stale on a locale change. The ids travel instead and
+ * [GroupDetailViewModel.nameOf] resolves them in the composable. (iOS's
+ * `S` needs no such handle, which is why its models still carry `name`.)
  */
 data class MemberUiModel(
     val userId: String,
-    val name: String,
     val net: Long,
     val netFormatted: String,
     val isSelf: Boolean,
 )
 data class ExpenseUiModel(
     val id: String,
-    val description: String,
+    /** Raw, so the row can fall back to a translated label for a blank one. */
+    val description: String?,
     val amountFormatted: String,
     /** Kept alongside the formatted string so the summary can total the group. */
     val amountMinor: Long,
+    /** The EXPENSE's currency, which the breakdown's own numbers are in. */
+    val currency: String,
     val date: String,
+    /** `expenses.has_items` -- whether there is a per-item breakdown to open. */
+    val hasItems: Boolean,
 )
-data class SettlementUiModel(val id: String, val fromUser: String, val toUser: String, val fromName: String, val toName: String, val amountFormatted: String, val date: String)
+
+/**
+ * [pending] drives web's "Waiting to be confirmed" line. A settlement raised
+ * from a UPI hand-off is a CLAIM until the payee says the money landed, and a
+ * row that looks identical to a confirmed one tells both people the debt is
+ * closed when it is not.
+ */
+data class SettlementUiModel(
+    val id: String,
+    val fromUser: String,
+    val toUser: String,
+    /** The party who is not you -- who web's two first-person labels name. */
+    val otherUserId: String,
+    val iPaid: Boolean,
+    val paidToMe: Boolean,
+    val amountFormatted: String,
+    val date: String,
+    val pending: Boolean,
+)
 data class AccountOption(val id: String, val name: String)
+
+/**
+ * The raw rows behind one itemised bill, loaded on demand when a row is opened.
+ *
+ * Kept raw rather than pre-formatted: the arithmetic that turns these into what
+ * is on screen is Domain's `itemBreakdown`, and it re-runs whenever the person
+ * filter chip changes -- which is view state, not view-model state.
+ */
+data class ExpenseBreakdownUiModel(
+    val items: List<ExpenseItem>,
+    val shares: List<ExpenseItemShare>,
+)
 
 /** Payer-side UPI settle-up state machine -- mirrors PayViaUpi.tsx's Stage
  * type exactly (idle/fetching/ready/error), since there is no success
@@ -236,7 +275,10 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
         watchJob = viewModelScope.launch {
             _group.value = splitsRepository.getGroup(groupId)
             val conns = if (uid != null) splitsRepository.watchConnections(uid).first() else emptyList()
-            namesById = conns.associate { it.id to it.name } + (uid?.let { mapOf(it to "You") } ?: emptyMap())
+            // Real names only. "You" and the "Someone" fallback are resource
+            // strings and are resolved by [nameOf], which the composable calls
+            // with its own `Resources`.
+            namesById = conns.associate { it.id to it.name }
             // The invite box's candidates. A connection with no email cannot be
             // invited by this route; Domain drops those rather than the query,
             // so the empty string travels and the rule stays in one place.
@@ -253,7 +295,6 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
                     _members.value = everyone.map { id ->
                         MemberUiModel(
                             userId = id,
-                            name = if (id == uid) "You" else nameOf(id),
                             net = byId[id]?.net ?: 0L,
                             netFormatted = formatMoney(
                                 kotlin.math.abs(byId[id]?.net ?: 0L),
@@ -269,10 +310,12 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
                 _expenses.value = list.map { e ->
                     ExpenseUiModel(
                         id = e.id,
-                        description = e.description?.takeIf { it.isNotBlank() } ?: "Expense",
+                        description = e.description?.takeIf { it.isNotBlank() },
                         amountFormatted = formatMoney(e.amount, e.currency),
                         amountMinor = e.amount,
+                        currency = e.currency,
                         date = e.occurredAt.take(10),
+                        hasItems = e.hasItems,
                     )
                 }
             }.launchIn(this)
@@ -281,9 +324,19 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
                 _settlements.value = list.map { s ->
                     SettlementUiModel(
                         id = s.id, fromUser = s.fromUser, toUser = s.toUser,
-                        fromName = if (s.fromUser == uid) "You" else nameOf(s.fromUser),
-                        toName = if (s.toUser == uid) "You" else nameOf(s.toUser),
-                        amountFormatted = formatMoney(s.amount, s.currency ?: baseCurrencyNow()), date = s.at.take(10),
+                        // Web's three labels: "You paid X", "X paid you", and
+                        // "X paid Y" for a settlement between two other members
+                        // of a group you are in.
+                        otherUserId = if (s.fromUser == uid) s.toUser else s.fromUser,
+                        iPaid = s.fromUser == uid,
+                        paidToMe = s.toUser == uid,
+                        amountFormatted = formatMoney(s.amount, s.currency ?: baseCurrencyNow()),
+                        date = s.at.take(10),
+                        // A NULL status is a settlement written before the
+                        // confirm/dispute columns existed; the query already
+                        // treats those as confirmed (IFNULL(status,'confirmed'))
+                        // and so must this.
+                        pending = s.status == "pending",
                     )
                 }
             }.launchIn(this)
@@ -294,36 +347,56 @@ class GroupDetailViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun nameOf(id: String): String = namesById[id] ?: "Someone"
+    /**
+     * A member's display name, resolved against the caller's `Resources`.
+     *
+     * Public and res-taking rather than a field on the UI models: see the note
+     * on [MemberUiModel]. Mirrors SplitsViewModel.nameOfUser.
+     */
+    fun nameOf(id: String, res: android.content.res.Resources): String = when {
+        id == userId -> S.Receipts.splitYou(res)
+        else -> namesById[id] ?: S.Groups.someone(res)
+    }
 
-    /** Equal-split add-expense -- see docs/mobile/screen-specs/splits.md's
-     * scope note: web's richer percent/exact/itemized modes are deferred
-     * to the receipt-scan work, this covers the common case end-to-end. */
-    fun addExpense(description: String, amountMajorText: String, payerId: String, payerAccountId: String?, participantIds: List<String>, onDone: (String?) -> Unit) {
-        val uid = userId ?: return
-        val g = _group.value ?: return
-        val amountMajor = amountMajorText.replace(",", "").toDoubleOrNull()
-        if (amountMajor == null || amountMajor <= 0 || participantIds.isEmpty()) { onDone("Enter a valid amount and at least one participant."); return }
-        // `fromMajor`, not `* 100`: the group carries its own currency, and a
-        // zero-decimal one would be recorded a hundred times too large.
-        val amountMinor = fromMajor(amountMajor, g.currency).amount
+    // Add-expense is GONE from this view model.
+    //
+    // It used to open a sheet that could only split equally, so an unequal
+    // expense added from inside a group was impossible on a phone -- while the
+    // full percent/exact/itemised editor sat one screen away, already built.
+    // Web's button is a link to that editor with the group preselected
+    // (`/transactions/new?split=<id>`, groups/[id]/page.tsx), and the screen now
+    // navigates to the same place. Two half-forms for one job is worse than one
+    // whole one, and the half was the one that could get a bill wrong.
+    //
+    // (A line comment, not KDoc: KDoc here would silently attach itself to the
+    // next declaration, which is about something else entirely.)
+
+    // ---- itemised breakdown ----
+
+    /** Loaded bills, by expense id. Absent = never opened. */
+    private val _breakdowns = MutableStateFlow<Map<String, ExpenseBreakdownUiModel>>(emptyMap())
+    val breakdowns: StateFlow<Map<String, ExpenseBreakdownUiModel>> = _breakdowns
+
+    /**
+     * Fetch one bill's lines the first time its row is expanded.
+     *
+     * Once, not per recomposition, and never eagerly for the whole list: a
+     * group can hold hundreds of expenses and almost none of them are opened.
+     * The rows never change after the expense is written (the breakdown is
+     * read-only on every platform), so a cached copy cannot go stale.
+     */
+    fun loadBreakdown(expenseId: String) {
+        if (_breakdowns.value.containsKey(expenseId)) return
         viewModelScope.launch {
-            try {
-                splitsRepository.createSplitExpense(
-                    userId = uid,
-                    input = SplitExpenseInput(
-                        groupId = groupId,
-                        mode = "equal",
-                        total = money(amountMinor, g.currency),
-                        participants = participantIds.map { ParticipantInput(it) },
-                        payers = listOf(PayerInput(payerId, amountMinor, payerAccountId)),
-                        description = description.ifBlank { null },
-                        occurredAt = Instant.now().toString(),
-                    ),
+            runCatching {
+                ExpenseBreakdownUiModel(
+                    items = splitsRepository.expenseItems(expenseId),
+                    shares = splitsRepository.expenseItemShares(expenseId),
                 )
-                onDone(null)
-            } catch (e: Exception) {
-                onDone(e.message ?: "Couldn't add the expense.")
+            }.onSuccess { loaded ->
+                _breakdowns.value = _breakdowns.value + (expenseId to loaded)
+            }.onFailure { e ->
+                _error.value = e.message
             }
         }
     }

@@ -3222,3 +3222,139 @@ TAB: `@State` outlives a tab switch and a backgrounding, so a session opened at
    and never writes `sip_amount`/`sip_day`. So the new Stop-SIP control can only
    ever appear for holdings created on web. The delete-stops-the-SIP fix is the
    half that matters today.
+
+## Tranche 5 — the card-edit data loss, and seven more (2026-08-29)
+
+### The data loss, precisely
+
+`docs/mobile/PARITY_AUDIT.md` standing problem #1 from tranche 4 is fixed. Two
+defects compounded:
+
+1. **The form opened blank on purpose.** Android's `editDetails` and iOS's
+   equivalent both did `{ editing = true; limit = ""; dueAmt = "" }` — an
+   explicit wipe of the two money inputs on entering edit mode — and both state
+   initialisers seeded them empty to begin with.
+2. **`saveCycle` is a full overwrite, not a patch.** `upsertDetails` writes
+   `credit_limit` and `card_last4`; `setCycleDetails` writes `pending_due` and
+   `due_on`. Whatever the form holds *becomes* the row.
+
+So: open "Edit details", change only the statement day, press Save →
+`pending_due` becomes NULL. The credit limit survived only by accident, through
+an `existingCreditLimit` fallback that happened to already be there.
+
+The model now carries `pendingDueMajorText` / `creditLimitMajorText`, seeded via
+`formatMajorPlain(minor, currency)` — deliberately not `formatMoney`, because a
+masked, grouped, symbol-bearing string cannot be typed back, and the scale comes
+from `minorUnits(currency)` rather than 100. The form re-seeds when the stored
+detail arrives while it is closed, which web does not do.
+
+Four nullable columns are reachable on that write path, and all four are now
+covered: `pending_due` and `credit_limit` from the seeds, `due_on` recomputed
+from the cycle on every save, `card_last4` from `card.last4`. There is
+deliberately **no** "blank means keep" fallback for `pending_due`: web treats
+blank as unset, and typing `0` is how a user says nothing is due — a fallback
+would make a statement amount permanently unclearable.
+
+The same bug is **latent on web** (defect #33 below) and mobile is now stricter.
+
+### Also closed
+
+Card transactions with a running total · "Across currencies" on Accounts ·
+itemised expense breakdown (new Domain `itemBreakdown` under 8 golden vectors) ·
+group "Add expense" routing to the full transaction form with the group
+preselected · settle-up "None — mark settled" with UPI gated on INR and a
+positive amount · settlement status ("Waiting to be confirmed") · the Remind
+share-sheet nudge. About twenty hardcoded English strings replaced with keys
+that already existed, along the way.
+
+### The guard that was wrong for the fourth time
+
+`GroupDetailScreen.kt` used `SplitGroup` with no import; CI failed and
+`check-kotlin-imports.mjs` had said 0 hits. That is the **fourth** time the
+curated `WATCHED` list was the thing that was wrong, and the second in two days.
+The list has now stopped being the fix.
+
+Every top-level **type** declared in `:data` or `:domain` is watched
+automatically — 272 of them. Both earlier generalisations drowned in false
+positives (358 and 111) and both failed for the same reason: they watched
+**functions**. A top-level `fun split` and a local `val split` are
+indistinguishable without real scoping, and `fun Modifier.foo()` reads as a
+declaration of `Modifier`. Types have neither problem: a class name is
+capitalised, is never a local binding, and a type in another Gradle module can
+*only* be reached through an import. The rule is exact rather than heuristic,
+which is why it can be automatic where the function list cannot.
+
+Two details are load-bearing. `TYPE_DECL` is anchored at **column zero** — with
+`^\s*` it also matched nested declarations, and `AssistantCard`'s members are
+named `Text`, `Table` and `Result`, giving 47 false positives against Compose's
+`Text` and Kotlin's `Result`. And a file that declares a name itself is skipped,
+because `:app` has several file-private models whose names collide.
+
+### Three more caught in review, before commit
+
+**`Color.teal` was shadowing SwiftUI's own.** Our design tokens live in
+`extension Color`, and SwiftUI has declared `Color.teal` since iOS 15. Module
+shadowing normally picks ours, but "normally" is not a thing to build a palette
+on, and the quiet failure mode is worse than the loud one: Apple's teal
+rendering silently in place of the brand colour, on iOS only. `teal` is the only
+one of the token names that collides. The **generator** now emits a
+`sanvya`-prefixed twin for any token whose name is a SwiftUI `Color` static, and
+call sites use that.
+
+**The currency share bar divided by a signed total.** Web does the same. On a
+net-negative sheet, or with one overdrawn currency against two positive ones,
+that yields negative shares and shares over 100% — a segment painted wider than
+the bar containing it. Both ports now divide by the sum of absolute values and
+clamp both ends. A percentage of "how much of my money is here" only means
+anything against a magnitude.
+
+**An unbounded `first { … }` on a stale group id.** The Android split preselect
+waited for the group's membership to appear in a flow; a deleted group or a
+stale deep link would park that coroutine in `viewModelScope` for the life of
+the screen and silently never preselect anything. Bounded at five seconds.
+
+### New web defects
+
+| # | Defect |
+|---|---|
+| 33 | The card-edit data loss is latent on web too. `CardPanel`'s `useState` initialisers read `detail`, which comes from a *separate* query from the one the panel is keyed on. If balances resolve first the panel mounts with `detail === undefined`, seeds blank, and never re-seeds — `useState` initialisers run once. An "Edit details → Save" in that window nulls `pending_due` |
+| 34 | `saveCycle` unconditionally rewrites `due_on` from the current cycle, clobbering a deliberately rolled-forward due date — the exact state the `rolledToNext` branch renders. Both ports mirror it for parity; it is wrong on all three |
+| 35 | **Balance queries silently drop NULL-status settlements.** `useFriendBalances` and `useSplitOverview` filter `status <> 'disputed'`; in SQLite `NULL <> 'disputed'` is NULL, i.e. falsy, so a NULL-status row is excluded from **every** balance. `useGroupSettlements` in the same file gets it right with `IFNULL(status,'confirmed')`. Both mobile repos mirror the broken version. One inconsistent write and two people's balances are wrong on all three clients |
+| 36 | Hardcoded ×100 and 2dp on money throughout `friends/page.tsx`: `openSettle` prefills `(abs(net)/100).toFixed(2)`, `confirmSettle` books `round(Number(amount)*100)`, `PayViaUpi` the same. For a zero-decimal currency this prefills 1/100th of the balance and then books 100× it. Mobile is now correct, so the platforms genuinely disagree and web is the wrong one |
+| 37 | `viewTransactions` is called with `{ count }` but the string has no plural forms — a dead argument |
+| 38 | `ExpenseRow` in `groups/[id]/page.tsx` takes an `fmt` prop it never uses |
+
+### Standing problems — updated
+
+Resolved: #1 (the card edit data loss). Still open: the missing session holder,
+the missing shared sync status, the absent hardcoded-string guard, the
+three-way drift in `transactionListItem` date formatting, the locale-immutable
+`S` layer, `SanvyaNavHost.kt` as a contention hotspot, the missing
+`FileProvider`, and mobile being unable to create a SIP at all.
+
+New, and worth scheduling:
+
+1. **The itemised breakdown can go stale and nothing detects it.**
+   `expense_item_shares` is written once by `createSplitExpenseItemized` and
+   never rewritten. Editing the transaction afterwards updates
+   `expense_participants` — which drives balances — and leaves the item shares
+   alone, so the breakdown can end up explaining a number that no longer exists.
+   Web has the identical hole. This is the screen people open when they are
+   arguing about a bill, and it will confidently show them stale evidence.
+2. **Chip ordering rests on an unordered query.** `expense_item_shares` has no
+   `ORDER BY` on any platform. All three agree today only because SQLite happens
+   to return rowid order. One index-driven plan change and the person chips
+   reorder differently per platform.
+3. **Mobile settle-up is per-group; web's is per-person.** Tapping a friend on
+   mobile opens a hidden direct group and settles inside it, so a debt spread
+   across a trip *and* a flat cannot be cleared in one action. This is the
+   largest remaining structural divergence, and it will produce "I paid you and
+   it still says I owe you" reports.
+4. **`saveCycle` splits one logical write across two statements** with no
+   transaction around them. That is why the data loss was possible at all. One
+   `upsertDetails` taking the full row would make "can a save null a column it
+   did not touch?" unanswerable rather than merely answered-correctly-today.
+5. **Per-card `chargeCount` is a query per card per rebuild** on both platforms,
+   now the second one-shot inside that collector. A third will make the cards
+   list visibly slow. The answer is one reactive per-card aggregate, not more
+   one-shots.

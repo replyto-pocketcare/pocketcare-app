@@ -204,6 +204,9 @@ object S {
         fun cardHolder(res: Resources): String = res.getString(R.string.cards_card_holder)
         fun cardNumber(res: Resources): String = res.getString(R.string.cards_card_number)
         fun cardNumberPlaceholder(res: Resources): String = res.getString(R.string.cards_card_number_placeholder)
+        fun cardTxnsTitle(res: Resources): String = res.getString(R.string.cards_card_txns_title)
+        fun cardTxnsTotal(res: Resources, amount: Any): String =
+            res.getString(R.string.cards_card_txns_total, amount)
         fun clickToManage(res: Resources): String = res.getString(R.string.cards_click_to_manage)
         fun creditLimit(res: Resources): String = res.getString(R.string.cards_credit_limit)
         fun dueDay(res: Resources): String = res.getString(R.string.cards_due_day)
@@ -222,6 +225,7 @@ object S {
         fun newAccount(res: Resources): String = res.getString(R.string.cards_new_account)
         fun newSpendThisCycle(res: Resources, amount: Any): String =
             res.getString(R.string.cards_new_spend_this_cycle, amount)
+        fun noCardTxns(res: Resources): String = res.getString(R.string.cards_no_card_txns)
         fun ofLimit(res: Resources, limit: Any): String =
             res.getString(R.string.cards_of_limit, limit)
         fun payBy(res: Resources): String = res.getString(R.string.cards_pay_by)
@@ -234,6 +238,8 @@ object S {
         fun statementDay(res: Resources): String = res.getString(R.string.cards_statement_day)
         fun subtitle(res: Resources): String = res.getString(R.string.cards_subtitle)
         fun title(res: Resources): String = res.getString(R.string.cards_title)
+        fun uncategorised(res: Resources): String = res.getString(R.string.cards_uncategorised)
+        fun viewTransactions(res: Resources): String = res.getString(R.string.cards_view_transactions)
         fun wallet(res: Resources): String = res.getString(R.string.cards_wallet)
     }
 

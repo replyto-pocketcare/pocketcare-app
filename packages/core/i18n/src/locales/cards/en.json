@@ -32,5 +32,10 @@
   "emiCoveredBody_other": "This payment covers {{count}} instalments charged to this card. Mark them paid?",
   "emiNo": "EMI #{{n}}",
   "emiCoveredSkip": "Not now",
-  "emiCoveredConfirm": "Mark paid"
+  "emiCoveredConfirm": "Mark paid",
+  "viewTransactions": "View transactions",
+  "cardTxnsTitle": "Card transactions",
+  "cardTxnsTotal": "Total {{amount}}",
+  "noCardTxns": "No charges on this card yet.",
+  "uncategorised": "Transaction"
 }

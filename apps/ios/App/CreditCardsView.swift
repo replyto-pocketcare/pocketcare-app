@@ -19,7 +19,7 @@ struct CreditCardsView: View {
     @State private var viewModel = CreditCardsViewModel()
 
     var body: some View {
-        SanvyaPage("Credit Cards") {
+        SanvyaPage(S.Cards.title) {
             Group {
                 if !viewModel.loaded {
                     ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -41,16 +41,29 @@ struct CreditCardsView: View {
             .sheet(isPresented: Binding(get: { !viewModel.coveredEmis.isEmpty }, set: { if !$0 { viewModel.skipMarkEmisPaid() } })) {
                 CoveredEmisSheet(covered: viewModel.coveredEmis, onConfirm: { viewModel.confirmMarkEmisPaid() }, onSkip: { viewModel.skipMarkEmisPaid() })
             }
+            // The charges behind the balance, newest first, with the same
+            // running total web prints in the header. Presented once here
+            // rather than inside each panel: the rows are view-model state, so
+            // they survive the list re-rendering behind the scrim.
+            .sanvyaModal(
+                isPresented: Binding(get: { viewModel.charges != nil }, set: { if !$0 { viewModel.closeCharges() } }),
+                label: S.Cards.cardTxnsTitle
+            ) {
+                if let charges = viewModel.charges {
+                    CardChargesPanel(charges: charges, onClose: { viewModel.closeCharges() })
+                }
+            }
         }
     }
 
     private var emptyState: some View {
         VStack(spacing: 10) {
             Image(systemName: "creditcard").font(.system(size: 28)).foregroundColor(Color.text2)
-            Text("No credit cards yet").font(.title3).fontWeight(.bold).foregroundColor(Color.text)
-            Text("Add a credit-card account to track its billing cycle, dues, and settle-ups here.")
+            // Web's empty state is `emptyBody` under the page title and a
+            // `＋ newAccount` link -- no second heading, and no bespoke copy.
+            Text(S.Cards.emptyBody)
                 .font(.subheadline).foregroundColor(Color.text2).multilineTextAlignment(.center)
-            Button("＋ Add account") { currentTab = .accounts }
+            Button("＋ " + S.Cards.newAccount) { currentTab = .accounts }
                 .buttonStyle(.borderedProminent)
                 .tint(Color.accent)
                 .padding(.top, 4)
@@ -71,8 +84,8 @@ private struct CreditCardPanelView: View {
     @State private var editing: Bool
     @State private var stmt: String
     @State private var due: String
-    @State private var limit = ""
-    @State private var dueAmt = ""
+    @State private var limit: String
+    @State private var dueAmt: String
     @State private var last4: String
     @State private var fromId: String?
     @State private var amountText = ""
@@ -83,7 +96,35 @@ private struct CreditCardPanelView: View {
         _editing = State(initialValue: !card.hasCycle)
         _stmt = State(initialValue: String(card.statementDay))
         _due = State(initialValue: String(card.dueDay))
+        // Seeded, not blank. This is the fix for a live data-loss bug: the form
+        // used to open empty and `saveCycle` writes whatever the fields hold,
+        // so changing only the statement day and pressing Save erased the
+        // user's `pending_due` (and would have erased the credit limit, but for
+        // a fallback in the view model). Web seeds its inputs from the loaded
+        // detail, so an unchanged save is a no-op.
+        _limit = State(initialValue: card.creditLimitMajorText)
+        _dueAmt = State(initialValue: card.pendingDueMajorText)
         _last4 = State(initialValue: card.last4 ?? "")
+    }
+
+    /// Every stored value the form edits, as one comparable key.
+    ///
+    /// `@State` set in `init` is captured on the FIRST render only, so a detail
+    /// row that lands afterwards would leave the form holding stale blanks --
+    /// which is exactly the shape of the bug being fixed. Mirrors Android's
+    /// seeding `LaunchedEffect`.
+    private var storedSeed: String {
+        "\(card.statementDay)|\(card.dueDay)|\(card.last4 ?? "")|\(card.creditLimitMajorText)|\(card.pendingDueMajorText)"
+    }
+
+    /// Reset every field to what is actually stored. Only ever called while the
+    /// form is closed, or at the moment it opens -- never over live typing.
+    private func seedFromCard() {
+        stmt = String(card.statementDay)
+        due = String(card.dueDay)
+        limit = card.creditLimitMajorText
+        dueAmt = card.pendingDueMajorText
+        last4 = card.last4 ?? ""
     }
 
     var body: some View {
@@ -98,7 +139,7 @@ private struct CreditCardPanelView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(S.Cards.spentThisCycle).font(.caption).foregroundColor(Color.text2)
                             Text(card.owedFormatted).font(.system(size: 26, weight: .bold)).foregroundColor(Color.negative)
-                            if let l = card.creditLimitFormatted { Text("of \(l) limit").font(.caption).foregroundColor(Color.text2) }
+                            if let l = card.creditLimitFormatted { Text(S.Cards.ofLimit(limit: l)).font(.caption).foregroundColor(Color.text2) }
                         }
                         Spacer()
                         if !expanded, card.hasCycle {
@@ -108,7 +149,10 @@ private struct CreditCardPanelView: View {
                                     Text(due).font(.system(size: 18, weight: .bold)).foregroundColor(card.dueThisCycle != 0 ? Color.negative : Color.positive)
                                 }
                                 if let payBy = card.payByIso {
-                                    Text("Pay by \(payBy.toDisplayDate())").font(.caption2).foregroundColor(Color.text2)
+                                    // Web stacks the label above its value; two
+                                    // Texts, not one concatenated string.
+                                    Text(S.Cards.payBy).font(.caption2).foregroundColor(Color.text2)
+                                    Text(payBy.toDisplayDate()).font(.footnote).fontWeight(.semibold).foregroundColor(Color.text)
                                 }
                                 // A closed statement whose due date has moved
                                 // past this cycle shows "Due this cycle 0";
@@ -127,11 +171,26 @@ private struct CreditCardPanelView: View {
                 if expanded {
                     VStack(alignment: .leading, spacing: 12) {
                         if card.hasCycle {
-                            if let avail = card.availableCreditFormatted { Text("Available credit: \(avail)").font(.caption).foregroundColor(Color.positive) }
-                            if let spend = card.newSpendFormatted { Text("+\(spend) new spend since the last statement").font(.caption2).foregroundColor(Color.text2) }
-                            if let stmtDate = card.statementDateIso { Text("Statement: \(stmtDate.toDisplayDate())").font(.caption2).foregroundColor(Color.text2) }
+                            if let avail = card.availableCreditFormatted { Text(S.Cards.availableCredit(amount: avail)).font(.caption).foregroundColor(Color.positive) }
+                            if let spend = card.newSpendFormatted { Text(S.Cards.newSpendThisCycle(amount: spend)).font(.caption2).foregroundColor(Color.text2) }
+                            if let stmtDate = card.statementDateIso { Text(S.Cards.statement(date: stmtDate.toDisplayDate())).font(.caption2).foregroundColor(Color.text2) }
                             if !editing {
-                                Button(S.Cards.editDetails) { editing = true; limit = ""; dueAmt = "" }.font(.footnote)
+                                HStack(spacing: 12) {
+                                    // Web hides this control when the card has
+                                    // no charges yet, which is why the count
+                                    // travels with the model.
+                                    if card.chargeCount > 0 {
+                                        Button(S.Cards.viewTransactions) {
+                                            viewModel.openCharges(accountId: card.id, currency: card.currency)
+                                        }
+                                        .font(.footnote)
+                                    }
+                                    // Seeds explicitly as well as via
+                                    // `storedSeed` below: this is what
+                                    // guarantees the state the user sees is the
+                                    // state that will be saved.
+                                    Button(S.Cards.editDetails) { seedFromCard(); editing = true }.font(.footnote)
+                                }
                             }
                         }
 
@@ -140,7 +199,7 @@ private struct CreditCardPanelView: View {
                             TextField(S.Cards.dueDay, text: $due).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
                             TextField(S.Cards.creditLimit, text: $limit).keyboardType(.decimalPad).textFieldStyle(.roundedBorder)
                             TextField(S.Cards.amountDue, text: $dueAmt).keyboardType(.decimalPad).textFieldStyle(.roundedBorder)
-                            TextField("Card number (last 4)", text: $last4).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
+                            TextField(S.Cards.cardNumber, text: $last4).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
                                 .onChange(of: last4) { _, v in last4 = String(v.filter(\.isNumber).suffix(4)) }
                             HStack {
                                 Button(S.Cards.save) {
@@ -156,7 +215,7 @@ private struct CreditCardPanelView: View {
 
                         Divider()
 
-                        Text("Settle from").font(.caption).foregroundColor(Color.text2)
+                        Text(S.Cards.settleFrom).font(.caption).foregroundColor(Color.text2)
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 6) {
                                 ForEach(sources) { s in
@@ -192,6 +251,10 @@ private struct CreditCardPanelView: View {
             .background(Color.surface)
             .cornerRadius(SanvyaRadius.radiusLg)
         }
+        // Re-seed if the stored detail changes while the form is closed --
+        // notably when the detail row lands after this panel first rendered.
+        // Guarded on `!editing` so it can never overwrite live typing.
+        .onChange(of: storedSeed) { _, _ in if !editing { seedFromCard() } }
     }
 
     @ViewBuilder
@@ -234,6 +297,62 @@ private struct CreditCardPanelView: View {
     }
 }
 
+/// The charges that add up to the amount due -- newest first, with the running
+/// total in the header. Web's `Modal` in cards/page.tsx.
+///
+/// A plain `VStack`, not a `List`: `sanvyaModal` already puts its panel inside
+/// a `ScrollView`, and a `List` nested in one gets no intrinsic height.
+private struct CardChargesPanel: View {
+    let charges: CardChargesUiModel
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .lastTextBaseline) {
+                Text(S.Cards.cardTxnsTitle).font(.title3).fontWeight(.bold).foregroundColor(Color.text)
+                Spacer()
+                Text(S.Cards.cardTxnsTotal(amount: charges.totalFormatted))
+                    .font(.footnote).foregroundColor(Color.text2)
+            }
+            if charges.rows.isEmpty {
+                Text(S.Cards.noCardTxns).font(.footnote).foregroundColor(Color.text2)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(charges.rows.enumerated()), id: \.element.id) { i, row in
+                        if i > 0 { Divider().background(Color.border) }
+                        HStack(spacing: 10) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                // Web falls back to the `uncategorised` label
+                                // for a charge with no description.
+                                Text(descriptionOrFallback(row))
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color.text)
+                                    .lineLimit(1)
+                                Text(row.occurredAtIso.toDisplayDate())
+                                    .font(.caption2).foregroundColor(Color.text2)
+                            }
+                            Spacer()
+                            Text(row.amountFormatted).font(.system(size: 14, weight: .bold)).foregroundColor(Color.text)
+                        }
+                        .padding(.vertical, 10)
+                    }
+                }
+            }
+            HStack {
+                Spacer()
+                Button(S.Cards.cancel, action: onClose).font(.footnote)
+            }
+        }
+    }
+
+    private func descriptionOrFallback(_ row: CardChargeUiModel) -> String {
+        guard let d = row.description, !d.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return S.Cards.uncategorised
+        }
+        return d
+    }
+}
+
 private struct CoveredEmisSheet: View {
     let covered: [CoveredEmi]
     let onConfirm: () -> Void
@@ -242,12 +361,12 @@ private struct CoveredEmisSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(S.Cards.emiCoveredTitle).font(.title3).fontWeight(.bold).foregroundColor(Color.text)
-            Text("This payment covers \(covered.count) instalment(s) charged to this card. Mark them paid?")
+            Text(S.Cards.emiCoveredBody(count: covered.count))
                 .font(.subheadline).foregroundColor(Color.text2)
             ForEach(covered, id: \.emiNo) { c in
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("EMI #\(c.emiNo)" + (c.lender.map { " · \($0)" } ?? "")).font(.subheadline).fontWeight(.semibold).foregroundColor(Color.text)
+                        Text(S.Cards.emiNo(n: String(c.emiNo)) + (c.lender.map { " · \($0)" } ?? "")).font(.subheadline).fontWeight(.semibold).foregroundColor(Color.text)
                         Text(c.dueDate.toDisplayDate()).font(.caption).foregroundColor(Color.text2)
                     }
                     Spacer()

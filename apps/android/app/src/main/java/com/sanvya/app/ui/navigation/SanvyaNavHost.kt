@@ -437,11 +437,20 @@ fun SanvyaNavHost(inviteToken: String? = null) {
                 onEditTransaction = { id -> navController.navigate("transactions/$id/edit") },
             )
         }
-        formDestination("transactions/new", windowClass) {
+        // `?split=` is web's own deep link (`/transactions/new?split=<id>`), the
+        // one a group's "Add expense" button follows. Optional with a default,
+        // so every existing `navigate("transactions/new")` still matches this
+        // destination unchanged.
+        formDestination(
+            "transactions/new?split={split}",
+            windowClass,
+            arguments = listOf(navArgument("split") { type = NavType.StringType; defaultValue = "" }),
+        ) { entry ->
             CreateTransactionScreen(
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
                 onAddAccountFirst = { navController.navigate("accounts/new") },
+                preselectSplitGroupId = entry.arguments?.getString("split").orEmpty(),
             )
         }
         formDestination(
@@ -575,6 +584,9 @@ fun SanvyaNavHost(inviteToken: String? = null) {
             GroupDetailScreen(
                 groupId = groupId,
                 onBack = { navController.popBackStack() },
+                // Web's "Add expense" is a link to the full transaction form
+                // with this group preselected, not a second, lesser editor.
+                onAddExpense = { id -> navController.navigate("transactions/new?split=$id") },
             )
         }
     }

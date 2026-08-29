@@ -87,6 +87,32 @@ public struct UserProfile: Sendable {
     public let email: String?
 }
 
+/// One line of an itemised bill (`expense_items`), plus who is on the hook for
+/// it (`expense_item_shares`).
+///
+/// These are a BREAKDOWN and nothing else: every balance in this file still
+/// comes from `expense_participants`, which `createSplitExpenseItemized` writes
+/// in the same transaction. Reading these can never move what anybody owes —
+/// see the note on Domain's `itemBreakdown`.
+public struct ExpenseItem: Sendable {
+    public let id: String
+    public let kind: String
+    public let description: String?
+    /// Scaled by RECEIPT_QTY_SCALE — run it through `qtyToMajor` to display.
+    public let quantity: Int64?
+    public let unit: String?
+    public let unitPrice: Int64?
+    public let amount: Int64
+    public let splitMode: String
+    public let sort: Int64
+}
+
+public struct ExpenseItemShare: Sendable {
+    public let itemId: String
+    public let userId: String
+    public let shareAmount: Int64
+}
+
 /// + = they owe you.
 public struct FriendBalance: Sendable {
     public let userId: String
@@ -723,6 +749,59 @@ public final class SplitsRepository: @unchecked Sendable {
 
         let sorted = lines.sorted { $0.date > $1.date }
         return (sorted, total)
+    }
+
+    /// The lines of one itemised bill, in the order the receipt had them.
+    ///
+    /// One-shot rather than a watch, matching `personLedger` on this same
+    /// class: a bill's items are written once, in the same transaction as the
+    /// expense, and are never edited afterwards (web's breakdown is read-only
+    /// by design). A live subscription per expanded row would buy nothing and
+    /// cost one PowerSync watch per row the user opens.
+    ///
+    /// Mirrors `useExpenseItems` in apps/web/src/splits/hooks.ts.
+    public func expenseItems(expenseId: String) async throws -> [ExpenseItem] {
+        try await db.getAll(
+            sql: """
+                SELECT id, kind, description, quantity, unit, unit_price, amount, split_mode, sort
+                FROM expense_items WHERE expense_id = ? AND deleted_at IS NULL ORDER BY sort
+                """,
+            parameters: [expenseId]
+        ) { cursor in
+            ExpenseItem(
+                id: try cursor.getString(name: "id"),
+                kind: try cursor.getString(name: "kind"),
+                description: try cursor.getStringOptional(name: "description"),
+                quantity: try cursor.getInt64Optional(name: "quantity"),
+                unit: try cursor.getStringOptional(name: "unit"),
+                unitPrice: try cursor.getInt64Optional(name: "unit_price"),
+                amount: try cursor.getInt64(name: "amount"),
+                splitMode: try cursor.getString(name: "split_mode"),
+                sort: try cursor.getInt64(name: "sort")
+            )
+        }
+    }
+
+    /// Every per-person slice of one bill.
+    ///
+    /// NO `ORDER BY`, deliberately: web's `useExpenseItemShares` has none
+    /// either, and the row order it gets back is what its two JS Maps inherit —
+    /// which is what orders the breakdown's person chips and each row's
+    /// caption. Adding a sort here would give iOS a different chip order from
+    /// the browser for the same bill.
+    ///
+    /// Mirrors `useExpenseItemShares` in apps/web/src/splits/hooks.ts.
+    public func expenseItemShares(expenseId: String) async throws -> [ExpenseItemShare] {
+        try await db.getAll(
+            sql: "SELECT item_id, user_id, share_amount FROM expense_item_shares WHERE expense_id = ? AND deleted_at IS NULL",
+            parameters: [expenseId]
+        ) { cursor in
+            ExpenseItemShare(
+                itemId: try cursor.getString(name: "item_id"),
+                userId: try cursor.getString(name: "user_id"),
+                shareAmount: try cursor.getInt64(name: "share_amount")
+            )
+        }
     }
 
     // ---- writes ----

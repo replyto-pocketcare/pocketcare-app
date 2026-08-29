@@ -17,6 +17,19 @@ private struct DraftItem: Identifiable {
 /// was persisted. Split-expense, templates, and AI auto-categorize are
 /// explicitly deferred (see spec's Scope section).
 struct CreateTransactionView: View {
+    /// Web's `?split=<id>`: the group a caller (a group's "Add expense") wants
+    /// this expense split with, already chosen when the form opens.
+    ///
+    /// An explicit `init` rather than a defaulted stored property: every other
+    /// stored property here is `private`, so Swift's synthesised memberwise
+    /// initialiser is private too and cannot be called from the views that
+    /// present this form.
+    private let preselectSplitGroupId: String
+
+    init(preselectSplitGroupId: String = "") {
+        self.preselectSplitGroupId = preselectSplitGroupId
+    }
+
     @Environment(\.dismiss) private var dismiss
     @Injected(\.ledgerRepository) private var ledgerRepository
     @Injected(\.authRepository) private var authRepository
@@ -210,6 +223,28 @@ struct CreateTransactionView: View {
         splitOn = true
         splitGroupId = auto
         splitMembers = membersOf(auto)
+        splitMode = SplitModes.equal
+    }
+
+    /**
+     The group a caller asked us to open with — web's `/transactions/new?split=<id>`.
+
+     It runs off the membership watch rather than once on appear: `groupMembers`
+     is empty until the first emission lands, and preselecting before then would
+     pick the group with nobody in it — a split with no participants silently
+     books the whole amount as an ordinary personal expense.
+
+     `splitTouched` is set exactly as the user's own tap sets it, so the
+     auto-split effect cannot overwrite the deliberate choice this represents.
+     */
+    private func applyPreselectedSplit() {
+        guard !preselectSplitGroupId.isEmpty, !splitTouched, splitGroupId != preselectSplitGroupId else { return }
+        let members = membersOf(preselectSplitGroupId)
+        guard !members.isEmpty else { return }
+        splitOn = true
+        splitTouched = true
+        splitGroupId = preselectSplitGroupId
+        splitMembers = members
         splitMode = SplitModes.equal
     }
 
@@ -468,6 +503,7 @@ struct CreateTransactionView: View {
         do {
             for try await map in try splitsRepository.watchAllGroupMembers() {
                 groupMembers = map
+                applyPreselectedSplit()
                 applyAutoSplit()
             }
         } catch { print("Failed to watch group members: \(error)") }

@@ -18,16 +18,43 @@ public struct ExpenseUiModel: Identifiable, Equatable {
     public let amountFormatted: String
     /// Kept alongside the formatted string so the summary can total the group.
     public let amountMinor: Int64
+    /// The EXPENSE's currency, which the breakdown's own numbers are in.
+    public let currency: String
     public let date: String
+    /// `expenses.has_items` — whether there is a per-item breakdown to open.
+    public let hasItems: Bool
 }
+
+/// `pending` drives web's "Waiting to be confirmed" line. A settlement raised
+/// from a UPI hand-off is a CLAIM until the payee says the money landed, and a
+/// row that looks identical to a confirmed one tells both people the debt is
+/// closed when it is not.
 public struct SettlementUiModel: Identifiable, Equatable {
     public let id: String
     public let fromUser: String
     public let toUser: String
     public let fromName: String
     public let toName: String
+    /// The party who is not you — who web's two first-person labels name.
+    public let otherName: String
+    public let iPaid: Bool
+    public let paidToMe: Bool
     public let amountFormatted: String
     public let date: String
+    public let pending: Bool
+}
+
+/// The raw rows behind one itemised bill, loaded on demand when a row is opened.
+///
+/// Kept raw rather than pre-formatted: the arithmetic that turns these into
+/// what is on screen is Domain's `itemBreakdown`, and it re-runs whenever the
+/// person filter chip changes — which is view state, not view-model state.
+/// Not `Equatable`: `ExpenseItem`/`ExpenseItemShare` are `Sendable` row types
+/// in `Data` and nothing here diffs a breakdown — `@Observable` tracks the
+/// dictionary's identity, not its contents.
+public struct ExpenseBreakdownUiModel {
+    public let items: [ExpenseItem]
+    public let shares: [ExpenseItemShare]
 }
 public struct AccountOption: Identifiable, Equatable {
     public let id: String
@@ -244,7 +271,9 @@ public final class GroupDetailViewModel {
                             description: (e.description?.isEmpty == false) ? e.description! : S.Groups.expenseFallback,
                             amountFormatted: formatMoney(e.amount, e.currency),
                             amountMinor: e.amount,
-                            date: String(e.occurredAt.prefix(10))
+                            currency: e.currency,
+                            date: String(e.occurredAt.prefix(10)),
+                            hasItems: e.hasItems
                         )
                     }
                 }
@@ -259,7 +288,19 @@ public final class GroupDetailViewModel {
                             id: s.id, fromUser: s.fromUser, toUser: s.toUser,
                             fromName: s.fromUser == uid ? S.Receipts.splitYou : self.nameOf(s.fromUser),
                             toName: s.toUser == uid ? S.Receipts.splitYou : self.nameOf(s.toUser),
-                            amountFormatted: formatMoney(s.amount, s.currency ?? baseCurrencyNow()), date: String(s.at.prefix(10))
+                            // Web's three labels: "You paid X", "X paid you",
+                            // and "X paid Y" for a settlement between two other
+                            // members of a group you are in.
+                            otherName: self.nameOf(s.fromUser == uid ? s.toUser : s.fromUser),
+                            iPaid: s.fromUser == uid,
+                            paidToMe: s.toUser == uid,
+                            amountFormatted: formatMoney(s.amount, s.currency ?? baseCurrencyNow()),
+                            date: String(s.at.prefix(10)),
+                            // A NULL status is a settlement written before the
+                            // confirm/dispute columns existed; the query already
+                            // treats those as confirmed
+                            // (IFNULL(status,'confirmed')) and so must this.
+                            pending: s.status == "pending"
                         )
                     }
                 }
@@ -303,31 +344,50 @@ public final class GroupDetailViewModel {
 
     private func nameOf(_ id: String) -> String { namesById[id] ?? S.Groups.someone }
 
-    /// Equal-split add-expense -- see docs/mobile/screen-specs/splits.md's
-    /// scope note: web's richer percent/exact/itemized modes are deferred
-    /// to the receipt-scan work, this covers the common case end-to-end.
-    public func addExpense(description: String, amountMajorText: String, payerId: String, payerAccountId: String?, participantIds: [String]) async -> String? {
-        guard let uid = userId, let g = group else { return "Couldn't determine the current user." }
-        guard let amountMajor = Double(amountMajorText.replacingOccurrences(of: ",", with: "")), amountMajor > 0, !participantIds.isEmpty else {
-            return "Enter a valid amount and at least one participant."
-        }
-        // `fromMajor`, not `* 100`: the group carries its own currency, and a
-        // zero-decimal one would be recorded a hundred times too large.
-        let amountMinor = fromMajor(amountMajor, g.currency).amount
-        do {
-            _ = try await splitsRepository.createSplitExpense(
-                userId: uid,
-                input: SplitExpenseInput(
-                    groupId: groupId, mode: "equal", total: money(amountMinor, g.currency),
-                    participants: participantIds.map { ParticipantInput(userId: $0) },
-                    payers: [PayerInput(userId: payerId, paid: amountMinor, accountId: payerAccountId)],
-                    description: description.isEmpty ? nil : description,
-                    occurredAt: ISO8601DateFormatter().string(from: Date())
-                )
-            )
-            return nil
-        } catch {
-            return "Couldn't add the expense: \(error.localizedDescription)"
+    /// A member's display name, for views that hold only an id — the itemised
+    /// breakdown's person chips and captions. Mirrors Android's
+    /// `GroupDetailViewModel.nameOf(id, res)`.
+    public func displayName(_ id: String) -> String {
+        id == userId ? S.Receipts.splitYou : nameOf(id)
+    }
+
+    // Add-expense is GONE from this view model.
+    //
+    // It used to open a sheet that could only split equally, so an unequal
+    // expense added from inside a group was impossible on a phone — while the
+    // full percent/exact/itemised editor sat one sheet away, already built.
+    // Web's button is a link to that editor with the group preselected
+    // (`/transactions/new?split=<id>`, groups/[id]/page.tsx), and the screen now
+    // presents the same form. Two half-forms for one job is worse than one
+    // whole one, and the half was the one that could get a bill wrong.
+    //
+    // (A line comment, not a doc comment: a doc comment here would silently
+    // attach itself to the next declaration, which is about something else.)
+
+    // MARK: - itemised breakdown
+
+    /// Loaded bills, by expense id. Absent = never opened.
+    public var breakdowns: [String: ExpenseBreakdownUiModel] = [:]
+
+    /**
+     Fetch one bill's lines the first time its row is expanded.
+
+     Once, not per redraw, and never eagerly for the whole list: a group can
+     hold hundreds of expenses and almost none of them are opened. The rows
+     never change after the expense is written (the breakdown is read-only on
+     every platform), so a cached copy cannot go stale.
+     */
+    public func loadBreakdown(expenseId: String) {
+        guard breakdowns[expenseId] == nil else { return }
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let items = try await self.splitsRepository.expenseItems(expenseId: expenseId)
+                let shares = try await self.splitsRepository.expenseItemShares(expenseId: expenseId)
+                self.breakdowns[expenseId] = ExpenseBreakdownUiModel(items: items, shares: shares)
+            } catch {
+                self.errorMessage = error.localizedDescription
+            }
         }
     }
 

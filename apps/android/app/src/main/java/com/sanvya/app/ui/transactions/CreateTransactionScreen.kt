@@ -39,6 +39,9 @@ fun CreateTransactionScreen(
     onBack: () -> Unit = {},
     onSaved: () -> Unit = {},
     onAddAccountFirst: () -> Unit = {},
+    /** Web's `?split=<id>`: the group a caller (a group's "Add expense") wants
+     * this expense split with, already chosen when the form opens. */
+    preselectSplitGroupId: String = "",
     viewModel: CreateTransactionViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -53,6 +56,7 @@ fun CreateTransactionScreen(
     val colors = LocalSanvyaColors.current
 
     LaunchedEffect(uiState.saved) { if (uiState.saved) onSaved() }
+    LaunchedEffect(preselectSplitGroupId) { viewModel.preselectSplitGroup(preselectSplitGroupId) }
 
     SanvyaPage(
         title = S.Transactions.addTitle(sRes()),

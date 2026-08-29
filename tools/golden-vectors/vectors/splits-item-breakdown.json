@@ -1,0 +1,187 @@
+[
+  {
+    "fn": "itemBreakdown",
+    "input": { "items": [], "shares": [], "filterUserId": null },
+    "expected": { "everyone": [], "lines": [], "total": 0 }
+  },
+  {
+    "fn": "itemBreakdown",
+    "input": {
+      "items": [
+        { "id": "i1", "amount": 30000 },
+        { "id": "i2", "amount": 20000 }
+      ],
+      "shares": [
+        { "itemId": "i1", "userId": "u1", "shareAmount": 15000 },
+        { "itemId": "i1", "userId": "u2", "shareAmount": 15000 },
+        { "itemId": "i2", "userId": "u2", "shareAmount": 20000 }
+      ],
+      "filterUserId": null
+    },
+    "expected": {
+      "everyone": ["u1", "u2"],
+      "lines": [
+        {
+          "itemId": "i1",
+          "amount": 30000,
+          "shares": [
+            { "userId": "u1", "amount": 15000 },
+            { "userId": "u2", "amount": 15000 }
+          ]
+        },
+        {
+          "itemId": "i2",
+          "amount": 20000,
+          "shares": [{ "userId": "u2", "amount": 20000 }]
+        }
+      ],
+      "total": 50000
+    }
+  },
+  {
+    "fn": "itemBreakdown",
+    "input": {
+      "items": [
+        { "id": "i1", "amount": 30000 },
+        { "id": "i2", "amount": 20000 }
+      ],
+      "shares": [
+        { "itemId": "i1", "userId": "u1", "shareAmount": 15000 },
+        { "itemId": "i1", "userId": "u2", "shareAmount": 15000 },
+        { "itemId": "i2", "userId": "u2", "shareAmount": 20000 }
+      ],
+      "filterUserId": "u2"
+    },
+    "expected": {
+      "everyone": ["u1", "u2"],
+      "lines": [
+        { "itemId": "i1", "amount": 15000, "shares": [] },
+        { "itemId": "i2", "amount": 20000, "shares": [] }
+      ],
+      "total": 35000
+    }
+  },
+  {
+    "fn": "itemBreakdown",
+    "input": {
+      "items": [
+        { "id": "i1", "amount": 30000 },
+        { "id": "i2", "amount": 20000 }
+      ],
+      "shares": [
+        { "itemId": "i1", "userId": "u1", "shareAmount": 15000 },
+        { "itemId": "i1", "userId": "u2", "shareAmount": 15000 },
+        { "itemId": "i2", "userId": "u2", "shareAmount": 20000 }
+      ],
+      "filterUserId": "u1"
+    },
+    "expected": {
+      "everyone": ["u1", "u2"],
+      "lines": [{ "itemId": "i1", "amount": 15000, "shares": [] }],
+      "total": 15000
+    }
+  },
+  {
+    "fn": "itemBreakdown",
+    "input": {
+      "items": [
+        { "id": "i1", "amount": 10000 },
+        { "id": "i2", "amount": 0 }
+      ],
+      "shares": [
+        { "itemId": "i1", "userId": "u1", "shareAmount": 10000 },
+        { "itemId": "i1", "userId": "u2", "shareAmount": 0 }
+      ],
+      "filterUserId": null
+    },
+    "expected": {
+      "everyone": ["u1", "u2"],
+      "lines": [
+        {
+          "itemId": "i1",
+          "amount": 10000,
+          "shares": [{ "userId": "u1", "amount": 10000 }]
+        },
+        { "itemId": "i2", "amount": 0, "shares": [] }
+      ],
+      "total": 10000
+    }
+  },
+  {
+    "fn": "itemBreakdown",
+    "input": {
+      "items": [{ "id": "i1", "amount": 5000 }],
+      "shares": [{ "itemId": "i1", "userId": "u1", "shareAmount": 5000 }],
+      "filterUserId": ""
+    },
+    "expected": {
+      "everyone": ["u1"],
+      "lines": [
+        {
+          "itemId": "i1",
+          "amount": 5000,
+          "shares": [{ "userId": "u1", "amount": 5000 }]
+        }
+      ],
+      "total": 5000
+    }
+  },
+  {
+    "fn": "itemBreakdown",
+    "input": {
+      "items": [
+        { "id": "i1", "amount": 20000 },
+        { "id": "i2", "amount": -2000 }
+      ],
+      "shares": [
+        { "itemId": "i1", "userId": "u1", "shareAmount": 10000 },
+        { "itemId": "i1", "userId": "u2", "shareAmount": 10000 },
+        { "itemId": "i2", "userId": "u1", "shareAmount": -1000 },
+        { "itemId": "i2", "userId": "u2", "shareAmount": -1000 }
+      ],
+      "filterUserId": "u1"
+    },
+    "expected": {
+      "everyone": ["u1", "u2"],
+      "lines": [
+        { "itemId": "i1", "amount": 10000, "shares": [] },
+        { "itemId": "i2", "amount": -1000, "shares": [] }
+      ],
+      "total": 9000
+    }
+  },
+  {
+    "fn": "itemBreakdown",
+    "input": {
+      "items": [
+        { "id": "i1", "amount": 12000 },
+        { "id": "i2", "amount": 8000 }
+      ],
+      "shares": [
+        { "itemId": "i2", "userId": "u3", "shareAmount": 8000 },
+        { "itemId": "i1", "userId": "u1", "shareAmount": 6000 },
+        { "itemId": "i1", "userId": "u3", "shareAmount": 6000 }
+      ],
+      "filterUserId": null
+    },
+    "expected": {
+      "everyone": ["u3", "u1"],
+      "lines": [
+        {
+          "itemId": "i1",
+          "amount": 12000,
+          "shares": [
+            { "userId": "u1", "amount": 6000 },
+            { "userId": "u3", "amount": 6000 }
+          ]
+        },
+        {
+          "itemId": "i2",
+          "amount": 8000,
+          "shares": [{ "userId": "u3", "amount": 8000 }]
+        }
+      ],
+      "total": 20000
+    }
+  }
+]

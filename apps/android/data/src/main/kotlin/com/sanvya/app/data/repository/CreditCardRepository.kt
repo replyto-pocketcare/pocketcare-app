@@ -39,6 +39,24 @@ data class CreditCardDetails(
     val dueOn: String?,
 )
 
+/**
+ * One charge behind a card's outstanding balance, for the "View transactions"
+ * list. Deliberately a narrow row rather than a full `TransactionRow`: the
+ * list shows a description, a date and an amount, and web's query
+ * (`SELECT id, description, amount, occurred_at`) selects exactly those four.
+ */
+data class CardCharge(
+    val id: String,
+    val description: String?,
+    val amount: Long,
+    val occurredAt: String,
+)
+
+/** Web caps the charges list at 200 rows (`LIMIT 200` in cards/page.tsx); the
+ * running total is the total of what is listed, so the cap has to match or the
+ * two clients would print different totals for the same card. */
+const val CARD_CHARGES_LIMIT = 200
+
 class CreditCardRepository(
     private val db: PowerSyncDatabase,
     private val transactions: LedgerRepository,
@@ -121,6 +139,52 @@ class CreditCardRepository(
                 parameters = listOf(newId(), userId, details.accountId, details.statementDay.toLong(), details.dueDay.toLong(), details.creditLimit, details.cardLast4, ts, ts),
             )
         }
+    }
+
+    /**
+     * The charges that add up to this card's outstanding balance, newest
+     * first -- web's second `useQuery` in `CardPanel`.
+     *
+     * `type = 'expense'` only, matching web: a settlement is a TRANSFER, and
+     * listing it here would show a payment as though it were another charge.
+     *
+     * One-shot rather than a live `db.watch()` for the same reason
+     * [cycleSpend] is: it is read when the user opens the list, and the list
+     * is a modal over a screen that is itself rebuilt whenever a transaction
+     * against the account changes.
+     */
+    suspend fun charges(accountId: String, limit: Int = CARD_CHARGES_LIMIT): List<CardCharge> = db.getAll(
+        sql = """SELECT id, description, amount, occurred_at FROM transactions
+                 WHERE account_id = ? AND deleted_at IS NULL AND type = 'expense'
+                 ORDER BY occurred_at DESC LIMIT ?""",
+        parameters = listOf(accountId, limit),
+        mapper = { cursor ->
+            CardCharge(
+                id = cursor.getString("id"),
+                description = cursor.getStringOptional("description"),
+                amount = cursor.getLongOptional("amount") ?: 0L,
+                occurredAt = cursor.getString("occurred_at"),
+            )
+        },
+    )
+
+    /**
+     * How many charges [charges] would return, so the screen can hide the
+     * "View transactions" control when there are none -- web's
+     * `cardTxns.length > 0` guard. Counting is far cheaper than fetching 200
+     * rows per card on every rebuild.
+     */
+    suspend fun chargeCount(accountId: String, limit: Int = CARD_CHARGES_LIMIT): Int {
+        val row = db.getOptional(
+            sql = """SELECT COUNT(*) AS n FROM (
+                       SELECT id FROM transactions
+                       WHERE account_id = ? AND deleted_at IS NULL AND type = 'expense'
+                       LIMIT ?
+                     )""",
+            parameters = listOf(accountId, limit),
+            mapper = { cursor -> cursor.getLongOptional("n") ?: 0L },
+        )
+        return (row ?: 0L).toInt()
     }
 
     /** Settle the bill = record a transfer from the chosen account to the card. */

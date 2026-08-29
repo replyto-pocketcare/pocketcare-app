@@ -34,6 +34,7 @@ package com.sanvya.app.data.repository
 import com.powersync.PowerSyncDatabase
 import com.powersync.db.getBooleanOptional
 import com.powersync.db.getLong
+import com.powersync.db.getLongOptional
 import com.powersync.db.getString
 import com.powersync.db.getStringOptional
 import com.sanvya.app.domain.money.Money
@@ -94,6 +95,30 @@ data class GroupSettlement(
 )
 
 data class UserProfile(val id: String, val name: String, val email: String?)
+
+/**
+ * One line of an itemised bill (`expense_items`), plus who is on the hook for
+ * it (`expense_item_shares`).
+ *
+ * These are a BREAKDOWN and nothing else: every balance in this file still
+ * comes from `expense_participants`, which `createSplitExpenseItemized` writes
+ * in the same transaction. Reading these can never move what anybody owes --
+ * see the note on Domain's `itemBreakdown`.
+ */
+data class ExpenseItem(
+    val id: String,
+    val kind: String,
+    val description: String?,
+    /** Scaled by RECEIPT_QTY_SCALE -- run it through `qtyToMajor` to display. */
+    val quantity: Long?,
+    val unit: String?,
+    val unitPrice: Long?,
+    val amount: Long,
+    val splitMode: String,
+    val sort: Long,
+)
+
+data class ExpenseItemShare(val itemId: String, val userId: String, val shareAmount: Long)
 
 /** + = they owe you. */
 data class FriendBalance(val userId: String, val net: Long)
@@ -547,6 +572,59 @@ class SplitsRepository(
         val sorted = lines.sortedByDescending { it.date }
         return sorted to total
     }
+
+    /**
+     * The lines of one itemised bill, in the order the receipt had them.
+     *
+     * One-shot rather than a `watch`, matching [personLedger] on this same
+     * class: a bill's items are written once, in the same transaction as the
+     * expense, and are never edited afterwards (web's breakdown is read-only by
+     * design). A live subscription per expanded row would buy nothing and cost
+     * one PowerSync watch per row the user opens.
+     *
+     * Mirrors `useExpenseItems` in apps/web/src/splits/hooks.ts.
+     */
+    suspend fun expenseItems(expenseId: String): List<ExpenseItem> = db.getAll(
+        sql = """SELECT id, kind, description, quantity, unit, unit_price, amount, split_mode, sort
+            FROM expense_items WHERE expense_id = ? AND deleted_at IS NULL ORDER BY sort""",
+        parameters = listOf(expenseId),
+        mapper = { cursor ->
+            ExpenseItem(
+                id = cursor.getString("id"),
+                kind = cursor.getString("kind"),
+                description = cursor.getStringOptional("description"),
+                quantity = cursor.getLongOptional("quantity"),
+                unit = cursor.getStringOptional("unit"),
+                unitPrice = cursor.getLongOptional("unit_price"),
+                amount = cursor.getLong("amount"),
+                splitMode = cursor.getString("split_mode"),
+                sort = cursor.getLong("sort"),
+            )
+        },
+    )
+
+    /**
+     * Every per-person slice of one bill.
+     *
+     * NO `ORDER BY`, deliberately: web's `useExpenseItemShares` has none either,
+     * and the row order it gets back is what its two JS Maps inherit -- which is
+     * what orders the breakdown's person chips and each row's caption. Adding a
+     * sort here would give Android a different chip order from the browser for
+     * the same bill.
+     *
+     * Mirrors `useExpenseItemShares` in apps/web/src/splits/hooks.ts.
+     */
+    suspend fun expenseItemShares(expenseId: String): List<ExpenseItemShare> = db.getAll(
+        sql = "SELECT item_id, user_id, share_amount FROM expense_item_shares WHERE expense_id = ? AND deleted_at IS NULL",
+        parameters = listOf(expenseId),
+        mapper = { cursor ->
+            ExpenseItemShare(
+                itemId = cursor.getString("item_id"),
+                userId = cursor.getString("user_id"),
+                shareAmount = cursor.getLong("share_amount"),
+            )
+        },
+    )
 
     // ---- writes ----
 
