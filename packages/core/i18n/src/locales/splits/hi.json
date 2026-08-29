@@ -69,5 +69,7 @@
   "viewLines_other": "{{count}} लेनदेन देखें",
   "youOweInline": "आपको देना है",
   "youPayThemBack": "आप {{name}} को वापस देंगे।",
-  "yourBalance": "आपका बैलेंस"
+  "yourBalance": "आपका बैलेंस",
+  "owedToYouAmt": "आपको मिलने हैं: {{amount}}",
+  "youOweAmt": "आप देने हैं: {{amount}}"
 }

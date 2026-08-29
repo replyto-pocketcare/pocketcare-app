@@ -68,12 +68,12 @@ fun SplitsScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Your net position", fontSize = 12.sp, color = colors.text2)
+                        Text(S.Splits.netPosition(sRes()), fontSize = 12.sp, color = colors.text2)
                         Text(ov.netPositionFormatted, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = if (ov.netPositive) colors.positive else colors.negative)
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Owed to you: ${ov.owedFormatted}", fontSize = 11.sp, color = colors.text2)
-                        Text("You owe: ${ov.oweFormatted}", fontSize = 11.sp, color = colors.text2)
+                        Text(S.Splits.owedToYouAmt(sRes(), ov.owedFormatted), fontSize = 11.sp, color = colors.text2)
+                        Text(S.Splits.youOweAmt(sRes(), ov.oweFormatted), fontSize = 11.sp, color = colors.text2)
                     }
                 }
             }

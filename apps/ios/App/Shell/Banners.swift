@@ -21,7 +21,7 @@ struct OfflineBanner: View {
         if offline {
             HStack(spacing: SanvyaMetrics.Banner.gap) {
                 Circle().fill(Color.white.opacity(0.9)).frame(width: 7, height: 7)
-                Text("You're offline — changes are saved on this device and will sync when you're back online.")
+                Text(S.Sync.offlineBanner)
                     .sanvyaStyle(SanvyaType.statLabel)
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)

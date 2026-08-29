@@ -4032,3 +4032,68 @@ Two items, and neither is code we can write:
 Two more are decided rather than open: **Pay anyone** is being removed from web,
 and **credit packs** cannot be a button (StoreKit and Play Billing are mandatory
 for in-app digital content, and no server-side receipt path exists).
+
+## The ninth guard — hardcoded user-facing strings (2026-08-29)
+
+The last item on the standing-problems list that this workstream could close on
+its own, and the one repeatedly described here as "the cheapest guard left
+unbuilt". It is now built, and it found **234 sites**.
+
+### Why it needed a guard rather than a sweep
+
+This app ships English, Hindi and Dutch. It has a generator that turns one set
+of JSON files into 1,749 typed accessors on both platforms and a guard that
+checks every call site's arguments. None of that helps a string that was never
+put in the catalogue. **A hardcoded label does not fail, does not warn, and does
+not look wrong in review** — it renders in English to a Hindi user and nowhere
+else does anything happen. It is the only defect class in this port with no
+natural detector, which is exactly why it accumulated in the screens written
+under time pressure while the other eight guards caught everything else.
+
+### The one rule that makes it usable
+
+A literal counts as prose if, **after every interpolation is stripped**, two
+ASCII letters remain in a row.
+
+Stripping first is what keeps the signal clean. `"${f.name} · ${f.balanceFormatted}"`
+is a composition of values that are already localised, and flagging it would
+teach people to ignore the guard. `"Owes you ${x}"` still has "Owes" in it and is
+caught. That single rule removes nearly every false positive without a single
+per-file exception.
+
+The other half is matching **sites**, not literals: `Text(...)`, `placeholder`,
+`contentDescription`, `navigationTitle`, `Button`, `Toggle`, `Section(header:)`
+and the rest. This codebase is full of literals that are not user-facing — SQL,
+route names, column names, SF Symbol ids, analytics scopes. Naming the places
+text comes *out* is far more precise than trying to name every place it does not.
+
+### The baseline, and why there is one
+
+The guard arrives late, against 234 existing sites. Failing the build on all of
+them would produce either a 234-site diff nobody can review or a guard everybody
+disables — **both worse than the debt**. So it carries a baseline of what existed
+the day it was written and fails only on new sites.
+
+A site's identity is *file + text*, not the line number, so moving code is not an
+offence. The count prints on every run and can only go down: removing a site is
+one edit to the code and one to the baseline; adding one back fails. Debt that is
+visible and monotonic beats debt that is invisible and growing.
+
+Proved both ways before it was wired into CI: it fails on a planted new literal
+and is silent on the 234 it knows about. That step is now standard here, after a
+rule earlier this week shipped in a draft that silently matched nothing.
+
+### First seven fixed, and what they were
+
+The shell and Splits hub — the strings visible on the most screens — and every
+one of them was the pattern this audit has recorded five times already: **the key
+already existed in the catalogue and nothing read it.** `splits.netPosition`,
+`splits.totalOwedToYou` and `splits.totalYouOwe` had been there all along. Three
+new keys were needed (`sync.offlineBanner` and two interpolating Splits keys),
+in all three locales.
+
+**Baseline now 227.** The remaining ones are mostly Settings, the diagnostics
+panel and the repair flows, and they need roughly 150 new keys — which is
+translation work with real tone decisions in it, not mechanical substitution.
+That is the right next task for this file and it is worth doing deliberately
+rather than in a rush.

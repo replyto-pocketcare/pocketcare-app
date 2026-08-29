@@ -1552,6 +1552,7 @@
     <string name="splits_none_mark_settled">कोई नहीं — बस निपटा हुआ चिह्नित करें</string>
     <string name="splits_open_group">समूह खोलें</string>
     <string name="splits_owed_in_group">आपको %1$s मिलने हैं</string>
+    <string name="splits_owed_to_you_amt">आपको मिलने हैं: %1$s</string>
     <string name="splits_owe_in_group">आप पर %1$s बाकी</string>
     <string name="splits_owes_you_inline">आपको मिलना है</string>
     <string name="splits_paid_from">किस खाते से भुगतान</string>
@@ -1580,6 +1581,7 @@
     </plurals>
     <string name="splits_view_lines_one">%1$s लेन-देन देखें</string>
     <string name="splits_view_lines_other">%1$s लेन-देन देखें</string>
+    <string name="splits_you_owe_amt">आप देने हैं: %1$s</string>
     <string name="splits_you_owe_inline">आपको देना है</string>
     <string name="splits_you_pay_them_back">आप %1$s को वापस देंगे।</string>
     <string name="splits_your_balance">आपका बैलेंस</string>
@@ -1661,6 +1663,7 @@
 
     <!-- sync -->
     <string name="sync_offline">आप ऑफ़लाइन हैं। आपके बदलाव इसी डिवाइस पर सहेजे गए हैं और ऑनलाइन होते ही अपने आप सिंक हो जाएँगे।</string>
+    <string name="sync_offline_banner">आप ऑफ़लाइन हैं — बदलाव इस डिवाइस पर सहेजे गए हैं और ऑनलाइन होते ही सिंक हो जाएंगे।</string>
     <string name="sync_report_issue">समस्या बताएँ</string>
     <string name="sync_trouble">अभी सिंक करने में दिक़्क़त आ रही है। आपका डेटा इस डिवाइस पर सुरक्षित है।</string>
 

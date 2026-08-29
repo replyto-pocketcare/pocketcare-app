@@ -62,7 +62,7 @@ fun OfflineBanner(offline: Boolean) {
                 .background(Color.White.copy(alpha = 0.9f)),
         )
         SanvyaText(
-            text = "You're offline — changes are saved on this device and will sync when you're back online.",
+            text = S.Sync.offlineBanner(sRes()),
             style = SanvyaType.statLabel,
             color = Color.White,
         )

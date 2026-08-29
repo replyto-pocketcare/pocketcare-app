@@ -162,6 +162,12 @@ jobs:
       # broke a save or overstated a bill by 100x.
       - name: Hardcoded money scale
         run: node tools/parity/check-money-scale.mjs 2>&1 | tee -a parity.log
+      # This app ships en/hi/nl. A hardcoded label does not fail, does not warn
+      # and does not look wrong in review -- it just renders English to a Hindi
+      # user. Baselined at 227 sites; this only fails on NEW ones, and the
+      # count can only go down.
+      - name: Hardcoded user-facing strings
+        run: node tools/parity/check-hardcoded-strings.mjs 2>&1 | tee -a parity.log
       - name: Fail if generated output drifted
         run: |
           if ! git diff --exit-code | tee -a parity.log; then

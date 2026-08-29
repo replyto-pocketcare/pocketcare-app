@@ -33456,6 +33456,29 @@
         }
       }
     },
+    "splits:owedToYouAmt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owed to you: %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपको मिलने हैं: %1$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aan jou verschuldigd: %1$@"
+          }
+        }
+      }
+    },
     "splits:oweInGroup": {
       "extractionState": "manual",
       "localizations": {
@@ -34063,6 +34086,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bekijk %1$@ transacties"
+          }
+        }
+      }
+    },
+    "splits:youOweAmt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You owe: %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप देने हैं: %1$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jij bent verschuldigd: %1$@"
           }
         }
       }
@@ -35788,6 +35834,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Je bent offline. Je wijzigingen zijn op dit apparaat opgeslagen en synchroniseren automatisch zodra je weer online bent."
+          }
+        }
+      }
+    },
+    "sync:offlineBanner": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're offline — changes are saved on this device and will sync when you're back online."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप ऑफ़लाइन हैं — बदलाव इस डिवाइस पर सहेजे गए हैं और ऑनलाइन होते ही सिंक हो जाएंगे।"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je bent offline — wijzigingen worden op dit apparaat bewaard en synchroniseren zodra je weer online bent."
           }
         }
       }

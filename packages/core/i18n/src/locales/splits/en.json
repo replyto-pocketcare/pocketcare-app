@@ -69,5 +69,7 @@
   "viewLines_other": "View {{count}} transactions",
   "youOweInline": "you owe",
   "youPayThemBack": "You pay {{name}} back.",
-  "yourBalance": "Your balance"
+  "yourBalance": "Your balance",
+  "owedToYouAmt": "Owed to you: {{amount}}",
+  "youOweAmt": "You owe: {{amount}}"
 }

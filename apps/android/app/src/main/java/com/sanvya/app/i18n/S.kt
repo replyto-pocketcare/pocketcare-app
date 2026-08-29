@@ -1706,6 +1706,8 @@ object S {
         fun openGroup(res: Resources): String = res.getString(R.string.splits_open_group)
         fun owedInGroup(res: Resources, amount: Any): String =
             res.getString(R.string.splits_owed_in_group, amount)
+        fun owedToYouAmt(res: Resources, amount: Any): String =
+            res.getString(R.string.splits_owed_to_you_amt, amount)
         fun oweInGroup(res: Resources, amount: Any): String =
             res.getString(R.string.splits_owe_in_group, amount)
         fun owesYouInline(res: Resources): String = res.getString(R.string.splits_owes_you_inline)
@@ -1739,6 +1741,8 @@ object S {
             res.getString(R.string.splits_view_lines_one, count)
         fun viewLinesOther(res: Resources, count: Any): String =
             res.getString(R.string.splits_view_lines_other, count)
+        fun youOweAmt(res: Resources, amount: Any): String =
+            res.getString(R.string.splits_you_owe_amt, amount)
         fun youOweInline(res: Resources): String = res.getString(R.string.splits_you_owe_inline)
         fun youPayThemBack(res: Resources, name: Any): String =
             res.getString(R.string.splits_you_pay_them_back, name)
@@ -1829,6 +1833,7 @@ object S {
 
     object Sync {
         fun offline(res: Resources): String = res.getString(R.string.sync_offline)
+        fun offlineBanner(res: Resources): String = res.getString(R.string.sync_offline_banner)
         fun reportIssue(res: Resources): String = res.getString(R.string.sync_report_issue)
         fun trouble(res: Resources): String = res.getString(R.string.sync_trouble)
     }

@@ -1552,6 +1552,7 @@
     <string name="splits_none_mark_settled">None — just mark settled</string>
     <string name="splits_open_group">Open group</string>
     <string name="splits_owed_in_group">%1$s owed to you</string>
+    <string name="splits_owed_to_you_amt">Owed to you: %1$s</string>
     <string name="splits_owe_in_group">you owe %1$s</string>
     <string name="splits_owes_you_inline">owes you</string>
     <string name="splits_paid_from">Paid from account</string>
@@ -1580,6 +1581,7 @@
     </plurals>
     <string name="splits_view_lines_one">View %1$s transaction</string>
     <string name="splits_view_lines_other">View %1$s transactions</string>
+    <string name="splits_you_owe_amt">You owe: %1$s</string>
     <string name="splits_you_owe_inline">you owe</string>
     <string name="splits_you_pay_them_back">You pay %1$s back.</string>
     <string name="splits_your_balance">Your balance</string>
@@ -1661,6 +1663,7 @@
 
     <!-- sync -->
     <string name="sync_offline">You\'re offline. Your changes are saved on this device and will sync automatically when you\'re back online.</string>
+    <string name="sync_offline_banner">You\'re offline — changes are saved on this device and will sync when you\'re back online.</string>
     <string name="sync_report_issue">Report Issue</string>
     <string name="sync_trouble">We\'re having trouble syncing right now. Your data is safe on this device.</string>
 

@@ -69,5 +69,7 @@
   "viewLines_other": "Bekijk {{count}} transacties",
   "youOweInline": "jij bent verschuldigd",
   "youPayThemBack": "Jij betaalt {{name}} terug.",
-  "yourBalance": "Je saldo"
+  "yourBalance": "Je saldo",
+  "owedToYouAmt": "Aan jou verschuldigd: {{amount}}",
+  "youOweAmt": "Jij bent verschuldigd: {{amount}}"
 }

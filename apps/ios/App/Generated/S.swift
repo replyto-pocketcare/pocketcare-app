@@ -1893,6 +1893,9 @@ public enum S {
         public static func owedInGroup(amount: String) -> String {
             String(format: String(localized: "splits:owedInGroup", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale), amount)
         }
+        public static func owedToYouAmt(amount: String) -> String {
+            String(format: String(localized: "splits:owedToYouAmt", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale), amount)
+        }
         public static func oweInGroup(amount: String) -> String {
             String(format: String(localized: "splits:oweInGroup", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale), amount)
         }
@@ -1933,6 +1936,9 @@ public enum S {
         }
         public static func viewLinesOther(count: String) -> String {
             String(format: String(localized: "splits:viewLines.other", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale), count)
+        }
+        public static func youOweAmt(amount: String) -> String {
+            String(format: String(localized: "splits:youOweAmt", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale), amount)
         }
         public static var youOweInline: String { String(localized: "splits:youOweInline", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale) }
         public static func youPayThemBack(name: String) -> String {
@@ -2030,6 +2036,7 @@ public enum S {
 
     public enum Sync {
         public static var offline: String { String(localized: "sync:offline", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale) }
+        public static var offlineBanner: String { String(localized: "sync:offlineBanner", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale) }
         public static var reportIssue: String { String(localized: "sync:reportIssue", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale) }
         public static var trouble: String { String(localized: "sync:trouble", table: "Localizable", bundle: SanvyaLocale.bundle, locale: SanvyaLocale.locale) }
     }

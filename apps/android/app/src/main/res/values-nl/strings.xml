@@ -1552,6 +1552,7 @@
     <string name="splits_none_mark_settled">Geen — markeer alleen als afgerekend</string>
     <string name="splits_open_group">Groep openen</string>
     <string name="splits_owed_in_group">%1$s aan jou verschuldigd</string>
+    <string name="splits_owed_to_you_amt">Aan jou verschuldigd: %1$s</string>
     <string name="splits_owe_in_group">jij bent %1$s verschuldigd</string>
     <string name="splits_owes_you_inline">is jou verschuldigd</string>
     <string name="splits_paid_from">Betaald van rekening</string>
@@ -1580,6 +1581,7 @@
     </plurals>
     <string name="splits_view_lines_one">Bekijk %1$s transactie</string>
     <string name="splits_view_lines_other">Bekijk %1$s transacties</string>
+    <string name="splits_you_owe_amt">Jij bent verschuldigd: %1$s</string>
     <string name="splits_you_owe_inline">jij bent verschuldigd</string>
     <string name="splits_you_pay_them_back">Jij betaalt %1$s terug.</string>
     <string name="splits_your_balance">Je saldo</string>
@@ -1661,6 +1663,7 @@
 
     <!-- sync -->
     <string name="sync_offline">Je bent offline. Je wijzigingen zijn op dit apparaat opgeslagen en synchroniseren automatisch zodra je weer online bent.</string>
+    <string name="sync_offline_banner">Je bent offline — wijzigingen worden op dit apparaat bewaard en synchroniseren zodra je weer online bent.</string>
     <string name="sync_report_issue">Probleem melden</string>
     <string name="sync_trouble">Het synchroniseren lukt op dit moment niet. Je gegevens staan veilig op dit apparaat.</string>
 

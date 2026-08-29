@@ -85,14 +85,14 @@ struct SplitsView: View {
                 PocketCard {
                     VStack(spacing: 8) {
                         HStack {
-                            Text("Your net position").font(.caption).foregroundColor(.text2)
+                            Text(S.Splits.netPosition).font(.caption).foregroundColor(.text2)
                             Spacer()
                             Text(ov.netPositionFormatted).font(.title2).fontWeight(.bold).foregroundColor(ov.netPositive ? .positive : .negative)
                         }
                         HStack {
-                            Text("Owed to you: \(ov.owedFormatted)").font(.caption2).foregroundColor(.text2)
+                            Text(S.Splits.owedToYouAmt(amount: ov.owedFormatted)).font(.caption2).foregroundColor(.text2)
                             Spacer()
-                            Text("You owe: \(ov.oweFormatted)").font(.caption2).foregroundColor(.text2)
+                            Text(S.Splits.youOweAmt(amount: ov.oweFormatted)).font(.caption2).foregroundColor(.text2)
                         }
                     }
                 }
